@@ -1,0 +1,28 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+
+# Empaquetado
+*.egg-info/
+build/
+dist/
+
+# Pruebas y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Datos generados (no se versionan)
+data/
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
