@@ -1,0 +1,113 @@
+\chapter{OBJETIVOS}
+
+% ===========================================================================
+% Este capítulo recoge el objetivo general, los objetivos específicos, la
+% hipótesis de trabajo, el alcance y restricciones, la metodología seguida y
+% la planificación temporal. Sustituye los textos de ejemplo por los tuyos.
+% (Cubre los ítems IT-44 hipótesis/restricciones, IT-45 requisitos, IT-48 Gantt)
+% ===========================================================================
+
+\section{Objetivo general}
+
+Diseñar, implementar y evaluar un sistema conversacional capaz de responder, a
+partir de información oficial y actualizada, preguntas de estudiantes
+preuniversitarios sobre las titulaciones de la Escuela Politécnica Superior de
+Jaén, empleando técnicas de \textit{Retrieval-Augmented Generation} (RAG) sobre
+un modelo de lenguaje de código abierto.
+
+\section{Objetivos específicos}
+
+% Deben ser verificables: al final del TFG se ha de poder decir sí/no para cada uno.
+\begin{itemize}
+    \item OE1. Construir un \textit{corpus} estructurado y trazable de las guías
+    docentes, planes de estudio y salidas profesionales de la EPSJ mediante
+    \textit{web scraping}.
+    \item OE2. Definir y evaluar experimentalmente una estrategia de
+    segmentación (\textit{chunking}) del corpus adecuada al dominio.
+    \item OE3. Seleccionar, con criterios cuantitativos, el modelo de
+    \textit{embeddings} y la base de datos vectorial del sistema.
+    \item OE4. Implementar un \textit{pipeline} RAG completo sobre un LLM de
+    código abierto desplegado en local.
+    \item OE5. Evaluar el sistema con métricas objetivas de recuperación y de
+    generación, y validarlo con usuarios reales.
+    \item OE6. Ofrecer el sistema a través de una aplicación web de chat
+    accesible sin registro.
+\end{itemize}
+
+\section{Hipótesis de trabajo}
+
+% IT-44. Debe ser falsable.
+Es posible construir, con recursos de cómputo modestos y modelos de código
+abierto, un sistema RAG que responda preguntas sobre la oferta académica de la
+EPSJ con una fidelidad (\textit{faithfulness}) y una capacidad de recuperación
+(\textit{Recall@K}) suficientes para resultar útil a un estudiante
+preuniversitario, sin incurrir en respuestas inventadas sobre asignaturas o
+titulaciones.
+
+\section{Alcance y restricciones}
+
+% IT-44 / IT-45.
+El sistema se limita a las titulaciones de grado de la EPSJ; no abarca el
+conjunto de la Universidad de Jaén ni los estudios de posgrado. El proyecto se
+desarrolla de forma individual, con una dedicación equivalente a los créditos
+ECTS del TFG, y dentro del calendario de la convocatoria Extraordinaria~II del
+curso 2025/26, con entrega el 3 de septiembre de 2026 y defensa el 9 de
+septiembre de 2026.
+
+Como limitación conocida del dominio, algunas asignaturas de cursos superiores
+de titulaciones de implantación reciente no disponen todavía de guía docente
+publicada, lo que se documenta explícitamente en los resultados.
+
+\section{Metodología de trabajo}
+
+% Justifica Kanban frente a Scrum para un TFG individual.
+El desarrollo sigue una metodología ágil basada en \textbf{Kanban} con límite de
+trabajo en curso (WIP), gestionada en \textit{GitHub Projects}. Se descarta
+Scrum porque sus ceremonias y \textit{sprints} de duración fija están pensados
+para equipos, mientras que este TFG lo desarrolla una sola persona; Kanban
+permite un flujo continuo y un límite de WIP que evita la dispersión.
+
+Cada ítem del \textit{backlog} se corresponde con una incidencia (\textit{issue})
+en GitHub y, cuando implica una decisión de diseño relevante, con un registro de
+decisión de arquitectura (ADR) versionado junto al código. Un ítem no se
+considera terminado hasta que cumple su Definición de Hecho: código, prueba
+asociada, ADR si procede y la sección de memoria correspondiente redactada. Esta
+trazabilidad completa (requisito, \textit{issue}, código, prueba y sección de
+memoria) es un principio rector del proyecto.
+
+\section{Planificación temporal}
+
+% IT-48. El Gantt refleja las fases reales y la fecha de entrega.
+El trabajo se organiza en seis fases, sincronizadas con los \textit{milestones}
+del repositorio. La Figura~\ref{fig.gantt} muestra su distribución temporal
+hasta la entrega.
+
+\begin{figure}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{ganttchart}[
+        hgrid, vgrid,
+        bar/.append style={fill=blue!40},
+        bar height=0.5,
+        title height=1,
+        y unit chart=0.7cm,
+        x unit=0.115cm
+        ]{1}{72}
+        \gantttitle{Junio}{7}
+        \gantttitle{Julio}{31}
+        \gantttitle{Agosto}{31}
+        \gantttitle{Sept.}{3} \\
+        \ganttbar{F0 · Cimientos}{1}{17} \\
+        \ganttbar{F1 · Embeddings y vector DB}{18}{31} \\
+        \ganttbar{F2 · Pipeline RAG}{32}{48} \\
+        \ganttbar{F3 · Aplicación web}{49}{59} \\
+        \ganttbar{F4 · Validación y ablation}{60}{68} \\
+        \ganttbar{F5 · Cierre y defensa}{69}{72} \\
+        \ganttmilestone{Entrega}{72}
+    \end{ganttchart}%
+    }
+    \caption{Planificación temporal del proyecto (del 24 de junio al 3 de septiembre de 2026).}
+    \label{fig.gantt}
+\end{figure}
+
+% Sustituir esta figura por una captura real del tablero de GitHub Projects (IT-48).
