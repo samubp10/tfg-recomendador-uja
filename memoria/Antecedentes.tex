@@ -1,0 +1,43 @@
+\chapter{ANTECEDENTES}
+
+% ===========================================================================
+% Estado del arte y estudio de alternativas (IT-43). Aquí va el fundamento
+% teórico y la comparación con lo que ya existe. Es lo que convierte el TFG en
+% un trabajo de investigación y no solo "un programa que funciona".
+% Sustituye los textos guía por tu redacción.
+% ===========================================================================
+
+\section{Sistemas de orientación y recomendación académica}
+
+% IT-43. Comparar con lo que ya existe: orientación oficial, comparadores de
+% carreras, chatbots de orientación de otras universidades. Probarlos de verdad,
+% no describir su marketing. Conclusión: qué carencia cubre este TFG.
+
+\section{Recuperación aumentada por generación (RAG)}
+
+% Fundamento del enfoque: por qué RAG y no un LLM "a secas" ni un sistema de
+% reglas. Concepto de recuperación + generación, y por qué reduce las respuestas
+% inventadas en un dominio cerrado como la oferta académica.
+
+\section{Modelos de lenguaje de código abierto}
+
+% Alternativas de LLM de generación: Llama 3, Mistral, Phi-3 frente a modelos
+% privados (GPT-4, Claude). Justificar el enfoque open-source en local
+% (privacidad, coste, control). La decisión final se formaliza en el ADR-0005.
+
+\section{Modelos de \textit{embeddings} para el español}
+
+% Por qué hacen falta modelos multilingües o específicos de español, y no el
+% MiniLM monolingüe inglés de los tutoriales genéricos. La elección concreta se
+% decide experimentalmente (IT-21) y se formaliza en el ADR-0003.
+
+\section{Bases de datos vectoriales}
+
+% Alternativas: FAISS, ChromaDB, Qdrant (locales) frente a Pinecone (nube).
+% Argumentar que, a la escala de este corpus, una solución local es suficiente.
+% La elección se decide con datos (IT-24) y se formaliza en el ADR-0004.
+
+\section{Segmentación de documentos (\textit{chunking})}
+
+% Estrategias: tamaño fijo, por delimitadores, semántica. Es el fundamento del
+% ADR-0001 (IT-11).
