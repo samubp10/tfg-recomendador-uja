@@ -26,3 +26,19 @@ data/
 
 # Sistema operativo
 .DS_Store
+
+# LaTeX (archivos auxiliares de compilación)
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.lol
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.run.xml
+*.bcf
