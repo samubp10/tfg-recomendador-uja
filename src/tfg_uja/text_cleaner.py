@@ -53,3 +53,23 @@ def reparar_url(url):
     if indice == -1:
         return url
     return url[: indice + len(".html")]
+
+
+def quitar_nota_al_pie(nombre):
+    """Elimina el marcador de nota al pie del nombre de una asignatura.
+
+    En las tablas de asignaturas, algunos nombres arrastran un asterisco
+    final que remite a una nota al pie de la tabla (por ejemplo,
+    "Prácticas externas *"). Ese asterisco no forma parte del nombre de la
+    asignatura, por lo que se retira. Los asteriscos que no estén al final
+    del texto no se tocan.
+
+    Args:
+        nombre (str): Nombre de la asignatura, ya limpio.
+
+    Returns:
+        str: Nombre sin el asterisco final ni los espacios que lo rodean.
+    """
+    if not nombre:
+        return nombre
+    return re.sub(r"\s*\*+\s*$", "", nombre).strip()
