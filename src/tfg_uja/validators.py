@@ -16,6 +16,27 @@ TIPOS_VALIDOS = {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI"}
 #: que no corresponden a asignaturas reales.
 _PLACEHOLDER = re.compile(r"^optativa\s+\d+$", re.IGNORECASE)
 
+#: Mapeo de tipos textuales a las abreviaturas esperadas (para grados nuevos
+#: como el de IA y Ciberseguridad que no usan las abreviaturas cortas).
+_MAPA_TIPOS = {
+    "formación básica": "FB",
+    "obligatoria": "OB",
+    "optativa": "OP",
+}
+
+
+def normalizar_tipo(tipo):
+    """Mapea tipos textuales a las abreviaturas esperadas.
+
+    Args:
+        tipo (str): Tipo de asignatura extraído de la web.
+
+    Returns:
+        str: El tipo convertido a abreviatura, o el tipo original si no mapea.
+    """
+    tipo = (tipo or "").strip()
+    return _MAPA_TIPOS.get(tipo.lower(), tipo)
+
 
 def es_placeholder(nombre):
     """Indica si un nombre es un marcador de posición, no una asignatura.
