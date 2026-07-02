@@ -8,7 +8,7 @@ profesionales.
 
 import scrapy
 
-from tfg_uja.text_cleaner import limpiar_texto, reparar_url
+from tfg_uja.text_cleaner import limpiar_texto, quitar_nota_al_pie, reparar_url
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
 
 
@@ -93,52 +93,123 @@ class GradosSpider(scrapy.Spider):
             )
 
     def parse_asignaturas(self, response):
-        """Recorre la tabla de asignaturas de un grado.
+        """Recorre las tablas de asignaturas de un grado.
 
-        Por cada fila de la tabla, limpia el nombre con
-        :func:`~tfg_uja.text_cleaner.limpiar_texto` y valida con
-        :func:`~tfg_uja.validators.es_asignatura_valida`. Las filas válidas
-        se emiten como items de tipo ``"asignatura"``, distinguiendo las que
-        enlazan a la guía docente de las que no.
+        La página reúne varias tablas. Unas son troncales (su tercera columna
+        es el tipo de asignatura: FB, OB, OP, ...) y otras son de optativas por
+        mención (su tercera columna es la mención). Se distinguen por la
+        cabecera de esa columna. Por cada fila se limpia el nombre con
+        :func:`~tfg_uja.text_cleaner.limpiar_texto`, se le retira la nota al
+        pie con :func:`~tfg_uja.text_cleaner.quitar_nota_al_pie` y se valida
+        con :func:`~tfg_uja.validators.es_asignatura_valida`. Las de mención se
+        registran con tipo ``"OP"`` y sus menciones como lista; una misma
+        optativa puede figurar en varias menciones y en varias tablas, por lo
+        que se fusiona por código para no duplicarla. Seguir el enlace a la
+        guía docente es tarea de IT-06.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de
                 asignaturas y profesorado.
 
         Yields:
-            dict: Datos de cada asignatura válida encontrada.
+            dict: Datos de cada asignatura válida, sin duplicados.
         """
         grado = response.meta["nombre"]
-        for fila in response.css("table tbody tr"):
-            celdas = fila.css("td")
-            if len(celdas) < 4:
+        # Se acumulan las asignaturas por código para poder fusionar las
+        # menciones de las que aparecen repetidas.
+        por_codigo = {}
+        orden = []
+        sin_codigo = []
+        for tabla in response.css("table"):
+            filas = tabla.css("tr")
+            if not filas:
                 continue
-
-            codigo = limpiar_texto(celdas[0].css("::text").get())
-            nombre = limpiar_texto(celdas[1].css("::text").get())
-            tipo_crudo = limpiar_texto(celdas[2].css("::text").get())
-            tipo_asig = normalizar_tipo(tipo_crudo)
-
-            if not es_asignatura_valida(codigo, nombre, tipo_asig):
+            cabeceras = [
+                limpiar_texto(texto) for texto in filas[0].css("th::text").getall()
+            ]
+            if len(cabeceras) < 3:
                 continue
-
-            ects = limpiar_texto(celdas[3].css("::text").get())
-
-            enlace = celdas[1].css("a::attr(href)").get()
-            if enlace:
-                url_guia = reparar_url(response.urljoin(enlace))
-                tiene_guia = True
+            etiqueta_columna = cabeceras[2].lower()
+            if etiqueta_columna.startswith("menci"):
+                es_tabla_de_menciones = True
+            elif etiqueta_columna == "tipo":
+                es_tabla_de_menciones = False
             else:
-                url_guia = None
-                tiene_guia = False
+                self.logger.warning(
+                    "Tabla con una tercera columna inesperada %r; se omite.",
+                    cabeceras,
+                )
+                continue
+            for fila in filas:
+                celdas = fila.css("td")
+                if len(celdas) < 4:
+                    continue
+                codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
+                nombre = quitar_nota_al_pie(
+                    limpiar_texto(" ".join(celdas[1].css("::text").getall()))
+                )
+                if es_tabla_de_menciones:
+                    tipo_asig = "OP"
+                    menciones = self._menciones(celdas[2])
+                else:
+                    tipo_asig = normalizar_tipo(
+                        limpiar_texto(" ".join(celdas[2].css("::text").getall()))
+                    )
+                    menciones = []
+                if not es_asignatura_valida(codigo, nombre, tipo_asig):
+                    continue
+                ects = limpiar_texto(" ".join(celdas[3].css("::text").getall()))
+                enlace = celdas[1].css("a::attr(href)").get()
+                if enlace:
+                    url_guia = reparar_url(response.urljoin(enlace))
+                    tiene_guia = True
+                else:
+                    url_guia = None
+                    tiene_guia = False
+                item = {
+                    "tipo": "asignatura",
+                    "grado": grado,
+                    "codigo": codigo,
+                    "nombre": nombre,
+                    "tipo_asignatura": tipo_asig,
+                    "menciones": menciones,
+                    "ects": ects,
+                    "url_guia": url_guia,
+                    "tiene_guia": tiene_guia,
+                }
+                if codigo and codigo in por_codigo:
+                    existentes = por_codigo[codigo]["menciones"]
+                    for nueva in menciones:
+                        if nueva not in existentes:
+                            existentes.append(nueva)
+                elif codigo:
+                    por_codigo[codigo] = item
+                    orden.append(codigo)
+                else:
+                    sin_codigo.append(item)
+        for codigo in orden:
+            yield por_codigo[codigo]
+        for item in sin_codigo:
+            yield item
 
-            yield {
-                "tipo": "asignatura",
-                "grado": grado,
-                "codigo": codigo,
-                "nombre": nombre,
-                "tipo_asignatura": tipo_asig,
-                "ects": ects,
-                "url_guia": url_guia,
-                "tiene_guia": tiene_guia,
-            }
+    @staticmethod
+    def _menciones(celda):
+        """Extrae de una celda las menciones de una asignatura optativa.
+
+        Una asignatura puede pertenecer a varias menciones, que la web
+        presenta en párrafos ``<p>`` separados dentro de la misma celda.
+        Cuando no hay párrafos, la celda contiene una única mención como
+        texto suelto.
+
+        Args:
+            celda (scrapy.selector.Selector): Celda de la columna «Mención».
+
+        Returns:
+            list[str]: Menciones de la asignatura, sin entradas vacías.
+        """
+        parrafos = [limpiar_texto(p) for p in celda.css("p::text").getall()]
+        parrafos = [p for p in parrafos if p]
+        if parrafos:
+            return parrafos
+        texto = limpiar_texto(" ".join(celda.css("::text").getall()))
+        return [texto] if texto else []
