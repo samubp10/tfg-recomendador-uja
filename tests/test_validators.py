@@ -1,6 +1,6 @@
 """Pruebas de los validadores de asignaturas (IT-01)."""
 
-from tfg_uja.validators import es_asignatura_valida, es_placeholder
+from tfg_uja.validators import es_asignatura_valida, es_placeholder, normalizar_tipo
 
 
 # --- es_placeholder: casos reales de la tabla (Optativa 1..5) ---
@@ -14,6 +14,22 @@ def test_reconoce_los_placeholders_de_optativas():
 def test_una_asignatura_real_no_es_placeholder():
     assert not es_placeholder("Sistemas Operativos")
     assert not es_placeholder("Optatividad y mercado laboral")
+
+
+# --- normalizar_tipo ---
+
+def test_normaliza_textos_a_abreviaturas():
+    assert normalizar_tipo("Formación básica") == "FB"
+    assert normalizar_tipo("Obligatoria") == "OB"
+    assert normalizar_tipo("Optativa") == "OP"
+
+def test_normaliza_ignora_mayusculas_y_espacios():
+    assert normalizar_tipo("  fORmaCión básiCA  ") == "FB"
+
+def test_normaliza_deja_igual_lo_desconocido_o_ya_abreviado():
+    assert normalizar_tipo("FB") == "FB"
+    assert normalizar_tipo("OB-IS") == "OB-IS"
+    assert normalizar_tipo("Otra cosa") == "Otra cosa"
 
 
 # --- es_asignatura_valida ---
