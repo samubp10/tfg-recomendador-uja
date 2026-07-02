@@ -125,7 +125,8 @@ class GradosSpider(scrapy.Spider):
             if not filas:
                 continue
             cabeceras = [
-                limpiar_texto(texto) for texto in filas[0].css("th::text").getall()
+                limpiar_texto(" ".join(th.css("::text").getall()))
+                for th in filas[0].css("th")
             ]
             if len(cabeceras) < 3:
                 continue

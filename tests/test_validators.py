@@ -63,3 +63,10 @@ def test_acepta_asignatura_valida_aunque_falte_el_codigo():
 
 def test_el_tipo_se_valida_sin_importar_mayusculas():
     assert es_asignatura_valida("13312001", "Física", "fb")
+
+
+# --- TFG como carácter propio (caso real del Grado en IA y Ciberseguridad) ---
+
+def test_acepta_el_tfg_como_tipo_propio():
+    # En IA y Ciberseguridad el TFG se etiqueta con carácter "TFG", no "OB".
+    assert es_asignatura_valida("", "Trabajo fin de grado", "TFG")
