@@ -9,8 +9,12 @@ import re
 
 #: Tipos de asignatura reconocidos en las tablas de la EPSJ.
 #: FB (formación básica), OB (obligatoria), OP (optativa) y las variantes
-#: de obligatoria de especialidad (OB-IS, OB-SI, OB-TI).
-TIPOS_VALIDOS = {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI"}
+#: de obligatoria de especialidad (OB-IS, OB-SI, OB-TI). TFG (trabajo fin de
+#: grado) aparece como carácter propio en algunos planes (p. ej. IA y
+#: Ciberseguridad), mientras que otros lo etiquetan como OB; se acepta tal
+#: cual para no perder la asignatura ni imponer una uniformidad que la fuente
+#: no tiene.
+TIPOS_VALIDOS = {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI", "TFG"}
 
 #: Patrón de los nombres de relleno de la tabla ("Optativa 1", "Optativa 2"...),
 #: que no corresponden a asignaturas reales.

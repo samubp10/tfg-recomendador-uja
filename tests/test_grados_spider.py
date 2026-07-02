@@ -188,3 +188,66 @@ def test_portada_encola_el_rastreo_de_asignaturas():
     requests = [r for r in resultados if isinstance(r, scrapy.Request)]
     assert len(requests) == 1
     assert "asignaturas-y-profesorado" in requests[0].url
+
+
+# --- IT-05 (validez externa): Grado en IA y Ciberseguridad ---
+#
+# Grado en implantación con estructura distinta a Informática: tipos escritos
+# con nombre largo (Formación básica/Obligatoria/Optativa), asignaturas de
+# 2.º-4.º sin código ni guía publicada, y el TFG con carácter propio "TFG".
+
+_META_IAYC = {"nombre": "Grado en Inteligencia Artificial y Ciberseguridad"}
+
+
+def _asignaturas_iayc():
+    resp = _respuesta(
+        "tabla_asignaturas_iayc.html",
+        url="https://eps.ujaen.es/grados/grado-en-inteligencia-artificial-y-ciberseguridad/asignaturas-y-profesorado",
+        meta=_META_IAYC,
+    )
+    return list(GradosSpider().parse_asignaturas(resp))
+
+
+def test_iayc_normaliza_los_tipos_de_nombre_largo():
+    fb = _por_nombre(_asignaturas_iayc(), "Matemática discreta")
+    assert fb is not None
+    assert fb["tipo_asignatura"] == "FB"
+
+
+def test_iayc_extrae_el_tfg_con_su_caracter_propio():
+    tfg = _por_nombre(_asignaturas_iayc(), "Trabajo fin de grado")
+    assert tfg is not None
+    assert tfg["tipo_asignatura"] == "TFG"
+
+
+def test_iayc_conserva_asignaturas_sin_codigo_ni_guia():
+    # Caso real: 2.º-4.º del grado nuevo aún sin guía publicada.
+    so = _por_nombre(_asignaturas_iayc(), "Sistemas operativos")
+    assert so is not None
+    assert so["codigo"] == ""
+    assert so["tiene_guia"] is False
+
+
+def test_iayc_descarta_los_placeholders_de_optativas():
+    nombres = [i["nombre"] for i in _asignaturas_iayc()]
+    assert "Optativa 1" not in nombres
+    assert "Optativa 2" not in nombres
+
+
+# --- IT-05 (validez externa): cabeceras <th> envueltas en <strong> ---
+#
+# Los grados de la rama industrial (Mecánica, Eléctrica, Electrónica,
+# Organización Industrial) escriben la cabecera como <th><strong>Tipo</strong>
+# </th> en vez de <th>Tipo</th>. El texto directo del <th> es vacío, por lo que
+# la cabecera debe leerse incluyendo el texto descendiente.
+
+def test_extrae_grado_con_cabeceras_envueltas_en_strong():
+    resp = _respuesta(
+        "tabla_mecanica.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
+        meta={"nombre": "Grado en Ingeniería Mecánica"},
+    )
+    items = list(GradosSpider().parse_asignaturas(resp))
+    assert len(items) > 0
+    # También sus tablas de mención se detectan pese a la cabecera envuelta.
+    assert any(i["menciones"] for i in items)
