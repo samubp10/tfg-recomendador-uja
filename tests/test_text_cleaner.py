@@ -58,3 +58,21 @@ def test_no_toca_una_url_ya_correcta():
 def test_url_vacia_o_none_no_rompe():
     assert reparar_url("") == ""
     assert reparar_url(None) is None
+
+
+# --- quitar_nota_al_pie: caso real "Prácticas externas *" ---
+
+def test_quita_el_asterisco_de_nota_al_pie():
+    from tfg_uja.text_cleaner import quitar_nota_al_pie
+    assert quitar_nota_al_pie("Prácticas externas *") == "Prácticas externas"
+
+
+def test_no_toca_un_nombre_sin_asterisco():
+    from tfg_uja.text_cleaner import quitar_nota_al_pie
+    assert quitar_nota_al_pie("Cálculo") == "Cálculo"
+
+
+def test_nota_al_pie_con_vacio_o_none_no_rompe():
+    from tfg_uja.text_cleaner import quitar_nota_al_pie
+    assert quitar_nota_al_pie("") == ""
+    assert quitar_nota_al_pie(None) is None

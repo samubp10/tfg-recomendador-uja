@@ -80,6 +80,11 @@ def test_sin_enlace_de_salidas_no_rompe():
 
 
 # --- IT-05: tabla de asignaturas (parse_asignaturas) ---
+#
+# Se prueba contra la página REAL del Grado en Ingeniería Informática
+# (fixtures/tabla_asignaturas.html), que reúne tablas troncales y dos tablas
+# de optativas por mención. La fixture derivada tabla_sin_guia.html cubre el
+# caso "asignatura sin guía publicada", ausente en Informática.
 
 _URL_ASIG = (
     "https://eps.ujaen.es/grados/"
@@ -88,71 +93,98 @@ _URL_ASIG = (
 _META_ASIG = {"nombre": "Grado en Ingeniería Informática"}
 
 
-def _items_asignaturas():
-    """Devuelve la lista de items emitidos por parse_asignaturas."""
-    resp = _respuesta("tabla_asignaturas.html", url=_URL_ASIG, meta=_META_ASIG)
+def _asignaturas(fixture="tabla_asignaturas.html"):
+    resp = _respuesta(fixture, url=_URL_ASIG, meta=_META_ASIG)
     return list(GradosSpider().parse_asignaturas(resp))
 
 
-def test_extrae_asignaturas_con_enlace():
-    items = _items_asignaturas()
-    con_guia = [i for i in items if i["tiene_guia"]]
-    assert len(con_guia) == 2
-    assert all(i["url_guia"] is not None for i in con_guia)
+def _por_nombre(items, nombre):
+    return next((i for i in items if i["nombre"] == nombre), None)
 
 
-def test_extrae_asignatura_sin_enlace():
-    items = _items_asignaturas()
-    sin_guia = [i for i in items if not i["tiene_guia"]]
-    assert len(sin_guia) == 2
-    nombres_sin_guia = [i["nombre"] for i in sin_guia]
-    assert "Arquitectura de computadores" in nombres_sin_guia
-    assert all(i["url_guia"] is None for i in sin_guia)
+def test_extrae_todas_las_asignaturas_de_la_pagina_real():
+    # 67 asignaturas únicas tras validar, limpiar y fusionar el duplicado real.
+    assert len(_asignaturas()) == 67
 
 
-def test_descarta_placeholder_optativa():
-    items = _items_asignaturas()
-    nombres = [i["nombre"] for i in items]
-    assert "Optativa 1" not in nombres
+def test_no_pierde_las_optativas_de_mencion():
+    items = _asignaturas()
+    de_mencion = [i for i in items if i["menciones"]]
+    assert len(de_mencion) >= 17
+    assert _por_nombre(items, "Procesamiento del lenguaje natural") is not None
 
 
-def test_descarta_nombre_vacio():
-    items = _items_asignaturas()
-    assert all(i["nombre"] for i in items)
+def test_asignatura_troncal_con_su_tipo():
+    mate = _por_nombre(_asignaturas(), "Matemática discreta")
+    assert mate is not None
+    assert mate["codigo"] == "13311008"
+    assert mate["tipo_asignatura"] == "FB"
+    assert mate["ects"] == "6"
+    assert mate["tiene_guia"] is True
+    assert mate["menciones"] == []
 
 
-def test_limpia_nombre_con_espacios_duros():
-    items = _items_asignaturas()
-    mate = [i for i in items if "discreta" in i["nombre"]][0]
+def test_limpia_el_espacio_duro_del_nombre():
+    mate = _por_nombre(_asignaturas(), "Matemática discreta")
     assert "\xa0" not in mate["nombre"]
-    assert mate["nombre"] == "Matemática discreta"
 
 
-def test_repara_url_guia_rota():
-    items = _items_asignaturas()
-    fbd = [i for i in items if "bases de datos" in i["nombre"]][0]
-    assert fbd["url_guia"].endswith("_es.html")
-    assert "htmles" not in fbd["url_guia"]
+def test_descarta_los_placeholders_de_optativas():
+    nombres = [i["nombre"] for i in _asignaturas()]
+    assert "Optativa 3" not in nombres
+    assert "Optativa 5" not in nombres
 
 
-def test_portada_sigue_a_asignaturas():
+def test_extrae_el_trabajo_fin_de_grado():
+    tfg = _por_nombre(_asignaturas(), "Trabajo fin de Grado")
+    assert tfg is not None
+    assert tfg["tipo_asignatura"] == "OB"
+    assert tfg["ects"] == "12"
+
+
+def test_repara_la_url_de_guia_rota():
+    asig = next(i for i in _asignaturas() if i["codigo"] == "13312032")
+    assert asig["url_guia"].endswith("2025-26-13312032_es.html")
+
+
+def test_fusiona_una_asignatura_de_varias_menciones():
+    minweb = _por_nombre(_asignaturas(), "Minería web")
+    assert minweb is not None
+    assert set(minweb["menciones"]) == {
+        "Informática empresarial",
+        "Tratamiento inteligente de la información",
+    }
+
+
+def test_no_duplica_una_optativa_comun_a_varias_menciones():
+    # "Prácticas externas" (13313009) aparece en las dos tablas de menciones.
+    practicas = [i for i in _asignaturas() if i["codigo"] == "13313009"]
+    assert len(practicas) == 1
+
+
+def test_quita_el_asterisco_de_las_practicas_externas():
+    items = _asignaturas()
+    assert _por_nombre(items, "Prácticas externas") is not None
+    assert _por_nombre(items, "Prácticas externas *") is None
+
+
+def test_los_ects_reales_son_6_o_12():
+    assert {i["ects"] for i in _asignaturas()} == {"6", "12"}
+
+
+def test_una_asignatura_sin_guia_se_emite_igualmente():
+    items = _asignaturas("tabla_sin_guia.html")
+    sin_guia = _por_nombre(items, "Auditoría informática")
+    assert sin_guia is not None
+    assert sin_guia["tiene_guia"] is False
+    assert sin_guia["url_guia"] is None
+
+
+def test_portada_encola_el_rastreo_de_asignaturas():
     meta = {"nombre": "Grado en Ingeniería Informática"}
-    resultados = list(GradosSpider().parse_portada(
-        _respuesta("portada_grado.html", meta=meta)
-    ))
+    resultados = list(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     requests = [r for r in resultados if isinstance(r, scrapy.Request)]
     assert len(requests) == 1
     assert "asignaturas-y-profesorado" in requests[0].url
-
-
-def test_extrae_ects():
-    items = _items_asignaturas()
-    assert all(i["ects"] == "6" for i in items)
-
-
-def test_normaliza_tipos_textuales():
-    items = _items_asignaturas()
-    prog = [i for i in items if i["nombre"] == "Programación"][0]
-    assert prog["tipo_asignatura"] == "FB"
-
-
