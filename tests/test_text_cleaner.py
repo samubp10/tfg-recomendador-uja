@@ -76,3 +76,33 @@ def test_nota_al_pie_con_vacio_o_none_no_rompe():
     from tfg_uja.text_cleaner import quitar_nota_al_pie
     assert quitar_nota_al_pie("") == ""
     assert quitar_nota_al_pie(None) is None
+
+
+# --- separar_oferta: caso real "(No ofertada en 2025/26)" ---
+
+def test_separa_la_marca_de_no_ofertada():
+    from tfg_uja.text_cleaner import separar_oferta
+    nombre, ofertada = separar_oferta("Métodos cuantitativos avanzados (No ofertada en 2025/26)")
+    assert nombre == "Métodos cuantitativos avanzados"
+    assert ofertada is False
+
+
+def test_una_asignatura_normal_se_oferta():
+    from tfg_uja.text_cleaner import separar_oferta
+    nombre, ofertada = separar_oferta("Cálculo")
+    assert nombre == "Cálculo"
+    assert ofertada is True
+
+
+def test_no_toca_un_parentesis_legitimo():
+    from tfg_uja.text_cleaner import separar_oferta
+    # Un paréntesis que no sea la marca de no ofertada no debe alterarse.
+    nombre, ofertada = separar_oferta("Química (plan antiguo)")
+    assert nombre == "Química (plan antiguo)"
+    assert ofertada is True
+
+
+def test_separar_oferta_con_vacio_o_none():
+    from tfg_uja.text_cleaner import separar_oferta
+    assert separar_oferta("") == ("", True)
+    assert separar_oferta(None) == (None, True)

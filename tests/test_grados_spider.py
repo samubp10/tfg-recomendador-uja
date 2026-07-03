@@ -83,8 +83,7 @@ def test_sin_enlace_de_salidas_no_rompe():
 #
 # Se prueba contra la página REAL del Grado en Ingeniería Informática
 # (fixtures/tabla_asignaturas.html), que reúne tablas troncales y dos tablas
-# de optativas por mención. La fixture derivada tabla_sin_guia.html cubre el
-# caso "asignatura sin guía publicada", ausente en Informática.
+# de optativas por mención. Todos los tests usan HTML real de la EPSJ.
 
 _URL_ASIG = (
     "https://eps.ujaen.es/grados/"
@@ -173,8 +172,10 @@ def test_los_ects_reales_son_6_o_12():
 
 
 def test_una_asignatura_sin_guia_se_emite_igualmente():
-    items = _asignaturas("tabla_sin_guia.html")
-    sin_guia = _por_nombre(items, "Auditoría informática")
+    # Caso real: en IA y Ciberseguridad (grado en implantación) hay asignaturas
+    # que existen pero cuya guía aún no se ha publicado. Deben emitirse igual.
+    items = _asignaturas_iayc()
+    sin_guia = _por_nombre(items, "Sistemas operativos")
     assert sin_guia is not None
     assert sin_guia["tiene_guia"] is False
     assert sin_guia["url_guia"] is None
@@ -251,3 +252,65 @@ def test_extrae_grado_con_cabeceras_envueltas_en_strong():
     assert len(items) > 0
     # También sus tablas de mención se detectan pese a la cabecera envuelta.
     assert any(i["menciones"] for i in items)
+
+
+# --- IT-05 (campo ofertada): caso real del Grado en Ingeniería Eléctrica ---
+#
+# Eléctrica incluye 4 optativas marcadas "(No ofertada en 2025/26)". El nombre
+# debe quedar limpio y el campo ofertada a False, conservando la asignatura.
+
+def _asignaturas_electrica():
+    resp = _respuesta(
+        "tabla_electrica.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-electrica/asignaturas-y-profesorado",
+        meta={"nombre": "Grado en Ingeniería Eléctrica"},
+    )
+    return list(GradosSpider().parse_asignaturas(resp))
+
+
+def test_electrica_marca_las_no_ofertadas_y_limpia_el_nombre():
+    items = _asignaturas_electrica()
+    no_ofertadas = [i for i in items if not i["ofertada"]]
+    assert len(no_ofertadas) == 4
+    # El estado no debe quedar pegado al nombre.
+    assert all("ofertada" not in i["nombre"].lower() for i in no_ofertadas)
+    topo = _por_nombre(items, "Topografía y construcción")
+    assert topo is not None
+    assert topo["ofertada"] is False
+
+
+def test_electrica_las_demas_se_ofertan():
+    items = _asignaturas_electrica()
+    ofertadas = [i for i in items if i["ofertada"]]
+    assert len(ofertadas) == len(items) - 4
+
+
+# --- IT-05 (menciones multivalor con barra): caso real de Mecánica ---
+#
+# En Mecánica y Eléctrica, una asignatura de dos menciones viene en un solo
+# párrafo separado por "/", frente a los <p> separados de Informática. Ambas
+# formas deben normalizarse a una lista plana.
+
+def test_mecanica_divide_menciones_separadas_por_barra():
+    resp = _respuesta(
+        "tabla_mecanica.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
+        meta={"nombre": "Grado en Ingeniería Mecánica"},
+    )
+    items = list(GradosSpider().parse_asignaturas(resp))
+    integridad = next(i for i in items if i["codigo"] == "13413009")
+    assert integridad["menciones"] == [
+        "Ingeniería y fabricación mecánica",
+        "Construcción industrial",
+    ]
+
+
+def test_electrica_separa_las_menciones_combinadas_con_barra():
+    # Algunas optativas pertenecen a dos menciones escritas como "A / B".
+    items = _asignaturas_electrica()
+    protecciones = _por_nombre(items, "Protecciones eléctricas")
+    assert protecciones is not None
+    assert set(protecciones["menciones"]) == {
+        "Sistemas Eléctricos",
+        "Instalaciones Eléctricas",
+    }

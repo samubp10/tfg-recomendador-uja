@@ -8,7 +8,12 @@ profesionales.
 
 import scrapy
 
-from tfg_uja.text_cleaner import limpiar_texto, quitar_nota_al_pie, reparar_url
+from tfg_uja.text_cleaner import (
+    limpiar_texto,
+    quitar_nota_al_pie,
+    reparar_url,
+    separar_oferta,
+)
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
 
 
@@ -146,9 +151,9 @@ class GradosSpider(scrapy.Spider):
                 if len(celdas) < 4:
                     continue
                 codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
-                nombre = quitar_nota_al_pie(
-                    limpiar_texto(" ".join(celdas[1].css("::text").getall()))
-                )
+                nombre = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
+                nombre, ofertada = separar_oferta(nombre)
+                nombre = quitar_nota_al_pie(nombre)
                 if es_tabla_de_menciones:
                     tipo_asig = "OP"
                     menciones = self._menciones(celdas[2])
@@ -175,6 +180,7 @@ class GradosSpider(scrapy.Spider):
                     "tipo_asignatura": tipo_asig,
                     "menciones": menciones,
                     "ects": ects,
+                    "ofertada": ofertada,
                     "url_guia": url_guia,
                     "tiene_guia": tiene_guia,
                 }
@@ -198,19 +204,25 @@ class GradosSpider(scrapy.Spider):
         """Extrae de una celda las menciones de una asignatura optativa.
 
         Una asignatura puede pertenecer a varias menciones, que la web
-        presenta en párrafos ``<p>`` separados dentro de la misma celda.
-        Cuando no hay párrafos, la celda contiene una única mención como
-        texto suelto.
+        presenta de dos formas: en párrafos ``<p>`` separados o dentro de un
+        mismo texto separadas por una barra ("A / B"). Ambas se normalizan a
+        una lista plana de menciones, sin duplicados ni entradas vacías.
 
         Args:
             celda (scrapy.selector.Selector): Celda de la columna «Mención».
 
         Returns:
-            list[str]: Menciones de la asignatura, sin entradas vacías.
+            list[str]: Menciones de la asignatura.
         """
         parrafos = [limpiar_texto(p) for p in celda.css("p::text").getall()]
         parrafos = [p for p in parrafos if p]
-        if parrafos:
-            return parrafos
-        texto = limpiar_texto(" ".join(celda.css("::text").getall()))
-        return [texto] if texto else []
+        if not parrafos:
+            texto = limpiar_texto(" ".join(celda.css("::text").getall()))
+            parrafos = [texto] if texto else []
+        menciones = []
+        for parrafo in parrafos:
+            for parte in parrafo.split("/"):
+                parte = parte.strip()
+                if parte and parte not in menciones:
+                    menciones.append(parte)
+        return menciones
