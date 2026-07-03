@@ -83,8 +83,7 @@ def test_sin_enlace_de_salidas_no_rompe():
 #
 # Se prueba contra la página REAL del Grado en Ingeniería Informática
 # (fixtures/tabla_asignaturas.html), que reúne tablas troncales y dos tablas
-# de optativas por mención. La fixture derivada tabla_sin_guia.html cubre el
-# caso "asignatura sin guía publicada", ausente en Informática.
+# de optativas por mención. Todos los tests usan HTML real de la EPSJ.
 
 _URL_ASIG = (
     "https://eps.ujaen.es/grados/"
@@ -95,7 +94,7 @@ _META_ASIG = {"nombre": "Grado en Ingeniería Informática"}
 
 def _asignaturas(fixture="tabla_asignaturas.html"):
     resp = _respuesta(fixture, url=_URL_ASIG, meta=_META_ASIG)
-    return list(GradosSpider().parse_asignaturas(resp))
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
 
 
 def _por_nombre(items, nombre):
@@ -173,8 +172,10 @@ def test_los_ects_reales_son_6_o_12():
 
 
 def test_una_asignatura_sin_guia_se_emite_igualmente():
-    items = _asignaturas("tabla_sin_guia.html")
-    sin_guia = _por_nombre(items, "Auditoría informática")
+    # Caso real: en IA y Ciberseguridad (grado en implantación) hay asignaturas
+    # que existen pero cuya guía aún no se ha publicado. Deben emitirse igual.
+    items = _asignaturas_iayc()
+    sin_guia = _por_nombre(items, "Sistemas operativos")
     assert sin_guia is not None
     assert sin_guia["tiene_guia"] is False
     assert sin_guia["url_guia"] is None
@@ -205,7 +206,7 @@ def _asignaturas_iayc():
         url="https://eps.ujaen.es/grados/grado-en-inteligencia-artificial-y-ciberseguridad/asignaturas-y-profesorado",
         meta=_META_IAYC,
     )
-    return list(GradosSpider().parse_asignaturas(resp))
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
 
 
 def test_iayc_normaliza_los_tipos_de_nombre_largo():
@@ -247,7 +248,174 @@ def test_extrae_grado_con_cabeceras_envueltas_en_strong():
         url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
         meta={"nombre": "Grado en Ingeniería Mecánica"},
     )
-    items = list(GradosSpider().parse_asignaturas(resp))
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
     assert len(items) > 0
     # También sus tablas de mención se detectan pese a la cabecera envuelta.
     assert any(i["menciones"] for i in items)
+
+
+# --- IT-05 (campo ofertada): caso real del Grado en Ingeniería Eléctrica ---
+#
+# Eléctrica incluye 4 optativas marcadas "(No ofertada en 2025/26)". El nombre
+# debe quedar limpio y el campo ofertada a False, conservando la asignatura.
+
+def _asignaturas_electrica():
+    resp = _respuesta(
+        "tabla_electrica.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-electrica/asignaturas-y-profesorado",
+        meta={"nombre": "Grado en Ingeniería Eléctrica"},
+    )
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_electrica_marca_las_no_ofertadas_y_limpia_el_nombre():
+    items = _asignaturas_electrica()
+    no_ofertadas = [i for i in items if not i["ofertada"]]
+    assert len(no_ofertadas) == 4
+    # El estado no debe quedar pegado al nombre.
+    assert all("ofertada" not in i["nombre"].lower() for i in no_ofertadas)
+    topo = _por_nombre(items, "Topografía y construcción")
+    assert topo is not None
+    assert topo["ofertada"] is False
+
+
+def test_electrica_las_demas_se_ofertan():
+    items = _asignaturas_electrica()
+    ofertadas = [i for i in items if i["ofertada"]]
+    assert len(ofertadas) == len(items) - 4
+
+
+# --- IT-05 (menciones multivalor con barra): caso real de Mecánica ---
+#
+# En Mecánica y Eléctrica, una asignatura de dos menciones viene en un solo
+# párrafo separado por "/", frente a los <p> separados de Informática. Ambas
+# formas deben normalizarse a una lista plana.
+
+def test_mecanica_divide_menciones_separadas_por_barra():
+    resp = _respuesta(
+        "tabla_mecanica.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
+        meta={"nombre": "Grado en Ingeniería Mecánica"},
+    )
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    integridad = next(i for i in items if i["codigo"] == "13413009")
+    assert integridad["menciones"] == [
+        "Ingeniería y fabricación mecánica",
+        "Construcción industrial",
+    ]
+
+
+def test_electrica_separa_las_menciones_combinadas_con_barra():
+    # Algunas optativas pertenecen a dos menciones escritas como "A / B".
+    items = _asignaturas_electrica()
+    protecciones = _por_nombre(items, "Protecciones eléctricas")
+    assert protecciones is not None
+    assert set(protecciones["menciones"]) == {
+        "Sistemas Eléctricos",
+        "Instalaciones Eléctricas",
+    }
+
+
+# --- IT-06: contenido de la guía docente (parse_guia) ---
+#
+# La web declara charset=UTF-8 en el <meta>, pero el servidor real envía la
+# cabecera HTTP como ISO-8859-1/cp1252 (verificado contra una petición real
+# a una guía en producción). Scrapy prioriza la cabecera HTTP y decodifica
+# bien sin intervención; el problema es solo de las fixtures locales, que no
+# traen cabecera HTTP, así que aquí se declara encoding="cp1252" explícito
+# para reproducir lo que ocurre en una petición real.
+
+_URL_GUIA = "https://uvirtual.ujaen.es/pub/.../guia_es.html"
+
+
+def _guia(fixture, codigo, nombre, grado):
+    resp = HtmlResponse(
+        url=_URL_GUIA,
+        body=(FIXTURES / fixture).read_bytes(),
+        encoding="cp1252",
+        request=Request(_URL_GUIA, meta={
+            "codigo": codigo, "nombre": nombre, "grado": grado,
+        }),
+    )
+    return next(GradosSpider().parse_guia(resp))
+
+
+def test_extrae_las_cuatro_secciones_de_una_guia_real():
+    # Matemáticas I de Organización Industrial (13011009).
+    item = _guia(
+        "guia_matematicas_oi.html", "13011009", "Matemáticas I",
+        "Grado en Ingeniería de Organización Industrial",
+    )
+    assert item["fallback"] is False
+    assert "sistemas de ecuaciones lineales" in item["temario"].lower()
+    assert len(item["evaluacion"]) > 100
+    assert len(item["bibliografia"]) > 100
+    assert len(item["resumen"]) > 100
+
+
+def test_decodifica_los_acentos_correctamente():
+    # Regresión directa del hallazgo de codificación: la web dice UTF-8 en
+    # el <meta> pero el servidor envía ISO-8859-1/cp1252 por HTTP. Sin el
+    # encoding explícito, este texto saldría con mojibake ("Naci�n").
+    item = _guia(
+        "guia_matematicas_oi.html", "13011009", "Matemáticas I",
+        "Grado en Ingeniería de Organización Industrial",
+    )
+    texto_completo = item["resumen"] + item["temario"] + item["evaluacion"]
+    assert "�" not in texto_completo
+    assert "diagonalización" in texto_completo.lower()
+
+
+def test_misma_asignatura_en_otro_grado_extrae_igual():
+    # Matemáticas I de Eléctrica (13511009): FB compartida con Organización
+    # Industrial, misma guía, mismo contenido real.
+    oi = _guia(
+        "guia_matematicas_oi.html", "13011009", "x", "x",
+    )
+    electrica = _guia(
+        "guia_matematicas_electrica.html", "13511009", "x", "x",
+    )
+    assert oi["temario"] == electrica["temario"]
+
+
+def test_extrae_guia_real_de_iayc():
+    item = _guia(
+        "guia_metodos_numericos_iayc.html", "15711001",
+        "Análisis y métodos numéricos",
+        "Grado en Inteligencia Artificial y Ciberseguridad",
+    )
+    assert item["fallback"] is False
+    assert len(item["bibliografia"]) > 100
+
+
+def test_descarta_el_marcador_de_campo_sin_contenido():
+    # Caso real documentado: la guía del TFG de Informática (13316001,
+    # https://uvirtual.ujaen.es/pub/es/informacionacademica/
+    # catalogofichasdocentesasignaturas/p/2025-26/4/133A/13316001/es/
+    # 2025-26-13316001_es.html) tiene "Breve resumen: -" y
+    # "Competencias: -": un guion suelto marca "sin contenido". Se aísla el
+    # patrón exacto observado en un fragmento mínimo, en vez de una fixture
+    # completa inventada.
+    from tfg_uja.grados_spider import GradosSpider
+    html = (
+        '<div id="resumen">'
+        '<div class="fdoca_valor_cuadro_ambito">Contenido real</div>'
+        '<div class="fdoca_valor_cuadro_ambito">-</div>'
+        "</div>"
+    )
+    resp = HtmlResponse(url=_URL_GUIA, body=html.encode("utf-8"), encoding="utf-8")
+    texto = GradosSpider._contenido_seccion(resp, "resumen")
+    assert texto == "Contenido real"
+    assert "-" not in texto
+
+
+def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
+    resp = _respuesta("tabla_asignaturas.html", url=_URL_ASIG, meta=_META_ASIG)
+    salida = list(GradosSpider().parse_asignaturas(resp))
+    items = [i for i in salida if isinstance(i, dict)]
+    requests = [i for i in salida if isinstance(i, scrapy.Request)]
+    con_guia = [i for i in items if i["tiene_guia"]]
+    assert len(requests) == len(con_guia)
+    assert all(r.callback.__name__ == "parse_guia" for r in requests)
+    peticion = next(r for r in requests if r.meta["codigo"] == "13311008")
+    assert peticion.meta["nombre"] == "Matemática discreta"
