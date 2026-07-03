@@ -73,3 +73,38 @@ def quitar_nota_al_pie(nombre):
     if not nombre:
         return nombre
     return re.sub(r"\s*\*+\s*$", "", nombre).strip()
+
+
+#: Marca de asignatura no ofertada, añadida al final del nombre (por ejemplo,
+#: "Métodos cuantitativos avanzados (No ofertada en 2025/26)"). El patrón es
+#: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
+#: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
+#: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
+_NO_OFERTADA = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
+
+
+def separar_oferta(nombre):
+    """Separa del nombre la marca de asignatura no ofertada.
+
+    Algunas asignaturas (optativas que no se imparten en el curso) llevan al
+    final del nombre el estado "(No ofertada en 2025/26)". Ese estado no es
+    parte del nombre, sino un dato aparte, por lo que se extrae a un valor
+    booleano y se devuelve el nombre limpio. El patrón no depende de un año
+    concreto, de modo que sigue funcionando en cursos posteriores.
+
+    El valor devuelto es relativo al curso rastreado: una asignatura no
+    ofertada este curso puede volver a ofertarse en otro, por lo que este
+    dato debe interpretarse como una foto del momento de la extracción.
+
+    Args:
+        nombre (str): Nombre de la asignatura, ya limpio de espacios.
+
+    Returns:
+        tuple[str, bool]: El nombre sin la marca y ``True`` si la asignatura
+            se oferta, ``False`` si lleva la marca de no ofertada.
+    """
+    if not nombre:
+        return nombre, True
+    if _NO_OFERTADA.search(nombre):
+        return _NO_OFERTADA.sub("", nombre).strip(), False
+    return nombre, True
