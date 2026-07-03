@@ -340,7 +340,7 @@ def _guia(fixture, codigo, nombre, grado):
     return next(GradosSpider().parse_guia(resp))
 
 
-def test_extrae_las_cuatro_secciones_de_una_guia_real():
+def test_extrae_resumen_y_temario_de_una_guia_real():
     # Matemáticas I de Organización Industrial (13011009).
     item = _guia(
         "guia_matematicas_oi.html", "13011009", "Matemáticas I",
@@ -348,9 +348,9 @@ def test_extrae_las_cuatro_secciones_de_una_guia_real():
     )
     assert item["fallback"] is False
     assert "sistemas de ecuaciones lineales" in item["temario"].lower()
-    assert len(item["evaluacion"]) > 100
-    assert len(item["bibliografia"]) > 100
     assert len(item["resumen"]) > 100
+    assert "evaluacion" not in item
+    assert "bibliografia" not in item
 
 
 def test_decodifica_los_acentos_correctamente():
@@ -361,7 +361,7 @@ def test_decodifica_los_acentos_correctamente():
         "guia_matematicas_oi.html", "13011009", "Matemáticas I",
         "Grado en Ingeniería de Organización Industrial",
     )
-    texto_completo = item["resumen"] + item["temario"] + item["evaluacion"]
+    texto_completo = item["resumen"] + item["temario"]
     assert "�" not in texto_completo
     assert "diagonalización" in texto_completo.lower()
 
@@ -385,7 +385,7 @@ def test_extrae_guia_real_de_iayc():
         "Grado en Inteligencia Artificial y Ciberseguridad",
     )
     assert item["fallback"] is False
-    assert len(item["bibliografia"]) > 100
+    assert len(item["temario"]) > 100
 
 
 def test_descarta_el_marcador_de_campo_sin_contenido():
@@ -407,6 +407,31 @@ def test_descarta_el_marcador_de_campo_sin_contenido():
     texto = GradosSpider._contenido_seccion(resp, "resumen")
     assert texto == "Contenido real"
     assert "-" not in texto
+
+
+def test_usa_el_fallback_cuando_la_estructura_no_aparece():
+    # Fixture CONSTRUIDA (no real, ver comentario en el propio HTML): ninguna
+    # de las guías reales disponibles dispara el fallback, así que se ejercita
+    # esta rama con una estructura de ids válida pero sin contenido, para no
+    # dejar el camino de código sin probar. Documentado explícitamente como
+    # caso de prueba, no como dato real de la EPSJ.
+    item = _guia(
+        "guia_estructura_rota.html", "X000", "Asignatura de prueba", "Grado de prueba",
+    )
+    assert item["fallback"] is True
+    assert item["resumen"] == ""
+    assert item["temario"] == ""
+    assert "cuerpo_general" in item
+    assert len(item["cuerpo_general"]) > 0
+
+
+def test_el_fallback_excluye_profesorado_y_clausulas():
+    item = _guia(
+        "guia_estructura_rota.html", "X000", "Asignatura de prueba", "Grado de prueba",
+    )
+    cuerpo = item["cuerpo_general"].lower()
+    assert "profesor" not in cuerpo
+    assert "rgpd" not in cuerpo
 
 
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
