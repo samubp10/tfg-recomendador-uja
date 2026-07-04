@@ -187,8 +187,8 @@ def test_portada_encola_el_rastreo_de_asignaturas():
         GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
     )
     requests = [r for r in resultados if isinstance(r, scrapy.Request)]
-    assert len(requests) == 1
-    assert "asignaturas-y-profesorado" in requests[0].url
+    asignaturas = [r for r in requests if "asignaturas-y-profesorado" in r.url]
+    assert len(asignaturas) == 1
 
 
 # --- IT-05 (validez externa): Grado en IA y Ciberseguridad ---
@@ -444,3 +444,49 @@ def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
     assert all(r.callback.__name__ == "parse_guia" for r in requests)
     peticion = next(r for r in requests if r.meta["codigo"] == "13311008")
     assert peticion.meta["nombre"] == "Matemática discreta"
+
+
+# --- IT-07: salidas profesionales (parse_salidas) ---
+#
+# Las salidas viven en una lista dentro de .field--name-body. La fixture
+# salidas_no_encontrada.html es una página 404 REAL de la EPSJ (resultado de
+# una URL de salidas inexistente), útil para verificar el comportamiento
+# robusto cuando no hay bloque de salidas.
+
+def _salidas(fixture, nombre):
+    resp = HtmlResponse(
+        url="https://eps.ujaen.es/grados/x/salidas-profesionales",
+        body=(FIXTURES / fixture).read_bytes(),
+        encoding="utf-8",
+        request=Request("https://eps.ujaen.es/grados/x/salidas-profesionales",
+                        meta={"nombre": nombre}),
+    )
+    return list(GradosSpider().parse_salidas(resp))
+
+
+def test_extrae_las_salidas_profesionales_de_un_grado():
+    items = _salidas("salidas_informatica.html", "Grado en Ingeniería Informática")
+    assert len(items) == 1
+    item = items[0]
+    assert item["tipo"] == "salidas"
+    assert item["grado"] == "Grado en Ingeniería Informática"
+    lineas = item["texto"].split("\n")
+    assert len(lineas) == 16
+    assert lineas[0] == "- Programador de aplicaciones."
+    assert all(linea.startswith("- ") for linea in lineas)
+
+
+def test_no_emite_item_si_no_hay_bloque_de_salidas():
+    # Página 404 real: no hay .field--name-body, no se emite item.
+    items = _salidas("salidas_no_encontrada.html", "Grado en Ingeniería Eléctrica")
+    assert items == []
+
+
+def test_portada_encola_el_rastreo_de_salidas():
+    meta = {"nombre": "Grado en Ingeniería Informática"}
+    salida = list(GradosSpider().parse_portada(
+        _respuesta("portada_grado.html", meta=meta)))
+    requests = [r for r in salida if isinstance(r, scrapy.Request)]
+    urls_salidas = [r for r in requests if "salidas-profesionales" in r.url]
+    assert len(urls_salidas) == 1
+    assert urls_salidas[0].callback.__name__ == "parse_salidas"
