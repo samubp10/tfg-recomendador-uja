@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><body>
+<!--
+  Fixture CONSTRUIDA (no real) para IT-06.
+  Reproduce la estructura de ids verificada en las guías reales, pero con las
+  secciones "resumen" y "descripcioncontenidos" vacías, simulando una guía
+  cuyo formato HTML difiere del habitual (p.ej. una plantilla antigua o un
+  fallo de publicación). Ninguna guía real observada dispara el fallback
+  hasta la fecha; esta fixture existe solo para ejercitar esa rama de código,
+  documentado explícitamente como caso construido, no una guía real de la UJA.
+-->
+<div id="fichadocenteasignatura">
+  <div id="resumen">
+    <div class="fdoca_cabecera_cuadro_ambito">RESUMEN</div>
+  </div>
+  <div id="descripcioncontenidos">
+    <div class="fdoca_cabecera_cuadro_ambito">DESCRIPCIÓN DE CONTENIDOS</div>
+  </div>
+  <div id="coordinador">
+    <div class="fdoca_valor_cuadro_ambito">Nombre del profesor (excluido del fallback)</div>
+  </div>
+  <div id="clausulas">
+    <div class="fdoca_valor_cuadro_ambito">Texto legal RGPD (excluido del fallback)</div>
+  </div>
+  <p>Aviso: la guía docente de esta asignatura no está disponible en el formato habitual. Consulte al departamento.</p>
+</div>
+</body></html>

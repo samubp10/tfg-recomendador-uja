@@ -195,9 +195,30 @@ class GradosSpider(scrapy.Spider):
                 else:
                     sin_codigo.append(item)
         for codigo in orden:
-            yield por_codigo[codigo]
+            item = por_codigo[codigo]
+            yield item
+            if item["tiene_guia"]:
+                yield response.follow(
+                    item["url_guia"],
+                    callback=self.parse_guia,
+                    meta={
+                        "codigo": item["codigo"],
+                        "nombre": item["nombre"],
+                        "grado": item["grado"],
+                    },
+                )
         for item in sin_codigo:
             yield item
+            if item["tiene_guia"]:
+                yield response.follow(
+                    item["url_guia"],
+                    callback=self.parse_guia,
+                    meta={
+                        "codigo": item["codigo"],
+                        "nombre": item["nombre"],
+                        "grado": item["grado"],
+                    },
+                )
 
     @staticmethod
     def _menciones(celda):
@@ -226,3 +247,128 @@ class GradosSpider(scrapy.Spider):
                 if parte and parte not in menciones:
                     menciones.append(parte)
         return menciones
+
+    #: Umbral mínimo de caracteres (suma de Resumen + Temario) por debajo del
+    #: cual se considera que la extracción estructurada no ha dado contenido
+    #: suficiente y se recurre al fallback de limpieza general. Las guías
+    #: reales observadas combinan mínimo ~1480 caracteres entre ambas
+    #: secciones; 200 deja margen amplio para no activarse en guías
+    #: legítimas y sí detectar una estructura rota.
+    UMBRAL_CONTENIDO_GUIA = 200
+
+    #: IDs de las secciones que se excluyen del fallback de limpieza general
+    #: por no aportar valor a un futuro estudiante o por ser datos personales
+    #: del profesorado (privacidad) o texto legal (RGPD).
+    _SECCIONES_EXCLUIDAS_FALLBACK = {
+        "coordinador",
+        "equipodocente",
+        "clausulas",
+        "objetivosdesarrollosostenible",
+    }
+
+    def parse_guia(self, response):
+        """Extrae el resumen y el temario de una guía docente.
+
+        Recorre las secciones «Resumen» (conocimientos previos y
+        prerrequisitos) y «Descripción de contenidos» (temario), localizadas
+        por su ``id`` estable en la página (verificado igual en varios
+        grados). Cada sección puede tener varios bloques de valor; se
+        descartan los marcadores de "sin contenido" (un guion suelto, "-") y
+        se unen el resto con un salto de línea.
+
+        Si la suma de caracteres de ambas secciones no alcanza
+        :data:`UMBRAL_CONTENIDO_GUIA`, se considera que la estructura
+        esperada no ha aparecido (formato de guía distinto al habitual) y se
+        recurre a un fallback: todo el texto de la ficha salvo profesorado,
+        cláusulas legales y objetivos de desarrollo sostenible.
+
+        Nota sobre codificación: la web declara "UTF-8" en su ``<meta>`` pero
+        el servidor envía la cabecera HTTP real como ISO-8859-1/cp1252; en
+        una petición real, Scrapy prioriza la cabecera HTTP y decodifica
+        bien sin intervención (verificado). Esto solo afecta a fixtures
+        locales sin cabecera HTTP, donde el test debe declarar el encoding
+        explícitamente.
+
+        Args:
+            response (scrapy.http.Response): Respuesta de la guía docente.
+
+        Yields:
+            dict: Resumen y temario de la guía, con ``fallback`` indicando
+                si se usó la limpieza general en vez de la extracción
+                estructurada.
+        """
+        secciones = {
+            "resumen": self._contenido_seccion(response, "resumen"),
+            "temario": self._contenido_seccion(response, "descripcioncontenidos"),
+        }
+        total_caracteres = sum(len(v) for v in secciones.values())
+        fallback = total_caracteres < self.UMBRAL_CONTENIDO_GUIA
+        if fallback:
+            self.logger.warning(
+                "Guía %s con contenido estructurado insuficiente (%d "
+                "caracteres); se usa el fallback de limpieza general.",
+                response.meta["codigo"],
+                total_caracteres,
+            )
+            secciones = {
+                "resumen": "",
+                "temario": "",
+                "cuerpo_general": self._limpieza_general(response),
+            }
+        yield {
+            "tipo": "guia",
+            "codigo": response.meta["codigo"],
+            "nombre": response.meta["nombre"],
+            "grado": response.meta["grado"],
+            "fallback": fallback,
+            **secciones,
+        }
+
+    @staticmethod
+    def _contenido_seccion(response, id_seccion):
+        """Extrae el texto de una sección de la guía docente por su id.
+
+        Une los bloques de valor de la sección, descartando los que son
+        únicamente el marcador "sin contenido" (un guion suelto) que usa la
+        web cuando un campo no se ha rellenado.
+
+        Args:
+            response (scrapy.http.Response): Respuesta de la guía docente.
+            id_seccion (str): Id del contenedor de la sección (por ejemplo,
+                ``"sistemasevaluacion"``).
+
+        Returns:
+            str: Texto de la sección, o cadena vacía si no hay contenido.
+        """
+        bloques = response.css(f"#{id_seccion} .fdoca_valor_cuadro_ambito")
+        partes = []
+        for bloque in bloques:
+            texto = limpiar_texto(" ".join(bloque.css("::text").getall()))
+            if texto and texto != "-":
+                partes.append(texto)
+        return "\n\n".join(partes)
+
+    @classmethod
+    def _limpieza_general(cls, response):
+        """Extrae texto general de la ficha cuando falla la estructura.
+
+        Recorre todo el contenido de la ficha docente salvo las secciones de
+        profesorado (datos personales), cláusulas legales y objetivos de
+        desarrollo sostenible, que no aportan valor a un futuro estudiante.
+
+        Args:
+            response (scrapy.http.Response): Respuesta de la guía docente.
+
+        Returns:
+            str: Texto limpio de toda la ficha, salvo las secciones excluidas.
+        """
+        ficha = response.css("#fichadocenteasignatura")
+        if not ficha:
+            ficha = response
+        exclusion = " ".join(
+            f'[not(ancestor-or-self::*[@id="{sid}"])]'
+            for sid in cls._SECCIONES_EXCLUIDAS_FALLBACK
+        )
+        nodos_texto = ficha.xpath(f".//text(){exclusion}")
+        texto = limpiar_texto(" ".join(nodos_texto.getall()))
+        return texto
