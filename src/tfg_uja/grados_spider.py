@@ -96,6 +96,12 @@ class GradosSpider(scrapy.Spider):
                 callback=self.parse_asignaturas,
                 meta={"nombre": nombre},
             )
+        if url_salidas:
+            yield response.follow(
+                url_salidas,
+                callback=self.parse_salidas,
+                meta={"nombre": nombre},
+            )
 
     def parse_asignaturas(self, response):
         """Recorre las tablas de asignaturas de un grado.
@@ -265,6 +271,43 @@ class GradosSpider(scrapy.Spider):
         "clausulas",
         "objetivosdesarrollosostenible",
     }
+
+    def parse_salidas(self, response):
+        """Extrae las salidas profesionales de un grado.
+
+        Las salidas se publican como una lista dentro del cuerpo del
+        contenido de la página (``.field--name-body``). Se extrae cada
+        elemento de la lista, se limpia con
+        :func:`~tfg_uja.text_cleaner.limpiar_texto` y se compone un texto con
+        una viñeta por salida. Si la página no contiene ese bloque (por
+        ejemplo, un grado sin salidas publicadas o una URL sin contenido), no
+        se emite ningún item, para no introducir registros vacíos.
+
+        Args:
+            response (scrapy.http.Response): Respuesta de la página de
+                salidas profesionales del grado.
+
+        Yields:
+            dict: Salidas del grado, con el texto en viñetas. Solo se emite
+                si hay al menos una salida.
+        """
+        elementos = response.css(".field--name-body ul li")
+        salidas = []
+        for elemento in elementos:
+            texto = limpiar_texto(" ".join(elemento.css("::text").getall()))
+            if texto:
+                salidas.append(texto)
+        if not salidas:
+            self.logger.warning(
+                "Sin salidas profesionales en %s; no se emite item.",
+                response.url,
+            )
+            return
+        yield {
+            "tipo": "salidas",
+            "grado": response.meta["nombre"],
+            "texto": "\n".join(f"- {salida}" for salida in salidas),
+        }
 
     def parse_guia(self, response):
         """Extrae el resumen y el temario de una guía docente.
