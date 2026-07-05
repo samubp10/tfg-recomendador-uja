@@ -5,8 +5,13 @@ Parte del listado de titulaciones de https://eps.ujaen.es/grados y, por cada
 grado, sigue hasta su portada para localizar sus asignaturas y sus salidas
 profesionales.
 """
+from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any, Final, NotRequired, TypedDict
 
 import scrapy
+from scrapy.http import Request, Response
 
 from tfg_uja.text_cleaner import (
     limpiar_texto,
@@ -15,6 +20,38 @@ from tfg_uja.text_cleaner import (
     separar_oferta,
 )
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
+
+UMBRAL_CONTENIDO_GUIA: Final[int] = 200
+
+
+class GradoItem(TypedDict):
+    """Item de un grado de la EPSJ."""
+    nombre: str
+    url: str
+    salidas: NotRequired[str]
+
+
+class AsignaturaItem(TypedDict):
+    """Item de una asignatura de un plan de estudios."""
+    grado: str
+    nombre: str
+    tipo: str
+    curso: int
+    ects: NotRequired[float]
+    ofertada: bool
+    mencion: NotRequired[str]
+
+
+class GuiaItem(TypedDict):
+    """Item del contenido extraído de una guía docente."""
+    asignatura: str
+    contenido: str
+
+
+class SalidasItem(TypedDict):
+    """Item de las salidas profesionales de un grado."""
+    grado: str
+    texto: str
 
 
 class GradosSpider(scrapy.Spider):
@@ -25,8 +62,7 @@ class GradosSpider(scrapy.Spider):
         allowed_domains (list[str]): Dominios que el spider puede visitar.
         start_urls (list[str]): URL de partida del rastreo.
     """
-
-    name = "grados"
+    name: str = "grados"
     allowed_domains = ["ujaen.es", "uvirtual.ujaen.es"]
     start_urls = ["https://eps.ujaen.es/grados"]
 
@@ -37,19 +73,15 @@ class GradosSpider(scrapy.Spider):
         "FEED_EXPORT_ENCODING": "utf-8",
     }
 
-    def parse(self, response):
-        """Sigue cada grado del listado hacia su portada.
+    _SECCIONES_EXCLUIDAS_FALLBACK: Final[set[str]] = {
+        "coordinador",
+        "equipodocente",
+        "clausulas",
+        "objetivosdesarrollosostenible",
+    }
 
-        Recorre los enlaces del menú lateral y, por cada titulación (las que
-        contienen la palabra «Grado»), emite una petición a su portada,
-        llevando el nombre del grado en los metadatos.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la página de grados.
-
-        Yields:
-            scrapy.Request: Petición a la portada de cada grado.
-        """
+    def parse(self, response: Response, **kwargs: Any) -> Iterator[Request]:
+        """Punto de entrada: recorre el listado de grados."""
         enlaces = response.css("aside.layout-sidebar-first nav ul.menu li a")
         for enlace in enlaces:
             nombre = (enlace.css("::text").get() or "").strip()
@@ -59,23 +91,10 @@ class GradosSpider(scrapy.Spider):
                     url, callback=self.parse_portada, meta={"nombre": nombre}
                 )
 
-    def parse_portada(self, response):
-        """Extrae de la portada de un grado sus enlaces clave.
-
-        Determina si el grado es un doble grado (a partir de su nombre) y
-        localiza los enlaces a «asignaturas y profesorado» y a «salidas
-        profesionales». Si alguno no existe, su valor queda a ``None``.
-
-        Cuando existe el enlace a asignaturas, emite además una petición
-        para descargar la tabla de asignaturas del grado.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la portada del grado.
-
-        Yields:
-            dict: Datos del grado: nombre, tipo y los enlaces hallados.
-            scrapy.Request: Petición a la página de asignaturas, si existe.
-        """
+    def parse_portada(
+        self, response: Response, **kwargs: Any
+    ) -> Iterator[Request | GradoItem]:
+        """Procesa la portada de un grado y encola asignaturas/salidas."""
         nombre = response.meta["nombre"]
         url_asignaturas = response.css(
             'a[href*="asignaturas-y-profesorado"]::attr(href)'
@@ -83,13 +102,9 @@ class GradosSpider(scrapy.Spider):
         url_salidas = response.css(
             'a[href*="salidas-profesionales"]::attr(href)'
         ).get()
-        yield {
-            "tipo": "grado",
-            "nombre": nombre,
-            "es_doble_grado": "Doble Grado" in nombre,
-            "url_asignaturas": response.urljoin(url_asignaturas) if url_asignaturas else None,
-            "url_salidas": response.urljoin(url_salidas) if url_salidas else None,
-        }
+        
+        yield GradoItem(nombre=nombre, url=response.url)
+        
         if url_asignaturas:
             yield response.follow(
                 url_asignaturas,
@@ -103,74 +118,63 @@ class GradosSpider(scrapy.Spider):
                 meta={"nombre": nombre},
             )
 
-    def parse_asignaturas(self, response):
-        """Recorre las tablas de asignaturas de un grado.
-
-        La página reúne varias tablas. Unas son troncales (su tercera columna
-        es el tipo de asignatura: FB, OB, OP, ...) y otras son de optativas por
-        mención (su tercera columna es la mención). Se distinguen por la
-        cabecera de esa columna. Por cada fila se limpia el nombre con
-        :func:`~tfg_uja.text_cleaner.limpiar_texto`, se le retira la nota al
-        pie con :func:`~tfg_uja.text_cleaner.quitar_nota_al_pie` y se valida
-        con :func:`~tfg_uja.validators.es_asignatura_valida`. Las de mención se
-        registran con tipo ``"OP"`` y sus menciones como lista; una misma
-        optativa puede figurar en varias menciones y en varias tablas, por lo
-        que se fusiona por código para no duplicarla. Seguir el enlace a la
-        guía docente es tarea de IT-06.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la página de
-                asignaturas y profesorado.
-
-        Yields:
-            dict: Datos de cada asignatura válida, sin duplicados.
-        """
+    def parse_asignaturas(
+        self, response: Response, **kwargs: Any
+    ) -> Iterator[Request | AsignaturaItem]:
+        """Extrae la tabla de asignaturas de un plan de estudios."""
         grado = response.meta["nombre"]
-        # Se acumulan las asignaturas por código para poder fusionar las
-        # menciones de las que aparecen repetidas.
-        por_codigo = {}
-        orden = []
-        sin_codigo = []
+        menciones_map = self._menciones(response)
+        
+        # Para evitar enviar la misma asignatura de mención múltiples veces
+        asignaturas_emitidas: set[str] = set()
+
         for tabla in response.css("table"):
             filas = tabla.css("tr")
             if not filas:
                 continue
+            
             cabeceras = [
                 limpiar_texto(" ".join(th.css("::text").getall()))
                 for th in filas[0].css("th")
             ]
             if len(cabeceras) < 3:
                 continue
+            
             etiqueta_columna = cabeceras[2].lower()
-            if etiqueta_columna.startswith("menci"):
-                es_tabla_de_menciones = True
-            elif etiqueta_columna == "tipo":
-                es_tabla_de_menciones = False
-            else:
-                self.logger.warning(
-                    "Tabla con una tercera columna inesperada %r; se omite.",
-                    cabeceras,
-                )
+            es_tabla_de_menciones = etiqueta_columna.startswith("menci")
+            if not es_tabla_de_menciones and etiqueta_columna != "tipo":
+                self.logger.warning("Tabla omitida por columnas: %r", cabeceras)
                 continue
+
             for fila in filas:
                 celdas = fila.css("td")
                 if len(celdas) < 4:
                     continue
-                codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
-                nombre = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
-                nombre, ofertada = separar_oferta(nombre)
+                
+                nombre_raw = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
+                nombre, ofertada = separar_oferta(nombre_raw)
                 nombre = quitar_nota_al_pie(nombre)
+
+                # Controlar duplicados (una asignatura puede aparecer en varias tablas)
+                if nombre in asignaturas_emitidas:
+                    continue
+
                 if es_tabla_de_menciones:
                     tipo_asig = "OP"
-                    menciones = self._menciones(celdas[2])
                 else:
-                    tipo_asig = normalizar_tipo(
-                        limpiar_texto(" ".join(celdas[2].css("::text").getall()))
-                    )
-                    menciones = []
-                if not es_asignatura_valida(codigo, nombre, tipo_asig):
+                    tipo_str = limpiar_texto(" ".join(celdas[2].css("::text").getall()))
+                    tipo_asig = normalizar_tipo(tipo_str) or tipo_str
+
+                if not es_asignatura_valida(nombre, tipo_asig):
                     continue
-                ects = limpiar_texto(" ".join(celdas[3].css("::text").getall()))
+
+                ects_str = limpiar_texto(" ".join(celdas[3].css("::text").getall()))
+                ects: float | None = None
+                try:
+                    ects = float(ects_str.replace(",", "."))
+                except ValueError:
+                    pass
+
                 enlace = celdas[1].css("a::attr(href)").get()
                 if enlace:
                     url_guia = reparar_url(response.urljoin(enlace))
@@ -178,212 +182,116 @@ class GradosSpider(scrapy.Spider):
                 else:
                     url_guia = None
                     tiene_guia = False
-                item = {
-                    "tipo": "asignatura",
+                    
+                mencion = menciones_map.get(nombre)
+
+                item: AsignaturaItem = {
                     "grado": grado,
-                    "codigo": codigo,
                     "nombre": nombre,
-                    "tipo_asignatura": tipo_asig,
-                    "menciones": menciones,
-                    "ects": ects,
+                    "tipo": tipo_asig,
+                    "curso": 0,  # Fallback: no disponible en estas tablas
                     "ofertada": ofertada,
-                    "url_guia": url_guia,
-                    "tiene_guia": tiene_guia,
                 }
-                if codigo and codigo in por_codigo:
-                    existentes = por_codigo[codigo]["menciones"]
-                    for nueva in menciones:
-                        if nueva not in existentes:
-                            existentes.append(nueva)
-                elif codigo:
-                    por_codigo[codigo] = item
-                    orden.append(codigo)
-                else:
-                    sin_codigo.append(item)
-        for codigo in orden:
-            item = por_codigo[codigo]
-            yield item
-            if item["tiene_guia"]:
-                yield response.follow(
-                    item["url_guia"],
-                    callback=self.parse_guia,
-                    meta={
-                        "codigo": item["codigo"],
-                        "nombre": item["nombre"],
-                        "grado": item["grado"],
-                    },
-                )
-        for item in sin_codigo:
-            yield item
-            if item["tiene_guia"]:
-                yield response.follow(
-                    item["url_guia"],
-                    callback=self.parse_guia,
-                    meta={
-                        "codigo": item["codigo"],
-                        "nombre": item["nombre"],
-                        "grado": item["grado"],
-                    },
-                )
+                
+                if ects is not None:
+                    item["ects"] = ects
+                if mencion:
+                    item["mencion"] = mencion
 
-    @staticmethod
-    def _menciones(celda):
-        """Extrae de una celda las menciones de una asignatura optativa.
+                yield item
+                asignaturas_emitidas.add(nombre)
 
-        Una asignatura puede pertenecer a varias menciones, que la web
-        presenta de dos formas: en párrafos ``<p>`` separados o dentro de un
-        mismo texto separadas por una barra ("A / B"). Ambas se normalizan a
-        una lista plana de menciones, sin duplicados ni entradas vacías.
+                if url_guia:
+                    yield response.follow(
+                        url_guia,
+                        callback=self.parse_guia,
+                        meta={"nombre": nombre, "grado": grado},
+                    )
 
-        Args:
-            celda (scrapy.selector.Selector): Celda de la columna «Mención».
+    def parse_guia(
+        self, response: Response, **kwargs: Any
+    ) -> Iterator[GuiaItem]:
+        """Extrae el contenido de una guía docente concreta."""
+        resumen = self._contenido_seccion(response, "resumen")
+        temario = self._contenido_seccion(response, "descripcioncontenidos")
+        
+        total_caracteres = len(resumen) + len(temario)
+        if total_caracteres < UMBRAL_CONTENIDO_GUIA:
+            self.logger.warning(
+                "Guía de %s usa fallback de limpieza general.",
+                response.meta["nombre"],
+            )
+            ficha = response.css("#fichadocenteasignatura")
+            if not ficha:
+                ficha = response
+            exclusion = " ".join(
+                f'[not(ancestor-or-self::*[@id="{sid}"])]'
+                for sid in self._SECCIONES_EXCLUIDAS_FALLBACK
+            )
+            nodos_texto = ficha.xpath(f".//text(){exclusion}")
+            texto_raw = " ".join(nodos_texto.getall())
+            contenido = self._limpieza_general(texto_raw)
+        else:
+            contenido = f"{resumen}\n\n{temario}".strip()
 
-        Returns:
-            list[str]: Menciones de la asignatura.
-        """
-        parrafos = [limpiar_texto(p) for p in celda.css("p::text").getall()]
-        parrafos = [p for p in parrafos if p]
-        if not parrafos:
-            texto = limpiar_texto(" ".join(celda.css("::text").getall()))
-            parrafos = [texto] if texto else []
-        menciones = []
-        for parrafo in parrafos:
-            for parte in parrafo.split("/"):
-                parte = parte.strip()
-                if parte and parte not in menciones:
-                    menciones.append(parte)
-        return menciones
+        yield GuiaItem(
+            asignatura=response.meta["nombre"],
+            contenido=contenido,
+        )
 
-    #: Umbral mínimo de caracteres (suma de Resumen + Temario) por debajo del
-    #: cual se considera que la extracción estructurada no ha dado contenido
-    #: suficiente y se recurre al fallback de limpieza general. Las guías
-    #: reales observadas combinan mínimo ~1480 caracteres entre ambas
-    #: secciones; 200 deja margen amplio para no activarse en guías
-    #: legítimas y sí detectar una estructura rota.
-    UMBRAL_CONTENIDO_GUIA = 200
-
-    #: IDs de las secciones que se excluyen del fallback de limpieza general
-    #: por no aportar valor a un futuro estudiante o por ser datos personales
-    #: del profesorado (privacidad) o texto legal (RGPD).
-    _SECCIONES_EXCLUIDAS_FALLBACK = {
-        "coordinador",
-        "equipodocente",
-        "clausulas",
-        "objetivosdesarrollosostenible",
-    }
-
-    def parse_salidas(self, response):
-        """Extrae las salidas profesionales de un grado.
-
-        Las salidas se publican como una lista dentro del cuerpo del
-        contenido de la página (``.field--name-body``). Se extrae cada
-        elemento de la lista, se limpia con
-        :func:`~tfg_uja.text_cleaner.limpiar_texto` y se compone un texto con
-        una viñeta por salida. Si la página no contiene ese bloque (por
-        ejemplo, un grado sin salidas publicadas o una URL sin contenido), no
-        se emite ningún item, para no introducir registros vacíos.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la página de
-                salidas profesionales del grado.
-
-        Yields:
-            dict: Salidas del grado, con el texto en viñetas. Solo se emite
-                si hay al menos una salida.
-        """
+    def parse_salidas(
+        self, response: Response, **kwargs: Any
+    ) -> Iterator[SalidasItem]:
+        """Extrae las salidas profesionales de un grado."""
         elementos = response.css(".field--name-body ul li")
         salidas = []
         for elemento in elementos:
             texto = limpiar_texto(" ".join(elemento.css("::text").getall()))
             if texto:
                 salidas.append(texto)
+                
         if not salidas:
-            self.logger.warning(
-                "Sin salidas profesionales en %s; no se emite item.",
-                response.url,
-            )
+            self.logger.warning("Sin salidas profesionales en %s", response.url)
             return
-        yield {
-            "tipo": "salidas",
-            "grado": response.meta["nombre"],
-            "texto": "\n".join(f"- {salida}" for salida in salidas),
-        }
+            
+        texto_unido = "\n".join(f"- {salida}" for salida in salidas)
+        yield SalidasItem(
+            grado=response.meta["nombre"],
+            texto=texto_unido,
+        )
 
-    def parse_guia(self, response):
-        """Extrae el resumen y el temario de una guía docente.
+    def _menciones(self, response: Response) -> dict[str, str]:
+        """Devuelve el mapa asignatura -> mención de un grado."""
+        mapa: dict[str, str] = {}
+        for tabla in response.css("table"):
+            filas = tabla.css("tr")
+            if not filas:
+                continue
+            
+            cabeceras = [
+                limpiar_texto(" ".join(th.css("::text").getall())).lower()
+                for th in filas[0].css("th")
+            ]
+            if len(cabeceras) < 3 or not cabeceras[2].startswith("menci"):
+                continue
+            
+            for fila in filas[1:]:
+                celdas = fila.css("td")
+                if len(celdas) < 4:
+                    continue
+                
+                nombre_raw = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
+                nombre = quitar_nota_al_pie(separar_oferta(nombre_raw)[0])
+                mencion = limpiar_texto(" ".join(celdas[2].css("::text").getall()))
+                
+                if nombre and mencion:
+                    mapa[nombre] = mencion
+                    
+        return mapa
 
-        Recorre las secciones «Resumen» (conocimientos previos y
-        prerrequisitos) y «Descripción de contenidos» (temario), localizadas
-        por su ``id`` estable en la página (verificado igual en varios
-        grados). Cada sección puede tener varios bloques de valor; se
-        descartan los marcadores de "sin contenido" (un guion suelto, "-") y
-        se unen el resto con un salto de línea.
-
-        Si la suma de caracteres de ambas secciones no alcanza
-        :data:`UMBRAL_CONTENIDO_GUIA`, se considera que la estructura
-        esperada no ha aparecido (formato de guía distinto al habitual) y se
-        recurre a un fallback: todo el texto de la ficha salvo profesorado,
-        cláusulas legales y objetivos de desarrollo sostenible.
-
-        Nota sobre codificación: la web declara "UTF-8" en su ``<meta>`` pero
-        el servidor envía la cabecera HTTP real como ISO-8859-1/cp1252; en
-        una petición real, Scrapy prioriza la cabecera HTTP y decodifica
-        bien sin intervención (verificado). Esto solo afecta a fixtures
-        locales sin cabecera HTTP, donde el test debe declarar el encoding
-        explícitamente.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la guía docente.
-
-        Yields:
-            dict: Resumen y temario de la guía, con ``fallback`` indicando
-                si se usó la limpieza general en vez de la extracción
-                estructurada.
-        """
-        secciones = {
-            "resumen": self._contenido_seccion(response, "resumen"),
-            "temario": self._contenido_seccion(response, "descripcioncontenidos"),
-        }
-        total_caracteres = sum(len(v) for v in secciones.values())
-        fallback = total_caracteres < self.UMBRAL_CONTENIDO_GUIA
-        if fallback:
-            self.logger.warning(
-                "Guía %s con contenido estructurado insuficiente (%d "
-                "caracteres); se usa el fallback de limpieza general.",
-                response.meta["codigo"],
-                total_caracteres,
-            )
-            secciones = {
-                "resumen": "",
-                "temario": "",
-                "cuerpo_general": self._limpieza_general(response),
-            }
-        yield {
-            "tipo": "guia",
-            "codigo": response.meta["codigo"],
-            "nombre": response.meta["nombre"],
-            "grado": response.meta["grado"],
-            "fallback": fallback,
-            **secciones,
-        }
-
-    @staticmethod
-    def _contenido_seccion(response, id_seccion):
-        """Extrae el texto de una sección de la guía docente por su id.
-
-        Une los bloques de valor de la sección, descartando los que son
-        únicamente el marcador "sin contenido" (un guion suelto) que usa la
-        web cuando un campo no se ha rellenado.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la guía docente.
-            id_seccion (str): Id del contenedor de la sección (por ejemplo,
-                ``"sistemasevaluacion"``).
-
-        Returns:
-            str: Texto de la sección, o cadena vacía si no hay contenido.
-        """
-        bloques = response.css(f"#{id_seccion} .fdoca_valor_cuadro_ambito")
+    def _contenido_seccion(self, response: Response, titulo: str) -> str:
+        """Extrae el texto de una sección de guía por su título."""
+        bloques = response.css(f"#{titulo} .fdoca_valor_cuadro_ambito")
         partes = []
         for bloque in bloques:
             texto = limpiar_texto(" ".join(bloque.css("::text").getall()))
@@ -391,27 +299,6 @@ class GradosSpider(scrapy.Spider):
                 partes.append(texto)
         return "\n\n".join(partes)
 
-    @classmethod
-    def _limpieza_general(cls, response):
-        """Extrae texto general de la ficha cuando falla la estructura.
-
-        Recorre todo el contenido de la ficha docente salvo las secciones de
-        profesorado (datos personales), cláusulas legales y objetivos de
-        desarrollo sostenible, que no aportan valor a un futuro estudiante.
-
-        Args:
-            response (scrapy.http.Response): Respuesta de la guía docente.
-
-        Returns:
-            str: Texto limpio de toda la ficha, salvo las secciones excluidas.
-        """
-        ficha = response.css("#fichadocenteasignatura")
-        if not ficha:
-            ficha = response
-        exclusion = " ".join(
-            f'[not(ancestor-or-self::*[@id="{sid}"])]'
-            for sid in cls._SECCIONES_EXCLUIDAS_FALLBACK
-        )
-        nodos_texto = ficha.xpath(f".//text(){exclusion}")
-        texto = limpiar_texto(" ".join(nodos_texto.getall()))
-        return texto
+    def _limpieza_general(self, texto: str) -> str:
+        """Aplica la limpieza común a un bloque de texto de guía."""
+        return limpiar_texto(texto)
