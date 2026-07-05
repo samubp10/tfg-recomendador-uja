@@ -23,7 +23,7 @@ authors = [
     {name = "Samuel Blanco Palmero"}
 ]
 # Dependencias principales de producción (se instalan por defecto con pip install)
-dependencies = ["scrapy>=2.11"]
+dependencies = ["scrapy>=2.13"]
 
 # ==============================================================================
 # DEPENDENCIAS OPCIONALES (Optional Dependencies)
@@ -35,6 +35,7 @@ dev = [
     "pytest>=7.0.0",   # Framework de ejecución de pruebas
     "black>=23.0.0",   # Formateador automático de código
     "flake8>=6.0.0",   # Linter para análisis estático (control de estilo PEP 8)
+    "mypy>=1.8",       # Verificador estático de tipos
 ]
 
 # ==============================================================================

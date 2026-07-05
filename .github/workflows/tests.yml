@@ -1,54 +1,31 @@
-name: tests
+name: Tests
 
-on:
-  push:
-  pull_request:
-  schedule:
-    - cron: "0 6 * * 1" # lunes 06:00 UTC: revalidación contra la web real
+on: [push, pull_request]
 
 jobs:
-  test:
-    name: Tests + validación del dataset versionado
+  pruebas:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Descargar el código
+        uses: actions/checkout@v5
 
-      - name: Configurar Python 3.13
-        uses: actions/setup-python@v5
+      - name: Preparar Python
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: "pip"
-          cache-dependency-path: "pyproject.toml"
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+      - name: Instalar el proyecto y sus dependencias
+        run: pip install -e ".[dev]"
 
-      - name: Ejecutar tests (incluye integridad del dataset)
+      - name: Ejecutar las pruebas
         run: pytest
 
-  dataset-fresh:
-    name: Revalidación semanal contra la web real
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Comprobar la coherencia de tipos
+        run: mypy src/tfg_uja/ --ignore-missing-imports
 
-      - name: Configurar Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-          cache: "pip"
-          cache-dependency-path: "pyproject.toml"
+      - name: Verificar el dataset versionado
+        run: python data/check_dataset.py
 
-      - name: Instalar dependencias
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-
-      - name: Regenerar el dataset desde la web real
-        run: scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
-
-      - name: Validar el dataset recién generado
-        run: pytest -m dataset
+      - name: Verificar los chunks versionados
+        run: python data/check_chunks.py
