@@ -1,29 +1,28 @@
-"""Utilidades para limpiar texto y URLs extraídos de las páginas de la EPSJ.
-
-La web publica el contenido con ruido que no aporta significado: espacios
-duros, caracteres de ancho cero y, en el caso de las guías docentes, URLs
-con el sufijo ".html" duplicado por un error de generación del propio sitio.
-"""
+"""Funciones de limpieza y normalización de texto extraído de las guías."""
+from __future__ import annotations
 
 import re
+import urllib.parse
 
 _ESPACIO_DURO = "\xa0"
 _ANCHO_CERO = "\u200b"
 
+#: Marca de asignatura no ofertada, añadida al final del nombre (por ejemplo,
+#: "Métodos cuantitativos avanzados (No ofertada en 2025/26)"). El patrón es
+#: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
+#: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
+#: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
+_NO_OFERTADA: re.Pattern[str] = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
 
-def limpiar_texto(texto):
-    """Normaliza un texto extraído de la web.
 
-    Sustituye los espacios duros por espacios normales, elimina los
-    caracteres de ancho cero y colapsa los espacios múltiples y los saltos
-    de línea en uno solo.
+def limpiar_texto(texto: str | None) -> str:
+    """Normaliza espacios, saltos y caracteres residuales de un texto.
 
     Args:
-        texto (str): Texto tal como se extrajo del HTML.
+        texto: Texto en crudo extraído del HTML, o None.
 
     Returns:
-        str: Texto normalizado, sin espacios sobrantes al principio ni al
-            final.
+        El texto limpio; cadena vacía si la entrada es None o vacía.
     """
     if not texto:
         return ""
@@ -32,30 +31,19 @@ def limpiar_texto(texto):
     return texto.strip()
 
 
-def reparar_url(url):
-    """Repara una URL de guía docente con el sufijo ".html" duplicado.
-
-    Se ha observado que algunas URLs del catálogo de guías docentes
-    incluyen contenido sobrante después de la extensión ".html" (por
-    ejemplo, "...es.htmles.html" o "...es.html13312025_es.html"). Al no
-    existir ningún caso legítimo con contenido útil tras el primer
-    ".html", se trunca la URL en ese punto.
-
-    Args:
-        url (str): URL tal como se extrajo del HTML.
-
-    Returns:
-        str: URL reparada, o la URL original si no contiene ".html".
-    """
+def reparar_url(url: str | None, base: str | None = None) -> str:
+    """Repara y normaliza una URL relativa o mal formada."""
     if not url:
-        return url
+        return ""
     indice = url.find(".html")
-    if indice == -1:
-        return url
-    return url[: indice + len(".html")]
+    if indice != -1:
+        url = url[: indice + len(".html")]
+    if base:
+        url = urllib.parse.urljoin(base, url)
+    return url
 
 
-def quitar_nota_al_pie(nombre):
+def quitar_nota_al_pie(nombre: str | None) -> str:
     """Elimina el marcador de nota al pie del nombre de una asignatura.
 
     En las tablas de asignaturas, algunos nombres arrastran un asterisco
@@ -65,25 +53,18 @@ def quitar_nota_al_pie(nombre):
     del texto no se tocan.
 
     Args:
-        nombre (str): Nombre de la asignatura, ya limpio.
+        nombre: Nombre de la asignatura, ya limpio, o None.
 
     Returns:
-        str: Nombre sin el asterisco final ni los espacios que lo rodean.
+        Nombre sin el asterisco final ni los espacios que lo rodean. 
+        Cadena vacía si la entrada es None o vacía.
     """
     if not nombre:
         return nombre
     return re.sub(r"\s*\*+\s*$", "", nombre).strip()
 
 
-#: Marca de asignatura no ofertada, añadida al final del nombre (por ejemplo,
-#: "Métodos cuantitativos avanzados (No ofertada en 2025/26)"). El patrón es
-#: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
-#: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
-#: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
-_NO_OFERTADA = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
-
-
-def separar_oferta(nombre):
+def separar_oferta(nombre: str | None) -> tuple[str, bool]:
     """Separa del nombre la marca de asignatura no ofertada.
 
     Algunas asignaturas (optativas que no se imparten en el curso) llevan al
@@ -97,14 +78,14 @@ def separar_oferta(nombre):
     dato debe interpretarse como una foto del momento de la extracción.
 
     Args:
-        nombre (str): Nombre de la asignatura, ya limpio de espacios.
+        nombre: Nombre de la asignatura, ya limpio de espacios, o None.
 
     Returns:
-        tuple[str, bool]: El nombre sin la marca y ``True`` si la asignatura
-            se oferta, ``False`` si lleva la marca de no ofertada.
+        Una tupla con el nombre sin la marca y un booleano (``True`` si la 
+        asignatura se oferta, ``False`` si lleva la marca de no ofertada).
     """
     if not nombre:
-        return nombre, True
+        return "", True
     if _NO_OFERTADA.search(nombre):
         return _NO_OFERTADA.sub("", nombre).strip(), False
     return nombre, True
