@@ -1,12 +1,11 @@
-"""Validación y normalización de tipos de asignatura."""
-from __future__ import annotations
-
 """Validación de las filas extraídas de la tabla de asignaturas.
 
 La tabla de asignaturas de un grado mezcla asignaturas reales con filas que
 no lo son (marcadores de posición como "Optativa 1"). Este módulo decide qué
 filas representan una asignatura válida y cuáles deben descartarse.
 """
+
+from __future__ import annotations
 
 import re
 from typing import Final
@@ -24,50 +23,63 @@ TIPOS_VALIDOS: Final[frozenset[str]] = frozenset(
 
 #: Patrón de los nombres de relleno de la tabla ("Optativa 1", "Optativa 2"...),
 #: que no corresponden a asignaturas reales.
-_PLACEHOLDER: re.Pattern[str] = re.compile(r"^optativa\s+\d+$", re.IGNORECASE)
+_PLACEHOLDER: Final[re.Pattern[str]] = re.compile(r"^optativa\s+\d+$", re.IGNORECASE)
 
 #: Mapeo de tipos textuales a las abreviaturas esperadas (para grados nuevos
 #: como el de IA y Ciberseguridad que no usan las abreviaturas cortas).
-_MAPEO_TIPOS: Final[dict[str, str]] = {
-    "Formación básica": "FB",
-    "Obligatoria": "OB",
-    "Optativa": "OP",
+_MAPA_TIPOS: Final[dict[str, str]] = {
+    "formación básica": "FB",
+    "obligatoria": "OB",
+    "optativa": "OP",
 }
 
 
-def es_placeholder(nombre: str) -> bool:
-    """Indica si un nombre es un marcador genérico ('optativa 1')."""
-    return bool(_PLACEHOLDER.match(nombre.strip()))
+def normalizar_tipo(tipo: str | None) -> str:
+    """Mapea tipos textuales a las abreviaturas esperadas.
 
-
-def es_asignatura_valida(nombre: str | None, tipo: str | None) -> bool:
-    """Valida que una asignatura tenga nombre real y tipo reconocido."""
-    if not nombre or es_placeholder(nombre):
-        return False
-    
-    if normalizar_tipo(tipo) is None:
-        return False
-        
-    return True
-
-
-def normalizar_tipo(tipo: str | None) -> str | None:
-    """Normaliza el tipo textual a su código (FB/OB/OP...).
+    Args:
+        tipo (str): Tipo de asignatura extraído de la web.
 
     Returns:
-        El código normalizado, o None si no se reconoce el tipo.
+        str: El tipo convertido a abreviatura, o el tipo original si no mapea.
     """
-    if not tipo:
-        return None
-    
-    tipo_limpio = tipo.strip()
-    tipo_cap = tipo_limpio.capitalize()
-    
-    if tipo_cap in _MAPEO_TIPOS:
-        return _MAPEO_TIPOS[tipo_cap]
-        
-    tipo_upper = tipo_limpio.upper()
-    if tipo_upper in TIPOS_VALIDOS:
-        return tipo_upper
-        
-    return None
+    tipo = (tipo or "").strip()
+    return _MAPA_TIPOS.get(tipo.lower(), tipo)
+
+
+def es_placeholder(nombre: str | None) -> bool:
+    """Indica si un nombre es un marcador de posición, no una asignatura.
+
+    Args:
+        nombre (str): Nombre de la asignatura, ya limpio.
+
+    Returns:
+        bool: ``True`` si el nombre es del tipo "Optativa N".
+    """
+    return bool(_PLACEHOLDER.match((nombre or "").strip()))
+
+
+def es_asignatura_valida(
+    codigo: str | None, nombre: str | None, tipo: str | None
+) -> bool:
+    """Decide si una fila de la tabla es una asignatura real.
+
+    Una fila se considera asignatura válida cuando tiene un nombre que no es
+    un marcador de posición y un tipo reconocido. El código puede faltar en
+    algunos casos legítimos, por lo que no se exige, pero si el nombre es un
+    placeholder la fila se descarta aunque traiga otros datos.
+
+    Args:
+        codigo (str): Código de la asignatura, puede estar vacío.
+        nombre (str): Nombre de la asignatura, ya limpio.
+        tipo (str): Tipo de asignatura (FB, OB, OP, ...).
+
+    Returns:
+        bool: ``True`` si la fila representa una asignatura válida.
+    """
+    nombre = (nombre or "").strip()
+    if not nombre or es_placeholder(nombre):
+        return False
+    if (tipo or "").strip().upper() not in TIPOS_VALIDOS:
+        return False
+    return True
