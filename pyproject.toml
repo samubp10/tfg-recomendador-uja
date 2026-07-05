@@ -1,34 +1,75 @@
+# ==============================================================================
+# SISTEMA DE CONSTRUCCIÓN (Build System - PEP 517)
+# Define qué herramientas se utilizan para empaquetar y construir el proyecto.
+# ==============================================================================
 [build-system]
+# Dependencias necesarias para construir el paquete desde el código fuente
 requires = ["setuptools>=61.0", "wheel"]
+# Motor que ejecutará la construcción (en este caso, setuptools)
 build-backend = "setuptools.build_meta"
 
+# ==============================================================================
+# METADATOS DEL PROYECTO (Project Metadata - PEP 621)
+# Información estándar de configuración e identidad del proyecto.
+# ==============================================================================
 [project]
 name = "tfg-recomendador-uja"
 version = "0.1.0"
 description = "Recomendador de titulaciones de la Universidad de Jaén basado en RAG"
 readme = "README.md"
+# Versión mínima de Python requerida para ejecutar el código
 requires-python = ">=3.10"
 authors = [
     {name = "Samuel Blanco Palmero"}
 ]
-dependencies = ["scrapy>=2.11"]
+# Dependencias principales de producción (se instalan por defecto con pip install)
+dependencies = ["scrapy>=2.13"]
 
+# ==============================================================================
+# DEPENDENCIAS OPCIONALES (Optional Dependencies)
+# Grupos adicionales de librerías, por ejemplo para desarrollo, entorno CI o docs.
+# Se instalan usando corchetes: pip install -e ".[dev]"
+# ==============================================================================
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.0.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
+    "pytest>=7.0.0",   # Framework de ejecución de pruebas
+    "black>=23.0.0",   # Formateador automático de código
+    "flake8>=6.0.0",   # Linter para análisis estático (control de estilo PEP 8)
+    "mypy>=1.8",       # Verificador estático de tipos
 ]
 
+# ==============================================================================
+# ENLACES DEL PROYECTO (URLs)
+# Metadatos de enlaces que aparecerán si el paquete se publica (ej. en PyPI).
+# ==============================================================================
 [project.urls]
 Repository = "https://github.com/samubp10/tfg-recomendador-uja"
 
+# ==============================================================================
+# CONFIGURACIÓN DE HERRAMIENTAS (Tool Configurations)
+# Configuraciones específicas para las distintas dependencias del proyecto.
+# ==============================================================================
+
+# --- Setuptools (Empaquetado y descubrimiento de código) ---
 [tool.setuptools.packages.find]
+# Indica que nuestro código fuente está bajo la carpeta src/ (patrón 'src-layout').
+# Es el estándar moderno en Python porque evita errores de importación ocultos.
 where = ["src"]
 
+# --- Black (Formateador de código) ---
 [tool.black]
+# Longitud máxima de línea (88 es el valor estándar que usa Black por defecto)
 line-length = 88
 
+# --- Pytest (Framework de pruebas) ---
 [tool.pytest.ini_options]
+# Directorio donde pytest buscará los archivos de pruebas automáticamente
 testpaths = ["tests"]
+# Patrón de nombres de archivos que se ejecutarán (archivos que empiezan por test_)
 python_files = "test_*.py"
+# Bandera estricta que exige que cualquier decorador @pytest.mark esté registrado abajo
+addopts = "--strict-markers"
+# Registro de marcadores personalizados para clasificar/filtrar la ejecución de tests
+markers = [
+    "dataset: valida la integridad del dataset versionado (data/grados.json)",
+]

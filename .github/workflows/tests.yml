@@ -13,9 +13,19 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+          cache: "pip"
 
       - name: Instalar el proyecto y sus dependencias
         run: pip install -e ".[dev]"
 
       - name: Ejecutar las pruebas
         run: pytest
+
+      - name: Comprobar la coherencia de tipos
+        run: mypy src/tfg_uja/ --ignore-missing-imports
+
+      - name: Verificar el dataset versionado
+        run: python data/check_dataset.py
+
+      - name: Verificar los chunks versionados
+        run: python data/check_chunks.py
