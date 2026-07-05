@@ -1,6 +1,6 @@
 # Recomendador de Grados de la EPSJ
 
-Chatbot de recomendación e información sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén. Está pensado para ayudar a estudiantes que tienen que decidir qué carrera estudiar: responde preguntas sobre asignaturas, planes de estudio y salidas profesionales a partir de la información publicada por la Universidad de Jaén.
+Chatbot de recomendación e información sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén. Está pensado para ayudar a estudiantes o personas que tienen que decidir qué carrera estudiar: responde preguntas sobre asignaturas, planes de estudio y salidas profesionales a partir de la información publicada por la Universidad de Jaén.
 
 Por dentro combina recuperación de información (RAG) sobre un modelo de lenguaje de código abierto, de manera que las respuestas se apoyan en datos reales de la universidad y no en el conocimiento genérico del modelo.
 
@@ -11,7 +11,7 @@ Tutor: Juan Carlos Cuevas Martinez
 
 ## Alcance
 
-La primera versión cubre las titulaciones de la EPSJ. El sistema se ha diseñado para poder ampliarse al resto de centros de la Universidad de Jaén añadiendo nuevas fuentes al proceso de extracción de datos, sin tener que rehacer el núcleo de recuperación y generación.
+La primera versión cubre las titulaciones de la EPSJ. El sistema se ha diseñado para poder ampliarse al resto de facultades de la Universidad de Jaén añadiendo nuevas fuentes al proceso de extracción de datos, sin tener que rehacer el núcleo de recuperación y generación.
 
 ## Requisitos
 
