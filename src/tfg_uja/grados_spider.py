@@ -6,7 +6,14 @@ grado, sigue hasta su portada para localizar sus asignaturas y sus salidas
 profesionales.
 """
 
+from __future__ import annotations
+
+from collections.abc import Iterator
+from typing import Any, Final
+
 import scrapy
+from scrapy.http import Request, Response
+from parsel import Selector, SelectorList
 
 from tfg_uja.text_cleaner import (
     limpiar_texto,
@@ -37,7 +44,7 @@ class GradosSpider(scrapy.Spider):
         "FEED_EXPORT_ENCODING": "utf-8",
     }
 
-    def parse(self, response):
+    def parse(self, response: Response) -> Iterator[Request]:
         """Sigue cada grado del listado hacia su portada.
 
         Recorre los enlaces del menú lateral y, por cada titulación (las que
@@ -59,7 +66,7 @@ class GradosSpider(scrapy.Spider):
                     url, callback=self.parse_portada, meta={"nombre": nombre}
                 )
 
-    def parse_portada(self, response):
+    def parse_portada(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Extrae de la portada de un grado sus enlaces clave.
 
         Determina si el grado es un doble grado (a partir de su nombre) y
@@ -67,7 +74,11 @@ class GradosSpider(scrapy.Spider):
         profesionales». Si alguno no existe, su valor queda a ``None``.
 
         Cuando existe el enlace a asignaturas, emite además una petición
-        para descargar la tabla de asignaturas del grado.
+        para descargar la tabla de asignaturas del grado. Si existe el enlace
+        a salidas y el grado no es un doble grado, emite también una petición
+        para sus salidas profesionales: las salidas de un doble grado son la
+        unión de las de sus dos grados base (que ya se rastrean por separado),
+        por lo que no se duplican.
 
         Args:
             response (scrapy.http.Response): Respuesta de la portada del grado.
@@ -96,14 +107,16 @@ class GradosSpider(scrapy.Spider):
                 callback=self.parse_asignaturas,
                 meta={"nombre": nombre},
             )
-        if url_salidas:
+        if url_salidas and "Doble Grado" not in nombre:
             yield response.follow(
                 url_salidas,
                 callback=self.parse_salidas,
                 meta={"nombre": nombre},
             )
 
-    def parse_asignaturas(self, response):
+    def parse_asignaturas(
+        self, response: Response
+    ) -> Iterator[dict[str, Any] | Request]:
         """Recorre las tablas de asignaturas de un grado.
 
         La página reúne varias tablas. Unas son troncales (su tercera columna
@@ -128,9 +141,9 @@ class GradosSpider(scrapy.Spider):
         grado = response.meta["nombre"]
         # Se acumulan las asignaturas por código para poder fusionar las
         # menciones de las que aparecen repetidas.
-        por_codigo = {}
-        orden = []
-        sin_codigo = []
+        por_codigo: dict[str, dict[str, Any]] = {}
+        orden: list[str] = []
+        sin_codigo: list[dict[str, Any]] = []
         for tabla in response.css("table"):
             filas = tabla.css("tr")
             if not filas:
@@ -157,8 +170,10 @@ class GradosSpider(scrapy.Spider):
                 if len(celdas) < 4:
                     continue
                 codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
-                nombre = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
-                nombre, ofertada = separar_oferta(nombre)
+                nombre_bruto = limpiar_texto(
+                    " ".join(celdas[1].css("::text").getall())
+                )
+                nombre, ofertada = separar_oferta(nombre_bruto)
                 nombre = quitar_nota_al_pie(nombre)
                 if es_tabla_de_menciones:
                     tipo_asig = "OP"
@@ -227,7 +242,7 @@ class GradosSpider(scrapy.Spider):
                 )
 
     @staticmethod
-    def _menciones(celda):
+    def _menciones(celda: Selector) -> list[str]:
         """Extrae de una celda las menciones de una asignatura optativa.
 
         Una asignatura puede pertenecer a varias menciones, que la web
@@ -260,19 +275,19 @@ class GradosSpider(scrapy.Spider):
     #: reales observadas combinan mínimo ~1480 caracteres entre ambas
     #: secciones; 200 deja margen amplio para no activarse en guías
     #: legítimas y sí detectar una estructura rota.
-    UMBRAL_CONTENIDO_GUIA = 200
+    UMBRAL_CONTENIDO_GUIA: Final[int] = 200
 
     #: IDs de las secciones que se excluyen del fallback de limpieza general
     #: por no aportar valor a un futuro estudiante o por ser datos personales
     #: del profesorado (privacidad) o texto legal (RGPD).
-    _SECCIONES_EXCLUIDAS_FALLBACK = {
+    _SECCIONES_EXCLUIDAS_FALLBACK: Final[frozenset[str]] = frozenset({
         "coordinador",
         "equipodocente",
         "clausulas",
         "objetivosdesarrollosostenible",
-    }
+    })
 
-    def parse_salidas(self, response):
+    def parse_salidas(self, response: Response) -> Iterator[dict[str, Any]]:
         """Extrae las salidas profesionales de un grado.
 
         Las salidas se publican como una lista dentro del cuerpo del
@@ -309,7 +324,7 @@ class GradosSpider(scrapy.Spider):
             "texto": "\n".join(f"- {salida}" for salida in salidas),
         }
 
-    def parse_guia(self, response):
+    def parse_guia(self, response: Response) -> Iterator[dict[str, Any]]:
         """Extrae el resumen y el temario de una guía docente.
 
         Recorre las secciones «Resumen» (conocimientos previos y
@@ -368,7 +383,7 @@ class GradosSpider(scrapy.Spider):
         }
 
     @staticmethod
-    def _contenido_seccion(response, id_seccion):
+    def _contenido_seccion(response: Response, id_seccion: str) -> str:
         """Extrae el texto de una sección de la guía docente por su id.
 
         Une los bloques de valor de la sección, descartando los que son
@@ -392,7 +407,7 @@ class GradosSpider(scrapy.Spider):
         return "\n\n".join(partes)
 
     @classmethod
-    def _limpieza_general(cls, response):
+    def _limpieza_general(cls, response: Response) -> str:
         """Extrae texto general de la ficha cuando falla la estructura.
 
         Recorre todo el contenido de la ficha docente salvo las secciones de
@@ -405,7 +420,9 @@ class GradosSpider(scrapy.Spider):
         Returns:
             str: Texto limpio de toda la ficha, salvo las secciones excluidas.
         """
-        ficha = response.css("#fichadocenteasignatura")
+        ficha: SelectorList[Selector] | Response = response.css(
+            "#fichadocenteasignatura"
+        )
         if not ficha:
             ficha = response
         exclusion = " ".join(

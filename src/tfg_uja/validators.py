@@ -5,7 +5,10 @@ no lo son (marcadores de posición como "Optativa 1"). Este módulo decide qué
 filas representan una asignatura válida y cuáles deben descartarse.
 """
 
+from __future__ import annotations
+
 import re
+from typing import Final
 
 #: Tipos de asignatura reconocidos en las tablas de la EPSJ.
 #: FB (formación básica), OB (obligatoria), OP (optativa) y las variantes
@@ -14,22 +17,24 @@ import re
 #: Ciberseguridad), mientras que otros lo etiquetan como OB; se acepta tal
 #: cual para no perder la asignatura ni imponer una uniformidad que la fuente
 #: no tiene.
-TIPOS_VALIDOS = {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI", "TFG"}
+TIPOS_VALIDOS: Final[frozenset[str]] = frozenset(
+    {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI", "TFG"}
+)
 
 #: Patrón de los nombres de relleno de la tabla ("Optativa 1", "Optativa 2"...),
 #: que no corresponden a asignaturas reales.
-_PLACEHOLDER = re.compile(r"^optativa\s+\d+$", re.IGNORECASE)
+_PLACEHOLDER: Final[re.Pattern[str]] = re.compile(r"^optativa\s+\d+$", re.IGNORECASE)
 
 #: Mapeo de tipos textuales a las abreviaturas esperadas (para grados nuevos
 #: como el de IA y Ciberseguridad que no usan las abreviaturas cortas).
-_MAPA_TIPOS = {
+_MAPA_TIPOS: Final[dict[str, str]] = {
     "formación básica": "FB",
     "obligatoria": "OB",
     "optativa": "OP",
 }
 
 
-def normalizar_tipo(tipo):
+def normalizar_tipo(tipo: str | None) -> str:
     """Mapea tipos textuales a las abreviaturas esperadas.
 
     Args:
@@ -42,7 +47,7 @@ def normalizar_tipo(tipo):
     return _MAPA_TIPOS.get(tipo.lower(), tipo)
 
 
-def es_placeholder(nombre):
+def es_placeholder(nombre: str | None) -> bool:
     """Indica si un nombre es un marcador de posición, no una asignatura.
 
     Args:
@@ -54,7 +59,9 @@ def es_placeholder(nombre):
     return bool(_PLACEHOLDER.match((nombre or "").strip()))
 
 
-def es_asignatura_valida(codigo, nombre, tipo):
+def es_asignatura_valida(
+    codigo: str | None, nombre: str | None, tipo: str | None
+) -> bool:
     """Decide si una fila de la tabla es una asignatura real.
 
     Una fila se considera asignatura válida cuando tiene un nombre que no es

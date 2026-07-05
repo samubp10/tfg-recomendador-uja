@@ -18,14 +18,22 @@ La primera versión cubre las titulaciones de la EPSJ. El sistema se ha diseñad
 - Python 3.10 o superior (desarrollado con la versión 3.13)
 
 ## Instalación
+Requiere **Python 3.13**.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
+**Windows (CMD o PowerShell)**
+```
+py -m venv .venv
+.venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-En Windows, el entorno se activa con `.venv\Scripts\activate`.
+**Linux / macOS**
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+> En Git Bash sobre Windows: `source .venv/Scripts/activate`.
 
 ## Uso
 

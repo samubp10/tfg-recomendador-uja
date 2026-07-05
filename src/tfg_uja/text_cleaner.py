@@ -5,13 +5,16 @@ duros, caracteres de ancho cero y, en el caso de las guías docentes, URLs
 con el sufijo ".html" duplicado por un error de generación del propio sitio.
 """
 
+from __future__ import annotations
+
 import re
+from typing import Final
 
 _ESPACIO_DURO = "\xa0"
-_ANCHO_CERO = "\u200b"
+_ANCHO_CERO: Final[str] = "\u200b"
 
 
-def limpiar_texto(texto):
+def limpiar_texto(texto: str | None) -> str:
     """Normaliza un texto extraído de la web.
 
     Sustituye los espacios duros por espacios normales, elimina los
@@ -32,7 +35,7 @@ def limpiar_texto(texto):
     return texto.strip()
 
 
-def reparar_url(url):
+def reparar_url(url: str | None) -> str | None:
     """Repara una URL de guía docente con el sufijo ".html" duplicado.
 
     Se ha observado que algunas URLs del catálogo de guías docentes
@@ -55,7 +58,7 @@ def reparar_url(url):
     return url[: indice + len(".html")]
 
 
-def quitar_nota_al_pie(nombre):
+def quitar_nota_al_pie(nombre: str | None) -> str | None:
     """Elimina el marcador de nota al pie del nombre de una asignatura.
 
     En las tablas de asignaturas, algunos nombres arrastran un asterisco
@@ -80,10 +83,10 @@ def quitar_nota_al_pie(nombre):
 #: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
 #: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
 #: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
-_NO_OFERTADA = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
+_NO_OFERTADA: Final[re.Pattern[str]] = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
 
 
-def separar_oferta(nombre):
+def separar_oferta(nombre: str | None) -> tuple[str | None, bool]:
     """Separa del nombre la marca de asignatura no ofertada.
 
     Algunas asignaturas (optativas que no se imparten en el curso) llevan al
