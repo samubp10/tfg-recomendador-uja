@@ -58,9 +58,9 @@ Parser de HTML (BeautifulSoup) combinado con un cliente HTTP (requests).
 - **URL requests:** [https://requests.readthedocs.io/](https://requests.readthedocs.io/)
 
 - **Pros:** simplicidad, ideal para tareas pequeñas y estáticas.
-- **Contras:** BeautifulSoup no es un restrador web (no gestiona colas, reintentos
+- **Contras:** BeautifulSoup no es un rastreador web (no gestiona colas, reintentos
   ni rate limiting); requests no respeta `robots.txt` automáticamente; el
-  manejo de encoding queda en manos del desarrollador. Una herramienta demasiada simple para lo que realmente necesitamos
+  manejo de encoding queda en manos del desarrollador. Una herramienta demasiado simple para lo que realmente necesitamos
 
 ### Opción C — Selenium / Playwright
 
@@ -70,7 +70,21 @@ Automatización de navegador con renderizado real.
 
 - **Pros:** imprescindibles para SPAs y contenido cargado por JavaScript. 
 - **Contras:** la web de la EPSJ es Drupal estático, por lo que el
-  renderizado de JS es innecesario, por lo que haría que el programa fuera más lento y pesados en recursos.
+  renderizado de JS es innecesario, por lo que haría que el programa fuera más lento y pesado en recursos.
+
+
+### Opción D — httpx + parsel
+
+Cliente HTTP moderno (httpx) combinado con la misma librería de selectores
+que usa Scrapy internamente (parsel).
+- **URL httpx:** [https://www.python-httpx.org/](https://www.python-httpx.org/)
+- **URL parsel:** [https://parsel.readthedocs.io/](https://parsel.readthedocs.io/)
+
+- **Pros:** los mismos selectores CSS/XPath que Scrapy sin el peso del
+  framework completo; cliente HTTP moderno con soporte asíncrono.
+- **Contras:** habría que implementar a mano las colas, los reintentos, el
+  respeto de `robots.txt` y el throttling, es decir, reimplementar
+  precisamente la parte de Scrapy que este proyecto necesita.
 
 
 ## Decisión
@@ -85,7 +99,7 @@ sobredimensionadas para un sitio estático.
 
 ### Positivas
 - Scrapy resuelve automáticamente el problema de los caracteres extraños (como ñ, á, ü) sin tener que escribir funciones manuales de decodificación.
-- Scray permite hacer peticiones respetuosas hacia la web de la EPSJ (para no saturar el servidor).
+- Scrapy permite hacer peticiones respetuosas hacia la web de la EPSJ (para no saturar el servidor).
 - Tests deterministas y offline con fixtures HTML reales de la propia página.
 - `py.typed` permite type-checking del código del spider con mypy.
 
