@@ -32,6 +32,11 @@ TAMANO_OBJETIVO: Final[int] = 1200
 #: más largo se divide por frases.
 TAMANO_MAXIMO: Final[int] = 1500
 
+#: Tamaño mínimo de un chunk. Un fragmento residual por debajo de este
+#: umbral se fusiona con el chunk anterior de su misma unidad (IT-09) para
+#: no contaminar el índice con fragmentos sin entidad.
+TAMANO_MINIMO: Final[int] = 200
+
 #: Nombres legibles de los tipos de asignatura, para los encabezados.
 _NOMBRE_TIPO: Final[dict[str, str]] = {
     "FB": "asignatura de formación básica",
@@ -111,6 +116,49 @@ def _empaquetar(piezas: list[str], objetivo: int, maximo: int) -> list[str]:
     return chunks
 
 
+def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]:
+    """Fusiona con su vecino los chunks por debajo del mínimo (IT-09).
+
+    Un fragmento residual (típicamente el último de la unidad) se une al
+    chunk anterior. Si la suma superase el máximo, el par se reequilibra:
+    el texto combinado se reempaqueta en dos mitades, de modo que ninguna
+    supere el máximo y ambas queden por encima del mínimo. El máximo es la
+    restricción dura (un chunk que excede la ventana del modelo de
+    embeddings se truncaría en silencio, perdiendo contenido); el mínimo es
+    una preferencia de calidad. Solo se descarta un fragmento cuando la
+    unidad no tiene ningún otro chunk con el que fusionarlo y no alcanza el
+    mínimo por sí solo: ese caso no existe en el dataset actual.
+
+    Args:
+        chunks: Chunks de una misma unidad semántica, en orden.
+        minimo: Umbral por debajo del cual un chunk no tiene entidad.
+        maximo: Tamaño que ningún chunk resultante supera.
+
+    Returns:
+        Chunks tras la fusión, en orden.
+    """
+    resultado = list(chunks)
+    i = 0
+    while i < len(resultado):
+        if len(resultado[i]) >= minimo or len(resultado) == 1:
+            i += 1
+            continue
+        vecino = i - 1 if i > 0 else i + 1
+        primero, segundo = min(i, vecino), max(i, vecino)
+        combinado = f"{resultado[primero]}\n{resultado[segundo]}"
+        if len(combinado) <= maximo:
+            resultado[primero : segundo + 1] = [combinado]
+        else:
+            # Reequilibrar: dos mitades equilibradas en lugar de un chunk
+            # desbordado (caso real: la guía de Geofísica, 13212010).
+            objetivo_local = min(len(combinado) // 2 + 1, maximo)
+            piezas = _dividir_en_piezas(combinado, maximo)
+            resultado[primero : segundo + 1] = _empaquetar(
+                piezas, objetivo_local, maximo
+            )
+        i = 0  # re-evaluar desde el principio tras cada cambio
+    return resultado
+
 
 def _encabezado_asignatura(asignatura: dict[str, Any]) -> str:
     """Compone el encabezado autocontenido de los chunks de una asignatura.
@@ -168,8 +216,10 @@ def _chunks_de_unidad(
     hueco = len(encabezado) + 1
     maximo = max(TAMANO_MAXIMO - hueco, 1)
     objetivo = max(TAMANO_OBJETIVO - hueco, 1)
+    minimo = min(TAMANO_MINIMO, maximo)
     piezas = _dividir_en_piezas(texto, maximo)
     cuerpos = _empaquetar(piezas, objetivo, maximo)
+    cuerpos = _fusionar_pequenos(cuerpos, minimo, maximo)
     total = len(cuerpos)
     return [
         {
@@ -187,7 +237,8 @@ def _chunks_de_unidad(
 def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Convierte el dataset del spider en la lista de chunks del RAG.
 
-    Recorre las guías docentes (contenido principal), y las salidas profesionales
+    Recorre las guías docentes (contenido principal), las asignaturas sin
+    guía (chunk informativo explícito, IT-09) y las salidas profesionales
     de cada grado. Cada chunk pertenece a una sola unidad semántica.
 
     Args:
@@ -232,6 +283,31 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 _chunks_de_unidad(encabezado, item["texto"], base, "salidas")
             )
 
+    # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
+    # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas.
+    for asignatura in (
+        a for a in items if a["tipo"] == "asignatura" and not a["tiene_guia"]
+    ):
+        encabezado = _encabezado_asignatura(asignatura)
+        texto = (
+            "La guía docente de esta asignatura no está publicada en la web "
+            "de la EPSJ, por lo que solo se dispone de sus datos básicos."
+        )
+        base = {
+            "grado": asignatura["grado"],
+            "codigo": asignatura["codigo"],
+            "nombre": asignatura["nombre"],
+        }
+        chunks.append(
+            {
+                "tipo": "chunk",
+                "origen": "asignatura_sin_guia",
+                **base,
+                "texto": f"{encabezado}\n{texto}",
+                "chunk_index": 0,
+                "total_chunks": 1,
+            }
+        )
     return chunks
 
 

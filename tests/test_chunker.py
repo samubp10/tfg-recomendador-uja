@@ -97,9 +97,24 @@ def test_el_troceo_es_determinista(muestra):
 
 # --- IT-09: fusión de pequeños y asignaturas sin guía ---
 
+def test_asignatura_sin_guia_genera_chunk_explicito(chunks):
+    # En el dataset de muestra, "Microelectrónica" (código 13113006) es un
+    # item de tipo 'asignatura' pero no tiene item 'guia' emparejado.
+    resultado = _de(chunks, "13113006")
+    assert len(resultado) == 1
+    assert resultado[0]["origen"] == "asignatura_sin_guia"
+    assert "no está publicada" in resultado[0]["texto"]
+    assert "Microelectrónica" in resultado[0]["texto"]
 
-
-
+def test_fusion_de_chunks_pequenos(chunks):
+    # Las guías largas pueden dejar un fragmento residual muy pequeño al
+    # final de la división. _fusionar_pequenos se encarga de reempaquetarlos
+    # para que ningún chunk (excepto el origen=asignatura_sin_guia o salidas cortas)
+    # se quede por debajo de un umbral ridículo (ej: 200).
+    from tfg_uja.chunker import TAMANO_MINIMO
+    for chunk in chunks:
+        if chunk["origen"] == "guia" and chunk["total_chunks"] > 1:
+            assert len(chunk["texto"]) >= TAMANO_MINIMO
 
 def test_las_salidas_de_un_grado_forman_su_propia_unidad(chunks):
     resultado = [c for c in chunks if c["origen"] == "salidas"]
