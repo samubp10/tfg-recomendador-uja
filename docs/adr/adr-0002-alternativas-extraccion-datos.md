@@ -73,20 +73,6 @@ Automatización de navegador con renderizado real.
   renderizado de JS es innecesario, por lo que haría que el programa fuera más lento y pesado en recursos.
 
 
-### Opción D — httpx + parsel
-
-Cliente HTTP moderno (httpx) combinado con la misma librería de selectores
-que usa Scrapy internamente (parsel).
-- **URL httpx:** [https://www.python-httpx.org/](https://www.python-httpx.org/)
-- **URL parsel:** [https://parsel.readthedocs.io/](https://parsel.readthedocs.io/)
-
-- **Pros:** los mismos selectores CSS/XPath que Scrapy sin el peso del
-  framework completo; cliente HTTP moderno con soporte asíncrono.
-- **Contras:** habría que implementar a mano las colas, los reintentos, el
-  respeto de `robots.txt` y el throttling, es decir, reimplementar
-  precisamente la parte de Scrapy que este proyecto necesita.
-
-
 ## Decisión
 
 Se adopta **Scrapy**. La evidencia del encoding fue el factor decisivo, reforzado por el soporte
@@ -114,8 +100,6 @@ sobredimensionadas para un sitio estático.
 - Documentación oficial de requests: [https://requests.readthedocs.io/](https://requests.readthedocs.io/)
 - Sitio oficial de Selenium: [https://www.selenium.dev/](https://www.selenium.dev/)
 - Sitio oficial de Playwright: [https://playwright.dev/](https://playwright.dev/)
-- Sitio oficial de httpx: [https://www.python-httpx.org/](https://www.python-httpx.org/)
-- Documentación oficial de parsel: [https://parsel.readthedocs.io/](https://parsel.readthedocs.io/)
 - Documentación de Scrapy: TextResponse y resolución de encoding ([docs.scrapy.org, "Requests and Responses"](https://docs.scrapy.org/en/latest/topics/request-response.html)).
 - Documentación de Scrapy: [RobotsTxtMiddleware](https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#module-scrapy.downloadermiddlewares.robotstxt) / [AutoThrottle](https://docs.scrapy.org/en/latest/topics/autothrottle.html) / [Settings](https://docs.scrapy.org/en/latest/topics/settings.html).
 - PEP 561; notas de la versión Scrapy 2.13 ("Added py.typed, in line with
