@@ -24,3 +24,8 @@ jobs:
       - name: Comprobar la coherencia de tipos
         run: mypy src/tfg_uja/ --ignore-missing-imports
 
+      - name: Verificar el dataset versionado
+        run: python data/check_dataset.py
+
+      - name: Verificar los chunks versionados
+        run: python data/check_chunks.py
