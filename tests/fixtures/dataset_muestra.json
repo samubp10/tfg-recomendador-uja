@@ -1,0 +1,127 @@
+[
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería Informática",
+  "codigo": "13312032",
+  "nombre": "Sistemas de información para el negocio electrónico",
+  "tipo_asignatura": "OB-SI",
+  "menciones": [],
+  "ects": "6",
+  "ofertada": true,
+  "url_guia": "https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2025-26/4/133A/13312032/es/2025-26-13312032_es.html",
+  "tiene_guia": true
+ },
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería de Organización Industrial",
+  "codigo": "13013001",
+  "nombre": "Aprovechamiento y ahorro energético",
+  "tipo_asignatura": "OP",
+  "menciones": [],
+  "ects": "6",
+  "ofertada": true,
+  "url_guia": "https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2025-26/4/130A/13013001/es/2025-26-13013001_es.html",
+  "tiene_guia": true
+ },
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería Geomática y Topográfica (en extinción)",
+  "codigo": "13212001",
+  "nombre": "Cartografía",
+  "tipo_asignatura": "OB",
+  "menciones": [],
+  "ects": "6",
+  "ofertada": true,
+  "url_guia": "https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2025-26/4/132A/13212001/es/2025-26-13212001_es.html",
+  "tiene_guia": true
+ },
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería Electrónica Industrial",
+  "codigo": "13113006",
+  "nombre": "Microelectrónica",
+  "tipo_asignatura": "OP",
+  "menciones": [
+   "Sistemas electrónicos"
+  ],
+  "ects": "6",
+  "ofertada": false,
+  "url_guia": null,
+  "tiene_guia": false
+ },
+ {
+  "tipo": "guia",
+  "codigo": "13312032",
+  "nombre": "Sistemas de información para el negocio electrónico",
+  "grado": "Grado en Ingeniería Informática",
+  "fallback": false,
+  "resumen": "Infraestructura web. Organización de negocio. Modelos optimización: CRM y ERP. Sistemas colaborativos. Seguridad y pago electrónico.",
+  "temario": "Tema 1. Introducción. Tema 2. Comercio electrónico. Tema 3. Seguridad en el comercio electrónico. Aspectos legales. Fiscalidad. Tema 4. Tecnologías financieras. Tema 5. Marketing online. SEO. Gamificación. Tema 6. ERPs y CRMs.\n\nProyecto de software de e-Commerce."
+ },
+ {
+  "tipo": "guia",
+  "codigo": "13013001",
+  "nombre": "Aprovechamiento y ahorro energético",
+  "grado": "Grado en Ingeniería de Organización Industrial",
+  "fallback": false,
+  "resumen": "Se recomienda tener superados los cursos primero y segundo de ingeniería de la rama industrial.",
+  "temario": "Sistemas energéticos de eficiencia y sostenibilidad. Ahorro energético e instalaciones de ingeniería que cumplan con los objetivos de desarrollo sostenible. Conceptos generales sobre energía y sociedad, eficiencia y ahorro energético, energías renovables, políticas energéticas, certificaciones energéticas en base a normativa vigente, código técnico de edificiación en el ámbito de instalaciones de ingeniería, otros. TEMARIO TEMA 1. INTRODUCCIÓN. GENERALIDADES 1.1. Introducción. 1.2. Modelos de utilización de la energía. 1.3. Aspectos sociológicos del consumo/generación de energía. 1.4. La demanda de energía presente y futura. Planes de la Unión Europea. 1.5. Smart Cities y Smart Grids. Redes Inteligentes para la Transición Energética. Estrategias mundiales. 1.6. Recursos energéticos y limitaciones geopolíticas y sociales. 1.7. Problemas, riesgos e incertidumbres. 1.8. Normativa. 1.9. Conclusiones. TEMA 2. FUENTES ENERGÉTICAS 2.1. Introducción. Definiciones. 2.2. Tipos de energía. Clasificación. 2.3. Conversión energética. 2.4. Unidades utilidades en la conversión. 2.5. Fuentes primarias de energía para la producción de electricidad 2.6. Energía Eléctrica. Sistemas eléctricos 2.7. Estructura de la potencia eléctrica instalada, generada y consumida. 2.8. Energía Solar Fotovoltaica. 2.9. Energía Eólica 2.10. Energía hidráulica. 2.11. Producción de energía eléctrica y su importancia en el desarrollo de la sociedad. 2.12. Índices Energéticos. 2.13. Conclusiones. TEMA 3. MERCADOS ENERGÉTICOS 3.1. El Mercado Eléctrico/Energético en España. 3.2. Evolución histórica. 3.3. La situación energética en países de la Unión Europea y en el mundo. 3.4. El futuro en los mercados energéticos hacía la transición energética y los sistemas inteligentes. 3.5. Conclusiones y trabajo del alumnado. TEMA 4. OPTIMIZACIÓN DEL CONSUMO ENERGÉTICO 4.1. Introducción. 4.2. Consumos energéticos de una instalación. 4.3. El consumo de energía eléctrica. Energía y potencia de una instalación. 4.4. Facturación, modelos y sistemas de ahorro. 4.5. Equipos de medida y control. 4.6. Sistemas inteligentes de gestión y medida energética. 4.7. Conclusiones y trabajo del alumnado TEMA 5. APROVECHAMIENTO Y AHORRO ENERGÉTICO EN REDES ELÉCTRICAS INTELIGENTES. HACÍA LA TRANSICIÓN ENERGÉTICA. 5.1. Introducción a la transición energética, conceptos y generalidades. 5.2. Las redes eléctricas inteligentes y su contribución a la eficiencia energética 5.3. Modelos de redes eléctricas 5.4. Sistemas de mejora de las redes inteligentes. Automatización, control y gestión energética. 5.5. Conclusiones y trabajo del alumnado. TEMA 6. SISTEMAS DE AHORRO ENERGÉTICO EN INSTALACIONES ELÉCTRICAS 6.1. Introducción. Definiciones. 6.2. Efectos del consumo de energía reactiva en la eficiencia energética. 6.3. Compensación de energía reactiva y mejora de la eficiencia. 6.4. Ahorro y eficiencia mediante sistemas inteligentes, control y automatización. 6.5. Energías renovables para el ahorro energético. 6.6. Código técnico de la edificación en España, normativa y aplicaciones. 6.7. Casos prácticos, proyectos y conclusiones. TEMA 7. AUDITORIA ENERGÉTICA 7.1. Introducción. Definiciones. 7.2. Tipos de auditorías energéticas. 7.3. Niveles y fases de la auditoría 7.4. Requisitos necesarios para la realización de la auditoría. 7.5. Influencia de la auditoría en la planificación energética de una instalación 7.6. Balance de materia y energía en las operaciones básicas. 7.7. Sistemas inteligentes para la gestión y automatización energética. 7.8. Normativa para la realización de auditoria energética. 7.9. Ejemplos de auditorías energéticas. Casos prácticos 7.10. Conclusiones y trabajo del alumnado. TEMA 8. APROVECHAMIENTO Y AHORRO ENERGÉTICO EN INSTALACIONES INDUSTRIALES, COMERCIALES Y AGRÍCOLAS 8.1. Introducción a las instalaciones energéticas industriales, comerciales y agrícolas. 8.2. Eficiencia y ahorro energético en la industria, comercio y en el sector agrícola. 8.3. Sistemas de gestión energética inteligente en la industria, comercio y en el sector agrícola. 8.4. Mejora de la productividad derivada del ahorro energético industrial, comercial y agrícola. 8.5. Sistemas de ahorro energético en el sector del olivar. 8.6. Proyectos y casos prácticos. TEMA 9. APROVECHAMIENTO Y AHORRO ENERGÉTICO EN INSTALACIONES RESIDENCIALES 9.1. Introducción a las instalaciones energéticas residenciales. 9.2. Eficiencia y ahorro energético en el sector residencial 9.3. Sistemas de gestión energética inteligente en el sector residencial 9.4. Mejora de la productividad derivada del ahorro energético residencial. 9.5. Proyectos y casos prácticos. TEMA 10. EFICIENCIA Y AHORRO ENERGÉTICO EN INSTALACIONES DE ILUMINACIÓN 10.1. Introducción. 10.2. Aplicaciones eficientes en el sistema de iluminación y Análisis de luminarias. 10.3. Equipos auxiliares, control y regulación. 10.4. Sistemas eficientes de control y regulación de alumbrado de interiores. 10.5. Sistemas eficientes de control y regulación de alumbrado de exteriores. 10.6. Equipos de medida y certificación energética. 10.7. Conclusiones TEMA 11.- CERTIFICACIÓN ENERGÉTICA DE INSTALACIONES MEDIANTE SIMULACIÓN 11.1. Introducción. 11.2. Herramientas informáticas de certificación energética. 11.3. Certificación energética de edificios residenciales 11.4. Certificación energética del sector industrial y terciario. 11.5. Casos prácticos y proyectos. 11.6. Trabajo del alumnado\n\nCONTENIDOS PRÁCTICOS Práctica 1: Redes Inteligentes y su aportación a la sostenibilidad. Práctica 2: Optimización de la facturación eléctrica y energética. Práctica 3: Ahorro energético en Instalaciones Eléctricas de Baja Tensión. Práctica 4: Sistemas de Energías Renovables. Casos prácticos. Sistema Solar Fotovoltaico/ Híbrido / Eólico / Hidráulico / otros. Práctica 5. Certificación Energética de instalaciónes mediante software."
+ },
+ {
+  "tipo": "guia",
+  "codigo": "13212001",
+  "nombre": "Cartografía",
+  "grado": "Grado en Ingeniería Geomática y Topográfica (en extinción)",
+  "fallback": true,
+  "resumen": "",
+  "temario": "",
+  "cuerpo_general": "Guías docentes UJA Saltar al contenido principal Universidad de Jaén Calidad e innovación al servicio de la sociedad Menú principal Información general Operaciones Información de usuario y servicios Iniciar sesión U. Virtual //<![CDATA[ function togglediv(id) { var div = document.getElementById(id); if ((div.style.display != 'none')&&(div.style.display != '')) { div.style.display = 'none'; } else { div.style.display = 'block'; } } //]]> Inicio > Servicios académicos > Guías docentes UJA Menú local Guías docentes UJA Guías docentes UJA (2024-25 y anteriores) Horarios de tutorías Llamamientos PAU if (location.href.split(\"/\").length-1==5) { togglediv('localNav'); } Catálogo de Guías docentes Curso Académico --Seleccione--- 2026-27 2025-26 Centro --Seleccione-- Centro de Estudios de Postgrado Centro de Estudios de Postgrado Escuela de Doctorado ESCUELA POLITÉCNICA SUPERIOR (JAÉN) ESCUELA POLITÉCNICA SUPERIOR (LINARES) FACULTAD CIENCIAS SOCIALES Y JURÍDICAS FACULTAD DE CIENCIAS DE LA SALUD FACULTAD DE CIENCIAS EXPERIMENTALES FACULTAD DE HUMANIDADES Y CC. EDUCACIÓN FACULTAD DE TRABAJO SOCIAL SECCIÓN DE ESTUDIOS DE POSTGRADO (TERCER CICLO) Plan Estudios --Seleccione-- Doble Grado en Ingeniería eléctrica e Ingeniería electrónica industrial (137A) Doble Grado en Ingeniería eléctrica e Ingeniería mecánica (136A) Doble Grado en Ingeniería mecánica e Ingeniería de organización industrial (138A) Doble Grado en Ingeniería mecánica e Ingeniería electrónica industrial (139A) Doble Máster en Ingeniería industrial y Administración de empresas (MBA) (793A) Doble Máster en Ingeniería informática y Seguridad informática (776A) Grado en Ingeniería de organización industrial (130A) Grado en Ingeniería eléctrica (135A) Grado en Ingeniería electrónica industrial (131A) Grado en Ingeniería geomática y topográfica (132A) Grado en Ingeniería geomática y topográfica (154A) Grado en Ingeniería informática (133A) Grado en Ingeniería mecánica (134A) Grado en Inteligencia artificial y ciberseguridad (157A) Máster Univ. en Ingeniería industrial (747A) Máster Univ. en Ingeniería informática (740A) Máster Univ. en Ingeniería mecatrónica (773A) Máster Univ. en Ingeniería mecatrónica y robótica (799A) Máster Univ. en Seguridad informática (772A) Curso Código Plan estudios Asignatura 2025-26 13211001 Grado en Ingeniería geomática y topográfica Administración de empresas 2025-26 13211002 Grado en Ingeniería geomática y topográfica Bases de datos 2025-26 13212002 Grado en Ingeniería geomática y topográfica Cartografía matemática 2025-26 13212003 Grado en Ingeniería geomática y topográfica Catastro y valoraciones 2025-26 13213004 Grado en Ingeniería geomática y topográfica Control de deformaciones en la ingeniería 2025-26 13211003 Grado en Ingeniería geomática y topográfica Expresión gráfica 2025-26 13211004 Grado en Ingeniería geomática y topográfica Física 2025-26 13212004 Grado en Ingeniería geomática y topográfica Fotogrametría y teledetección I 2025-26 13212005 Grado en Ingeniería geomática y topográfica Fotogrametría y teledetección II 2025-26 13212006 Grado en Ingeniería geomática y topográfica Fotogrametría y teledetección III 2025-26 13212007 Grado en Ingeniería geomática y topográfica Geodesia espacial 2025-26 13212008 Grado en Ingeniería geomática y topográfica Geodesia física 2025-26 13212009 Grado en Ingeniería geomática y topográfica Geodesia geométrica 2025-26 13212010 Grado en Ingeniería geomática y topográfica Geofísica 2025-26 13211005 Grado en Ingeniería geomática y topográfica Geología 2025-26 13213006 Grado en Ingeniería geomática y topográfica Geología aplicada a la ingeniería 2025-26 13211006 Grado en Ingeniería geomática y topográfica Informática 2025-26 13212011 Grado en Ingeniería geomática y topográfica Infraestructuras de datos espaciales 2025-26 13212012 Grado en Ingeniería geomática y topográfica Ingeniería civil y ambiental 2025-26 13212013 Grado en Ingeniería geomática y topográfica Instrumentos topográficos 2025-26 13212014 Grado en Ingeniería geomática y topográfica Legislación y territorio 2025-26 13211007 Grado en Ingeniería geomática y topográfica Matemáticas I 2025-26 13211008 Grado en Ingeniería geomática y topográfica Matemáticas II 2025-26 13212015 Grado en Ingeniería geomática y topográfica Métodos topográficos 2025-26 13212016 Grado en Ingeniería geomática y topográfica Métodos y aplicaciones no cartográficas 2025-26 13213008 Grado en Ingeniería geomática y topográfica Prácticas externas 2025-26 13212017 Grado en Ingeniería geomática y topográfica Producción cartográfica 2025-26 13212018 Grado en Ingeniería geomática y topográfica Proyectos 2025-26 13212019 Grado en Ingeniería geomática y topográfica Redes topográficas 2025-26 13212020 Grado en Ingeniería geomática y topográfica Sistemas de información geográfica 2025-26 13213010 Grado en Ingeniería geomática y topográfica Técnicas de ingeniería gráfica aplicada 2025-26 13213012 Grado en Ingeniería geomática y topográfica Teledetección aplicada 2025-26 13213013 Grado en Ingeniería geomática y topográfica Topografía automatizada 2025-26 13212021 Grado en Ingeniería geomática y topográfica Topografía de obras 2025-26 13213014 Grado en Ingeniería geomática y topográfica Topografía en grandes estructuras 2025-26 13213015 Grado en Ingeniería geomática y topográfica Topografía industrial 2025-26 13216001 Grado en Ingeniería geomática y topográfica Trabajo fin de Grado function reenviar(elemento) { var url = elemento.options[elemento.selectedIndex].value; //alert(url); bloquearItemsMainContent(); location.href = url; } $(function(){ $('#listadofichasdocentesasignatura').tablesorter(); $('#listadofichasdocentesasignatura').bind(\"sortEnd\", reposicionarFiltro); // Initialize auto-hint fields $('input.auto-hint').each(function(){ if($(this).attr('title') == ''){ return; } if($(this).val() == ''){ $(this).val($(this).attr('title')); } else { $(this).removeClass('auto-hint'); } }); $('input.auto-hint').focus(function(){ if($(this).val() == $(this).attr('title')){ $(this).val(''); $(this).removeClass('auto-hint'); } }); $('input.auto-hint').blur(function(){ if ($(this).val() == ''){ if ($(this).attr('title') != '') { $(this).val($(this).attr('title')); $(this).addClass('auto-hint'); } } }); }); Campus Las Lagunillas s/n | 23071 - Jaén soporteguiasdocentes@ujaen.es Accesibilidad | Aviso legal | Sugerencias Menú principal Información general Operaciones"
+ },
+ {
+  "tipo": "salidas",
+  "grado": "Grado en Ingeniería Informática",
+  "texto": "- Programador de aplicaciones.\n- Desarrollador web.\n- Administrador de bases de datos.\n- Administrador web.\n- Analista de sistemas informáticos.\n- Arquitecto de software.\n- Consultor informático.\n- Director de proyectos de instalaciones informáticas.\n- Desarrollador de aplicaciones móviles.\n- Administrador de redes y sistemas.\n- Especialista SEM/SEO.\n- Ingeniero del conocimiento.\n- Analista funcional.\n- Arquitecto de información.\n- Desarrollador de videojuegos.\n- Profesor de Universidad, de Enseñanza Secundaria o Formación Profesional."
+ },
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería de Organización Industrial",
+  "codigo": "13013009",
+  "nombre": "Manutención y almacenaje",
+  "tipo_asignatura": "OP",
+  "menciones": [],
+  "ects": "6",
+  "ofertada": true,
+  "url_guia": "https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2025-26/4/130A/13013009/es/2025-26-13013009_es.html",
+  "tiene_guia": true
+ },
+ {
+  "tipo": "guia",
+  "codigo": "13013009",
+  "nombre": "Manutención y almacenaje",
+  "grado": "Grado en Ingeniería de Organización Industrial",
+  "fallback": false,
+  "resumen": "El alumnado que presente necesidades específicas de apoyo educativo, lo ha de notificar personalmente al Servicio de Atención y Ayudas al Estudiante para proceder a realizar, en su caso, la adaptación curricular correspondiente.\n\nIntroducción a la logística industrial. El inventario de materiales. Aprovisionamiento y gestión de inventarios. Técnicas modernas de gestión de stocks. Logística de almacenes. Manutención industrial. Transporte y distribución física. Integración de actividades logísticas.\n\nNo se han establecido requisitos previos en esta asignatura.",
+  "temario": "1.- INTRODUCCIÓN A LA LOGÍSTICA INDUSTRIAL Conceptos previos Evolución del concepto de logística El sistema logístico de la empresa Conceptos avanzados y nuevas tendencias en logística 2.- EL INVENTARIO DE MATERIALES Conceptos básicos Funciones básicas del inventario Tipos de inventarios Efectos sobre la rentabilidad Costes relacionados con el inventario Clasificación ABC 3.- APROVISIONAMIENTO Y GESTIÓN DE INVENTARIOS La Función de Aprovisionamiento Selección y evaluación de proveedores El Lote económico Stock base y stock de seguridad Sistemas de reposición de stocks El control de inventarios 4.- LOGÍSTICA DE ALMACENES Introducción al almacenaje Clases de almacenes Distribución en planta del almacén Unidades de carga y paletización Sistemas de almacenaje Equipos de manutención Elementos de diseño de almacenes Metodología del proyecto 5.- SISTEMASA DE CODIFICACIÓN Y GESTIÓN DE ALMACENES Gestión de ubicaciones en el almacén Codificación y trazabilidad de las mercancías Sistemas de gestión por radiofrecuencia Sistemas avanzados de picking 6.- MANUTENCIÓN INDUSTRIAL Introducción a la manutención industrial Sistemas de manutención en producción 7.- TRANSPORTE Y DISTRIBUCIÓN FÍSICA La función del transporte Modos de transporte Administración de la flota de vehículos Planificación de rutas de reparto Utilización eficiente de flotas de vehículos 8.- INTEGRACIÓN DE ACTIVIDADES LOGÍSTICAS Evolución de la cadena de producción Circuitos y flujos logísticos Soluciones logísticas\n\nPROGRAMA PRÁCTICO Revisión y debate de artículos técnicos Costes de inventario, stock de seguridad y lotes de pedido Análisis ABC y gestión de almacenes Localización de almacenes Prediseño del almacén Análisis de casos prácticos en aula Visitas técnicas"
+ },
+ {
+  "tipo": "asignatura",
+  "grado": "Grado en Ingeniería Geomática y Topográfica (en extinción)",
+  "codigo": "13212010",
+  "nombre": "Geofísica",
+  "tipo_asignatura": "OB",
+  "menciones": [],
+  "ects": "6",
+  "ofertada": true,
+  "url_guia": "https://uvirtual.ujaen.es/pub/es/informacionacademica/catalogofichasdocentesasignaturas/p/2025-26/4/132A/13212010/es/2025-26-13212010_es.html",
+  "tiene_guia": true
+ },
+ {
+  "tipo": "guia",
+  "codigo": "13212010",
+  "nombre": "Geofísica",
+  "grado": "Grado en Ingeniería Geomática y Topográfica (en extinción)",
+  "fallback": false,
+  "resumen": "Se recomienda a los alumnos haber aprobado las asignaturas \"Matemáticas I\" y \"Física\", en 1er curso, y \"Matemáticas II\" en 2º curso, para matricularse de esta asignatura. El alumnado que presente necesidades específicas de apoyo educativo, lo ha de notificar personalmente al Servicio de Atención y Ayudas al Estudiante para proceder a realizar, en su caso, la adaptación curricular correspondiente.\n\nSismología e Ingeniería Sísmica, Geomagnetismo y Gravimetría.\n\nNo se contemplan.",
+  "temario": "1. Sismología 1. Sismicidad. 2. Instrumentación. Sismógrafos. 3. Ondas sísmicas. Parámetros focales de los terremotos. 4. Prospección sísmica. Sísmica de refracción y reflexión. 2. Ingeniería Sísmica 1. Movimientos sísmicos fuertes. Acelerógrafos y acelerogramas. 2. Espectros de respuesta y de diseño. 3. Estimación del movimiento del suelo. 4. Peligrosidad sísmica. 5. Vulnerabilidad sísmica. 6. Riesgo sísmico. 7. NCSR-02 3. Geomagnetismo 1. Física del magnetismo. 2. Propiedades magnéticas de la materia. 3. Geomagnetismo. Introducción. 4. Campo magnético interno. 5. Variaciones del campo magnético interno. 6. Campo magnético externo. 7. Variaciones del campo magnético externo. 8. Paleomagnetismo. 4. Instrumentación y Prospección magnética 1. Instrumentación. 2. Magnetómetros. 3. Anomalías magnéticas. 4. Prospección magnética. 5. Gravimetría. Campo gravitatorio y medida de la gravedad 1. Gravitación. Campo de gravedad. 2. Rotación de la Tierra. 3. Introducción a la Gravimetría Geodésica (1ª parte). 4. Medidas absolutas y relativas de la gravedad. Instrumentación. 5. Introducción a la Gravimetría de Satélite. 6. Gravimetría. Reducciones y Prospección Gravimétrica 1. Reducción de la gravedad. Anomalía de la gravedad. 2. Isostasia. 3. Introducción a la Gravimetría Geodésica (2ª parte). 4. Prospección Gravimétrica.\n\n- Sísmica de refracción e interpretación. - Medición del campo magnético y tratamiento de datos. - Medición del campo gravitatorio y tratamiento de datos."
+ }
+]
