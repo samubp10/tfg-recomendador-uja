@@ -55,9 +55,10 @@ def main(argv: list[str] | None = None) -> int:
         Código de salida (0 si todos los invariantes se cumplen).
     """
     argumentos = argv if argv is not None else sys.argv[1:]
-    aqui = Path(__file__).parent.parent / "data"
-    ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else aqui / "chunks.json"
-    ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else aqui / "grados.json"
+    # El script vive en scripts/; los datos, en data/ junto a la raíz del repo.
+    datos = Path(__file__).resolve().parent.parent / "data"
+    ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else datos / "chunks.json"
+    ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else datos / "grados.json"
 
     chunks = json.loads(ruta_chunks.read_text(encoding="utf-8"))
     dataset = json.loads(ruta_dataset.read_text(encoding="utf-8"))
