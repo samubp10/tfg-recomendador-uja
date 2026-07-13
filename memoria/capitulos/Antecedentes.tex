@@ -1,0 +1,183 @@
+\chapter{ANTECEDENTES}
+\label{cap:antecedentes}
+
+% ===========================================================================
+% ESTADO DEL ARTE. Regla que separa este capítulo del Cap. 4:
+%   - ANTECEDENTES  -> QUÉ ES y QUÉ EXISTE (conceptos, evolución, trabajos previos)
+%   - MAT. Y MÉTODOS -> QUÉ ELEGÍ YO y POR QUÉ (alternativas, comparativas, ADR)
+% Aquí NO va ninguna decisión del proyecto: aquí se prepara al lector para
+% entenderla. Si una frase empieza por "se ha elegido", está en el capítulo
+% equivocado.
+% Cubre IT-20 (estado del arte y trabajos relacionados).
+% ===========================================================================
+
+\section{Introducción}
+
+% Un párrafo: qué se revisa en este capítulo y en qué orden. Sirve de mapa.
+
+\section{La orientación académica preuniversitaria}
+
+\subsection{El problema de la elección de titulación}
+
+% El punto de partida humano del TFG: qué se juega un estudiante de secundaria
+% al elegir grado, y por qué la información oficial no le llega. Datos si los
+% encuentras (abandono en primer curso, cambios de titulación).
+
+\subsection{Recursos de orientación existentes}
+
+% Qué tiene hoy a su disposición: webs oficiales, guías en PDF, jornadas de
+% puertas abiertas, comparadores de titulaciones, orientadores de instituto.
+
+\subsection{Limitaciones de los enfoques actuales}
+
+% Por qué no bastan: exigen saber el término técnico exacto, no responden dudas
+% abiertas, la información está dispersa. Esta subsección es la que abre hueco
+% a tu propuesta.
+
+\section{Procesamiento del lenguaje natural}
+
+\subsection{De los sistemas de reglas a los modelos estadísticos}
+
+% Recorrido breve: reglas y gramáticas -> métodos estadísticos -> aprendizaje
+% profundo. No hace falta una historia exhaustiva, pero sí situar de dónde viene
+% la tecnología que usas.
+
+\subsection{Representación vectorial del lenguaje}
+
+% La idea clave: representar palabras y frases como vectores para que la
+% similitud de significado sea una distancia. De las bolsas de palabras a las
+% incrustaciones densas \cite{reimers2019sbert}.
+
+\subsection{La arquitectura Transformer}
+
+% Qué aporta el mecanismo de atención y por qué es la base de todo lo que viene
+% después. A nivel conceptual: no hace falta el detalle matemático.
+
+\section{Modelos de lenguaje grandes}
+
+\subsection{Fundamento y funcionamiento}
+
+% Qué es un LLM y cómo se entrena, en términos comprensibles. Qué sabe hacer
+% bien y qué no.
+
+\subsection{El problema de las alucinaciones}
+
+% La razón de ser de todo tu TFG: por qué un LLM genera información plausible
+% pero falsa, y por qué eso es inaceptable en orientación académica. Ejemplos
+% reales si los tienes (pregúntale a un LLM por un grado de la EPSJ y enseña lo
+% que se inventa: eso vale más que tres párrafos teóricos).
+
+\subsection{Modelos de pesos abiertos frente a modelos propietarios}
+
+% Qué diferencia hay, qué implica cada opción (privacidad, coste, control) y por
+% qué la distinción importa en un sistema que va a leer preguntas de menores.
+% OJO: aquí se explica el panorama; la ELECCIÓN concreta del modelo va al Cap. 4.
+
+\section{Recuperación de información}
+
+\subsection{Búsqueda léxica frente a búsqueda semántica}
+
+% Buscar por coincidencia de palabras frente a buscar por significado. Por qué
+% lo segundo es lo que necesita un estudiante que no conoce la jerga.
+
+\subsection{Incrustaciones (\textit{embeddings})}
+
+% Qué son, qué es la ventana de entrada y por qué importa. Qué familias de
+% modelos existen para el español (multilingües frente a monolingües).
+
+\subsection{Bases de datos vectoriales}
+
+% Qué son y en qué se diferencian de una base de datos tradicional. Panorama:
+% las hay embebidas/locales y como servicio en la nube. Qué es una búsqueda de
+% vecinos más cercanos aproximada y por qué hace falta.
+
+\subsection{Métricas de evaluación de la recuperación}
+
+% Recall@K, MRR y nDCG: qué mide cada una y qué significa un valor alto.
+% IMPORTANTE: explícalas aquí para poder usarlas sin explicarlas en Resultados.
+
+\section{Recuperación aumentada por generación (RAG)}
+
+\subsection{Origen y motivación}
+
+% El artículo que introduce la arquitectura \cite{lewis2020rag} y el problema
+% que venía a resolver.
+
+\subsection{Arquitectura y componentes}
+
+% Las tres piezas: indexación, recuperación y generación. Un diagrama conceptual
+% GENÉRICO de RAG encaja aquí (distinto del de tu arquitectura concreta, que va
+% en el Cap. 4).
+
+\subsection{Fragmentación de documentos}
+
+% Por qué hay que trocear: la ventana del modelo de incrustaciones es limitada,
+% un fragmento grande diluye la señal y uno pequeño pierde contexto.
+% Qué estrategias existen (tamaño fijo con solape, por estructura, semántica) y
+% qué asume cada una. NO digas todavía cuál elegiste: eso es el Cap. 4.
+
+\subsection{Evaluación de sistemas RAG}
+
+% Cómo se mide la calidad de la generación: fidelidad al contexto recuperado y
+% relevancia de la respuesta. Herramientas de evaluación automática que existen.
+
+\section{Extracción automatizada de información web}
+
+\subsection{Fundamentos}
+
+% Qué es el rastreo web, cómo funciona (peticiones HTTP, análisis del HTML,
+% selectores) y qué problemas típicos aparecen (codificación, estructura
+% inconsistente, contenido generado por JavaScript).
+
+\subsection{Tipos de herramientas}
+
+% Panorama: analizadores de HTML, marcos de rastreo completos y navegadores
+% automatizados. Qué resuelve cada familia. La COMPARATIVA y la elección
+% concreta van al Cap. 4 (ADR-0002).
+
+\section{Trabajos relacionados}
+
+\subsection{Asistentes conversacionales en el ámbito universitario}
+
+% Qué han hecho otras universidades. Pruébalos de verdad si están accesibles.
+
+\subsection{Sistemas de recomendación educativos}
+
+% Qué enfoques existen para recomendar estudios (filtrado colaborativo, tests
+% vocacionales, sistemas basados en reglas) y en qué se diferencian de un RAG.
+
+\subsection{Posicionamiento de este trabajo}
+
+% La sección más importante del capítulo: en qué se parece tu sistema a lo que
+% existe, en qué se diferencia y qué hueco concreto llena. Aquí es donde el
+% tribunal ve si el TFG aporta algo o repite lo ya hecho.
+
+\section{Marco legal y ético}
+
+\subsection{Protección de datos personales}
+
+% RGPD \cite{rgpd2016} y LOPDGDD \cite{lopdgdd2018}. Qué se considera dato
+% personal y qué es información anónima (Considerando 26 del RGPD). Aplicación
+% al caso: la colección documental no contiene datos de personas físicas.
+
+\subsection{Legalidad de la extracción automatizada de datos}
+
+% Qué dice el marco jurídico sobre extraer datos publicados abiertamente por un
+% organismo público, con fines académicos. Jurisprudencia de referencia
+% \cite{sts572_2012}. Buenas prácticas: robots.txt, retardo entre peticiones,
+% agente de usuario identificable.
+
+\subsection{Licencias de software y de modelos}
+
+% Licencias libres y copyleft \cite{gpl3}. Y el matiz de los modelos: pesos
+% descargables no significa uso libre; hay que leer la licencia de cada modelo.
+
+\subsection{Accesibilidad}
+
+% Criterios WCAG \cite{wcag22} y por qué obligan a un sistema dirigido a
+% estudiantes de secundaria.
+
+\subsection{Reglamento europeo de inteligencia artificial}
+
+% El Reglamento (UE) 2024/1689 \cite{aiact2024}: qué sistemas regula y cuál es
+% la obligación de transparencia aplicable a un chatbot informativo.
