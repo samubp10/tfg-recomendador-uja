@@ -1,0 +1,435 @@
+\chapter{MATERIAL Y MÉTODOS}
+\label{cap:materialesymetodos}
+
+
+\section{Metodología de trabajo}
+
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{Kanban}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar,añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la universidad.
+
+Además de apoyarme en esta metodología para la gestión de tareas, he trabajado también sobre cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
+
+\subsection{Gestión del trabajo y priorización}
+El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en 56 unidades de trabajo atómicas o historias de usuario (etiquetadas como IT-01 a IT-56). Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
+
+Para gestionar la priorización de las tareas, se ha aplicado la técnica de \textbf{MoSCoW} \cite{moscow} (\textit{Must have, Should have, Could have, Won't have}), asegurando que los componentes críticos del sistema RAG se desarrollen de manera prioritaria frente a las características opcionales.
+
+\subsection{Estrategia de control de versiones y trazabilidad}
+Para aislar los entornos de desarrollo y proteger la integridad del sistema, se ha definido una estrategia estricta de ramas (\textit{Git Flow}):
+\begin{itemize}
+    \item \textbf{Ramas permanentes:} Se mantiene una rama \texttt{main} que aloja de forma exclusiva el código estable y funcional, y una rama paralela \texttt{doc} dedicada íntegramente a la redacción iterativa de la presente memoria en \LaTeX.
+    \item \textbf{Ramas efímeras:} Cada nueva característica, corrección o experimento se desarrolla en una rama aislada de un solo uso (ej. \texttt{IT-XX-descripcion}).
+
+    \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/GitFlow.pdf}
+    \caption{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
+    \label{fig:git_flow}
+    \end{figure}
+    
+\end{itemize}
+
+
+Para garantizar la trazabilidad de las decisiones de diseño a lo largo del tiempo, se ha adoptado el estándar \textit{Conventional Commits} \cite{conventionalcommits}. Esta convención impone una estructura estandarizada para cada entrega de código, facilitando la lectura semántica del historial del proyecto. El formato base utilizado es \texttt{tipo(ámbito): descripción}, donde el ámbito corresponde al identificador de la historia técnica en curso (ej. \texttt{IT-05}).
+
+Para clasificar semánticamente los cambios, los tipos de confirmación (\textit{commits}) se han restringido a la siguiente taxonomía:
+\begin{itemize}
+    \item \textbf{\texttt{feat}:} Incorporación de una nueva funcionalidad al sistema (ej. implementación de un nuevo módulo de extracción o lógica de procesamiento).
+    \item \textbf{\texttt{fix}:} Corrección de errores o fallos detectados en el código existente.
+    \item \textbf{\texttt{docs}:} Creación o actualización de documentación, incluyendo la redacción de la presente memoria y el registro de decisiones arquitectónicas (ADR).
+    \item \textbf{\texttt{test}:} Adición o corrección de pruebas automatizadas, asegurando la no regresión sin alterar el código de producción.
+    \item \textbf{\texttt{refactor}:} Reestructuración interna del código que mejora su legibilidad, diseño o rendimiento, sin añadir nuevas funcionalidades ni corregir errores externos.
+    \item \textbf{\texttt{chore}:} Tareas de mantenimiento, actualización de dependencias o configuración de las herramientas de integración continua.
+\end{itemize}
+
+Cada entrega de código exige no solo el título estandarizado que describe \textit{qué} se ha modificado, sino un cuerpo explicativo obligatorio que documenta con claridad \textit{por qué} se ha tomado dicha decisión técnica frente a otras alternativas. 
+
+Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la rama principal (\texttt{main}) se realizan exclusivamente mediante confirmaciones de fusión explícitas (\textit{Merge Commits}). Se ha descartado la técnica de aplastamiento (\textit{Squash}) al fusionar las ramas efímeras, garantizando que la historia atómica y el razonamiento de cada paso del desarrollo se conserven de manera inmutable.
+
+\subsection{Integración Continua (CI) y automatización de pruebas}
+El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}. 
+
+Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\textit{spiders}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en HTML descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
+
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un hosting), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de Lenguaje.
+
+\subsection{Criterios de finalización (Definición de Hecho)}
+Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
+\begin{enumerate}
+    \item \textbf{Funcionalidad:} El código cumple el objetivo técnico estipulado.
+    \item \textbf{Pruebas:} Incluye casos de prueba exitosos basados en datos reales de la fuente.
+    \item \textbf{Documentación:} El código incorpora cadenas de documentación (\textit{docstrings}) formateadas según el estándar \textit{Google Style}\cite{googlestyle} y las convenciones oficiales de Python (PEP 257)\cite{pep257}.
+    \item \textbf{Integración:} La funcionalidad pasa las pruebas automáticas en la nube (CI en verde).
+    \item \textbf{Defendibilidad:} La decisión técnica subyacente es justificable y defendible con evidencia.
+    \item \textbf{Memoria:} La justificación técnica, las métricas o los descubrimientos derivados de la tarea han sido volcados en el borrador de la memoria académica.
+\end{enumerate}
+
+
+\section{Planificación temporal}
+
+Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificación temporal huye de las estimaciones predictivas rígidas tradicionales (como el modelo en cascada). Un sistema RAG requiere iteración y ajuste continuo ante los datos descubiertos, por lo que una planificación lineal resultaría irreal. En su lugar, se ha optado por una estrategia de planificación a dos niveles: una macro-planificación orientada a hitos de entrega y una micro-planificación diaria basada en flujo continuo.
+
+\subsection{Micro-planificación: Tablero Kanban}
+
+La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las 56 historias técnicas de usuario (IT-01 a IT-56) que componen el \textit{backlog} del proyecto. 
+
+Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta micro-planificación es el límite de Trabajo en Curso (\textit{Work In Progress}, WIP), que impide iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1 \textwidth]{imagenes/tableroKanBan.png}
+    \caption{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
+    \label{fig:tablero_kanban}
+\end{figure}
+
+\subsection{Macro-planificación: Hitos y fases (Gantt)}
+
+Para proporcionar una visión global del cronograma y asegurar la viabilidad del proyecto de cara a la fecha de entrega del proyecto, el \textit{backlog} se ha agrupado en seis fases lógicas de desarrollo. 
+
+Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
+\begin{itemize}
+    \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos, los módulos de limpieza de texto y la fragmentación semántica preliminar (\textit{chunking}).
+    \item \textbf{Fase 1 (Incrustaciones y base vectorial):} Comprende la experimentación para la selección del modelo de \textit{embeddings} y el despliegue de la base de datos vectorial local.
+    \item \textbf{Fase 2 (Pipeline RAG y LLM):} Consiste en el diseño del \textit{prompt} del sistema, la selección e integración del Modelo de Lenguaje Grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
+    \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
+    \item \textbf{Fase 4 (Validación experimental):} Pruebas del sistema con usuarios reales (estudiantes de perfil preuniversitario) y estudios de ablación sobre los hiperparámetros del sistema.
+    \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral (Aunque la memoria se está haciendo a la par que el desarrollo).
+\end{itemize}
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{ganttchart}[
+        hgrid, vgrid,
+        bar/.append style={fill=blue!40},
+        bar height=0.5,
+        title height=1,
+        y unit chart=0.7cm,
+        x unit=0.115cm
+        ]{1}{72}
+        \gantttitle{Junio}{7}
+        \gantttitle{Julio}{31}
+        \gantttitle{Agosto}{31}
+        \gantttitle{Sept.}{3} \\
+        \ganttbar{F0 · Cimientos}{1}{17} \\
+        \ganttbar{F1 · Embeddings y vector DB}{18}{31} \\
+        \ganttbar{F2 · Pipeline RAG}{32}{48} \\
+        \ganttbar{F3 · Aplicación web}{49}{59} \\
+        \ganttbar{F4 · Validación y ablation}{60}{68} \\
+        \ganttbar{F5 · Cierre y defensa}{69}{72} \\
+        \ganttmilestone{Entrega}{72}
+    \end{ganttchart}%
+    }
+    \caption{Planificación temporal del proyecto por fases. Fuente: Elaboración propia.}
+    \label{fig:gantt}
+\end{figure}
+
+
+
+
+
+
+
+\section{Priorización y estimación del esfuerzo}
+
+El \textit{backlog} del proyecto está formado por 56 historias de usuario
+(IT-01 a IT-56). Para decidir en qué orden abordarlas se han combinado dos
+criterios independientes: cuánto valor aporta cada una al resultado final y
+cuánto esfuerzo cuesta.
+
+\subsection{Priorización por valor: MoSCoW}
+
+El valor se ha clasificado con la técnica \textbf{MoSCoW}~\cite{moscow}, que
+divide las tareas en cuatro categorías según su necesidad real para el
+proyecto:
+
+\begin{itemize}
+    \item \textbf{\textit{Must have} (imprescindible):} sin esta tarea el
+    sistema no funciona o la memoria no es defendible. Aquí están el rastreo de la
+    web, la fragmentación de los textos, la elección experimental de los
+    modelos y la evaluación cuantitativa del sistema.
+    \item \textbf{\textit{Should have} (importante):} aporta valor claro y se
+    hará salvo que el tiempo lo impida, pero su ausencia no invalida el
+    resultado.
+    \item \textbf{\textit{Could have} (deseable):} mejora el trabajo si sobra
+    tiempo.
+    \item \textbf{\textit{Won't have} (descartado):} queda explícitamente fuera
+    del alcance, como el despliegue en producción o la extensión al resto de
+    facultades de la Universidad de Jaén.
+\end{itemize}
+
+Esta clasificación tiene una consecuencia práctica: ante un retraso, se sacrifica
+primero lo \textit{could} y después lo \textit{should}, pero nunca lo
+\textit{must}. El reparto final es de 33 historias \textit{must},
+18 \textit{should} y 4 \textit{could}.
+
+\subsection{Estimación del esfuerzo: tallas de camiseta}
+
+Para estimar el coste se ha empleado la técnica de las \textbf{tallas de
+camiseta} (\textit{t-shirt sizing}), que asigna a cada historia una talla
+relativa en lugar de una cifra de horas. Se ha elegido esta técnica
+deliberadamente: las estimaciones en horas dan una falsa sensación de precisión y,
+ en un trabajo con una fuerte componente de investigación (donde una tarde puede
+irse en descubrir que la web codifica mal sus propias páginas), resultan poco
+fiables. Comparar tamaños relativos es más honesto y, sobre todo, más útil.
+
+Las tallas empleadas son:
+
+\begin{itemize}
+    \item \textbf{XS:} tarea mecánica, sin decisiones de diseño (por ejemplo,
+    generar un diagrama a partir del código).
+    \item \textbf{S:} una sola unidad de trabajo bien acotada, resoluble en una
+    sesión (un script pequeño con sus pruebas, o un registro de decisión).
+    \item \textbf{M:} exige varias sesiones o tomar decisiones de diseño no
+    triviales (una araña que debe lidiar con anomalías de la fuente).
+    \item \textbf{L:} implica experimentación con resultados abiertos: no se
+    sabe de antemano cuánto costará porque depende de lo que muestren los datos
+    (la comparativa de modelos de incrustaciones o la evaluación del sistema
+    completo).
+\end{itemize}
+
+El cruce de ambos criterios es lo que gobierna el orden de trabajo: una historia
+\textit{must} de talla L (como la evaluación cuantitativa) se planifica con
+antelación y se le reserva más tiempo, mientras que una \textit{could} de talla L
+sería la primera candidata a quedar fuera.
+
+\subsection{Relación de historias de usuario}
+
+La Tabla~\ref{tab:backlog} recoge el \textit{backlog} completo agrupado por
+fases. Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el
+ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
+la incidencia correspondiente en el repositorio, de modo que cualquier línea de
+código puede rastrearse hasta la necesidad que la originó.
+
+\begin{landscape}
+\small
+\begin{longtable}{@{}l p{12.5cm} l c c@{}}
+\caption{Relación de historias de usuario del proyecto, agrupadas por fase.}
+\label{tab:backlog} \\
+\toprule
+\textbf{ID} & \textbf{Historia} & \textbf{Tipo} & \textbf{Esfuerzo} & \textbf{Prioridad} \\
+\midrule
+\endfirsthead
+\multicolumn{5}{@{}l}{\small\textit{(continuación de la página anterior)}} \\
+\toprule
+\textbf{ID} & \textbf{Historia} & \textbf{Tipo} & \textbf{Esfuerzo} & \textbf{Prioridad} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r@{}}{\small\textit{(continúa en la página siguiente)}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{5}{@{}l}{\textbf{Fase 0 — Cimientos: datos, scraping y fragmentación}} \\[2pt]
+IT-01 & Modelos de datos y validadores & Código & S & MUST \\
+IT-02 & Limpiador de texto (TextCleaner) & Código & S & MUST \\
+IT-03 & Spider: listado de grados de la EPSJ & Código & S & MUST \\
+IT-04 & Spider: portada de grado y detección de doble grado & Código & S & MUST \\
+IT-05 & Spider: tabla híbrida de asignaturas & Código & M & MUST \\
+IT-06 & Spider: extracción de guía docente & Código & M & MUST \\
+IT-07 & Spider: salidas profesionales & Código & S & MUST \\
+IT-08 & Chunking semántico base & Código & M & MUST \\
+IT-09 & Chunking: fusión de chunks pequeños y filtrado & Código & S & MUST \\
+IT-10 & Script de verificación del dataset & Código & S & MUST \\
+IT-11 & ADR-0001: estrategia de chunking & ADR & S & MUST \\
+IT-12 & ADR-0002: elección de Scrapy frente a alternativas & ADR & S & MUST \\
+IT-13 & README + empaquetado del proyecto & Gestión & XS & MUST \\
+IT-14 & Memoria Cap.1: introducción, objetivos y planteamiento & Memoria & M & MUST \\
+IT-15 & Memoria Cap.2: alternativas de scraping & Memoria & S & SHOULD \\
+IT-16 & Memoria Cap.2: alternativas de chunking & Memoria & S & SHOULD \\
+IT-17 & Memoria Cap.3: diseño de la arquitectura del pipeline & Memoria & M & MUST \\
+IT-18 & Memoria Cap.4: desarrollo de la Fase 0 & Memoria & M & MUST \\
+IT-19 & Memoria Cap.4: pruebas y validación de la Fase 0 & Memoria & S & MUST \\
+IT-20 & Estudio de alternativas y viabilidad & Memoria & M & SHOULD \\
+IT-21 & Hipótesis y restricciones & Memoria & XS & SHOULD \\
+IT-22 & Requisitos iniciales consolidados & Memoria & S & SHOULD \\
+IT-23 & Diagramas de secuencia: scraping y chunking & Memoria & M & SHOULD \\
+IT-24 & Modelo de datos del sistema & Memoria & S & SHOULD \\
+IT-25 & Diagrama de Gantt y captura del tablero Kanban & Memoria & XS & SHOULD \\
+IT-26 & Glosario de definiciones y abreviaturas & Memoria & S & SHOULD \\
+IT-55 & Pipeline CI/CD: validación semanal del dataset & Gestión & S & MUST \\
+IT-56 & Deduplicación de guías compartidas entre titulaciones & Código & M & SHOULD \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textbf{Fase 1 — Incrustaciones y base de datos vectorial}} \\[2pt]
+IT-27 & Diseño del conjunto de evaluación (preguntas etiquetadas) & Experimento & M & MUST \\
+IT-28 & Experimento comparativo de modelos de embeddings & Experimento & L & MUST \\
+IT-29 & ADR-0003: elección de modelo de embeddings & ADR & S & MUST \\
+IT-30 & Pipeline de indexación & Código & M & MUST \\
+IT-31 & Experimento comparativo de vector DB & Experimento & M & MUST \\
+IT-32 & ADR-0004: elección de vector DB & ADR & S & MUST \\
+IT-33 & Memoria Cap.4: desarrollo de la Fase 1 & Memoria & M & MUST \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textbf{Fase 2 — Pipeline RAG y evaluación}} \\[2pt]
+IT-34 & Diseño del prompt de generación & Código & S & MUST \\
+IT-35 & Elección y configuración del LLM de generación & Experimento & M & MUST \\
+IT-36 & ADR-0005: elección del LLM de generación & ADR & S & MUST \\
+IT-37 & Implementación del pipeline RAG completo & Código & L & MUST \\
+IT-38 & Evaluación cuantitativa del sistema RAG & Experimento & L & MUST \\
+IT-39 & Amenazas a la validez del experimento de evaluación & Experimento & S & MUST \\
+IT-40 & Memoria Cap.4/5: desarrollo de la Fase 2 y evaluación experimental & Memoria & L & MUST \\
+IT-41 & Diagrama de secuencia del flujo RAG completo & Memoria & S & SHOULD \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textbf{Fase 3 — Aplicación web de chat}} \\[2pt]
+IT-42 & Diseño de la arquitectura de la app web & Código & S & SHOULD \\
+IT-43 & Storyboards de la interfaz de chat & Memoria & S & SHOULD \\
+IT-44 & Backend: endpoint de chat conectado al RAG & Código & M & SHOULD \\
+IT-45 & Frontend de chat & Código & M & SHOULD \\
+IT-46 & Memoria Cap.4: desarrollo de la Fase 3 (app web) & Memoria & S & SHOULD \\
+IT-47 & Anexo: documentación técnica de la API & Memoria & S & COULD \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textbf{Fase 4 — Validación y estudio de ablación}} \\[2pt]
+IT-48 & Validación con usuarios reales & Experimento & M & COULD \\
+IT-49 & Estudio de ablation & Experimento & M & SHOULD \\
+IT-50 & Memoria: retroalimentación de usuarios y conclusiones & Memoria & M & SHOULD \\
+IT-51 & Anexo: resultados completos de la validación con usuarios & Memoria & S & COULD \\
+\addlinespace
+\multicolumn{5}{@{}l}{\textbf{Fase 5 — Cierre y defensa}} \\[2pt]
+IT-52 & Revisión formal completa de la memoria & Memoria & M & MUST \\
+IT-53 & Material de apoyo para la defensa + ensayo oral & Gestión & S & SHOULD \\
+IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \\
+\end{longtable}
+\end{landscape}
+
+\section{Tecnologías y herramientas}
+ \subsection{Extracción de datos }
+ Como lenguaje base he utilizado Python en su versión 3.13, y para la extracción de datos habían 3 opciones clara que eran las que más se habituaban a nuestro contexto:
+
+\subsubsection{Scrapy\cite{scrapy}}
+
+ Scrapy\footnote{\url{https://scrapy.org/}} es un framework asíncrono completo de \textit{crawling} (rastreo web). .
+
+Las características principales que justificaron su elección son:
+
+\begin{itemize}
+    \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
+    \begin{enumerate}
+        \item Cabecera HTTP \texttt{Content-Type}.
+        \item BOM (Byte Order Mark) o declaración de codificación en el archivo.
+        \item Autodetección por parte del framework.
+    \end{enumerate}
+    Al priorizar la cabecera HTTP, Scrapy decodifica correctamente las guías docentes de la página web de la UJA en ISO-8859-1 servidas como tal, resolviendo el problema de codificación sin necesidad de código adicional.
+
+    \item \textbf{Respeto a robots.txt:} Soporte nativo mediante la configuración \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
+
+    \item \textbf{Control de tasa (Throttling):} El framework ofrece parámetros de configuración para permitir ajustar el proceso de rastreo para no saturar nuestro servidor objetivo.
+
+    \item \textbf{Pruebas offline:} Nos permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
+
+    \item \textbf{Madurez y soporte:} Es un framework de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
+
+    \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
+\end{itemize}
+
+
+\subsubsection{BeautifulSoup\cite{beautifulsoup}}
+
+Consiste en un \textit{parser} de HTML (BeautifulSoup) combinado con un cliente HTTP (\texttt{requests}).
+
+\begin{itemize}
+    \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
+    \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
+\end{itemize}
+
+\subsubsection{Selenium \cite{selenium} / Playwright}
+Se basa en la automatización de navegadores con renderizado real.
+
+\begin{itemize}
+    \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
+    \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
+\end{itemize}
+
+\paragraph{Decisión final}
+Se adopta \textbf{Scrapy}. La evidencia sobre la gestión correcta del \textit{encoding} fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el \textit{throttling} configurable, la testabilidad \textit{offline} con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reinplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
+
+
+ 
+% Python 3.13, Scrapy (justificado en el ADR-0002), pytest con casos de prueba
+% reales, mypy, GitHub Actions. Conviene una tabla: herramienta - papel.
+
+\section{Arquitectura del sistema}
+
+% Explicar el pipeline y por qué cada etapa está desacoplada de la siguiente.
+
+Como podemos observar en la Figura~\ref{fig:arquitectura_pipeline}, primero obtenemos los datos necesarios para las recomendaciones como grados, asignaturas, guías y salidas laborales, luego esto lo pasamos por el chunker el cuál partirá el texto según se especifica en el apartado ~\ref{cap:} (falta el apartado de la decisión del chunker ADR-0001).
+
+Con estos trozos de información, se pasa al embeding con el que meteremos los datos en la Base de datos vectorial.
+
+Y ya por último llega el pipeline RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los chunks pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
+
+% Argumento defendible: el fragmentador es un módulo aparte del rastreador
+% porque volver a fragmentar es barato, mientras que volver a rastrear la web es
+% costoso y poco respetuoso con el servidor de la universidad.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{imagenes/Diagrama_arquitectura.pdf}
+    \caption{Arquitectura general del \textit{pipeline} de extracción y procesamiento de datos. Fuente: Elaboración propia.}
+    \label{fig:arquitectura_pipeline}
+\end{figure}
+
+\section{Diseño de los datos}
+
+
+El diagrama de clases~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos que tenemos en nuestra aplicación, las cuáles podríamos dividir en dos partes claras: La primera es la parte de los datos en crudo seleccionada de la web, como la relacionada con los grados, así como asignaturas, cada cuál con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los \textit{chunks} que aparte contiene un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía), y el índice del trozo de información.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{imagenes/Diagrama_clases_modelo_datos.pdf}
+    \caption{Modelo de datos conceptual de las entidades extraídas mediante \textit{web scraping}. Fuente: Elaboración propia.}
+    \label{fig:modelo_datos}
+\end{figure}
+
+\section{Fase 0: construcción de la colección documental}
+
+\subsection{Situación de partida y justificación}
+
+Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\footnote{\url{https://eps.ujaen.es/grados}}. No obstante, un análisis técnico a nivel de código (sobre todo HTML) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
+
+Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
+
+\begin{itemize}
+    \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \textit{slugs} inconsistentes en el cuerpo de las páginas.
+    \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
+    \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
+    \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
+\end{itemize}
+
+\subsection{Justificación del enfoque técnico}
+
+Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la implementación de un motor de extracción personalizado (\textit{web scraper}) y de limpieza de texto. 
+
+Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad.
+
+
+\subsection{Extracción del catálogo de titulaciones y asignaturas}
+
+% IT-03 a IT-05. Decisión clave: seguir los enlaces reales de la página en vez
+% de construir las direcciones por patrón (los slugs son inconsistentes; se
+% comprobó que construirlas lleva a páginas inexistentes). Tablas híbridas
+% (columna Tipo frente a columna Mención) y fusión de asignaturas por código.
+
+En la siguiente figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones del
+rastreador (o spider) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo si el objeto actual es un doble grado o uno solo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{imagenes/Diagrama_secuencia_scraping.pdf}
+    \caption{Diagrama de secuencia del proceso de \textit{scraping} de una guía docente y manejo de escenarios alternativos. Fuente: Elaboración propia.}
+    \label{fig:secuencia_scraping}
+\end{figure}
+
+\subsection{Extracción de las guías docentes}
+
+% IT-06. Selección por identificador de sección; hallazgo de codificación (la
+% página declara UTF-8 pero el servidor envía ISO-8859-1); mecanismo de
+% respaldo cuando la estructura esperada no aparece (5 guías reales lo activan).
+
+\subsection{Extracción de las salidas profesionales}
+
+% IT-07. Los dobles grados no generan salidas propias: se comprobó que son la
+% unión exacta de las de sus dos grados base.
+
+

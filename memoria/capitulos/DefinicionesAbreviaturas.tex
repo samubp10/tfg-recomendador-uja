@@ -1,0 +1,87 @@
+\chapter{DEFINICIONES Y ABREVIATURAS}
+\label{cap:definiciones}
+
+En este capítulo se recogen los términos técnicos y los acrónimos que aparecen
+a lo largo de la memoria, ordenados alfabéticamente.
+
+\section{Definiciones}
+
+\begin{description}
+
+    \item[Alucinación] Respuesta de un modelo de lenguaje que resulta
+    lingüísticamente plausible pero factualmente incorrecta. Es el riesgo que
+    motiva el uso de una arquitectura RAG en este trabajo: un modelo sin
+    fuentes puede inventar asignaturas o planes de estudio que no existen.
+
+    \item[Base de datos vectorial] Sistema de almacenamiento especializado en
+    guardar incrustaciones y recuperar las más parecidas a una consulta según
+    su similitud, en lugar de por coincidencia exacta de palabras.
+
+    \item[Colección documental] Conjunto de textos, extraídos y depurados, que
+    constituye la única fuente de conocimiento del sistema. En este trabajo la
+    forman las guías docentes, los planes de estudio y las salidas
+    profesionales de la EPSJ.
+
+    \item[Fragmentación (\textit{chunking})] Proceso de dividir cada documento
+    de la colección en fragmentos de un tamaño manejable para el modelo de
+    incrustaciones, procurando que cada uno conserve sentido por sí solo.
+
+    \item[Fragmento (\textit{chunk})] Cada una de las piezas de texto
+    resultantes de la fragmentación. Es la unidad mínima que el sistema
+    recupera y entrega al modelo de lenguaje como contexto.
+
+    \item[Guía docente] Documento oficial que publica la universidad para cada
+    asignatura, con su resumen, sus requisitos previos y su temario.
+
+    \item[Incrustación (\textit{embedding})] Representación de un texto como un
+    vector numérico, construida de forma que los textos con significados
+    parecidos queden próximos entre sí. Es lo que permite buscar por
+    significado y no solo por palabras literales.
+
+    \item[Integración Continua] Práctica de ingeniería que ejecuta de forma
+    automática la batería de pruebas cada vez que se sube código al
+    repositorio, de modo que un fallo se detecta en el momento de introducirlo.
+
+    \item[Marcador de posición (\textit{placeholder})] Fila de una tabla que no
+    representa una asignatura real, sino un hueco genérico (por ejemplo,
+    <<Optativa 1>>). Se descarta durante la validación de los datos.
+
+    \item[Rastreador web (\textit{spider})] Programa que recorre de forma
+    automática las páginas de un sitio web siguiendo sus enlaces, para extraer
+    de ellas datos estructurados.
+
+    \item[Recuperación aumentada por generación (RAG)] Arquitectura que, antes
+    de responder, busca en una colección documental los fragmentos relevantes
+    para la pregunta y se los entrega al modelo de lenguaje como contexto, de
+    modo que su respuesta se apoye en documentos reales y verificables.
+
+    \item[\textit{Slug}] Parte final de una dirección web que identifica el
+    recurso concreto.
+
+    \item[Trabajo en curso (\textit{Work In Progress}, WIP)] Número de tareas
+    abiertas simultáneamente. Limitarlo es la regla central de Kanban: obliga a
+    terminar antes de empezar algo nuevo.
+
+\end{description}
+
+\section{Abreviaturas y acrónimos}
+
+\begin{description}
+    \item[ADR] Registro de decisión de arquitectura (\textit{Architecture
+    Decision Record}). Documento breve que deja constancia de una decisión
+    técnica, sus alternativas y sus motivos.
+    \item[CI] Integración continua (\textit{Continuous Integration}).
+    \item[ECTS] Sistema europeo de transferencia y acumulación de créditos.
+    \item[EPSJ] Escuela Politécnica Superior de Jaén.
+    \item[HTML] Lenguaje de marcado de hipertexto, en el que se publican las
+    páginas web de las que se extraen los datos.
+    \item[LLM] Modelo de lenguaje grande (\textit{Large Language Model}).
+    \item[MoSCoW] Técnica de priorización que clasifica las tareas en
+    \textit{Must}, \textit{Should}, \textit{Could} y \textit{Won't}.
+    \item[RAG] Recuperación aumentada por generación (\textit{Retrieval-Augmented
+    Generation}).
+    \item[TFG] Trabajo Fin de Grado.
+    \item[UJA] Universidad de Jaén.
+    \item[URL] Localizador uniforme de recursos; la dirección de una página web.
+    \item[WIP] Trabajo en curso (\textit{Work In Progress}).
+\end{description}
