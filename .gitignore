@@ -42,3 +42,7 @@ data/
 *.synctex.gz
 *.run.xml
 *.bcf
+
+# README que exporta Overleaf junto a la plantilla; el README real del
+# proyecto es el de la raíz del repo, no el de memoria/
+memoria/README.md
