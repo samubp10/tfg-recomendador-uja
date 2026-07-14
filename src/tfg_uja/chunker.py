@@ -160,15 +160,23 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     return resultado
 
 
-def _encabezado_asignatura(asignatura: dict[str, Any]) -> str:
+def _encabezado_asignatura(
+    asignatura: dict[str, Any], grados: list[str]
+) -> str:
     """Compone el encabezado autocontenido de los chunks de una asignatura.
 
     El encabezado repite los metadatos clave (nombre, tipo, créditos,
-    menciones y grado) para que cada chunk tenga sentido por sí solo al
-    recuperarse de forma aislada en el RAG.
+    menciones y titulaciones) para que cada chunk tenga sentido por sí solo
+    al recuperarse de forma aislada en el RAG. Cuando la misma asignatura se
+    imparte en varias titulaciones (guías de contenido idéntico fusionadas
+    en una sola unidad), el encabezado las enuncia todas; el tipo y los ECTS
+    son comunes a todas ellas (verificado: nunca varían entre titulaciones
+    que comparten guía).
 
     Args:
-        asignatura: Item de tipo ``asignatura`` del dataset.
+        asignatura: Item de tipo ``asignatura`` del dataset (aporta tipo,
+            ECTS, menciones y estado de oferta).
+        grados: Titulaciones en las que se imparte la asignatura, ordenadas.
 
     Returns:
         Encabezado en una sola línea, terminado en punto.
@@ -179,13 +187,33 @@ def _encabezado_asignatura(asignatura: dict[str, Any]) -> str:
     partes = [f"«{asignatura['nombre']}», {tipo}"]
     if asignatura.get("ects"):
         partes.append(f"de {asignatura['ects']} ECTS")
-    partes.append(f"del {asignatura['grado']}")
+    if len(grados) == 1:
+        partes.append(f"del {grados[0]}")
+    else:
+        # Las menciones son específicas de cada titulación, por lo que no se
+        # enuncian en una unidad compartida por varias.
+        partes.append(f"impartida en {len(grados)} titulaciones: {'; '.join(grados)}")
     encabezado = " ".join(partes)
-    if asignatura.get("menciones"):
+    if len(grados) == 1 and asignatura.get("menciones"):
         encabezado += f" (mención: {', '.join(asignatura['menciones'])})"
     if not asignatura.get("ofertada", True):
         encabezado += ". No ofertada en el curso rastreado"
     return encabezado + "."
+
+
+def _encabezado_sin_metadatos(nombre: str, grados: list[str]) -> str:
+    """Encabezado de respaldo cuando no hay asignatura asociada a la guía.
+
+    Args:
+        nombre: Nombre de la asignatura.
+        grados: Titulaciones en las que se imparte, ordenadas.
+
+    Returns:
+        Encabezado en una sola línea, terminado en punto.
+    """
+    if len(grados) == 1:
+        return f"«{nombre}», asignatura del {grados[0]}."
+    return f"«{nombre}», asignatura impartida en: {'; '.join(grados)}."
 
 
 def _chunks_de_unidad(
@@ -253,49 +281,69 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     }
     chunks: list[dict[str, Any]] = []
 
+    # Deduplicación de guías compartidas (ADR-0001, decisión revisada): muchas
+    # asignaturas de primeros cursos (Matemáticas I, Física...) se imparten en
+    # varias titulaciones con la MISMA guía, byte a byte. Se agrupan por
+    # (nombre, contenido) para no repetir su texto en el índice: la clave
+    # incluye el nombre y no solo el contenido porque el fallback de IT-06
+    # puede producir texto idéntico para asignaturas DISTINTAS, y fusionarlas
+    # sería un error. Cada grupo produce una sola unidad con la lista de
+    # titulaciones en las que se imparte.
+    grupos_guia: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for item in items:
-        if item["tipo"] == "guia":
-            asignatura = asignaturas.get((item["grado"], item["codigo"]))
-            encabezado = (
-                _encabezado_asignatura(asignatura)
-                if asignatura
-                else f"«{item['nombre']}», asignatura del {item['grado']}."
+        if item["tipo"] != "guia":
+            continue
+        if item.get("fallback"):
+            texto = item.get("cuerpo_general", "")
+        else:
+            texto = "\n\n".join(
+                parte
+                for parte in (item.get("resumen", ""), item.get("temario", ""))
+                if parte
             )
-            if item.get("fallback"):
-                texto = item.get("cuerpo_general", "")
-            else:
-                texto = "\n\n".join(
-                    parte
-                    for parte in (item.get("resumen", ""), item.get("temario", ""))
-                    if parte
-                )
-            base = {
-                "grado": item["grado"],
-                "codigo": item["codigo"],
-                "nombre": item["nombre"],
-            }
-            chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia"))
+        grupos_guia.setdefault((item["nombre"], texto), []).append(item)
 
-        elif item["tipo"] == "salidas":
+    for (nombre, texto), guias in grupos_guia.items():
+        # Orden estable de titulaciones para que el troceo sea determinista.
+        guias = sorted(guias, key=lambda g: g["grado"])
+        grados = [g["grado"] for g in guias]
+        codigos = [g["codigo"] for g in guias]
+        asignatura = asignaturas.get((guias[0]["grado"], guias[0]["codigo"]))
+        encabezado = (
+            _encabezado_asignatura(asignatura, grados)
+            if asignatura
+            else _encabezado_sin_metadatos(nombre, grados)
+        )
+        base = {"grados": grados, "codigos": codigos, "nombre": nombre}
+        chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia"))
+
+    for item in items:
+        if item["tipo"] == "salidas":
             encabezado = f"Salidas profesionales del {item['grado']}:"
-            base = {"grado": item["grado"], "codigo": None, "nombre": item["grado"]}
+            base = {
+                "grados": [item["grado"]],
+                "codigos": [None],
+                "nombre": item["grado"],
+            }
             chunks.extend(
                 _chunks_de_unidad(encabezado, item["texto"], base, "salidas")
             )
 
     # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
-    # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas.
+    # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
+    # deduplican entre titulaciones porque su chunk solo contiene metadatos y
+    # son casi todas de las titulaciones en implantación (sin solapamiento).
     for asignatura in (
         a for a in items if a["tipo"] == "asignatura" and not a["tiene_guia"]
     ):
-        encabezado = _encabezado_asignatura(asignatura)
+        encabezado = _encabezado_asignatura(asignatura, [asignatura["grado"]])
         texto = (
             "La guía docente de esta asignatura no está publicada en la web "
             "de la EPSJ, por lo que solo se dispone de sus datos básicos."
         )
         base = {
-            "grado": asignatura["grado"],
-            "codigo": asignatura["codigo"],
+            "grados": [asignatura["grado"]],
+            "codigos": [asignatura["codigo"]],
             "nombre": asignatura["nombre"],
         }
         chunks.append(
