@@ -24,8 +24,7 @@ jobs:
       - name: Comprobar la coherencia de tipos
         run: mypy src/tfg_uja/ --ignore-missing-imports
 
-      #- name: Verificar el dataset versionado
-      #  run: python scripts/check_dataset.py
-
-      #- name: Verificar los chunks versionados
-      #  run: python scripts/check_chunks.py
+      # check_dataset.py y check_chunks.py NO se ejecutan aquí: data/ no
+      # está versionado (ver .gitignore), así que en un checkout limpio de
+      # CI esos ficheros no existen. Se ejecutan en local antes de cada
+      # push (ver el README, «Verificadores del dataset»).
