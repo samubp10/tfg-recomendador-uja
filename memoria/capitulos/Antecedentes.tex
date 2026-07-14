@@ -1,0 +1,217 @@
+\chapter{ANTECEDENTES}
+\label{cap:antecedentes}
+
+
+
+\section{Introducción}
+
+
+En este capítulo veremos la orientación académica que se da actualmente a los estudiantes preuniversitarios, hablando de los recursos que tienen a su alcance, los problemas de accesibilidad y legibilidad que estos tienen y en general de todos los limitantes y trabas que existen en el campo.
+
+Así mismo, veremos un poco de las tecnologías y la historia detrás en la que se ha ido desarrollando las bases de los modelos del lenguaje natural. Luego iremos a los Modelos de lenguaje grandes, que son con los que hablamos en nuestro día a día en las interfaces web que las grandes compañías nos aportan, veremos su funcionamiento, su principal problema y los modelos libres frente a los privativos.
+
+Por último, hablaremos de la introducción de datos personalizados directamente al interior del modelo para que contenga una información más fidedigna y veraz.
+
+\section{La orientación académica preuniversitaria}
+
+\subsection{El problema de la elección de titulación}
+
+
+Cuando nos acercamos a la edad de 16 años y entramos a Bachillerato o incluso a un curso de formación profesional, siempre nos entra la duda de qué carrera estudiar, qué es lo que más se acerca a las asignaturas que he estudiado y que me gustan, qué carreras tienen más salidas y cuáles son estas mismas para cada grado.
+
+Según los datos del informe 'La universidad española en cifras', la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia entre ambos modelos\cite{uec_abandono2024}.
+
+\subsection{Recursos de orientación existentes}
+
+Todas las universidades hoy en día tienen un portal web en donde aparecen las ofertas de los grados disponibles e información relacionada a estos. Si nos acotamos a nuestro alcance, a la Escuela Politécnica Superior de Jaén, tenemos su página web propia oficial\cite{epsj_grados} con toda la información actualizada año a año.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{imagenes/foto_web_epsj.png}
+    \caption{Imagen de la página web oficial de la EPSJ. Fuente: Elaboración propia.}
+    \label{fig:foto_web_epsj}
+    \end{figure}
+
+Así pues, la propia Universidad de Jaén, ofrece jornadas de puertas abiertas donde no solo se enseñan las instalaciones, sino que también se les orienta al alumnado sobre los grados ofertados en toda la universidad.
+
+También existen en internet comparadores genéricos y \textit{rankings} que dicen según parámetros como el número de investigaciones o el número de empleabilidad, qué universidades están por encima de otras en ese año en concreto.
+
+
+\subsection{Limitaciones de los enfoques actuales}
+
+Los recursos anteriormente comentados tienen varios problemas, y es que las páginas web oficiales que hablan de sus grados ofertados, a menudo hablan de datos y terminologías difícilmente entendidos por un alumno o por alguien ajeno al entorno educativo universitario. Cosas como ECTS, guías docentes o trabajos finales de carrera, son términos que si no han sido explicados con anterioridad, son poco entendibles para un alumno de secundaria.
+
+El problema de las jornadas de puertas abiertas es que la inmensa mayoría son presenciales y en fechas y horas preestablecidas y poco flexibles, acotando mucho la cantidad de personas que pueden asistir. Por último, los \textit{rankings} en línea muchas veces hablan de términos y características o bien muy genéricas, o poco interesantes para un estudiante de nuevo ingreso, no dando información útil para lo que de verdad quieren los alumnos, información para elegir qué carrera estudiar.
+
+
+
+\section{Procesamiento del lenguaje natural}
+
+\subsection{De los sistemas de reglas a los modelos estadísticos}
+
+El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) constituye una de las disciplinas más complejas y revolucionarias dentro del campo de la Inteligencia Artificial (IA) y las ciencias de la computación. Su objetivo fundamental es dotar a los sistemas informáticos de la capacidad de comprender, interpretar, generar y manipular el lenguaje humano, ya sea en su forma escrita o hablada, de una manera que resulte computacionalmente útil.\cite{jurafsky2026slp3}
+
+Históricamente, la evolución de este campo ha transitado por tres grandes enfoques metodológicos.\cite{hirschberg2015advances} Estos paradigmas reflejan no solo los avances en la capacidad de cómputo y la disponibilidad de datos digitales, sino también profundos debates filosóficos y científicos sobre la naturaleza del lenguaje y la cognición humana. El recorrido histórico avanza desde el enfoque racionalista, simbólico o basado en sistemas de reglas manuales, pasando por el enfoque empírico, dominado por los modelos estadísticos probabilísticos, hasta llegar al caracterizado por las redes neuronales artificiales y el aprendizaje profundo.
+
+
+
+\subsection{Representación vectorial del lenguaje}
+
+% La idea clave: representar palabras y frases como vectores para que la
+% similitud de significado sea una distancia. De las bolsas de palabras a las
+% incrustaciones densas \cite{reimers2019sbert}.
+
+El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{imagenes/representacion_BOW.png}
+    \caption{Representación del modelo de bolsa de palabras aplicado a un texto:
+    la posición de las palabras se ignora y solo se conserva la frecuencia de
+    cada término. Fuente: adaptada de Jurafsky y Martin~\cite{jurafsky2026slp3},
+    Figura~11.2.}
+    \label{fig:bow_jurafsky}
+\end{figure}
+
+Para solucionar este problema, el procesamiento del lenguaje natural evolucionó hacia las incrustaciones o \glr{embeddings}{embedding}\cite{mikolov2013word2vec}. Estas técnicas representan las palabras como vectores de números reales proyectados en un espacio multidimensional. A diferencia de las bolsas de palabras, estas representaciones logran capturar las relaciones semánticas y sintácticas, permitiendo a los modelos computacionales comprender el contexto real en el que se utiliza un término.
+
+\subsection{La arquitectura Transformer}
+
+
+
+Los transformadores son la arquitectura estándar hoy en día para construir LLMs; estos han cambiado completamente el campo de la comprensión y el procesamiento del lenguaje.
+
+A diferencia de los \textit{embeddings} estáticos (como \textit{word2vec}\cite{jurafsky2026slp3}), donde cada palabra tiene una representación única y fija independientemente de dónde aparezca, el \textit{Transformer} construye representaciones contextuales. El mecanismo de \glr{autoatención}{autoatencion} es el encargado de calcular el significado de una palabra en su contexto al ponderar e integrar la información de otras palabras de la secuencia que resulten más relevantes, sin importar qué tan alejadas están.
+
+Para determinar qué información es relevante y en qué medida, la autoatención proyecta cada representación en tres roles conceptuales dinámicos: \textbf{\textit{Query}} (consulta), \textbf{\textit{Key}} (clave) y \textbf{\textit{Value}} (valor). Cuando una palabra evalúa su contexto, emite una \textit{Query} (una consulta sobre qué rasgos buscar en su entorno); las demás palabras responden con sus \textit{Keys} (etiquetas que detallan lo que ofrecen); y el producto de estos vectores genera un puntaje de similitud que se normaliza mediante una función \textit{softmax}. Estos puntajes actúan como pesos para realizar una suma ponderada de los \textit{Values} (el significado real de las palabras), extrayendo únicamente los matices más valiosos para enriquecer el \gl{token} consultor.
+
+Este proceso se repite verticalmente a lo largo de un canal continuo denominado flujo residual (\textit{residual stream}), el cual atraviesa múltiples bloques del \textit{Transformer} apilados. Dado que el mecanismo de atención evalúa la relevancia de los \textit{tokens} sin importar el orden físico en el que aparecen, la entrada inicial debe sumar los \textit{embeddings} de cada palabra con \textit{embeddings} posicionales específicos para inyectar la noción de orden secuencial. A medida que la información asciende, las capas de atención funcionan como componentes de "mezcla de tokens" (\textit{token-mixing}) que transfieren información de una corriente residual a otra, mientras que las capas \textit{feedforward} procesan cada posición de manera independiente. Así, el modelo refina progresivamente el flujo que se utiliza para predecir el siguiente término en la secuencia.
+
+(FALTA DIAGRAMA QUE REPRESENTE ESTE PUNTO)
+
+\section{Modelos de lenguaje grandes}
+
+\subsection{Fundamento y funcionamiento}
+
+Un modelo de Lenguaje Grande en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
+
+Estos modelos tienen dos fases de entrenamiento: 
+\begin{itemize}
+    \item El preentrenamiento, en el que los LLM adquieren su conocimiento sobre el lenguaje, la sintaxis y los hechos del mundo a través de \gl{corpus} masivos de texto extraídos de la web (como Wikipedia, libros y páginas web). Al intentar predecir repetidamente la siguiente palabra en billones de ejemplos y corregir sus parámetros mediante optimización matemática, el modelo aprende de manera autosupervisada.
+
+    \item El postentrenamiento, en el que se les aplica un proceso que incluye el ajuste de instrucciones (\textit{instruction tuning} o SFT) para que aprendan a responder de manera servicial, y la alineación de preferencias para asegurar que sus respuestas sean seguras, veraces y no dañinas.
+ 
+\end{itemize}
+
+
+\subsection{El problema de las alucinaciones}
+
+% La razón de ser de todo tu TFG: por qué un LLM genera información plausible
+% pero falsa, y por qué eso es inaceptable en orientación académica. Ejemplos
+% reales si los tienes (pregúntale a un LLM por un grado de la EPSJ y enseña lo
+% que se inventa: eso vale más que tres párrafos teóricos).
+
+\subsection{Modelos de pesos abiertos frente a modelos propietarios}
+
+% Qué diferencia hay, qué implica cada opción (privacidad, coste, control) y por
+% qué la distinción importa en un sistema que va a leer preguntas de menores.
+% OJO: aquí se explica el panorama; la ELECCIÓN concreta del modelo va al Cap. 4.
+
+\section{Recuperación de información}
+
+\subsection{Bases de datos vectoriales}
+
+% Qué son y en qué se diferencian de una base de datos tradicional. Panorama:
+% las hay embebidas/locales y como servicio en la nube. Qué es una búsqueda de
+% vecinos más cercanos aproximada y por qué hace falta.
+
+\subsection{Métricas de evaluación de la recuperación}
+
+% Recall@K, MRR y nDCG: qué mide cada una y qué significa un valor alto.
+% IMPORTANTE: explícalas aquí para poder usarlas sin explicarlas en Resultados.
+
+\section{Recuperación aumentada por generación (RAG)}
+
+\subsection{Origen y motivación}
+
+% El artículo que introduce la arquitectura \cite{lewis2020rag} y el problema
+% que venía a resolver.
+
+\subsection{Arquitectura y componentes}
+
+% Las tres piezas: indexación, recuperación y generación. Un diagrama conceptual
+% GENÉRICO de RAG encaja aquí (distinto del de tu arquitectura concreta, que va
+% en el Cap. 4).
+
+\subsection{Fragmentación de documentos}
+
+% Por qué hay que trocear: la ventana del modelo de incrustaciones es limitada,
+% un fragmento grande diluye la señal y uno pequeño pierde contexto.
+% Qué estrategias existen (tamaño fijo con solape, por estructura, semántica) y
+% qué asume cada una. NO digas todavía cuál elegiste: eso es el Cap. 4.
+
+\subsection{Evaluación de sistemas RAG}
+
+% Cómo se mide la calidad de la generación: fidelidad al contexto recuperado y
+% relevancia de la respuesta. Herramientas de evaluación automática que existen.
+
+\section{Extracción automatizada de información web}
+
+\subsection{Fundamentos}
+
+% Qué es el rastreo web, cómo funciona (peticiones HTTP, análisis del HTML,
+% selectores) y qué problemas típicos aparecen (codificación, estructura
+% inconsistente, contenido generado por JavaScript).
+
+\subsection{Tipos de herramientas}
+
+% Panorama: analizadores de HTML, marcos de rastreo completos y navegadores
+% automatizados. Qué resuelve cada familia. La COMPARATIVA y la elección
+% concreta van al Cap. 4 (ADR-0002).
+
+\section{Trabajos relacionados}
+
+\subsection{Asistentes conversacionales en el ámbito universitario}
+
+% Qué han hecho otras universidades. Pruébalos de verdad si están accesibles.
+
+\subsection{Sistemas de recomendación educativos}
+
+% Qué enfoques existen para recomendar estudios (filtrado colaborativo, tests
+% vocacionales, sistemas basados en reglas) y en qué se diferencian de un RAG.
+
+\subsection{Posicionamiento de este trabajo}
+
+% La sección más importante del capítulo: en qué se parece tu sistema a lo que
+% existe, en qué se diferencia y qué hueco concreto llena. Aquí es donde el
+% tribunal ve si el TFG aporta algo o repite lo ya hecho.
+
+\section{Marco legal y ético}
+
+\subsection{Protección de datos personales}
+
+% RGPD \cite{rgpd2016} y LOPDGDD \cite{lopdgdd2018}. Qué se considera dato
+% personal y qué es información anónima (Considerando 26 del RGPD). Aplicación
+% al caso: la colección documental no contiene datos de personas físicas.
+
+\subsection{Legalidad de la extracción automatizada de datos}
+
+% Qué dice el marco jurídico sobre extraer datos publicados abiertamente por un
+% organismo público, con fines académicos. Jurisprudencia de referencia
+% \cite{sts572_2012}. Buenas prácticas: robots.txt, retardo entre peticiones,
+% agente de usuario identificable.
+
+\subsection{Licencias de software y de modelos}
+
+% Licencias libres y copyleft \cite{gpl3}. Y el matiz de los modelos: pesos
+% descargables no significa uso libre; hay que leer la licencia de cada modelo.
+
+\subsection{Accesibilidad}
+
+% Criterios WCAG \cite{wcag22} y por qué obligan a un sistema dirigido a
+% estudiantes de secundaria.
+
+\subsection{Reglamento europeo de inteligencia artificial}
+
+% El Reglamento (UE) 2024/1689 \cite{aiact2024}: qué sistemas regula y cuál es
+% la obligación de transparencia aplicable a un chatbot informativo.

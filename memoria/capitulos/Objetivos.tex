@@ -1,0 +1,51 @@
+\chapter{OBJETIVOS}
+\label{cap:objetivos}
+
+\section{Objetivo general}
+
+Diseñar, implementar y evaluar un sistema conversacional capaz de responder, a
+partir de información oficial y actualizada, preguntas de estudiantes
+preuniversitarios sobre las titulaciones de la Escuela Politécnica Superior de
+Jaén, empleando una arquitectura de recuperación aumentada por generación (RAG)
+sobre un modelo de lenguaje de código abierto ejecutado en local.
+
+\section{Objetivos específicos}
+
+% Están redactados para poder responder sí/no a cada uno al terminar el TFG.
+\begin{itemize}
+    \item \textbf{OE1.} Construir una colección documental estructurada y
+    trazable con los planes de estudio, las guías docentes y las salidas
+    profesionales de la EPSJ, mediante un proceso de extracción web propio.
+    \item \textbf{OE2.} Definir y evaluar experimentalmente una estrategia de
+    fragmentación (\glr{chunking}{chunking}) de esa colección adecuada al dominio.
+    \item \textbf{OE3.} Seleccionar, con criterios cuantitativos, el modelo de
+    incrustaciones (\textit{embeddings}) y la base de datos vectorial del
+    sistema.
+    \item \textbf{OE4.} Implementar el \textit{pipeline} RAG completo sobre un
+    modelo de lenguaje de código abierto desplegado en local.
+    \item \textbf{OE5.} Evaluar el sistema con métricas objetivas de
+    recuperación y de generación.
+    \item \textbf{OE6.} Ofrecer el sistema a través de una aplicación web de
+    chat accesible y sin registro.
+\end{itemize}
+
+\section{Hipótesis de trabajo}
+
+% La hipótesis debe ser falsable: al evaluar el sistema se confirma o se refuta.
+Es posible construir, con recursos de cómputo modestos y modelos de código
+abierto, un sistema RAG que responda preguntas sobre la oferta académica de la
+EPSJ con una fidelidad y una capacidad de recuperación suficientes para resultar
+útil a un estudiante preuniversitario, sin incurrir en respuestas inventadas
+sobre asignaturas o titulaciones de un modelo de lenguaje grande de internet.
+
+\section{Restricciones del proyecto}
+
+El proyecto lo desarrolla una sola persona, con la dedicación equivalente a los
+créditos ECTS del Trabajo Fin de Grado y dentro del calendario de la
+convocatoria correspondiente. El sistema debe funcionar con recursos de cómputo
+domésticos, sin acceso a hardware especializado, lo que condiciona el tamaño de
+los modelos que pueden emplearse.
+
+Como limitación conocida del dominio\ref{secc:alcance}, algunas asignaturas de cursos superiores
+de las titulaciones de implantación reciente no tienen todavía guía docente
+publicada.
