@@ -16,6 +16,7 @@ import pytest
 
 from tfg_uja.chunker import (
     TAMANO_MAXIMO,
+    TAMANO_MINIMO,
     trocear_dataset,
 )
 
@@ -33,7 +34,7 @@ def chunks(muestra):
 
 
 def _de(chunks, codigo):
-    return [c for c in chunks if c["codigo"] == codigo]
+    return [c for c in chunks if codigo in c["codigos"]]
 
 
 # --- IT-08: troceo semántico base ---
@@ -72,7 +73,7 @@ def test_ningun_chunk_mezcla_asignaturas(chunks):
     }
     for codigo, nombre_ajeno in nombres.items():
         for chunk in chunks:
-            if chunk["codigo"] not in (codigo, None) and chunk["origen"] == "guia":
+            if codigo not in chunk["codigos"] and chunk["origen"] == "guia":
                 assert nombre_ajeno not in chunk["texto"]
 
 
@@ -81,7 +82,7 @@ def test_cada_chunk_es_autocontenido(chunks):
     for chunk in chunks:
         if chunk["origen"] == "guia":
             assert chunk["texto"].startswith("«")
-            assert chunk["grado"] in chunk["texto"].split("\n")[0]
+            assert any(g in chunk["texto"].split("\n")[0] for g in chunk["grados"])
 
 
 def test_una_guia_con_fallback_tambien_se_trocea(chunks):
@@ -97,31 +98,79 @@ def test_el_troceo_es_determinista(muestra):
 
 # --- IT-09: fusión de pequeños y asignaturas sin guía ---
 
-def test_asignatura_sin_guia_genera_chunk_explicito(chunks):
-    # En el dataset de muestra, "Microelectrónica" (código 13113006) es un
-    # item de tipo 'asignatura' pero no tiene item 'guia' emparejado.
-    resultado = _de(chunks, "13113006")
-    assert len(resultado) == 1
-    assert resultado[0]["origen"] == "asignatura_sin_guia"
-    assert "no está publicada" in resultado[0]["texto"]
-    assert "Microelectrónica" in resultado[0]["texto"]
 
-def test_fusion_de_chunks_pequenos(chunks):
-    # Las guías largas pueden dejar un fragmento residual muy pequeño al
-    # final de la división. _fusionar_pequenos se encarga de reempaquetarlos
-    # para que ningún chunk (excepto el origen=asignatura_sin_guia o salidas cortas)
-    # se quede por debajo de un umbral ridículo (ej: 200).
-    from tfg_uja.chunker import TAMANO_MINIMO
-    for chunk in chunks:
-        if chunk["origen"] == "guia" and chunk["total_chunks"] > 1:
-            assert len(chunk["texto"]) >= TAMANO_MINIMO
+def test_ningun_chunk_queda_por_debajo_del_minimo(chunks):
+    # La fusión debe absorber los fragmentos residuales del troceo.
+    assert all(len(c["texto"]) >= TAMANO_MINIMO for c in chunks)
+
+
+def test_asignatura_sin_guia_genera_chunk_informativo(chunks):
+    # "Microelectrónica" (13113006) no tiene guía publicada.
+    resultado = [c for c in chunks if c["origen"] == "asignatura_sin_guia"]
+    assert len(resultado) == 1
+    chunk = resultado[0]
+    assert chunk["codigos"] == ["13113006"]
+    assert "Microelectrónica" in chunk["texto"]
+    assert "no está publicada" in chunk["texto"]
+    # Sus metadatos básicos viajan en el encabezado (tipo y mención reales).
+    assert "optativa" in chunk["texto"]
+    assert "Sistemas electrónicos" in chunk["texto"]
+
+
+def test_asignatura_no_ofertada_lo_indica_en_el_encabezado(chunks):
+    # Microelectrónica está además marcada como no ofertada en el dataset.
+    chunk = next(c for c in chunks if c["origen"] == "asignatura_sin_guia")
+    assert "No ofertada" in chunk["texto"]
+
+
+# --- Salidas profesionales ---
+
 
 def test_las_salidas_de_un_grado_forman_su_propia_unidad(chunks):
     resultado = [c for c in chunks if c["origen"] == "salidas"]
     assert resultado
     for chunk in resultado:
-        assert chunk["codigo"] is None
+        assert chunk["codigos"] == [None]
         assert chunk["texto"].startswith("Salidas profesionales del ")
         assert "Programador de aplicaciones" in chunk["texto"] or chunk[
             "chunk_index"
         ] > 0
+
+
+# --- IT (deduplicación): guías compartidas entre titulaciones ---
+
+def test_una_asignatura_compartida_se_deduplica_en_una_unidad(muestra):
+    # Se construye una guía idéntica en dos titulaciones distintas (mismo
+    # nombre y mismo contenido): deben fusionarse en una sola unidad cuyo
+    # campo grados enumere ambas, en vez de duplicar el texto en el índice.
+    guia_a = {
+        "tipo": "guia", "grado": "Grado A", "codigo": "10000001",
+        "nombre": "Álgebra", "fallback": False,
+        "resumen": "Espacios vectoriales y aplicaciones lineales.",
+        "temario": "Tema 1. Matrices. Tema 2. Determinantes. Tema 3. Diagonalización.",
+    }
+    guia_b = {**guia_a, "grado": "Grado B", "codigo": "20000001"}
+    asig_a = {"tipo": "asignatura", "grado": "Grado A", "codigo": "10000001",
+              "nombre": "Álgebra", "tipo_asignatura": "FB", "ects": "6",
+              "menciones": [], "ofertada": True, "tiene_guia": True}
+    asig_b = {**asig_a, "grado": "Grado B", "codigo": "20000001"}
+    chunks = trocear_dataset([asig_a, asig_b, guia_a, guia_b])
+    algebra = [c for c in chunks if c["nombre"] == "Álgebra"]
+    # Una sola unidad (no dos), con las dos titulaciones y sus dos códigos.
+    assert {tuple(c["grados"]) for c in algebra} == {("Grado A", "Grado B")}
+    assert algebra[0]["codigos"] == ["10000001", "20000001"]
+    assert "2 titulaciones" in algebra[0]["texto"]
+
+
+def test_no_fusiona_asignaturas_distintas_con_el_mismo_texto(muestra):
+    # Dos asignaturas DISTINTAS (nombres distintos) con texto idéntico —el
+    # caso real del fallback de Smart Grids y Técnicas gráfica— no deben
+    # fusionarse: la clave de deduplicación incluye el nombre.
+    base_guia = {"tipo": "guia", "grado": "Grado A", "fallback": True,
+                 "cuerpo_general": "Texto genérico idéntico de respaldo."}
+    g1 = {**base_guia, "codigo": "30000001", "nombre": "Asignatura Uno"}
+    g2 = {**base_guia, "codigo": "30000002", "nombre": "Asignatura Dos"}
+    chunks = trocear_dataset([g1, g2])
+    nombres = {c["nombre"] for c in chunks}
+    assert nombres == {"Asignatura Uno", "Asignatura Dos"}
+    assert all(len(c["grados"]) == 1 for c in chunks)
