@@ -3,6 +3,27 @@
 \usepackage[spanish]{babel}  % Idioma y codificación, para poder usar
 \usepackage[utf8x]{inputenc} % tildes, eñes, etc., sin problemas
 \usepackage[T1]{fontenc}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{pgfgantt}
+\usepackage{longtable}  % Tabla del backlog, que ocupa varias páginas
+\usepackage{xltabular}
+\usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
+\usepackage{hyperref}
+\usepackage{xstring}
+
+
+\newcommand{\glnota}[1]{%
+  \expandafter\ifx\csname glvisto@#1\endcsname\relax
+    \expandafter\gdef\csname glvisto@#1\endcsname{1}%
+    \footnote{Término definido en el Capítulo~\ref{cap:definiciones} (Definiciones y abreviaturas).}%
+  \fi
+}
+% \gl{término}: cursiva + nota al pie solo la primera vez
+\newcommand{\gl}[1]{\textit{#1}\glnota{#1}}
+% \glr{término mostrado}{clave}: cuando el texto mostrado varía (plural, género)
+\newcommand{\glr}[2]{\textit{#1}\glnota{#2}}
+\setlength{\headheight}{14.5pt}
 
 % ============================================================|
 %                                                             |
@@ -67,33 +88,36 @@
     \clearpage\thispagestyle{empty}\cleardoublepage
     \listoftables 		% Índice de tablas
 
-    \clearpage\thispagestyle{empty}\cleardoublepage
-    \listofalgorithms
+    %\clearpage\thispagestyle{empty}\cleardoublepage
+    %\listofalgorithms   % Índice de algoritmos
     
-    \clearpage\thispagestyle{empty}\cleardoublepage
-    \lstlistoflistings		% Índice de listados
+    %\clearpage\thispagestyle{empty}\cleardoublepage
+    %\lstlistoflistings		% Índice de listados
           
-    \clearpage\thispagestyle{empty}\cleardoublepage
+    %\clearpage\thispagestyle{empty}\cleardoublepage
     \pagenumbering{arabic} % Numeración arábiga para el resto del documento
 
 % ===== Archivos LaTeX con los distintos capítulos que componen la memoria
 
-\input{Introduccion.tex}  
+\input{capitulos/Introduccion.tex}  
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\input{Antecedentes.tex}
+\input{capitulos/Antecedentes.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\input{Objetivos.tex}
+\input{capitulos/Objetivos.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\input{MaterialMetodos.tex}
+\input{capitulos/MaterialMetodos.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\input{Resultados.tex}
+\input{capitulos/Resultados.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\input{Conclusiones.tex}
+\input{capitulos/Conclusiones.tex}
+\clearpage\thispagestyle{empty}\cleardoublepage
+
+\input{capitulos/DefinicionesAbreviaturas.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
 % ===== Configuración de la bibliografía

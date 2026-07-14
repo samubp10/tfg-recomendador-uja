@@ -1,0 +1,49 @@
+\chapter{INTRODUCCIÓN}
+\label{cap:introduccion}
+
+En este capítulo se realizará un acercamiento al tema de investigación del que trata este trabajo final de grado (TFG), en el que se plantea el desarrollo de un sistema de recomendación e información académica centrado en la oferta de la Escuela Politécnica Superior de Jaén (EPSJ).
+
+A lo largo del documento se emplean términos y acrónimos cuya definición se recoge en el capítulo de Definiciones y abreviaturas (Capítulo~\ref{cap:definiciones})
+
+\section{Contexto y motivación}
+
+La transición hacia la educación superior representa un salto en sus vidas muy importante para los estudiantes preuniversitarios. En el momento de elegir una titulación, los futuros alumnos se enfrentan a una gran cantidad de información proporcionada por las universidades, que presenta barreras significativas de accesibilidad. En el caso de la Escuela Politécnica Superior de Jaén (EPSJ), la oferta académica comprende múltiples grados y dobles grados, redactados con una terminología burocrática (créditos ECTS, competencias transversales, tipologías de asignaturas) que resulta difícil de entender para un estudiante de educación secundaria al que no se le ha explicado nada de esto. 
+
+En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los Modelos de Lenguaje Grande (\glr{LLMs}{LLM}) ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}: la tendencia de estos modelos a generar información posible pero incorrecta, lo cual supondría el riesgo inaceptable de desinformar al usuario, inventando normativas o planes de estudio.
+
+La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un Modelo del Lenguaje Grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ.
+
+
+
+
+\section{Alcance del proyecto}
+\label{secc:alcance}
+
+El presente Trabajo Fin de Grado tiene un enfoque práctico y experimental, centrado en el desarrollo y evaluación de un prototipo funcional basado en la arquitectura de Recuperación Aumentada por Generación (RAG). Para garantizar la viabilidad, el rigor científico y la completitud del proyecto dentro de las restricciones de tiempo y carga lectiva, se establecen límites precisos en tres subapartados fundamentales: el dominio de la información a utilizar, el público objetivo y la arquitectura tecnológica.
+
+\subsection{Delimitación del dominio de datos}
+El ámbito de conocimiento del sistema se restringe de forma exclusiva a la oferta académica de la Escuela Politécnica Superior de Jaén (EPSJ). Esto engloba la totalidad de sus grados simples y dobles grados oficiales. El sistema no abarcará la oferta del resto de facultades de la Universidad de Jaén (UJA), si bien la arquitectura de retroalimentación de datos se ha diseñado de forma modular para ser fácilmente escalable a otros centros en trabajos futuros. 
+
+\subsection{Público objetivo y profundidad de la información}
+El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guia docente} se han acotado a:
+\begin{itemize}
+    \item \textbf{Información incluida:} Se priorizan los resúmenes, los requisitos previos, el temario de las asignaturas y las salidas profesionales de cada grado, al ser estos los datos que mayor valor aportan a un perfil exploratorio.
+    \item \textbf{Información excluida:} Se omiten deliberadamente metadatos orientados a alumnos ya matriculados previamente, tales como los sistemas de evaluación, la bibliografía específica o el listado del profesorado. Esta decisión técnica no solo optimiza el proceso de extracción y el tamaño de la \glr{base de datos vectorial}{base de datos vectorial}, sino que evita la dispersión semántica del modelo durante la fase de generación de respuestas.
+\end{itemize}
+
+
+
+
+
+\section{Estructura de la memoria}
+
+El resto del documento se organiza de la siguiente manera:
+
+\begin{itemize}
+    \item \textbf{El Capítulo~\ref{cap:antecedentes}} revisa el estado del arte y las tecnologías de soporte, así como el marco legal y ético que condiciona el diseño del sistema.
+    \item \textbf{El Capítulo~\ref{cap:objetivos}} formula el objetivo general, los objetivos específicos y la hipótesis de trabajo.
+    \item \textbf{El Capítulo~\ref{cap:materialesymetodos}} describe la metodología aplicada, las tecnologías empleadas, la arquitectura del sistema y el desarrollo de cada fase.
+    \item \textbf{El Capítulo~\ref{cap:resultados}} presenta los resultados obtenidos y analiza las amenazas a su validez.
+    \item \textbf{El Capítulo~\ref{cap:conclusiones}} valora el grado de cumplimiento de los objetivos y propone líneas de trabajo futuro.
+    \item \textbf{El Capítulo~\ref{cap:definiciones}} recoge las definiciones y abreviaturas utilizadas a lo largo de la memoria.
+\end{itemize}
