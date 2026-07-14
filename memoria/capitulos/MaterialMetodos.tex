@@ -4,12 +4,12 @@
 
 \section{Metodología de trabajo}
 
-Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{Kanban}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar,añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la universidad.
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la universidad.
 
 Además de apoyarme en esta metodología para la gestión de tareas, he trabajado también sobre cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
 
 \subsection{Gestión del trabajo y priorización}
-El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en 56 unidades de trabajo atómicas o historias de usuario (etiquetadas como IT-01 a IT-56). Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
+El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en 59 unidades de trabajo atómicas o historias de usuario (etiquetadas como IT-01 a IT-59). Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
 
 Para gestionar la priorización de las tareas, se ha aplicado la técnica de \textbf{MoSCoW} \cite{moscow} (\textit{Must have, Should have, Could have, Won't have}), asegurando que los componentes críticos del sistema RAG se desarrollen de manera prioritaria frente a las características opcionales.
 
@@ -48,9 +48,9 @@ Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la ra
 \subsection{Integración Continua (CI) y automatización de pruebas}
 El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}. 
 
-Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\textit{spiders}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en HTML descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
+Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en HTML descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un hosting), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de Lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de Lenguaje.
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
@@ -70,9 +70,9 @@ Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificac
 
 \subsection{Micro-planificación: Tablero Kanban}
 
-La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las 56 historias técnicas de usuario (IT-01 a IT-56) que componen el \textit{backlog} del proyecto. 
+La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las 59 historias técnicas de usuario (IT-01 a IT-59) que componen el \textit{backlog} del proyecto.
 
-Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta micro-planificación es el límite de Trabajo en Curso (\textit{Work In Progress}, WIP), que impide iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
+Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta micro-planificación es el límite de Trabajo en Curso (\glr{Work In Progress}{WIP}, WIP), que impide iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
 
 \begin{figure}[htbp]
     \centering
@@ -134,8 +134,8 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 
 \section{Priorización y estimación del esfuerzo}
 
-El \textit{backlog} del proyecto está formado por 56 historias de usuario
-(IT-01 a IT-56). Para decidir en qué orden abordarlas se han combinado dos
+El \textit{backlog} del proyecto está formado por 59 historias de usuario
+(IT-01 a IT-59). Para decidir en qué orden abordarlas se han combinado dos
 criterios independientes: cuánto valor aporta cada una al resultado final y
 cuánto esfuerzo cuesta.
 
@@ -162,8 +162,11 @@ proyecto:
 
 Esta clasificación tiene una consecuencia práctica: ante un retraso, se sacrifica
 primero lo \textit{could} y después lo \textit{should}, pero nunca lo
-\textit{must}. El reparto final es de 33 historias \textit{must},
-18 \textit{should} y 4 \textit{could}.
+\textit{must}. El reparto actual es de 34 historias \textit{must},
+21 \textit{should} y 4 \textit{could}. Este reparto no es una foto fija:
+el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo
+(las historias IT-57 a IT-59 se añadieron al descubrir necesidades nuevas o
+al dividir historias que mezclaban trabajos de naturaleza distinta).
 
 \subsection{Estimación del esfuerzo: tallas de camiseta}
 
@@ -203,9 +206,9 @@ fases. Cada historia se identifica con un código IT-XX que se usa en todo el pr
 la incidencia correspondiente en el repositorio, de modo que cualquier línea de
 código puede rastrearse hasta la necesidad que la originó.
 
-\begin{landscape}
+
 \small
-\begin{longtable}{@{}l p{12.5cm} l c c@{}}
+\begin{xltabular}{\textwidth}{@{}l X l c c@{}}
 \caption{Relación de historias de usuario del proyecto, agrupadas por fase.}
 \label{tab:backlog} \\
 \toprule
@@ -236,21 +239,22 @@ IT-10 & Script de verificación del dataset & Código & S & MUST \\
 IT-11 & ADR-0001: estrategia de chunking & ADR & S & MUST \\
 IT-12 & ADR-0002: elección de Scrapy frente a alternativas & ADR & S & MUST \\
 IT-13 & README + empaquetado del proyecto & Gestión & XS & MUST \\
-IT-14 & Memoria Cap.1: introducción, objetivos y planteamiento & Memoria & M & MUST \\
-IT-15 & Memoria Cap.2: alternativas de scraping & Memoria & S & SHOULD \\
-IT-16 & Memoria Cap.2: alternativas de chunking & Memoria & S & SHOULD \\
-IT-17 & Memoria Cap.3: diseño de la arquitectura del pipeline & Memoria & M & MUST \\
+IT-14 & Memoria Cap.1 y Cap.3: introducción, objetivos y planteamiento & Memoria & M & MUST \\
+IT-15 & Memoria Cap.4: alternativas de scraping & Memoria & S & SHOULD \\
+IT-16 & Memoria Cap.4: alternativas de chunking & Memoria & S & SHOULD \\
+IT-17 & Memoria Cap.4: diseño de la arquitectura del pipeline & Memoria & M & MUST \\
 IT-18 & Memoria Cap.4: desarrollo de la Fase 0 & Memoria & M & MUST \\
-IT-19 & Memoria Cap.4: pruebas y validación de la Fase 0 & Memoria & S & MUST \\
+IT-19 & Memoria Cap.4: verificación y reproducibilidad de la Fase 0 & Memoria & S & MUST \\
 IT-20 & Estudio de alternativas y viabilidad & Memoria & M & SHOULD \\
 IT-21 & Hipótesis y restricciones & Memoria & XS & SHOULD \\
-IT-22 & Requisitos iniciales consolidados & Memoria & S & SHOULD \\
+IT-22 & Requisitos de usuario & Memoria & S & SHOULD \\
 IT-23 & Diagramas de secuencia: scraping y chunking & Memoria & M & SHOULD \\
 IT-24 & Modelo de datos del sistema & Memoria & S & SHOULD \\
 IT-25 & Diagrama de Gantt y captura del tablero Kanban & Memoria & XS & SHOULD \\
 IT-26 & Glosario de definiciones y abreviaturas & Memoria & S & SHOULD \\
 IT-55 & Pipeline CI/CD: validación semanal del dataset & Gestión & S & MUST \\
 IT-56 & Deduplicación de guías compartidas entre titulaciones & Código & M & SHOULD \\
+IT-57 & Sincronizar estructura de memoria desde Overleaf & Gestión & XS & SHOULD \\
 \addlinespace
 \multicolumn{5}{@{}l}{\textbf{Fase 1 — Incrustaciones y base de datos vectorial}} \\[2pt]
 IT-27 & Diseño del conjunto de evaluación (preguntas etiquetadas) & Experimento & M & MUST \\
@@ -260,6 +264,7 @@ IT-30 & Pipeline de indexación & Código & M & MUST \\
 IT-31 & Experimento comparativo de vector DB & Experimento & M & MUST \\
 IT-32 & ADR-0004: elección de vector DB & ADR & S & MUST \\
 IT-33 & Memoria Cap.4: desarrollo de la Fase 1 & Memoria & M & MUST \\
+IT-59 & Requisitos de sistema (especificación técnica) & Memoria & S & SHOULD \\
 \addlinespace
 \multicolumn{5}{@{}l}{\textbf{Fase 2 — Pipeline RAG y evaluación}} \\[2pt]
 IT-34 & Diseño del prompt de generación & Código & S & MUST \\
@@ -270,6 +275,7 @@ IT-38 & Evaluación cuantitativa del sistema RAG & Experimento & L & MUST \\
 IT-39 & Amenazas a la validez del experimento de evaluación & Experimento & S & MUST \\
 IT-40 & Memoria Cap.4/5: desarrollo de la Fase 2 y evaluación experimental & Memoria & L & MUST \\
 IT-41 & Diagrama de secuencia del flujo RAG completo & Memoria & S & SHOULD \\
+IT-58 & Memoria Cap.5: caracterización del corpus de la Fase 0 y amenazas a su validez & Memoria & S & MUST \\
 \addlinespace
 \multicolumn{5}{@{}l}{\textbf{Fase 3 — Aplicación web de chat}} \\[2pt]
 IT-42 & Diseño de la arquitectura de la app web & Código & S & SHOULD \\
@@ -289,8 +295,9 @@ IT-51 & Anexo: resultados completos de la validación con usuarios & Memoria & S
 IT-52 & Revisión formal completa de la memoria & Memoria & M & MUST \\
 IT-53 & Material de apoyo para la defensa + ensayo oral & Gestión & S & SHOULD \\
 IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \\
-\end{longtable}
-\end{landscape}
+\end{xltabular}
+
+
 
 \section{Tecnologías y herramientas}
  \subsection{Extracción de datos }
@@ -298,7 +305,7 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
 
 \subsubsection{Scrapy\cite{scrapy}}
 
- Scrapy\footnote{\url{https://scrapy.org/}} es un framework asíncrono completo de \textit{crawling} (rastreo web). .
+ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web).
 
 Las características principales que justificaron su elección son:
 
@@ -307,17 +314,17 @@ Las características principales que justificaron su elección son:
     \begin{enumerate}
         \item Cabecera HTTP \texttt{Content-Type}.
         \item BOM (Byte Order Mark) o declaración de codificación en el archivo.
-        \item Autodetección por parte del framework.
+        \item Autodetección por parte del \textit{framework}.
     \end{enumerate}
     Al priorizar la cabecera HTTP, Scrapy decodifica correctamente las guías docentes de la página web de la UJA en ISO-8859-1 servidas como tal, resolviendo el problema de codificación sin necesidad de código adicional.
 
     \item \textbf{Respeto a robots.txt:} Soporte nativo mediante la configuración \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
 
-    \item \textbf{Control de tasa (Throttling):} El framework ofrece parámetros de configuración para permitir ajustar el proceso de rastreo para no saturar nuestro servidor objetivo.
+    \item \textbf{Control de tasa (Throttling):} El \textit{framework} ofrece parámetros de configuración para permitir ajustar el proceso de rastreo para no saturar nuestro servidor objetivo.
 
     \item \textbf{Pruebas offline:} Nos permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
 
-    \item \textbf{Madurez y soporte:} Es un framework de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
+    \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
 
     \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
 \end{itemize}
@@ -356,7 +363,7 @@ Como podemos observar en la Figura~\ref{fig:arquitectura_pipeline}, primero obte
 
 Con estos trozos de información, se pasa al embeding con el que meteremos los datos en la Base de datos vectorial.
 
-Y ya por último llega el pipeline RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los chunks pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
+Y ya por último llega el \textit{pipeline} RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los \textit{chunks} pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
 
 % Argumento defendible: el fragmentador es un módulo aparte del rastreador
 % porque volver a fragmentar es barato, mientras que volver a rastrear la web es
