@@ -10,8 +10,28 @@
 \usepackage{xltabular}
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
 \usepackage{xstring}
 \usepackage{ulem} % For \sout (strikeout) command
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, fit, shapes.geometric, backgrounds}
+
+% Estilo común para los diagramas hechos en TikZ, con los MISMOS colores que
+% los generados con Mermaid (lavanda para nodos, amarillo pálido para grupos),
+% de modo que ambas familias de figuras sean visualmente coherentes.
+\definecolor{diagNodo}{HTML}{ECECFF}
+\definecolor{diagNodoBorde}{HTML}{9370DB}
+\definecolor{diagGrupo}{HTML}{FFFFDE}
+\definecolor{diagGrupoBorde}{HTML}{AAAA33}
+\tikzset{
+    nodoDiag/.style={draw=diagNodoBorde, fill=diagNodo, align=center,
+                     font=\small, minimum height=1cm, inner sep=6pt},
+    grupoDiag/.style={draw=diagGrupoBorde, fill=diagGrupo, inner sep=10pt},
+    tituloGrupo/.style={font=\small, anchor=north},
+    flechaDiag/.style={-{Latex[length=2.5mm]}, thick},
+    flechaPunteada/.style={-{Latex[length=2.5mm]}, thick, densely dotted},
+}
 
 
 
@@ -26,6 +46,21 @@
 % \glr{término mostrado}{clave}: cuando el texto mostrado varía (plural, género)
 \newcommand{\glr}[2]{\textit{#1}\glnota{#2}}
 \setlength{\headheight}{14.5pt}
+
+
+\newenvironment{borrador}{%
+    \par\noindent\textcolor{violet}{\footnotesize\textbf{BORRADOR  --- ideas a desarrollar, no es texto final:}}\par
+    \begin{itemize}\setlength{\itemsep}{1pt}\small\color{violet!70!black}
+}{%
+    \end{itemize}\normalsize
+}
+% \raggedbottom en vez del \flushbottom por defecto (report a doble cara):
+% el documento mezcla texto, figuras grandes de ancho fijo y apartados
+% todavía sin redactar (solo el encabezado de la subsección), y forzar el
+% ajuste exacto a \textheight en cada página producía desbordamientos
+% verticales (overfull \vbox) allí donde no cabía una figura entera y
+% huecos forzados (underfull \vbox) en páginas con poco contenido.
+\raggedbottom
 
 % ============================================================|
 %                                                             |
@@ -67,7 +102,13 @@
 \def\TituloAbreviado{Sistema de recomendación de titulaciones}
 
 % ==== Introducir aquí la fecha de presentación del TFG en el formato día/mes/año
-\def\Fecha{3/9/2026}
+% Replanificado el 16/07/2026 (antes 3/9/2026, Extraordinaria II del curso
+% 2025/26): se apunta a la PRIMERA convocatoria del curso 2026/27, que por
+% analogía con el calendario 2025/26 (Extraordinaria I: entrega 12/11,
+% defensa 14/11) caerá a mediados de noviembre de 2026. FECHA PROVISIONAL:
+% confirmar contra el calendario oficial 2026/27 de la EPSJ cuando se
+% publique (suele aprobarse en julio).
+\def\Fecha{13/11/2026}
 
 \input{Portada.tex}
 
