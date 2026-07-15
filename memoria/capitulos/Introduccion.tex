@@ -1,19 +1,43 @@
 \chapter{INTRODUCCIÓN}
 \label{cap:introduccion}
 
+\textcolor{red}{[jccuevas] Mis comentarios aparecerán en rojo con mi id de correo para que puedas encontrarlos. Respondelos debajo en AZUL con tus iniciales. Las inserciones de texto, que tú luego puedeas ajsutar, no llevarán lo de [jccuevas]. Si elimino algo de la estructura le pongo comentario y también lo marco con [jccuevas]}
+
+\textcolor{blue}{[sbp] - respuesta}
+
+\textcolor{red}{[jccuevas] Comentarios generales:
+\begin{enumerate}
+    \item Revisa todos los comentarios y los cambios que te he hecho, con detenimiento y antes de hacer más cambios para tenerlos en cuenta en todo lo que hagas nuevo. No borres los comentarios, cuando hagas lo que te dice, responde a ellos. Conforme yo compruebe que lo vas corriendo los borraré. Evidentemente, en la versión final se quitarán.
+    \item No se emplea nunca la primera persona: "podemos", "obtenemos". Se debe emplear impersonal reflexivo, "se ha realizado", "se ha obtenido", etc.
+    \item Las imágenes/tablas/ecuaciones deben ser referidas o comentadas en el texto antes de ponerlas. No se debe poner una imagen, de ningún tipo, que no aparezca comentada previamente en el texto.
+    \item Las imágenes de otra fuente, que sean simples o sencillas, y que no impliquen derechos de autor, como un flujo de un programa o proceso, es mejor hacerlas por ti y ponerlas en español (seguramente estará en inglés), que copiarla y poner la fuente.
+    \item Todas las tablas e imágenes que no sean realizadas por ti, deben llevar referencia a la fuente de donde la has sacado en el título. Además, todas las tablas deben tener el mismo formato: tipo, tamaño de letra, encabezados, etc.
+    \item No emplees anglicismos cuando existe una traducción ampliamente usada y conocida.
+    \item Si pones extracto de código, comandos o parámetros usa otra tipografía monoespaciada.
+    \item Cuidado con la definición de abreviaturas y siglas. Hazlo la primera vez, y luego, si es común, no hace falta volver a definirlas. Si son muy raras, y cambias de capítulo, podrías volver a ponerla.
+\end{enumerate}
+}
+
+
 En este capítulo se realizará un acercamiento al tema de investigación del que trata este trabajo final de grado (TFG), en el que se plantea el desarrollo de un sistema de recomendación e información académica centrado en la oferta de la Escuela Politécnica Superior de Jaén (EPSJ).
+
+\textcolor{red}{[jccuevas] No es un acercamiento, en la introducción debes resumir, en una página más o menos, qué has hecho en el TFG, de manera más detallada que el resumen, mencionando las tecnologías usadas y estaría bien un diagrama del conjunto del TFG con los bloque so partes que tiene. Luego ya pasas a la motivación}
+
+\textcolor{red}{[jccuevas] ¿La plantilla LaTex es de la EPSJ? Si no lo es, reduce un poco el espacio de los títulos con el texto anterior y el posterior, como a la mitad.}
+
+\textcolor{blue}{[sbp] Sí, es una plantilla creada por un profesor de la universidad llamado Francisco Charte que da clases en ingeniería informática en la facultad de Jaén. No he querido tocar demasiado el formato dado que según sus comentarios en la plantilla, esta sigue todos los formatos impuestos por el universidad.}
 
 A lo largo del documento se emplean términos y acrónimos cuya definición se recoge en el capítulo de Definiciones y abreviaturas (Capítulo~\ref{cap:definiciones})
 
 \section{Contexto y motivación}
 
-La transición hacia la educación superior representa un salto en sus vidas muy importante para los estudiantes preuniversitarios. En el momento de elegir una titulación, los futuros alumnos se enfrentan a una gran cantidad de información proporcionada por las universidades, que presenta barreras significativas de accesibilidad. En el caso de la Escuela Politécnica Superior de Jaén (EPSJ), la oferta académica comprende múltiples grados y dobles grados, redactados con una terminología burocrática (créditos ECTS, competencias transversales, tipologías de asignaturas) que resulta difícil de entender para un estudiante de educación secundaria al que no se le ha explicado nada de esto. 
+La transición hacia la educación superior representa un salto en sus vidas muy importante para los estudiantes preuniversitarios. En el momento de elegir una titulación, los futuros alumnos se enfrentan a una gran cantidad de información proporcionada por las universidades, que presenta barreras significativas de accesibilidad. En el caso de la Escuela Politécnica Superior de Jaén (EPSJ), la oferta académica comprende múltiples grados y dobles grados, redactados con una terminología burocrática (créditos ECTS, competencias transversales, tipologías de asignaturas) que resulta difícil de entender para un estudiante de educación secundaria al que\textcolor{red}{, en muchos casos, o }no se le ha explicado nada de esto\textcolor{red}{, o no lo comprende adecuadamente}.
 
-En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los Modelos de Lenguaje Grande (\glr{LLMs}{LLM}) ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}: la tendencia de estos modelos a generar información posible pero incorrecta, lo cual supondría el riesgo inaceptable de desinformar al usuario, inventando normativas o planes de estudio.
+\textcolor{red}{[jccuevas] Evita emitir juicios que no puedas respaldar, sobre todos los que generalicen demasiado, como el caso del comentario de los estudiantes.}
 
-La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un Modelo del Lenguaje Grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ.
+En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los Modelos de Lenguaje Grande (\glr{LLMs}{LLM}) ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinación}: la tendencia de estos modelos a generar información posible pero incorrecta, lo cual supondría el riesgo inaceptable de desinformar al usuario, inventando normativas o planes de estudio.
 
-
+La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un Modelo del Lenguaje Grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ\textcolor{red}{, evitando así, o minimizando, el problema de la alucinación del modelo.}
 
 
 \section{Alcance del proyecto}
@@ -21,8 +45,10 @@ La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesid
 
 El presente Trabajo Fin de Grado tiene un enfoque práctico y experimental, centrado en el desarrollo y evaluación de un prototipo funcional basado en la arquitectura de Recuperación Aumentada por Generación (RAG). Para garantizar la viabilidad, el rigor científico y la completitud del proyecto dentro de las restricciones de tiempo y carga lectiva, se establecen límites precisos en tres subapartados fundamentales: el dominio de la información a utilizar, el público objetivo y la arquitectura tecnológica.
 
+\textcolor{red}{Por lo tanto, se persigue fundamentalmente cumplir con la obligaciones académicas de la realización de un Trabajo Fin de Grado, aunque de manera secundaria, sí se pretende que éste pueda servir de ejemplo de una solución posible, e interesante, a realizar por los centros universitarios.}
+
 \subsection{Delimitación del dominio de datos}
-El ámbito de conocimiento del sistema se restringe de forma exclusiva a la oferta académica de la Escuela Politécnica Superior de Jaén (EPSJ). Esto engloba la totalidad de sus grados simples y dobles grados oficiales. El sistema no abarcará la oferta del resto de facultades de la Universidad de Jaén (UJA), si bien la arquitectura de retroalimentación de datos se ha diseñado de forma modular para ser fácilmente escalable a otros centros en trabajos futuros. 
+El ámbito de conocimiento del sistema se restringe de forma exclusiva a la oferta académica de la Escuela Politécnica Superior de Jaén (EPSJ). Esto engloba la totalidad de sus grados simples y dobles grados oficiales. El sistema no abarcará la oferta \textcolor{red}{de másteres o títulos propios de la EPSJ, así como de las titulaciones, oficiales o no,} del resto de facultades \textcolor{red}{y escuelas} de la Universidad de Jaén (UJA), si bien la arquitectura de retroalimentación de datos se ha diseñado de forma modular para ser fácilmente escalable a otros centros en trabajos futuros. 
 
 \subsection{Público objetivo y profundidad de la información}
 El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guia docente} se han acotado a:
