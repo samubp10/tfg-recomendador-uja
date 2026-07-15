@@ -8,7 +8,7 @@
 \textcolor{red}{[jccuevas] Comentarios generales:
 \begin{enumerate}
     \item Revisa todos los comentarios y los cambios que te he hecho, con detenimiento y antes de hacer más cambios para tenerlos en cuenta en todo lo que hagas nuevo. No borres los comentarios, cuando hagas lo que te dice, responde a ellos. Conforme yo compruebe que lo vas corriendo los borraré. Evidentemente, en la versión final se quitarán.
-    \item No se emplea nunca la primera persona: "podemos", "obtenemos". Se debe emplear impersonal reflexivo, "se ha realizado", "se ha obtenido", etc.
+    \item No se emplea nunca la primera persona: 'podemos', 'obtenemos'. Se debe emplear impersonal reflexivo, 'se ha realizado', 'se ha obtenido', etc.
     \item Las imágenes/tablas/ecuaciones deben ser referidas o comentadas en el texto antes de ponerlas. No se debe poner una imagen, de ningún tipo, que no aparezca comentada previamente en el texto.
     \item Las imágenes de otra fuente, que sean simples o sencillas, y que no impliquen derechos de autor, como un flujo de un programa o proceso, es mejor hacerlas por ti y ponerlas en español (seguramente estará en inglés), que copiarla y poner la fuente.
     \item Todas las tablas e imágenes que no sean realizadas por ti, deben llevar referencia a la fuente de donde la has sacado en el título. Además, todas las tablas deben tener el mismo formato: tipo, tamaño de letra, encabezados, etc.
@@ -18,12 +18,20 @@
 \end{enumerate}
 }
 
+\textcolor{blue}{[sbp] He revisado y he intentado aplicar todas las normas al documento, también las tendré en cuenta para el futuro. No sé por qué, pero las comillas rectas simples (\"), me están dando error de compilación en OverLeaf, por lo que las voy a cambiar por (' ') en tus comentarios.}
 
-En este capítulo se realizará un acercamiento al tema de investigación del que trata este trabajo final de grado (TFG), en el que se plantea el desarrollo de un sistema de recomendación e información académica centrado en la oferta de la Escuela Politécnica Superior de Jaén (EPSJ).
+
+\sout{En este capítulo se realizará un acercamiento al tema de investigación del que trata este trabajo final de grado (TFG), en el que se plantea el desarrollo de un sistema de recomendación e información académica centrado en la oferta de la Escuela Politécnica Superior de Jaén (EPSJ).}
 
 \textcolor{red}{[jccuevas] No es un acercamiento, en la introducción debes resumir, en una página más o menos, qué has hecho en el TFG, de manera más detallada que el resumen, mencionando las tecnologías usadas y estaría bien un diagrama del conjunto del TFG con los bloque so partes que tiene. Luego ya pasas a la motivación}
 
 \textcolor{blue}{[sbp] Pendiente: redactaré el resumen de una página con lo realizado, las tecnologías empleadas y un diagrama de bloques del conjunto del TFG. Lo dejo para cuando el sistema esté más avanzado y el diagrama refleje los bloques definitivos.}
+
+\begin{borrador}
+    \item \textbf{Fase:} 5 (cierre) --- diferido por decisión propia (respondida al tutor arriba): el resumen y el diagrama de bloques se redactan cuando el sistema esté avanzado y los bloques sean definitivos.
+    \item Posible esqueleto del resumen de una página: (1) una frase con el problema (barrera de acceso a la información académica); (2) una frase con la solución construida (web de chat con RAG sobre un LLM local); (3) un párrafo breve con las tecnologías empleadas por fase (Scrapy para la extracción, el modelo de incrustaciones y base vectorial que se elijan en el Capítulo~\ref{cap:materialesymetodos}, el LLM local, la aplicación web); (4) el diagrama de bloques; (5) una frase de cierre con el estado actual del proyecto (qué fases están completas).
+    \item Ojo con la norma 2 del tutor (impersonal reflexivo) también aquí: <<se ha construido>>, no <<hemos construido>>.
+\end{borrador}
 
 \textcolor{red}{[jccuevas] ¿La plantilla LaTex es de la EPSJ? Si no lo es, reduce un poco el espacio de los títulos con el texto anterior y el posterior, como a la mitad.}
 
@@ -41,7 +49,7 @@ La transición hacia la educación superior representa un salto en sus vidas muy
 
 En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los Modelos de Lenguaje Grande (\glr{LLMs}{LLM}) ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}: la tendencia de estos modelos a generar información posible pero incorrecta, lo cual supondría el riesgo inaceptable de desinformar al usuario, inventando normativas o planes de estudio.
 
-La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un Modelo del Lenguaje Grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ, evitando así, o minimizando, el problema de la alucinación del modelo.
+La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un modelo de lenguaje grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ, evitando así, o minimizando, el problema de la alucinación del modelo.
 
 
 \section{Alcance del proyecto}
@@ -60,10 +68,6 @@ El sistema está diseñado para orientar a estudiantes preuniversitarios (Educac
     \item \textbf{Información incluida:} Se priorizan los resúmenes, los requisitos previos, el temario de las asignaturas y las salidas profesionales de cada grado, al ser estos los datos que mayor valor aportan a un perfil exploratorio.
     \item \textbf{Información excluida:} Se omiten deliberadamente metadatos orientados a alumnos ya matriculados previamente, tales como los sistemas de evaluación, la bibliografía específica o el listado del profesorado. Esta decisión técnica no solo optimiza el proceso de extracción y el tamaño de la \glr{base de datos vectorial}{base de datos vectorial}, sino que evita la dispersión semántica del modelo durante la fase de generación de respuestas.
 \end{itemize}
-
-
-
-
 
 \section{Estructura de la memoria}
 
