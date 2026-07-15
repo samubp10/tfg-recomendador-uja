@@ -7,33 +7,37 @@
 %[jccuevas} \section{Introducción}
 \textcolor{red}{[jccuevas] Comienza a comentar directamente lo que vas a poner en este capítulo. No tengas secciones o capítulos en los que directamente pones ya una subsección.}
 
+\textcolor{blue}{[sbp] Corregido: el capítulo comienza directamente con el texto introductorio, sin sección propia. He reescrito además estos párrafos en impersonal.}
+
 \textcolor{red}{[jccuevas] Tus}
 
+\textcolor{blue}{[sbp] Este comentario parece haber quedado cortado, ¿podrías completarlo?}
 
-En este capítulo veremos la orientación académica que se da actualmente a los estudiantes preuniversitarios, hablando de los recursos que tienen a su alcance, los problemas de accesibilidad y legibilidad que estos tienen y en general de todos los limitantes y trabas que existen en el campo.
 
-Así mismo, veremos un poco de las tecnologías y la historia detrás en la que se ha ido desarrollando las bases de los modelos del lenguaje natural. Luego iremos a los Modelos de lenguaje grandes, que son con los que hablamos en nuestro día a día en las interfaces web que las grandes compañías nos aportan, veremos su funcionamiento, su principal problema y los modelos libres frente a los privativos.
+En este capítulo se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios: los recursos que tienen a su alcance, los problemas de accesibilidad y legibilidad que estos presentan y, en general, las limitaciones existentes en este ámbito.
 
-Por último, hablaremos de la introducción de datos personalizados directamente al interior del modelo para que contenga una información más fidedigna y veraz.
+Asimismo, se repasan las tecnologías y la evolución histórica sobre las que se asientan los modelos del lenguaje natural. A continuación se abordan los Modelos de Lenguaje Grande, presentes hoy en las interfaces conversacionales de uso cotidiano: su funcionamiento, su principal problema y la distinción entre modelos libres y privativos.
+
+Por último, se describe la técnica que permite aportar datos externos controlados al modelo para que sus respuestas se apoyen en información más fidedigna y veraz.
 
 \section{La orientación académica preuniversitaria}
 
 \subsection{El problema de la elección de titulación}
 
 
-Cuando nos acercamos a la edad de 16 años y entramos a Bachillerato o incluso a un curso de formación profesional, siempre nos entra la duda de qué carrera estudiar, qué es lo que más se acerca a las asignaturas que he estudiado y que me gustan, qué carreras tienen más salidas y cuáles son estas mismas para cada grado.
+Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar: cuál se aproxima más a las asignaturas que ha cursado y que le interesan, qué carreras ofrecen más salidas profesionales y cuáles son estas para cada grado.
 
-Según los datos del informe 'La universidad española en cifras', la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia entre ambos modelos\cite{uec_abandono2024}.
+Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia entre ambos modelos\cite{uec_abandono2024}.
 
 \textcolor{red}{[jccuevas] Aquí falta desarrollar el tema.}
 
 \subsection{Recursos de orientación existentes}
 
-Todas las universidades hoy en día tienen un portal web en donde aparecen las ofertas de los grados disponibles e información relacionada a estos. Si nos acotamos a nuestro alcance, a la Escuela Politécnica Superior de Jaén, tenemos su página web propia oficial\cite{epsj_grados} con toda la información actualizada año a año.
+Todas las universidades disponen hoy en día de un portal web en el que aparece la oferta de grados disponibles e información relacionada con estos. En el ámbito de este trabajo, la Escuela Politécnica Superior de Jaén cuenta con su página web oficial\cite{epsj_grados}, con la información actualizada año a año, cuya portada se muestra en la Figura~\ref{fig:foto_web_epsj}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\textwidth]{imagenes/foto_web_epsj.png}
+    \includegraphics[width=0.9\textwidth]{imagenes/foto_web_epsj.png}
     \caption{Imagen de la página web oficial de la EPSJ. Fuente: Elaboración propia.}
     \label{fig:foto_web_epsj}
     \end{figure}
@@ -71,7 +75,7 @@ Históricamente, la evolución de este campo ha transitado por tres grandes enfo
 % similitud de significado sea una distancia. De las bolsas de palabras a las
 % incrustaciones densas \cite{reimers2019sbert}.
 
-El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
+El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos, tal y como se ilustra en la Figura~\ref{fig:bow_jurafsky}. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
 
 \begin{figure}[H]
     \centering
