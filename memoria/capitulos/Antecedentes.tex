@@ -16,7 +16,7 @@
 
 En este capítulo se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios: los recursos que tienen a su alcance, los problemas de accesibilidad y legibilidad que estos presentan y, en general, las limitaciones existentes en este ámbito.
 
-Asimismo, se repasan las tecnologías y la evolución histórica sobre las que se asientan los modelos del lenguaje natural. A continuación se abordan los Modelos de Lenguaje Grande, presentes hoy en las interfaces conversacionales de uso cotidiano: su funcionamiento, su principal problema y la distinción entre modelos libres y privativos.
+Asimismo, se repasan las tecnologías y la evolución histórica sobre las que se asientan los modelos del lenguaje natural. A continuación se abordan los modelos de lenguaje grande, presentes hoy en las interfaces conversacionales de uso cotidiano: su funcionamiento, su principal problema y la distinción entre modelos libres y privativos.
 
 Por último, se describe la técnica que permite aportar datos externos controlados al modelo para que sus respuestas se apoyen en información más fidedigna y veraz.
 
@@ -30,6 +30,14 @@ Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante s
 Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia entre ambos modelos\cite{uec_abandono2024}.
 
 \textcolor{red}{[jccuevas] Aquí falta desarrollar el tema.}
+
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- lo pide el tutor explícitamente; de lo más inmediato.
+    \item Desarrollar qué factores pesan en la decisión: afinidad con las asignaturas cursadas, salidas profesionales, nota de corte, cercanía/coste, y la calidad de la información disponible en el momento de decidir.
+    \item Conectar la TGNA con el argumento del TFG: parte del abandono se relaciona con expectativas mal formadas al elegir; una mejor orientación previa ataca justo ese punto (cuidado con la norma del tutor: no generalizar más allá de lo que el informe respalde --- cifras de cohorte 2017/18 ya verificadas contra el informe).
+    \item Posible dato adicional del mismo informe UEC: diferencias de abandono por rama de conocimiento (ingenierías suelen estar por encima de la media), si el informe lo recoge --- verificar antes de citar.
+    \item Cerrar el hilo: el coste personal y económico de equivocarse de titulación justifica invertir en herramientas de orientación accesibles.
+\end{borrador}
 
 \subsection{Recursos de orientación existentes}
 
@@ -75,23 +83,20 @@ Históricamente, la evolución de este campo ha transitado por tres grandes enfo
 % similitud de significado sea una distancia. De las bolsas de palabras a las
 % incrustaciones densas \cite{reimers2019sbert}.
 
-El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos, tal y como se ilustra en la Figura~\ref{fig:bow_jurafsky}. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
+El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos y descartando por completo su orden, tal y como se ilustra con un ejemplo propio en la Figura~\ref{fig:bow_mermaid}. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{imagenes/representacion_BOW.png}
-    \caption{Representación del modelo de bolsa de palabras aplicado a un texto:
-    la posición de las palabras se ignora y solo se conserva la frecuencia de
-    cada término. Fuente: adaptada de Jurafsky y Martin~\cite{jurafsky2026slp3},
-    Figura~11.2.}
-    \label{fig:bow_jurafsky}
+    \includegraphics[width=0.90\textwidth]{imagenes/representacion_bow_mermaid.pdf}
+    \caption{Representación del modelo de bolsa de palabras: la posición de las
+    palabras se descarta y solo se conserva la frecuencia de cada término.
+    Fuente: elaboración propia.}
+    \label{fig:bow_mermaid}
 \end{figure}
 
 Para solucionar este problema, el procesamiento del lenguaje natural evolucionó hacia las incrustaciones o \glr{embeddings}{embedding}\cite{mikolov2013word2vec}. Estas técnicas representan las palabras como vectores de números reales proyectados en un espacio multidimensional. A diferencia de las bolsas de palabras, estas representaciones logran capturar las relaciones semánticas y sintácticas, permitiendo a los modelos computacionales comprender el contexto real en el que se utiliza un término.
 
 \subsection{La arquitectura Transformer}
-
-
 
 Los transformadores son la arquitectura estándar hoy en día para construir LLMs; estos han cambiado completamente el campo de la comprensión y el procesamiento del lenguaje.
 
@@ -99,15 +104,56 @@ A diferencia de los \textit{embeddings} estáticos (como \textit{word2vec}\cite{
 
 Para determinar qué información es relevante y en qué medida, la autoatención proyecta cada representación en tres roles conceptuales dinámicos: \textbf{\textit{Query}} (consulta), \textbf{\textit{Key}} (clave) y \textbf{\textit{Value}} (valor). Cuando una palabra evalúa su contexto, emite una \textit{Query} (una consulta sobre qué rasgos buscar en su entorno); las demás palabras responden con sus \textit{Keys} (etiquetas que detallan lo que ofrecen); y el producto de estos vectores genera un puntaje de similitud que se normaliza mediante una función \textit{softmax}. Estos puntajes actúan como pesos para realizar una suma ponderada de los \textit{Values} (el significado real de las palabras), extrayendo únicamente los matices más valiosos para enriquecer el \gl{token} consultor.
 
-Este proceso se repite verticalmente a lo largo de un canal continuo denominado flujo residual (\textit{residual stream}), el cual atraviesa múltiples bloques del \textit{Transformer} apilados. Dado que el mecanismo de atención evalúa la relevancia de los \textit{tokens} sin importar el orden físico en el que aparecen, la entrada inicial debe sumar los \textit{embeddings} de cada palabra con \textit{embeddings} posicionales específicos para inyectar la noción de orden secuencial. A medida que la información asciende, las capas de atención funcionan como componentes de "mezcla de tokens" (\textit{token-mixing}) que transfieren información de una corriente residual a otra, mientras que las capas \textit{feedforward} procesan cada posición de manera independiente. Así, el modelo refina progresivamente el flujo que se utiliza para predecir el siguiente término en la secuencia.
+Este proceso se repite a lo largo de un canal continuo denominado flujo residual (\textit{residual stream}), el cual atraviesa múltiples bloques del \textit{Transformer} apilados. Dado que el mecanismo de atención evalúa la relevancia de los \textit{tokens} sin importar el orden físico en el que aparecen, la entrada inicial debe sumar los \textit{embeddings} de cada palabra con \textit{embeddings} posicionales específicos para inyectar la noción de orden secuencial. En cada bloque, la información que la autoatención extrae del resto de la secuencia se suma de vuelta al flujo residual, que así se enriquece progresivamente hasta producir la predicción del siguiente término, tal y como se resume en la Figura~\ref{fig:transformer_flujo_residual}.
 
-(FALTA DIAGRAMA QUE REPRESENTE ESTE PUNTO)
+% ------------------------------------------------------------------
+% DOS VERSIONES DEL MISMO DIAGRAMA: elegir una y borrar la otra.
+% Versión A: generada con Mermaid (PDF importado).
+% Versión B: TikZ nativo (se compila dentro de LaTeX, mismos colores).
+% Si te quedas con la B, mueve el \label a esa figura.
+% ------------------------------------------------------------------
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{imagenes/representacion_transformer_flujo_residual.pdf}
+    \caption{Flujo residual a través de un bloque \textit{Transformer}: la
+    autoatención extrae la información relevante del resto de la secuencia y
+    la suma de vuelta al flujo principal. Fuente: elaboración propia.}
+    \label{fig:transformer_flujo_residual}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[node distance=0.9cm and 1.1cm]
+        % Nodos del bloque
+        \node[nodoDiag, circle, font=\footnotesize] (rs) {Flujo\\residual};
+        \node[nodoDiag, right=of rs, yshift=0.9cm] (att) {Autoatención\\(\textit{Query}, \textit{Key} y \textit{Value})};
+        \node[nodoDiag, circle, right=of att, yshift=-0.9cm, inner sep=2pt] (add) {$+$};
+        % Caja del bloque Transformer (en la capa de fondo, para no tapar los nodos)
+        \begin{scope}[on background layer]
+            \node[grupoDiag, fit=(rs)(att)(add), label={[tituloGrupo]north:Bloque \textit{Transformer} (se apila $N$ veces)}, inner ysep=18pt] (bloque) {};
+        \end{scope}
+        % Entrada y salida
+        \node[nodoDiag, left=of bloque] (in) {\textit{Embeddings} de entrada\\+ \textit{embeddings} posicionales};
+        \node[nodoDiag, right=of bloque] (out) {Predicción del\\siguiente \textit{token}};
+        % Flechas
+        \draw[flechaDiag] (in) -- (bloque);
+        \draw[flechaDiag] (rs) -- (att);
+        \draw[flechaDiag] (att) -- (add);
+        \draw[flechaPunteada] (rs) to[bend right=25] node[below, font=\footnotesize, fill=diagGrupo]{el flujo se suma al resultado} (add);
+        \draw[flechaDiag] (bloque) -- (out);
+    \end{tikzpicture}%
+    }
+    \caption{Flujo residual a través de un bloque \textit{Transformer}
+    (versión alternativa). Fuente: elaboración propia.}
+    \label{fig:transformer_flujo_residual_tikz}
+\end{figure}
 
 \section{Modelos de lenguaje grandes}
 
 \subsection{Fundamento y funcionamiento}
 
-Un modelo de Lenguaje Grande en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
+Un modelo de lenguaje grande, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
 
 Estos modelos tienen dos fases de entrenamiento: 
 \begin{itemize}
@@ -119,113 +165,175 @@ Estos modelos tienen dos fases de entrenamiento:
 
 
 \subsection{El problema de las alucinaciones}
+\label{subsec:alucinaciones}
 
-% La razón de ser de todo tu TFG: por qué un LLM genera información plausible
-% pero falsa, y por qué eso es inaceptable en orientación académica. Ejemplos
-% reales si los tienes (pregúntale a un LLM por un grado de la EPSJ y enseña lo
-% que se inventa: eso vale más que tres párrafos teóricos).
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya; la cita \cite{ji2023hallucination} ya está en el \texttt{.bib}.
+    \item Por qué es el problema central que justifica todo el TFG: el LLM optimiza por plausibilidad lingüística, no por verdad factual, y no tiene forma de distinguir un dato real de uno inventado con la misma confianza aparente.
+    \item Por qué es inaceptable en orientación académica a menores: inventar asignaturas, notas de corte o planes de estudio inexistentes tiene consecuencias reales sobre una decisión importante.
+    \item Evidencia propia sugerida (más persuasiva que la teoría): preguntar a un LLM genérico por un grado real de la EPSJ y documentar qué se inventa (capturas de pantalla, transcripción).
+    \item Cierre que enlaza con la Sección~\ref{secc:rag} de este mismo capítulo: RAG como mitigación del problema, no como eliminación total.
+\end{borrador}
 
 \subsection{Modelos de pesos abiertos frente a modelos propietarios}
 
-% Qué diferencia hay, qué implica cada opción (privacidad, coste, control) y por
-% qué la distinción importa en un sistema que va a leer preguntas de menores.
-% OJO: aquí se explica el panorama; la ELECCIÓN concreta del modelo va al Cap. 4.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya (solo el panorama; la elección del modelo es de Fase 2).
+    \item Definir cada modelo: pesos abiertos, descargables y ejecutables en local (p. ej. Llama, Mistral, Qwen) frente a propietarios, accesibles solo vía API (p. ej. GPT, Claude, Gemini).
+    \item Ejes de comparación: privacidad (los datos no salen del servidor local frente a que viajan a un tercero), coste (hardware propio frente a pago por token), control (versión fija y auditable frente a un modelo que puede cambiar sin aviso).
+    \item Por qué importa aquí en concreto: el sistema recibe preguntas de estudiantes de secundaria, posibles menores de edad (enlaza con la Sección~\ref{secc:marcolegal}).
+    \item Aclarar que esto es el panorama general; la elección concreta del modelo se justifica en el Capítulo~\ref{cap:materialesymetodos} con su ADR correspondiente.
+\end{borrador}
 
 \section{Recuperación de información}
 
 \subsection{Bases de datos vectoriales}
 
-% Qué son y en qué se diferencian de una base de datos tradicional. Panorama:
-% las hay embebidas/locales y como servicio en la nube. Qué es una búsqueda de
-% vecinos más cercanos aproximada y por qué hace falta.
+\begin{borrador}
+    \item \textbf{Fase:} 1 (IT-28/IT-31) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá con el conocimiento real de los experimentos de indexación.
+\end{borrador}
 
 \subsection{Métricas de evaluación de la recuperación}
+\label{secc:metricas_recuperacion}
 
-% Recall@K, MRR y nDCG: qué mide cada una y qué significa un valor alto.
-% IMPORTANTE: explícalas aquí para poder usarlas sin explicarlas en Resultados.
+\begin{borrador}
+    \item \textbf{Fase:} 1 (IT-27/IT-28) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá al diseñar el conjunto de evaluación, para definir aquí las métricas que luego usa el Capítulo~\ref{cap:resultados}.
+\end{borrador}
 
 \section{Recuperación aumentada por generación (RAG)}
+\label{secc:rag}
 
 \subsection{Origen y motivación}
 
-% El artículo que introduce la arquitectura \cite{lewis2020rag} y el problema
-% que venía a resolver.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya.
+    \item Presentar el artículo fundacional~\cite{lewis2020rag} (Lewis et al., 2020) y el problema que venía a resolver: el conocimiento de un LLM queda <<congelado>> en el momento del entrenamiento y no puede citar sus fuentes.
+    \item Motivación doble: actualizar el conocimiento sin reentrenar el modelo completo, y fundamentar las respuestas en documentos verificables (enlaza con la Sección~\ref{subsec:alucinaciones}).
+    \item Contraste breve con una alternativa que este TFG no usa: el ajuste fino (\textit{fine-tuning}) del modelo con los datos de la EPSJ --- más caro, no resuelve la trazabilidad de la fuente y exigiría reentrenar cada curso académico.
+\end{borrador}
 
 \subsection{Arquitectura y componentes}
 
-% Las tres piezas: indexación, recuperación y generación. Un diagrama conceptual
-% GENÉRICO de RAG encaja aquí (distinto del de tu arquitectura concreta, que va
-% en el Cap. 4).
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya; el diagrama de apoyo ya existe.
+    \item Las tres piezas del pipeline RAG genérico: indexación (preparar y almacenar los documentos), recuperación (buscar los fragmentos relevantes a la pregunta) y generación (el LLM redacta la respuesta usando esos fragmentos como contexto).
+    \item Aquí encaja un diagrama conceptual GENÉRICO de RAG, distinto del diagrama de la arquitectura concreta del sistema (que va al Capítulo~\ref{cap:materialesymetodos}). Ya existe un borrador en Mermaid en la carpeta de diagramas de las notas del proyecto, pendiente de adaptar e insertar aquí.
+    \item Explicar brevemente cómo se construye el \textit{prompt} final: instrucción del sistema, fragmentos recuperados y pregunta del usuario.
+\end{borrador}
 
 \subsection{Fragmentación de documentos}
 
-% Por qué hay que trocear: la ventana del modelo de incrustaciones es limitada,
-% un fragmento grande diluye la señal y uno pequeño pierde contexto.
-% Qué estrategias existen (tamaño fijo con solape, por estructura, semántica) y
-% qué asume cada una. NO digas todavía cuál elegiste: eso es el Cap. 4.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya.
+    \item Por qué hay que trocear los documentos: la ventana del modelo de incrustaciones es limitada; un fragmento demasiado grande diluye la señal y uno demasiado pequeño pierde contexto.
+    \item Estrategias existentes: tamaño fijo con solape (\textit{sliding window}), por estructura del documento (párrafos, secciones) o semántica (cortar donde cambia de tema). Qué asume y qué limita cada una.
+    \item Recordatorio: no adelantar aquí cuál se ha elegido para el sistema; esa decisión se justifica en el Capítulo~\ref{cap:materialesymetodos} con el ADR-0001.
+\end{borrador}
 
 \subsection{Evaluación de sistemas RAG}
 
-% Cómo se mide la calidad de la generación: fidelidad al contexto recuperado y
-% relevancia de la respuesta. Herramientas de evaluación automática que existen.
+\begin{borrador}
+    \item \textbf{Fase:} 2 (IT-38) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá junto a la evaluación real del sistema (fidelidad, relevancia, RAGAs~\cite{es2023ragas}).
+\end{borrador}
 
 \section{Extracción automatizada de información web}
 
 \subsection{Fundamentos}
 
-% Qué es el rastreo web, cómo funciona (peticiones HTTP, análisis del HTML,
-% selectores) y qué problemas típicos aparecen (codificación, estructura
-% inconsistente, contenido generado por JavaScript).
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya; el material está en tu propio ADR-0002, no requiere investigación nueva.
+    \item Qué es el rastreo web (\textit{web scraping}): proceso automatizado de descarga de páginas y extracción de datos estructurados de su HTML.
+    \item Cómo funciona a alto nivel: petición HTTP, respuesta HTML, análisis (\textit{parsing}), selectores (CSS o XPath) para localizar los datos y normalización del resultado.
+    \item Problemas típicos: codificación de caracteres inconsistente, estructura HTML no uniforme entre páginas, contenido generado dinámicamente por JavaScript.
+    \item Aquí solo el panorama general; el caso concreto de las trampas encontradas en la web de la EPSJ se documenta en el Capítulo~\ref{cap:materialesymetodos}.
+\end{borrador}
 
 \subsection{Tipos de herramientas}
 
-% Panorama: analizadores de HTML, marcos de rastreo completos y navegadores
-% automatizados. Qué resuelve cada familia. La COMPARATIVA y la elección
-% concreta van al Cap. 4 (ADR-0002).
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- redactable ya.
+    \item Tres familias: analizadores de HTML puros (p. ej. BeautifulSoup con \texttt{requests}), \textit{frameworks} de rastreo completos (p. ej. Scrapy) y navegadores automatizados (p. ej. Selenium, Playwright).
+    \item Qué problema resuelve cada familia y para qué escala de proyecto está pensada.
+    \item Recordatorio: la comparativa detallada y la elección concreta van al Capítulo~\ref{cap:materialesymetodos} (ADR-0002); aquí solo el panorama.
+\end{borrador}
 
 \section{Trabajos relacionados}
 
 \subsection{Asistentes conversacionales en el ámbito universitario}
 
-% Qué han hecho otras universidades. Pruébalos de verdad si están accesibles.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- pero es el borrador más caro en tiempo de investigación; si aprietan los plazos, es el candidato acordado a solaparse con la Fase 1.
+    \item Tarea de investigación real pendiente, no de redacción: localizar y probar de verdad (no solo citar) chatbots universitarios existentes.
+    \item Candidatos a revisar: un posible asistente virtual genérico de la propia UJA, chatbots de otras universidades españolas, herramientas comerciales de orientación universitaria.
+    \item Para cada uno que se pruebe, anotar: tecnología empleada (si es pública), si responde con fuentes verificables, si está acotado a un centro o cubre toda la universidad, y qué falla ante una pregunta muy específica.
+    \item Esta sección depende de trabajo de campo (probar servicios reales y documentarlo) que no se puede sustituir por una búsqueda bibliográfica.
+\end{borrador}
 
 \subsection{Sistemas de recomendación educativos}
 
-% Qué enfoques existen para recomendar estudios (filtrado colaborativo, tests
-% vocacionales, sistemas basados en reglas) y en qué se diferencian de un RAG.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- mismo criterio que la subsección anterior (candidata a solaparse con Fase 1 si hay retraso).
+    \item Enfoques existentes para recomendar estudios más allá del RAG: filtrado colaborativo (basado en decisiones de estudiantes parecidos), tests vocacionales o psicométricos, sistemas basados en reglas.
+    \item En qué se diferencian estructuralmente de un RAG: no suelen usar lenguaje natural conversacional ni generan texto libre, sino una lista cerrada de recomendaciones.
+    \item Pendiente de búsqueda bibliográfica real (no inventar citas) para localizar literatura verificable sobre sistemas de recomendación educativos.
+\end{borrador}
 
 \subsection{Posicionamiento de este trabajo}
 
-% La sección más importante del capítulo: en qué se parece tu sistema a lo que
-% existe, en qué se diferencia y qué hueco concreto llena. Aquí es donde el
-% tribunal ve si el TFG aporta algo o repite lo ya hecho.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- se redacta la última de las tres, porque depende de las dos subsecciones anteriores.
+    \item La sección más importante del capítulo: aquí es donde el tribunal juzga si el TFG aporta algo nuevo o repite lo ya existente.
+    \item Estructura sugerida: (1) qué tiene en común este TFG con los sistemas revisados en las dos subsecciones anteriores; (2) en qué se diferencia específicamente (dominio acotado a la EPSJ, arquitectura RAG con LLM local, público preuniversitario); (3) qué hueco concreto llena que ningún otro sistema revisado cubre.
+    \item No se puede redactar bien hasta tener escritas las dos subsecciones anteriores, de las que depende directamente.
+\end{borrador}
 
 \section{Marco legal y ético}
+\label{secc:marcolegal}
 
 \subsection{Protección de datos personales}
 
-% RGPD \cite{rgpd2016} y LOPDGDD \cite{lopdgdd2018}. Qué se considera dato
-% personal y qué es información anónima (Considerando 26 del RGPD). Aplicación
-% al caso: la colección documental no contiene datos de personas físicas.
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- todo el marco legal es la sección más barata de cerrar: las 6 citas ya están en el \texttt{.bib}.
+    \item Marco normativo: RGPD~\cite{rgpd2016} y LOPDGDD~\cite{lopdgdd2018}.
+    \item Qué se considera dato personal frente a información anónima: el considerando 26 del RGPD como referencia concreta.
+    \item Aplicación directa al caso: la colección documental no contiene datos de personas físicas, ya que el profesorado se excluye deliberadamente (decisión de proyecto ya tomada). Conviene decirlo de forma explícita.
+    \item Punto delicado pendiente de tratar: el sistema recibe preguntas de usuarios que podrían ser menores de edad; aunque los datos de origen no sean personales, la propia conversación sí podría generarlos.
+\end{borrador}
 
 \subsection{Legalidad de la extracción automatizada de datos}
 
-% Qué dice el marco jurídico sobre extraer datos publicados abiertamente por un
-% organismo público, con fines académicos. Jurisprudencia de referencia
-% \cite{sts572_2012}. Buenas prácticas: robots.txt, retardo entre peticiones,
-% agente de usuario identificable.
+\begin{borrador}
+    \item \textbf{Fase:} 0.
+    \item Qué dice el marco jurídico sobre extraer datos publicados abiertamente por un organismo público con fines académicos y sin ánimo de lucro.
+    \item Jurisprudencia de referencia: caso Ryanair contra Atrápalo~\cite{sts572_2012}. Resumir qué se dirimió y matizar por qué este caso es distinto (aquí no hay reventa de datos ni competencia con la UJA).
+    \item Buenas prácticas ya aplicadas y defendibles en el proyecto: respeto de \texttt{robots.txt}, retardo entre peticiones y agente de usuario identificable, documentadas en el Capítulo~\ref{cap:materialesymetodos}.
+\end{borrador}
 
 \subsection{Licencias de software y de modelos}
 
-% Licencias libres y copyleft \cite{gpl3}. Y el matiz de los modelos: pesos
-% descargables no significa uso libre; hay que leer la licencia de cada modelo.
+\begin{borrador}
+    \item \textbf{Fase:} 0 (la parte de licencias de modelos se completará en Fase 2, cuando se elija el LLM).
+    \item Licencias libres y \textit{copyleft}: qué es el \textit{copyleft}, con la GPLv3~\cite{gpl3} como ejemplo.
+    \item Comprobar y citar la licencia elegida para el propio proyecto.
+    \item Matiz importante con los LLM: que los pesos de un modelo se puedan descargar no significa que su uso sea libre; hay que leer la licencia concreta de cada modelo (algunas licencias tipo Llama restringen el uso comercial o a partir de cierta escala).
+    \item Aplicación al caso: qué licencia tiene el modelo de lenguaje que se elija en el Capítulo~\ref{cap:materialesymetodos} (pendiente de esa decisión).
+\end{borrador}
 
 \subsection{Accesibilidad}
 
-% Criterios WCAG \cite{wcag22} y por qué obligan a un sistema dirigido a
-% estudiantes de secundaria.
+\begin{borrador}
+    \item \textbf{Fase:} 0 (el panorama; la aplicación concreta a la interfaz es de Fase 3).
+    \item Criterios WCAG 2.2~\cite{wcag22}: niveles A, AA y AAA, y cuál es el habitual para servicios públicos o educativos (normalmente AA).
+    \item Por qué deberían orientar un sistema dirigido a estudiantes de secundaria: diversidad de capacidades del público objetivo. Valorar también la normativa española de accesibilidad web para el sector público, aunque el sistema no sea oficialmente de la administración.
+    \item Aplicación concreta a una interfaz de chat (contraste de color, navegación por teclado, lectores de pantalla): se desarrollará al diseñar la interfaz en la Fase 3 del Capítulo~\ref{cap:materialesymetodos}.
+\end{borrador}
 
 \subsection{Reglamento europeo de inteligencia artificial}
 
-% El Reglamento (UE) 2024/1689 \cite{aiact2024}: qué sistemas regula y cuál es
-% la obligación de transparencia aplicable a un chatbot informativo.
+\begin{borrador}
+    \item \textbf{Fase:} 0.
+    \item El Reglamento (UE) 2024/1689~\cite{aiact2024}: niveles de riesgo que define (inaceptable, alto riesgo, riesgo limitado, mínimo).
+    \item En qué categoría encajaría previsiblemente un chatbot informativo de orientación académica (probablemente riesgo limitado, por tratarse de un sistema conversacional). Verificar esta clasificación leyendo el reglamento, no asumirla.
+    \item Obligación de transparencia aplicable: informar al usuario de que interactúa con un sistema de IA (verificar el artículo exacto del reglamento antes de citarlo).
+    \item Relevancia para el TFG: aunque sea un proyecto académico no comercial, es defendible mostrar ante el tribunal que se ha tenido en cuenta el marco regulatorio vigente.
+\end{borrador}

@@ -1,6 +1,12 @@
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
+\begin{borrador}
+    \item \textbf{Fase:} 0 --- texto puente breve, redactable ya.
+    \item Frase de enlace con el Capítulo~\ref{cap:objetivos}: este capítulo traduce esos objetivos en decisiones técnicas concretas y su justificación.
+    \item Anunciar la estructura: metodología de trabajo, planificación, tecnologías y herramientas, arquitectura del sistema, diseño de los datos, y desarrollo fase a fase.
+    \item Aclarar desde el principio el patrón que sigue toda decisión técnica del capítulo: alternativas consideradas, evidencia y elección justificada (coherente con las reglas de justificación del propio proyecto).
+\end{borrador}
 
 \section{Metodología de trabajo}
 
@@ -50,7 +56,7 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en HTML descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de Lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
@@ -89,7 +95,7 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 \begin{itemize}
     \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos, los módulos de limpieza de texto y la fragmentación semántica preliminar (\textit{chunking}).
     \item \textbf{Fase 1 (Incrustaciones y base vectorial):} Comprende la experimentación para la selección del modelo de \textit{embeddings} y el despliegue de la base de datos vectorial local.
-    \item \textbf{Fase 2 (Pipeline RAG y LLM):} Consiste en el diseño del \textit{prompt} del sistema, la selección e integración del Modelo de Lenguaje Grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
+    \item \textbf{Fase 2 (Pipeline RAG y LLM):} Consiste en el diseño del \textit{prompt} del sistema, la selección e integración del modelo de lenguaje grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
     \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
     \item \textbf{Fase 4 (Validación experimental):} Pruebas del sistema con usuarios reales (estudiantes de perfil preuniversitario) y estudios de ablación sobre los hiperparámetros del sistema.
     \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral (Aunque la memoria se está haciendo a la par que el desarrollo).
@@ -98,6 +104,11 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 
 
 
+% Replanificado el 16/07/2026: la Fase 0 se alargó más de lo previsto y el
+% objetivo pasa de la Extraordinaria II del curso 2025/26 (3/9/2026) a la
+% primera convocatoria del curso 2026/27, que por analogía con el calendario
+% 2025/26 caerá a mediados de noviembre de 2026 (fecha provisional hasta que
+% la EPSJ publique el calendario 2026/27). Día 1 del diagrama = 24/06/2026.
 \begin{figure}[htbp]
     \centering
     \resizebox{\textwidth}{!}{%
@@ -107,22 +118,26 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
         bar height=0.5,
         title height=1,
         y unit chart=0.7cm,
-        x unit=0.115cm
-        ]{1}{72}
+        x unit=0.07cm
+        ]{1}{144}
         \gantttitle{Junio}{7}
         \gantttitle{Julio}{31}
         \gantttitle{Agosto}{31}
-        \gantttitle{Sept.}{3} \\
-        \ganttbar{F0 · Cimientos}{1}{17} \\
-        \ganttbar{F1 · Embeddings y vector DB}{18}{31} \\
-        \ganttbar{F2 · Pipeline RAG}{32}{48} \\
-        \ganttbar{F3 · Aplicación web}{49}{59} \\
-        \ganttbar{F4 · Validación y ablation}{60}{68} \\
-        \ganttbar{F5 · Cierre y defensa}{69}{72} \\
-        \ganttmilestone{Entrega}{72}
+        \gantttitle{Sept.}{30}
+        \gantttitle{Oct.}{31}
+        \gantttitle{Nov.}{14} \\
+        \ganttbar{F0 · Cimientos}{1}{38} \\
+        \ganttbar{F1 · Embeddings y vector DB}{39}{69} \\
+        \ganttbar{F2 · Pipeline RAG}{70}{99} \\
+        \ganttbar{F3 · Aplicación web}{100}{121} \\
+        \ganttbar{F4 · Validación y ablation}{122}{135} \\
+        \ganttbar{F5 · Cierre y defensa}{136}{144} \\
+        \ganttmilestone{Entrega}{142}
     \end{ganttchart}%
     }
-    \caption{Planificación temporal del proyecto por fases. Fuente: Elaboración propia.}
+    \caption{Planificación temporal del proyecto por fases, replanificada a la
+    primera convocatoria del curso 2026/27 (noviembre de 2026, fecha
+    provisional). Fuente: Elaboración propia.}
     \label{fig:gantt}
 \end{figure}
 
@@ -316,7 +331,7 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
     \end{enumerate}
     Al priorizar la cabecera HTTP, Scrapy decodifica correctamente las guías docentes de la página web de la UJA en ISO-8859-1 servidas como tal, resolviendo el problema de codificación sin necesidad de código adicional.
 
-    \item \textbf{Respeto a robots.txt:} Soporte nativo mediante la configuración \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
+    \item \textbf{Respeto a robots.txt:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
 
     \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
 
@@ -330,7 +345,7 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
 
 \subsubsection{BeautifulSoup\cite{beautifulsoup}}
 
-Consiste en un \textit{parser} de HTML (BeautifulSoup) combinado con un cliente HTTP (\texttt{requests}).
+Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
 
 \begin{itemize}
     \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
@@ -357,9 +372,9 @@ Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramient
 
 % Explicar el pipeline y por qué cada etapa está desacoplada de la siguiente.
 
-Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales); a continuación, estos se pasan por el fragmentador (\textit{chunker}), que parte el texto según se especifica en el apartado ~\ref{cap:} (falta el apartado de la decisión del chunker ADR-0001).
+Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales); a continuación, estos se pasan por el fragmentador (\textit{chunker}), que parte el texto en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
-\textcolor{red}{No se comienzan los párrafos con "Y"}
+\textcolor{red}{No se comienzan los párrafos con 'Y'}
 
 \textcolor{blue}{[sbp] Corregido, y revisado el resto del documento para que no vuelva a ocurrir.}
 
@@ -375,13 +390,62 @@ Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sis
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
-\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si sigue resultando pequeña, la regeneraré con una fuente mayor.}
+\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
+
+% ------------------------------------------------------------------
+% DOS VERSIONES DEL MISMO DIAGRAMA: elegir una y borrar la otra.
+% Versión A: generada con Mermaid (PDF importado).
+% Versión B: TikZ nativo (se compila dentro de LaTeX, mismos colores).
+% Si te quedas con la B, mueve el \label a esa figura.
+% ------------------------------------------------------------------
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{imagenes/diagrama_arquitectura_pipeline.pdf}
+    \caption{Arquitectura general del sistema, organizada por fases de desarrollo. Fuente: Elaboración propia.}
+    \label{fig:arquitectura_pipeline}
+\end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\textwidth]{imagenes/Diagrama_arquitectura.pdf}
-    \caption{Arquitectura general del \textit{pipeline} de extracción y procesamiento de datos. Fuente: Elaboración propia.}
-    \label{fig:arquitectura_pipeline}
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[node distance=0.55cm and 1cm]
+        % Fase 0
+        \node[nodoDiag] (web) {Web pública\\EPSJ};
+        \node[nodoDiag, below=of web] (grados) {\texttt{grados.json}};
+        \node[nodoDiag, below=of grados] (chunks) {\texttt{chunks.json}};
+        % Fase 1
+        \node[nodoDiag, right=2cm of web] (emb) {Modelo de\\\textit{embeddings}};
+        \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15, below=of emb] (bd) {Base de datos\\vectorial};
+        % Fase 2
+        \node[nodoDiag, right=2cm of emb] (preg) {Pregunta\\del usuario};
+        \node[nodoDiag, below=of preg] (rec) {Recuperación\\de fragmentos};
+        \node[nodoDiag, below=of rec] (llm) {LLM local};
+        \node[nodoDiag, below=of llm] (resp) {Respuesta\\fundamentada};
+        % Fase 3
+        \node[nodoDiag, right=2cm of rec] (chat) {Interfaz de chat\\sin registro};
+        % Cajas de fase (en la capa de fondo, para no tapar los nodos)
+        \begin{scope}[on background layer]
+            \node[grupoDiag, fit=(web)(grados)(chunks), label={[tituloGrupo]north:Fase 0 --- Colección de datos}, inner ysep=16pt] (f0) {};
+            \node[grupoDiag, fit=(emb)(bd), label={[tituloGrupo]north:Fase 1 --- Indexación}, inner ysep=16pt] (f1) {};
+            \node[grupoDiag, fit=(preg)(rec)(llm)(resp), label={[tituloGrupo]north:Fase 2 --- \textit{Pipeline} RAG}, inner ysep=16pt] (f2) {};
+            \node[grupoDiag, fit=(chat), label={[tituloGrupo]north:Fase 3 --- Aplicación web}, inner ysep=16pt] (f3) {};
+        \end{scope}
+        % Flechas internas
+        \draw[flechaDiag] (web) -- node[right, font=\footnotesize]{\textit{spider} (Scrapy)} (grados);
+        \draw[flechaDiag] (grados) -- node[right, font=\footnotesize]{\textit{chunker}} (chunks);
+        \draw[flechaDiag] (emb) -- (bd);
+        \draw[flechaDiag] (preg) -- (rec);
+        \draw[flechaDiag] (rec) -- (llm);
+        \draw[flechaDiag] (llm) -- (resp);
+        % Flechas entre fases
+        \draw[flechaDiag] (chunks.east) -- (emb.west);
+        \draw[flechaDiag] (bd.east) -- (rec.west);
+        \draw[flechaDiag] (resp.east) -- (chat.south west);
+    \end{tikzpicture}%
+    }
+    \caption{Arquitectura general del sistema, organizada por fases de
+    desarrollo (versión alternativa). Fuente: Elaboración propia.}
+    \label{fig:arquitectura_pipeline_tikz}
 \end{figure}
 
 \section{Diseño de los datos}
@@ -429,25 +493,55 @@ En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones 
 rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
-
-\textcolor{blue}{[sbp] Corregido: ampliada del 60\% al 95\% del ancho de página.}
+\textcolor{blue}{[sbp] Corregido}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\textwidth]{imagenes/Diagrama_secuencia_scraping.pdf}
-    \caption{Diagrama de secuencia del proceso de \textit{scraping} de una guía docente y manejo de escenarios alternativos. Fuente: Elaboración propia.}
+    \includegraphics[width=0.80\textwidth]{imagenes/Diagrama_secuencia_scraping.pdf}
+    \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{Diagrama de secuencia del proceso de \textit{scraping} de una guía docente y manejo de escenarios alternativos. Fuente: Elaboración propia.}
     \label{fig:secuencia_scraping}
 \end{figure}
 
 \subsection{Extracción de las guías docentes}
 
-% IT-06. Selección por identificador de sección; hallazgo de codificación (la
-% página declara UTF-8 pero el servidor envía ISO-8859-1); mecanismo de
-% respaldo cuando la estructura esperada no aparece (5 guías reales lo activan).
+\begin{borrador}
+    \item \textbf{Fase:} 0 (IT-06) --- redactable ya, es de las más inmediatas.
+    \item El hallazgo estrella para contar aquí: la página declara UTF-8 en su \texttt{<meta>} pero el servidor la sirve en ISO-8859-1; Scrapy acierta porque prioriza la cabecera HTTP (enlaza con la justificación de Scrapy de la sección de tecnologías y con el ADR-0002).
+    \item Selección del contenido por identificador de sección dentro del HTML de la guía, no por posición.
+    \item El marcador <<->> en la fuente significa campo vacío, no dato.
+    \item Mecanismo de respaldo cuando la estructura esperada no aparece: lo activan 5 guías reales.
+    \item Cobertura: 296 guías de 361 asignaturas (81\,\%); sesgo de las que faltan hacia titulaciones en implantación --- \textbf{re-verifica las cifras con \texttt{check\_dataset.py} antes de escribirlas}.
+\end{borrador}
 
 \subsection{Extracción de las salidas profesionales}
 
-% IT-07. Los dobles grados no generan salidas propias: se comprobó que son la
-% unión exacta de las de sus dos grados base.
+\begin{borrador}
+    \item \textbf{Fase:} 0 (IT-07) --- redactable ya.
+    \item 8 bloques de salidas, uno por cada grado simple con contenido propio.
+    \item El hallazgo defendible: los dobles grados no emiten salidas propias; se comprobó contra los datos reales que son la unión exacta de las de sus dos grados base (re-verifica el ejemplo concreto con \texttt{check\_dataset.py} antes de citar cifras).
+\end{borrador}
 
+\subsection{Troceado y deduplicación de la colección}
+\label{subsec:chunking}
 
+\begin{borrador}
+    \item \textbf{Fase:} 0 (IT-08, IT-09 e IT-56) --- redactable ya; al escribirla se completa también la referencia desde la sección <<Arquitectura del sistema>>.
+    \item La unidad de troceado es la asignatura (su guía) o el bloque de salidas: \textbf{un fragmento nunca mezcla dos asignaturas} (decisión innegociable del proyecto).
+    \item Algoritmo: división por párrafos; si un trozo sigue excediendo el máximo, división por frases; después, fusión de residuales pequeños con reequilibrio.
+    \item Cada fragmento lleva un encabezado autocontenido (asignatura, tipo, ECTS, grado) para que tenga sentido por sí solo al recuperarlo.
+    \item Deduplicación por la clave (nombre, contenido): solo por contenido fusionaría asignaturas distintas con el mismo texto de respaldo (caso real: Smart Grids y Técnicas de ingeniería gráfica).
+    \item Cifras verificadas del dataset: 1\,172 fragmentos antes de deduplicar, 892 después (un 24\,\% menos), 28 unidades compartidas entre titulaciones, tamaños mín/mediana/máx 227/1\,093/1\,499 caracteres. Máximo de 1\,500 como restricción dura; mínimo de 200 como preferencia.
+    \item Dejar claro que los parámetros de fragmentación son \textbf{provisionales} hasta el experimento de la Fase 1: no presentarlos como óptimos.
+    \item Aquí va también el diagrama de secuencia del \textit{chunking}, ya generado en la carpeta de diagramas de las notas del proyecto y pendiente de subir a Overleaf e insertar.
+\end{borrador}
+
+\section{Verificación y reproducibilidad de la Fase 0}
+
+\begin{borrador}
+    \item \textbf{Fase:} 0 (IT-19) --- cierra la parte de Fase 0 del capítulo.
+    \item Las pruebas usan \textit{fixtures} HTML reales descargadas de la EPSJ: los datos inventados no reproducen las anomalías de la fuente (es un principio del proyecto, no una casualidad).
+    \item Qué invariante comprueba cada verificador: \texttt{check\_dataset.py} vigila la integridad de grados, asignaturas, guías y salidas; \texttt{check\_chunks.py}, los tamaños y la deduplicación de los fragmentos. Se ejecutan en local antes de cada subida; el CI ejecuta \texttt{pytest} y \texttt{mypy}.
+    \item La reproducibilidad la da el propio \textit{pipeline} (\textit{scrapy} $\rightarrow$ \textit{chunker}), no una copia versionada del resultado: el dataset no se versiona y se regenera bajo demanda.
+    \item El argumento de desacoplo que pide IT-17: re-fragmentar es barato y se hará muchas veces al experimentar; re-rastrear la web es caro y descortés con el servidor de la UJA. Por eso \textit{spider} y \textit{chunker} son módulos separados (está en el ADR-0001; redáctalo con tus palabras).
+    \item \textbf{Sin cifras de caracterización ni amenazas a la validez aquí}: eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
+\end{borrador}
