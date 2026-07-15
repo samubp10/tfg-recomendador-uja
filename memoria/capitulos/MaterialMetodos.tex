@@ -104,11 +104,9 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 
 
 
-% Replanificado el 16/07/2026: la Fase 0 se alargó más de lo previsto y el
-% objetivo pasa de la Extraordinaria II del curso 2025/26 (3/9/2026) a la
-% primera convocatoria del curso 2026/27, que por analogía con el calendario
-% 2025/26 caerá a mediados de noviembre de 2026 (fecha provisional hasta que
-% la EPSJ publique el calendario 2026/27). Día 1 del diagrama = 24/06/2026.
+% Confirmado el 16/07/2026 contra el calendario oficial real de la EPSJ:
+% Extraordinaria II del curso 2025/26 (entrega 3/9/2026, defensa 9/9/2026).
+% Día 1 del diagrama = 24/06/2026; día 72 = 3/9/2026 (entrega).
 \begin{figure}[htbp]
     \centering
     \resizebox{\textwidth}{!}{%
@@ -118,26 +116,24 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
         bar height=0.5,
         title height=1,
         y unit chart=0.7cm,
-        x unit=0.07cm
-        ]{1}{144}
+        x unit=0.115cm
+        ]{1}{72}
         \gantttitle{Junio}{7}
         \gantttitle{Julio}{31}
         \gantttitle{Agosto}{31}
-        \gantttitle{Sept.}{30}
-        \gantttitle{Oct.}{31}
-        \gantttitle{Nov.}{14} \\
-        \ganttbar{F0 · Cimientos}{1}{38} \\
-        \ganttbar{F1 · Embeddings y vector DB}{39}{69} \\
-        \ganttbar{F2 · Pipeline RAG}{70}{99} \\
-        \ganttbar{F3 · Aplicación web}{100}{121} \\
-        \ganttbar{F4 · Validación y ablation}{122}{135} \\
-        \ganttbar{F5 · Cierre y defensa}{136}{144} \\
-        \ganttmilestone{Entrega}{142}
+        \gantttitle{Sept.}{3} \\
+        \ganttbar{F0 · Cimientos}{1}{17} \\
+        \ganttbar{F1 · Embeddings y vector DB}{18}{31} \\
+        \ganttbar{F2 · Pipeline RAG}{32}{48} \\
+        \ganttbar{F3 · Aplicación web}{49}{59} \\
+        \ganttbar{F4 · Validación y ablation}{60}{68} \\
+        \ganttbar{F5 · Cierre y defensa}{69}{72} \\
+        \ganttmilestone{Entrega}{72}
     \end{ganttchart}%
     }
-    \caption{Planificación temporal del proyecto por fases, replanificada a la
-    primera convocatoria del curso 2026/27 (noviembre de 2026, fecha
-    provisional). Fuente: Elaboración propia.}
+    \caption{Planificación temporal del proyecto por fases, ajustada a la
+    Extraordinaria II del curso 2025/26 (entrega el 3 de septiembre de 2026).
+    Fuente: Elaboración propia.}
     \label{fig:gantt}
 \end{figure}
 
