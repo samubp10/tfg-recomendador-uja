@@ -301,13 +301,13 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
 
 \section{Tecnologías y herramientas}
  \subsection{Extracción de datos }
- Como lenguaje base he utilizado Python en su versión 3.13, y para la extracción de datos habían 3 opciones clara que eran las que más se habituaban a nuestro contexto:
+ Como lenguaje base he utilizado Python en su versión 3.13, y para la extracción de datos \sout{habían 3 opciones clara que eran las que más se habituaban a nuestro contexto:} \textcolor{red}{se han estudiado tres claras opciones, las cuales se comentan de los apartados siguientes.}
 
 \subsubsection{Scrapy\cite{scrapy}}
 
- Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web).
+ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). \textcolor{red}{Dadas sus características, las cuáles se detallan a continuación, ha sido la opción elegida.}
 
-Las características principales que justificaron su elección son:
+\sout{Las características principales que justificaron su elección son:}
 
 \begin{itemize}
     \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
@@ -347,8 +347,8 @@ Se basa en la automatización de navegadores con renderizado real.
     \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
 
-\paragraph{Decisión final}
-Se adopta \textbf{Scrapy}. La evidencia sobre la gestión correcta del \textit{encoding} fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el \textit{throttling} configurable, la testabilidad \textit{offline} con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reinplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
+%[jccuevas] \paragraph{Decisión final}
+\textcolor{red}{Conforme a lo comentado anteriormente, se} adopta \textbf{Scrapy} \textcolor{red}{como herramienta de extracción de datos de webs}. La evidencia sobre la gestión correcta del \textit{encoding} fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el \textit{throttling} configurable, la testabilidad \textit{offline} con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reinplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
 
 
  
@@ -361,15 +361,19 @@ Se adopta \textbf{Scrapy}. La evidencia sobre la gestión correcta del \textit{e
 
 Como podemos observar en la Figura~\ref{fig:arquitectura_pipeline}, primero obtenemos los datos necesarios para las recomendaciones como grados, asignaturas, guías y salidas laborales, luego esto lo pasamos por el chunker el cuál partirá el texto según se especifica en el apartado ~\ref{cap:} (falta el apartado de la decisión del chunker ADR-0001).
 
-Con estos trozos de información, se pasa al embeding con el que meteremos los datos en la Base de datos vectorial.
+\textcolor{red}{No se comienzan los párrafos con "Y"}
 
-Y ya por último llega el \textit{pipeline} RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los \textit{chunks} pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
+Con estos trozos de información, se pasa al \textcolor{red}{embedding} con el que \sout{meteremos} \textcolor{red}{se introducirán} los datos en la Base de datos vectorial.
+
+%OJO te faltaba una "d" en embedding. 
+
+\sout{Y ya }Por último llega el \textit{pipeline} RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los \textit{chunks} pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
 
 % Argumento defendible: el fragmentador es un módulo aparte del rastreador
 % porque volver a fragmentar es barato, mientras que volver a rastrear la web es
 % costoso y poco respetuoso con el servidor de la universidad.
 
-
+\textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.5\textwidth]{imagenes/Diagrama_arquitectura.pdf}
@@ -420,6 +424,8 @@ Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el a
 
 En la siguiente figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones del
 rastreador (o spider) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo si el objeto actual es un doble grado o uno solo.
+
+\textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
 
 \begin{figure}[H]
     \centering
