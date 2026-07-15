@@ -6,7 +6,7 @@
 
 Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la universidad.
 
-Además de apoyarme en esta metodología para la gestión de tareas, he trabajado también sobre cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
+Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
 
 \subsection{Gestión del trabajo y priorización}
 El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en 59 unidades de trabajo atómicas o historias de usuario (etiquetadas como IT-01 a IT-59). Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
@@ -301,13 +301,11 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
 
 \section{Tecnologías y herramientas}
  \subsection{Extracción de datos }
- Como lenguaje base he utilizado Python en su versión 3.13, y para la extracción de datos \sout{habían 3 opciones clara que eran las que más se habituaban a nuestro contexto:} \textcolor{red}{se han estudiado tres claras opciones, las cuales se comentan de los apartados siguientes.}
+ Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado tres claras opciones, las cuales se comentan en los apartados siguientes.
 
 \subsubsection{Scrapy\cite{scrapy}}
 
- Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). \textcolor{red}{Dadas sus características, las cuáles se detallan a continuación, ha sido la opción elegida.}
-
-\sout{Las características principales que justificaron su elección son:}
+ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
 
 \begin{itemize}
     \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
@@ -320,9 +318,9 @@ IT-54 & Anexo: instalación y configuración del sistema & Memoria & S & COULD \
 
     \item \textbf{Respeto a robots.txt:} Soporte nativo mediante la configuración \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
 
-    \item \textbf{Control de tasa (Throttling):} El \textit{framework} ofrece parámetros de configuración para permitir ajustar el proceso de rastreo para no saturar nuestro servidor objetivo.
+    \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
 
-    \item \textbf{Pruebas offline:} Nos permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
+    \item \textbf{Pruebas sin conexión:} Permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
 
     \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
 
@@ -348,7 +346,7 @@ Se basa en la automatización de navegadores con renderizado real.
 \end{itemize}
 
 %[jccuevas] \paragraph{Decisión final}
-\textcolor{red}{Conforme a lo comentado anteriormente, se} adopta \textbf{Scrapy} \textcolor{red}{como herramienta de extracción de datos de webs}. La evidencia sobre la gestión correcta del \textit{encoding} fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el \textit{throttling} configurable, la testabilidad \textit{offline} con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reinplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
+Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
 
 
  
@@ -359,24 +357,29 @@ Se basa en la automatización de navegadores con renderizado real.
 
 % Explicar el pipeline y por qué cada etapa está desacoplada de la siguiente.
 
-Como podemos observar en la Figura~\ref{fig:arquitectura_pipeline}, primero obtenemos los datos necesarios para las recomendaciones como grados, asignaturas, guías y salidas laborales, luego esto lo pasamos por el chunker el cuál partirá el texto según se especifica en el apartado ~\ref{cap:} (falta el apartado de la decisión del chunker ADR-0001).
+Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales); a continuación, estos se pasan por el fragmentador (\textit{chunker}), que parte el texto según se especifica en el apartado ~\ref{cap:} (falta el apartado de la decisión del chunker ADR-0001).
 
 \textcolor{red}{No se comienzan los párrafos con "Y"}
 
-Con estos trozos de información, se pasa al \textcolor{red}{embedding} con el que \sout{meteremos} \textcolor{red}{se introducirán} los datos en la Base de datos vectorial.
+\textcolor{blue}{[sbp] Corregido, y revisado el resto del documento para que no vuelva a ocurrir.}
 
-%OJO te faltaba una "d" en embedding. 
+Con estos trozos de información, se pasa al \textit{embedding} con el que se introducirán los datos en la base de datos vectorial.
 
-\sout{Y ya }Por último llega el \textit{pipeline} RAG en el que después de la pregunta del usuario, el propio sistema utilizando como memoria la base de datos vectorial, recuperará los \textit{chunks} pertenecientes a la pregunta del usuario y responderá. Toda esta última fase se podrá interactuar mediante la aplicación web
+%OJO te faltaba una "d" en embedding.
+
+Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
 % Argumento defendible: el fragmentador es un módulo aparte del rastreador
 % porque volver a fragmentar es barato, mientras que volver a rastrear la web es
 % costoso y poco respetuoso con el servidor de la universidad.
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
+
+\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si sigue resultando pequeña, la regeneraré con una fuente mayor.}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\textwidth]{imagenes/Diagrama_arquitectura.pdf}
+    \includegraphics[width=0.9\textwidth]{imagenes/Diagrama_arquitectura.pdf}
     \caption{Arquitectura general del \textit{pipeline} de extracción y procesamiento de datos. Fuente: Elaboración propia.}
     \label{fig:arquitectura_pipeline}
 \end{figure}
@@ -384,7 +387,7 @@ Con estos trozos de información, se pasa al \textcolor{red}{embedding} con el q
 \section{Diseño de los datos}
 
 
-El diagrama de clases~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos que tenemos en nuestra aplicación, las cuáles podríamos dividir en dos partes claras: La primera es la parte de los datos en crudo seleccionada de la web, como la relacionada con los grados, así como asignaturas, cada cuál con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los \textit{chunks} que aparte contiene un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía), y el índice del trozo de información.
+El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
 \begin{figure}[H]
     \centering
@@ -422,14 +425,16 @@ Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el a
 % comprobó que construirlas lleva a páginas inexistentes). Tablas híbridas
 % (columna Tipo frente a columna Mención) y fusión de asignaturas por código.
 
-En la siguiente figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones del
-rastreador (o spider) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo si el objeto actual es un doble grado o uno solo.
+En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones entre el
+rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
 
+\textcolor{blue}{[sbp] Corregido: ampliada del 60\% al 95\% del ancho de página.}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\textwidth]{imagenes/Diagrama_secuencia_scraping.pdf}
+    \includegraphics[width=0.95\textwidth]{imagenes/Diagrama_secuencia_scraping.pdf}
     \caption{Diagrama de secuencia del proceso de \textit{scraping} de una guía docente y manejo de escenarios alternativos. Fuente: Elaboración propia.}
     \label{fig:secuencia_scraping}
 \end{figure}
