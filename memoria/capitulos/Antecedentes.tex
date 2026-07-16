@@ -223,14 +223,22 @@ Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precis
 \subsection{Bases de datos vectoriales}
 
 \begin{borrador}
-    \item \textbf{Fase:} 1 (IT-28/IT-31) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá con el conocimiento real de los experimentos de indexación.
+    \item \textbf{Fase:} 1 (IT-28/IT-31) --- \textbf{DESBLOQUEADO}: la Fase 1 ya está en marcha (el pipeline de indexación existe y funciona con ChromaDB como elección provisional). Redactable en cuanto quieras.
+    \item Qué son: sistemas optimizados para almacenar vectores (incrustaciones) y recuperar los más parecidos a una consulta, en vez de por coincidencia exacta como una base de datos relacional.
+    \item Diferencia clave con una base de datos tradicional: la consulta es <<qué se parece a esto>> (distancia en un espacio vectorial, p. ej. coseno) frente a <<qué coincide exactamente con esto>>.
+    \item Panorama de tipos: embebidas o locales (Chroma, FAISS) frente a servicio gestionado en la nube (Pinecone, Weaviate). La comparativa y elección definitiva van al Capítulo~\ref{cap:materialesymetodos} (IT-31, ADR-0004).
+    \item Búsqueda aproximada de vecinos más cercanos y por qué hace falta; puede citarse HNSW~\cite{malkov2020hnsw}.
 \end{borrador}
 
 \subsection{Métricas de evaluación de la recuperación}
 \label{secc:metricas_recuperacion}
 
 \begin{borrador}
-    \item \textbf{Fase:} 1 (IT-27/IT-28) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá al diseñar el conjunto de evaluación, para definir aquí las métricas que luego usa el Capítulo~\ref{cap:resultados}.
+    \item \textbf{Fase:} 1 (IT-27/IT-28) --- \textbf{DESBLOQUEADO}: el conjunto de evaluación ya existe (36 preguntas anotadas, IT-27 cerrada), así que estas métricas ya tienen contra qué calcularse. Redactable en cuanto quieras.
+    \item Recall@K: de las unidades relevantes anotadas, qué fracción aparece entre los K primeros resultados recuperados.
+    \item MRR (\textit{Mean Reciprocal Rank}): en qué posición aparece el primer resultado relevante, promediado sobre todas las preguntas.
+    \item Definirlas aquí con precisión para que el Capítulo~\ref{cap:resultados} las use sin re-explicarlas, solo remitiendo a esta sección.
+    \item Puede citarse BM25~\cite{robertson2009bm25} como referencia clásica de recuperación léxica con la que contrastar la búsqueda semántica.
 \end{borrador}
 
 \section{Recuperación aumentada por generación (RAG)}
