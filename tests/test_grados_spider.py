@@ -21,6 +21,7 @@ def _respuesta(fixture, url="https://eps.ujaen.es/grados", meta=None):
 
 # --- IT-03: listado de grados (parse) ---
 
+
 def test_sigue_cada_grado_del_menu():
     peticiones = list(GradosSpider().parse(_respuesta("grados.html")))
     nombres = [p.meta["nombre"] for p in peticiones]
@@ -48,33 +49,44 @@ def test_las_peticiones_van_a_urls_absolutas():
 
 # --- IT-04: portada del grado (parse_portada) ---
 
+
 def test_encuentra_enlace_a_asignaturas():
     meta = {"nombre": "Grado en Ingeniería Informática"}
-    item = next(GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta)))
+    item = next(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     assert "asignaturas-y-profesorado" in item["url_asignaturas"]
 
 
 def test_encuentra_enlace_a_salidas():
     meta = {"nombre": "Grado en Ingeniería Informática"}
-    item = next(GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta)))
+    item = next(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     assert "salidas-profesionales" in item["url_salidas"]
 
 
 def test_detecta_grado_simple():
     meta = {"nombre": "Grado en Ingeniería Informática"}
-    item = next(GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta)))
+    item = next(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     assert item["es_doble_grado"] is False
 
 
 def test_detecta_doble_grado():
     meta = {"nombre": "Doble Grado en Ingeniería Eléctrica y Mecánica"}
-    item = next(GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta)))
+    item = next(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     assert item["es_doble_grado"] is True
 
 
 def test_sin_enlace_de_salidas_no_rompe():
     meta = {"nombre": "Grado en Ingeniería Eléctrica"}
-    item = next(GradosSpider().parse_portada(_respuesta("portada_sin_salidas.html", meta=meta)))
+    item = next(
+        GradosSpider().parse_portada(_respuesta("portada_sin_salidas.html", meta=meta))
+    )
     assert item["url_salidas"] is None
     assert "asignaturas-y-profesorado" in item["url_asignaturas"]
 
@@ -203,7 +215,7 @@ _META_IAYC = {"nombre": "Grado en Inteligencia Artificial y Ciberseguridad"}
 def _asignaturas_iayc():
     resp = _respuesta(
         "tabla_asignaturas_iayc.html",
-        url="https://eps.ujaen.es/grados/grado-en-inteligencia-artificial-y-ciberseguridad/asignaturas-y-profesorado",
+        url="https://eps.ujaen.es/grados/grado-en-inteligencia-artificial-y-ciberseguridad/asignaturas-y-profesorado",  # noqa: E501
         meta=_META_IAYC,
     )
     return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
@@ -242,10 +254,11 @@ def test_iayc_descarta_los_placeholders_de_optativas():
 # </th> en vez de <th>Tipo</th>. El texto directo del <th> es vacío, por lo que
 # la cabecera debe leerse incluyendo el texto descendiente.
 
+
 def test_extrae_grado_con_cabeceras_envueltas_en_strong():
     resp = _respuesta(
         "tabla_mecanica.html",
-        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",  # noqa: E501
         meta={"nombre": "Grado en Ingeniería Mecánica"},
     )
     items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
@@ -259,10 +272,11 @@ def test_extrae_grado_con_cabeceras_envueltas_en_strong():
 # Eléctrica incluye 4 optativas marcadas "(No ofertada en 2025/26)". El nombre
 # debe quedar limpio y el campo ofertada a False, conservando la asignatura.
 
+
 def _asignaturas_electrica():
     resp = _respuesta(
         "tabla_electrica.html",
-        url="https://eps.ujaen.es/grados/grado-en-ingenieria-electrica/asignaturas-y-profesorado",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-electrica/asignaturas-y-profesorado",  # noqa: E501
         meta={"nombre": "Grado en Ingeniería Eléctrica"},
     )
     return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
@@ -291,10 +305,11 @@ def test_electrica_las_demas_se_ofertan():
 # párrafo separado por "/", frente a los <p> separados de Informática. Ambas
 # formas deben normalizarse a una lista plana.
 
+
 def test_mecanica_divide_menciones_separadas_por_barra():
     resp = _respuesta(
         "tabla_mecanica.html",
-        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-mecanica/asignaturas-y-profesorado",  # noqa: E501
         meta={"nombre": "Grado en Ingeniería Mecánica"},
     )
     items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
@@ -333,9 +348,14 @@ def _guia(fixture, codigo, nombre, grado):
         url=_URL_GUIA,
         body=(FIXTURES / fixture).read_bytes(),
         encoding="cp1252",
-        request=Request(_URL_GUIA, meta={
-            "codigo": codigo, "nombre": nombre, "grado": grado,
-        }),
+        request=Request(
+            _URL_GUIA,
+            meta={
+                "codigo": codigo,
+                "nombre": nombre,
+                "grado": grado,
+            },
+        ),
     )
     return next(GradosSpider().parse_guia(resp))
 
@@ -343,7 +363,9 @@ def _guia(fixture, codigo, nombre, grado):
 def test_extrae_resumen_y_temario_de_una_guia_real():
     # Matemáticas I de Organización Industrial (13011009).
     item = _guia(
-        "guia_matematicas_oi.html", "13011009", "Matemáticas I",
+        "guia_matematicas_oi.html",
+        "13011009",
+        "Matemáticas I",
         "Grado en Ingeniería de Organización Industrial",
     )
     assert item["fallback"] is False
@@ -358,7 +380,9 @@ def test_decodifica_los_acentos_correctamente():
     # el <meta> pero el servidor envía ISO-8859-1/cp1252 por HTTP. Sin el
     # encoding explícito, este texto saldría con mojibake ("Naci�n").
     item = _guia(
-        "guia_matematicas_oi.html", "13011009", "Matemáticas I",
+        "guia_matematicas_oi.html",
+        "13011009",
+        "Matemáticas I",
         "Grado en Ingeniería de Organización Industrial",
     )
     texto_completo = item["resumen"] + item["temario"]
@@ -370,17 +394,24 @@ def test_misma_asignatura_en_otro_grado_extrae_igual():
     # Matemáticas I de Eléctrica (13511009): FB compartida con Organización
     # Industrial, misma guía, mismo contenido real.
     oi = _guia(
-        "guia_matematicas_oi.html", "13011009", "x", "x",
+        "guia_matematicas_oi.html",
+        "13011009",
+        "x",
+        "x",
     )
     electrica = _guia(
-        "guia_matematicas_electrica.html", "13511009", "x", "x",
+        "guia_matematicas_electrica.html",
+        "13511009",
+        "x",
+        "x",
     )
     assert oi["temario"] == electrica["temario"]
 
 
 def test_extrae_guia_real_de_iayc():
     item = _guia(
-        "guia_metodos_numericos_iayc.html", "15711001",
+        "guia_metodos_numericos_iayc.html",
+        "15711001",
         "Análisis y métodos numéricos",
         "Grado en Inteligencia Artificial y Ciberseguridad",
     )
@@ -397,6 +428,7 @@ def test_descarta_el_marcador_de_campo_sin_contenido():
     # patrón exacto observado en un fragmento mínimo, en vez de una fixture
     # completa inventada.
     from tfg_uja.grados_spider import GradosSpider
+
     html = (
         '<div id="resumen">'
         '<div class="fdoca_valor_cuadro_ambito">Contenido real</div>'
@@ -416,7 +448,10 @@ def test_usa_el_fallback_cuando_la_estructura_no_aparece():
     # dejar el camino de código sin probar. Documentado explícitamente como
     # caso de prueba, no como dato real de la EPSJ.
     item = _guia(
-        "guia_estructura_rota.html", "X000", "Asignatura de prueba", "Grado de prueba",
+        "guia_estructura_rota.html",
+        "X000",
+        "Asignatura de prueba",
+        "Grado de prueba",
     )
     assert item["fallback"] is True
     assert item["resumen"] == ""
@@ -427,7 +462,10 @@ def test_usa_el_fallback_cuando_la_estructura_no_aparece():
 
 def test_el_fallback_excluye_profesorado_y_clausulas():
     item = _guia(
-        "guia_estructura_rota.html", "X000", "Asignatura de prueba", "Grado de prueba",
+        "guia_estructura_rota.html",
+        "X000",
+        "Asignatura de prueba",
+        "Grado de prueba",
     )
     cuerpo = item["cuerpo_general"].lower()
     assert "profesor" not in cuerpo
@@ -453,13 +491,16 @@ def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
 # una URL de salidas inexistente), útil para verificar el comportamiento
 # robusto cuando no hay bloque de salidas.
 
+
 def _salidas(fixture, nombre):
     resp = HtmlResponse(
         url="https://eps.ujaen.es/grados/x/salidas-profesionales",
         body=(FIXTURES / fixture).read_bytes(),
         encoding="utf-8",
-        request=Request("https://eps.ujaen.es/grados/x/salidas-profesionales",
-                        meta={"nombre": nombre}),
+        request=Request(
+            "https://eps.ujaen.es/grados/x/salidas-profesionales",
+            meta={"nombre": nombre},
+        ),
     )
     return list(GradosSpider().parse_salidas(resp))
 
@@ -484,8 +525,9 @@ def test_no_emite_item_si_no_hay_bloque_de_salidas():
 
 def test_portada_encola_el_rastreo_de_salidas():
     meta = {"nombre": "Grado en Ingeniería Informática"}
-    salida = list(GradosSpider().parse_portada(
-        _respuesta("portada_grado.html", meta=meta)))
+    salida = list(
+        GradosSpider().parse_portada(_respuesta("portada_grado.html", meta=meta))
+    )
     requests = [r for r in salida if isinstance(r, scrapy.Request)]
     urls_salidas = [r for r in requests if "salidas-profesionales" in r.url]
     assert len(urls_salidas) == 1
