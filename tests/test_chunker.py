@@ -132,27 +132,39 @@ def test_las_salidas_de_un_grado_forman_su_propia_unidad(chunks):
     for chunk in resultado:
         assert chunk["codigos"] == [None]
         assert chunk["texto"].startswith("Salidas profesionales del ")
-        assert "Programador de aplicaciones" in chunk["texto"] or chunk[
-            "chunk_index"
-        ] > 0
+        assert (
+            "Programador de aplicaciones" in chunk["texto"] or chunk["chunk_index"] > 0
+        )
 
 
 # --- IT (deduplicación): guías compartidas entre titulaciones ---
+
 
 def test_una_asignatura_compartida_se_deduplica_en_una_unidad(muestra):
     # Se construye una guía idéntica en dos titulaciones distintas (mismo
     # nombre y mismo contenido): deben fusionarse en una sola unidad cuyo
     # campo grados enumere ambas, en vez de duplicar el texto en el índice.
     guia_a = {
-        "tipo": "guia", "grado": "Grado A", "codigo": "10000001",
-        "nombre": "Álgebra", "fallback": False,
+        "tipo": "guia",
+        "grado": "Grado A",
+        "codigo": "10000001",
+        "nombre": "Álgebra",
+        "fallback": False,
         "resumen": "Espacios vectoriales y aplicaciones lineales.",
         "temario": "Tema 1. Matrices. Tema 2. Determinantes. Tema 3. Diagonalización.",
     }
     guia_b = {**guia_a, "grado": "Grado B", "codigo": "20000001"}
-    asig_a = {"tipo": "asignatura", "grado": "Grado A", "codigo": "10000001",
-              "nombre": "Álgebra", "tipo_asignatura": "FB", "ects": "6",
-              "menciones": [], "ofertada": True, "tiene_guia": True}
+    asig_a = {
+        "tipo": "asignatura",
+        "grado": "Grado A",
+        "codigo": "10000001",
+        "nombre": "Álgebra",
+        "tipo_asignatura": "FB",
+        "ects": "6",
+        "menciones": [],
+        "ofertada": True,
+        "tiene_guia": True,
+    }
     asig_b = {**asig_a, "grado": "Grado B", "codigo": "20000001"}
     chunks = trocear_dataset([asig_a, asig_b, guia_a, guia_b])
     algebra = [c for c in chunks if c["nombre"] == "Álgebra"]
@@ -166,8 +178,12 @@ def test_no_fusiona_asignaturas_distintas_con_el_mismo_texto(muestra):
     # Dos asignaturas DISTINTAS (nombres distintos) con texto idéntico —el
     # caso real del fallback de Smart Grids y Técnicas gráfica— no deben
     # fusionarse: la clave de deduplicación incluye el nombre.
-    base_guia = {"tipo": "guia", "grado": "Grado A", "fallback": True,
-                 "cuerpo_general": "Texto genérico idéntico de respaldo."}
+    base_guia = {
+        "tipo": "guia",
+        "grado": "Grado A",
+        "fallback": True,
+        "cuerpo_general": "Texto genérico idéntico de respaldo.",
+    }
     g1 = {**base_guia, "codigo": "30000001", "nombre": "Asignatura Uno"}
     g2 = {**base_guia, "codigo": "30000002", "nombre": "Asignatura Dos"}
     chunks = trocear_dataset([g1, g2])

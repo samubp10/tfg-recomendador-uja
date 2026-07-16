@@ -90,8 +90,10 @@ def main(argv: list[str] | None = None) -> int:
         len(c["texto"]) <= TAMANO_MAXIMO for c in chunks
     ), "hay chunks por encima del máximo (encabezado incluido)"
     assert all(
-        isinstance(c["grados"], list) and isinstance(c["codigos"], list)
-        and len(c["grados"]) == len(c["codigos"]) and c["grados"]
+        isinstance(c["grados"], list)
+        and isinstance(c["codigos"], list)
+        and len(c["grados"]) == len(c["codigos"])
+        and c["grados"]
         for c in chunks
     ), "grados/codigos deben ser listas paralelas no vacías"
 
@@ -121,7 +123,8 @@ def main(argv: list[str] | None = None) -> int:
             unidades_guia |= _claves_chunk(c)
     assert con_guia == unidades_guia, (
         "descuadre guía<->chunk: "
-        f"faltan {len(con_guia - unidades_guia)}, sobran {len(unidades_guia - con_guia)}"
+        f"faltan {len(con_guia - unidades_guia)}, "
+        f"sobran {len(unidades_guia - con_guia)}"
     )
 
     sin_guia = {_clave_item(a) for a in asignaturas if not a["tiene_guia"]}
@@ -132,22 +135,29 @@ def main(argv: list[str] | None = None) -> int:
     assert sin_guia == informativos, "asignaturas sin guía sin chunk informativo"
 
     grados_salidas = {s["grado"] for s in salidas}
-    grados_chunk_salidas = {g for c in chunks if c["origen"] == "salidas"
-                            for g in c["grados"]}
+    grados_chunk_salidas = {
+        g for c in chunks if c["origen"] == "salidas" for g in c["grados"]
+    }
     assert grados_salidas == grados_chunk_salidas, "salidas sin trocear"
 
     # --- Estadísticas ---
     origenes = Counter(c["origen"] for c in chunks)
-    compartidas = sum(1 for c in chunks if len(c["grados"]) > 1 and c["chunk_index"] == 0)
+    compartidas = sum(
+        1 for c in chunks if len(c["grados"]) > 1 and c["chunk_index"] == 0
+    )
     print(f"Chunks totales: {len(chunks)}  {dict(origenes)}")
-    print(f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
-          f"sin guía {len(sin_guia)}, salidas {len(grados_salidas)})")
+    print(
+        f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
+        f"sin guía {len(sin_guia)}, salidas {len(grados_salidas)})"
+    )
     print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
     tamanos = sorted(len(c["texto"]) for c in chunks)
     n = len(tamanos)
-    print(f"Tamaño (chars): min={tamanos[0]} mediana={tamanos[n // 2]} "
-          f"p90={tamanos[int(n * 0.9)]} max={tamanos[-1]}")
+    print(
+        f"Tamaño (chars): min={tamanos[0]} mediana={tamanos[n // 2]} "
+        f"p90={tamanos[int(n * 0.9)]} max={tamanos[-1]}"
+    )
 
     print("Chunks OK: invariantes verificados.")
     return 0

@@ -39,17 +39,13 @@ DIMENSION = 8
 
 def incrustador_falso(textos: list[str]) -> list[list[float]]:
     """Incrustador determinista sin red: un vector fijo por longitud del texto."""
-    return [
-        [float(len(texto) % 97)] + [0.0] * (DIMENSION - 1) for texto in textos
-    ]
+    return [[float(len(texto) % 97)] + [0.0] * (DIMENSION - 1) for texto in textos]
 
 
 @pytest.fixture()
 def chunks_reales() -> list[dict[str, Any]]:
     """Chunks reales del dataset, con sus anomalías conocidas."""
-    datos: list[dict[str, Any]] = json.loads(
-        RUTA_MUESTRA.read_text(encoding="utf-8")
-    )
+    datos: list[dict[str, Any]] = json.loads(RUTA_MUESTRA.read_text(encoding="utf-8"))
     return datos
 
 
