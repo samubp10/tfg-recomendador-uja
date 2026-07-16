@@ -1,51 +1,150 @@
 # Recomendador de Grados de la EPSJ
 
-Chatbot de recomendación e información sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén. Está pensado para ayudar a estudiantes o personas que tienen que decidir qué carrera estudiar: responde preguntas sobre asignaturas, planes de estudio y salidas profesionales a partir de la información publicada por la Universidad de Jaén.
+[![Tests](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml/badge.svg)](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml)
+![Python 3.13](https://img.shields.io/badge/python-3.13-blue)
+![Licencia GPL-3.0](https://img.shields.io/badge/licencia-GPL--3.0-green)
 
-Por dentro combina recuperación de información (RAG) sobre un modelo de lenguaje de código abierto, de manera que las respuestas se apoyan en datos reales de la universidad y no en el conocimiento genérico del modelo.
+Chatbot de recomendación e información sobre las titulaciones de grado de la
+Escuela Politécnica Superior de Jaén (EPSJ). Está pensado para ayudar a
+estudiantes preuniversitarios a decidir qué carrera estudiar: responde
+preguntas sobre asignaturas, planes de estudio y salidas profesionales a
+partir de la información publicada por la Universidad de Jaén.
 
-Este repositorio corresponde a un Trabajo Fin de Grado del Grado en Ingeniería Informática de la Universidad de Jaén, curso 2025/2026.
+Por dentro combina recuperación aumentada por generación (RAG) sobre un
+modelo de lenguaje de código abierto ejecutado en local, de manera que las
+respuestas se apoyan en datos reales de la universidad y no en el
+conocimiento genérico del modelo.
 
-Autor: Samuel Blanco Palmero  
-Tutor: Juan Carlos Cuevas Martinez
+Este repositorio corresponde a un Trabajo Fin de Grado del Grado en
+Ingeniería Informática de la Universidad de Jaén, curso 2025/2026.
 
-## Alcance
+**Autor:** Samuel Blanco Palmero · **Tutor:** Juan Carlos Cuevas Martinez
 
-La primera versión cubre las titulaciones de la EPSJ. El sistema se ha diseñado para poder ampliarse al resto de facultades de la Universidad de Jaén añadiendo nuevas fuentes al proceso de extracción de datos, sin tener que rehacer el núcleo de recuperación y generación.
+## Estado del proyecto
+
+| Fase | Contenido | Estado |
+| ---- | --------- | ------ |
+| 0 | Extracción web, limpieza, validación y fragmentación (*chunking*) | ✅ Completa |
+| 1 | Indexación vectorial y conjunto de evaluación | 🚧 En curso |
+| 2 | *Pipeline* RAG completo con LLM local y evaluación | Pendiente |
+| 3 | Aplicación web de chat | Pendiente |
+| 4 | Validación con usuarios | Pendiente |
+
+## Arquitectura
+
+```text
+Web EPSJ ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ índice vectorial ──▶ [RAG + LLM] ──▶ [web de chat]
+```
+
+Cada etapa está desacoplada de la siguiente y produce un artefacto
+regenerable: re-fragmentar o re-indexar es barato y se hace a menudo al
+experimentar; re-rastrear la web es caro y descortés con el servidor de la
+universidad, por lo que solo se hace cuando cambia la fuente.
 
 ## Requisitos
 
-- Python 3.10 o superior (desarrollado con la versión 3.13)
+- Python 3.13 (mínimo 3.10).
+- Para ejecutar la indexación real: el extra `[index]` (véase abajo), que
+  instala PyTorch a través de `sentence-transformers`.
 
 ## Instalación
-Requiere **Python 3.13**.
 
-**Windows (CMD o PowerShell)**
-```
+### Windows (CMD o PowerShell)
+
+```console
 py -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-**Linux / macOS**
-```
+### Linux / macOS
+
+```console
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
+
 > En Git Bash sobre Windows: `source .venv/Scripts/activate`.
+
+Para la indexación vectorial (descarga el modelo de *embeddings*, cientos de MB):
+
+```console
+pip install -e ".[dev,index]"
+```
 
 ## Uso
 
-El proyecto está en desarrollo. Las instrucciones de ejecución de cada componente se irán añadiendo en esta sección conforme estén disponibles.
+Los datos generados viven en `data/` y **no se versionan**: se regeneran con
+el propio *pipeline* (esa regeneración es la garantía de reproducibilidad).
+
+```console
+# 1. Extraer el dataset — hace peticiones REALES a la web de la UJA.
+#    Usar con moderación (respeta robots.txt y aplica retardo entre peticiones).
+scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+
+# 2. Fragmentar (offline, barato)
+py -m tfg_uja.chunker data/grados.json data/chunks.json
+
+# 3. Indexar en la base de datos vectorial (requiere el extra [index])
+py -m tfg_uja.indexer data/chunks.json data/indice_chroma
+```
+
+### Verificadores del dataset (solo en local)
+
+No corren en CI porque `data/` no existe en un *checkout* limpio; se ejecutan
+antes de cada *push*:
+
+```console
+py scripts/check_dataset.py    # integridad de grados/asignaturas/guías/salidas
+py scripts/check_chunks.py     # tamaños y deduplicación de los fragmentos
+py scripts/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
+```
+
+## Calidad
+
+```console
+pytest                                          # 95 pruebas, con fixtures HTML/JSON reales
+mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
+black src/ tests/ scripts/                      # formato
+flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)
+```
+
+Principios de las pruebas: fixtures **reales** descargadas de la EPSJ (nunca
+peticiones de red en los tests, nunca datos inventados), y todo defecto
+encontrado entra como test de regresión con su caso real.
 
 ## Estructura del repositorio
 
-- `src/tfg_uja/` — código fuente
-- `docs/adr/` — registro de las decisiones de diseño (ADR)
+```text
+src/tfg_uja/        # código fuente (spider, limpieza, validación, chunker, indexer)
+tests/              # pruebas con fixtures reales (HTML de la EPSJ, chunks del dataset)
+scripts/            # verificadores del dataset y del conjunto de evaluación
+eval/               # conjunto de evaluación del retrieval (manual, versionado)
+docs/adr/           # registro de decisiones de arquitectura (ADR)
+memoria/            # memoria del TFG en LaTeX (plantilla EPSJ)
+data/               # artefactos generados (NO versionados)
+```
 
-La memoria del proyecto, escrita en LaTeX, se mantiene en la rama `doc`.
+## Metodología
+
+- **Kanban** en GitHub Projects: cada tarea es una *issue* `IT-XX` con fase,
+  prioridad MoSCoW y *milestone*.
+- **Conventional Commits** (`tipo(IT-XX): descripción`), con cuerpo
+  obligatorio que explica el *porqué* de cada decisión.
+- Ramas efímeras desde `main` (código) o `doc` (memoria); fusión siempre con
+  *merge commit*, nunca *squash*.
+- Decisiones de diseño registradas como **ADR** en `docs/adr/`.
+- CI en GitHub Actions: `pytest` + `mypy` en cada *push* y *pull request*.
+
+## Alcance
+
+La primera versión cubre las titulaciones de grado de la EPSJ. El sistema se
+ha diseñado para poder ampliarse al resto de centros de la Universidad de
+Jaén añadiendo nuevas fuentes al proceso de extracción, sin rehacer el núcleo
+de recuperación y generación. El profesorado se excluye deliberadamente de
+los datos extraídos (privacidad).
 
 ## Licencia
 
-GPL-3.0
+[GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html)
