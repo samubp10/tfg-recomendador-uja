@@ -2,8 +2,8 @@
 
 from tfg_uja.validators import es_asignatura_valida, es_placeholder, normalizar_tipo
 
-
 # --- es_placeholder: casos reales de la tabla (Optativa 1..5) ---
+
 
 def test_reconoce_los_placeholders_de_optativas():
     assert es_placeholder("Optativa 1")
@@ -18,13 +18,16 @@ def test_una_asignatura_real_no_es_placeholder():
 
 # --- normalizar_tipo ---
 
+
 def test_normaliza_textos_a_abreviaturas():
     assert normalizar_tipo("Formación básica") == "FB"
     assert normalizar_tipo("Obligatoria") == "OB"
     assert normalizar_tipo("Optativa") == "OP"
 
+
 def test_normaliza_ignora_mayusculas_y_espacios():
     assert normalizar_tipo("  fORmaCión básiCA  ") == "FB"
+
 
 def test_normaliza_deja_igual_lo_desconocido_o_ya_abreviado():
     assert normalizar_tipo("FB") == "FB"
@@ -33,6 +36,7 @@ def test_normaliza_deja_igual_lo_desconocido_o_ya_abreviado():
 
 
 # --- es_asignatura_valida ---
+
 
 def test_asignatura_normal_es_valida():
     assert es_asignatura_valida("13312001", "Cálculo", "FB")
@@ -66,6 +70,7 @@ def test_el_tipo_se_valida_sin_importar_mayusculas():
 
 
 # --- TFG como carácter propio (caso real del Grado en IA y Ciberseguridad) ---
+
 
 def test_acepta_el_tfg_como_tipo_propio():
     # En IA y Ciberseguridad el TFG se etiqueta con carácter "TFG", no "OB".

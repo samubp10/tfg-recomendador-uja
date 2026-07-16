@@ -91,14 +91,14 @@ class GradosSpider(scrapy.Spider):
         url_asignaturas = response.css(
             'a[href*="asignaturas-y-profesorado"]::attr(href)'
         ).get()
-        url_salidas = response.css(
-            'a[href*="salidas-profesionales"]::attr(href)'
-        ).get()
+        url_salidas = response.css('a[href*="salidas-profesionales"]::attr(href)').get()
         yield {
             "tipo": "grado",
             "nombre": nombre,
             "es_doble_grado": "Doble Grado" in nombre,
-            "url_asignaturas": response.urljoin(url_asignaturas) if url_asignaturas else None,
+            "url_asignaturas": (
+                response.urljoin(url_asignaturas) if url_asignaturas else None
+            ),
             "url_salidas": response.urljoin(url_salidas) if url_salidas else None,
         }
         if url_asignaturas:
@@ -170,9 +170,7 @@ class GradosSpider(scrapy.Spider):
                 if len(celdas) < 4:
                     continue
                 codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
-                nombre_bruto = limpiar_texto(
-                    " ".join(celdas[1].css("::text").getall())
-                )
+                nombre_bruto = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
                 nombre, ofertada = separar_oferta(nombre_bruto)
                 nombre = quitar_nota_al_pie(nombre)
                 if es_tabla_de_menciones:
@@ -280,12 +278,14 @@ class GradosSpider(scrapy.Spider):
     #: IDs de las secciones que se excluyen del fallback de limpieza general
     #: por no aportar valor a un futuro estudiante o por ser datos personales
     #: del profesorado (privacidad) o texto legal (RGPD).
-    _SECCIONES_EXCLUIDAS_FALLBACK: Final[frozenset[str]] = frozenset({
-        "coordinador",
-        "equipodocente",
-        "clausulas",
-        "objetivosdesarrollosostenible",
-    })
+    _SECCIONES_EXCLUIDAS_FALLBACK: Final[frozenset[str]] = frozenset(
+        {
+            "coordinador",
+            "equipodocente",
+            "clausulas",
+            "objetivosdesarrollosostenible",
+        }
+    )
 
     def parse_salidas(self, response: Response) -> Iterator[dict[str, Any]]:
         """Extrae las salidas profesionales de un grado.

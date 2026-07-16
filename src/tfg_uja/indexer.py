@@ -182,9 +182,7 @@ def reconstruir_indice(
     # Distancia coseno: la métrica habitual para embeddings de texto de
     # sentence-transformers. PROVISIONAL como el resto de elecciones de este
     # módulo (se revisará en IT-31 junto con la base de datos vectorial).
-    coleccion = cliente.create_collection(
-        COLECCION, metadata={"hnsw:space": "cosine"}
-    )
+    coleccion = cliente.create_collection(COLECCION, metadata={"hnsw:space": "cosine"})
     return indexar_chunks(chunks, coleccion, incrustar)
 
 
