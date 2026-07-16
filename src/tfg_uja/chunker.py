@@ -160,9 +160,7 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     return resultado
 
 
-def _encabezado_asignatura(
-    asignatura: dict[str, Any], grados: list[str]
-) -> str:
+def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str:
     """Compone el encabezado autocontenido de los chunks de una asignatura.
 
     El encabezado repite los metadatos clave (nombre, tipo, créditos,
@@ -325,9 +323,7 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "codigos": [None],
                 "nombre": item["grado"],
             }
-            chunks.extend(
-                _chunks_de_unidad(encabezado, item["texto"], base, "salidas")
-            )
+            chunks.extend(_chunks_de_unidad(encabezado, item["texto"], base, "salidas"))
 
     # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
     # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se

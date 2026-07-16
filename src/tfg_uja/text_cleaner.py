@@ -83,7 +83,9 @@ def quitar_nota_al_pie(nombre: str | None) -> str | None:
 #: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
 #: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
 #: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
-_NO_OFERTADA: Final[re.Pattern[str]] = re.compile(r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE)
+_NO_OFERTADA: Final[re.Pattern[str]] = re.compile(
+    r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE
+)
 
 
 def separar_oferta(nombre: str | None) -> tuple[str | None, bool]:
