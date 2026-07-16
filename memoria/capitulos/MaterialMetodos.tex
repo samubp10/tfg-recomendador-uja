@@ -388,18 +388,7 @@ Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sis
 
 \textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
 
-% ------------------------------------------------------------------
-% DOS VERSIONES DEL MISMO DIAGRAMA: elegir una y borrar la otra.
-% Versión A: generada con Mermaid (PDF importado).
-% Versión B: TikZ nativo (se compila dentro de LaTeX, mismos colores).
-% Si te quedas con la B, mueve el \label a esa figura.
-% ------------------------------------------------------------------
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{imagenes/diagrama_arquitectura_pipeline.pdf}
-    \caption{Arquitectura general del sistema, organizada por fases de desarrollo. Fuente: Elaboración propia.}
-    \label{fig:arquitectura_pipeline}
-\end{figure}
+
 
 \begin{figure}[H]
     \centering
@@ -440,8 +429,8 @@ Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sis
     \end{tikzpicture}%
     }
     \caption{Arquitectura general del sistema, organizada por fases de
-    desarrollo (versión alternativa). Fuente: Elaboración propia.}
-    \label{fig:arquitectura_pipeline_tikz}
+    desarrollo. Fuente: Elaboración propia.}
+    \label{fig:arquitectura_pipeline}
 \end{figure}
 
 \section{Diseño de los datos}
@@ -449,11 +438,83 @@ Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sis
 
 El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
+% ------------------------------------------------------------------
+% DOS VERSIONES DEL MISMO DIAGRAMA: elegir una y borrar la otra.
+% Versión A: generada con Mermaid (PDF importado).
+% Versión B: TikZ nativo (se compila dentro de LaTeX, mismos colores).
+% Si te quedas con la B, mueve el \label a esa figura.
+% ------------------------------------------------------------------
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.7\textwidth]{imagenes/Diagrama_clases_modelo_datos.pdf}
     \caption{Modelo de datos conceptual de las entidades extraídas mediante \textit{web scraping}. Fuente: Elaboración propia.}
     \label{fig:modelo_datos}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \resizebox{0.95\textwidth}{!}{%
+    \begin{tikzpicture}[
+        node distance=1.1cm and 1.4cm,
+        clase/.style={rectangle split, rectangle split parts=2,
+                      draw=diagNodoBorde, fill=diagNodo, align=left,
+                      font=\footnotesize, inner sep=5pt},
+        etiqRel/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+        mult/.style={font=\scriptsize, inner sep=1pt}
+    ]
+        % Entidades
+        \node[clase] (grado) {\textbf{Grado}
+            \nodepart{two}
+            nombre: \texttt{str}\\
+            url: \texttt{str}\\
+            es\_doble\_grado: \texttt{bool}};
+        \node[clase, below left=of grado] (asig) {\textbf{Asignatura}
+            \nodepart{two}
+            grado: \texttt{str}\\
+            codigo: \texttt{str}\\
+            nombre: \texttt{str}\\
+            tipo\_asignatura: \texttt{str}\\
+            ects: \texttt{float}\\
+            ofertada: \texttt{bool}\\
+            tiene\_guia: \texttt{bool}\\
+            menciones: \texttt{list}};
+        \node[clase, below right=of grado] (salidas) {\textbf{Salidas}
+            \nodepart{two}
+            grado: \texttt{str}\\
+            texto: \texttt{str}};
+        \node[clase, below=of asig] (guia) {\textbf{Guía}
+            \nodepart{two}
+            grado: \texttt{str}\\
+            codigo: \texttt{str}\\
+            nombre: \texttt{str}\\
+            resumen: \texttt{str}\\
+            temario: \texttt{str}\\
+            fallback: \texttt{bool}};
+        \node[clase, below=3.2cm of salidas] (chunk) {\textbf{Chunk}
+            \nodepart{two}
+            origen: \texttt{str}\\
+            grados: \texttt{list}\\
+            codigos: \texttt{list}\\
+            nombre: \texttt{str}\\
+            texto: \texttt{str}\\
+            chunk\_index: \texttt{int}\\
+            total\_chunks: \texttt{int}};
+        % Relaciones
+        \draw[flechaDiag] (grado.south west) -- node[etiqRel]{ofrece}
+            node[mult, pos=0.1, left]{1} node[mult, pos=0.92, above right]{*} (asig.north);
+        \draw[flechaDiag] (grado.south east) -- node[etiqRel]{tiene}
+            node[mult, pos=0.1, right]{1} node[mult, pos=0.9, above left]{0..1} (salidas.north);
+        \draw[flechaDiag] (asig.south) -- node[etiqRel]{documentada por}
+            node[mult, pos=0.08, right]{1} node[mult, pos=0.92, right]{0..1} (guia.north);
+        \draw[flechaDiag] (guia.east) -- node[etiqRel]{troceada y deduplicada en}
+            node[mult, pos=0.9, above]{*} (chunk.west);
+        \draw[flechaDiag] (salidas.south) -- node[etiqRel]{troceada en}
+            node[mult, pos=0.9, right]{*} (chunk.north);
+    \end{tikzpicture}%
+    }
+    \caption{Modelo de datos conceptual de las entidades extraídas mediante
+    \textit{web scraping} (versión alternativa). Fuente: Elaboración propia.}
+    \label{fig:modelo_datos_tikz}
 \end{figure}
 
 \section{Fase 0: construcción de la colección documental}
@@ -489,6 +550,7 @@ En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones 
 rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
+
 \textcolor{blue}{[sbp] Corregido}
 
 \begin{figure}[H]
