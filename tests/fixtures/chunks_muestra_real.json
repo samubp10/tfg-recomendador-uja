@@ -1,0 +1,78 @@
+[
+ {
+  "tipo": "chunk",
+  "origen": "guia",
+  "grados": [
+   "Grado en Ingeniería de Organización Industrial"
+  ],
+  "codigos": [
+   "13013002"
+  ],
+  "nombre": "Automática avanzada",
+  "texto": "«Automática avanzada», asignatura optativa de 6 ECTS del Grado en Ingeniería de Organización Industrial.\nEl alumno debería haber aprobado la asignatura de Automática Industrial. El alumnado que presente necesidades específicas de apoyo educativo, lo ha de notificar personalmente al Servicio de Atención y Ayudas al Estudiante para proceder a realizar, en su caso, la adaptación curricular correspondiente\nAutómatas programables. Programación AWL. Interfaz Gráfico con el usuario (GUI). Sistemas SCADA. Sistemas de control distribuido. Introducción a la Robótica industrial. Configuraciones básicas. Programación de robots industriales.",
+  "chunk_index": 0,
+  "total_chunks": 3
+ },
+ {
+  "tipo": "chunk",
+  "origen": "guia",
+  "grados": [
+   "Grado en Ingeniería de Organización Industrial"
+  ],
+  "codigos": [
+   "13013002"
+  ],
+  "nombre": "Automática avanzada",
+  "texto": "«Automática avanzada», asignatura optativa de 6 ECTS del Grado en Ingeniería de Organización Industrial.\n1. Interfaz Gráfico con el usuario y Sistemas SCADA Dispositivos tradicionales de interfaz con el usuario. Visualizadores y Paneles táctiles. Definición de un Sistema SCADA. 2. Comunicaciones industriales Conceptos básicos y motivación Nivel físico y de enlace Profinet y bus AS-i 3. Autómatas programables. Programación en lenguaje KOP. Recordatorio de automatismos programados. Tipos de lenguajes para autómatas programables Características del PLC S7-1200 de Siemens. Programación de Autómatas Programables con Grafcet. Componentes de un Grafcet según la norma 61131-3 Traducción a lenguaje KOP de las estructuras básicas de Grafcet. Recursos compartidos. Marchas y paradas de emergencia 4. Introducción a la Robótica industrial. Configuraciones básicas y programación. Principales configuraciones de los robots industriales. Programación de un robot industrial FANUC. Ejemplos prácticos. Sincronización entre robots. Robots cooperantes.",
+  "chunk_index": 1,
+  "total_chunks": 3
+ },
+ {
+  "tipo": "chunk",
+  "origen": "guia",
+  "grados": [
+   "Grado en Ingeniería Electrónica Industrial",
+   "Grado en Ingeniería Eléctrica",
+   "Grado en Ingeniería Mecánica",
+   "Grado en Ingeniería de Organización Industrial"
+  ],
+  "codigos": [
+   "13112002",
+   "13512002",
+   "13412001",
+   "13012001"
+  ],
+  "nombre": "Automática industrial",
+  "texto": "«Automática industrial», asignatura obligatoria de 6 ECTS impartida en 4 titulaciones: Grado en Ingeniería Electrónica Industrial; Grado en Ingeniería Eléctrica; Grado en Ingeniería Mecánica; Grado en Ingeniería de Organización Industrial.\nLa asignatura proporciona una visión global de la aplicabilidad de la automática en entornos industriales. Además, ofrece los conocimientos básicos sobre las distintas tecnologías aplicadas al control de procesos continuos y discretos. Es aconsejable que el alumno domine los conocimientos básicos de materias como: Física II y Matemáticas. El alumnado que presente necesidades específicas de apoyo educativo, lo ha de notificar personalmente al Servicio de Atención y Ayudas al Estudiante para proceder a realizar, en su caso, la adaptación curricular correspondiente.\nFundamentos de automatización industrial. Sensores y actuadores. Automatización de sistemas de eventos discretos. Automatismos cableados: eléctricos, neumáticos y electroneumáticos. Automatización programada. Autómatas programables (KOP) Fundamentos de interfaces y buses de campo. Introducción al control PID.\nTema 1: Introducción 1.1 ¿Qué es la automática (industrial)?\n1.2 Sistemas (en automática) 1.3 Aplicabilidad de la automática 1.4 Evolución histórica Tema 2: Automatización de sistemas de eventos discretos.",
+  "chunk_index": 0,
+  "total_chunks": 4
+ },
+ {
+  "tipo": "chunk",
+  "origen": "salidas",
+  "grados": [
+   "Grado en Ingeniería de Organización Industrial"
+  ],
+  "codigos": [
+   null
+  ],
+  "nombre": "Grado en Ingeniería de Organización Industrial",
+  "texto": "Salidas profesionales del Grado en Ingeniería de Organización Industrial:\n- Administración y Dirección de Empresas.\n- Gestión de proyectos.\n- Logística: optimización de rutas, gestión de operaciones, gestión de almacén, planificación y control de la producción, optimización de Inventarios, etc.\n- Gestión de la calidad, del medio ambiente, de la seguridad y salud en el trabajo, y del mantenimiento industrial.\n- Estudios de viabilidad técnica y económica: estudios de mercado, análisis financieros, gestión de inversiones.\n- Gestión de la Innovación.\n- Consultoría y asesoría empresarial.\n- Gestión de recursos humanos.\n- Diseño y organización de plantas industriales.\n- Dirección y optimización de procesos productivos.\n- Departamento de calidad",
+  "chunk_index": 0,
+  "total_chunks": 1
+ },
+ {
+  "tipo": "chunk",
+  "origen": "asignatura_sin_guia",
+  "grados": [
+   "Grado en Ingeniería de Organización Industrial"
+  ],
+  "codigos": [
+   "13013010"
+  ],
+  "nombre": "Métodos cuantitativos avanzados",
+  "texto": "«Métodos cuantitativos avanzados», asignatura optativa de 6 ECTS del Grado en Ingeniería de Organización Industrial. No ofertada en el curso rastreado.\nLa guía docente de esta asignatura no está publicada en la web de la EPSJ, por lo que solo se dispone de sus datos básicos.",
+  "chunk_index": 0,
+  "total_chunks": 1
+ }
+]

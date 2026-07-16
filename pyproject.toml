@@ -36,6 +36,14 @@ dev = [
     "black>=23.0.0",   # Formateador automático de código
     "flake8>=6.0.0",   # Linter para análisis estático (control de estilo PEP 8)
     "mypy>=1.8",       # Verificador estático de tipos
+    "chromadb>=1.0",   # Base de datos vectorial: los tests del indexador la usan en memoria
+]
+# Ejecución real del pipeline de indexación (IT-30). Separado de dev porque
+# sentence-transformers arrastra PyTorch (cientos de MB) y el CI no lo
+# necesita: los tests inyectan un incrustador falso.
+index = [
+    "chromadb>=1.0",
+    "sentence-transformers>=3.0",
 ]
 
 # ==============================================================================
