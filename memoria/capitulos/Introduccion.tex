@@ -21,16 +21,19 @@
 \textcolor{blue}{[sbp] He revisado y he intentado aplicar todas las normas al documento, también las tendré en cuenta para el futuro. No sé por qué, pero las comillas rectas simples (\"), me están dando error de compilación en OverLeaf, por lo que las voy a cambiar por (' ') en tus comentarios.}
 
 
-\sout{En este capítulo se realizará un acercamiento al tema de investigación del que trata este trabajo final de grado (TFG), en el que se plantea el desarrollo de un sistema de recomendación e información académica centrado en la oferta de la Escuela Politécnica Superior de Jaén (EPSJ).}
 
 \textcolor{red}{[jccuevas] No es un acercamiento, en la introducción debes resumir, en una página más o menos, qué has hecho en el TFG, de manera más detallada que el resumen, mencionando las tecnologías usadas y estaría bien un diagrama del conjunto del TFG con los bloque so partes que tiene. Luego ya pasas a la motivación}
 
-\textcolor{blue}{[sbp] Pendiente: redactaré el resumen de una página con lo realizado, las tecnologías empleadas y un diagrama de bloques del conjunto del TFG. Lo dejo para cuando el sistema esté más avanzado y el diagrama refleje los bloques definitivos.}
+\textcolor{blue}{[sbp] Hecho: los párrafos siguientes resumen lo realizado y las tecnologías empleadas. Queda pendiente el diagrama de bloques del conjunto del TFG, que añadiré cuando los componentes de las fases siguientes estén decididos.}
+
+El presente Trabajo Fin de Grado aborda el diseño, la implementación y la evaluación de un sistema de recomendación de titulaciones para la Escuela Politécnica Superior de Jaén (EPSJ) de la Universidad de Jaén (UJA): un agente conversacional basado en procesamiento del lenguaje natural (PLN) que asiste a los estudiantes de secundaria proporcionando respuestas precisas, contextualizadas y en lenguaje natural sobre las titulaciones del centro.
+
+El sistema se articula sobre una arquitectura de Recuperación Aumentada por Generación (RAG, por sus siglas en inglés: \textit{Retrieval-Augmented Generation}), que permite a un modelo de lenguaje grande (\glr{LLM}{LLM}) de código abierto responder a las consultas del usuario utilizando exclusivamente información extraída de la web oficial de la universidad.
+
+El desarrollo del proyecto abarca un flujo completo de ingeniería de datos e inteligencia artificial: desde la ingesta de datos mediante técnicas de \textit{web scraping} y la división semántica de la información (\textit{chunking}), hasta la generación de representaciones vectoriales (\textit{embeddings}), su indexación en una base de datos vectorial y la integración final con el LLM a través de una interfaz web accesible. Todo ello se somete a una evaluación experimental con métricas objetivas de fidelidad (\textit{faithfulness}) y relevancia de las respuestas, para asegurar que el sistema no incurra en la invención de datos (alucinaciones).
 
 \begin{borrador}
-    \item \textbf{Fase:} 5 (cierre) --- diferido por decisión propia (respondida al tutor arriba): el resumen y el diagrama de bloques se redactan cuando el sistema esté avanzado y los bloques sean definitivos.
-    \item Posible esqueleto del resumen de una página: (1) una frase con el problema (barrera de acceso a la información académica); (2) una frase con la solución construida (web de chat con RAG sobre un LLM local); (3) un párrafo breve con las tecnologías empleadas por fase (Scrapy para la extracción, el modelo de incrustaciones y base vectorial que se elijan en el Capítulo~\ref{cap:materialesymetodos}, el LLM local, la aplicación web); (4) el diagrama de bloques; (5) una frase de cierre con el estado actual del proyecto (qué fases están completas).
-    \item Ojo con la norma 2 del tutor (impersonal reflexivo) también aquí: <<se ha construido>>, no <<hemos construido>>.
+    \item \textbf{Fase:} 0 --- el resumen ya está redactado y depurado de duplicidades con la Sección 1.1 (la motivación vive solo allí; aquí solo el qué y el cómo, en presente descriptivo). Queda únicamente el diagrama de bloques del conjunto del TFG (se puede generar con el mismo procedimiento de doble versión que las demás figuras).
 \end{borrador}
 
 \textcolor{red}{[jccuevas] ¿La plantilla LaTex es de la EPSJ? Si no lo es, reduce un poco el espacio de los títulos con el texto anterior y el posterior, como a la mitad.}
@@ -47,7 +50,7 @@ La transición hacia la educación superior representa un salto en sus vidas muy
 
 \textcolor{blue}{[sbp] Corregido: he integrado tu redacción propuesta, que matiza la generalización. Lo tendré en cuenta en el resto del documento.}
 
-En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los Modelos de Lenguaje Grande (\glr{LLMs}{LLM}) ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}: la tendencia de estos modelos a generar información posible pero incorrecta, lo cual supondría el riesgo inaceptable de desinformar al usuario, inventando normativas o planes de estudio.
+En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumno. Por otro lado, la reciente popularización de los LLM ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}, que se analiza en detalle en el Capítulo~\ref{cap:antecedentes}: el riesgo de desinformar al usuario inventando normativas o planes de estudio inexistentes resulta inaceptable en este dominio.
 
 La motivación fundamental de este Trabajo Fin de Grado (TFG) nace de la necesidad de cerrar esta brecha de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local que detrás tendrá un sistema basado en la arquitectura de Recuperación Aumentada por Generación (\gl{RAG}), la cual permite dotar a un modelo de lenguaje grande de un contexto documental estrictamente controlado y verídico, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ, evitando así, o minimizando, el problema de la alucinación del modelo.
 
