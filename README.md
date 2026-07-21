@@ -37,7 +37,28 @@ pip install -e ".[dev]"
 
 ## Uso
 
-El proyecto está en desarrollo. Las instrucciones de ejecución de cada componente se irán añadiendo en esta sección conforme estén disponibles.
+El proyecto está en desarrollo. El *pipeline* de datos (Fase 0 e indexación) se
+ejecuta por etapas:
+
+```bash
+# 1. Rastreo de la web de la EPSJ → data/grados.json
+#    (peticiones REALES a la web de la UJA; usar con moderación)
+scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+
+# 2. Fragmentación (offline, barato) → data/chunks.json
+py -m tfg_uja.chunker data/grados.json data/chunks.json
+
+# 3. Indexación en la base vectorial (requiere `pip install -e ".[index]"`)
+py -m tfg_uja.indexer data/chunks.json data/indice_chroma [modelo]
+
+# Verificadores del conjunto de datos completo (solo en local)
+py scripts/check_dataset.py
+py scripts/check_chunks.py
+```
+
+Los ficheros de `data/` no se versionan: se regeneran con los comandos
+anteriores. Las etapas de recuperación y generación (RAG) y la aplicación web
+se añadirán conforme avancen las fases del proyecto.
 
 ## Estructura del repositorio
 
