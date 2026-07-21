@@ -37,12 +37,16 @@ Framework asíncrono completo de crawling (rastreo web).
 - **URL:** [https://scrapy.org/](https://scrapy.org/)
 
 - **Encoding:** `TextResponse`/`HtmlResponse` resuelven la codificación en
-  este orden: 
-    1. cabecera HTTP `Content-Type`, 
-    2. BOM/declaración,
-    3. `<meta>` del cuerpo, 
-    4. autodetección. 
-  Al priorizar la cabecera HTTP, Scrapy decodifica correctamente las guías ISO-8859-1 servidas como tal, resolviendo el problema 1 sin código adicional.
+  este orden (verificado sobre el código fuente de Scrapy 2.14.1,
+  `TextResponse._declared_encoding`):
+    1. codificación pasada explícitamente al construir la respuesta,
+    2. BOM del cuerpo,
+    3. cabecera HTTP `Content-Type`,
+    4. `<meta>` del cuerpo,
+    5. autodetección (`_body_inferred_encoding`).
+  Las guías de la UJA no llevan BOM, así que decide la cabecera HTTP. Al
+  anteponerse esta al `<meta>`, Scrapy decodifica correctamente las guías
+  servidas en ISO-8859-1, resolviendo el problema 1 sin código adicional.
 - **robots.txt:** soporte nativo mediante `ROBOTSTXT_OBEY = True` 
 - **Throttling:** `DOWNLOAD_DELAY`, `AUTOTHROTTLE_ENABLED` y
   `CONCURRENT_REQUESTS_PER_DOMAIN` permiten que el proceso de rastreo web no sature al servidor.

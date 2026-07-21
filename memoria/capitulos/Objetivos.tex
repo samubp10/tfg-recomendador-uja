@@ -1,12 +1,7 @@
 \chapter{OBJETIVOS}
 \label{cap:objetivos}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- texto puente breve, redactable ya.
-    \item Frase de enlace con el Capítulo~\ref{cap:introduccion}: la motivación y la brecha de usabilidad descritas allí se traducen aquí en objetivos concretos y verificables.
-    \item Recordar en una frase el enfoque elegido (RAG con LLM local) sin repetir literalmente el resumen del Cap.~\ref{cap:introduccion}.
-    \item Cerrar con una frase que anuncie la estructura de este capítulo: objetivo general, objetivos específicos, hipótesis de trabajo, restricciones y requisitos.
-\end{borrador}
+\textcolor{borrador2}{La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos verificables. El enfoque elegido para alcanzarlos es una arquitectura de recuperación aumentada por generación (RAG) sobre un modelo de lenguaje de código abierto ejecutado en local. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.}
 
 \section{Objetivo general}
 
@@ -59,18 +54,31 @@ publicada.
 
 \section{Requisitos}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- texto puente de una o dos frases antes de la primera subsección (norma del tutor: nunca pasar de un título a otro sin texto), anunciando que los requisitos se dividen en los del usuario y los del sistema.
-\end{borrador}
+\textcolor{borrador2}{Los requisitos del sistema se dividen en dos grupos. Los requisitos de usuario recogen lo que el estudiante espera del sistema, expresado desde su punto de vista; los requisitos del sistema traducen esas expectativas en condiciones técnicas concretas que el software y el hardware deben cumplir. Estos últimos dependen de decisiones que se toman en fases posteriores, por lo que se detallan más adelante; a continuación se enumeran los requisitos de usuario.}
 
 \subsection{Requisitos de usuario}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 (IT-22) --- redactable ya.
-    \item Perspectiva del estudiante preuniversitario, no del sistema. Candidatos: poder preguntar en lenguaje natural sin conocer la jerga universitaria (ECTS, menciones, tipos de asignatura); recibir información fiable de planes de estudio, guías docentes y salidas profesionales; poder comparar titulaciones entre sí; usar el sistema sin registro ni instalación; que las respuestas no inventen datos.
-    \item Hacer cada requisito rastreable a un objetivo específico (OE1--OE6): esa trazabilidad es lo que el tribunal valora.
-    \item Decidir el formato: tabla con identificador y prioridad (RU-01, RU-02\ldots con MoSCoW) o prosa. La tabla es más rastreable; recuerda la norma del tutor de formato uniforme en todas las tablas.
-\end{borrador}
+\textcolor{borrador2}{Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad MoSCoW y el objetivo con el que se relacionan.}
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{\textcolor{borrador2}{Requisitos de usuario del sistema.}}
+    \label{tab:requisitos_usuario}
+    \begin{tabular}{@{}llcc@{}}
+        \toprule
+        \textbf{ID} & \textbf{Requisito} & \textbf{Prioridad} & \textbf{Objetivo} \\
+        \midrule
+        \textcolor{borrador2}{RU-01} & \textcolor{borrador2}{Preguntar en lenguaje natural, sin conocer la jerga universitaria} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE4, OE6} \\
+        \textcolor{borrador2}{RU-02} & \textcolor{borrador2}{Recibir información fiable de planes de estudio, guías y salidas} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE1} \\
+        \textcolor{borrador2}{RU-03} & \textcolor{borrador2}{Que las respuestas no inventen datos (asignaturas, notas de corte)} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE4, OE5} \\
+        \textcolor{borrador2}{RU-04} & \textcolor{borrador2}{Comparar varias titulaciones entre sí} & \textcolor{borrador2}{SHOULD} & \textcolor{borrador2}{OE1} \\
+        \textcolor{borrador2}{RU-05} & \textcolor{borrador2}{Usar el sistema sin registro ni instalación} & \textcolor{borrador2}{SHOULD} & \textcolor{borrador2}{OE6} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textcolor{borrador2}{[Nota para el autor: verifica la asociación RU--OE y la prioridad de cada requisito antes de darla por buena; esta tabla es un punto de partida, no una decisión cerrada.]}
 
 \subsection{Requisitos del sistema}
 
