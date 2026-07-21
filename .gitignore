@@ -43,6 +43,9 @@ data/
 *.run.xml
 *.bcf
 
+# PDF compilado de la memoria (artefacto de build; se regenera con pdflatex)
+memoria/main.pdf
+
 # README que exporta Overleaf junto a la plantilla; el README real del
 # proyecto es el de la raíz del repo, no el de memoria/
 memoria/README.md
