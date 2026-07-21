@@ -16,8 +16,8 @@ la ventana de los modelos de embeddings; demasiado pequeños pierden
 contexto.
 
 Distribución real medida (no estimada): 296 guías docentes, mediana de
-2.675 caracteres de contenido por guía, percentil 90 de 6.450 y máximo de
-23.938. Los modelos de embeddings multilingües habituales admiten ~512
+2.677 caracteres de contenido por guía, percentil 90 de 6.450 y máximo de
+23.940. Los modelos de embeddings multilingües habituales admiten ~512
 tokens (~2.000 caracteres en español), por lo que la mayoría de guías no
 cabe en un único chunk.
 
@@ -59,12 +59,18 @@ exige re-scrapear.
 
 ### Deduplicación de guías compartidas (revisión, 2026-07-06)
 
-Al medir el corpus se detectó que **71 de 296 guías (24 %) son contenido
-repetido**: muchas asignaturas de primeros cursos (Matemáticas I, Física,
-Automática industrial...) se imparten en varias titulaciones con la misma
-guía byte a byte, generando **306 chunks redundantes (28 % de los de
-guía)**. Esa redundancia sesga el retrieval: hasta cuatro copias casi
-idénticas podían acaparar el top-K y expulsar resultados diversos.
+Al medir el corpus se detectó que una parte importante de las guías es
+contenido repetido: muchas asignaturas de primeros cursos (Matemáticas I,
+Física, Automática industrial...) se imparten en varias titulaciones con la
+misma guía byte a byte. Esa redundancia sesga el retrieval: hasta cuatro
+copias idénticas podían acaparar el top-K y expulsar resultados diversos.
+
+El diagnóstico inicial se hizo agrupando **solo por contenido**: 31 grupos y
+**71 guías excedentes de 296 (24 %)**. Con la clave que finalmente se adopta
+—`(nombre, contenido)`, ver más abajo— las cifras son **28 grupos y 68 guías
+excedentes de 296 (23 %)**, sobre 96 guías implicadas. Se deja constancia de
+ambas porque la diferencia entre las dos claves es justamente el argumento de
+esta decisión.
 
 Decisión: **deduplicar en el chunker**. Las guías se agrupan por
 `(nombre, contenido)` y cada grupo produce una sola unidad con la lista de
@@ -77,21 +83,39 @@ permanece intacto (fiel a la fuente); la deduplicación es una transformación
 de representación en el índice.
 
 Se verificó que el tipo de asignatura y los ECTS **nunca varían** entre
-titulaciones que comparten guía (0 grupos de 31), por lo que colapsarlos en
-el encabezado no pierde información. Dos grupos con el nombre escrito de
-forma ligeramente distinta entre titulaciones ("Fundamentos de la
-programación" frente a "Fundamentos de programación") no se deduplican, lo
-que se acepta como falso negativo conservador antes que arriesgar un falso
-positivo.
+titulaciones que comparten guía (0 de los 28 grupos), por lo que colapsarlos
+en el encabezado no pierde información.
+
+Los 3 casos en que un mismo contenido aparece bajo nombres distintos —la
+diferencia exacta entre las dos claves (31 - 28)— son:
+
+1. "Fundamentos de la programación" / "Fundamentos de programación"
+   (Informática e IA y Ciberseguridad): **falso negativo**, no se agrupan.
+2. "Fundamentos físicos de la Informática" / "...de la informática"
+   (mismas titulaciones, solo cambia una mayúscula): **falso negativo**.
+3. "Smart Grids. Redes Eléctricas Inteligentes" / "Técnicas de ingeniería
+   gráfica aplicadas a ingeniería eléctrica" (ambas de Eléctrica, comparten
+   6.452 caracteres de cuerpo de respaldo del fallback de IT-06):
+   **verdadero negativo**, son asignaturas distintas y NO deben agruparse.
+
+Es decir, la clave `(nombre, contenido)` cuesta 2 falsos negativos y evita 1
+falso positivo. Se acepta ese balance: fusionar dos asignaturas distintas
+corrompe el índice, mientras que no fusionar dos copias solo lo hace algo
+más grande.
 
 ## Resultado (medido sobre el dataset real)
 
-- Sin deduplicar: 1.172 chunks.
+Cifras re-verificadas el 21/07/2026 sobre `data/grados.json` y
+`data/chunks.json` completos:
+
+- Sin deduplicar: 1.172 chunks (1.098 de guías + 65 + 9).
 - **Con deduplicación: 892 chunks** (818 de guías + 65 informativos de
-  asignaturas sin guía + 9 de salidas), un **24 % menos**.
+  asignaturas sin guía + 9 de salidas), un **24 % menos** del total.
+- Los 280 chunks eliminados son el **25 % de los 1.098 de guía** sin
+  deduplicar.
 - 28 unidades de guía compartidas entre titulaciones.
-- Mediana 1.093 caracteres, máximo 1.499 (0 chunks por encima del máximo),
-  0 inconsistencias de numeración en 301 unidades.
+- Mínimo 227, mediana 1.093, máximo 1.499 caracteres (0 chunks por encima
+  del máximo), 0 inconsistencias de numeración en 301 unidades.
 - Verificado por `scripts/check_chunks.py` (en positivo y en negativo).
 
 ## Consecuencias
