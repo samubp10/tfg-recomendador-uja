@@ -14,46 +14,34 @@
 \textcolor{blue}{[sbp] Este comentario se ha quedado cortado.}
 
 
-En este capítulo se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios: los recursos que tienen a su alcance, los problemas de accesibilidad y legibilidad que estos presentan y, en general, las limitaciones existentes en este ámbito.
-
-Asimismo, se repasan las tecnologías y la evolución histórica sobre las que se asientan los modelos del lenguaje natural. A continuación se abordan los modelos de lenguaje grande, presentes hoy en las interfaces conversacionales de uso cotidiano: su funcionamiento, su principal problema y la distinción entre modelos libres y privativos.
-
-Por último, se describe la técnica que permite aportar datos externos controlados al modelo para que sus respuestas se apoyen en información más fidedigna y veraz.
+\textcolor{borrador2}{Este capítulo sitúa el punto de partida del trabajo. Primero se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios: los recursos que tienen a su alcance y los problemas de accesibilidad y legibilidad que presentan. A continuación se examina el estado del arte, es decir, los asistentes conversacionales y sistemas de recomendación que ya intentan resolver un problema parecido, para delimitar qué hueco viene a cubrir este trabajo. Por último, se recoge el marco legal y ético que condiciona su diseño.}
 
 \section{La orientación académica preuniversitaria}
+
+\textcolor{borrador2}{La orientación académica preuniversitaria tiene como finalidad ayudar al alumnado a conocer las opciones formativas disponibles y a relacionarlas con sus intereses, capacidades y expectativas profesionales. Para valorar cómo puede contribuir a esta tarea el sistema propuesto, resulta necesario analizar tanto las dificultades que intervienen en la elección de una titulación como los recursos de información y asesoramiento que se encuentran actualmente al alcance de los futuros estudiantes.}
 
 \subsection{El problema de la elección de titulación}
 
 
-Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso ---materializadas en la nota de corte--- y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
+Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso materializadas en la nota de corte y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
 
-Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (TGBA) de esa misma cohorte alcanzó el 25,72\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se relaciona en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actúa justo sobre ese punto.
+Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (TGBA) de esa misma cohorte alcanzó el 25,72\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
 
 
 
 \textcolor{red}{[jccuevas] Aquí falta desarrollar el tema.}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- los factores de decisión y las cifras del informe UEC ya están redactados (TGNA y TGBA verificadas contra el PDF del informe, incluida la aritmética neto = bruto $-$ cambio).
-    \item OJO: se ha retirado la afirmación de que <<el mismo informe>> desglosa el abandono por ramas (Ciencias/Ingeniería/Arquitectura): el informe UEC NO contiene ese desglose. Si quieres recuperar esa idea (es buena para el argumento), hace falta una fuente real del Ministerio de Universidades (estadística SIIU/EDUCAbase de abandono por rama de conocimiento) --- buscarla, verificarla y citarla aparte.
-    \item La frase de las <<expectativas mal formadas>> es un argumento propio sin cita; si el tutor pide respaldo, buscar literatura sobre causas del abandono universitario (el propio informe UEC apunta causas en su texto introductorio).
-    \item Queda el cierre del hilo: el coste personal y económico de equivocarse de titulación justifica invertir en herramientas de orientación accesibles.
-\end{borrador}
 
 \subsection{Recursos de orientación existentes y sus limitaciones}
-
-% Fusión de las antiguas subsecciones "Recursos de orientación existentes" y
-% "Limitaciones de los enfoques actuales": cada recurso lleva ahora su
-% limitación pegada, evitando enumerar dos veces lo mismo.
 
 Todas las universidades disponen hoy en día de un portal web en el que aparece la oferta de grados disponibles e información relacionada con estos. En el ámbito de este trabajo, la Escuela Politécnica Superior de Jaén cuenta con su página web oficial\cite{epsj_grados}, con la información actualizada año a año, cuya portada se muestra en la Figura~\ref{fig:foto_web_epsj}. Su principal limitación es el lenguaje: estas páginas manejan datos y terminologías difícilmente entendidos por alguien ajeno al entorno universitario; términos como ECTS, guías docentes o trabajos finales de carrera resultan poco comprensibles para un alumno de secundaria si nadie se los ha explicado con anterioridad.
 
 \begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{imagenes/foto_web_epsj.png}
-    \caption{Imagen de la página web oficial de la EPSJ. Fuente: Elaboración propia.}
-    \label{fig:foto_web_epsj}
-    \end{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{imagenes/foto_web_epsj.png}
+  \caption{Imagen de la página web oficial de la EPSJ. Fuente: Elaboración propia.}
+  \label{fig:foto_web_epsj}
+\end{figure}
 
 La propia Universidad de Jaén ofrece, además, jornadas de puertas abiertas donde no solo se enseñan las instalaciones, sino que también se orienta al alumnado sobre los grados ofertados en toda la universidad. Su problema es la rigidez del formato: la inmensa mayoría son presenciales, en fechas y horas preestablecidas y poco flexibles, lo que acota mucho la cantidad de personas que pueden asistir.
 
@@ -61,306 +49,127 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 
 
 
-\section{Procesamiento del lenguaje natural}
 
-\textcolor{red}{[jccuevas] Lo que te he comentado antes, no pases de un título a otro sin explicar.}
+\section{Estado del arte}
+\label{secc:estado_arte}
 
-\textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
-
-El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) constituye una de las disciplinas más complejas y revolucionarias dentro del campo de la Inteligencia Artificial (IA) y las ciencias de la computación. Su objetivo fundamental es dotar a los sistemas informáticos de la capacidad de comprender, interpretar, generar y manipular el lenguaje humano, ya sea en su forma escrita o hablada, de una manera que resulte computacionalmente útil.\cite{jurafsky2026slp3}
-
-\subsection{De los sistemas de reglas a los modelos estadísticos}
-
-
-Históricamente, la evolución de este campo ha transitado por tres grandes enfoques metodológicos.\cite{hirschberg2015advances} Estos paradigmas reflejan no solo los avances en la capacidad de cómputo y la disponibilidad de datos digitales, sino también profundos debates filosóficos y científicos sobre la naturaleza del lenguaje y la cognición humana. El recorrido histórico avanza desde el enfoque racionalista, simbólico o basado en sistemas de reglas manuales, pasando por el enfoque empírico, dominado por los modelos estadísticos probabilísticos, hasta llegar al caracterizado por las redes neuronales artificiales y el aprendizaje profundo.
-
-
-
-\subsection{Representación vectorial del lenguaje}
-
-% La idea clave: representar palabras y frases como vectores para que la
-% similitud de significado sea una distancia. De las bolsas de palabras a las
-% incrustaciones densas \cite{reimers2019sbert}.
-
-El análisis tradicional de textos utilizaba modelos como la bolsa de palabras (\textit{Bag of Words}, BOW), una técnica que representa los documentos contando cuántas veces aparece cada palabra en ellos y descartando por completo su orden, tal y como se ilustra con un ejemplo propio en la Figura~\ref{fig:bow_mermaid}. Tiene la gran limitación de crear vectores dispersos que ignoran por completo la gramática, el orden de las palabras y el contexto semántico\cite{jurafsky2026slp3}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.90\textwidth]{imagenes/representacion_bow_mermaid.pdf}
-    \caption{Representación del modelo de bolsa de palabras: la posición de las
-    palabras se descarta y solo se conserva la frecuencia de cada término.
-    Fuente: elaboración propia.}
-    \label{fig:bow_mermaid}
-\end{figure}
-
-Para solucionar este problema, el procesamiento del lenguaje natural evolucionó hacia las incrustaciones o \glr{embeddings}{embedding}\cite{mikolov2013word2vec}. Estas técnicas representan las palabras como vectores de números reales proyectados en un espacio multidimensional. A diferencia de las bolsas de palabras, estas representaciones logran capturar las relaciones semánticas y sintácticas, permitiendo a los modelos computacionales comprender el contexto real en el que se utiliza un término.
-
-\subsection{La arquitectura Transformer}
-
-Los transformadores son la arquitectura estándar hoy en día para construir LLMs; estos han cambiado completamente el campo de la comprensión y el procesamiento del lenguaje.
-
-A diferencia de los \textit{embeddings} estáticos (como \textit{word2vec}\cite{jurafsky2026slp3}), donde cada palabra tiene una representación única y fija independientemente de dónde aparezca, el \textit{Transformer} construye representaciones contextuales. El mecanismo de \glr{autoatención}{autoatencion} es el encargado de calcular el significado de una palabra en su contexto al ponderar e integrar la información de otras palabras de la secuencia que resulten más relevantes, sin importar qué tan alejadas están.
-
-Para determinar qué información es relevante y en qué medida, la autoatención proyecta cada representación en tres roles conceptuales dinámicos: \textbf{\textit{Query}} (consulta), \textbf{\textit{Key}} (clave) y \textbf{\textit{Value}} (valor). Cuando una palabra evalúa su contexto, emite una \textit{Query} (una consulta sobre qué rasgos buscar en su entorno); las demás palabras responden con sus \textit{Keys} (etiquetas que detallan lo que ofrecen); y el producto de estos vectores genera un puntaje de similitud que se normaliza mediante una función \textit{softmax}. Estos puntajes actúan como pesos para realizar una suma ponderada de los \textit{Values} (el significado real de las palabras), extrayendo únicamente los matices más valiosos para enriquecer el \gl{token} consultor.
-
-Este proceso se repite a lo largo de un canal continuo denominado flujo residual (\textit{residual stream}), el cual atraviesa múltiples bloques del \textit{Transformer} apilados. Dado que el mecanismo de atención evalúa la relevancia de los \textit{tokens} sin importar el orden físico en el que aparecen, la entrada inicial debe sumar los \textit{embeddings} de cada palabra con \textit{embeddings} posicionales específicos para inyectar la noción de orden secuencial. En cada bloque, la información que la autoatención extrae del resto de la secuencia se suma de vuelta al flujo residual, que así se enriquece progresivamente hasta producir la predicción del siguiente término, tal y como se resume en la Figura~\ref{fig:transformer_flujo_residual}.
-
-
-
-\begin{figure}[H]
-    \label{fig:transformer_flujo_residual}
-    \centering
-    \resizebox{0.9\textwidth}{!}{%
-    \begin{tikzpicture}
-        % Entradas (abajo): embeddings + posicionales de cada token
-        \node[nodoDiag] (x2) at (0,0)   {$x_{i-2}$\\[-1pt]\footnotesize\textit{embedding} + posicional};
-        \node[nodoDiag] (x1) at (4.2,0) {$x_{i-1}$\\[-1pt]\footnotesize\textit{embedding} + posicional};
-        \node[nodoDiag] (x0) at (8.4,0) {$x_{i}$\\[-1pt]\footnotesize\textit{embedding} + posicional};
-        % Salidas (arriba)
-        \node (h2) at (0,6.0)   {$h_{i-2}$};
-        \node (h1) at (4.2,6.0) {$h_{i-1}$};
-        \node (h0) at (8.4,6.0) {$h_{i}$};
-        % Suma sobre el flujo del token i
-        \node[nodoDiag, circle, inner sep=2pt] (add) at (8.4,4.1) {$+$};
-        % Autoatención, a la derecha del flujo del token i
-        \node[nodoDiag] (att) at (11.9,2.3) {Autoatención\\(\textit{Query}, \textit{Key} y \textit{Value})};
-        % Título del bloque, colocado sobre la autoatención para no pisar el flujo
-        \node[tituloGrupo, anchor=south] (titulobloque) at (11.9,4.6) {Bloque \textit{Transformer} (se apila $N$ veces)};
-        % Caja del bloque (capa de fondo)
-        \begin{scope}[on background layer]
-            \node[grupoDiag, fit=(add)(att)(titulobloque), inner ysep=8pt] (bloque) {};
-        \end{scope}
-        % Flujos residuales verticales
-        \draw[flechaDiag, line width=1.4pt] (x2) -- (h2);
-        \draw[flechaDiag, line width=1.4pt] (x1) -- (h1);
-        \draw[flechaDiag, line width=1.4pt] (x0) -- (add);
-        \draw[flechaDiag, line width=1.4pt] (add) -- (h0);
-        \node[rotate=90, font=\footnotesize, anchor=south] at (-0.3,2.5) {flujos residuales};
-        % Puntos suspensivos: hay más tokens a la izquierda
-        \node at (-1.6,2.7) {$\cdots$};
-        % La autoatención lee de los flujos anteriores (punteado) y del propio
-        \draw[flechaPunteada] (0,2.0)   to[out=-15,in=195] ([yshift=-10pt]att.west);
-        \draw[flechaPunteada] (4.2,1.6) to[out=-10,in=185] ([yshift=-20pt]att.west);
-        \draw[flechaDiag]     (8.4,1.5) to[out=0,in=175]   ([yshift=0pt]att.west);
-        \node[font=\footnotesize, fill=diagGrupo, align=center] at (5.1,3.1) {lee de los flujos\\de los \textit{tokens} anteriores};
-        % El resultado de la atención se suma al flujo propio
-        \draw[flechaDiag] (att.north) to[out=90,in=0] (add.east);
-    \end{tikzpicture}%
-    }
-    \caption{Flujo residual: cada \textit{token} avanza por su propio flujo y
-    la autoatención del \textit{token} actual lee de los flujos de los
-    \textit{tokens} anteriores; su resultado se suma de vuelta al flujo
-    propio (versión alternativa). Fuente: elaboración propia, adaptada de
-    Jurafsky y Martin~\cite{jurafsky2026slp3}, Figura~8.7.}
-    \label{fig:transformer_flujo_residual_tikz}
-\end{figure}
-
-
-
-\section{Modelos de lenguaje grandes}
-
-\subsection{Fundamento y funcionamiento}
-
-Un modelo de lenguaje grande, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
-
-Estos modelos tienen dos fases de entrenamiento: 
-\begin{itemize}
-    \item El preentrenamiento, en el que los LLM adquieren su conocimiento sobre el lenguaje, la sintaxis y los hechos del mundo a través de \gl{corpus} masivos de texto extraídos de la web (como Wikipedia, libros y páginas web). Al intentar predecir repetidamente la siguiente palabra en billones de ejemplos y corregir sus parámetros mediante optimización matemática, el modelo aprende de manera autosupervisada.
-
-    \item El postentrenamiento, en el que se les aplica un proceso que incluye el ajuste de instrucciones (\textit{instruction tuning} o SFT) para que aprendan a responder de manera servicial, y la alineación de preferencias para asegurar que sus respuestas sean seguras, veraces y no dañinas.
- 
-\end{itemize}
-
-
-\subsection{El problema de las alucinaciones}
-\label{subsec:alucinaciones}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- subsección COMPLETA en lo esencial: definición, taxonomía, evidencia propia (capturas de DeepSeek) y cierre que enlaza con RAG.
-    \item Concepto que vendría bien añadir: por qué alucinan de raíz --- el LLM optimiza por plausibilidad lingüística, no por verdad factual, y expresa un dato inventado con la misma confianza aparente que uno real (Ji et al.\ lo tratan como causa de modelado, complementaria a la causa de datos ya mencionada).
-    \item Matiz defendible ante el tribunal: clasificar el propio ejemplo de DeepSeek con la taxonomía expuesta (es una alucinación de factualidad de mundo abierto: no contradice una fuente dada, sino la realidad --- justo el caso que RAG ataca al proporcionar la fuente).
-\end{borrador}
-
-Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en inglés) son aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado; estas se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
-
-\begin{itemize}
-    \item \textbf{Alucinaciones intrínsecas:} El modelo genera información que contradice directamente los datos o el texto proporcionado como fuente.
-    \item \textbf{Alucinaciones extrínsecas:} El modelo genera información adicional que no aparece en la fuente original. Aunque esta información inventada pueda ser correcta en el mundo real, se considera alucinación porque no puede ser verificada utilizando únicamente la entrada proporcionada.
-\end{itemize}
-
-Uno de los factores por los que los modelos podrían alucinar son los datos de entrada, dado que muchos conjuntos de datos se construyen de forma automatizada, emparejando fuentes con textos de referencia que contienen información extra (por ejemplo, emparejar una tabla de datos de Wikipedia con el primer párrafo del artículo, el cual suele contener más datos que la tabla)\cite{ji2023hallucination}.
-
-Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios: inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la Escuela Politécnica Superior de Jaén (EPSJ), la respuesta incluye información falsa: oferta titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.92\textwidth]{imagenes/Alucinacion1_Deepseek.png}\\[4pt]
-    \includegraphics[width=0.92\textwidth]{imagenes/Alucinacion2_Deepseek.png}
-    \caption[Ejemplo real de alucinación de un LLM sin RAG]{Respuesta de
-    DeepSeek al pedirle la oferta actual de grados de la EPSJ (julio de 2026):
-    entre titulaciones reales, el modelo intercala grados que no se imparten
-    en el centro, como Ingeniería Civil o Ingeniería de Tecnologías Mineras.
-    Fuente: captura propia de la interfaz web de DeepSeek.}
-    \label{fig:alucinacion_deepseek}
-\end{figure}
-
-Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de recuperación aumentada por generación que se describe en la Sección~\ref{secc:rag}: no elimina por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales.
-
-
-
-\subsection{Modelos de pesos abiertos frente a modelos propietarios}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- redactable ya (solo el panorama; la elección del modelo es de Fase 2).
-    \item Definir cada modelo: pesos abiertos, descargables y ejecutables en local (p. ej. Llama, Mistral, Qwen) frente a propietarios, accesibles solo vía API (p. ej. GPT, Claude, Gemini).
-    \item Ejes de comparación: privacidad (los datos no salen del servidor local frente a que viajan a un tercero), coste (hardware propio frente a pago por token), control (versión fija y auditable frente a un modelo que puede cambiar sin aviso).
-    \item Por qué importa aquí en concreto: el sistema recibe preguntas de estudiantes de secundaria, posibles menores de edad (enlaza con la Sección~\ref{secc:marcolegal}).
-    \item Aclarar que esto es el panorama general; la elección concreta del modelo se justifica en el Capítulo~\ref{cap:materialesymetodos} con su ADR correspondiente.
-\end{borrador}
-
-\section{Recuperación de información}
-
-\subsection{Bases de datos vectoriales}
-
-\begin{borrador}
-    \item \textbf{Fase:} 1 (IT-28/IT-31) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá con el conocimiento real de los experimentos de indexación.
-\end{borrador}
-
-\subsection{Métricas de evaluación de la recuperación}
-\label{secc:metricas_recuperacion}
-
-\begin{borrador}
-    \item \textbf{Fase:} 1 (IT-27/IT-28) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá al diseñar el conjunto de evaluación, para definir aquí las métricas que luego usa el Capítulo~\ref{cap:resultados}.
-\end{borrador}
-
-\section{Recuperación aumentada por generación (RAG)}
-\label{secc:rag}
-
-\subsection{Origen y motivación}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- redactable ya.
-    \item Presentar el artículo fundacional~\cite{lewis2020rag} (Lewis et al., 2020) y el problema que venía a resolver: el conocimiento de un LLM queda <<congelado>> en el momento del entrenamiento y no puede citar sus fuentes.
-    \item Motivación doble: actualizar el conocimiento sin reentrenar el modelo completo, y fundamentar las respuestas en documentos verificables (enlaza con la Sección~\ref{subsec:alucinaciones}).
-    \item Contraste breve con una alternativa que este TFG no usa: el ajuste fino (\textit{fine-tuning}) del modelo con los datos de la EPSJ --- más caro, no resuelve la trazabilidad de la fuente y exigiría reentrenar cada curso académico.
-\end{borrador}
-
-\subsection{Arquitectura y componentes}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- redactable ya; el diagrama de apoyo ya existe.
-    \item Las tres piezas del pipeline RAG genérico: indexación (preparar y almacenar los documentos), recuperación (buscar los fragmentos relevantes a la pregunta) y generación (el LLM redacta la respuesta usando esos fragmentos como contexto).
-    \item Aquí encaja un diagrama conceptual GENÉRICO de RAG, distinto del diagrama de la arquitectura concreta del sistema (que va al Capítulo~\ref{cap:materialesymetodos}). Ya existe un borrador en Mermaid en la carpeta de diagramas de las notas del proyecto, pendiente de adaptar e insertar aquí.
-    \item Explicar brevemente cómo se construye el \textit{prompt} final: instrucción del sistema, fragmentos recuperados y pregunta del usuario.
-\end{borrador}
-
-\subsection{Fragmentación de documentos}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- redactable ya.
-    \item Por qué hay que trocear los documentos: la ventana del modelo de incrustaciones es limitada; un fragmento demasiado grande diluye la señal y uno demasiado pequeño pierde contexto.
-    \item Estrategias existentes: tamaño fijo con solape (\textit{sliding window}), por estructura del documento (párrafos, secciones) o semántica (cortar donde cambia de tema). Qué asume y qué limita cada una.
-    \item Recordatorio: no adelantar aquí cuál se ha elegido para el sistema; esa decisión se justifica en el Capítulo~\ref{cap:materialesymetodos} con el ADR-0001.
-\end{borrador}
-
-\subsection{Evaluación de sistemas RAG}
-
-\begin{borrador}
-    \item \textbf{Fase:} 2 (IT-38) --- \textbf{diferido}: NO se redacta en Fase 0. Se escribirá junto a la evaluación real del sistema (fidelidad, relevancia, RAGAs~\cite{es2023ragas}).
-\end{borrador}
-
-\section{Extracción automatizada de información web}
-
-% Fusión de las antiguas subsecciones "Fundamentos" y "Tipos de herramientas":
-% cada una daba para ~2 párrafos y separadas obligaban a dos textos puente.
-% Esta sección se redacta ahora del tirón, sin subsecciones.
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- redactable ya; el material está en tu propio ADR-0002, no requiere investigación nueva. Sección única sin subsecciones (fusionadas las antiguas <<Fundamentos>> y <<Tipos de herramientas>>).
-    \item Qué es el rastreo web (\textit{web scraping}): proceso automatizado de descarga de páginas y extracción de datos estructurados de su HTML.
-    \item Cómo funciona a alto nivel: petición HTTP, respuesta HTML, análisis (\textit{parsing}), selectores (CSS o XPath) para localizar los datos y normalización del resultado.
-    \item Problemas típicos: codificación de caracteres inconsistente, estructura HTML no uniforme entre páginas, contenido generado dinámicamente por JavaScript.
-    \item Tres familias de herramientas: analizadores de HTML puros (p. ej. BeautifulSoup con \texttt{requests}), \textit{frameworks} de rastreo completos (p. ej. Scrapy) y navegadores automatizados (p. ej. Selenium, Playwright); qué problema resuelve cada una y para qué escala está pensada.
-    \item Recordatorio: la comparativa detallada y la elección concreta van al Capítulo~\ref{cap:materialesymetodos} (ADR-0002); aquí solo el panorama. Las trampas concretas encontradas en la web de la EPSJ también se documentan allí.
-\end{borrador}
-
-\section{Trabajos relacionados}
+\textcolor{borrador2}{Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. A continuación se revisan, primero, los asistentes conversacionales que varias universidades españolas ponen a disposición de sus estudiantes y, después, otros sistemas que recomiendan estudios sin usar un chatbot (filtrado colaborativo, tests vocacionales, sistemas basados en reglas). El apartado final sitúa este trabajo frente a todos ellos.}
 
 \subsection{Asistentes conversacionales en el ámbito universitario}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- pero es el borrador más caro en tiempo de investigación; si aprietan los plazos, es el candidato acordado a solaparse con la Fase 1.
-    \item Tarea de investigación real pendiente, no de redacción: localizar y probar de verdad (no solo citar) chatbots universitarios existentes.
-    \item Candidatos a revisar: un posible asistente virtual genérico de la propia UJA, chatbots de otras universidades españolas, herramientas comerciales de orientación universitaria.
-    \item Para cada uno que se pruebe, anotar: tecnología empleada (si es pública), si responde con fuentes verificables, si está acotado a un centro o cubre toda la universidad, y qué falla ante una pregunta muy específica.
-    \item Esta sección depende de trabajo de campo (probar servicios reales y documentarlo) que no se puede sustituir por una búsqueda bibliográfica.
-\end{borrador}
+
+La propia Universidad de Jaén ofrece \textbf{ADA} (Asistente Digital al Alumnado),
+un chatbot dirigido al alumnado de nuevo ingreso para resolver dudas sobre pruebas de acceso, preinscripción,
+matrícula y notas de corte\footnote{\url{https://www.ujaen.es/estudios/acceso-y-matricula/ada}}.
+La propia UJA advierte de que ADA <<no responde todavía a preguntas realizadas en otro idioma distinto del castellano
+y no responde a preguntas fuera de su ámbito>>, delimitando de antemano su alcance. Antes de iniciar la conversación,
+ADA pregunta si el usuario permite guardar la conversación como <<dato opcional>> para mejorar el servicio,
+ofreciendo explícitamente la alternativa de continuar sin ceder ese dato (Figura~\ref{fig:ada_privacidad}),
+consecuencia del RGPD~\cite{rgpd2016} y la LOPDGDD~\cite{lopdgdd2018} (Sección~\ref{secc:marcolegal}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.60\textwidth]{imagenes/ADA_guardar_conversaciones.png}
+  \caption{Aviso de ADA antes de comenzar la conversación, solicitando permiso explícito para guardar los datos como opcionales, con la alternativa de continuar sin cederlos. Fuente: captura propia.}
+  \label{fig:ada_privacidad}
+\end{figure}
+
+Se probó ADA con dos preguntas representativas del dominio de este trabajo: la nota de corte de
+los másteres de Ciberseguridad e Ingeniería Informática, y las asignaturas de primer curso del Grado en Ingeniería Informática.
+Ambas conversaciones, recogidas en las Figuras~\ref{fig:ada_pregunta1} y~\ref{fig:ada_pregunta2}, tuvieron un resultado idéntico: ADA no respondió el dato solicitado de manera natural como lo haría un ser humano o un LLM,
+sino que redirigió al usuario a un enlace de la oferta académica oficial para que lo consultara por su cuenta.
+Los enlaces ofrecidos eran correctos y la información buscada se encontraba en ellos, pero el asistente no mostró evidencia de recuperar ni de razonar sobre el contenido de esas páginas: su función se limita a enrutar la consulta a la fuente adecuada, no a leerla y responder con el dato concreto.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{imagenes/ADA_pregunta_1.png}
+  \caption{ADA, ante la pregunta por las notas de corte de dos másteres, redirige a la oferta académica general en lugar de responder el dato. Fuente: captura propia, conversación con ADA (ujaen.es).}
+  \label{fig:ada_pregunta1}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{imagenes/ADA_pregunta_2.png}
+  \caption{ADA, ante la pregunta por las asignaturas de primer curso de un grado, redirige de nuevo a la página general
+    de la oferta académica. Fuente: captura propia, conversación con ADA (ujaen.es).}
+  \label{fig:ada_pregunta2}
+\end{figure}
+
+
+
+Otro asistente de otra universidad española es \textbf{LUCA}, el asistente equivalente de la Universidad de Cádiz.
+Al acceder a él, se observa que la estructura y la estética son muy similares, y es que ambos los ha desarrollado 1millionbot,
+una empresa española de inteligencia artificial especializada en agentes conversacionales y chatbots,
+que entre sus sectores de actividad publicitados incluye el universitario\footnote{\url{https://1millionbot.com/}}.
+Al probar LUCA con una pregunta comparable (las asignaturas de primer curso del Grado en Enfermería),
+el patrón se repitió: tras pedir al usuario que se identificase con un perfil (alumnado, PTGAS o PDI),
+LUCA respondió de nuevo redirigiendo a un enlace externo en lugar de procesar la respuesta (Figura~\ref{fig:luca_pregunta1}).
+Que dos despliegues distintos del mismo proveedor, en dos universidades diferentes,
+compartan esta limitación sugiere que se trata de una característica de la plataforma,
+probablemente orientada a la recuperación de enlaces relevantes más que a la generación de respuestas,
+y no de una configuración particular de la UJA.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\textwidth]{imagenes/LUCA_pregunta_1.png}
+  \caption{LUCA, el asistente de la Universidad de Cádiz del mismo proveedor que ADA,
+    ante una pregunta sobre asignaturas de un grado, exhibe el mismo patrón de redirección a un enlace externo. Fuente: captura propia, conversación con LUCA (uca.es).}
+  \label{fig:luca_pregunta1}
+\end{figure}
+
+Un tercer caso, distinto de los dos anteriores porque no se ha podido probar de primera mano, es
+\textbf{AIex}, el asistente de la Universidad de Alcalá. Según recoge la propia universidad en la noticia, no es un
+desarrollo comercial como ADA o LUCA por una empresa, sino un proyecto de dos estudiantes de Ingeniería Informática y
+de Computadores de la UAH, presentado en la feria de educación AULA 2026 para responder dudas sobre normativa universitaria,
+asignaturas y guías docentes\footnote{\url{https://portalcomunicacion.uah.es/diario-digital/actualidad/AIex-el-asistente-virtual-de-IA-desarrollado-por-alumnos-de-la-UAH-que-responde-tus-preguntas-en-la-feria-de-AULA-2026/}}.
+La noticia no detalla la arquitectura ni el modelo empleado, más allá de mencionar la selección de tecnologías para
+dar respuestas rápidas y precisas y la existencia de filtros de seguridad.
+Al depender esta referencia únicamente de una nota de prensa de la propia universidad, sin haberse probado el asistente
+directamente, no se puede valorar aquí si responde con datos concretos o si, como ADA y LUCA, se limita a redirigir a enlaces.
+
+
+
+
 
 \subsection{Sistemas de recomendación educativos}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- mismo criterio que la subsección anterior (candidata a solaparse con Fase 1 si hay retraso).
-    \item Enfoques existentes para recomendar estudios más allá del RAG: filtrado colaborativo (basado en decisiones de estudiantes parecidos), tests vocacionales o psicométricos, sistemas basados en reglas.
-    \item En qué se diferencian estructuralmente de un RAG: no suelen usar lenguaje natural conversacional ni generan texto libre, sino una lista cerrada de recomendaciones.
-    \item Pendiente de búsqueda bibliográfica real (no inventar citas) para localizar literatura verificable sobre sistemas de recomendación educativos.
-\end{borrador}
+Más allá del enfoque conversacional, se pueden encontrar otros métodos o sistemas para recomendar estudios.
+Según el siguiente artículo sobre sistemas de recomendación en la elección académica de educación superior,
+basada en 56 estudios primarios publicados entre 2011 y 2023, identifica el filtrado colaborativo
+(que sugiere titulaciones o asignaturas a partir de las decisiones de estudiantes con un perfil parecido) como uno de los enfoques más habituales,
+junto con estrategias basadas en contenido e híbridas, siendo estas últimas las que mejores resultados obtienen~\cite{kamal2024recommender}.
+
+Un enfoque distinto, de corte psicométrico, son los tests vocacionales, aquellos que son herramientas utilizadas en la
+orientación profesional y que por ejemplo, se implementan en sistemas expertos que automatizan la aplicación del
+Test de Holland para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
+por reglas codificadas que infieren afinidades entre intereses del estudiante y perfiles profesionales~\cite{huayta2024vocational}.
+
+Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre:
+todos devuelven una lista cerrada de recomendaciones (titulaciones, ramas profesionales) a partir de un perfil, un cuestionario
+o un historial de decisiones, sin la posibilidad de responder una pregunta abierta y arbitraria sobre el contenido de un plan de estudios.
+Tampoco fundamentan sus respuestas en documentos verificables: la recomendación es el resultado de un modelo o de una regla,
+no la síntesis de una fuente citable. Es precisamente esta capacidad la que distingue el enfoque de este trabajo de las tres familias descritas.
 
 \subsection{Posicionamiento de este trabajo}
 
-\begin{borrador}
-    \item \textbf{Fase:} 0 --- se redacta la última de las tres, porque depende de las dos subsecciones anteriores.
-    \item La sección más importante del capítulo: aquí es donde el tribunal juzga si el TFG aporta algo nuevo o repite lo ya existente.
-    \item Estructura sugerida: (1) qué tiene en común este TFG con los sistemas revisados en las dos subsecciones anteriores; (2) en qué se diferencia específicamente (dominio acotado a la EPSJ, arquitectura RAG con LLM local, público preuniversitario); (3) qué hueco concreto llena que ningún otro sistema revisado cubre.
-    \item No se puede redactar bien hasta tener escritas las dos subsecciones anteriores, de las que depende directamente.
-\end{borrador}
+Este trabajo comparte con los sistemas revisados el objetivo de orientar en la elección de estudios,
+pero se distingue en tres aspectos fundamentales: el dominio está acotado a la oferta de la Escuela Politécnica
+Superior de Jaén (ver sección \ref{secc:alcance}), que responde en lenguaje natural apoyándose en documentos oficiales y el público objetivo es preuniversitario,
+lo que impone exigencias específicas de legibilidad y fiabilidad.
+
 
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-\subsection{Protección de datos personales}
+\textcolor{borrador2}{Un sistema que trata información publicada por una universidad y que además conversa con estudiantes, buena parte de ellos menores de edad, queda sujeto a dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen aquí solo los puntos que condicionan alguna decisión concreta de diseño de este trabajo, sin entrar en un análisis jurídico exhaustivo.}
+
+\textcolor{borrador2}{En materia de protección de datos son de aplicación el Reglamento General de Protección de Datos (RGPD)\cite{rgpd2016} y la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD)\cite{lopdgdd2018}. El considerando 26 del RGPD deja fuera de su ámbito la información anónima, esto es, aquella que no permite identificar ni directa ni indirectamente a una persona física. La colección documental de este trabajo se encuentra en ese supuesto: recoge planes de estudio, guías docentes y salidas profesionales, y el profesorado se excluye deliberadamente de la extracción, por lo que de la fuente no se obtiene ningún dato personal.}
+
+\textcolor{borrador2}{El punto delicado no está, por tanto, en los datos de origen, sino en la conversación. El público objetivo es preuniversitario, así que una parte de los usuarios será menor de edad, y el artículo 7 de la LOPDGDD\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos; por debajo de esa edad se exige el consentimiento de quien ostente la patria potestad o la tutela. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una barrera de entrada. La alternativa elegida es evitar el problema en el origen: el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva el historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. ADA resuelve la misma tensión de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}). [Nota para el autor: esta decisión hay que confirmarla al construir la interfaz en la Fase 3; si finalmente se guardase algún registro, aunque fuera para depurar, este párrafo dejaría de ser cierto.]}
+
+\textcolor{borrador2}{La segunda cuestión es la legalidad de la extracción automatizada. La referencia jurisprudencial más citada en España es la sentencia del caso Ryanair contra Atrápalo\cite{sts572_2012}, que resolvió un litigio entre dos empresas por el aprovechamiento comercial de datos ajenos. El supuesto de este trabajo es distinto en lo esencial: los datos los publica abiertamente un organismo público, el uso es académico y sin ánimo de lucro, y no existe reventa ni competencia con la Universidad de Jaén. A ello se añaden las precauciones técnicas adoptadas durante la extracción —respetar el fichero \texttt{robots.txt}, espaciar las peticiones para no sobrecargar el servidor e identificarse mediante un agente de usuario propio—, que se detallan en el Capítulo~\ref{cap:materialesymetodos}. [Nota para el autor: es una valoración divulgativa, no un dictamen jurídico; conviene presentarla así también en la defensa.]}
 
 \begin{borrador}
-    \item \textbf{Fase:} 0 --- todo el marco legal es la sección más barata de cerrar: las 6 citas ya están en el \texttt{.bib}.
-    \item Marco normativo: RGPD~\cite{rgpd2016} y LOPDGDD~\cite{lopdgdd2018}.
-    \item Qué se considera dato personal frente a información anónima: el considerando 26 del RGPD como referencia concreta.
-    \item Aplicación directa al caso: la colección documental no contiene datos de personas físicas, ya que el profesorado se excluye deliberadamente (decisión de proyecto ya tomada). Conviene decirlo de forma explícita.
-    \item Punto delicado pendiente de tratar: el sistema recibe preguntas de usuarios que podrían ser menores de edad; aunque los datos de origen no sean personales, la propia conversación sí podría generarlos.
-\end{borrador}
-
-\subsection{Legalidad de la extracción automatizada de datos}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0.
-    \item Qué dice el marco jurídico sobre extraer datos publicados abiertamente por un organismo público con fines académicos y sin ánimo de lucro.
-    \item Jurisprudencia de referencia: caso Ryanair contra Atrápalo~\cite{sts572_2012}. Resumir qué se dirimió y matizar por qué este caso es distinto (aquí no hay reventa de datos ni competencia con la UJA).
-    \item Buenas prácticas ya aplicadas y defendibles en el proyecto: respeto de \texttt{robots.txt}, retardo entre peticiones y agente de usuario identificable, documentadas en el Capítulo~\ref{cap:materialesymetodos}.
-\end{borrador}
-
-\subsection{Licencias de software y de modelos}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 (la parte de licencias de modelos se completará en Fase 2, cuando se elija el LLM).
-    \item Licencias libres y \textit{copyleft}: qué es el \textit{copyleft}, con la GPLv3~\cite{gpl3} como ejemplo.
-    \item Comprobar y citar la licencia elegida para el propio proyecto.
-    \item Matiz importante con los LLM: que los pesos de un modelo se puedan descargar no significa que su uso sea libre; hay que leer la licencia concreta de cada modelo (algunas licencias tipo Llama restringen el uso comercial o a partir de cierta escala).
-    \item Aplicación al caso: qué licencia tiene el modelo de lenguaje que se elija en el Capítulo~\ref{cap:materialesymetodos} (pendiente de esa decisión).
-\end{borrador}
-
-\subsection{Accesibilidad}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0 (el panorama; la aplicación concreta a la interfaz es de Fase 3).
-    \item Criterios WCAG 2.2~\cite{wcag22}: niveles A, AA y AAA, y cuál es el habitual para servicios públicos o educativos (normalmente AA).
-    \item Por qué deberían orientar un sistema dirigido a estudiantes de secundaria: diversidad de capacidades del público objetivo. Valorar también la normativa española de accesibilidad web para el sector público, aunque el sistema no sea oficialmente de la administración.
-    \item Aplicación concreta a una interfaz de chat (contraste de color, navegación por teclado, lectores de pantalla): se desarrollará al diseñar la interfaz en la Fase 3 del Capítulo~\ref{cap:materialesymetodos}.
-\end{borrador}
-
-\subsection{Reglamento europeo de inteligencia artificial}
-
-\begin{borrador}
-    \item \textbf{Fase:} 0.
-    \item El Reglamento (UE) 2024/1689~\cite{aiact2024}: niveles de riesgo que define (inaceptable, alto riesgo, riesgo limitado, mínimo).
-    \item En qué categoría encajaría previsiblemente un chatbot informativo de orientación académica (probablemente riesgo limitado, por tratarse de un sistema conversacional). Verificar esta clasificación leyendo el reglamento, no asumirla.
-    \item Obligación de transparencia aplicable: informar al usuario de que interactúa con un sistema de IA (verificar el artículo exacto del reglamento antes de citarlo).
-    \item Relevancia para el TFG: aunque sea un proyecto académico no comercial, es defendible mostrar ante el tribunal que se ha tenido en cuenta el marco regulatorio vigente.
+  \item \textbf{Accesibilidad --- Fase 3.} Aplazado hasta que exista la aplicación web: no procede hablar de conformidad con la WCAG 2.2 antes de tener una interfaz que evaluar (la entrada \texttt{wcag22} ya está en el \texttt{.bib}). Se añadirá en este mismo apartado al cerrar la Fase 3.
+  \item \textbf{Licencias --- eliminado de aquí.} El matiz de que unos pesos descargables no implican uso libre ya se trata en la Sección~\ref{subsec:propietarios_abiertos}, dentro de Material y Métodos. La licencia del modelo concreto se fijará con el ADR-0005 (Fase 2).
 \end{borrador}

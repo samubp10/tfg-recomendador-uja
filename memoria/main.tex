@@ -8,6 +8,10 @@
 \usepackage{pgfgantt}
 \usepackage{longtable}  % Tabla del backlog, que ocupa varias páginas
 \usepackage{xltabular}
+% Columna X de xltabular alineada a la izquierda (no justificada): evita el
+% warning "Infinite glue shrinkage found in box being split" al partir filas
+% largas entre páginas, propio de columnas X justificadas en tablas paginadas.
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
 \usepackage{hyperref}
 \usepackage{xcolor}
@@ -24,6 +28,9 @@
 \definecolor{diagNodoBorde}{HTML}{9370DB}
 \definecolor{diagGrupo}{HTML}{FFFFDE}
 \definecolor{diagGrupoBorde}{HTML}{AAAA33}
+
+
+\definecolor{borrador2}{HTML}{2AB7B7}
 \tikzset{
     nodoDiag/.style={draw=diagNodoBorde, fill=diagNodo, align=center,
                      font=\small, minimum height=1cm, inner sep=6pt},
