@@ -626,10 +626,11 @@ rastreador (\textit{spider}) y la página web, así como las posibles alteracion
 \section{Verificación y reproducibilidad de la Fase 0}
 
 \begin{borrador}
-    \item \textbf{Fase:} 0 (IT-19) --- cierra la parte de Fase 0 del capítulo.
-    \item Las pruebas usan \textit{fixtures} HTML reales descargadas de la EPSJ: los datos inventados no reproducen las anomalías de la fuente (es un principio del proyecto, no una casualidad).
-    \item Qué invariante comprueba cada verificador: \texttt{check\_dataset.py} vigila la integridad de grados, asignaturas, guías y salidas; \texttt{check\_chunks.py}, los tamaños y la deduplicación de los fragmentos. Se ejecutan en local antes de cada subida; el CI ejecuta \texttt{pytest} y \texttt{mypy}.
-    \item La reproducibilidad la da el propio \textit{pipeline} (\textit{scrapy} $\rightarrow$ \textit{chunker}), no una copia versionada del resultado: el dataset no se versiona y se regenera bajo demanda.
-    \item El argumento de desacoplo que pide IT-17: re-fragmentar es barato y se hará muchas veces al experimentar; re-rastrear la web es caro y descortés con el servidor de la UJA. Por eso \textit{spider} y \textit{chunker} son módulos separados (está en el ADR-0001; redáctalo con tus palabras).
-    \item \textbf{Sin cifras de caracterización ni amenazas a la validez aquí}: eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
+  \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
 \end{borrador}
+
+\textcolor{borrador2}{La fiabilidad de la Fase 0 descansa en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).}
+
+\textcolor{borrador2}{Las pruebas unitarias no emplean datos inventados, sino \textit{fixtures} de HTML real descargado de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente —la codificación incorrecta, las tablas híbridas, los enlaces con sufijo duplicado—, que son precisamente lo que el código debe saber manejar. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.}
+
+\textcolor{borrador2}{La reproducibilidad del sistema no se apoya en una copia versionada de los datos, sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: re-fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.}
