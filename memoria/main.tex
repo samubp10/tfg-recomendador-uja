@@ -8,6 +8,10 @@
 \usepackage{pgfgantt}
 \usepackage{longtable}  % Tabla del backlog, que ocupa varias páginas
 \usepackage{xltabular}
+% Columna X de xltabular alineada a la izquierda (no justificada): evita el
+% warning "Infinite glue shrinkage found in box being split" al partir filas
+% largas entre páginas, propio de columnas X justificadas en tablas paginadas.
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
 \usepackage{hyperref}
 \usepackage{xcolor}
