@@ -48,7 +48,9 @@ def main(argv: list[str] | None = None) -> int:
         a for a in asignaturas if any("/" in m for m in a["menciones"])
     ], "menciones con barra sin separar"
     sin_ects = [a for a in asignaturas if not a["ects"]]
-    assert len(sin_ects) == 1, f"sin ECTS: {len(sin_ects)} (esperado 1, fiel a la fuente)"
+    assert (
+        len(sin_ects) == 1
+    ), f"sin ECTS: {len(sin_ects)} (esperado 1, fiel a la fuente)"
 
     print(
         f"Dataset OK: {len(asignaturas)} asignaturas, {len(guias)} guías, "

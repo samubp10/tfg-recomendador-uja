@@ -1,0 +1,9 @@
+# Configuración de flake8 alineada con black (el formateador del proyecto):
+# - la longitud de línea pasa a las 88 columnas de black;
+# - E203 (espacio antes de ':') se ignora porque black lo GENERA a propósito
+#   en los cortes de slices y es el emparejamiento estándar black+flake8;
+# - W503 (salto de línea antes de operador binario) ídem: black corta antes
+#   del operador siguiendo el estilo recomendado por PEP 8 moderno.
+[flake8]
+max-line-length = 88
+extend-ignore = E203, W503
