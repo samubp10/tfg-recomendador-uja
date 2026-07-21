@@ -586,15 +586,42 @@ rastreador (\textit{spider}) y la página web, así como las posibles alteracion
 \label{subsec:chunking}
 
 \begin{borrador}
-    \item \textbf{Fase:} 0 (IT-08, IT-09 e IT-56) --- redactable ya; al escribirla se completa también la referencia desde la sección <<Arquitectura del sistema>>.
-    \item La unidad de troceado es la asignatura (su guía) o el bloque de salidas: \textbf{un fragmento nunca mezcla dos asignaturas} (decisión innegociable del proyecto).
-    \item Algoritmo: división por párrafos; si un trozo sigue excediendo el máximo, división por frases; después, fusión de residuales pequeños con reequilibrio.
-    \item Cada fragmento lleva un encabezado autocontenido (asignatura, tipo, ECTS, grado) para que tenga sentido por sí solo al recuperarlo.
-    \item Deduplicación por la clave (nombre, contenido): solo por contenido fusionaría asignaturas distintas con el mismo texto de respaldo (caso real: Smart Grids y Técnicas de ingeniería gráfica).
-    \item Cifras verificadas del dataset: 1\,172 fragmentos antes de deduplicar, 892 después (un 24\,\% menos), 28 unidades compartidas entre titulaciones, tamaños mín/mediana/máx 227/1\,093/1\,499 caracteres. Máximo de 1\,500 como restricción dura; mínimo de 200 como preferencia.
-    \item Dejar claro que los parámetros de fragmentación son \textbf{provisionales} hasta el experimento de la Fase 1: no presentarlos como óptimos.
-    \item Aquí va también el diagrama de secuencia del \textit{chunking}, ya generado en la carpeta de diagramas de las notas del proyecto y pendiente de subir a Overleaf e insertar.
+  \item \textbf{Fase:} 0 (IT-08, IT-09 e IT-56). Falta únicamente insertar aquí el diagrama de secuencia del \textit{chunking}, ya generado en la carpeta de diagramas de las notas del proyecto y pendiente de subir a Overleaf.
 \end{borrador}
+
+\textcolor{borrador2}{Los modelos de incrustaciones operan sobre una ventana de contexto limitada, por lo que la colección no puede indexarse documento a documento: es necesario dividir cada texto en fragmentos (\textit{chunks}). El tamaño del fragmento es un compromiso: uno demasiado grande diluye la señal semántica y satura la ventana, mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.}
+
+\textcolor{borrador2}{La decisión no se tomó a ciegas, sino midiendo antes la colección: las 296 guías docentes tienen una mediana de 2\,677 caracteres de contenido, un percentil 90 de 6\,450 y un máximo de 23\,940. Los modelos de incrustaciones multilingües habituales admiten en torno a 512 \textit{tokens}, unos 2\,000 caracteres en español, de manera que más de la mitad de las guías no cabe en un único fragmento. A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede violar: un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.}
+
+\textcolor{borrador2}{Con esas dos condiciones sobre la mesa se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. El razonamiento completo, con la evidencia que respalda cada descarte, se documentó en el registro de decisión de arquitectura ADR-0001, disponible en el repositorio del proyecto\cite{repo_tfg}.}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{\textcolor{borrador2}{Estrategias de fragmentación consideradas (ADR-0001).}}
+  \label{tab:alternativas_chunking}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.5cm} Y c@{}}
+    \toprule
+    \textbf{Estrategia} & \textbf{Motivo del descarte o de la elección} & \textbf{Decisión} \\
+    \midrule
+    \textcolor{borrador2}{Tamaño fijo con solape} &
+    \textcolor{borrador2}{Es la más simple, pero corta a mitad de frase y, sobre la colección completa, puede juntar dos asignaturas en un mismo fragmento, incumpliendo la restricción de diseño. El solape, además, duplica contenido en el índice.} &
+    \textcolor{borrador2}{Descartada} \\
+    \addlinespace
+    \textcolor{borrador2}{Estructural por unidad semántica} &
+    \textcolor{borrador2}{Respeta la restricción por construcción, ya que parte de la unidad (la guía de una asignatura o el bloque de salidas de una titulación) y solo la divide si excede el máximo, cortando por fronteras naturales del texto.} &
+    \textcolor{borrador2}{\textbf{Elegida}} \\
+    \addlinespace
+    \textcolor{borrador2}{Semántica por incrustaciones} &
+    \textcolor{borrador2}{Cortar donde cae la similitud entre frases obligaría a elegir ya el modelo de incrustaciones, que es una decisión de la Fase 1 aún sin experimento, y añadiría una dependencia pesada a la Fase 0. Prematura.} &
+    \textcolor{borrador2}{Descartada} \\
+    \addlinespace
+    \textcolor{borrador2}{Un fragmento por asignatura, sin dividir} &
+    \textcolor{borrador2}{La mitad de las guías supera los 2\,677 caracteres y la mayor llega a 23\,940: el sobrante se truncaría en silencio al calcular la incrustación, perdiendo contenido sin aviso.} &
+    \textcolor{borrador2}{Descartada} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \section{Verificación y reproducibilidad de la Fase 0}
 
