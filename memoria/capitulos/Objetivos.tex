@@ -1,7 +1,7 @@
 \chapter{OBJETIVOS}
 \label{cap:objetivos}
 
-\textcolor{borrador2}{La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos verificables. El enfoque elegido para alcanzarlos es una arquitectura de recuperación aumentada por generación (RAG) sobre un modelo de lenguaje de código abierto ejecutado en local. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.}
+La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de recuperación aumentada por generación (RAG) sobre un modelo de lenguaje de código abierto (o pesos abiertos) ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
 
 \section{Objetivo general}
 
@@ -14,21 +14,21 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
 \section{Objetivos específicos}
 
 % Están redactados para poder responder sí/no a cada uno al terminar el TFG.
-\begin{itemize}
-    \item \textbf{OE1.} Construir una colección documental estructurada y
-    trazable con los planes de estudio, las guías docentes y las salidas
-    profesionales de la EPSJ, mediante un proceso de extracción web propio.
-    \item \textbf{OE2.} Definir y evaluar experimentalmente una estrategia de
-    fragmentación (\glr{chunking}{chunking}) de esa colección adecuada al dominio.
-    \item \textbf{OE3.} Seleccionar, con criterios cuantitativos, el modelo de
-    incrustaciones (\textit{embeddings}) y la base de datos vectorial del
-    sistema.
-    \item \textbf{OE4.} Implementar el \textit{pipeline} RAG completo sobre un
-    modelo de lenguaje de código abierto desplegado en local.
-    \item \textbf{OE5.} Evaluar el sistema con métricas objetivas de
-    recuperación y de generación.
-    \item \textbf{OE6.} Ofrecer el sistema a través de una aplicación web de
-    chat accesible y sin registro.
+\begin{itemize}                                      
+  \item \textbf{OE1.} Construir una colección documental estructurada y
+        trazable con los planes de estudio, las guías docentes y las salidas
+        profesionales de la EPSJ, mediante un proceso de extracción web propio.
+  \item \textbf{OE2.} Definir y evaluar experimentalmente una estrategia de
+        fragmentación (\textit{chunking}) de esa colección adecuada al dominio.
+  \item \textbf{OE3.} Seleccionar, con criterios cuantitativos, el modelo de
+        incrustaciones (\textit{embeddings}) y la base de datos vectorial del
+        sistema.
+  \item \textbf{OE4.} Implementar el \textit{pipeline} RAG completo sobre un
+        modelo de lenguaje de código abierto desplegado en local.
+  \item \textbf{OE5.} Evaluar el sistema con métricas objetivas de
+        recuperación y de generación.
+  \item \textbf{OE6.} Ofrecer el sistema a través de una aplicación web de
+        chat accesible y sin registro.
 \end{itemize}
 
 \section{Hipótesis de trabajo}
@@ -42,9 +42,7 @@ sobre asignaturas o titulaciones de un modelo de lenguaje grande de internet.
 
 \section{Restricciones del proyecto}
 
-El proyecto lo desarrolla una sola persona, con la dedicación equivalente a los
-créditos ECTS del Trabajo Fin de Grado y dentro del calendario de la
-convocatoria correspondiente. El sistema debe funcionar con recursos de cómputo
+El sistema debe funcionar con recursos de cómputo
 domésticos, sin acceso a hardware especializado, lo que condiciona el tamaño de
 los modelos que pueden emplearse.
 
@@ -52,36 +50,36 @@ Como limitación conocida del dominio (Sección~\ref{secc:alcance}), algunas asi
 de las titulaciones de implantación reciente no tienen todavía guía docente
 publicada.
 
+
 \section{Requisitos}
 
-\textcolor{borrador2}{Los requisitos del sistema se dividen en dos grupos. Los requisitos de usuario recogen lo que el estudiante espera del sistema, expresado desde su punto de vista; los requisitos del sistema traducen esas expectativas en condiciones técnicas concretas que el software y el hardware deben cumplir. Estos últimos dependen de decisiones que se toman en fases posteriores, por lo que se detallan más adelante; a continuación se enumeran los requisitos de usuario.}
+Los requisitos del sistema se han dividido en dos grupos. Por un lado, los requisitos de usuario recogen lo que el estudiante espera del sistema, expresado desde su punto de vista. Por otro lado, los requisitos del sistema traducen esas expectativas en condiciones técnicas concretas que el software y el hardware deben cumplir.
 
 \subsection{Requisitos de usuario}
 
-\textcolor{borrador2}{Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad MoSCoW y el objetivo con el que se relacionan.}
+Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad MoSCoW y el objetivo con el que se relacionan.
 
 \begin{table}[htbp]
-    \centering
-    \small
-    \caption{\textcolor{borrador2}{Requisitos de usuario del sistema.}}
-    \label{tab:requisitos_usuario}
-    \begin{tabular}{@{}llcc@{}}
-        \toprule
-        \textbf{ID} & \textbf{Requisito} & \textbf{Prioridad} & \textbf{Objetivo} \\
-        \midrule
-        \textcolor{borrador2}{RU-01} & \textcolor{borrador2}{Preguntar en lenguaje natural, sin conocer la jerga universitaria} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE4, OE6} \\
-        \textcolor{borrador2}{RU-02} & \textcolor{borrador2}{Recibir información fiable de planes de estudio, guías y salidas} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE1} \\
-        \textcolor{borrador2}{RU-03} & \textcolor{borrador2}{Que las respuestas no inventen datos (asignaturas, notas de corte)} & \textcolor{borrador2}{MUST} & \textcolor{borrador2}{OE4, OE5} \\
-        \textcolor{borrador2}{RU-04} & \textcolor{borrador2}{Comparar varias titulaciones entre sí} & \textcolor{borrador2}{SHOULD} & \textcolor{borrador2}{OE1} \\
-        \textcolor{borrador2}{RU-05} & \textcolor{borrador2}{Usar el sistema sin registro ni instalación} & \textcolor{borrador2}{SHOULD} & \textcolor{borrador2}{OE6} \\
-        \bottomrule
-    \end{tabular}
+  \centering
+  \small
+  \caption{Requisitos de usuario del sistema.}
+  \label{tab:requisitos_usuario}
+  \begin{tabularx}{\textwidth}{@{}l Y c c@{}}
+    \toprule
+    \textbf{ID} & \textbf{Requisito}                                                 & \textbf{Prioridad} & \textbf{Objetivo} \\
+    \midrule
+    RU-01       & Preguntar en lenguaje natural, sin conocer la jerga universitaria  & MUST               & OE4, OE6          \\
+    RU-02       & Recibir información fiable de planes de estudio, guías y salidas   & MUST               & OE1, OE5          \\
+    RU-03       & Que las respuestas no inventen datos (asignaturas, notas de corte) & MUST               & OE4, OE5          \\
+    RU-04       & Comparar varias titulaciones entre sí                              & SHOULD             & OE1, OE4          \\
+    RU-05       & Usar el sistema sin registro ni instalación                        & SHOULD             & OE6               \\
+    \bottomrule
+  \end{tabularx}
 \end{table}
 
-\textcolor{borrador2}{[Nota para el autor: verifica la asociación RU--OE y la prioridad de cada requisito antes de darla por buena; esta tabla es un punto de partida, no una decisión cerrada.]}
 
 \subsection{Requisitos del sistema}
 
-\begin{borrador}
-    \item \textbf{Fase:} 1 (IT-59) --- \textbf{diferido}: NO se redacta en Fase 0. La especificación técnica (qué debe cumplir el software y el hardware) depende de decisiones de las Fases 1 y 2 que aún no se han tomado.
+\begin{borrador}                                      
+  \item \textbf{Fase:} 1 (IT-59) --> Aún no se sabe el modelo de LLM
 \end{borrador}
