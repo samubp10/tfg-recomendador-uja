@@ -490,7 +490,7 @@ En este trabajo se prioriza un mayor control sobre la infraestructura y el trata
   \item \textbf{Fase:} 0 en lo estructural, pero queda por rellenar conforme avancen las fases: la Figura~\ref{fig:arquitectura_pipeline} ya recoge el esquema por fases y el texto explica el recorrido, y falta concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
 \end{borrador}
 
-Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales); a continuación, estos se pasan por el fragmentador (\textit{chunker}), que parte el texto en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
+Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las URL rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
 \textcolor{red}{No se comienzan los párrafos con 'Y'}
 
@@ -502,9 +502,7 @@ Con estos trozos de información, se pasa al \textit{embedding} con el que se in
 
 Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
-% Argumento defendible: el fragmentador es un módulo aparte del rastreador
-% porque volver a fragmentar es barato, mientras que volver a rastrear la web es
-% costoso y poco respetuoso con el servidor de la universidad.
+Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costosa y hace peticiones costosas, por lo que hay que ser respetuoso con el servidor de la universidad, el razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
@@ -747,6 +745,7 @@ partir de las de sus grados base en lugar de almacenarse por duplicado.
 \textcolor{borrador2}{El resultado medido sobre la colección completa es una reducción de 1\,172 a 892 fragmentos, un 24 \% menos. De los 892, 818 proceden de guías, 65 son fragmentos informativos de las asignaturas que todavía no tienen guía publicada y 9 corresponden a salidas profesionales. Los 280 fragmentos eliminados equivalen al 25 \% de los 1\,098 que generaban las guías antes de deduplicar. Los tamaños finales van de 227 a 1\,499 caracteres, con una mediana de 1\,093 y ningún fragmento por encima del máximo. La elección de la clave tiene un coste asumido y medido: exigir que el nombre coincida deja sin agrupar dos pares de asignaturas que sí son la misma y cuyo nombre difiere por un detalle de redacción (<<Fundamentos de la programación>> frente a <<Fundamentos de programación>>, y <<Fundamentos físicos de la Informática>> frente a la misma denominación con la inicial en minúscula), a cambio de evitar la fusión errónea del par del Grado en Ingeniería Eléctrica citado antes. El balance es de dos falsos negativos frente a un falso positivo, y se acepta deliberadamente: fusionar dos asignaturas distintas corrompe el índice, mientras que no fusionar dos copias solo lo deja algo más grande.}
 
 \section{Verificación y reproducibilidad de la Fase 0}
+\label{secc:verificacion_fase0}
 
 \begin{borrador}
   \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
