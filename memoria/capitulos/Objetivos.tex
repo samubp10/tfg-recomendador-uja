@@ -14,7 +14,7 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
 \section{Objetivos específicos}
 
 % Están redactados para poder responder sí/no a cada uno al terminar el TFG.
-\begin{itemize}                                      
+\begin{itemize}                                          
   \item \textbf{OE1.} Construir una colección documental estructurada y
         trazable con los planes de estudio, las guías docentes y las salidas
         profesionales de la EPSJ, mediante un proceso de extracción web propio.
@@ -40,15 +40,9 @@ EPSJ con una fidelidad y una capacidad de recuperación suficientes para resulta
 útil a un estudiante preuniversitario, sin incurrir en respuestas inventadas
 sobre asignaturas o titulaciones de un modelo de lenguaje grande de internet.
 
-\begin{borrador}
-  \item \textbf{Fase:} 1--2 (IT-28 / IT-38). Tal y como está enunciada, la
-        hipótesis todavía no es falsable: <<fidelidad y capacidad de recuperación
-        suficientes>> y <<útil>> no fijan ningún umbral, así que al terminar el TFG
-        no se podría responder sí o no con datos. Hay que sustituir esos dos
-        adjetivos por los valores concretos que se acuerden como aceptables
-        (por ejemplo, un mínimo de Recall@5 en IT-28 y un mínimo de fidelidad en
-        IT-38), y hacerlo antes de ejecutar los experimentos, no después de ver
-        los resultados: fijar el listón a posteriori invalidaría la contrastación.
+\begin{borrador}    
+  \item \textbf{Fase:} 1--2 (IT-28 / IT-38). Falta por sustituir los adjetivos por valores cuantificables
+  con los que se pueda decir si es correcta o no la hipótesis.
 \end{borrador}
 
 \section{Restricciones del proyecto}
@@ -70,27 +64,11 @@ Los requisitos del sistema se han dividido en dos grupos. Por un lado, los requi
 
 Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad MoSCoW y el objetivo con el que se relacionan.
 
-\begin{table}[htbp]
-  \centering
-  \small
-  \caption{Requisitos de usuario del sistema.}
-  \label{tab:requisitos_usuario}
-  \begin{tabularx}{\textwidth}{@{}l Y c c@{}}
-    \toprule
-    \textbf{ID} & \textbf{Requisito}                                                 & \textbf{Prioridad} & \textbf{Objetivo} \\
-    \midrule
-    RU-01       & Preguntar en lenguaje natural, sin conocer la jerga universitaria  & MUST               & OE4, OE6          \\
-    RU-02       & Recibir información fiable de planes de estudio, guías y salidas   & MUST               & OE1, OE5          \\
-    RU-03       & Que las respuestas no inventen datos (asignaturas, notas de corte) & MUST               & OE4, OE5          \\
-    RU-04       & Comparar varias titulaciones entre sí                              & SHOULD             & OE1, OE4          \\
-    RU-05       & Usar el sistema sin registro ni instalación                        & SHOULD             & OE6               \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\input{tablas/TablaRequisitosUsuario.tex}
 
 
 \subsection{Requisitos del sistema}
 
-\begin{borrador}                                      
+\begin{borrador}                                          
   \item \textbf{Fase:} 1 (IT-59) --> Aún no se sabe el modelo de LLM
 \end{borrador}
