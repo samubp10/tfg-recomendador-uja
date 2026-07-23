@@ -14,6 +14,33 @@ import json
 import sys
 from pathlib import Path
 
+#: Campos de texto libre que se vuelcan a la colección y, por tanto, jamás
+#: deben contener binario. El bug que motivó esta comprobación (IT-67): una
+#: guía servida como PDF pasaba por el mecanismo de respaldo y guardaba el
+#: binario del PDF en ``cuerpo_general``, y el verificador respondía «OK».
+_CAMPOS_TEXTO = ("resumen", "temario", "cuerpo_general", "texto")
+
+
+def _parece_binario(texto: str) -> bool:
+    """Indica si un texto parece binario y no lenguaje natural.
+
+    Detecta dos señales: la firma ``%PDF`` de un PDF crudo y una densidad
+    alta de caracteres de control (los que no aparecen en texto legible,
+    salvo los saltos y tabuladores habituales).
+
+    Args:
+        texto: Contenido de un campo de texto del dataset.
+
+    Returns:
+        ``True`` si el texto parece binario.
+    """
+    if "%PDF" in texto:
+        return True
+    if not texto:
+        return False
+    control = sum(1 for c in texto if ord(c) < 32 and c not in "\n\r\t")
+    return control / len(texto) > 0.02
+
 
 def main(argv: list[str] | None = None) -> int:
     """Ejecuta las comprobaciones del dataset del spider.
@@ -51,6 +78,18 @@ def main(argv: list[str] | None = None) -> int:
     assert (
         len(sin_ects) == 1
     ), f"sin ECTS: {len(sin_ects)} (esperado 1, fiel a la fuente)"
+
+    binarias = [
+        d
+        for d in datos
+        for campo in _CAMPOS_TEXTO
+        if isinstance(d.get(campo), str) and _parece_binario(d[campo])
+    ]
+    assert not binarias, (
+        f"{len(binarias)} items con binario en un campo de texto "
+        f"(p. ej. código {binarias[0].get('codigo')!r}): una guía servida "
+        f"como PDF no se ha extraído bien (IT-67)."
+    )
 
     print(
         f"Dataset OK: {len(asignaturas)} asignaturas, {len(guias)} guías, "
