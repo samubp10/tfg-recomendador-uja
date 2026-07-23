@@ -472,6 +472,58 @@ def test_el_fallback_excluye_profesorado_y_clausulas():
     assert "rgpd" not in cuerpo
 
 
+# --- IT-67: guía servida como PDF ---
+#
+# Desde el curso 2026-27 la EPSJ sirve algunas guías como PDF detrás de una URL
+# .html. La fixture es un PDF real; la extracción y el filtrado viven en
+# guia_pdf, así que aquí solo se comprueba que parse_guia enruta bien y no
+# vuelca binario en la colección.
+
+
+def _guia_pdf(fixture, codigo, nombre, grado):
+    from scrapy.http import Response
+
+    resp = Response(
+        url=_URL_GUIA,
+        body=(FIXTURES / fixture).read_bytes(),
+        headers={"Content-Type": "application/pdf"},
+        request=Request(
+            _URL_GUIA,
+            meta={"codigo": codigo, "nombre": nombre, "grado": grado},
+        ),
+    )
+    return list(GradosSpider().parse_guia(resp))
+
+
+def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
+    items = _guia_pdf(
+        "guia_estadistica_iayc.pdf",
+        "15711008",
+        "Estadística",
+        "Grado en Inteligencia Artificial y Ciberseguridad",
+    )
+    assert len(items) == 1
+    item = items[0]
+    assert item["fallback"] is False
+    assert "%PDF" not in item["resumen"] + item["temario"]
+    assert "cuerpo_general" not in item
+    assert "estadística descriptiva" in item["temario"].lower()
+
+
+def test_una_guia_en_pdf_ilegible_no_emite_item():
+    # Un PDF corrupto: no se emite guía, y la asignatura queda como «sin guía»,
+    # nunca con el binario volcado por el mecanismo de respaldo.
+    from scrapy.http import Response
+
+    resp = Response(
+        url=_URL_GUIA,
+        body=b"%PDF-1.6 roto",
+        headers={"Content-Type": "application/pdf"},
+        request=Request(_URL_GUIA, meta={"codigo": "X", "nombre": "Y", "grado": "Z"}),
+    )
+    assert list(GradosSpider().parse_guia(resp)) == []
+
+
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
     resp = _respuesta("tabla_asignaturas.html", url=_URL_ASIG, meta=_META_ASIG)
     salida = list(GradosSpider().parse_asignaturas(resp))
