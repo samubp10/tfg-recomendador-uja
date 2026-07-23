@@ -19,7 +19,9 @@ Para aislar los entornos de desarrollo y proteger la integridad del sistema, se 
 \begin{itemize}                                                                                                                                  
   \item \textbf{Ramas permanentes:} Se mantiene una rama \texttt{main} que aloja de forma exclusiva el código estable y funcional, y una rama paralela \texttt{doc} dedicada íntegramente a la redacción iterativa de la presente memoria en \LaTeX.
   \item \textbf{Ramas efímeras:} Cada nueva característica, corrección o experimento se desarrolla en una rama aislada de un solo uso (ej. \texttt{IT-XX-descripcion}).
-        
+
+        \textcolor{borrador2}{La Figura~\ref{fig:git_flow} recoge esta estrategia: cada rama efímera nace siempre de \texttt{main} actualizado y vuelve a él mediante una confirmación de fusión, de modo que la rama \texttt{doc} avanza en paralelo sin bloquear el desarrollo del código.}
+
         \begin{figure}[H]
           \centering
           \includegraphics[width=0.8\textwidth]{imagenes/GitFlow.pdf}
@@ -54,6 +56,7 @@ Un principio de esta metodología ha sido la validación contra la realidad. Las
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
 \subsection{Criterios de finalización (Definición de Hecho)}
+\label{secc:dod}
 Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
 \begin{enumerate}                                                                                                                                  
   \item \textbf{Funcionalidad:} El código cumple el objetivo técnico estipulado.
@@ -174,6 +177,24 @@ el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo
 (las historias IT-57 a IT-61 se añadieron al descubrir necesidades nuevas o
 al dividir historias que mezclaban trabajos de naturaleza distinta).
 
+\begin{borrador}
+  \item \textbf{Fase:} 5 (IT-52) --- cifras a refrescar al cerrar la memoria.
+        El \textit{backlog} ha vuelto a crecer y las cifras del texto se han
+        quedado atrás. A 23/07/2026 el repositorio tiene \textbf{64} historias
+        (IT-01 a IT-65, sin IT-18, que se dividió en IT-63 e IT-64) con un
+        reparto de \textbf{38} \textit{must}, \textbf{21} \textit{should} y 4
+        \textit{could}. Hay que actualizar el <<61>> y el <<IT-01 a IT-61>> que
+        aparecen en tres sitios (Secciones 4.1.1, 4.2.1 y en el párrafo de
+        arriba) y el reparto MoSCoW de este mismo párrafo. Las filas de IT-62 e
+        IT-65 ya se han añadido a la Tabla~\ref{tab:backlog}.
+  \item Como esto va a volver a pasar cada vez que se añada una tarjeta,
+        conviene dejar el refresco de estas cifras como último paso de IT-52 y
+        no ir corrigiéndolas a mano en cada fase.
+  \item La Tabla~\ref{tab:backlog} tiene ahora un tipo nuevo, DQA, que solo usa
+        IT-65; comprobar al cerrar que el capítulo lo ha explicado antes de que
+        aparezca en la tabla.
+\end{borrador}
+
 \subsection{Estimación del esfuerzo: tallas de camiseta}
 
 Para estimar el coste se ha empleado la técnica de las \textbf{tallas de
@@ -264,6 +285,8 @@ código puede rastrearse hasta la necesidad que la originó.
   IT-57 & Sincronizar estructura de memoria desde Overleaf & Gestión & XS & SHOULD \\
   IT-60 & Quitar del CI la verificación de un dataset no versionado & Gestión & XS & MUST \\
   IT-61 & Correcciones de la primera revisión del tutor sobre la memoria & Memoria & M & MUST \\
+  IT-62 & Segunda ronda de revisión de la memoria & Memoria & M & SHOULD \\
+  IT-65 & DQA-0001: anomalías de la fuente de datos EPSJ & DQA & S & MUST \\
   \addlinespace
   \multicolumn{5}{@{}l}{\textbf{Fase 1 — Incrustaciones y base de datos vectorial}} \\[2pt]
   IT-27 & Diseño del conjunto de evaluación (preguntas etiquetadas) & Experimento & M & MUST \\
@@ -427,6 +450,8 @@ En este proyecto de recomendación de grados, la capacidad de mantener bajo cont
 
 En este trabajo se prioriza un mayor control sobre la infraestructura y el tratamiento local de las consultas, por su adecuación a los requisitos de privacidad y control del sistema; no obstante, la elección del modelo concreto se realizará posteriormente mediante una evaluación técnica y experimental (Fase 2, IT-35/ADR-0005).
 
+\textcolor{borrador2}{La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas familias y sitúa en cada bando las que se citan en este apartado.}
+
 % ------------------------------------------------------------------
 % Figura "VS": dos bandos (propietarios vs pesos abiertos) con los nombres
 % de cada familia como insignias en un color aproximado de su marca. NO son
@@ -483,6 +508,20 @@ En este trabajo se prioriza un mayor control sobre la infraestructura y el trata
 \begin{borrador}                                                                                                                                  
   \item \textbf{Trasladado desde Antecedentes} (reencuadre del capítulo 2).
   \item \textbf{Fase:} 1 (IT-28/IT-31): panorama de bases de datos vectoriales antes de la comparativa experimental y el ADR-0004.
+  \item \textbf{Deuda detectada el 23/07/2026.} IT-30 (canalización de
+        indexación) e IT-27 (conjunto de evaluación) están cerradas y su código
+        está fusionado en \texttt{main} (\texttt{src/tfg\_uja/indexer.py} y
+        \texttt{eval/preguntas\_evaluacion.json}, con 36 preguntas etiquetadas),
+        pero ni una ni otra aparecen todavía en la memoria. Eso incumple el
+        sexto criterio de la Definición de Hecho que se enuncia en la
+        Sección~\ref{secc:dod} de este mismo capítulo, así que hay que cubrirlo
+        en IT-33: una sección de Fase 1 que describa la canalización de
+        indexación y, en el Capítulo~\ref{cap:resultados}, el diseño del
+        conjunto de evaluación.
+  \item Ojo al escribirla: el modelo de incrustaciones y la base vectorial que
+        usa hoy \texttt{indexer.py} son provisionales por decisión explícita
+        (quedan fijados en IT-29/ADR-0003 e IT-32/ADR-0004), así que no se
+        pueden presentar como la elección final del sistema.
 \end{borrador}
 
 \section{Arquitectura del sistema}
