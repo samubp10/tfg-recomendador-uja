@@ -6,7 +6,7 @@
 \textcolor{blue}{[sbp] - respuesta}
 
 \textcolor{red}{[jccuevas] Comentarios generales:
-  \begin{enumerate}              
+  \begin{enumerate}                
     \item Revisa todos los comentarios y los cambios que te he hecho, con detenimiento y antes de hacer más cambios para tenerlos en cuenta en todo lo que hagas nuevo. No borres los comentarios, cuando hagas lo que te dice, responde a ellos. Conforme yo compruebe que lo vas corriendo los borraré. Evidentemente, en la versión final se quitarán.
     \item No se emplea nunca la primera persona: 'podemos', 'obtenemos'. Se debe emplear impersonal reflexivo, 'se ha realizado', 'se ha obtenido', etc.
     \item Las imágenes/tablas/ecuaciones deben ser referidas o comentadas en el texto antes de ponerlas. No se debe poner una imagen, de ningún tipo, que no aparezca comentada previamente en el texto.
@@ -33,7 +33,7 @@ El sistema se fundamenta en una arquitectura de Recuperación Aumentada por Gene
 
 El desarrollo del proyecto abarca un flujo completo de ingeniería de datos e inteligencia artificial: desde la minería de datos mediante técnicas de \textit{web scraping} y la división semántica de la información (\glr{chunking}{chunking}), hasta la generación de representaciones vectoriales (\glr{embeddings}{incrustacion}), su indexación en una \glr{base de datos vectorial}{base de datos vectorial} y la integración final con el LLM a través de una interfaz web accesible. Todo ello se somete a una evaluación experimental con métricas objetivas de fidelidad (\textit{faithfulness}) y relevancia de las respuestas para asegurar que el sistema no incurra en la invención de datos (alucinaciones).
 
-\begin{borrador}              
+\begin{borrador}                
   \item El resumen ya está redactado. Queda únicamente el diagrama de bloques del conjunto del TFG, que lo dejaré para más adelante.
 \end{borrador}
 
@@ -71,7 +71,7 @@ El ámbito de conocimiento del sistema se restringe de forma exclusiva a la ofer
 
 \subsection{Público objetivo y profundidad de la información}
 El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guía docente} se han acotado a:
-\begin{itemize}
+\begin{itemize}  
   \item \textbf{Información incluida:} Se priorizan los resúmenes, los requisitos previos, el temario de las asignaturas y las salidas profesionales de cada grado, ya que estos son los datos que mayor valor aportan a un estudiante.
   \item \textbf{Información excluida:} Se omiten deliberadamente metadatos orientados a alumnos ya matriculados previamente, tales como los sistemas de evaluación, la bibliografía específica o el listado del profesorado. Esta decisión técnica no solo optimiza el proceso de extracción y el tamaño de la base de datos vectorial, sino que evita la dispersión semántica del modelo durante la fase de generación de respuestas.
 \end{itemize}
@@ -80,7 +80,7 @@ El sistema está diseñado para orientar a estudiantes preuniversitarios (Educac
 
 El resto del documento se organiza de la siguiente manera:
 
-\begin{itemize}              
+\begin{itemize}                
   \item \textbf{El Capítulo~\ref{cap:antecedentes}} revisa los antecedentes (la orientación académica preuniversitaria actual) y el estado del arte (asistentes conversacionales universitarios ya existentes), así como el marco legal y ético que condiciona el diseño del sistema.
   \item \textbf{El Capítulo~\ref{cap:objetivos}} formula el objetivo general, los objetivos específicos y la hipótesis de trabajo.
   \item \textbf{El Capítulo~\ref{cap:materialesymetodos}} describe la metodología aplicada, las tecnologías empleadas, la arquitectura del sistema y el desarrollo de cada fase.
@@ -88,12 +88,3 @@ El resto del documento se organiza de la siguiente manera:
   \item \textbf{El Capítulo~\ref{cap:conclusiones}} valora el grado de cumplimiento de los objetivos y propone líneas de trabajo futuro.
   \item \textbf{El Capítulo~\ref{cap:definiciones}} recoge las definiciones y abreviaturas utilizadas a lo largo de la memoria.
 \end{itemize}
-
-\begin{borrador}
-  \item \textbf{Fase:} 3--5 (IT-47, IT-51, IT-54). Esta lista no menciona los
-        anexos porque todavía no existe ninguno, pero hay tres tarjetas que los
-        producen: documentación técnica de la API, resultados completos de la
-        validación con usuarios e instalación y configuración del sistema. Al
-        crear el primero hay que añadir aquí su viñeta y el
-        \texttt{\textbackslash input} correspondiente en \texttt{main.tex}.
-\end{borrador}
