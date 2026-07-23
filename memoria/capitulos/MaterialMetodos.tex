@@ -759,6 +759,10 @@ la titulación, de forma que conserve el sentido cuando se recupere aislado del 
 1\,500 de máximo (contando el encabezado), y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
 
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-28/IT-29). Estos tres valores se fijaron por criterio, no por experimento. Cuando se elija el modelo de embeddings hay que revisar el tamaño máximo contra su ventana de contexto real y contrastar objetivo/mínimo con las métricas de recuperación del experimento comparativo, en vez de dejarlos como están por costumbre.
+\end{borrador}
+
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
 El diagrama recoge además las dos ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.
