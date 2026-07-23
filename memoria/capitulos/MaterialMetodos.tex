@@ -1,7 +1,7 @@
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
-\textcolor{borrador2}{Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (ADR) correspondiente.}
+\textcolor{borrador2}{Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.}
 
 \section{Metodología de trabajo}
 
@@ -647,6 +647,8 @@ Durante el estudio de la fuente de datos, se han documentado los siguientes obst
   \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
   \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
 \end{itemize}
+
+\textcolor{borrador2}{Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}; aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.}
 
 \subsection{Justificación del enfoque técnico}
 
