@@ -15,6 +15,7 @@ import scrapy
 from scrapy.http import Request, Response
 from parsel import Selector, SelectorList
 
+from tfg_uja.guia_pdf import es_pdf, extraer_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
@@ -355,6 +356,9 @@ class GradosSpider(scrapy.Spider):
                 si se usó la limpieza general en vez de la extracción
                 estructurada.
         """
+        if es_pdf(response.headers.get("Content-Type"), response.body):
+            yield from self._guia_desde_pdf(response)
+            return
         secciones = {
             "resumen": self._contenido_seccion(response, "resumen"),
             "temario": self._contenido_seccion(response, "descripcioncontenidos"),
@@ -380,6 +384,43 @@ class GradosSpider(scrapy.Spider):
             "grado": response.meta["grado"],
             "fallback": fallback,
             **secciones,
+        }
+
+    def _guia_desde_pdf(self, response: Response) -> Iterator[dict[str, Any]]:
+        """Emite la guía docente cuando el servidor la sirve como PDF.
+
+        Desde el curso 2026-27 la EPSJ publica algunas guías como PDF detrás
+        de una URL que sigue acabando en ``.html``. La extracción y el
+        filtrado de datos personales viven en
+        :mod:`~tfg_uja.guia_pdf`; aquí solo se decide qué hacer con el
+        resultado. Si el PDF no se puede leer o no contiene resumen ni
+        temario, no se emite ningún item: la asignatura queda como «sin guía»
+        (un chunk informativo, IT-09), en lugar de activar el mecanismo de
+        respaldo, que volcaría el binario del PDF en la colección.
+
+        Args:
+            response (scrapy.http.Response): Respuesta con el PDF de la guía.
+
+        Yields:
+            dict: Resumen y temario de la guía, con ``fallback`` siempre
+                ``False``. No se emite nada si el PDF es ilegible.
+        """
+        datos = extraer_guia(response.body)
+        if datos is None:
+            self.logger.warning(
+                "Guía %s servida como PDF ilegible o sin secciones útiles; "
+                "se omite y la asignatura queda como «sin guía».",
+                response.meta["codigo"],
+            )
+            return
+        yield {
+            "tipo": "guia",
+            "codigo": response.meta["codigo"],
+            "nombre": response.meta["nombre"],
+            "grado": response.meta["grado"],
+            "fallback": False,
+            "resumen": datos["resumen"],
+            "temario": datos["temario"],
         }
 
     @staticmethod
