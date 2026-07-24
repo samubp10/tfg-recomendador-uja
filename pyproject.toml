@@ -23,7 +23,11 @@ authors = [
     {name = "Samuel Blanco Palmero"}
 ]
 # Dependencias principales de producción (se instalan por defecto con pip install)
-dependencies = ["scrapy>=2.13"]
+# - scrapy: rastreo de la web de la EPSJ.
+# - pypdf: extracción del texto de las guías docentes que la EPSJ sirve como
+#   PDF desde el curso 2026-27 (IT-67). Es Python puro y ligero, así que el CI
+#   puede usarlo directamente en los tests, sin binarios externos como poppler.
+dependencies = ["scrapy>=2.13", "pypdf>=4.0"]
 
 # ==============================================================================
 # DEPENDENCIAS OPCIONALES (Optional Dependencies)
