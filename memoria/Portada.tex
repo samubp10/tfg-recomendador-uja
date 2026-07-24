@@ -30,8 +30,6 @@
 \pagestyle{fancy}
 \fancyhf{}
 
-\usepackage{lipsum} % Para generar texto como contenido de prueba, se puede eliminar en la memoria final
-
 \usepackage{helvet}
 
 \usepackage{wallpaper}   % Para introducir el PDF con la portada EPSJ
@@ -118,6 +116,10 @@
 }
 
 \renewcommand{\familydefault}{\sfdefault}
+% Decisión explícita (IT-70): la guía de estilo pide "sin espaciado especial
+% entre párrafos", y este \parskip lo añade. Se mantiene sin cambios porque
+% viene de la plantilla oficial del Dpto. de Informática (Charte), no de una
+% elección propia; es defendible ante el tutor por ese origen.
 \setlength{\parskip}{1em}
 
 % Configuración de encabezado y pie
@@ -138,22 +140,25 @@
 \newcommand{\Portada}{ %
     \thispagestyle{empty}
     \ULCornerWallPaper{1}{imagenes/portada.pdf}
-    \begin{textblock*}{18.45cm}(1.4cm,12cm) 
+    \begin{textblock*}{18.45cm}(1.4cm,12cm)
         \centering
-        {\fontsize{26}{38}\selectfont \textbf{\color{naranja}\TituloTFG}}
+        % Tamaños de portada por normativa (criteriosYestilo_TFG.pdf, p.3): TÍTULO
+        % 30-36pt; resto de campos (grado, autor, fecha) 16-18pt. Antes iban a 26/14/14,
+        % por debajo del mínimo exigido en tres de los cuatro campos dinámicos.
+        {\fontsize{32}{40}\selectfont \textbf{\color{naranja}\TituloTFG}}
       \vspace{.5cm}
 
-      {\fontsize{16}{19}\selectfont Autor: \Estudiante}
+      {\fontsize{18}{21}\selectfont Autor: \Estudiante}
 
-      {\fontsize{14}{19}\selectfont Grado: Ingeniería en Informática}
+      {\fontsize{18}{21}\selectfont Grado: Ingeniería en Informática}
 
       {\fontsize{12}{10}\selectfont \ifdefempty{\TutorB}{Director}{Directores}: \TutorA\ifdefempty{\TutorB}{}{ y \TutorB}}
       \vspace{-.4cm}
-      
+
       {\fontsize{12}{10}\selectfont Departamento del director: Informática}
-      
-      \vspace{1cm}
-      {\fontsize{14}{10}\selectfont Fecha: \Fecha}
+
+      \vspace{0.3cm}
+      {\fontsize{18}{21}\selectfont Fecha: \Fecha}
     \end{textblock*}
     ~
     \clearpage
