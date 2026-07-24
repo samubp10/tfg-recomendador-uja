@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Claves de deduplicación consideradas (ADR-0001).}
+  \label{tab:claves_dedup}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.1cm} c c Y@{}}
+    \toprule
+    \textbf{Clave}      & \textbf{Conjuntos} & \textbf{Copias} & \textbf{Comportamiento observado}                      \\
+    \midrule
+    Solo contenido      & 31                 & 71              & 
+    Agrupa las tres parejas dudosas, incluida la que no debe agruparse. Descartada.                                     \\
+    \addlinespace
+    (nombre, contenido) & 28                 & 68              & 
+    Evita la fusión errónea a costa de dejar sin agrupar dos parejas que sí eran la misma asignatura. \textbf{Elegida}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
