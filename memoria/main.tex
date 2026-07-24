@@ -1,4 +1,9 @@
 % !TeX spellcheck = es_ES
+% Decisión explícita (IT-70): la guía de estilo pide la numeración de página en
+% el margen "inferior derecho"; con "twoside" va al borde exterior (derecha en
+% impares, izquierda en pares), que es el estándar de una memoria a doble cara
+% y no contradice la intención de la norma (evitar el margen interior, de
+% encuadernación). Se mantiene "twoside" en vez de pasar a "oneside".
 \documentclass[12pt, a4paper, twoside]{report}   % Tamaño de papel, de fuente y márgenes
 \usepackage[spanish]{babel}  % Idioma y codificación, para poder usar
 \usepackage[utf8x]{inputenc} % tildes, eñes, etc., sin problemas
@@ -20,6 +25,14 @@
 \usepackage{ulem} % For \sout (strikeout) command
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, fit, shapes.geometric, backgrounds, shapes.multipart}
+\usepackage{titlesec}
+% Subapartados en cursiva (normativa EPSJ, criteriosYestilo_TFG.pdf p.3: "los
+% subapartados en cursiva"). La clase report pone \subsection en negrita por
+% defecto, igual que \section, sin distinguir ambos niveles. Se conserva el
+% mismo tamaño (\large) y el mismo espaciado antes/después del original de la
+% clase; solo cambia \bfseries por \itshape.
+\titleformat{\subsection}{\normalfont\large\itshape}{\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 % Estilo común para los diagramas hechos en TikZ, con los MISMOS colores que
 % los generados con Mermaid (lavanda para nodos, amarillo pálido para grupos),
