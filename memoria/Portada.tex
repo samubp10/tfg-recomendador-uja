@@ -41,17 +41,17 @@
 
 \usepackage{hyperref}  % Para URL como enlaces
 \hypersetup{
-    colorlinks=true,
-    linkcolor=blue,
-    filecolor=magenta,      
-    urlcolor=cyan,
-    pdftitle={\TituloTFG},
-    pdfauthor={\Estudiante}
-    bookmarks=true,
-    bookmarksopen=true,
-    pdfpagemode=FullScreen,
-    breaklinks=true,
-    citecolor=cyan,
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,
+  urlcolor=cyan,
+  pdftitle={\TituloTFG},
+  pdfauthor={\Estudiante}
+  bookmarks=true,
+  bookmarksopen=true,
+  pdfpagemode=FullScreen,
+  breaklinks=true,
+  citecolor=cyan,
 }
 
 \usepackage{booktabs}  % Para tablas con mejor apariencia
@@ -93,33 +93,32 @@
 \renewcommand{\lstlistlistingname}{Lista de listados de código}
 \lstset
 {
-    language=[LaTeX]TeX,
-    breaklines=true,
-    basicstyle=\tt\scriptsize,
-    keywordstyle=\color{blue},
-    identifierstyle=\color{gray},
-    texcl=true
+  language=[LaTeX]TeX,
+  breaklines=true,
+  basicstyle=\tt\scriptsize,
+  keywordstyle=\color{blue},
+  identifierstyle=\color{gray},
+  texcl=true
 }
 \lstset{
-    language=Python,
-    literate={á}{{\'a}}1
-        {ã}{{\~a}}1
-        {é}{{\'e}}1
-        {ó}{{\'o}}1
-        {í}{{\'i}}1
-        {ñ}{{\~n}}1
-        {¡}{{!`}}1
-        {¿}{{?`}}1
-        {ú}{{\'u}}1
-        {Í}{{\'I}}1
-        {Ó}{{\'O}}1
+  language=Python,
+  literate={á}{{\'a}}1
+    {ã}{{\~a}}1
+    {é}{{\'e}}1
+    {ó}{{\'o}}1
+    {í}{{\'i}}1
+    {ñ}{{\~n}}1
+    {¡}{{!`}}1
+    {¿}{{?`}}1
+    {ú}{{\'u}}1
+    {Í}{{\'I}}1
+    {Ó}{{\'O}}1
 }
 
 \renewcommand{\familydefault}{\sfdefault}
 % Decisión explícita (IT-70): la guía de estilo pide "sin espaciado especial
 % entre párrafos", y este \parskip lo añade. Se mantiene sin cambios porque
-% viene de la plantilla oficial del Dpto. de Informática (Charte), no de una
-% elección propia; es defendible ante el tutor por ese origen.
+% viene de la plantilla oficial del Dpto. de Informática (Charte)
 \setlength{\parskip}{1em}
 
 % Configuración de encabezado y pie
@@ -138,50 +137,49 @@
 % julio 2024 - Nueva portada la EPSJ para TFG
 \definecolor{naranja}{RGB}{198,97,21}
 \newcommand{\Portada}{ %
-    \thispagestyle{empty}
-    \ULCornerWallPaper{1}{imagenes/portada.pdf}
-    \begin{textblock*}{18.45cm}(1.4cm,12cm)
-        \centering
-        % Tamaños de portada por normativa (criteriosYestilo_TFG.pdf, p.3): TÍTULO
-        % 30-36pt; resto de campos (grado, autor, fecha) 16-18pt. Antes iban a 26/14/14,
-        % por debajo del mínimo exigido en tres de los cuatro campos dinámicos.
-        {\fontsize{32}{40}\selectfont \textbf{\color{naranja}\TituloTFG}}
-      \vspace{.5cm}
+  \thispagestyle{empty}
+  \ULCornerWallPaper{1}{imagenes/portada.pdf}
+  \begin{textblock*}{18.45cm}(1.4cm,12cm)
+    \centering
+    % Tamaños de portada por normativa (criteriosYestilo_TFG.pdf, p.3): TÍTULO
+    % 30-36pt; resto de campos (grado, autor, fecha) 16-18pt.
+    {\fontsize{30}{52}\selectfont \textbf{\color{naranja}\TituloTFG}}
+    \vspace{.5cm}
 
-      {\fontsize{18}{21}\selectfont Autor: \Estudiante}
+    {\fontsize{16}{21}\selectfont Autor: \Estudiante}
 
-      {\fontsize{18}{21}\selectfont Grado: Ingeniería en Informática}
+    {\fontsize{16}{21}\selectfont Grado: Ingeniería en Informática}
 
-      {\fontsize{12}{10}\selectfont \ifdefempty{\TutorB}{Director}{Directores}: \TutorA\ifdefempty{\TutorB}{}{ y \TutorB}}
-      \vspace{-.4cm}
+    {\fontsize{12}{10}\selectfont \ifdefempty{\TutorB}{Director}{Directores}: \TutorA\ifdefempty{\TutorB}{}{ y \TutorB}}
+    \vspace{-.4cm}
 
-      {\fontsize{12}{10}\selectfont Departamento del director: Informática}
+    {\fontsize{12}{10}\selectfont Departamento del director: Informática}
 
-      \vspace{0.3cm}
-      {\fontsize{18}{21}\selectfont Fecha: \Fecha}
-    \end{textblock*}
-    ~
-    \clearpage
-    \ClearWallPaper
-    \thispagestyle{empty}
-    \definecolor{flashwhite}{rgb}{0.95, 0.95, 0.96}
-    \cleardoublepage
+    \vspace{0.3cm}
+    {\fontsize{16}{21}\selectfont Fecha: \Fecha}
+  \end{textblock*}
+  ~
+  \clearpage
+  \ClearWallPaper
+  \thispagestyle{empty}
+  \definecolor{flashwhite}{rgb}{0.95, 0.95, 0.96}
+  \cleardoublepage
 
-    \thispagestyle{empty}
-    \begin{figure}
-        \centering
-        \includegraphics[width=.4\textwidth]{imagenes/uja.jpg}
-    \end{figure}
-    
-    \vspace*{4em}
-    
-    D./Dª \TutorA \ifdefempty{\TutorB}{}{~y D./Dª \TutorB}, tutor(es) del Trabajo Fin de Grado titulado: \textbf{\TituloTFG}, que presenta \Estudiante, autoriza(n) su presentación para defensa y evaluación en la Escuela Politécnica Superior de Jaén.
-    
-    \vspace*{2em}
-    \begin{center}
-        Jaén, \Fecha
-    \end{center}
-    
-    \clearpage\thispagestyle{empty}
-    \onehalfspacing  % Fijamos el interlineado   
+  \thispagestyle{empty}
+  \begin{figure}
+    \centering
+    \includegraphics[width=.4\textwidth]{imagenes/uja.jpg}
+  \end{figure}
+
+  \vspace*{4em}
+
+  D./Dª \TutorA \ifdefempty{\TutorB}{}{~y D./Dª \TutorB}, tutor(es) del Trabajo Fin de Grado titulado: \textbf{\TituloTFG}, que presenta \Estudiante, autoriza(n) su presentación para defensa y evaluación en la Escuela Politécnica Superior de Jaén.
+
+  \vspace*{2em}
+  \begin{center}
+    Jaén, \Fecha
+  \end{center}
+
+  \clearpage\thispagestyle{empty}
+  \onehalfspacing  % Fijamos el interlineado   
 }
