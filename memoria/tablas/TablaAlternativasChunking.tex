@@ -1,0 +1,28 @@
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Estrategias de fragmentación consideradas (ADR-0001).}
+  \label{tab:alternativas_chunking}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.5cm} Y c@{}}
+    \toprule
+    \textbf{Estrategia}                                                                                                                                                                                                       & \textbf{Motivo del descarte o de la elección} & \textbf{Decisión} \\
+    \midrule
+    Tamaño fijo con solape                                                                                                                                                                                                    & 
+    Es la más simple, pero corta a mitad de frase y, sobre la colección completa, puede juntar dos asignaturas en un mismo fragmento.                                                                                         & 
+    Descartada                                                                                                                                                                                                                                                                                    \\
+    \addlinespace
+    Estructural por unidad semántica                                                                                                                                                                                          & 
+    Respeta la restricción por construcción, ya que parte de la unidad (la guía de una asignatura o el bloque de salidas de una titulación) y solo la divide si excede el máximo, cortando por fronteras naturales del texto. & 
+    \textbf{Elegida}                                                                                                                                                                                                                                                                              \\
+    \addlinespace
+    Semántica por incrustaciones                                                                                                                                                                                              & 
+    Cortar donde cae la similitud entre frases obligaría a elegir ya el modelo de incrustaciones, 
+    que es una decisión de la Fase 1. Prematura.                                                                                                                                                                              & 
+    Descartada                                                                                                                                                                                                                                                                                    \\
+    \addlinespace
+    Un fragmento por asignatura, sin dividir                                                                                                                                                                                  & 
+    La mitad de las guías supera los 2\,677 caracteres y la mayor llega a 23\,940: el sobrante se truncaría en silencio al calcular la incrustación, perdiendo contenido sin aviso.                                           & 
+    Descartada                                                                                                                                                                                                                                                                                    \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
