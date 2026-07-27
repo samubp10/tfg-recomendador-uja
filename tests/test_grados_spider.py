@@ -331,6 +331,83 @@ def test_electrica_separa_las_menciones_combinadas_con_barra():
     }
 
 
+# --- IT-76 (columnas por rótulo): caso real de Geomática plan 2025 ---
+#
+# La EPSJ intercaló una columna "Curso recomendado" en las tablas de mención
+# de este grado, con lo que la mención pasó de la 3.ª a la 4.ª posición:
+#
+#   ['Código', 'Asignatura', 'Curso recomendado', 'Mención', 'Créditos ECTS']
+#
+# El código antiguo miraba siempre cabeceras[2] y descartaba la tabla entera
+# con un aviso, perdiendo las 20 optativas de mención del grado sin que nada
+# fallara. Estas pruebas fijan el comportamiento correcto.
+
+_URL_GEO = (
+    "https://eps.ujaen.es/grados/"
+    "grado-en-ingenieria-geomatica-y-topografica-plan-2025/asignaturas-y-profesorado"
+)
+
+
+def _asignaturas_geomatica():
+    resp = _respuesta(
+        "tabla_geomatica_plan2025.html",
+        url=_URL_GEO,
+        meta={"nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"},
+    )
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_geomatica_no_pierde_las_tablas_con_columna_intercalada():
+    # Con el código antiguo salían 20 (solo las troncales): las dos tablas de
+    # mención se omitían enteras.
+    items = _asignaturas_geomatica()
+    assert len(items) == 39
+    assert len([i for i in items if i["menciones"]]) == 19
+
+
+def test_geomatica_la_mencion_no_se_lee_de_la_columna_equivocada():
+    # Si se leyera por posición fija, en "Mención" caería el curso recomendado
+    # ("3" o "4") y en ECTS caería la mención.
+    bd = _por_nombre(_asignaturas_geomatica(), "Bases de datos geoespaciales")
+    assert bd is not None
+    assert bd["menciones"] == ["TIG"]
+    assert bd["ects"] == "6"
+    assert bd["tipo_asignatura"] == "OP"
+
+
+def test_geomatica_fusiona_la_optativa_repetida_sin_codigo():
+    # "Prácticas externas" figura en las dos tablas de mención y su código
+    # viene vacío, así que agrupar solo por código la duplicaría.
+    items = _asignaturas_geomatica()
+    practicas = [i for i in items if i["nombre"] == "Prácticas externas"]
+    assert len(practicas) == 1
+    assert set(practicas[0]["menciones"]) == {"TIG", "TIA"}
+
+
+def test_geomatica_conserva_las_troncales_de_la_misma_pagina():
+    # Las tablas troncales de la misma página siguen con su tipo real, no "OP".
+    metodos = _por_nombre(_asignaturas_geomatica(), "Métodos topográficos")
+    assert metodos is not None
+    assert metodos["codigo"] == "15412006"
+    assert metodos["tipo_asignatura"] == "OB"
+    assert metodos["menciones"] == []
+
+
+def test_columnas_de_cabecera_localiza_por_rotulo_no_por_posicion():
+    columnas = GradosSpider._columnas_de_cabecera(
+        ["Código", "Asignatura", "Curso recomendado", "Mención", "Créditos ECTS"]
+    )
+    assert columnas == {"codigo": 0, "nombre": 1, "mencion": 3, "ects": 4}
+
+
+def test_columnas_de_cabecera_ignora_las_columnas_desconocidas():
+    # "Curso recomendado" no forma parte del modelo de datos y no debe aparecer.
+    columnas = GradosSpider._columnas_de_cabecera(
+        ["Código", "Asignatura", "Tipo", "Créditos ECTS"]
+    )
+    assert columnas == {"codigo": 0, "nombre": 1, "tipo": 2, "ects": 3}
+
+
 # --- IT-06: contenido de la guía docente (parse_guia) ---
 #
 # La web declara charset=UTF-8 en el <meta>, pero el servidor real envía la
