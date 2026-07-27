@@ -47,6 +47,38 @@ def test_las_peticiones_van_a_urls_absolutas():
     assert all(p.url.startswith("https://eps.ujaen.es/") for p in peticiones)
 
 
+# --- IT-77: las titulaciones en extinción no se rastrean ---
+#
+# Un grado en extinción no admite nuevas matrículas, así que recomendárselo a
+# un estudiante preuniversitario sería un error. Se descarta en parse(), antes
+# de gastar peticiones en su portada, sus asignaturas y sus guías.
+#
+# El menú lateral de la fixture de Geomática trae las 13 titulaciones reales
+# del centro, incluida la que está en extinción; el de grados.html solo cuatro.
+
+
+def test_no_rastrea_la_titulacion_en_extincion():
+    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
+    nombres = [p.meta["nombre"] for p in peticiones]
+    assert not any(GradosSpider.esta_en_extincion(n) for n in nombres)
+    assert "Grado en Ingeniería Geomática y Topográfica (en extinción)" not in nombres
+
+
+def test_conserva_el_plan_vigente_del_mismo_grado():
+    # El plan 2025 sustituye al que se extingue: no puede caer con él.
+    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
+    nombres = [p.meta["nombre"] for p in peticiones]
+    assert "Grado en Ingeniería Geomática y Topográfica (plan 2025)" in nombres
+    assert len(nombres) == 12
+
+
+def test_esta_en_extincion_no_depende_de_tildes_ni_mayusculas():
+    assert GradosSpider.esta_en_extincion("Grado en X (en extinción)")
+    assert GradosSpider.esta_en_extincion("Grado en X (EN EXTINCION)")
+    assert GradosSpider.esta_en_extincion("Grado en X (En Extinción)")
+    assert not GradosSpider.esta_en_extincion("Grado en Ingeniería Informática")
+
+
 # --- IT-04: portada del grado (parse_portada) ---
 
 
