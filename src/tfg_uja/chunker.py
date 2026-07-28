@@ -260,6 +260,31 @@ def _chunks_de_unidad(
     ]
 
 
+def _clave_asignatura(grado: str, codigo: str | None, nombre: str) -> tuple[str, str]:
+    """Identifica una asignatura dentro de su titulación.
+
+    El código no basta como identificador: las asignaturas de los planes de
+    implantación reciente todavía no lo tienen publicado (cadena vacía), y
+    agrupar solo por código las colapsa todas en una misma entrada, de modo
+    que la última sobrescribe en silencio a las anteriores. Cuando falta el
+    código se usa el nombre, que la fuente sí publica siempre.
+
+    Es la misma regla que aplican :mod:`~tfg_uja.grados_spider` al fusionar
+    las menciones y ``scripts/check_chunks.py`` al cotejar las unidades: los
+    tres deben identificar una asignatura igual o dejan de hablar del mismo
+    objeto. Cualquier código nuevo que necesite identificarla debe usarla.
+
+    Args:
+        grado: Titulación en la que se imparte la asignatura.
+        codigo: Código publicado por la fuente, o vacío si no lo hay.
+        nombre: Nombre de la asignatura.
+
+    Returns:
+        Par ``(grado, codigo_o_nombre)`` que identifica la asignatura.
+    """
+    return (grado, codigo or nombre)
+
+
 def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Convierte el dataset del spider en la lista de chunks del RAG.
 
@@ -275,7 +300,9 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         Lista de items ``chunk`` con ``chunk_index``/``total_chunks``.
     """
     asignaturas = {
-        (a["grado"], a["codigo"]): a for a in items if a["tipo"] == "asignatura"
+        _clave_asignatura(a["grado"], a["codigo"], a["nombre"]): a
+        for a in items
+        if a["tipo"] == "asignatura"
     }
     chunks: list[dict[str, Any]] = []
 
@@ -306,7 +333,9 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         guias = sorted(guias, key=lambda g: g["grado"])
         grados = [g["grado"] for g in guias]
         codigos = [g["codigo"] for g in guias]
-        asignatura = asignaturas.get((guias[0]["grado"], guias[0]["codigo"]))
+        asignatura = asignaturas.get(
+            _clave_asignatura(guias[0]["grado"], guias[0]["codigo"], nombre)
+        )
         encabezado = (
             _encabezado_asignatura(asignatura, grados)
             if asignatura
