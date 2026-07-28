@@ -126,9 +126,23 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     supere el máximo y ambas queden por encima del mínimo. El máximo es la
     restricción dura (un chunk que excede la ventana del modelo de
     embeddings se truncaría en silencio, perdiendo contenido); el mínimo es
-    una preferencia de calidad. Solo se descarta un fragmento cuando la
-    unidad no tiene ningún otro chunk con el que fusionarlo y no alcanza el
-    mínimo por sí solo: ese caso no existe en el dataset actual.
+    una preferencia de calidad.
+
+    Esa jerarquía es la que decide el caso en el que reequilibrar no sirve
+    de nada. El texto combinado solo se puede repartir por sus fronteras
+    naturales (párrafos y frases), y a veces las únicas disponibles son las
+    que ya separaban el par: el reempaquetado devuelve entonces el mismo
+    reparto de partida. Como el par no cabe junto sin superar el máximo y no
+    hay forma de repartirlo mejor, se acepta el fragmento corto y se sigue
+    adelante: incumplir una preferencia es admisible, romper la restricción
+    dura no lo es.
+
+    Reconocer ese caso es además lo que garantiza que el bucle termine. Solo
+    se vuelve a empezar cuando el número de fragmentos ha disminuido de
+    verdad, y como no puede bajar de uno, el número de reinicios está
+    acotado; en cualquier otra situación se avanza. Sin esa condición, un
+    par irreducible hacía que la función no terminara nunca (caso real:
+    «Minería web», 13313008, en el corpus de 2026-27).
 
     Args:
         chunks: Chunks de una misma unidad semántica, en orden.
@@ -136,7 +150,8 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
         maximo: Tamaño que ningún chunk resultante supera.
 
     Returns:
-        Chunks tras la fusión, en orden.
+        Chunks tras la fusión, en orden. Ninguno supera el máximo; alguno
+        puede quedar por debajo del mínimo si no había manera de evitarlo.
     """
     resultado = list(chunks)
     i = 0
@@ -148,16 +163,22 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
         primero, segundo = min(i, vecino), max(i, vecino)
         combinado = f"{resultado[primero]}\n{resultado[segundo]}"
         if len(combinado) <= maximo:
+            # El par cabe junto: dos fragmentos pasan a ser uno.
             resultado[primero : segundo + 1] = [combinado]
+            i = 0  # hay progreso, se re-evalúa desde el principio
+            continue
+        # Reequilibrar: dos mitades equilibradas en lugar de un chunk
+        # desbordado (caso real: la guía de Geofísica, 13212010).
+        objetivo_local = min(len(combinado) // 2 + 1, maximo)
+        piezas = _dividir_en_piezas(combinado, maximo)
+        reequilibrado = _empaquetar(piezas, objetivo_local, maximo)
+        resultado[primero : segundo + 1] = reequilibrado
+        if len(reequilibrado) < 2:
+            i = 0  # el reparto ha reducido el número de fragmentos
         else:
-            # Reequilibrar: dos mitades equilibradas en lugar de un chunk
-            # desbordado (caso real: la guía de Geofísica, 13212010).
-            objetivo_local = min(len(combinado) // 2 + 1, maximo)
-            piezas = _dividir_en_piezas(combinado, maximo)
-            resultado[primero : segundo + 1] = _empaquetar(
-                piezas, objetivo_local, maximo
-            )
-        i = 0  # re-evaluar desde el principio tras cada cambio
+            # El reparto no reduce nada: puede ser el mismo de partida. Se
+            # avanza en vez de reiniciar, para no repetirlo indefinidamente.
+            i = segundo + 1
     return resultado
 
 
