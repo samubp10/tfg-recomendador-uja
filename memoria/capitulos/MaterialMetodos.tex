@@ -663,6 +663,15 @@ la titulación, de forma que conserve el sentido cuando se recupere aislado del 
 1\,500 de máximo (contando el encabezado), y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
 
+\textcolor{borrador2}{Esa jerarquía deja de ser una declaración de intenciones en el caso en que
+las dos condiciones no se pueden satisfacer a la vez. Cuando dos fragmentos consecutivos no caben
+juntos bajo el máximo y el texto tampoco ofrece una frontera por la que repartirlos de otra manera,
+el procedimiento conserva el fragmento corto en lugar de forzar la unión: incumplir una preferencia
+de calidad es admisible, mientras que superar el máximo haría que el modelo de incrustaciones
+truncase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera. Reconocer ese
+caso es además lo que garantiza que el procedimiento termine, ya que solo vuelve a empezar cuando
+el número de fragmentos ha disminuido de verdad.}
+
 \begin{borrador}                                
   \item \textbf{Fase:} 1 (IT-28/IT-29). Cuando se elija el modelo de embeddings hay que revisar y seguramente cambiar el tamaño máximo contra su ventana de contexto real y contrastar objetivo/mínimo con las métricas de recuperación del experimento comparativo.
 \end{borrador}
