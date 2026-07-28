@@ -818,18 +818,34 @@ patrón es el mismo que el de los defectos descritos más arriba, y conviene enu
 un verificador puede estar midiendo algo distinto de lo que se cree que mide, y mientras tanto
 devuelve un resultado correcto.}
 
+\textcolor{borrador2}{Para poder afirmar algo sobre el conjunto de datos hace falta saber de cuándo
+es. Hasta IT-90 no había ninguna fecha dentro de los ficheros: la única constancia era una nota
+escrita a mano y no versionada, de modo que copiar el conjunto de datos a otro sitio hacía perder
+su procedencia y olvidar actualizar la nota la falseaba. El rastreador registra ahora la fecha de
+extracción, y cada guía docente lleva el curso académico al que pertenece. Ese curso no se escribe
+a mano en ninguna parte: se deduce de la propia dirección de la ficha en el catálogo de la
+Universidad, que lo incluye en su ruta, con lo que un dato tomado de la fuente no puede quedarse
+obsoleto sin que nadie lo advierta. Cuando la dirección no lo indica, el campo queda vacío en lugar
+de suponer un curso, con el mismo criterio que se aplica al crédito ausente. Los cursos presentes
+se enumeran todos y no se resumen a uno solo, porque la Escuela publica las guías del curso nuevo a
+medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
+dejar implícito.}
+
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
 \begin{borrador}
   \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
         adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
-        \emph{no} reproduce el mismo corpus: la fuente había cambiado (guías del
-        curso 2026-27 servidas en PDF, resuelto en IT-67; y dos titulaciones de
-        Geomática con la tabla de asignaturas reestructurada, aún sin resolver).
-        Es decir, el pipeline reproduce <<el estado actual de la fuente>>, que no
-        es lo mismo que <<el corpus sobre el que se hicieron los experimentos>>.
-        La reproducibilidad exacta exige, además del pipeline, fijar la fecha de
-        rastreo y aceptar que la fuente es un blanco móvil. Conviene decir de qué
-        curso y fecha es el corpus (2025-26, rastreo del 09/07/2026) al
-        caracterizarlo en IT-58, en vez de presentarlo como atemporal.
+        \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
+        (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
+        titulaciones de Geomática con la tabla de asignaturas reestructurada,
+        resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
+        actual de la fuente>>, que no es lo mismo que <<el corpus sobre el que se
+        hicieron los experimentos>>: eso es una limitación de la reproducibilidad
+        que conviene enunciar, no un defecto que se pueda corregir.
+  \item Lo que sí se ha corregido es la mitad que dependía del proyecto: desde
+        IT-90 el propio conjunto de datos lleva dentro su fecha de extracción y
+        su curso, así que ya no hace falta acordarse de decirlo por fuera. Queda
+        pendiente para IT-58 dar esa fecha y ese curso al caracterizar el corpus,
+        en vez de presentarlo como atemporal.
 \end{borrador}
