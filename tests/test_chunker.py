@@ -10,6 +10,7 @@ sus items de asignatura para los metadatos de encabezado.
 """
 
 import json
+import threading
 from pathlib import Path
 
 import pytest
@@ -17,6 +18,7 @@ import pytest
 from tfg_uja.chunker import (
     TAMANO_MAXIMO,
     TAMANO_MINIMO,
+    _fusionar_pequenos,
     procedencia_de,
     trocear_dataset,
 )
@@ -349,3 +351,82 @@ def test_la_procedencia_no_se_convierte_en_un_fragmento():
     chunks = trocear_dataset(items)
     assert all(c["tipo"] == "chunk" for c in chunks)
     assert all("Álgebra" in c["nombre"] for c in chunks)
+
+
+# --- IT-92: la fusión de fragmentos siempre termina ---
+
+# Geometría tomada del caso real que colgó al fragmentador: la guía de
+# «Minería web» (13313008) del Grado en Ingeniería Informática, en el corpus
+# de 2026-27. Su encabezado ocupa 159 caracteres, así que el cuerpo dispone de
+# 1340 (1500 − 159 − 1), y el troceo dejaba tres piezas de 185, 1155 y 1172.
+#
+# El par de las dos primeras suma 1341: excede el máximo por UN carácter, así
+# que no se puede fusionar. Y al reequilibrarlo, sus únicas fronteras de frase
+# son las que ya lo separaban, con lo que el reparto devuelto era idéntico al
+# de partida. La función volvía a empezar y repetía lo mismo indefinidamente.
+_MAXIMO_MINERIA_WEB = 1340
+_MINIMO_MINERIA_WEB = 200
+
+
+def _texto_de(longitud):
+    """Texto de una longitud exacta terminado en punto (frontera de frase)."""
+    relleno = "palabra " * ((longitud // 8) + 1)
+    return relleno[: longitud - 1] + "."
+
+
+def _piezas_del_caso_real():
+    # 185 + 1 (salto) + 1155 = 1341 > 1340: el par no cabe junto.
+    return [_texto_de(185), _texto_de(1155), _texto_de(1172)]
+
+
+def _con_limite_de_tiempo(funcion, segundos=10):
+    """Ejecuta una función en un hilo y falla si no termina a tiempo.
+
+    Un bucle infinito no se puede probar con un assert normal: la prueba se
+    colgaría con él y el CI se quedaría esperando hasta agotar su propio
+    tiempo. Ejecutarla aparte permite que la regresión se manifieste como un
+    fallo con nombre en vez de como una ejecución que no acaba nunca.
+    """
+    resultado = {}
+
+    def ejecutar():
+        resultado["valor"] = funcion()
+
+    hilo = threading.Thread(target=ejecutar, daemon=True)
+    hilo.start()
+    hilo.join(segundos)
+    assert not hilo.is_alive(), (
+        "la fusión de fragmentos no terminó: un par que no cabe junto y que "
+        "no se puede repartir de otra forma hacía que el bucle se repitiera "
+        "indefinidamente (IT-92)"
+    )
+    return resultado["valor"]
+
+
+def test_la_fusion_termina_con_un_par_que_no_se_puede_repartir():
+    # Un único test ejecuta el caso que podría no terminar, y comprueba sobre
+    # su resultado todo lo que hay que comprobar. Repartirlo en varios tests
+    # parecía más limpio, pero un hilo colgado no se puede matar en Python: si
+    # la regresión vuelve, cada test dejaría el suyo girando y unos
+    # interferirían con otros, con lo que el resultado dejaría de ser
+    # determinista. Comprobado: repartido en tres, uno de ellos pasaba.
+    piezas = _piezas_del_caso_real()
+    resultado = _con_limite_de_tiempo(
+        lambda: _fusionar_pequenos(piezas, _MINIMO_MINERIA_WEB, _MAXIMO_MINERIA_WEB)
+    )
+
+    # La jerarquía del proyecto: el máximo es restricción dura y el mínimo una
+    # preferencia. Cuando no hay manera de cumplir ambos, se conserva el
+    # fragmento corto antes que producir uno que se truncaría en silencio.
+    assert all(len(c) <= _MAXIMO_MINERIA_WEB for c in resultado)
+    assert any(len(c) < _MINIMO_MINERIA_WEB for c in resultado)
+    # Y aceptar ese fragmento corto no puede costar contenido.
+    assert sum(len(c) for c in resultado) >= sum(len(p) for p in piezas)
+
+
+def test_un_par_que_si_cabe_junto_se_sigue_fusionando():
+    # El arreglo no debe volver conservadora la fusión normal: si el par cabe
+    # bajo el máximo, se funde igual que antes. Este caso no puede colgarse,
+    # así que no necesita ejecutarse aparte.
+    resultado = _fusionar_pequenos(["a" * 50, "b" * 500], 200, 1340)
+    assert len(resultado) == 1
