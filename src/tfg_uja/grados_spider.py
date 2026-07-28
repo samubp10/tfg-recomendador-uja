@@ -8,8 +8,10 @@ profesionales.
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from collections.abc import Iterator
+from datetime import date
 from typing import Any, Final
 
 import scrapy
@@ -45,6 +47,30 @@ def _normalizar(texto: str) -> str:
     return sin_tildes.strip().lower()
 
 
+#: Curso académico dentro de la URL de una guía docente. La UJA lo incluye en
+#: la ruta del catálogo de fichas (".../p/2025-26/4/130A/13011009/..."), así
+#: que se puede leer de ahí en vez de escribirlo a mano en la configuración:
+#: un dato deducido de la fuente no se queda obsoleto sin que nadie se entere.
+_CURSO_EN_URL: Final[re.Pattern[str]] = re.compile(r"/(\d{4}-\d{2})/")
+
+
+def curso_de_url(url: str | None) -> str | None:
+    """Deduce el curso académico al que pertenece una guía a partir de su URL.
+
+    Args:
+        url (str): URL de la guía docente.
+
+    Returns:
+        str: Curso en formato ``"2025-26"``, o ``None`` si la URL no lo lleva
+            (el formato de la fuente habría cambiado y conviene que se note,
+            en vez de suponer un curso que no consta).
+    """
+    if not url:
+        return None
+    encontrado = _CURSO_EN_URL.search(url)
+    return encontrado.group(1) if encontrado else None
+
+
 class GradosSpider(scrapy.Spider):
     """Spider que recorre los grados de la EPSJ y su información.
 
@@ -70,12 +96,18 @@ class GradosSpider(scrapy.Spider):
     #: la fuente no es consistente al escribirla.
     MARCA_EXTINCION: Final[str] = "en extincion"
 
-    def parse(self, response: Response) -> Iterator[Request]:
+    def parse(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Sigue cada grado del listado hacia su portada.
 
         Recorre los enlaces del menú lateral y, por cada titulación (las que
         contienen la palabra «Grado»), emite una petición a su portada,
         llevando el nombre del grado en los metadatos.
+
+        Antes de nada emite el item ``procedencia`` con la fecha del rastreo
+        (IT-90). Se emite aquí, en el primer callback, y no al terminar,
+        porque Scrapy no permite emitir items una vez cerrado el spider; el
+        curso no hace falta en este item, porque cada guía trae el suyo
+        deducido de su URL y el conjunto se calcula después.
 
         Las titulaciones en extinción se descartan aquí, antes de rastrearlas
         (IT-77): el sistema orienta a estudiantes preuniversitarios y un grado
@@ -87,8 +119,14 @@ class GradosSpider(scrapy.Spider):
             response (scrapy.http.Response): Respuesta de la página de grados.
 
         Yields:
+            dict: El item ``procedencia`` del rastreo.
             scrapy.Request: Petición a la portada de cada grado vigente.
         """
+        yield {
+            "tipo": "procedencia",
+            "fecha_extraccion": date.today().isoformat(),
+            "origen": response.url,
+        }
         enlaces = response.css("aside.layout-sidebar-first nav ul.menu li a")
         for enlace in enlaces:
             nombre = (enlace.css("::text").get() or "").strip()
@@ -489,6 +527,7 @@ class GradosSpider(scrapy.Spider):
             "codigo": response.meta["codigo"],
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
+            "curso": curso_de_url(response.url),
             "fallback": fallback,
             **secciones,
         }
@@ -525,6 +564,7 @@ class GradosSpider(scrapy.Spider):
             "codigo": response.meta["codigo"],
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
+            "curso": curso_de_url(response.url),
             "fallback": False,
             "resumen": datos["resumen"],
             "temario": datos["temario"],

@@ -62,6 +62,53 @@ def _claves_chunk(chunk: dict) -> set[tuple]:
     }
 
 
+def _imprimir_procedencia(procedencia: dict, total_guias: int) -> None:
+    """Muestra de cuándo y de qué curso es el corpus que se está verificando.
+
+    Se imprime lo primero, antes que cualquier estadística: leer «892
+    fragmentos» sin saber a qué extracción corresponden fue justamente el
+    problema que motivó IT-90.
+
+    Args:
+        procedencia: Item ``procedencia`` del ``chunks.json``, o vacío si el
+            fichero se generó antes de IT-90.
+        total_guias: Guías del dataset, para poder avisar en proporción.
+    """
+    if not procedencia:
+        print(
+            "AVISO: este chunks.json no lleva procedencia (anterior a IT-90). "
+            "Regeneralo para saber de cuando y de que curso es."
+        )
+        return
+    if not procedencia.get("fecha_extraccion"):
+        # El fragmentador arrastra la fecha del dataset, y un grados.json
+        # anterior a IT-90 no la trae. No es un fallo del rastreo: es un
+        # dataset viejo, y conviene no confundirlo con un cambio de la fuente.
+        print(
+            "AVISO: el grados.json de origen es anterior a IT-90, asi que no "
+            "consta ni la fecha de extraccion ni el curso. Se sabra al "
+            "regenerar el dataset (IT-80)."
+        )
+        return
+    cursos = ", ".join(procedencia.get("cursos") or []) or "sin determinar"
+    print(
+        f"Procedencia: extraccion {procedencia['fecha_extraccion']} | "
+        f"troceado {procedencia.get('fecha_troceado')} | curso(s) {cursos}"
+    )
+    if len(procedencia.get("cursos") or []) > 1:
+        print(
+            "  NOTA: el corpus mezcla varios cursos. Es esperado mientras la "
+            "EPSJ publica las guias nuevas, pero hay que declararlo al "
+            "caracterizarlo, no dejarlo implicito."
+        )
+    sin_curso = procedencia.get("guias_sin_curso") or 0
+    if sin_curso:
+        print(
+            f"  AVISO: {sin_curso} de {total_guias} guias sin curso en su URL; "
+            "el formato de la fuente puede haber cambiado."
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     """Ejecuta las comprobaciones y reporta las estadísticas del troceo.
 
@@ -77,11 +124,17 @@ def main(argv: list[str] | None = None) -> int:
     ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else datos / "chunks.json"
     ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else datos / "grados.json"
 
-    chunks = json.loads(ruta_chunks.read_text(encoding="utf-8"))
+    items = json.loads(ruta_chunks.read_text(encoding="utf-8"))
+    # El item de procedencia (IT-90) encabeza el fichero pero no es contenido:
+    # se separa por tipo, nunca por posición.
+    chunks = [i for i in items if i.get("tipo") == "chunk"]
+    procedencia = next((i for i in items if i.get("tipo") == "procedencia"), {})
     dataset = json.loads(ruta_dataset.read_text(encoding="utf-8"))
     asignaturas = [d for d in dataset if d["tipo"] == "asignatura"]
     guias = [d for d in dataset if d["tipo"] == "guia"]
     salidas = [d for d in dataset if d["tipo"] == "salidas"]
+
+    _imprimir_procedencia(procedencia, len(guias))
 
     # --- Invariantes de forma ---
     assert chunks, "no hay chunks"

@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
@@ -384,8 +385,52 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return chunks
 
 
+def procedencia_de(items: list[dict[str, Any]]) -> dict[str, Any]:
+    """Compone la procedencia de los fragmentos a partir del dataset (IT-90).
+
+    Arrastra la fecha de extracción que el spider dejó en el dataset y añade
+    los cursos académicos realmente presentes, leídos del campo ``curso`` de
+    cada guía (que el spider dedujo de su URL). Los cursos se enumeran todos:
+    desde que la EPSJ publica las guías de un curso nuevo según las va
+    teniendo, un mismo rastreo puede mezclar dos, y resumirlo a uno solo
+    ocultaría de qué año es cada parte del corpus.
+
+    Args:
+        items: Dataset completo tal como lo exporta el spider.
+
+    Returns:
+        Item ``procedencia`` listo para encabezar el ``chunks.json``.
+    """
+    del_spider = next(
+        (i for i in items if i.get("tipo") == "procedencia"),
+        {},
+    )
+    cursos = sorted(
+        {
+            item["curso"]
+            for item in items
+            if item.get("tipo") == "guia" and item.get("curso")
+        }
+    )
+    guias_sin_curso = sum(
+        1 for i in items if i.get("tipo") == "guia" and not i.get("curso")
+    )
+    return {
+        "tipo": "procedencia",
+        "fecha_extraccion": del_spider.get("fecha_extraccion"),
+        "fecha_troceado": date.today().isoformat(),
+        "cursos": cursos,
+        "guias_sin_curso": guias_sin_curso,
+    }
+
+
 def main(ruta_entrada: str, ruta_salida: str) -> None:
     """Trocea un dataset JSON y escribe los chunks resultantes.
+
+    El fichero de salida empieza por el item ``procedencia`` (IT-90) para que
+    los fragmentos digan por sí mismos de cuándo y de qué curso son, sin
+    depender de una nota escrita aparte que se puede quedar atrás al copiar
+    el fichero.
 
     Args:
         ruta_entrada: Ruta del ``grados.json`` exportado por el spider.
@@ -393,10 +438,16 @@ def main(ruta_entrada: str, ruta_salida: str) -> None:
     """
     items = json.loads(Path(ruta_entrada).read_text(encoding="utf-8"))
     chunks = trocear_dataset(items)
+    procedencia = procedencia_de(items)
     Path(ruta_salida).write_text(
-        json.dumps(chunks, ensure_ascii=False, indent=1), encoding="utf-8"
+        json.dumps([procedencia, *chunks], ensure_ascii=False, indent=1),
+        encoding="utf-8",
     )
-    print(f"{len(chunks)} chunks escritos en {ruta_salida}")
+    cursos = ", ".join(procedencia["cursos"]) or "sin determinar"
+    print(
+        f"{len(chunks)} chunks escritos en {ruta_salida} "
+        f"(extraccion {procedencia['fecha_extraccion']}, curso {cursos})"
+    )
 
 
 if __name__ == "__main__":
