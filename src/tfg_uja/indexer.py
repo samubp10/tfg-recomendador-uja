@@ -57,14 +57,33 @@ Incrustador = Callable[[list[str]], list[list[float]]]
 def cargar_chunks(ruta: Path) -> list[dict[str, Any]]:
     """Carga los chunks desde el JSON exportado por el fragmentador.
 
+    El fichero encabeza la lista con un item ``procedencia`` (IT-90), que
+    describe de cuándo y de qué curso es el corpus pero no es contenido a
+    indexar; se descarta filtrando por ``tipo`` en vez de por posición, para
+    que el orden del fichero no sea un contrato implícito.
+
     Args:
         ruta: Ruta del ``chunks.json``.
 
     Returns:
         Lista de items ``chunk`` tal como los emite ``chunker.py``.
     """
-    chunks: list[dict[str, Any]] = json.loads(ruta.read_text(encoding="utf-8"))
-    return chunks
+    items: list[dict[str, Any]] = json.loads(ruta.read_text(encoding="utf-8"))
+    return [item for item in items if item.get("tipo") == "chunk"]
+
+
+def procedencia_de_indice(ruta: Path) -> dict[str, Any]:
+    """Devuelve la procedencia registrada en un ``chunks.json``.
+
+    Args:
+        ruta: Ruta del ``chunks.json``.
+
+    Returns:
+        El item ``procedencia``, o un diccionario vacío si el fichero es
+        anterior a IT-90 y no lo lleva.
+    """
+    items: list[dict[str, Any]] = json.loads(ruta.read_text(encoding="utf-8"))
+    return next((i for i in items if i.get("tipo") == "procedencia"), {})
 
 
 def metadatos_de_chunk(chunk: dict[str, Any]) -> dict[str, str | int]:
