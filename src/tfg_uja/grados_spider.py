@@ -8,6 +8,7 @@ profesionales.
 
 from __future__ import annotations
 
+import unicodedata
 from collections.abc import Iterator
 from typing import Any, Final
 
@@ -15,6 +16,7 @@ import scrapy
 from scrapy.http import Request, Response
 from parsel import Selector, SelectorList
 
+from tfg_uja.guia_pdf import es_pdf, extraer_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
@@ -22,6 +24,25 @@ from tfg_uja.text_cleaner import (
     separar_oferta,
 )
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
+
+
+def _normalizar(texto: str) -> str:
+    """Pasa un texto a minúsculas y sin tildes, para compararlo con seguridad.
+
+    La web de la EPSJ no es consistente al acentuar: escribe unas veces
+    «Mención» y otras «Mencion», «Créditos ECTS» o «Creditos ECTS». Comparar
+    sobre la forma normalizada evita depender de esa inconsistencia.
+
+    Args:
+        texto (str): Texto tal como llega de la web.
+
+    Returns:
+        str: El texto en minúsculas, sin tildes y sin espacios alrededor.
+    """
+    sin_tildes = (
+        unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    )
+    return sin_tildes.strip().lower()
 
 
 class GradosSpider(scrapy.Spider):
@@ -44,6 +65,11 @@ class GradosSpider(scrapy.Spider):
         "FEED_EXPORT_ENCODING": "utf-8",
     }
 
+    #: Marca con la que la EPSJ señala en el nombre una titulación que ya no
+    #: admite nuevas matrículas. Se compara sin tildes y en minúsculas, porque
+    #: la fuente no es consistente al escribirla.
+    MARCA_EXTINCION: Final[str] = "en extincion"
+
     def parse(self, response: Response) -> Iterator[Request]:
         """Sigue cada grado del listado hacia su portada.
 
@@ -51,20 +77,44 @@ class GradosSpider(scrapy.Spider):
         contienen la palabra «Grado»), emite una petición a su portada,
         llevando el nombre del grado en los metadatos.
 
+        Las titulaciones en extinción se descartan aquí, antes de rastrearlas
+        (IT-77): el sistema orienta a estudiantes preuniversitarios y un grado
+        en extinción no admite nuevas matrículas, así que recomendárselo sería
+        un error. Se descarta en el origen y no más adelante para no gastar
+        peticiones en la web de la UJA sobre datos que no van a usarse.
+
         Args:
             response (scrapy.http.Response): Respuesta de la página de grados.
 
         Yields:
-            scrapy.Request: Petición a la portada de cada grado.
+            scrapy.Request: Petición a la portada de cada grado vigente.
         """
         enlaces = response.css("aside.layout-sidebar-first nav ul.menu li a")
         for enlace in enlaces:
             nombre = (enlace.css("::text").get() or "").strip()
             url = enlace.attrib.get("href")
-            if url and "Grado" in nombre:
-                yield response.follow(
-                    url, callback=self.parse_portada, meta={"nombre": nombre}
+            if not url or "Grado" not in nombre:
+                continue
+            if self.esta_en_extincion(nombre):
+                self.logger.info(
+                    "Titulación en extinción, se excluye del corpus: %r", nombre
                 )
+                continue
+            yield response.follow(
+                url, callback=self.parse_portada, meta={"nombre": nombre}
+            )
+
+    @classmethod
+    def esta_en_extincion(cls, nombre: str) -> bool:
+        """Indica si el nombre de una titulación la marca como en extinción.
+
+        Args:
+            nombre (str): Nombre de la titulación tal como aparece en la web.
+
+        Returns:
+            bool: ``True`` si la titulación ya no admite nuevas matrículas.
+        """
+        return cls.MARCA_EXTINCION in _normalizar(nombre)
 
     def parse_portada(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Extrae de la portada de un grado sus enlaces clave.
@@ -119,17 +169,22 @@ class GradosSpider(scrapy.Spider):
     ) -> Iterator[dict[str, Any] | Request]:
         """Recorre las tablas de asignaturas de un grado.
 
-        La página reúne varias tablas. Unas son troncales (su tercera columna
-        es el tipo de asignatura: FB, OB, OP, ...) y otras son de optativas por
-        mención (su tercera columna es la mención). Se distinguen por la
-        cabecera de esa columna. Por cada fila se limpia el nombre con
+        La página reúne varias tablas. Unas son troncales (traen columna de
+        tipo de asignatura: FB, OB, OP, ...) y otras son de optativas por
+        mención (traen columna de mención). Se distinguen por eso, y cada
+        columna se localiza por el rótulo de su cabecera mediante
+        :meth:`_columnas_de_cabecera`, nunca por su posición: la EPSJ ha
+        intercalado columnas nuevas y una posición fija descartaba la tabla
+        entera en silencio.
+
+        Por cada fila se limpia el nombre con
         :func:`~tfg_uja.text_cleaner.limpiar_texto`, se le retira la nota al
         pie con :func:`~tfg_uja.text_cleaner.quitar_nota_al_pie` y se valida
         con :func:`~tfg_uja.validators.es_asignatura_valida`. Las de mención se
         registran con tipo ``"OP"`` y sus menciones como lista; una misma
         optativa puede figurar en varias menciones y en varias tablas, por lo
-        que se fusiona por código para no duplicarla. Seguir el enlace a la
-        guía docente es tarea de IT-06.
+        que se fusiona para no duplicarla. Seguir el enlace a la guía docente
+        es tarea de IT-06.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de
@@ -139,11 +194,13 @@ class GradosSpider(scrapy.Spider):
             dict: Datos de cada asignatura válida, sin duplicados.
         """
         grado = response.meta["nombre"]
-        # Se acumulan las asignaturas por código para poder fusionar las
-        # menciones de las que aparecen repetidas.
-        por_codigo: dict[str, dict[str, Any]] = {}
+        # Se acumulan las asignaturas para poder fusionar las menciones de las
+        # que aparecen en varias tablas. La clave es el código y, cuando falta,
+        # el nombre: hay planes de implantación reciente cuyas asignaturas no
+        # traen código, y agruparlas solo por código dejaría duplicada la misma
+        # asignatura una vez por cada mención en la que figura.
+        por_clave: dict[str, dict[str, Any]] = {}
         orden: list[str] = []
-        sin_codigo: list[dict[str, Any]] = []
         for tabla in response.css("table"):
             filas = tabla.css("tr")
             if not filas:
@@ -152,39 +209,47 @@ class GradosSpider(scrapy.Spider):
                 limpiar_texto(" ".join(th.css("::text").getall()))
                 for th in filas[0].css("th")
             ]
-            if len(cabeceras) < 3:
-                continue
-            etiqueta_columna = cabeceras[2].lower()
-            if etiqueta_columna.startswith("menci"):
-                es_tabla_de_menciones = True
-            elif etiqueta_columna == "tipo":
-                es_tabla_de_menciones = False
-            else:
+            columnas = self._columnas_de_cabecera(cabeceras)
+            # Una tabla es de menciones si trae columna de mención, y troncal si
+            # trae columna de tipo. Sin ninguna de las dos no se puede saber qué
+            # es cada asignatura, así que se omite avisando.
+            es_tabla_de_menciones = "mencion" in columnas
+            if not es_tabla_de_menciones and "tipo" not in columnas:
                 self.logger.warning(
-                    "Tabla con una tercera columna inesperada %r; se omite.",
+                    "Tabla sin columna de tipo ni de mención %r; se omite.",
+                    cabeceras,
+                )
+                continue
+            if "nombre" not in columnas or "ects" not in columnas:
+                self.logger.warning(
+                    "Tabla sin columna de asignatura o de ECTS %r; se omite.",
                     cabeceras,
                 )
                 continue
             for fila in filas:
                 celdas = fila.css("td")
-                if len(celdas) < 4:
+                # La fila debe llegar hasta la última columna que interesa; las
+                # de cabecera (sin <td>) y las incompletas se descartan.
+                if len(celdas) <= max(columnas.values()):
                     continue
-                codigo = limpiar_texto(" ".join(celdas[0].css("::text").getall()))
-                nombre_bruto = limpiar_texto(" ".join(celdas[1].css("::text").getall()))
+                codigo = self._texto_celda(celdas, columnas.get("codigo"))
+                nombre_bruto = self._texto_celda(celdas, columnas["nombre"])
                 nombre, ofertada = separar_oferta(nombre_bruto)
-                nombre = quitar_nota_al_pie(nombre)
+                # Un nombre ausente equivale a uno vacío: en ambos casos la
+                # fila la descarta es_asignatura_valida unas líneas más abajo.
+                nombre = quitar_nota_al_pie(nombre) or ""
                 if es_tabla_de_menciones:
                     tipo_asig = "OP"
-                    menciones = self._menciones(celdas[2])
+                    menciones = self._menciones(celdas[columnas["mencion"]])
                 else:
                     tipo_asig = normalizar_tipo(
-                        limpiar_texto(" ".join(celdas[2].css("::text").getall()))
+                        self._texto_celda(celdas, columnas["tipo"])
                     )
                     menciones = []
                 if not es_asignatura_valida(codigo, nombre, tipo_asig):
                     continue
-                ects = limpiar_texto(" ".join(celdas[3].css("::text").getall()))
-                enlace = celdas[1].css("a::attr(href)").get()
+                ects = self._texto_celda(celdas, columnas["ects"])
+                enlace = celdas[columnas["nombre"]].css("a::attr(href)").get()
                 if enlace:
                     url_guia = reparar_url(response.urljoin(enlace))
                     tiene_guia = True
@@ -203,18 +268,17 @@ class GradosSpider(scrapy.Spider):
                     "url_guia": url_guia,
                     "tiene_guia": tiene_guia,
                 }
-                if codigo and codigo in por_codigo:
-                    existentes = por_codigo[codigo]["menciones"]
+                clave = codigo or nombre
+                if clave in por_clave:
+                    existentes = por_clave[clave]["menciones"]
                     for nueva in menciones:
                         if nueva not in existentes:
                             existentes.append(nueva)
-                elif codigo:
-                    por_codigo[codigo] = item
-                    orden.append(codigo)
                 else:
-                    sin_codigo.append(item)
-        for codigo in orden:
-            item = por_codigo[codigo]
+                    por_clave[clave] = item
+                    orden.append(clave)
+        for clave in orden:
+            item = por_clave[clave]
             yield item
             if item["tiene_guia"]:
                 yield response.follow(
@@ -226,18 +290,62 @@ class GradosSpider(scrapy.Spider):
                         "grado": item["grado"],
                     },
                 )
-        for item in sin_codigo:
-            yield item
-            if item["tiene_guia"]:
-                yield response.follow(
-                    item["url_guia"],
-                    callback=self.parse_guia,
-                    meta={
-                        "codigo": item["codigo"],
-                        "nombre": item["nombre"],
-                        "grado": item["grado"],
-                    },
-                )
+
+    @staticmethod
+    def _columnas_de_cabecera(cabeceras: list[str]) -> dict[str, int]:
+        """Sitúa cada columna que interesa a partir del rótulo de su cabecera.
+
+        Las columnas se localizan por su rótulo y no por su posición porque la
+        EPSJ las reordena: el plan 2025 de Geomática intercaló una columna
+        «Curso recomendado» que desplazó la mención de la tercera a la cuarta
+        posición. Con posiciones fijas, la tabla entera se descartaba sin que
+        nada fallara. Las columnas que no se reconocen (esa misma «Curso
+        recomendado») se ignoran: no forman parte del modelo de datos.
+
+        Args:
+            cabeceras (list[str]): Rótulos de la fila de cabecera, ya limpios.
+
+        Returns:
+            dict[str, int]: Posición de cada columna reconocida, con las claves
+                ``codigo``, ``nombre``, ``tipo``, ``mencion`` y ``ects``. Solo
+                aparecen las que existan en la tabla.
+        """
+        columnas: dict[str, int] = {}
+        for posicion, rotulo in enumerate(cabeceras):
+            etiqueta = _normalizar(rotulo)
+            if etiqueta.startswith("codigo"):
+                campo = "codigo"
+            elif etiqueta.startswith("asignatura"):
+                campo = "nombre"
+            elif etiqueta.startswith("tipo"):
+                campo = "tipo"
+            elif etiqueta.startswith("mencion"):
+                campo = "mencion"
+            elif "ects" in etiqueta or etiqueta.startswith("credito"):
+                campo = "ects"
+            else:
+                continue
+            # La primera aparición manda: si un rótulo se repitiera, quedarse
+            # con la última movería las celdas de sitio en silencio.
+            columnas.setdefault(campo, posicion)
+        return columnas
+
+    @staticmethod
+    def _texto_celda(celdas: SelectorList[Selector], posicion: int | None) -> str:
+        """Devuelve el texto limpio de una celda, o vacío si la columna no existe.
+
+        Args:
+            celdas (SelectorList): Celdas de la fila.
+            posicion (int): Índice de la columna, o ``None`` si la tabla no la
+                trae (el código falta en varios planes de implantación
+                reciente).
+
+        Returns:
+            str: Texto de la celda, ya limpio.
+        """
+        if posicion is None:
+            return ""
+        return limpiar_texto(" ".join(celdas[posicion].css("::text").getall()))
 
     @staticmethod
     def _menciones(celda: Selector) -> list[str]:
@@ -355,6 +463,9 @@ class GradosSpider(scrapy.Spider):
                 si se usó la limpieza general en vez de la extracción
                 estructurada.
         """
+        if es_pdf(response.headers.get("Content-Type"), response.body):
+            yield from self._guia_desde_pdf(response)
+            return
         secciones = {
             "resumen": self._contenido_seccion(response, "resumen"),
             "temario": self._contenido_seccion(response, "descripcioncontenidos"),
@@ -380,6 +491,43 @@ class GradosSpider(scrapy.Spider):
             "grado": response.meta["grado"],
             "fallback": fallback,
             **secciones,
+        }
+
+    def _guia_desde_pdf(self, response: Response) -> Iterator[dict[str, Any]]:
+        """Emite la guía docente cuando el servidor la sirve como PDF.
+
+        Desde el curso 2026-27 la EPSJ publica algunas guías como PDF detrás
+        de una URL que sigue acabando en ``.html``. La extracción y el
+        filtrado de datos personales viven en
+        :mod:`~tfg_uja.guia_pdf`; aquí solo se decide qué hacer con el
+        resultado. Si el PDF no se puede leer o no contiene resumen ni
+        temario, no se emite ningún item: la asignatura queda como «sin guía»
+        (un chunk informativo, IT-09), en lugar de activar el mecanismo de
+        respaldo, que volcaría el binario del PDF en la colección.
+
+        Args:
+            response (scrapy.http.Response): Respuesta con el PDF de la guía.
+
+        Yields:
+            dict: Resumen y temario de la guía, con ``fallback`` siempre
+                ``False``. No se emite nada si el PDF es ilegible.
+        """
+        datos = extraer_guia(response.body)
+        if datos is None:
+            self.logger.warning(
+                "Guía %s servida como PDF ilegible o sin secciones útiles; "
+                "se omite y la asignatura queda como «sin guía».",
+                response.meta["codigo"],
+            )
+            return
+        yield {
+            "tipo": "guia",
+            "codigo": response.meta["codigo"],
+            "nombre": response.meta["nombre"],
+            "grado": response.meta["grado"],
+            "fallback": False,
+            "resumen": datos["resumen"],
+            "temario": datos["temario"],
         }
 
     @staticmethod

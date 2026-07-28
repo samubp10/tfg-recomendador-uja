@@ -14,6 +14,69 @@ import json
 import sys
 from pathlib import Path
 
+#: Campos de texto libre que se vuelcan a la colección y, por tanto, jamás
+#: deben contener binario. El bug que motivó esta comprobación (IT-67): una
+#: guía servida como PDF pasaba por el mecanismo de respaldo y guardaba el
+#: binario del PDF en ``cuerpo_general``, y el verificador respondía «OK».
+_CAMPOS_TEXTO = ("resumen", "temario", "cuerpo_general", "texto")
+
+
+def _parece_binario(texto: str) -> bool:
+    """Indica si un texto parece binario y no lenguaje natural.
+
+    Detecta dos señales: la firma ``%PDF`` de un PDF crudo y una densidad
+    alta de caracteres de control (los que no aparecen en texto legible,
+    salvo los saltos y tabuladores habituales).
+
+    Args:
+        texto: Contenido de un campo de texto del dataset.
+
+    Returns:
+        ``True`` si el texto parece binario.
+    """
+    if "%PDF" in texto:
+        return True
+    if not texto:
+        return False
+    control = sum(1 for c in texto if ord(c) < 32 and c not in "\n\r\t")
+    return control / len(texto) > 0.02
+
+
+def grados_sin_asignaturas(datos: list[dict]) -> list[str]:
+    """Titulaciones que tienen página de asignaturas pero no aportan ninguna.
+
+    Es la señal de que el rastreador no ha sabido leer sus tablas. Cuando
+    ``parse_asignaturas`` no reconoce la estructura de una tabla la descarta
+    con un ``logger.warning``, y ese aviso se pierde entre los cientos de
+    líneas de un rastreo completo: lo único que se mira al terminar es el
+    veredicto del verificador, que hasta ahora decía «OK» igualmente. Así
+    pasó inadvertido que las dos titulaciones de Geomática cambiaran el
+    formato de sus tablas (IT-76).
+
+    Los dobles grados quedan fuera por construcción: no tienen página propia
+    de asignaturas (``url_asignaturas`` a ``None``), porque son la unión de
+    sus dos grados base, que sí se rastrean por separado.
+
+    Aviso sobre su alcance: esto detecta la pérdida TOTAL de una titulación,
+    no la parcial. Un grado que conserve sus tablas troncales y pierda solo
+    las de mención sigue aportando asignaturas y no se detecta aquí; de eso
+    responden las pruebas de regresión del spider con fixtures reales.
+
+    Args:
+        datos: Items del dataset tal como los emite el spider.
+
+    Returns:
+        Nombres de las titulaciones afectadas, vacío si no hay ninguna.
+    """
+    con_asignaturas = {d["grado"] for d in datos if d["tipo"] == "asignatura"}
+    return [
+        d["nombre"]
+        for d in datos
+        if d["tipo"] == "grado"
+        and d.get("url_asignaturas")
+        and d["nombre"] not in con_asignaturas
+    ]
+
 
 def main(argv: list[str] | None = None) -> int:
     """Ejecuta las comprobaciones del dataset del spider.
@@ -35,6 +98,17 @@ def main(argv: list[str] | None = None) -> int:
     guias = [d for d in datos if d["tipo"] == "guia"]
     salidas = [d for d in datos if d["tipo"] == "salidas"]
 
+    # Va antes que las cifras esperadas a propósito: si una titulación se ha
+    # quedado sin asignaturas, el recuento total también falla, pero un
+    # «asignaturas: 331 (esperado 361)» solo dice que falta algo. Comprobar
+    # esto primero convierte ese número en el nombre de lo que hay que mirar.
+    vacios = grados_sin_asignaturas(datos)
+    assert not vacios, (
+        f"{len(vacios)} titulación(es) con página de asignaturas pero sin "
+        f"ninguna asignatura extraída: {vacios}. El rastreador no ha sabido "
+        f"leer sus tablas; revisa los avisos del rastreo (IT-78)."
+    )
+
     assert len(asignaturas) == 361, f"asignaturas: {len(asignaturas)} (esperado 361)"
     assert len(grados) == 13, f"grados: {len(grados)} (esperado 13)"
     assert len(guias) == 296, f"guias: {len(guias)} (esperado 296)"
@@ -51,6 +125,18 @@ def main(argv: list[str] | None = None) -> int:
     assert (
         len(sin_ects) == 1
     ), f"sin ECTS: {len(sin_ects)} (esperado 1, fiel a la fuente)"
+
+    binarias = [
+        d
+        for d in datos
+        for campo in _CAMPOS_TEXTO
+        if isinstance(d.get(campo), str) and _parece_binario(d[campo])
+    ]
+    assert not binarias, (
+        f"{len(binarias)} items con binario en un campo de texto "
+        f"(p. ej. código {binarias[0].get('codigo')!r}): una guía servida "
+        f"como PDF no se ha extraído bien (IT-67)."
+    )
 
     print(
         f"Dataset OK: {len(asignaturas)} asignaturas, {len(guias)} guías, "

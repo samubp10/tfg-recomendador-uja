@@ -1,0 +1,181 @@
+"""Pruebas de las métricas de recuperación del experimento IT-28.
+
+Deterministas y sin red: los vectores de embedding son artesanales (no un
+modelo real), porque lo que se prueba aquí es la aritmética de Recall@K y
+MRR, no la calidad de ningún modelo concreto (eso lo mide
+``scripts/experimento_embeddings.py`` contra el dataset real).
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from tfg_uja.evaluacion import (
+    chunks_relevantes,
+    evaluar_modelo,
+    mrr_de_pregunta,
+    recall_en_k,
+    rankear,
+)
+
+
+def _chunk(origen: str, nombre: str, grados: list[str], texto: str = "x") -> dict:
+    return {
+        "origen": origen,
+        "nombre": nombre,
+        "grados": grados,
+        "codigos": [""] * len(grados) if grados else [None],
+        "texto": texto,
+        "chunk_index": 0,
+        "total_chunks": 1,
+    }
+
+
+CHUNKS = [
+    _chunk("guia", "Estructuras de datos", ["Grado en Ingeniería Informática"]),  # 0
+    _chunk(
+        "guia", "Estructuras de datos", ["Grado en Ingeniería Informática"]
+    ),  # 1 (2º fragmento)
+    _chunk("guia", "Diseño de software", ["Grado en Ingeniería Informática"]),  # 2
+    _chunk(
+        "guia",
+        "Electrotecnia",
+        ["Grado en Ingeniería Eléctrica", "Grado en Ingeniería Mecánica"],
+    ),  # 3, guía compartida
+]
+
+
+def test_chunks_relevantes_empareja_por_origen_nombre_y_grado():
+    pregunta = {
+        "relevantes": [
+            {
+                "origen": "guia",
+                "nombre": "Estructuras de datos",
+                "grado": "Grado en Ingeniería Informática",
+            }
+        ]
+    }
+    assert chunks_relevantes(pregunta, CHUNKS) == {0, 1}
+
+
+def test_chunks_relevantes_sin_grado_no_filtra_por_titulacion():
+    pregunta = {"relevantes": [{"origen": "guia", "nombre": "Electrotecnia"}]}
+    assert chunks_relevantes(pregunta, CHUNKS) == {3}
+
+
+def test_chunks_relevantes_grado_que_no_imparte_la_asignatura_no_cuenta():
+    pregunta = {
+        "relevantes": [
+            {
+                "origen": "guia",
+                "nombre": "Estructuras de datos",
+                "grado": "Grado en Ingeniería Mecánica",
+            }
+        ]
+    }
+    assert chunks_relevantes(pregunta, CHUNKS) == set()
+
+
+def test_chunks_relevantes_une_varios_selectores():
+    pregunta = {
+        "relevantes": [
+            {"origen": "guia", "nombre": "Diseño de software"},
+            {"origen": "guia", "nombre": "Electrotecnia"},
+        ]
+    }
+    assert chunks_relevantes(pregunta, CHUNKS) == {2, 3}
+
+
+def test_rankear_ordena_por_similitud_coseno_descendente():
+    consulta = [1.0, 0.0]
+    vectores = [
+        [-1.0, 0.0],  # opuesto: similitud -1
+        [1.0, 0.0],  # idéntico: similitud 1
+        [0.0, 1.0],  # ortogonal: similitud 0
+    ]
+    assert rankear(consulta, vectores) == [1, 2, 0]
+
+
+def test_rankear_vector_nulo_no_produce_nan():
+    consulta = [1.0, 0.0]
+    vectores = [[0.0, 0.0], [1.0, 0.0]]
+    ranking = rankear(consulta, vectores)
+    assert ranking[0] == 1  # el vector nulo nunca puede quedar primero
+
+
+@pytest.mark.parametrize(
+    "k, esperado",
+    [(1, 0.0), (2, 0.5), (3, 1.0)],
+)
+def test_recall_en_k(k, esperado):
+    ranking = [2, 0, 1]
+    relevantes = {0, 1}
+    assert recall_en_k(ranking, relevantes, k) == esperado
+
+
+def test_recall_en_k_sin_relevantes_lanza_error():
+    with pytest.raises(ValueError):
+        recall_en_k([0, 1, 2], set(), 3)
+
+
+def test_mrr_de_pregunta_usa_la_primera_posicion_relevante():
+    assert mrr_de_pregunta([2, 0, 1], {0, 1}) == pytest.approx(0.5)
+
+
+def test_mrr_de_pregunta_sin_acierto_es_cero():
+    assert mrr_de_pregunta([2, 0, 1], {99}) == 0.0
+
+
+def test_evaluar_modelo_agrega_recall_y_mrr_sobre_todas_las_preguntas():
+    # Incrustador falso: cada chunk/pregunta lleva su vector "real" en un
+    # diccionario, indexado por el propio texto (que aquí hacemos único).
+    vectores = {
+        "ed1": [1.0, 0.0],
+        "ed2": [1.0, 0.0],
+        "ds": [0.0, 1.0],
+        "electro": [0.0, -1.0],
+        "pregunta ed": [0.9, 0.1],  # más cerca de Estructuras de datos
+        "pregunta electro": [0.0, -1.0],  # idéntico a Electrotecnia
+    }
+    chunks = [
+        _chunk("guia", "Estructuras de datos", ["G1"], texto="ed1"),
+        _chunk("guia", "Estructuras de datos", ["G1"], texto="ed2"),
+        _chunk("guia", "Diseño de software", ["G1"], texto="ds"),
+        _chunk("guia", "Electrotecnia", ["G2"], texto="electro"),
+    ]
+    preguntas = [
+        {
+            "id": "P-1",
+            "tipo": "temario",
+            "pregunta": "pregunta ed",
+            "relevantes": [{"origen": "guia", "nombre": "Estructuras de datos"}],
+        },
+        {
+            "id": "P-2",
+            "tipo": "temario",
+            "pregunta": "pregunta electro",
+            "relevantes": [{"origen": "guia", "nombre": "Electrotecnia"}],
+        },
+    ]
+
+    def incrustar(textos: list[str]) -> list[list[float]]:
+        return [vectores[t] for t in textos]
+
+    resultado = evaluar_modelo(chunks, preguntas, incrustar, incrustar, ks=(1, 2))
+
+    # P-1: relevantes {0,1}; ranking esperado [0,1,2,3] (o [1,0,2,3], empate)
+    # -> recall@1=0.5, recall@2=1.0, mrr=1.0
+    # P-2: relevante {3}; electro es idéntico a la pregunta -> primero en el
+    # ranking -> recall@1=1.0, mrr=1.0
+    fila_1 = next(f for f in resultado["detalle"] if f["id"] == "P-1")
+    fila_2 = next(f for f in resultado["detalle"] if f["id"] == "P-2")
+    assert fila_1["recall@1"] == pytest.approx(0.5)
+    assert fila_1["recall@2"] == pytest.approx(1.0)
+    assert fila_1["mrr"] == pytest.approx(1.0)
+    assert fila_2["recall@1"] == pytest.approx(1.0)
+    assert fila_2["mrr"] == pytest.approx(1.0)
+
+    agregados = resultado["agregados"]
+    assert agregados["recall@1"] == pytest.approx((0.5 + 1.0) / 2)
+    assert agregados["recall@2"] == pytest.approx((1.0 + 1.0) / 2)
+    assert agregados["mrr"] == pytest.approx(1.0)

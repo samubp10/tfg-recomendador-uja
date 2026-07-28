@@ -25,7 +25,7 @@ Ingeniería Informática de la Universidad de Jaén, curso 2025/2026.
 | Fase | Contenido | Estado |
 | ---- | --------- | ------ |
 | 0 | Extracción web, limpieza, validación y fragmentación (*chunking*) | ✅ Completa |
-| 1 | Indexación vectorial y conjunto de evaluación | 🚧 En curso |
+| 1 | Indexación vectorial, conjunto de evaluación y comparativa de *embeddings* | 🚧 En curso |
 | 2 | *Pipeline* RAG completo con LLM local y evaluación | Pendiente |
 | 3 | Aplicación web de chat | Pendiente |
 | 4 | Validación con usuarios | Pendiente |
@@ -101,10 +101,20 @@ py scripts/check_chunks.py     # tamaños y deduplicación de los fragmentos
 py scripts/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
 ```
 
+### Experimentos
+
+```console
+# Compara modelos de embeddings (Recall@3, Recall@5, MRR) sobre el conjunto de
+# evaluación. Requiere el extra [index] y red la primera vez. Solo en local.
+py scripts/experimento_embeddings.py
+```
+
+Los resultados reales de cada ejecución quedan en `docs/experimentos/`.
+
 ## Calidad
 
 ```console
-pytest                                          # 95 pruebas, con fixtures HTML/JSON reales
+pytest                                          # 137 pruebas, con fixtures HTML/PDF/JSON reales
 mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
 black src/ tests/ scripts/                      # formato
 flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)
@@ -117,11 +127,14 @@ encontrado entra como test de regresión con su caso real.
 ## Estructura del repositorio
 
 ```text
-src/tfg_uja/        # código fuente (spider, limpieza, validación, chunker, indexer)
-tests/              # pruebas con fixtures reales (HTML de la EPSJ, chunks del dataset)
-scripts/            # verificadores del dataset y del conjunto de evaluación
+src/tfg_uja/        # código fuente (spider, guías en PDF, limpieza, validación,
+                    #   chunker, indexer y métricas de recuperación)
+tests/              # pruebas con fixtures reales (HTML y PDF de la EPSJ, chunks del dataset)
+scripts/            # verificadores del dataset y experimentos
 eval/               # conjunto de evaluación del retrieval (manual, versionado)
 docs/adr/           # registro de decisiones de arquitectura (ADR)
+docs/dqa/           # registro de anomalías de calidad de datos (DQA)
+docs/experimentos/  # resultados reales de los experimentos
 memoria/            # memoria del TFG en LaTeX (plantilla EPSJ)
 data/               # artefactos generados (NO versionados)
 ```

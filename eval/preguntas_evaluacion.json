@@ -1,5 +1,5 @@
 {
- "descripcion": "Conjunto de evaluación del retrieval (IT-27): preguntas reales de un estudiante preuniversitario sobre la oferta de la EPSJ, con las unidades relevantes anotadas a mano. Curso rastreado: 2025/26.",
+ "descripcion": "Conjunto de evaluación del retrieval (IT-27): preguntas reales de un estudiante preuniversitario sobre la oferta de la EPSJ, con las unidades relevantes anotadas a mano. Curso rastreado: 2025/26. Desde IT-77 no se anota ninguna unidad del grado en extinción, que se excluyó del corpus por no admitir nuevas matrículas.",
  "criterio_relevancia": "Cada pregunta anota la(s) unidad(es) semántica(s) que el sistema debería recuperar, identificadas por (origen, nombre[, grado]) y NO por id de chunk: los ids son posicionales y cambian al re-fragmentar, mientras que la unidad (una asignatura o el bloque de salidas de un grado) es estable. Un chunk recuperado se considera relevante si pertenece a una unidad anotada: chunk.origen == origen, chunk.nombre == nombre y, si el selector lleva grado, grado ∈ chunk.grados.",
  "preguntas": [
   {"id": "P-001", "tipo": "salidas", "pregunta": "¿Qué salidas profesionales tiene el Grado en Ingeniería Informática?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Informática"}]},
@@ -8,7 +8,7 @@
   {"id": "P-004", "tipo": "salidas", "pregunta": "¿Dónde puede trabajar un ingeniero eléctrico al acabar la carrera?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Eléctrica"}]},
   {"id": "P-005", "tipo": "salidas", "pregunta": "¿Cuáles son las salidas laborales del grado de Electrónica Industrial?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Electrónica Industrial"}]},
   {"id": "P-006", "tipo": "salidas", "pregunta": "¿Qué futuro profesional tiene el Grado en Ingeniería de Organización Industrial?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería de Organización Industrial"}]},
-  {"id": "P-007", "tipo": "salidas", "pregunta": "¿De qué se trabaja después de estudiar Geomática y Topográfica?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}, {"origen": "salidas", "nombre": "Grado en Ingeniería Geomática y Topográfica (en extinción)"}]},
+  {"id": "P-007", "tipo": "salidas", "pregunta": "¿De qué se trabaja después de estudiar Geomática y Topográfica?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
   {"id": "P-008", "tipo": "salidas", "pregunta": "¿Qué salidas profesionales tienen los grados de la rama industrial de la EPSJ?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Mecánica"}, {"origen": "salidas", "nombre": "Grado en Ingeniería Eléctrica"}, {"origen": "salidas", "nombre": "Grado en Ingeniería Electrónica Industrial"}, {"origen": "salidas", "nombre": "Grado en Ingeniería de Organización Industrial"}]},
   {"id": "P-009", "tipo": "temario", "pregunta": "¿Qué se estudia en la asignatura de Inteligencia artificial del grado de Informática?", "relevantes": [{"origen": "guia", "nombre": "Inteligencia artificial", "grado": "Grado en Ingeniería Informática"}]},
   {"id": "P-010", "tipo": "temario", "pregunta": "¿Qué contenido tiene la asignatura de Desarrollo de videojuegos?", "relevantes": [{"origen": "guia", "nombre": "Desarrollo de videojuegos"}]},
@@ -21,7 +21,7 @@
   {"id": "P-017", "tipo": "temario", "pregunta": "¿Qué contenidos tiene la asignatura de Automática industrial?", "relevantes": [{"origen": "guia", "nombre": "Automática industrial"}]},
   {"id": "P-018", "tipo": "temario", "pregunta": "¿De qué va la asignatura de Creación de empresas de base tecnológica de Organización Industrial?", "relevantes": [{"origen": "guia", "nombre": "Creación de empresas de base tecnológica", "grado": "Grado en Ingeniería de Organización Industrial"}]},
   {"id": "P-019", "tipo": "temario", "pregunta": "¿Qué se aprende en Cartografía y SIG I del nuevo plan de Geomática?", "relevantes": [{"origen": "guia", "nombre": "Cartografía y SIG I", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
-  {"id": "P-020", "tipo": "temario", "pregunta": "¿Qué temario tiene Fotogrametría y teledetección I?", "relevantes": [{"origen": "guia", "nombre": "Fotogrametría y teledetección I"}]},
+  {"id": "P-020", "tipo": "temario", "pregunta": "¿Qué temario tiene Instalaciones fotovoltaicas?", "relevantes": [{"origen": "guia", "nombre": "Instalaciones fotovoltaicas", "grado": "Grado en Ingeniería Eléctrica"}]},
   {"id": "P-021", "tipo": "temario", "pregunta": "¿Qué se estudia en Energía hidráulica y eólica?", "relevantes": [{"origen": "guia", "nombre": "Energía hidráulica y eólica", "grado": "Grado en Ingeniería Mecánica"}]},
   {"id": "P-022", "tipo": "temario", "pregunta": "¿Hay alguna asignatura sobre auditoría en el grado de Informática?", "relevantes": [{"origen": "guia", "nombre": "Auditoría informática", "grado": "Grado en Ingeniería Informática"}]},
   {"id": "P-023", "tipo": "metadatos", "pregunta": "¿Cuántos créditos tiene la asignatura de Estadística en Ingeniería Informática?", "relevantes": [{"origen": "guia", "nombre": "Estadística", "grado": "Grado en Ingeniería Informática"}]},
@@ -37,6 +37,6 @@
   {"id": "P-033", "tipo": "temario", "pregunta": "¿En qué grados se imparte Ciencia e ingeniería de materiales?", "relevantes": [{"origen": "guia", "nombre": "Ciencia e ingeniería de materiales"}]},
   {"id": "P-034", "tipo": "temario", "pregunta": "¿Qué temario tiene Ampliación de matemáticas?", "relevantes": [{"origen": "guia", "nombre": "Ampliación de matemáticas"}]},
   {"id": "P-035", "tipo": "temario", "pregunta": "¿En qué asignatura del plan 2025 de Geomática se estudian los instrumentos topográficos?", "relevantes": [{"origen": "guia", "nombre": "Instrumentos topográficos", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
-  {"id": "P-036", "tipo": "temario", "pregunta": "¿Qué se estudia en Bases de datos del grado de Geomática en extinción?", "relevantes": [{"origen": "guia", "nombre": "Bases de datos", "grado": "Grado en Ingeniería Geomática y Topográfica (en extinción)"}]}
+  {"id": "P-036", "tipo": "sin_guia", "pregunta": "¿Qué es la asignatura de Geodesia geométrica de Geomática?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Geodesia geométrica", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]}
  ]
 }
