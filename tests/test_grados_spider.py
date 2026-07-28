@@ -761,3 +761,43 @@ def test_la_guia_lleva_el_curso_deducido_de_su_url():
     )
     item = next(GradosSpider().parse_guia(resp))
     assert item["curso"] == "2025-26"
+
+
+# --- IT-93: el enlace «Syllabus» no forma parte del nombre ---
+
+
+def test_el_nombre_no_arrastra_el_enlace_de_syllabus():
+    # Desde 2026-27 la EPSJ añade a la celda del nombre un enlace a un
+    # documento «Syllabus». Como el nombre se compone juntando todo el texto
+    # de la celda, ese rótulo se pegaba al nombre: 43 de las 350 asignaturas
+    # del rastreo del 28/07/2026 salieron como «... ( Syllabus )».
+    #
+    # Se reproduce la celda tal como la sirve la fuente: el nombre dentro de
+    # su enlace a la guía, y el del Syllabus a continuación entre paréntesis.
+    html = """
+    <table>
+      <tr><th>Código</th><th>Asignatura</th><th>Tipo</th><th>Créditos ECTS</th></tr>
+      <tr>
+        <td>13011009</td>
+        <td>
+          <a href="/guia_es.html">Automática industrial</a>
+          ( <a href="/syllabus.pdf">Syllabus</a> )
+        </td>
+        <td>OB</td>
+        <td>6</td>
+      </tr>
+    </table>
+    """
+    resp = HtmlResponse(
+        url=_URL_ASIG,
+        body=html.encode("utf-8"),
+        encoding="utf-8",
+        request=Request(_URL_ASIG, meta=_META_ASIG),
+    )
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+    assert len(items) == 1
+    assert items[0]["nombre"] == "Automática industrial"
+    # El enlace a la guía sigue siendo el que se sigue, no el del Syllabus.
+    assert items[0]["tiene_guia"] is True
+    assert "syllabus" not in items[0]["url_guia"].lower()
