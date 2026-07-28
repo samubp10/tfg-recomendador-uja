@@ -26,6 +26,25 @@ from tfg_uja.text_cleaner import (
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
 
 
+def _normalizar(texto: str) -> str:
+    """Pasa un texto a minúsculas y sin tildes, para compararlo con seguridad.
+
+    La web de la EPSJ no es consistente al acentuar: escribe unas veces
+    «Mención» y otras «Mencion», «Créditos ECTS» o «Creditos ECTS». Comparar
+    sobre la forma normalizada evita depender de esa inconsistencia.
+
+    Args:
+        texto (str): Texto tal como llega de la web.
+
+    Returns:
+        str: El texto en minúsculas, sin tildes y sin espacios alrededor.
+    """
+    sin_tildes = (
+        unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    )
+    return sin_tildes.strip().lower()
+
+
 class GradosSpider(scrapy.Spider):
     """Spider que recorre los grados de la EPSJ y su información.
 
@@ -46,6 +65,11 @@ class GradosSpider(scrapy.Spider):
         "FEED_EXPORT_ENCODING": "utf-8",
     }
 
+    #: Marca con la que la EPSJ señala en el nombre una titulación que ya no
+    #: admite nuevas matrículas. Se compara sin tildes y en minúsculas, porque
+    #: la fuente no es consistente al escribirla.
+    MARCA_EXTINCION: Final[str] = "en extincion"
+
     def parse(self, response: Response) -> Iterator[Request]:
         """Sigue cada grado del listado hacia su portada.
 
@@ -53,20 +77,44 @@ class GradosSpider(scrapy.Spider):
         contienen la palabra «Grado»), emite una petición a su portada,
         llevando el nombre del grado en los metadatos.
 
+        Las titulaciones en extinción se descartan aquí, antes de rastrearlas
+        (IT-77): el sistema orienta a estudiantes preuniversitarios y un grado
+        en extinción no admite nuevas matrículas, así que recomendárselo sería
+        un error. Se descarta en el origen y no más adelante para no gastar
+        peticiones en la web de la UJA sobre datos que no van a usarse.
+
         Args:
             response (scrapy.http.Response): Respuesta de la página de grados.
 
         Yields:
-            scrapy.Request: Petición a la portada de cada grado.
+            scrapy.Request: Petición a la portada de cada grado vigente.
         """
         enlaces = response.css("aside.layout-sidebar-first nav ul.menu li a")
         for enlace in enlaces:
             nombre = (enlace.css("::text").get() or "").strip()
             url = enlace.attrib.get("href")
-            if url and "Grado" in nombre:
-                yield response.follow(
-                    url, callback=self.parse_portada, meta={"nombre": nombre}
+            if not url or "Grado" not in nombre:
+                continue
+            if self.esta_en_extincion(nombre):
+                self.logger.info(
+                    "Titulación en extinción, se excluye del corpus: %r", nombre
                 )
+                continue
+            yield response.follow(
+                url, callback=self.parse_portada, meta={"nombre": nombre}
+            )
+
+    @classmethod
+    def esta_en_extincion(cls, nombre: str) -> bool:
+        """Indica si el nombre de una titulación la marca como en extinción.
+
+        Args:
+            nombre (str): Nombre de la titulación tal como aparece en la web.
+
+        Returns:
+            bool: ``True`` si la titulación ya no admite nuevas matrículas.
+        """
+        return cls.MARCA_EXTINCION in _normalizar(nombre)
 
     def parse_portada(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Extrae de la portada de un grado sus enlaces clave.
@@ -264,14 +312,7 @@ class GradosSpider(scrapy.Spider):
         """
         columnas: dict[str, int] = {}
         for posicion, rotulo in enumerate(cabeceras):
-            # Se comparan los rótulos sin tildes: la fuente escribe unas veces
-            # "Mención" y otras "Mencion", y "Créditos ECTS" o "Creditos ECTS".
-            sin_tildes = (
-                unicodedata.normalize("NFKD", rotulo)
-                .encode("ascii", "ignore")
-                .decode("ascii")
-            )
-            etiqueta = sin_tildes.strip().lower()
+            etiqueta = _normalizar(rotulo)
             if etiqueta.startswith("codigo"):
                 campo = "codigo"
             elif etiqueta.startswith("asignatura"):
