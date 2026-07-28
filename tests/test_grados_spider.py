@@ -1,11 +1,12 @@
 """Pruebas del spider de grados (IT-03, IT-04 e IT-05)."""
 
+from datetime import date
 from pathlib import Path
 
 import scrapy
 from scrapy.http import HtmlResponse, Request
 
-from tfg_uja.grados_spider import GradosSpider
+from tfg_uja.grados_spider import GradosSpider, curso_de_url
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -22,27 +23,30 @@ def _respuesta(fixture, url="https://eps.ujaen.es/grados", meta=None):
 # --- IT-03: listado de grados (parse) ---
 
 
+def _peticiones(fixture):
+    """Peticiones que emite parse(), sin el item de procedencia de IT-90."""
+    salida = list(GradosSpider().parse(_respuesta(fixture)))
+    return [s for s in salida if isinstance(s, Request)]
+
+
 def test_sigue_cada_grado_del_menu():
-    peticiones = list(GradosSpider().parse(_respuesta("grados.html")))
-    nombres = [p.meta["nombre"] for p in peticiones]
+    nombres = [p.meta["nombre"] for p in _peticiones("grados.html")]
     assert "Grado en Ingeniería Informática" in nombres
     assert "Grado en Inteligencia Artificial y Ciberseguridad" in nombres
 
 
 def test_incluye_los_dobles_grados():
-    peticiones = list(GradosSpider().parse(_respuesta("grados.html")))
-    nombres = [p.meta["nombre"] for p in peticiones]
+    nombres = [p.meta["nombre"] for p in _peticiones("grados.html")]
     assert any(n.startswith("Doble Grado") for n in nombres)
 
 
 def test_ignora_enlaces_que_no_son_grados():
-    peticiones = list(GradosSpider().parse(_respuesta("grados.html")))
-    nombres = [p.meta["nombre"] for p in peticiones]
+    nombres = [p.meta["nombre"] for p in _peticiones("grados.html")]
     assert all("PARS" not in n for n in nombres)
 
 
 def test_las_peticiones_van_a_urls_absolutas():
-    peticiones = list(GradosSpider().parse(_respuesta("grados.html")))
+    peticiones = _peticiones("grados.html")
     assert peticiones
     assert all(p.url.startswith("https://eps.ujaen.es/") for p in peticiones)
 
@@ -58,16 +62,14 @@ def test_las_peticiones_van_a_urls_absolutas():
 
 
 def test_no_rastrea_la_titulacion_en_extincion():
-    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
-    nombres = [p.meta["nombre"] for p in peticiones]
+    nombres = [p.meta["nombre"] for p in _peticiones("tabla_geomatica_plan2025.html")]
     assert not any(GradosSpider.esta_en_extincion(n) for n in nombres)
     assert "Grado en Ingeniería Geomática y Topográfica (en extinción)" not in nombres
 
 
 def test_conserva_el_plan_vigente_del_mismo_grado():
     # El plan 2025 sustituye al que se extingue: no puede caer con él.
-    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
-    nombres = [p.meta["nombre"] for p in peticiones]
+    nombres = [p.meta["nombre"] for p in _peticiones("tabla_geomatica_plan2025.html")]
     assert "Grado en Ingeniería Geomática y Topográfica (plan 2025)" in nombres
     assert len(nombres) == 12
 
@@ -693,3 +695,69 @@ def test_portada_encola_el_rastreo_de_salidas():
     urls_salidas = [r for r in requests if "salidas-profesionales" in r.url]
     assert len(urls_salidas) == 1
     assert urls_salidas[0].callback.__name__ == "parse_salidas"
+
+
+# --- IT-90: procedencia del dataset (fecha de extracción y curso) ---
+
+# URL real de una guía docente del catálogo de la UJA, copiada del dataset. El
+# curso aparece dos veces (en la ruta y en el nombre del fichero); se lee de la
+# ruta porque es la que no depende de cómo se llame el fichero.
+_URL_GUIA_REAL = (
+    "https://uvirtual.ujaen.es/pub/es/informacionacademica/"
+    "catalogofichasdocentesasignaturas/p/2025-26/4/130A/13011009/es/"
+    "2025-26-13011009_es.html"
+)
+
+
+def test_deduce_el_curso_de_una_url_real_de_guia():
+    assert curso_de_url(_URL_GUIA_REAL) == "2025-26"
+
+
+def test_el_curso_no_se_escribe_a_mano_sino_que_sale_de_la_url():
+    # Misma URL con otro curso: el resultado debe cambiar con ella, que es el
+    # motivo de deducirlo en vez de fijarlo en la configuración del spider.
+    assert curso_de_url(_URL_GUIA_REAL.replace("2025-26", "2026-27")) == "2026-27"
+
+
+def test_una_url_sin_curso_no_se_inventa_uno():
+    # Si la fuente cambia el formato, es preferible que conste que no se sabe
+    # a que el dataset afirme un curso que no aparece por ninguna parte.
+    assert curso_de_url("https://uvirtual.ujaen.es/pub/.../guia_es.html") is None
+    assert curso_de_url(None) is None
+
+
+def test_parse_emite_la_procedencia_del_rastreo():
+    salida = list(GradosSpider().parse(_respuesta("grados.html")))
+    procedencias = [s for s in salida if isinstance(s, dict)]
+    assert len(procedencias) == 1
+    procedencia = procedencias[0]
+    assert procedencia["tipo"] == "procedencia"
+    # La fecha es la del día del rastreo: se comprueba el formato, no el valor.
+    assert procedencia["fecha_extraccion"] == date.today().isoformat()
+    assert procedencia["origen"].startswith("https://")
+
+
+def test_la_procedencia_va_antes_que_las_peticiones():
+    # Scrapy no permite emitir items una vez cerrado el spider, así que la
+    # procedencia se emite al principio; si algún día dejara de salir primero,
+    # sería señal de que se ha movido a un sitio del que no puede escapar.
+    salida = list(GradosSpider().parse(_respuesta("grados.html")))
+    assert isinstance(salida[0], dict)
+
+
+def test_la_guia_lleva_el_curso_deducido_de_su_url():
+    resp = HtmlResponse(
+        url=_URL_GUIA_REAL,
+        body=(FIXTURES / "guia_matematicas_oi.html").read_bytes(),
+        encoding="cp1252",
+        request=Request(
+            _URL_GUIA_REAL,
+            meta={
+                "codigo": "13011009",
+                "nombre": "Matemáticas I",
+                "grado": "Grado en Ingeniería de Organización Industrial",
+            },
+        ),
+    )
+    item = next(GradosSpider().parse_guia(resp))
+    assert item["curso"] == "2025-26"

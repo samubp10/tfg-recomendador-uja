@@ -52,7 +52,19 @@ def main() -> int:
     """
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
     evalset = json.loads(RUTA_EVAL.read_text(encoding="utf-8"))
-    chunks = json.loads(RUTA_CHUNKS.read_text(encoding="utf-8"))
+    items = json.loads(RUTA_CHUNKS.read_text(encoding="utf-8"))
+    # El item de procedencia (IT-90) no es contenido recuperable: se separa
+    # por tipo, nunca por posición.
+    chunks = [i for i in items if i.get("tipo") == "chunk"]
+    procedencia = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    if procedencia.get("fecha_extraccion"):
+        cursos = ", ".join(procedencia.get("cursos") or []) or "sin determinar"
+        print(
+            f"Procedencia del corpus: extraccion "
+            f"{procedencia['fecha_extraccion']} | curso(s) {cursos}"
+        )
+    else:
+        print("Procedencia del corpus: sin determinar (dataset anterior a IT-90).")
     preguntas = evalset["preguntas"]
     errores: list[str] = []
 

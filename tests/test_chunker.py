@@ -17,6 +17,7 @@ import pytest
 from tfg_uja.chunker import (
     TAMANO_MAXIMO,
     TAMANO_MINIMO,
+    procedencia_de,
     trocear_dataset,
 )
 
@@ -276,3 +277,75 @@ def test_asignaturas_sin_codigo_no_se_pisan_entre_ellas():
     assert "12 ECTS" in por_nombre["Trabajo de Fin de Grado"]
     assert "6 ECTS" in por_nombre["Cartografía y SIG II"]
     assert "6 ECTS" in por_nombre["Métodos topográficos"]
+
+
+# --- IT-90: procedencia del corpus ---
+
+
+def _guia_de(nombre, curso, grado="Grado A"):
+    return {
+        "tipo": "guia",
+        "grado": grado,
+        "codigo": "",
+        "nombre": nombre,
+        "curso": curso,
+        "fallback": False,
+        "resumen": "Resumen de la asignatura.",
+        "temario": "Tema 1. Contenido.",
+    }
+
+
+def test_la_procedencia_arrastra_la_fecha_de_extraccion_del_dataset():
+    items = [
+        {"tipo": "procedencia", "fecha_extraccion": "2026-07-09"},
+        _guia_de("Álgebra", "2025-26"),
+    ]
+    procedencia = procedencia_de(items)
+    assert procedencia["tipo"] == "procedencia"
+    assert procedencia["fecha_extraccion"] == "2026-07-09"
+    assert procedencia["cursos"] == ["2025-26"]
+
+
+def test_un_corpus_de_dos_cursos_los_enumera_los_dos():
+    # Es el escenario que produce IT-80: la EPSJ publica las guías del curso
+    # nuevo según las va teniendo, así que el corpus queda mezclado. Resumirlo
+    # a un solo curso ocultaría de qué año es cada parte.
+    items = [
+        {"tipo": "procedencia", "fecha_extraccion": "2026-07-28"},
+        _guia_de("Álgebra", "2025-26"),
+        _guia_de("Estadística", "2026-27"),
+    ]
+    assert procedencia_de(items)["cursos"] == ["2025-26", "2026-27"]
+
+
+def test_las_guias_sin_curso_se_cuentan_en_vez_de_suponerles_uno():
+    # Si la fuente cambia el formato de sus URL, el curso deja de deducirse.
+    # Debe constar cuántas guías están así, no rellenarse con el curso de al lado.
+    items = [
+        {"tipo": "procedencia", "fecha_extraccion": "2026-07-28"},
+        _guia_de("Álgebra", "2025-26"),
+        _guia_de("Física", None),
+    ]
+    procedencia = procedencia_de(items)
+    assert procedencia["cursos"] == ["2025-26"]
+    assert procedencia["guias_sin_curso"] == 1
+
+
+def test_un_dataset_anterior_a_it90_no_inventa_fecha():
+    # El grados.json del snapshot de julio no lleva procedencia: debe quedar
+    # a None y notarse, en vez de rellenarse con la fecha del troceo.
+    procedencia = procedencia_de([_guia_de("Álgebra", None)])
+    assert procedencia["fecha_extraccion"] is None
+    assert procedencia["cursos"] == []
+
+
+def test_la_procedencia_no_se_convierte_en_un_fragmento():
+    # Va en el fichero, pero no es contenido recuperable: si acabara indexada,
+    # el sistema podría devolverla como respuesta a una consulta.
+    items = [
+        {"tipo": "procedencia", "fecha_extraccion": "2026-07-28"},
+        _guia_de("Álgebra", "2025-26"),
+    ]
+    chunks = trocear_dataset(items)
+    assert all(c["tipo"] == "chunk" for c in chunks)
+    assert all("Álgebra" in c["nombre"] for c in chunks)
