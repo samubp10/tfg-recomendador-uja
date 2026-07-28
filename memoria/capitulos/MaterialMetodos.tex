@@ -781,7 +781,21 @@ El efecto sobre la colección, medido sobre el conjunto de datos completo, es un
 un 24 \% menos. De esos 892, 818 proceden de guías docentes, 65 son fragmentos informativos de las asignaturas que todavía no
 tienen guía publicada y 9 corresponden a salidas profesionales. Los 280 fragmentos eliminados suponen el 25 \% de los 1\,098 que
 las guías generaban antes de deduplicar. Los tamaños resultantes van de 227 a 1\,499 caracteres, con una mediana de 1\,093 y
-ningún fragmento por encima del máximo. 
+ningún fragmento por encima del máximo.
+
+\textcolor{borrador2}{Decidir cuándo dos guías son la misma no es lo único que obliga a fijar un
+criterio de identidad. El fragmentador necesita además localizar, para cada guía, la asignatura de
+la que salen los metadatos del encabezado, y esa búsqueda se hacía por el par (titulación, código).
+El código, sin embargo, no siempre está publicado: 57 asignaturas de los planes de implantación
+reciente no lo tienen, y todas ellas caían bajo la misma clave dentro de su titulación, de modo que
+la última sobrescribía a las anteriores sin que nada avisara. En el plan de 2025 del Grado en
+Ingeniería Geomática y Topográfica eran 18 asignaturas reducidas a una sola entrada, y 38 en el
+Grado en Inteligencia Artificial y Ciberseguridad. Si alguna de ellas llegara a publicar su guía, el
+encabezado resultante atribuiría el temario a una materia distinta, y lo haría dentro del campo
+\texttt{texto}, que es justamente el único que se convierte en vector. La clave pasó a ser el par
+(titulación, código o nombre) --- la misma que ya usaban el rastreador y el verificador de
+fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
+asignatura de la misma manera.}
 
 \section{Verificación y reproducibilidad de la Fase 0}
 \label{secc:verificacion_fase0}
@@ -793,6 +807,16 @@ ningún fragmento por encima del máximo.
 La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
+
+\textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
+Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
+respondía que el corpus era correcto aun teniendo los encabezados cruzados: lo que comparaba eran
+las claves que relacionan cada fragmento con su asignatura, y esas sí cuadraban, mientras que el
+error estaba en el texto del encabezado, que no revisaba nadie. La comprobación que faltaba --- que
+cada fragmento empiece por el nombre de su propia unidad --- se añadió junto con la corrección. El
+patrón es el mismo que el de los defectos descritos más arriba, y conviene enunciarlo así de claro:
+un verificador puede estar midiendo algo distinto de lo que se cree que mide, y mientras tanto
+devuelve un resultado correcto.}
 
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
