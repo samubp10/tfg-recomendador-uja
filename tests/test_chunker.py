@@ -190,3 +190,89 @@ def test_no_fusiona_asignaturas_distintas_con_el_mismo_texto(muestra):
     nombres = {c["nombre"] for c in chunks}
     assert nombres == {"Asignatura Uno", "Asignatura Dos"}
     assert all(len(c["grados"]) == 1 for c in chunks)
+
+
+# --- IT-91: asignaturas sin código publicado ---
+
+# Las tres asignaturas de abajo son REALES del plan 2025 del Grado en Ingeniería
+# Geomática y Topográfica, copiadas literalmente del dataset (nombre, tipo y
+# ECTS). Esa titulación publica 18 asignaturas SIN código, y "Trabajo de Fin de
+# Grado" es la última del listado: es la que, con la clave anterior
+# `(grado, codigo)`, sobrescribía a todas las demás.
+#
+# Lo único que no procede de la fuente es que una de ellas tenga guía: hoy
+# ninguna de las 57 asignaturas sin código del dataset la tiene publicada, y por
+# eso el defecto nunca llegó a manifestarse. Se construye ese escenario a
+# propósito, porque es justo la condición que debe quedar blindada antes de
+# regenerar el corpus (IT-80).
+_GRADO_GEOMATICA = "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+
+
+def _asignatura_sin_codigo(nombre, tipo_asignatura, ects, tiene_guia=False):
+    return {
+        "tipo": "asignatura",
+        "grado": _GRADO_GEOMATICA,
+        "codigo": "",
+        "nombre": nombre,
+        "tipo_asignatura": tipo_asignatura,
+        "ects": ects,
+        "menciones": [],
+        "ofertada": True,
+        "tiene_guia": tiene_guia,
+    }
+
+
+def test_guia_de_asignatura_sin_codigo_lleva_su_propio_encabezado():
+    # Regresión de IT-91: con la clave `(grado, codigo)`, las 18 asignaturas
+    # sin código de esta titulación colapsaban en la clave `(grado, "")` y la
+    # última ganaba. El chunk de "Cartografía y SIG II" salía encabezado como
+    # «Trabajo de Fin de Grado» de 12 ECTS: una atribución falsa dentro del
+    # único campo que se vectoriza.
+    cartografia = _asignatura_sin_codigo("Cartografía y SIG II", "OB", "6", True)
+    metodos = _asignatura_sin_codigo("Métodos topográficos", "OB", "6")
+    tfg = _asignatura_sin_codigo("Trabajo de Fin de Grado", "TFG", "12")
+    guia = {
+        "tipo": "guia",
+        "grado": _GRADO_GEOMATICA,
+        "codigo": "",
+        "nombre": "Cartografía y SIG II",
+        "fallback": False,
+        "resumen": "Sistemas de información geográfica y análisis espacial.",
+        "temario": "Tema 1. Modelos de datos. Tema 2. Análisis raster y vectorial.",
+    }
+    chunks = trocear_dataset([cartografia, metodos, tfg, guia])
+
+    unidad = [c for c in chunks if c["origen"] == "guia"]
+    assert len(unidad) == 1
+    encabezado = unidad[0]["texto"].split("\n")[0]
+    assert encabezado.startswith("«Cartografía y SIG II»")
+    # Los metadatos del encabezado son los suyos, no los de otra asignatura.
+    assert "6 ECTS" in encabezado
+    assert "Trabajo de Fin de Grado" not in encabezado
+    assert "12 ECTS" not in encabezado
+
+
+def test_asignaturas_sin_codigo_no_se_pisan_entre_ellas():
+    # Las tres comparten `codigo` vacío: cada una debe conservar su propio
+    # chunk informativo con sus metadatos, sin que ninguna absorba a las otras.
+    #
+    # Este invariante YA se cumplía antes de IT-91 (el chunk informativo de una
+    # asignatura sin guía se genera recorriendo los items, sin pasar por la
+    # clave que fallaba), así que no es un test de regresión: es la red que
+    # avisaría si ese recorrido pasara algún día a agruparse por código.
+    asignaturas = [
+        _asignatura_sin_codigo("Cartografía y SIG II", "OB", "6"),
+        _asignatura_sin_codigo("Métodos topográficos", "OB", "6"),
+        _asignatura_sin_codigo("Trabajo de Fin de Grado", "TFG", "12"),
+    ]
+    chunks = trocear_dataset(asignaturas)
+
+    assert len(chunks) == 3
+    for chunk in chunks:
+        assert chunk["texto"].startswith(f"«{chunk['nombre']}»")
+    # Los 12 ECTS son solo del TFG: si otra asignatura los mostrara, sería que
+    # ha heredado los metadatos equivocados.
+    por_nombre = {c["nombre"]: c["texto"] for c in chunks}
+    assert "12 ECTS" in por_nombre["Trabajo de Fin de Grado"]
+    assert "6 ECTS" in por_nombre["Cartografía y SIG II"]
+    assert "6 ECTS" in por_nombre["Métodos topográficos"]
