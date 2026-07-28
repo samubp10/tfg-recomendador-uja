@@ -46,3 +46,16 @@ conclusión que se extrae no es que las pruebas sobren, sino que su cobertura es
 casos que el conjunto de datos contiene en un momento dado, y que un verificador solo protege de
 aquello que efectivamente comprueba.}
 
+\textcolor{borrador2}{La regeneración del corpus al curso siguiente confirmó ese diagnóstico de la
+peor manera posible, y conviene contarlo porque matiza la conclusión anterior. El fragmentador, que
+llevaba meses funcionando sin incidencias, dejó de terminar: no falló ni avisó de nada, sencillamente
+se quedó dando vueltas. El procedimiento que une los fragmentos demasiado cortos daba por hecho que
+repartir de nuevo un par siempre produce una división distinta, cuando el texto solo puede partirse
+por sus fronteras naturales y a veces las únicas disponibles son las que ya lo separaban. Bastó con
+que una guía tuviera dos fragmentos cuya suma excediera el máximo por un solo carácter para que el
+proceso se repitiera indefinidamente. El defecto estaba en el código desde la fase inicial y ningún
+conjunto de datos lo había activado: lo activó el cambio de la fuente, porque las guías del curso
+nuevo llegan en un formato distinto y con ello cambian las fronteras del texto. La lección no es
+solo que las pruebas cubren lo que los datos contienen, sino que la fuente puede modificar el
+comportamiento del sistema sin que se toque una línea de código.}
+
