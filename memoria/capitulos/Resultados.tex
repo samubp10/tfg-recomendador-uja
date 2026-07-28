@@ -18,7 +18,31 @@
 
 \section{Validación con usuarios}
 
-\begin{borrador}      
+\begin{borrador}
   \item \textbf{Fase:} 4 Validación de usuarios reales (los tengo que buscar aún y no sé si será posible)
 \end{borrador}
+
+\section{Amenazas a la validez}
+\label{secc:amenazas_validez}
+
+\begin{borrador}
+  \item \textbf{Fase:} 2 (IT-58). Aquí van todas las amenazas juntas, no solo la de abajo:
+        la codificación declarada en falso por la fuente, la cobertura de guías del 82 \% con
+        sesgo hacia las titulaciones en implantación, el ECTS ausente, los parámetros de
+        fragmentación sin validar y los umbrales de la hipótesis fijados después de IT-28.
+\end{borrador}
+
+\textcolor{borrador2}{Entre las amenazas a la validez de construcción conviene destacar una por lo
+que enseña sobre el propio método de trabajo. Durante la Fase 0 se dieron tres defectos que la
+batería de pruebas no llegó a detectar y que solo aparecieron al ejecutar el sistema contra el
+conjunto de datos completo. Al revisar el fragmentador apareció un cuarto caso del mismo tipo, con
+una diferencia que merece señalarse: se localizó antes de que los datos llegaran a activarlo. Las
+asignaturas que la fuente publica sin código se identificaban de forma que unas sobrescribían a
+otras, y el encabezado de un fragmento podía terminar atribuyendo el temario a una materia
+distinta. No llegó a ocurrir, porque ninguna de esas asignaturas tiene todavía guía publicada, pero
+tampoco había nada que lo hubiera avisado: el verificador comparaba las claves de los fragmentos y
+no el texto de sus encabezados, de manera que informaba de que el corpus era correcto. La
+conclusión que se extrae no es que las pruebas sobren, sino que su cobertura está limitada por los
+casos que el conjunto de datos contiene en un momento dado, y que un verificador solo protege de
+aquello que efectivamente comprueba.}
 
