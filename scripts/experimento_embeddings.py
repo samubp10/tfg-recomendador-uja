@@ -73,10 +73,15 @@ CANDIDATOS = [
 def cargar_datos() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Carga los chunks reales y las preguntas del conjunto de evaluación.
 
+    El ``chunks.json`` encabeza la lista con un item ``procedencia`` (IT-90)
+    que describe el corpus pero no es contenido recuperable: se descarta
+    filtrando por ``tipo``, porque incrustarlo falsearía las métricas.
+
     Returns:
         Tupla ``(chunks, preguntas)``.
     """
-    chunks = json.loads(RUTA_CHUNKS.read_text(encoding="utf-8"))
+    items = json.loads(RUTA_CHUNKS.read_text(encoding="utf-8"))
+    chunks = [i for i in items if i.get("tipo") == "chunk"]
     preguntas = json.loads(RUTA_EVAL.read_text(encoding="utf-8"))["preguntas"]
     return chunks, preguntas
 
