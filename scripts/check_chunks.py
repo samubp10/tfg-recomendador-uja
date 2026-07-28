@@ -97,6 +97,25 @@ def main(argv: list[str] | None = None) -> int:
         for c in chunks
     ), "grados/codigos deben ser listas paralelas no vacías"
 
+    # --- El encabezado de cada chunk es el de SU unidad (IT-91) ---
+    # El encabezado va dentro de `texto`, que es el único campo que se
+    # vectoriza: si nombra a otra asignatura, el índice afirma algo falso
+    # aunque los metadatos del chunk sean correctos. Comprobarlo aquí es lo
+    # que faltaba para que el defecto de IT-91 no pudiera pasar inadvertido:
+    # el descuadre de cobertura de más abajo compara claves, no encabezados,
+    # y por eso daba «OK» con los encabezados cruzados.
+    descuadres = [
+        c
+        for c in chunks
+        if c["origen"] in ("guia", "asignatura_sin_guia")
+        and not c["texto"].startswith(f"«{c['nombre']}»")
+    ]
+    assert not descuadres, (
+        f"{len(descuadres)} chunks con el encabezado de otra asignatura "
+        f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
+        f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
+    )
+
     # --- Numeración consistente dentro de cada unidad ---
     por_unidad: dict[tuple, list] = {}
     for c in chunks:
