@@ -47,6 +47,38 @@ def test_las_peticiones_van_a_urls_absolutas():
     assert all(p.url.startswith("https://eps.ujaen.es/") for p in peticiones)
 
 
+# --- IT-77: las titulaciones en extinción no se rastrean ---
+#
+# Un grado en extinción no admite nuevas matrículas, así que recomendárselo a
+# un estudiante preuniversitario sería un error. Se descarta en parse(), antes
+# de gastar peticiones en su portada, sus asignaturas y sus guías.
+#
+# El menú lateral de la fixture de Geomática trae las 13 titulaciones reales
+# del centro, incluida la que está en extinción; el de grados.html solo cuatro.
+
+
+def test_no_rastrea_la_titulacion_en_extincion():
+    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
+    nombres = [p.meta["nombre"] for p in peticiones]
+    assert not any(GradosSpider.esta_en_extincion(n) for n in nombres)
+    assert "Grado en Ingeniería Geomática y Topográfica (en extinción)" not in nombres
+
+
+def test_conserva_el_plan_vigente_del_mismo_grado():
+    # El plan 2025 sustituye al que se extingue: no puede caer con él.
+    peticiones = list(GradosSpider().parse(_respuesta("tabla_geomatica_plan2025.html")))
+    nombres = [p.meta["nombre"] for p in peticiones]
+    assert "Grado en Ingeniería Geomática y Topográfica (plan 2025)" in nombres
+    assert len(nombres) == 12
+
+
+def test_esta_en_extincion_no_depende_de_tildes_ni_mayusculas():
+    assert GradosSpider.esta_en_extincion("Grado en X (en extinción)")
+    assert GradosSpider.esta_en_extincion("Grado en X (EN EXTINCION)")
+    assert GradosSpider.esta_en_extincion("Grado en X (En Extinción)")
+    assert not GradosSpider.esta_en_extincion("Grado en Ingeniería Informática")
+
+
 # --- IT-04: portada del grado (parse_portada) ---
 
 
@@ -331,6 +363,83 @@ def test_electrica_separa_las_menciones_combinadas_con_barra():
     }
 
 
+# --- IT-76 (columnas por rótulo): caso real de Geomática plan 2025 ---
+#
+# La EPSJ intercaló una columna "Curso recomendado" en las tablas de mención
+# de este grado, con lo que la mención pasó de la 3.ª a la 4.ª posición:
+#
+#   ['Código', 'Asignatura', 'Curso recomendado', 'Mención', 'Créditos ECTS']
+#
+# El código antiguo miraba siempre cabeceras[2] y descartaba la tabla entera
+# con un aviso, perdiendo las 20 optativas de mención del grado sin que nada
+# fallara. Estas pruebas fijan el comportamiento correcto.
+
+_URL_GEO = (
+    "https://eps.ujaen.es/grados/"
+    "grado-en-ingenieria-geomatica-y-topografica-plan-2025/asignaturas-y-profesorado"
+)
+
+
+def _asignaturas_geomatica():
+    resp = _respuesta(
+        "tabla_geomatica_plan2025.html",
+        url=_URL_GEO,
+        meta={"nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"},
+    )
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_geomatica_no_pierde_las_tablas_con_columna_intercalada():
+    # Con el código antiguo salían 20 (solo las troncales): las dos tablas de
+    # mención se omitían enteras.
+    items = _asignaturas_geomatica()
+    assert len(items) == 39
+    assert len([i for i in items if i["menciones"]]) == 19
+
+
+def test_geomatica_la_mencion_no_se_lee_de_la_columna_equivocada():
+    # Si se leyera por posición fija, en "Mención" caería el curso recomendado
+    # ("3" o "4") y en ECTS caería la mención.
+    bd = _por_nombre(_asignaturas_geomatica(), "Bases de datos geoespaciales")
+    assert bd is not None
+    assert bd["menciones"] == ["TIG"]
+    assert bd["ects"] == "6"
+    assert bd["tipo_asignatura"] == "OP"
+
+
+def test_geomatica_fusiona_la_optativa_repetida_sin_codigo():
+    # "Prácticas externas" figura en las dos tablas de mención y su código
+    # viene vacío, así que agrupar solo por código la duplicaría.
+    items = _asignaturas_geomatica()
+    practicas = [i for i in items if i["nombre"] == "Prácticas externas"]
+    assert len(practicas) == 1
+    assert set(practicas[0]["menciones"]) == {"TIG", "TIA"}
+
+
+def test_geomatica_conserva_las_troncales_de_la_misma_pagina():
+    # Las tablas troncales de la misma página siguen con su tipo real, no "OP".
+    metodos = _por_nombre(_asignaturas_geomatica(), "Métodos topográficos")
+    assert metodos is not None
+    assert metodos["codigo"] == "15412006"
+    assert metodos["tipo_asignatura"] == "OB"
+    assert metodos["menciones"] == []
+
+
+def test_columnas_de_cabecera_localiza_por_rotulo_no_por_posicion():
+    columnas = GradosSpider._columnas_de_cabecera(
+        ["Código", "Asignatura", "Curso recomendado", "Mención", "Créditos ECTS"]
+    )
+    assert columnas == {"codigo": 0, "nombre": 1, "mencion": 3, "ects": 4}
+
+
+def test_columnas_de_cabecera_ignora_las_columnas_desconocidas():
+    # "Curso recomendado" no forma parte del modelo de datos y no debe aparecer.
+    columnas = GradosSpider._columnas_de_cabecera(
+        ["Código", "Asignatura", "Tipo", "Créditos ECTS"]
+    )
+    assert columnas == {"codigo": 0, "nombre": 1, "tipo": 2, "ects": 3}
+
+
 # --- IT-06: contenido de la guía docente (parse_guia) ---
 #
 # La web declara charset=UTF-8 en el <meta>, pero el servidor real envía la
@@ -470,6 +579,58 @@ def test_el_fallback_excluye_profesorado_y_clausulas():
     cuerpo = item["cuerpo_general"].lower()
     assert "profesor" not in cuerpo
     assert "rgpd" not in cuerpo
+
+
+# --- IT-67: guía servida como PDF ---
+#
+# Desde el curso 2026-27 la EPSJ sirve algunas guías como PDF detrás de una URL
+# .html. La fixture es un PDF real; la extracción y el filtrado viven en
+# guia_pdf, así que aquí solo se comprueba que parse_guia enruta bien y no
+# vuelca binario en la colección.
+
+
+def _guia_pdf(fixture, codigo, nombre, grado):
+    from scrapy.http import Response
+
+    resp = Response(
+        url=_URL_GUIA,
+        body=(FIXTURES / fixture).read_bytes(),
+        headers={"Content-Type": "application/pdf"},
+        request=Request(
+            _URL_GUIA,
+            meta={"codigo": codigo, "nombre": nombre, "grado": grado},
+        ),
+    )
+    return list(GradosSpider().parse_guia(resp))
+
+
+def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
+    items = _guia_pdf(
+        "guia_estadistica_iayc.pdf",
+        "15711008",
+        "Estadística",
+        "Grado en Inteligencia Artificial y Ciberseguridad",
+    )
+    assert len(items) == 1
+    item = items[0]
+    assert item["fallback"] is False
+    assert "%PDF" not in item["resumen"] + item["temario"]
+    assert "cuerpo_general" not in item
+    assert "estadística descriptiva" in item["temario"].lower()
+
+
+def test_una_guia_en_pdf_ilegible_no_emite_item():
+    # Un PDF corrupto: no se emite guía, y la asignatura queda como «sin guía»,
+    # nunca con el binario volcado por el mecanismo de respaldo.
+    from scrapy.http import Response
+
+    resp = Response(
+        url=_URL_GUIA,
+        body=b"%PDF-1.6 roto",
+        headers={"Content-Type": "application/pdf"},
+        request=Request(_URL_GUIA, meta={"codigo": "X", "nombre": "Y", "grado": "Z"}),
+    )
+    assert list(GradosSpider().parse_guia(resp)) == []
 
 
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
