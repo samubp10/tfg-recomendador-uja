@@ -98,6 +98,26 @@ def main(argv: list[str] | None = None) -> int:
     guias = [d for d in datos if d["tipo"] == "guia"]
     salidas = [d for d in datos if d["tipo"] == "salidas"]
 
+    # Procedencia (IT-90): de cuándo y de qué curso es lo que se verifica.
+    procedencia = next((d for d in datos if d["tipo"] == "procedencia"), {})
+    cursos = sorted({g["curso"] for g in guias if g.get("curso")})
+    if procedencia:
+        print(
+            f"Procedencia: extraccion {procedencia.get('fecha_extraccion')} | "
+            f"curso(s) {', '.join(cursos) or 'sin determinar'}"
+        )
+    else:
+        print(
+            "AVISO: este grados.json no lleva procedencia (anterior a IT-90). "
+            "Regeneralo para saber de cuando y de que curso es."
+        )
+    sin_curso = [g for g in guias if not g.get("curso")]
+    if procedencia and sin_curso:
+        print(
+            f"  AVISO: {len(sin_curso)} de {len(guias)} guias sin curso en su "
+            "URL; el formato de la fuente puede haber cambiado."
+        )
+
     # Va antes que las cifras esperadas a propósito: si una titulación se ha
     # quedado sin asignaturas, el recuento total también falla, pero un
     # «asignaturas: 331 (esperado 361)» solo dice que falta algo. Comprobar
