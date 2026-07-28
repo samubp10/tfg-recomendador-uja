@@ -24,8 +24,10 @@ import pytest
 from tfg_uja.indexer import (
     COLECCION,
     SEPARADOR_LISTAS,
+    cargar_chunks,
     indexar_chunks,
     metadatos_de_chunk,
+    procedencia_de_indice,
     reconstruir_indice,
 )
 
@@ -115,3 +117,60 @@ def test_reconstruir_no_duplica(tmp_path, chunks_reales):
     assert total == len(chunks_reales)
     cliente = chromadb.PersistentClient(path=str(ruta_indice))
     assert cliente.get_collection(COLECCION).count() == len(chunks_reales)
+
+
+# --- IT-90: el item de procedencia no se indexa ---
+
+
+def test_no_se_indexa_la_procedencia_del_corpus(tmp_path):
+    # chunks.json encabeza la lista con la procedencia (IT-90). No es contenido
+    # recuperable: si acabara en el índice, una consulta podría devolverla como
+    # si fuera información sobre una titulación.
+    fichero = tmp_path / "chunks.json"
+    fichero.write_text(
+        json.dumps(
+            [
+                {
+                    "tipo": "procedencia",
+                    "fecha_extraccion": "2026-07-28",
+                    "cursos": ["2025-26"],
+                },
+                {
+                    "tipo": "chunk",
+                    "origen": "guia",
+                    "grados": ["Grado A"],
+                    "codigos": ["10000001"],
+                    "nombre": "Álgebra",
+                    "texto": "«Álgebra»...\nMatrices y determinantes.",
+                    "chunk_index": 0,
+                    "total_chunks": 1,
+                },
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    chunks = cargar_chunks(fichero)
+    assert len(chunks) == 1
+    assert chunks[0]["nombre"] == "Álgebra"
+
+
+def test_la_procedencia_sigue_siendo_consultable(tmp_path):
+    # Descartarla al indexar no significa perderla: el índice debe poder decir
+    # de cuándo y de qué curso es el corpus que contiene.
+    fichero = tmp_path / "chunks.json"
+    fichero.write_text(
+        json.dumps(
+            [{"tipo": "procedencia", "fecha_extraccion": "2026-07-28"}],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    assert procedencia_de_indice(fichero)["fecha_extraccion"] == "2026-07-28"
+
+
+def test_un_chunks_json_anterior_a_it90_no_rompe_al_indexar(tmp_path):
+    fichero = tmp_path / "chunks.json"
+    fichero.write_text(json.dumps([]), encoding="utf-8")
+    assert cargar_chunks(fichero) == []
+    assert procedencia_de_indice(fichero) == {}
