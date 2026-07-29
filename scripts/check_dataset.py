@@ -14,6 +14,31 @@ import json
 import sys
 from pathlib import Path
 
+#: Tamaño esperado del corpus. Son las cifras del último rastreo aceptado, no
+#: una verdad del dominio: sirven para que una pérdida silenciosa de datos se
+#: note en la siguiente regeneración en vez de pasar inadvertida.
+#:
+#: **Actualizadas el 28/07/2026, contra el rastreo de ese día (curso 2026-27).**
+#: Antes valían 361/13/296/8/9/1, del snapshot del 09/07/2026 (curso 2025-26);
+#: la diferencia la explican IT-76 (+19 asignaturas de Geomática recuperadas) e
+#: IT-77 (−30 asignaturas y −1 titulación, la que estaba en extinción).
+#:
+#: Al regenerar el dataset hay que revisarlas: si el cambio es legítimo se
+#: anotan las nuevas, y si no lo es, es que el rastreo ha perdido datos. Que
+#: fallen tras un rastreo NO significa por sí solo que algo esté roto, pero
+#: tampoco se actualizan sin mirar de dónde sale la diferencia.
+ESPERADO = {
+    "asignaturas": 350,
+    "grados": 12,
+    "guias": 288,
+    # Los dobles grados no emiten salidas (decisión de IT-07): 7, no 12.
+    "salidas": 7,
+    "no_ofertadas": 10,
+    # Fiel a la fuente: la web no publica los ECTS de una asignatura y no se
+    # imputan (decisión 9 del proyecto).
+    "sin_ects": 1,
+}
+
 #: Campos de texto libre que se vuelcan a la colección y, por tanto, jamás
 #: deben contener binario. El bug que motivó esta comprobación (IT-67): una
 #: guía servida como PDF pasaba por el mecanismo de respaldo y guardaba el
@@ -129,22 +154,62 @@ def main(argv: list[str] | None = None) -> int:
         f"leer sus tablas; revisa los avisos del rastreo (IT-78)."
     )
 
-    assert len(asignaturas) == 361, f"asignaturas: {len(asignaturas)} (esperado 361)"
-    assert len(grados) == 13, f"grados: {len(grados)} (esperado 13)"
-    assert len(guias) == 296, f"guias: {len(guias)} (esperado 296)"
-    # Los dobles grados no emiten salidas (decisión de IT-07): 8, no 9.
-    assert len(salidas) == 8, f"salidas: {len(salidas)} (esperado 8)"
+    for etiqueta, real in (
+        ("asignaturas", len(asignaturas)),
+        ("grados", len(grados)),
+        ("guias", len(guias)),
+        ("salidas", len(salidas)),
+    ):
+        esperado = ESPERADO[etiqueta]
+        assert real == esperado, (
+            f"{etiqueta}: {real} (esperado {esperado}). Si el cambio es "
+            f"legítimo porque se ha vuelto a rastrear, actualiza ESPERADO en "
+            f"la cabecera de este script; si no lo es, el rastreo ha perdido "
+            f"datos y hay que averiguar por qué antes de tocar nada."
+        )
+
     assert all("ofertada" in a for a in asignaturas), "falta el campo ofertada"
     no_ofertadas = sum(1 for a in asignaturas if not a["ofertada"])
-    assert no_ofertadas == 9, f"no ofertadas: {no_ofertadas} (esperado 9)"
-    assert not [a for a in asignaturas if "(" in a["nombre"]], "nombres sucios"
+    assert (
+        no_ofertadas == ESPERADO["no_ofertadas"]
+    ), f"no ofertadas: {no_ofertadas} (esperado {ESPERADO['no_ofertadas']})"
+
+    # Un paréntesis en el nombre delata que se ha colado texto que no forma
+    # parte de él. Este invariante lleva vigente desde IT-10 y saltó por
+    # primera vez el 28/07/2026: la fuente había empezado a incrustar un
+    # enlace «( Syllabus )» dentro de la celda del nombre (IT-93).
+    sucios = [a for a in asignaturas if "(" in a["nombre"]]
+    assert not sucios, (
+        f"{len(sucios)} nombres con paréntesis, p. ej. {sucios[0]['nombre']!r}. "
+        f"Se ha colado en el nombre algo que no le pertenece."
+    )
     assert not [
         a for a in asignaturas if any("/" in m for m in a["menciones"])
     ], "menciones con barra sin separar"
     sin_ects = [a for a in asignaturas if not a["ects"]]
-    assert (
-        len(sin_ects) == 1
-    ), f"sin ECTS: {len(sin_ects)} (esperado 1, fiel a la fuente)"
+    assert len(sin_ects) == ESPERADO["sin_ects"], (
+        f"sin ECTS: {len(sin_ects)} (esperado {ESPERADO['sin_ects']}, "
+        f"fiel a la fuente)"
+    )
+
+    # IT-94: una asignatura que anuncia guía pero cuya guía no aparece en el
+    # dataset se pierde del corpus si nadie lo mira. No es un error del
+    # rastreo (un PDF ilegible es un hecho de la fuente), así que se avisa en
+    # vez de fallar; el fragmentador ya les da su fragmento informativo.
+    claves_guia = {(g["grado"], g.get("codigo") or g["nombre"]) for g in guias}
+    sin_extraer = [
+        a
+        for a in asignaturas
+        if a["tiene_guia"]
+        and (a["grado"], a["codigo"] or a["nombre"]) not in claves_guia
+    ]
+    if sin_extraer:
+        print(
+            f"  AVISO: {len(sin_extraer)} asignaturas enlazan una guía cuyo "
+            f"contenido no se ha podido extraer (p. ej. "
+            f"{sin_extraer[0]['nombre']!r}); entran al corpus solo con sus "
+            f"datos básicos."
+        )
 
     binarias = [
         d
