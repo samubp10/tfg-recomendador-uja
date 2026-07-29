@@ -22,6 +22,7 @@ from tfg_uja.guia_pdf import es_pdf, extraer_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
+    quitar_syllabus,
     reparar_url,
     separar_oferta,
 )
@@ -272,6 +273,11 @@ class GradosSpider(scrapy.Spider):
                     continue
                 codigo = self._texto_celda(celdas, columnas.get("codigo"))
                 nombre_bruto = self._texto_celda(celdas, columnas["nombre"])
+                # El enlace «Syllabus» se retira antes que nada porque la
+                # fuente lo añade al final de la celda, por fuera de cualquier
+                # otra marca: quitarlo primero deja el nombre en la forma que
+                # esperan separar_oferta y quitar_nota_al_pie.
+                nombre_bruto = quitar_syllabus(nombre_bruto) or ""
                 nombre, ofertada = separar_oferta(nombre_bruto)
                 # Un nombre ausente equivale a uno vacío: en ambos casos la
                 # fila la descarta es_asignatura_valida unas líneas más abajo.
