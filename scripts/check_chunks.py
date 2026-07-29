@@ -199,12 +199,26 @@ def main(argv: list[str] | None = None) -> int:
         f"sobran {len(unidades_guia - con_guia)}"
     )
 
-    sin_guia = {_clave_item(a) for a in asignaturas if not a["tiene_guia"]}
     informativos = set()
     for c in chunks:
         if c["origen"] == "asignatura_sin_guia":
             informativos |= _claves_chunk(c)
-    assert sin_guia == informativos, "asignaturas sin guía sin chunk informativo"
+
+    # IT-94: toda asignatura del dataset tiene que quedar representada en algún
+    # fragmento, sea por su guía o por su chunk informativo. Antes se
+    # comprobaba solo que las de `tiene_guia=False` tuvieran informativo y que
+    # las guías tuvieran sus fragmentos, y entre ambas comprobaciones quedaba
+    # un hueco: una asignatura con `tiene_guia=True` cuya guía no llegó a
+    # emitirse (PDF ilegible, IT-67) no entraba en ninguna de las dos y
+    # desaparecía del corpus mientras el verificador respondía «OK».
+    todas = {_clave_item(a) for a in asignaturas}
+    representadas = unidades_guia | informativos
+    perdidas = todas - representadas
+    assert not perdidas, (
+        f"{len(perdidas)} asignaturas del dataset no aparecen en ningún "
+        f"fragmento (p. ej. {sorted(perdidas)[0]}): ni con guía ni como "
+        f"asignatura sin guía. Se han perdido del corpus (IT-94)."
+    )
 
     grados_salidas = {s["grado"] for s in salidas}
     grados_chunk_salidas = {
@@ -220,8 +234,17 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Chunks totales: {len(chunks)}  {dict(origenes)}")
     print(
         f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
-        f"sin guía {len(sin_guia)}, salidas {len(grados_salidas)})"
+        f"sin guía {len(informativos)}, salidas {len(grados_salidas)})"
     )
+    # IT-94: las que la fuente publica pero no se han podido extraer se
+    # cuentan aparte, porque no son lo mismo que una guía inexistente y su
+    # número mide directamente cuánto contenido se está perdiendo.
+    no_extraidas = sum(1 for a in asignaturas if a["tiene_guia"]) - len(guias)
+    if no_extraidas:
+        print(
+            f"  AVISO: {no_extraidas} asignaturas anuncian guía pero no se ha "
+            "podido extraer su contenido; aparecen solo con sus datos básicos."
+        )
     print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
     tamanos = sorted(len(c["texto"]) for c in chunks)
