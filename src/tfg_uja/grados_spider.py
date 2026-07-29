@@ -33,13 +33,14 @@ import re
 import unicodedata
 from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
 from typing import Any, Final
 
 import scrapy
 from scrapy.http import Request, Response
 from parsel import Selector, SelectorList
 
-from tfg_uja.guia_pdf import es_pdf, extraer_guia
+from tfg_uja.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
@@ -47,6 +48,12 @@ from tfg_uja.text_cleaner import (
     separar_oferta,
 )
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
+
+#: Raíz del repositorio, deducida de la ubicación de este módulo
+#: (``src/tfg_uja/grados_spider.py``). Se resuelve así, y no como ruta relativa
+#: al directorio de trabajo, para que el rastreo deje los ficheros en el mismo
+#: sitio se lance desde donde se lance.
+_RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 
 
 def _normalizar(texto: str) -> str:
@@ -116,6 +123,12 @@ class GradosSpider(scrapy.Spider):
     #: admite nuevas matrículas. Se compara sin tildes y en minúsculas, porque
     #: la fuente no es consistente al escribirla.
     MARCA_EXTINCION: Final[str] = "en extincion"
+
+    #: Dónde se deja copia de los PDF de las guías para poder auditarlos
+    #: después (IT-95). Es atributo de clase y no una constante del módulo
+    #: para que las pruebas puedan redirigirlo a un directorio temporal: si no,
+    #: ejecutar la batería escribiría dentro del `data/` real del proyecto.
+    DIR_PDF: Path = _RAIZ / "data" / "guias_pdf"
 
     def parse(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Sigue cada grado del listado hacia su portada.
@@ -583,6 +596,12 @@ class GradosSpider(scrapy.Spider):
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
             "curso": curso_de_url(response.url),
+            # De qué camino ha salido esta guía (IT-95). Hasta ahora solo se
+            # podía deducir a posteriori mirando los saltos de línea del texto,
+            # que es una pista y no un dato: sirvió para descubrir que el
+            # corpus ya era 100 % PDF, pero deja de ser concluyente en cuanto
+            # la fuente vuelva a servir las dos cosas a la vez.
+            "formato": "html",
             "fallback": fallback,
             **secciones,
         }
@@ -604,26 +623,65 @@ class GradosSpider(scrapy.Spider):
 
         Yields:
             dict: Resumen y temario de la guía, con ``fallback`` siempre
-                ``False``. No se emite nada si el PDF es ilegible.
+                ``False``. No se emite nada si el PDF no aporta contenido.
         """
+        codigo = response.meta["codigo"]
+        self._guardar_pdf(codigo, response.body)
         datos = extraer_guia(response.body)
         if datos is None:
+            # El motivo importa: hasta IT-95 los cuatro casos posibles se
+            # anunciaban como «PDF ilegible», y resultó ser falso. Los seis
+            # casos reales del rastreo del 28/07/2026 se leían perfectamente
+            # y lo vacío eran las secciones en el origen.
             self.logger.warning(
-                "Guía %s servida como PDF ilegible o sin secciones útiles; "
-                "se omite y la asignatura queda como «sin guía».",
-                response.meta["codigo"],
+                "Guía %s sin contenido extraíble (motivo: %s); se omite y la "
+                "asignatura queda como «sin guía».",
+                codigo,
+                motivo_sin_guia(response.body),
             )
             return
         yield {
             "tipo": "guia",
-            "codigo": response.meta["codigo"],
+            "codigo": codigo,
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
             "curso": curso_de_url(response.url),
+            "formato": "pdf",
             "fallback": False,
             "resumen": datos["resumen"],
             "temario": datos["temario"],
         }
+
+    def _guardar_pdf(self, codigo: str, cuerpo: bytes) -> None:
+        """Guarda el PDF de una guía para poder auditar después su extracción.
+
+        Sin esto no hay nada contra lo que comparar: el rastreo lee el PDF,
+        se queda con dos secciones y tira el resto, así que comprobar que no
+        se ha perdido contenido exigiría volver a rastrear la web entera
+        (IT-95). Guardarlos durante el rastreo cuesta cero peticiones.
+
+        Los ficheros van a ``data/``, que no se versiona. **Contienen datos
+        personales del profesorado**, así que son una copia local de trabajo y
+        no salen de la máquina; el corpus sigue sin ellos.
+
+        Cualquier fallo al escribir se registra y se ignora: perder la copia de
+        auditoría es un contratiempo, pero tumbar un rastreo de 300 peticiones
+        por no poder crear un fichero sería mucho peor.
+
+        Args:
+            codigo (str): Código de la asignatura, que da nombre al fichero.
+            cuerpo (bytes): Bytes del PDF tal como los sirvió el servidor.
+        """
+        try:
+            self.DIR_PDF.mkdir(parents=True, exist_ok=True)
+            (self.DIR_PDF / f"{codigo or 'sin_codigo'}.pdf").write_bytes(cuerpo)
+        except OSError as error:
+            self.logger.warning(
+                "No se ha podido guardar el PDF de la guía %s (%s); el rastreo "
+                "sigue, pero esa guía no se podrá auditar.",
+                codigo,
+                error,
+            )
 
     @staticmethod
     def _contenido_seccion(response: Response, id_seccion: str) -> str:
