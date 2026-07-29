@@ -27,4 +27,4 @@ jobs:
       # check_dataset.py y check_chunks.py NO se ejecutan aquí: data/ no
       # está versionado (ver .gitignore), así que en un checkout limpio de
       # CI esos ficheros no existen. Se ejecutan en local antes de cada
-      # push (ver CLAUDE.md, sección Comandos).
+      # push (ver el README, «Verificadores del dataset»).
