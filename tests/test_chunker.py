@@ -430,3 +430,64 @@ def test_un_par_que_si_cabe_junto_se_sigue_fusionando():
     # así que no necesita ejecutarse aparte.
     resultado = _fusionar_pequenos(["a" * 50, "b" * 500], 200, 1340)
     assert len(resultado) == 1
+
+
+# --- IT-94: la guía anunciada que no llegó a extraerse ---
+
+# Caso real del rastreo del 28/07/2026: cinco asignaturas cuya guía se sirve
+# como PDF que `guia_pdf` no pudo leer. El rastreador ya había emitido la
+# asignatura con `tiene_guia=True`, porque en la tabla sí había enlace, y el
+# ítem de guía nunca llegó a emitirse. Se quedaban sin fragmento de guía y sin
+# fragmento informativo: desaparecían del corpus enteras.
+_CRIPTOGRAFIA = {
+    "tipo": "asignatura",
+    "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+    "codigo": "15712013",
+    "nombre": "Criptografía",
+    "tipo_asignatura": "OB",
+    "ects": "6",
+    "menciones": [],
+    "ofertada": True,
+    "tiene_guia": True,  # la tabla enlazaba su guía...
+}
+# ...pero no hay ningún item `guia` para ella en el dataset.
+
+
+def test_una_guia_anunciada_que_no_se_extrajo_no_borra_la_asignatura():
+    chunks = trocear_dataset([_CRIPTOGRAFIA])
+    assert len(chunks) == 1
+    assert chunks[0]["origen"] == "asignatura_sin_guia"
+    assert chunks[0]["nombre"] == "Criptografía"
+    assert chunks[0]["codigos"] == ["15712013"]
+
+
+def test_ese_fragmento_no_afirma_que_la_guia_no_este_publicada():
+    # La guía SÍ está publicada: lo que ha fallado es la extracción. Decir lo
+    # contrario metería una afirmación falsa en el propio corpus, y el sistema
+    # se la daría por buena al estudiante que preguntase por la asignatura.
+    texto = trocear_dataset([_CRIPTOGRAFIA])[0]["texto"]
+    assert "no ha podido obtenerse" in texto
+    assert "no está publicada" not in texto
+
+
+def test_la_asignatura_sin_guia_publicada_conserva_su_mensaje():
+    # El otro caso no cambia: si la fuente no publica la guía, se dice así.
+    sin_publicar = {**_CRIPTOGRAFIA, "tiene_guia": False}
+    texto = trocear_dataset([sin_publicar])[0]["texto"]
+    assert "no está publicada" in texto
+
+
+def test_si_la_guia_si_llega_no_se_duplica_la_asignatura():
+    # Comprobación de que el arreglo no genera fragmentos de más: con su guía
+    # presente, la asignatura produce solo los fragmentos de guía.
+    guia = {
+        "tipo": "guia",
+        "grado": _CRIPTOGRAFIA["grado"],
+        "codigo": "15712013",
+        "nombre": "Criptografía",
+        "fallback": False,
+        "resumen": "Fundamentos de criptografía simétrica y asimétrica.",
+        "temario": "Tema 1. Cifrado clásico. Tema 2. Clave pública.",
+    }
+    chunks = trocear_dataset([_CRIPTOGRAFIA, guia])
+    assert {c["origen"] for c in chunks} == {"guia"}
