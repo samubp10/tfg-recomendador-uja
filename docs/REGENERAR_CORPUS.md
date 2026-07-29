@@ -143,3 +143,16 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
 | --- | --- | ---: | ---: | ---: | --- |
 | 09/07/2026 | 2025-26 | 361 | 296 | 892 | Snapshot inicial. Sin procedencia dentro del fichero (anterior a IT-90) |
 | 28/07/2026 | 2026-27 | 350 | 288 | 786 | Primer rastreo con IT-76, IT-77, IT-67 y IT-90. Destapó IT-92, IT-93 e IT-94 |
+| 29/07/2026 | 2026-27 | 350 | 288 | 781 | Con IT-95 e IT-96. **Los cuatro verificadores en verde.** Destapó IT-97 |
+
+El rastreo del 29/07 es el primero que cierra el ciclo completo. Lo que dejó:
+
+- **781 fragmentos**: 711 de guía, 62 informativos de asignaturas sin guía y 8 de
+  salidas. 279 unidades, 38 de ellas compartidas entre titulaciones.
+- Tamaños (mín/mediana/p90/máx): **227 / 1128 / 1234 / 1499**.
+- **0 nombres contaminados** por el enlace «Syllabus», que es lo que arreglaba IT-96.
+- 5 asignaturas con la guía publicada pero vacía en el origen (DQA-0004); entran al
+  corpus con sus datos básicos.
+- Conjunto de evaluación: 36 preguntas, 7/7 titulaciones. Hubo que repuntar cuatro
+  selectores porque sus asignaturas ya tienen guía, así que el reparto por tipo queda
+  en 20 temario · 8 salidas · 6 metadatos · **2 sin guía** (eran 5).
