@@ -591,27 +591,44 @@ def test_el_fallback_excluye_profesorado_y_clausulas():
 # vuelca binario en la colección.
 
 
-def _guia_pdf(fixture, codigo, nombre, grado):
+def _respuesta_pdf(cuerpo, codigo="15711008", nombre="Estadística", grado="G"):
     from scrapy.http import Response
 
-    resp = Response(
+    return Response(
         url=_URL_GUIA,
-        body=(FIXTURES / fixture).read_bytes(),
+        body=cuerpo,
         headers={"Content-Type": "application/pdf"},
         request=Request(
             _URL_GUIA,
             meta={"codigo": codigo, "nombre": nombre, "grado": grado},
         ),
     )
-    return list(GradosSpider().parse_guia(resp))
 
 
-def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
+def _spider_con_pdf_en(destino):
+    """Spider que deja las copias de los PDF en un directorio temporal.
+
+    Sin esto, cada ejecución de la batería escribiría dentro del `data/` real
+    del proyecto: pasó al implementar IT-95 y dejó allí un `X.pdf` de trece
+    bytes salido de la prueba del PDF corrupto.
+    """
+    spider = GradosSpider()
+    spider.DIR_PDF = destino
+    return spider
+
+
+def _guia_pdf(fixture, codigo, nombre, grado, destino):
+    resp = _respuesta_pdf((FIXTURES / fixture).read_bytes(), codigo, nombre, grado)
+    return list(_spider_con_pdf_en(destino).parse_guia(resp))
+
+
+def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback(tmp_path):
     items = _guia_pdf(
         "guia_estadistica_iayc.pdf",
         "15711008",
         "Estadística",
         "Grado en Inteligencia Artificial y Ciberseguridad",
+        tmp_path,
     )
     assert len(items) == 1
     item = items[0]
@@ -621,18 +638,57 @@ def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
     assert "estadística descriptiva" in item["temario"].lower()
 
 
-def test_una_guia_en_pdf_ilegible_no_emite_item():
+def test_una_guia_en_pdf_ilegible_no_emite_item(tmp_path):
     # Un PDF corrupto: no se emite guía, y la asignatura queda como «sin guía»,
     # nunca con el binario volcado por el mecanismo de respaldo.
-    from scrapy.http import Response
+    resp = _respuesta_pdf(b"%PDF-1.6 roto", codigo="X", nombre="Y", grado="Z")
+    assert list(_spider_con_pdf_en(tmp_path).parse_guia(resp)) == []
 
-    resp = Response(
-        url=_URL_GUIA,
-        body=b"%PDF-1.6 roto",
-        headers={"Content-Type": "application/pdf"},
-        request=Request(_URL_GUIA, meta={"codigo": "X", "nombre": "Y", "grado": "Z"}),
+
+# --- IT-95: de qué camino viene cada guía y copia para poder auditarla ---
+
+
+def test_la_guia_declara_de_que_formato_viene(tmp_path):
+    # Hasta IT-95 el formato solo se podía deducir mirando los saltos de línea
+    # del texto extraído. Servía como pista, pero deja de ser concluyente en
+    # cuanto la fuente vuelva a servir HTML y PDF a la vez.
+    en_pdf = _guia_pdf("guia_estadistica_iayc.pdf", "15711008", "E", "G", tmp_path)
+    assert en_pdf[0]["formato"] == "pdf"
+
+    en_html = _guia("guia_matematicas_oi.html", "13011009", "Matemáticas I", "G")
+    assert en_html["formato"] == "html"
+
+
+def test_el_rastreo_guarda_una_copia_del_pdf_para_auditarlo(tmp_path):
+    # El rastreo lee el PDF, se queda con dos secciones y tira el resto: sin
+    # esta copia, comprobar que no se ha perdido contenido exigiría volver a
+    # rastrear la web entera.
+    original = (FIXTURES / "guia_estadistica_iayc.pdf").read_bytes()
+    _guia_pdf("guia_estadistica_iayc.pdf", "15711008", "E", "G", tmp_path)
+    guardado = tmp_path / "15711008.pdf"
+    assert guardado.exists()
+    assert guardado.read_bytes() == original
+
+
+def test_tambien_se_guarda_el_pdf_del_que_no_se_extrae_nada(tmp_path):
+    # Es justo el que más falta hace para auditar: si no se guarda el que
+    # falla, no hay forma de averiguar por qué falló.
+    resp = _respuesta_pdf(b"%PDF-1.6 roto", codigo="15411008")
+    list(_spider_con_pdf_en(tmp_path).parse_guia(resp))
+    assert (tmp_path / "15411008.pdf").read_bytes() == b"%PDF-1.6 roto"
+
+
+def test_un_fallo_al_guardar_el_pdf_no_tumba_el_rastreo(tmp_path):
+    # Perder la copia de auditoría es un contratiempo; tumbar un rastreo de
+    # 300 peticiones por no poder crear un fichero sería mucho peor. Se fuerza
+    # el fallo apuntando el destino a un fichero, no a un directorio.
+    estorbo = tmp_path / "estorbo"
+    estorbo.write_text("no soy un directorio", encoding="utf-8")
+    items = _guia_pdf(
+        "guia_estadistica_iayc.pdf", "15711008", "E", "G", estorbo / "dentro"
     )
-    assert list(GradosSpider().parse_guia(resp)) == []
+    assert len(items) == 1
+    assert "estadística descriptiva" in items[0]["temario"].lower()
 
 
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
