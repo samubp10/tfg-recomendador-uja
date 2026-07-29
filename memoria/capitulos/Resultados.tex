@@ -43,15 +43,32 @@
         bloque de profesorado con sus datos personales. \textbf{Ninguno de los dos
         casos se manifiesta como un error}: el sistema sigue respondiendo, solo que
         sobre menos contenido del que cree tener.
-  \item Enunciarlo con lo que sí está medido y con lo que no: hoy no se ha detectado
-        ningún rótulo desconocido, pero \emph{no hay forma de comprobarlo} mientras el
-        rastreo no conserve los PDF de los que extrae. Es una amenaza declarada y
-        pendiente de instrumentar, no una amenaza descartada.
-  \item Vale la pena contar por qué la comprobación evidente no sirve: buscar líneas
-        en mayúsculas que no estén en la lista produce entre 17 y 25 falsos avisos por
-        guía, porque el bloque de profesorado trae en mayúsculas los nombres y los
-        departamentos. Un verificador que avisa siempre acaba ignorándose, que es una
-        forma más de que un verificador mida algo distinto de lo que dice medir.
+  \item \textbf{Actualización:} la amenaza sigue en pie, pero ya está
+        \emph{instrumentada}, que no es lo mismo que descartada. El rastreo conserva
+        ahora una copia de cada PDF y un verificador comprueba, contra el original,
+        que todos los rótulos que la plantilla compone son de los conocidos. Mientras
+        esa comprobación salga vacía, las fronteras de sección caen donde el código
+        cree; en cuanto devuelva algo, hay que mirarlo antes de fiarse del corpus.
+  \item La forma de enunciarla, entonces, es esta: no se puede garantizar que la
+        plantilla no cambie —eso no depende del trabajo—, pero sí que un cambio deje
+        de pasar inadvertido. Es una diferencia que conviene marcar, porque es la
+        misma lección de los cuatro defectos anteriores: lo que no se comprueba no
+        está protegido, aunque no haya fallado todavía.
+  \item Vale la pena contar por qué la comprobación evidente no sirve, porque
+        explica una decisión de diseño que si no parece arbitraria. Buscar líneas en
+        mayúsculas que no estén en la lista produce entre 17 y 25 falsos avisos por
+        guía: el bloque de profesorado trae en mayúsculas los nombres, los
+        departamentos y las ubicaciones. Un verificador que avisa siempre acaba
+        ignorándose, que es una forma más de que mida algo distinto de lo que dice
+        medir. Los rótulos se localizan por su \emph{tipografía} —la plantilla los
+        compone en negrita a doce puntos— y así salen cero falsos avisos sobre los
+        cuatro PDF reales comprobados.
+  \item Dato útil para la defensa, y para adelantarse a la pregunta obvia sobre
+        cuánto se tira: de los 53.969 caracteres de secciones que suman las tres
+        guías de prueba se conservan 8.534, alrededor del 15 \%. El resto se descarta
+        a propósito y con nombre —evaluación, bibliografía, cláusulas, profesorado,
+        metodologías— y el verificador lo enumera sección por sección, de modo que el
+        filtrado se puede revisar en lugar de tener que creérselo.
 \end{borrador}
 
 \begin{borrador}
@@ -60,19 +77,26 @@
         planes en implantación publican su guía docente \textbf{con el esqueleto
         completo de la plantilla y las secciones de contenido vacías}.
   \item Se comprobó descargando los seis PDF implicados: los seis se leen
-        correctamente, con unos 10.000 caracteres cada uno y los 17 rótulos en su
-        sitio. En uno de ellos, las líneas <<RESUMEN>>, <<DESCRIPCIÓN DE
-        CONTENIDOS>> y <<METODOLOGÍAS DOCENTES>> aparecen seguidas, sin nada en medio.
+        correctamente, con entre 9.300 y 13.000 caracteres cada uno y los trece
+        rótulos de la plantilla en su sitio. En uno de ellos, las líneas
+        <<RESUMEN>>, <<DESCRIPCIÓN DE CONTENIDOS>> y <<METODOLOGÍAS DOCENTES>>
+        aparecen seguidas, sin nada en medio.
   \item Lo que importa aquí no es el número, sino la distinción: no es un fallo de
         extracción del sistema, es un hueco del origen. El aviso del rastreador decía
         <<PDF ilegible>> y la colección decía <<no ha podido obtenerse>>; las dos
-        cosas insinúan un fallo propio que no existe. Corregir esa redacción es
+        cosas insinuaban un fallo propio que no existe. Ya está corregido: es
         cuestión de honestidad de la propia colección, que no puede afirmar algo
-        falso sobre por qué le falta un dato.
+        falso sobre por qué le falta un dato. Queda registrado en el DQA-0004.
+  \item Merece contarse como pareja del defecto de IT-94, porque son el mismo error
+        en direcciones opuestas: allí la colección iba a negar una publicación que sí
+        existe; aquí iba a atribuirse un fallo que no había cometido. Las dos veces
+        el texto era cómodo de escribir y falso, y las dos veces lo que lo destapó
+        fue ir a mirar la fuente en lugar de fiarse de lo que el código creía.
   \item Enlaza con la amenaza ya declarada del sesgo de cobertura: las titulaciones
         de implantación reciente no solo concentran las asignaturas sin guía, sino
         también las guías publicadas y vacías, que hasta ahora se contaban como
-        cobertura.
+        cobertura. \textbf{La cifra de cobertura que se publique debería separar
+        guías con contenido de guías vacías}, o declarar expresamente que no lo hace.
 \end{borrador}
 
 \textcolor{borrador2}{Entre las amenazas a la validez de construcción conviene destacar una por lo
