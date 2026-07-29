@@ -159,10 +159,62 @@ Los parámetros (1.200 objetivo, 1.500 máximo, 200 mínimo) **siguen sin
 validación experimental propia**. La amenaza que declaraba el ADR en julio
 sigue viva y se resuelve en la Fase 1, no aquí.
 
+### 🔴 Corrección de 2026-07-29 — la premisa de los «~512 tokens» era falsa
+
+El apartado «Contexto» de este ADR afirma que «los modelos de embeddings
+multilingües habituales admiten ~512 tokens (~2.000 caracteres en español)», y
+sobre esa premisa se eligió el máximo de 1.500 caracteres. La lista de
+consecuencias positivas remata diciendo que ningún chunk «supera la ventana de
+embeddings».
+
+**Medido el 29/07/2026 con el modelo que el sistema monta de verdad
+—`paraphrase-multilingual-MiniLM-L12-v2` en `indexer.py`— eso no es cierto.**
+Sentence-transformers lo sirve con `max_seq_length = 128`, no con los 512 del
+transformador que lleva dentro:
+
+| | |
+|---|---:|
+| Mediana de fragmento | 264 tokens |
+| Máximo | 469 tokens |
+| Ventana útil del modelo | 126 tokens |
+| **Fragmentos truncados** | **685 de 781 (88 %)** |
+| **Tokens del corpus que el modelo llega a leer** | **94.023 de 189.929 (49,5 %)** |
+
+Y `encode` recorta **en silencio**: no avisa, no falla y devuelve un vector de
+aspecto normal. Se comprobó de forma directa, no leyendo la configuración:
+incrustar un fragmento completo y ese mismo fragmento con la cola sustituida
+por texto basura da vectores **idénticos** (coseno 1,0000).
+
+Qué se corrige y qué no:
+
+- **La premisa era falsa, pero la decisión de fragmentación no se toca.** El
+  troceo estructural por unidad semántica no depende de la ventana del modelo:
+  la restricción de que un chunk nunca mezcle dos asignaturas sigue siendo la
+  razón principal, y sigue en pie.
+- **Lo que queda invalidado es la justificación del valor 1.500.** Se eligió
+  para caber en una ventana que el modelo no tenía. Sigue sin validar, como ya
+  decía el ADR, pero ahora se sabe además que la referencia estaba mal.
+- **La consecuencia positiva «ni supera la ventana de embeddings» hay que
+  leerla tachada** para el modelo de la línea base. Con el modelo que elige el
+  **ADR-0003** (`intfloat/multilingual-e5-small`, ventana de 510 útiles) vuelve
+  a ser cierta: 0 fragmentos truncados. Es decir, la afirmación no se arregla
+  cambiando el troceo, sino cambiando el modelo.
+- **Lección, que es la parte que importa:** este ADR daba por buena una cifra
+  general sobre «los modelos habituales» sin medirla en el modelo concreto que
+  el proyecto usaba. Cuarto caso de la serie de este proyecto en que algo pasa
+  desapercibido porque nada lo comprobaba: no falló ningún test, no falló ningún
+  verificador, y el sistema llevaba desde IT-30 indexando media guía.
+
+Detalle completo, con la tabla de los cuatro modelos y sus ventanas, en el
+**ADR-0003** y en `docs/experimentos/it28-embeddings.md`.
+
 ## Consecuencias
 
 ### Positivas
 - Ningún chunk mezcla asignaturas ni supera la ventana de embeddings.
+  ⚠️ **La segunda mitad de esta frase es falsa para el modelo de la línea base**
+  (88 % de fragmentos truncados) y solo es cierta con el modelo del ADR-0003.
+  Ver la corrección del 29/07/2026, más arriba.
 - Se elimina el 28 % de redundancia del índice de guías y el sesgo que
   causaba en el retrieval.
 - Chunks autocontenidos; las 65 asignaturas sin guía quedan representadas
