@@ -89,11 +89,15 @@ def cargar_datos() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
 def crear_incrustadores(candidato: ModeloCandidato):
     """Construye las funciones de incrustación (documento y consulta) del modelo.
 
+    Devuelve también el modelo cargado porque hace falta para medir la
+    ventana de contexto y el truncado: sin eso, la tabla compararía modelos
+    sin decir cuánto texto ha leído cada uno.
+
     Args:
         candidato: Modelo a cargar.
 
     Returns:
-        Tupla ``(incrustar_chunks, incrustar_preguntas)``.
+        Tupla ``(incrustar_chunks, incrustar_preguntas, modelo)``.
     """
     from sentence_transformers import SentenceTransformer
 
@@ -107,26 +111,65 @@ def crear_incrustadores(candidato: ModeloCandidato):
         con_prefijo = [candidato.prefijo_consulta + t for t in textos]
         return modelo.encode(con_prefijo, show_progress_bar=False).tolist()
 
-    return incrustar_documentos, incrustar_consultas
+    return incrustar_documentos, incrustar_consultas, modelo
+
+
+def medir_truncado(
+    modelo: Any, textos: list[str], prefijo: str
+) -> tuple[int, int, float]:
+    """Mide cuánto del corpus cabe en la ventana de contexto del modelo.
+
+    ``SentenceTransformer.encode`` recorta en silencio todo lo que pase de
+    ``max_seq_length``: no avisa, no falla y devuelve un vector de aspecto
+    normal. Un modelo puede quedar por debajo de otro simplemente porque no
+    ha llegado a leer la mitad del fragmento, y sin esta medida la tabla de
+    resultados no permite distinguir las dos cosas.
+
+    Se descuentan dos posiciones de la ventana, que son los tokens
+    especiales que el propio modelo añade al principio y al final.
+
+    Args:
+        modelo: ``SentenceTransformer`` ya cargado.
+        textos: Fragmentos del corpus, tal como se van a incrustar.
+        prefijo: Prefijo que el modelo exige para los documentos (cuenta
+            como tokens, así que se incluye en la medida).
+
+    Returns:
+        Tupla ``(ventana_util, fragmentos_truncados, fraccion_leida)``, donde
+        la fracción es la proporción de tokens del corpus que el modelo
+        llega a mirar.
+    """
+    ventana = int(modelo.max_seq_length) - 2
+    largos = [
+        len(modelo.tokenizer.encode(prefijo + t, add_special_tokens=False))
+        for t in textos
+    ]
+    truncados = sum(1 for n in largos if n > ventana)
+    leidos = sum(min(ventana, n) for n in largos)
+    return ventana, truncados, leidos / sum(largos)
 
 
 def formatear_tabla(filas: list[dict[str, Any]]) -> str:
     """Da formato Markdown a los resultados agregados por modelo.
 
     Args:
-        filas: Una fila por modelo, con sus métricas agregadas y el tiempo
-            de ejecución.
+        filas: Una fila por modelo, con sus métricas agregadas, el tiempo de
+            ejecución y las cifras de truncado.
 
     Returns:
         Tabla Markdown lista para pegar en la memoria o en un documento.
     """
-    cabecera = "| Modelo | Recall@3 | Recall@5 | MRR | Tiempo (s) |"
-    separador = "|---|---|---|---|---|"
+    cabecera = (
+        "| Modelo | Recall@3 | Recall@5 | MRR | Tiempo (s) | Ventana "
+        "(tokens) | Fragmentos truncados | Corpus leído |"
+    )
+    separador = "|---|---|---|---|---|---|---|---|"
     lineas = [cabecera, separador]
     for fila in filas:
         lineas.append(
             f"| {fila['nombre']} | {fila['recall@3']:.3f} | {fila['recall@5']:.3f} "
-            f"| {fila['mrr']:.3f} | {fila['tiempo_s']:.1f} |"
+            f"| {fila['mrr']:.3f} | {fila['tiempo_s']:.1f} | {fila['ventana']} "
+            f"| {fila['truncados']} | {fila['fraccion_leida']:.0%} |"
         )
     return "\n".join(lineas)
 
@@ -154,18 +197,31 @@ def main() -> int:
         print(f"Evaluando {candidato.nombre} ({candidato.descripcion}) ...")
         inicio = time.monotonic()
         try:
-            incrustar_doc, incrustar_consulta = crear_incrustadores(candidato)
+            incrustar_doc, incrustar_consulta, modelo = crear_incrustadores(candidato)
             resultado = evaluar_modelo(
                 chunks, preguntas, incrustar_doc, incrustar_consulta, ks=KS
+            )
+            # El cronómetro se para ANTES de medir el truncado: esa medida
+            # tokeniza el corpus una vez más y añadía 16 s a la línea base,
+            # con lo que la columna de tiempo dejaba de ser comparable con la
+            # ejecución del 24/07. Se mide lo mismo que se medía entonces:
+            # cargar el modelo, incrustar el corpus y evaluar.
+            tiempo = time.monotonic() - inicio
+            ventana, truncados, fraccion = medir_truncado(
+                modelo,
+                [c["texto"] for c in chunks],
+                candidato.prefijo_documento,
             )
         except Exception as error:  # noqa: BLE001 - se informa y se sigue con el resto
             print(f"  FALLÓ: {error}")
             fallos.append(f"{candidato.nombre}: {error}")
             continue
-        tiempo = time.monotonic() - inicio
         fila = {
             "nombre": candidato.nombre,
             "tiempo_s": tiempo,
+            "ventana": ventana,
+            "truncados": truncados,
+            "fraccion_leida": fraccion,
             **resultado["agregados"],
         }
         filas.append(fila)
@@ -173,6 +229,12 @@ def main() -> int:
             f"  Recall@3={fila['recall@3']:.3f}  Recall@5={fila['recall@5']:.3f}  "
             f"MRR={fila['mrr']:.3f}  ({tiempo:.1f}s)"
         )
+        if truncados:
+            print(
+                f"  AVISO: ventana de {ventana} tokens; {truncados} de "
+                f"{len(chunks)} fragmentos se truncan y el modelo solo lee el "
+                f"{fraccion:.0%} del corpus."
+            )
 
     if not filas:
         print("\nNingún modelo pudo evaluarse.")
@@ -188,7 +250,17 @@ def main() -> int:
         f"dataset real ({len(chunks)} chunks, {len(preguntas)} preguntas de "
         "eval/preguntas_evaluacion.json).\n\n"
     )
-    pie_md = "\n\n## Modelos evaluados\n\n" + "\n".join(
+    pie_md = (
+        "\n\n## Cómo leer las tres últimas columnas\n\n"
+        "«Ventana» es el `max_seq_length` del modelo tal como lo sirve "
+        "sentence-transformers, descontados los dos tokens especiales. Todo lo "
+        "que pase de ahí `encode` lo recorta **en silencio**: no avisa, no "
+        "falla y devuelve un vector de aspecto normal. «Corpus leído» es la "
+        "proporción de tokens del corpus que el modelo llega a mirar, así que "
+        "una diferencia de Recall entre dos modelos con ventanas distintas no "
+        "se puede atribuir solo a la calidad de sus representaciones.\n"
+    )
+    pie_md += "\n## Modelos evaluados\n\n" + "\n".join(
         f"- `{c.nombre}`: {c.descripcion}" for c in CANDIDATOS
     )
     if fallos:
