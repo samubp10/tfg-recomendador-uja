@@ -4,6 +4,27 @@ Define el spider que recorre la web de la Escuela Politécnica Superior de Jaén
 Parte del listado de titulaciones de https://eps.ujaen.es/grados y, por cada
 grado, sigue hasta su portada para localizar sus asignaturas y sus salidas
 profesionales.
+
+Dos caminos para extraer una guía docente, y solo uno está vivo
+---------------------------------------------------------------
+
+La guía se puede servir como HTML o como PDF, y :meth:`GradosSpider.parse_guia`
+elige por el tipo real de la respuesta. Al empezar el proyecto todas eran HTML;
+durante el curso 2026-27 la EPSJ migró al PDF, y en el rastreo del 28/07/2026
+**las 288 guías del corpus vienen de PDF y ninguna de HTML** (DQA-0002).
+
+El camino HTML se conserva a propósito, como **retrocompatibilidad**, no por
+descuido: la fuente ha cambiado de formato dos veces en un año y servir un PDF
+detrás de una URL acabada en ``.html`` parece más un artefacto de migración que
+una decisión firme. Conservarlo no cuesta nada apreciable; retirarlo costaría
+reescribirlo si la Escuela revierte.
+
+Lo que hoy **no se ejecuta ni una vez** y hay que leer sabiéndolo:
+:meth:`GradosSpider._contenido_seccion`, :data:`GradosSpider.UMBRAL_CONTENIDO_GUIA`,
+:meth:`GradosSpider._limpieza_general` y el campo ``cuerpo_general`` que produce.
+Sus pruebas seguirán pasando, porque usan fixtures HTML de 2025-26 que ya no se
+corresponden con lo que sirve la web: comprueban bien un escenario que hoy no
+ocurre. Todo el esfuerzo de mejora va al camino PDF (:mod:`tfg_uja.guia_pdf`).
 """
 
 from __future__ import annotations
@@ -449,6 +470,10 @@ class GradosSpider(scrapy.Spider):
     #: reales observadas combinan mínimo ~1480 caracteres entre ambas
     #: secciones; 200 deja margen amplio para no activarse en guías
     #: legítimas y sí detectar una estructura rota.
+    #:
+    #: SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo): el
+    #: rastreo del 28/07/2026 no lo activa ni una vez, porque las 288 guías
+    #: llegan como PDF y la extracción de PDF no pasa por este umbral.
     UMBRAL_CONTENIDO_GUIA: Final[int] = 200
 
     #: IDs de las secciones que se excluyen del fallback de limpieza general
@@ -604,9 +629,19 @@ class GradosSpider(scrapy.Spider):
     def _contenido_seccion(response: Response, id_seccion: str) -> str:
         """Extrae el texto de una sección de la guía docente por su id.
 
+        SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo).
+        Hoy no se ejecuta: las 288 guías del corpus llegan como PDF y las
+        extrae :mod:`tfg_uja.guia_pdf`.
+
         Une los bloques de valor de la sección, descartando los que son
         únicamente el marcador "sin contenido" (un guion suelto) que usa la
         web cuando un campo no se ha rellenado.
+
+        Los bloques se unen con un salto de línea DOBLE, y cada uno pasa antes
+        por ``limpiar_texto``, que colapsa todo espacio en blanco en espacios
+        simples. Eso hace que el texto salido de aquí no pueda contener nunca
+        un salto suelto, y es lo que permite distinguir a posteriori una guía
+        extraída del HTML de una extraída del PDF (DQA-0002).
 
         Args:
             response (scrapy.http.Response): Respuesta de la guía docente.
@@ -627,6 +662,12 @@ class GradosSpider(scrapy.Spider):
     @classmethod
     def _limpieza_general(cls, response: Response) -> str:
         """Extrae texto general de la ficha cuando falla la estructura.
+
+        SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo).
+        Es el mecanismo de respaldo, y hoy no se activa ninguna vez: 0 de 288
+        guías en el rastreo del 28/07/2026. Una guía en PDF que no se pueda
+        extraer NO llega aquí a propósito, porque volcaría el binario en la
+        colección; queda como «sin guía» (DQA-0002).
 
         Recorre todo el contenido de la ficha docente salvo las secciones de
         profesorado (datos personales), cláusulas legales y objetivos de
