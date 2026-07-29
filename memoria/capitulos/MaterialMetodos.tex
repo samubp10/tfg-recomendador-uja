@@ -627,6 +627,50 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 en 5 de las 296 guías la estructura esperada no aparece; en esos casos se activa un mecanismo de
 respaldo que conserva la información disponible en lugar de descartar la asignatura.
 
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
+        mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
+        extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
+        2026-27, \textbf{las 288 guías del corpus vienen de PDF y ninguna de
+        HTML}. Hay que reescribirla contando los dos caminos y cuál está vivo.
+  \item La comprobación no es una estimación: el camino HTML une sus bloques con
+        doble salto de línea y el limpiador colapsa todo espacio en blanco, así
+        que un texto sacado del HTML no puede contener un salto suelto. No hay ni
+        un doble salto en todo el corpus y sí 564 campos con saltos simples.
+  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de
+        ser un caso particular y es por donde pasa \textbf{el 100 \% del contenido}.
+        Sus 17 rótulos de sección, escritos a mano contra una plantilla observada,
+        sostienen ahora la colección entera.
+  \item El camino HTML no se retira: la fuente ha cambiado de formato dos veces en
+        un año y podría volver. Pero pasa a declararse como \emph{contingencia sin
+        uso real}, no como parte del flujo. Afecta al umbral de contenido, al
+        mecanismo de respaldo y al campo \texttt{cuerpo\_general}, que no se
+        activan nunca con el corpus actual (0 respaldos de 288 guías).
+  \item Las cifras 361/296/65 y el 82 \% son las del snapshot de julio de 2026,
+        curso 2025-26. Hay que sustituirlas por las del rastreo definitivo y decir
+        de qué fecha y de qué curso son, no darlas como atemporales.
+  \item La frase sobre <<5 guías donde la estructura esperada no aparece>> ya no
+        describe lo que pasa: hoy el respaldo no se activa ninguna vez. Lo que sí
+        hay son 5 asignaturas cuya guía se publica con las secciones de contenido
+        \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
+        del criterio general del proyecto, así que merece un párrafo aquí.
+  \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
+        del nombre de la asignatura (a un documento <<Syllabus>>). Como el nombre
+        se componía juntando todo el texto de la celda, ese rótulo se pegaba al
+        final y 43 de las 350 asignaturas quedaron con un nombre que no existe.
+  \item El primer arreglo borraba ese rótulo concreto. Se sustituyó por otro que no
+        depende de cómo se llame: \textbf{el nombre es el texto del mismo enlace
+        del que ya salía la dirección de su guía}. Cualquier otro enlace de la
+        celda queda fuera por construcción.
+  \item Es el mismo criterio que se adoptó para las guías en PDF: no una lista de
+        lo que hay que excluir, sino tomar únicamente lo que se sabe que es válido.
+        Conviene enunciarlo una vez como principio y referirlo desde los dos sitios.
+\end{borrador}
+
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
