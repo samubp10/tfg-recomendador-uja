@@ -627,6 +627,50 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 en 5 de las 296 guías la estructura esperada no aparece; en esos casos se activa un mecanismo de
 respaldo que conserva la información disponible en lugar de descartar la asignatura.
 
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
+        mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
+        extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
+        2026-27, \textbf{las 288 guías del corpus vienen de PDF y ninguna de
+        HTML}. Hay que reescribirla contando los dos caminos y cuál está vivo.
+  \item La comprobación no es una estimación: el camino HTML une sus bloques con
+        doble salto de línea y el limpiador colapsa todo espacio en blanco, así
+        que un texto sacado del HTML no puede contener un salto suelto. No hay ni
+        un doble salto en todo el corpus y sí 564 campos con saltos simples.
+  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de
+        ser un caso particular y es por donde pasa \textbf{el 100 \% del contenido}.
+        Sus 17 rótulos de sección, escritos a mano contra una plantilla observada,
+        sostienen ahora la colección entera.
+  \item El camino HTML no se retira: la fuente ha cambiado de formato dos veces en
+        un año y podría volver. Pero pasa a declararse como \emph{contingencia sin
+        uso real}, no como parte del flujo. Afecta al umbral de contenido, al
+        mecanismo de respaldo y al campo \texttt{cuerpo\_general}, que no se
+        activan nunca con el corpus actual (0 respaldos de 288 guías).
+  \item Las cifras 361/296/65 y el 82 \% son las del snapshot de julio de 2026,
+        curso 2025-26. Hay que sustituirlas por las del rastreo definitivo y decir
+        de qué fecha y de qué curso son, no darlas como atemporales.
+  \item La frase sobre <<5 guías donde la estructura esperada no aparece>> ya no
+        describe lo que pasa: hoy el respaldo no se activa ninguna vez. Lo que sí
+        hay son 5 asignaturas cuya guía se publica con las secciones de contenido
+        \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
+        del criterio general del proyecto, así que merece un párrafo aquí.
+  \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
+        del nombre de la asignatura (a un documento <<Syllabus>>). Como el nombre
+        se componía juntando todo el texto de la celda, ese rótulo se pegaba al
+        final y 43 de las 350 asignaturas quedaron con un nombre que no existe.
+  \item El primer arreglo borraba ese rótulo concreto. Se sustituyó por otro que no
+        depende de cómo se llame: \textbf{el nombre es el texto del mismo enlace
+        del que ya salía la dirección de su guía}. Cualquier otro enlace de la
+        celda queda fuera por construcción.
+  \item Es el mismo criterio que se adoptó para las guías en PDF: no una lista de
+        lo que hay que excluir, sino tomar únicamente lo que se sabe que es válido.
+        Conviene enunciarlo una vez como principio y referirlo desde los dos sitios.
+\end{borrador}
+
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
@@ -662,6 +706,15 @@ A cada fragmento se le antepone un encabezado autocontenido con el nombre de la 
 la titulación, de forma que conserve el sentido cuando se recupere aislado del resto. Los parámetros de partida son 1\,200 caracteres de tamaño objetivo,
 1\,500 de máximo (contando el encabezado), y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
+
+\textcolor{borrador2}{Esa jerarquía deja de ser una declaración de intenciones en el caso en que
+las dos condiciones no se pueden satisfacer a la vez. Cuando dos fragmentos consecutivos no caben
+juntos bajo el máximo y el texto tampoco ofrece una frontera por la que repartirlos de otra manera,
+el procedimiento conserva el fragmento corto en lugar de forzar la unión: incumplir una preferencia
+de calidad es admisible, mientras que superar el máximo haría que el modelo de incrustaciones
+truncase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera. Reconocer ese
+caso es además lo que garantiza que el procedimiento termine, ya que solo vuelve a empezar cuando
+el número de fragmentos ha disminuido de verdad.}
 
 \begin{borrador}                                
   \item \textbf{Fase:} 1 (IT-28/IT-29). Cuando se elija el modelo de embeddings hay que revisar y seguramente cambiar el tamaño máximo contra su ventana de contexto real y contrastar objetivo/mínimo con las métricas de recuperación del experimento comparativo.
@@ -781,7 +834,21 @@ El efecto sobre la colección, medido sobre el conjunto de datos completo, es un
 un 24 \% menos. De esos 892, 818 proceden de guías docentes, 65 son fragmentos informativos de las asignaturas que todavía no
 tienen guía publicada y 9 corresponden a salidas profesionales. Los 280 fragmentos eliminados suponen el 25 \% de los 1\,098 que
 las guías generaban antes de deduplicar. Los tamaños resultantes van de 227 a 1\,499 caracteres, con una mediana de 1\,093 y
-ningún fragmento por encima del máximo. 
+ningún fragmento por encima del máximo.
+
+\textcolor{borrador2}{Decidir cuándo dos guías son la misma no es lo único que obliga a fijar un
+criterio de identidad. El fragmentador necesita además localizar, para cada guía, la asignatura de
+la que salen los metadatos del encabezado, y esa búsqueda se hacía por el par (titulación, código).
+El código, sin embargo, no siempre está publicado: 57 asignaturas de los planes de implantación
+reciente no lo tienen, y todas ellas caían bajo la misma clave dentro de su titulación, de modo que
+la última sobrescribía a las anteriores sin que nada avisara. En el plan de 2025 del Grado en
+Ingeniería Geomática y Topográfica eran 18 asignaturas reducidas a una sola entrada, y 38 en el
+Grado en Inteligencia Artificial y Ciberseguridad. Si alguna de ellas llegara a publicar su guía, el
+encabezado resultante atribuiría el temario a una materia distinta, y lo haría dentro del campo
+\texttt{texto}, que es justamente el único que se convierte en vector. La clave pasó a ser el par
+(titulación, código o nombre) --- la misma que ya usaban el rastreador y el verificador de
+fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
+asignatura de la misma manera.}
 
 \section{Verificación y reproducibilidad de la Fase 0}
 \label{secc:verificacion_fase0}
@@ -794,18 +861,44 @@ La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el c
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
+\textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
+Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
+respondía que el corpus era correcto aun teniendo los encabezados cruzados: lo que comparaba eran
+las claves que relacionan cada fragmento con su asignatura, y esas sí cuadraban, mientras que el
+error estaba en el texto del encabezado, que no revisaba nadie. La comprobación que faltaba --- que
+cada fragmento empiece por el nombre de su propia unidad --- se añadió junto con la corrección. El
+patrón es el mismo que el de los defectos descritos más arriba, y conviene enunciarlo así de claro:
+un verificador puede estar midiendo algo distinto de lo que se cree que mide, y mientras tanto
+devuelve un resultado correcto.}
+
+\textcolor{borrador2}{Para poder afirmar algo sobre el conjunto de datos hace falta saber de cuándo
+es. Hasta IT-90 no había ninguna fecha dentro de los ficheros: la única constancia era una nota
+escrita a mano y no versionada, de modo que copiar el conjunto de datos a otro sitio hacía perder
+su procedencia y olvidar actualizar la nota la falseaba. El rastreador registra ahora la fecha de
+extracción, y cada guía docente lleva el curso académico al que pertenece. Ese curso no se escribe
+a mano en ninguna parte: se deduce de la propia dirección de la ficha en el catálogo de la
+Universidad, que lo incluye en su ruta, con lo que un dato tomado de la fuente no puede quedarse
+obsoleto sin que nadie lo advierta. Cuando la dirección no lo indica, el campo queda vacío en lugar
+de suponer un curso, con el mismo criterio que se aplica al crédito ausente. Los cursos presentes
+se enumeran todos y no se resumen a uno solo, porque la Escuela publica las guías del curso nuevo a
+medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
+dejar implícito.}
+
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
 \begin{borrador}
   \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
         adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
-        \emph{no} reproduce el mismo corpus: la fuente había cambiado (guías del
-        curso 2026-27 servidas en PDF, resuelto en IT-67; y dos titulaciones de
-        Geomática con la tabla de asignaturas reestructurada, aún sin resolver).
-        Es decir, el pipeline reproduce <<el estado actual de la fuente>>, que no
-        es lo mismo que <<el corpus sobre el que se hicieron los experimentos>>.
-        La reproducibilidad exacta exige, además del pipeline, fijar la fecha de
-        rastreo y aceptar que la fuente es un blanco móvil. Conviene decir de qué
-        curso y fecha es el corpus (2025-26, rastreo del 09/07/2026) al
-        caracterizarlo en IT-58, en vez de presentarlo como atemporal.
+        \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
+        (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
+        titulaciones de Geomática con la tabla de asignaturas reestructurada,
+        resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
+        actual de la fuente>>, que no es lo mismo que <<el corpus sobre el que se
+        hicieron los experimentos>>: eso es una limitación de la reproducibilidad
+        que conviene enunciar, no un defecto que se pueda corregir.
+  \item Lo que sí se ha corregido es la mitad que dependía del proyecto: desde
+        IT-90 el propio conjunto de datos lleva dentro su fecha de extracción y
+        su curso, así que ya no hace falta acordarse de decirlo por fuera. Queda
+        pendiente para IT-58 dar esa fecha y ese curso al caracterizar el corpus,
+        en vez de presentarlo como atemporal.
 \end{borrador}
