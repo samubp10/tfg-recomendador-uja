@@ -380,14 +380,42 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
     # deduplican entre titulaciones porque su chunk solo contiene metadatos y
     # son casi todas de las titulaciones en implantación (sin solapamiento).
+    #
+    # IT-94: «sin guía» se decide por lo que hay en el dataset, no por lo que
+    # el rastreador anunció en `tiene_guia`. Una guía servida como PDF
+    # ilegible no llega a emitirse (IT-67), pero su asignatura ya salió con
+    # `tiene_guia=True` porque en la tabla sí había enlace. Fiarse de ese
+    # campo dejaba a esas asignaturas sin chunk de guía y sin chunk
+    # informativo: desaparecían del corpus (5 casos en el rastreo del
+    # 28/07/2026). El fragmentador ve el dataset entero y puede comprobarlo.
+    guias_presentes = {
+        _clave_asignatura(g["grado"], g["codigo"], g["nombre"])
+        for g in items
+        if g["tipo"] == "guia"
+    }
     for asignatura in (
-        a for a in items if a["tipo"] == "asignatura" and not a["tiene_guia"]
+        a
+        for a in items
+        if a["tipo"] == "asignatura"
+        and _clave_asignatura(a["grado"], a["codigo"], a["nombre"])
+        not in guias_presentes
     ):
         encabezado = _encabezado_asignatura(asignatura, [asignatura["grado"]])
-        texto = (
-            "La guía docente de esta asignatura no está publicada en la web "
-            "de la EPSJ, por lo que solo se dispone de sus datos básicos."
-        )
+        # Los dos motivos por los que una asignatura se queda sin guía no son
+        # el mismo, y el corpus no puede afirmar el que no es: decir que no
+        # está publicada cuando sí lo está sería dar por buena una respuesta
+        # falsa al estudiante que pregunte por ella.
+        if asignatura["tiene_guia"]:
+            texto = (
+                "El contenido de la guía docente de esta asignatura no ha "
+                "podido obtenerse de la web de la EPSJ, por lo que solo se "
+                "dispone de sus datos básicos."
+            )
+        else:
+            texto = (
+                "La guía docente de esta asignatura no está publicada en la web "
+                "de la EPSJ, por lo que solo se dispone de sus datos básicos."
+            )
         base = {
             "grados": [asignatura["grado"]],
             "codigos": [asignatura["codigo"]],
