@@ -265,6 +265,30 @@ def extraer_guia(datos: bytes) -> dict[str, str] | None:
     return {"resumen": resumen, "temario": temario}
 
 
+def reparto_por_seccion(datos: bytes) -> dict[str, int]:
+    """Caracteres que aporta cada sección del PDF, esté permitida o no.
+
+    Sirve para que «se descarta la mayor parte del documento» deje de ser una
+    alarma suelta y pase a ser una lista de secciones con nombre, cada una
+    descartada a propósito. Sin esto no hay forma de distinguir una pérdida
+    deliberada —profesorado, bibliografía, cláusulas— de una accidental.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Caracteres por rótulo, en orden de aparición en el documento. Vacío si
+        el PDF no se puede leer.
+    """
+    lineas = _lineas_utiles(_texto_del_pdf(datos))
+    return {rotulo: len(_seccion(lineas, rotulo)) for rotulo in rotulos_del_pdf(datos)}
+
+
+#: Los dos rótulos cuyo contenido sí pasa al corpus, para que quien audite el
+#: reparto no tenga que volver a escribirlos.
+PERMITIDOS: Final[tuple[str, str]] = (_RESUMEN, _CONTENIDOS)
+
+
 #: Motivos por los que una guía en PDF no aporta contenido. Se distinguen
 #: porque NO son lo mismo y el sistema no puede afirmar el que no es: decirle
 #: a un estudiante que la guía «no se ha podido obtener» cuando la Universidad
