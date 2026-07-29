@@ -641,11 +641,23 @@ respaldo que conserva la información disponible en lugar de descartar la asigna
         ser un caso particular y es por donde pasa \textbf{el 100 \% del contenido}.
         Sus 17 rótulos de sección, escritos a mano contra una plantilla observada,
         sostienen ahora la colección entera.
-  \item El camino HTML no se retira: la fuente ha cambiado de formato dos veces en
-        un año y podría volver. Pero pasa a declararse como \emph{contingencia sin
-        uso real}, no como parte del flujo. Afecta al umbral de contenido, al
-        mecanismo de respaldo y al campo \texttt{cuerpo\_general}, que no se
-        activan nunca con el corpus actual (0 respaldos de 288 guías).
+  \item \textbf{Cómo contarlo, que es lo delicado:} la memoria describe el
+        \emph{estado final} del sistema, no su historia. No se narra la migración
+        paso a paso ni las cifras intermedias (esas viven en el DQA-0002 y en el
+        registro de decisiones, que es su sitio). Basta con una frase honesta:
+        \emph{al comenzar el proyecto la mayoría de las guías se servían en HTML,
+        durante el desarrollo la Escuela pasó a servirlas en PDF, y el camino
+        anterior se conserva por retrocompatibilidad}. Lo que se describe con
+        detalle es la extracción desde PDF, que es la que produce el corpus.
+  \item El motivo de conservarlo, si el tribunal pregunta, no es que el código sea
+        barato: es la asimetría del riesgo. Mantenerlo no cuesta nada apreciable;
+        retirarlo obligaría a reescribirlo si la fuente revierte, y la fuente no
+        da garantías (ha cambiado de formato dos veces en un año, y servir un PDF
+        detrás de una dirección acabada en \texttt{.html} parece más un artefacto
+        de una migración en curso que una decisión firme).
+  \item Concretamente no se ejecutan nunca con el corpus actual: la localización
+        de secciones por identificador, el umbral de contenido, el mecanismo de
+        respaldo y el campo \texttt{cuerpo\_general} (0 respaldos de 288 guías).
   \item Las cifras 361/296/65 y el 82 \% son las del snapshot de julio de 2026,
         curso 2025-26. Hay que sustituirlas por las del rastreo definitivo y decir
         de qué fecha y de qué curso son, no darlas como atemporales.
