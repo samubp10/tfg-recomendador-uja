@@ -763,29 +763,25 @@ def test_la_guia_lleva_el_curso_deducido_de_su_url():
     assert item["curso"] == "2025-26"
 
 
-# --- IT-93: el enlace «Syllabus» no forma parte del nombre ---
+# --- IT-96: el nombre sale del enlace a la guía, no del texto de la celda ---
+#
+# La EPSJ añadió en 2026-27 un segundo enlace a la celda del nombre, a un
+# documento «Syllabus». Como el nombre se componía juntando TODO el texto de la
+# celda, ese rótulo se pegaba al final: 43 de las 350 asignaturas del rastreo
+# del 28/07/2026 salieron como «... ( Syllabus )», y cuatro preguntas del
+# conjunto de evaluación dejaron de resolver.
+#
+# IT-93 lo arregló borrando ese rótulo concreto. IT-96 cambia el criterio: el
+# nombre es el texto del enlace que lleva a su guía, así que cualquier otro
+# enlace de la celda queda fuera por construcción, se llame como se llame.
 
 
-def test_el_nombre_no_arrastra_el_enlace_de_syllabus():
-    # Desde 2026-27 la EPSJ añade a la celda del nombre un enlace a un
-    # documento «Syllabus». Como el nombre se compone juntando todo el texto
-    # de la celda, ese rótulo se pegaba al nombre: 43 de las 350 asignaturas
-    # del rastreo del 28/07/2026 salieron como «... ( Syllabus )».
-    #
-    # Se reproduce la celda tal como la sirve la fuente: el nombre dentro de
-    # su enlace a la guía, y el del Syllabus a continuación entre paréntesis.
-    html = """
+def _una_fila(celda_nombre, tipo="OB"):
+    """Construye una tabla de una sola fila con la celda del nombre dada."""
+    html = f"""
     <table>
       <tr><th>Código</th><th>Asignatura</th><th>Tipo</th><th>Créditos ECTS</th></tr>
-      <tr>
-        <td>13011009</td>
-        <td>
-          <a href="/guia_es.html">Automática industrial</a>
-          ( <a href="/syllabus.pdf">Syllabus</a> )
-        </td>
-        <td>OB</td>
-        <td>6</td>
-      </tr>
+      <tr><td>13011009</td><td>{celda_nombre}</td><td>{tipo}</td><td>6</td></tr>
     </table>
     """
     resp = HtmlResponse(
@@ -794,10 +790,59 @@ def test_el_nombre_no_arrastra_el_enlace_de_syllabus():
         encoding="utf-8",
         request=Request(_URL_ASIG, meta=_META_ASIG),
     )
-    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_el_nombre_no_arrastra_el_enlace_de_syllabus():
+    # La celda tal como la sirve la fuente: el nombre dentro de su enlace a la
+    # guía y el del Syllabus a continuación, entre paréntesis.
+    items = _una_fila(
+        '<a href="/guia_es.html">Automática industrial</a>'
+        ' ( <a href="/syllabus.pdf">Syllabus</a> )'
+    )
 
     assert len(items) == 1
     assert items[0]["nombre"] == "Automática industrial"
-    # El enlace a la guía sigue siendo el que se sigue, no el del Syllabus.
+    # El enlace que se sigue es el de la guía, no el del Syllabus.
     assert items[0]["tiene_guia"] is True
     assert "syllabus" not in items[0]["url_guia"].lower()
+
+
+def test_el_nombre_tampoco_arrastra_un_enlace_con_otro_rotulo():
+    # Este es el caso que el patrón de IT-93 no cubría: bastaba con que la
+    # fuente llamara «Programa» a ese enlace para que el nombre volviera a
+    # salir contaminado. Aquí no se nombra ningún rótulo, así que da igual
+    # cómo lo llame mañana.
+    items = _una_fila(
+        '<a href="/guia_es.html">Electrotecnia</a>'
+        ' [ <a href="/programa.pdf">Programa</a> ]'
+    )
+
+    assert items[0]["nombre"] == "Electrotecnia"
+
+
+def test_una_asignatura_sin_enlace_conserva_su_nombre():
+    # Las asignaturas sin guía publicada no tienen enlace en la celda; ahí el
+    # texto de la celda sigue siendo lo único que hay.
+    items = _una_fila("Ingeniería civil e ingeniería ambiental")
+
+    assert items[0]["nombre"] == "Ingeniería civil e ingeniería ambiental"
+    assert items[0]["tiene_guia"] is False
+    assert items[0]["url_guia"] is None
+
+
+def test_la_marca_de_no_ofertada_sobrevive_aunque_haya_enlace():
+    # La marca va FUERA del enlace, en un <em> de la celda (verificado en
+    # tabla_electrica.html). Si la oferta se decidiera con el texto del enlace
+    # en vez de con la celda entera, se perdería sin que fallara nada.
+    #
+    # En las fixtures reales no coinciden nunca enlace y marca de no ofertada,
+    # pero se prueba la coincidencia a propósito: dar por imposible una
+    # combinación de la fuente es justo lo que ya ha fallado tres veces aquí.
+    items = _una_fila(
+        '<a href="/guia_es.html">Topografía y construcción</a>'
+        "<em> (No ofertada en 2025/26)</em>"
+    )
+
+    assert items[0]["nombre"] == "Topografía y construcción"
+    assert items[0]["ofertada"] is False
