@@ -22,7 +22,6 @@ from tfg_uja.guia_pdf import es_pdf, extraer_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
-    quitar_syllabus,
     reparar_url,
     separar_oferta,
 )
@@ -272,13 +271,22 @@ class GradosSpider(scrapy.Spider):
                 if len(celdas) <= max(columnas.values()):
                     continue
                 codigo = self._texto_celda(celdas, columnas.get("codigo"))
+                celda_nombre = celdas[columnas["nombre"]]
                 nombre_bruto = self._texto_celda(celdas, columnas["nombre"])
-                # El enlace «Syllabus» se retira antes que nada porque la
-                # fuente lo añade al final de la celda, por fuera de cualquier
-                # otra marca: quitarlo primero deja el nombre en la forma que
-                # esperan separar_oferta y quitar_nota_al_pie.
-                nombre_bruto = quitar_syllabus(nombre_bruto) or ""
-                nombre, ofertada = separar_oferta(nombre_bruto)
+                # La oferta se decide con la celda ENTERA: la fuente escribe
+                # "(No ofertada en 2025/26)" fuera del enlace, en un <em>, así
+                # que mirar solo el enlace la perdería.
+                _, ofertada = separar_oferta(nombre_bruto)
+                # El nombre, en cambio, es el texto del enlace que lleva a su
+                # guía (ver enlace_guia): la celda puede traer además otros
+                # enlaces que no forman parte del nombre, y juntar todo su
+                # texto los pegaba al final (IT-93, «... ( Syllabus )»).
+                enlace_guia = celda_nombre.css("a")
+                if enlace_guia:
+                    nombre_bruto = (
+                        self._texto_de(enlace_guia[0].css("::text")) or nombre_bruto
+                    )
+                nombre, _ = separar_oferta(nombre_bruto)
                 # Un nombre ausente equivale a uno vacío: en ambos casos la
                 # fila la descarta es_asignatura_valida unas líneas más abajo.
                 nombre = quitar_nota_al_pie(nombre) or ""
@@ -293,7 +301,10 @@ class GradosSpider(scrapy.Spider):
                 if not es_asignatura_valida(codigo, nombre, tipo_asig):
                     continue
                 ects = self._texto_celda(celdas, columnas["ects"])
-                enlace = celdas[columnas["nombre"]].css("a::attr(href)").get()
+                # El mismo <a> del que ha salido el nombre: así el nombre y la
+                # URL no pueden hablar de cosas distintas, que es lo que pasaba
+                # cuando uno salía de la celda entera y la otra de un elemento.
+                enlace = enlace_guia.attrib.get("href") if enlace_guia else None
                 if enlace:
                     url_guia = reparar_url(response.urljoin(enlace))
                     tiene_guia = True
@@ -389,7 +400,20 @@ class GradosSpider(scrapy.Spider):
         """
         if posicion is None:
             return ""
-        return limpiar_texto(" ".join(celdas[posicion].css("::text").getall()))
+        return GradosSpider._texto_de(celdas[posicion].css("::text"))
+
+    @staticmethod
+    def _texto_de(nodos: SelectorList[Selector]) -> str:
+        """Une los nodos de texto de una selección y los deja limpios.
+
+        Args:
+            nodos (SelectorList): Nodos de texto, tal como los devuelve
+                ``::text``.
+
+        Returns:
+            str: Texto unido y normalizado, vacío si no hay ninguno.
+        """
+        return limpiar_texto(" ".join(nodos.getall()))
 
     @staticmethod
     def _menciones(celda: Selector) -> list[str]:
