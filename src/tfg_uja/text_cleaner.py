@@ -78,38 +78,6 @@ def quitar_nota_al_pie(nombre: str | None) -> str | None:
     return re.sub(r"\s*\*+\s*$", "", nombre).strip()
 
 
-#: Enlace al «Syllabus» que la EPSJ añadió dentro de la celda del nombre en el
-#: curso 2026-27. Al extraer el texto de la celda, ese enlace se pega al nombre
-#: de la asignatura ("Automática industrial ( Syllabus )") y lo convierte en un
-#: nombre que no existe. El patrón admite espacios a ambos lados del rótulo
-#: porque la fuente los pone, y no distingue mayúsculas por si cambian.
-_SYLLABUS: Final[re.Pattern[str]] = re.compile(
-    r"\s*\(\s*syllabus\s*\)\s*$", re.IGNORECASE
-)
-
-
-def quitar_syllabus(nombre: str | None) -> str | None:
-    """Elimina del nombre de una asignatura el enlace «( Syllabus )».
-
-    Desde el curso 2026-27, la celda del nombre incluye un enlace adicional a
-    un documento «Syllabus» que no forma parte de la asignatura. Se retira
-    igual que el asterisco de nota al pie: es ruido de presentación de la
-    fuente, no un dato.
-
-    Solo se quita cuando aparece al final, que es donde la fuente lo coloca;
-    un paréntesis legítimo en mitad del nombre no se toca.
-
-    Args:
-        nombre (str): Nombre de la asignatura, ya limpio de espacios.
-
-    Returns:
-        str: Nombre sin el enlace ni los espacios que lo rodean.
-    """
-    if not nombre:
-        return nombre
-    return _SYLLABUS.sub("", nombre).strip()
-
-
 #: Marca de asignatura no ofertada, añadida al final del nombre (por ejemplo,
 #: "Métodos cuantitativos avanzados (No ofertada en 2025/26)"). El patrón es
 #: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
