@@ -107,6 +107,81 @@ proporción crecerá conforme la EPSJ publique el resto de guías del nuevo curs
   2025-26 y hay que reinterpretarla al caracterizar el corpus (IT-58): el corpus
   ya no es una foto atemporal, sino de un curso concreto.
 
+## Actualización (29/07/2026): la migración se completó
+
+Lo de arriba se escribió el 23/07/2026, con la migración a medias: **62 de 296**
+guías en PDF y las 234 restantes todavía en HTML. Seis días después, sobre el
+rastreo del 28/07, la proporción ya no es una proporción:
+
+```text
+guías del corpus                                   288
+campos con la firma del troceado HTML («\n\n»)       0
+campos con la firma del troceado PDF  («\n»)       564
+guías que activaron el mecanismo de respaldo         0
+```
+
+**Las 288 vienen de PDF. Ninguna de HTML.**
+
+La comprobación no es una estimación. El camino HTML (`_contenido_seccion`) une
+sus bloques con **doble** salto de línea, y cada bloque pasa por
+`limpiar_texto`, que colapsa todo espacio en blanco —saltos incluidos— en
+espacios simples. Un texto extraído del HTML **no puede contener un salto de
+línea suelto**: o no tiene ninguno, o los tiene de dos en dos. El camino PDF
+(`_seccion`) une línea a línea con salto simple. No hay ni un doble salto en
+todo el corpus, y sí 564 campos con saltos simples.
+
+### El camino HTML se conserva por retrocompatibilidad
+
+Quedan sin ejercitar, con el corpus actual, cuatro piezas del rastreador
+—unas 64 líneas, en torno al 9 % de `grados_spider.py`—:
+
+| Pieza | Para qué era | Veces que se ejecuta hoy |
+| --- | --- | --- |
+| `_contenido_seccion` | Localizar resumen y temario por el `id` de su sección | 0 |
+| `UMBRAL_CONTENIDO_GUIA` | Detectar que la estructura esperada no aparece | 0 |
+| `_limpieza_general` | Mecanismo de respaldo | 0 |
+| `cuerpo_general` (campo) | Guardar lo que produce ese respaldo | 0 |
+
+- **Tratamiento:** se conservan, y se declaran explícitamente como camino de
+  retrocompatibilidad en vez de dejarlo implícito en el código. La decisión no
+  se apoya en que el código sea barato de mantener, sino en la **asimetría del
+  riesgo**: conservarlo no cuesta nada apreciable, y retirarlo cuesta volver a
+  escribirlo si la fuente vuelve al HTML. Y la fuente no da garantías: ha
+  cambiado de formato **dos veces en un año** (este DQA y el DQA-0003), y servir
+  un PDF detrás de una URL acabada en `.html` tiene más aspecto de artefacto de
+  una migración en curso que de decisión firme.
+- **Alternativa descartada:** retirar el camino HTML y quedarse solo con el PDF.
+  Descartada por lo anterior. Simplificaría el rastreador y la explicación de la
+  memoria, pero a cambio de tener que reimplementarlo bajo presión de calendario
+  si la Escuela revierte el formato antes de la entrega.
+- **Alternativa descartada:** dejarlo sin declarar, tal como estaba. Descartada
+  porque un camino que no se ejecuta nunca y que nadie ha marcado como tal acaba
+  leyéndose como parte del flujo normal —de hecho, así estaba escrita la sección
+  correspondiente de la memoria—, y eso induce a error a quien lo lea después.
+
+### Riesgo que hay que declarar, no tapar
+
+Sus pruebas **seguirán pasando indefinidamente**, porque usan fixtures HTML de
+2025-26 que ya no se corresponden con lo que sirve la web. No es que mientan:
+comprueban correctamente un escenario que hoy no ocurre. Pero un conjunto de
+pruebas en verde sobre un camino muerto es, otra vez, un verificador que mide
+algo distinto de lo que parece medir, así que conviene decirlo en voz alta.
+
+La consecuencia práctica es que **el esfuerzo de mejora va íntegro al camino
+PDF**. Para enterarse el día que esto cambie, IT-95 añade un campo `formato` al
+ítem `guia` y hace que `check_dataset.py` informe del reparto HTML/PDF: hoy esa
+proporción solo se puede deducir mirando los saltos de línea, que es una pista,
+no un dato.
+
+### Corrección a lo que decía este registro
+
+La sección «Negativas» de arriba anticipaba el riesgo de la lista
+`_ROTULOS_SECCION` y lo daba por acotado. Con la migración completa hay que
+subirle el peso: esa lista de 17 rótulos, escrita a mano contra la plantilla
+observada, sostiene ahora **el 100 % del contenido de la colección**, no una
+parte. Se recoge como amenaza a la validez de constructo en la memoria y motiva
+la tarjeta IT-95.
+
 ## Referencias
 
 - `src/tfg_uja/guia_pdf.py`, `src/tfg_uja/grados_spider.py`
