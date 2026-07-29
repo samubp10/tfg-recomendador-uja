@@ -208,9 +208,14 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     # IT-94: una asignatura que anuncia guía pero cuya guía no aparece en el
-    # dataset se pierde del corpus si nadie lo mira. No es un error del
-    # rastreo (un PDF ilegible es un hecho de la fuente), así que se avisa en
-    # vez de fallar; el fragmentador ya les da su fragmento informativo.
+    # dataset se pierde del corpus si nadie lo mira. Es un hecho de la fuente y
+    # no un error del rastreo, así que se avisa en vez de fallar; el
+    # fragmentador ya les da su fragmento informativo.
+    #
+    # IT-97 corrige la redacción de este aviso. Decía «no se ha podido
+    # extraer», que insinúa un fallo propio, y sobre las 293 guías del rastreo
+    # del 29/07/2026 los cinco casos son la misma cosa y no es esa: la guía se
+    # lee perfectamente y sus secciones de contenido están vacías en el origen.
     claves_guia = {(g["grado"], g.get("codigo") or g["nombre"]) for g in guias}
     sin_extraer = [
         a
@@ -220,10 +225,10 @@ def main(argv: list[str] | None = None) -> int:
     ]
     if sin_extraer:
         print(
-            f"  AVISO: {len(sin_extraer)} asignaturas enlazan una guía cuyo "
-            f"contenido no se ha podido extraer (p. ej. "
+            f"  AVISO: {len(sin_extraer)} asignaturas enlazan una guía que no "
+            f"aporta ni resumen ni temario (p. ej. "
             f"{sin_extraer[0]['nombre']!r}); entran al corpus solo con sus "
-            f"datos básicos."
+            f"datos básicos. `check_guias_pdf.py` dice de cada una por qué."
         )
 
     binarias = [
