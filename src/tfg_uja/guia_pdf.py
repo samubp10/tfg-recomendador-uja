@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import logging
 import re
+from functools import lru_cache
 from typing import Final
 
 from pypdf import PdfReader
@@ -79,80 +80,88 @@ _RUIDO_PAGINA: Final[tuple[re.Pattern[str], ...]] = (
 _CORREO: Final[re.Pattern[str]] = re.compile(r"[\w.\-]+@[\w.\-]+\.\w+")
 _TELEFONO: Final[re.Pattern[str]] = re.compile(r"\b\d{9}\b")
 
-#: Encabezados de segundo nivel dentro de PROFESORADO. No delimitan sección,
-#: pero la plantilla los compone con la misma tipografía que los rótulos, así
-#: que hay que conocerlos para no confundirlos con un rótulo desconocido.
-_SUBROTULOS: Final[frozenset[str]] = frozenset({"Coordinación", "Cuadro docente"})
-
-#: Tipografía con la que la plantilla de la UJA compone los rótulos de sección:
-#: negrita a 12 puntos. Medido sobre los PDF reales (IT-95); ningún otro texto
-#: del documento usa esa combinación salvo la cabecera de página, que ya filtra
-#: `_RUIDO_PAGINA`.
-#:
-#: Se mira la tipografía y NO que el texto vaya en mayúsculas, que es la idea
-#: evidente y la que no funciona: el bloque de profesorado trae en mayúsculas
-#: los nombres, los departamentos y las ubicaciones, y produce entre 17 y 25
-#: falsos avisos por guía. Un verificador que avisa siempre se acaba ignorando.
-_TAM_ROTULO: Final[float] = 12.0
-
-
-def rotulos_del_pdf(datos: bytes) -> list[str]:
-    """Enumera los rótulos de sección que la plantilla compone en el PDF.
-
-    Los localiza por su tipografía (negrita a :data:`_TAM_ROTULO` puntos), no
-    por su texto, y descarta la cabecera y el pie que se repiten en cada
-    página. Sirve para comprobar que la plantilla de la UJA sigue siendo la
-    esperada: un rótulo que no se conozca significa que una sección puede no
-    terminar donde debe, y eso se traduce en contenido perdido o, peor, en
-    contenido de profesorado arrastrado hasta el corpus.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Los rótulos hallados, en orden de lectura y sin repetir los de la
-        cabecera de página. Lista vacía si el PDF no se puede leer.
-    """
-    hallados: list[str] = []
-
-    # La firma la impone pypdf: `cm` y `tm` son las matrices de
-    # transformación de la página, que aquí no hacen falta.
-    def visitar(
-        texto: str, cm: object, tm: object, fuente: dict | None, tamano: float
-    ) -> None:
-        limpio = texto.strip()
-        if not limpio or round(float(tamano), 1) != _TAM_ROTULO:
-            return
-        if "Bold" not in str((fuente or {}).get("/BaseFont", "")):
-            return
-        if any(patron.match(limpio) for patron in _RUIDO_PAGINA):
-            return
-        hallados.append(limpio)
-
-    try:
-        lector = PdfReader(io.BytesIO(datos))
-        for pagina in lector.pages:
-            pagina.extract_text(visitor_text=visitar)
-    except Exception:
-        return []
-    return hallados
+#: Rótulos que la plantilla de la UJA trae en TODAS las guías. Medido sobre
+#: las 293 guías del rastreo del 29/07/2026: estos trece aparecen en las 293.
+#: El resto de `_ROTULOS_SECCION` son variantes que unas veces salen y otras no
+#: («COMPETENCIAS» en 33, «SISTEMA DE EVALUACIÓN» en 5) o que ya no aparecen
+#: nunca («RESULTADOS DE APRENDIZAJE», «METODOLOGÍA DOCENTE»); siguen en el
+#: conjunto porque como frontera no estorban, pero exigirlas sería inventarse
+#: un invariante que la fuente no cumple.
+_ROTULOS_ESPERADOS: Final[frozenset[str]] = frozenset(
+    {
+        "FICHA IDENTIFICATIVA",
+        "PROFESORADO",
+        "RESUMEN",
+        "COMPETENCIAS / RESULTADOS DEL PROCESO DE FORMACIÓN Y APRENDIZAJE",
+        "DESCRIPCIÓN DE CONTENIDOS",
+        "METODOLOGÍAS DOCENTES Y ACTIVIDADES FORMATIVAS",
+        "SISTEMAS DE EVALUACIÓN",
+        "BIBLIOGRAFÍA",
+        "OBJETIVOS DE DESARROLLO SOSTENIBLE",
+        "ESTUDIANTADO CON NECESIDADES ESPECÍFICAS DE APOYO EDUCATIVO",
+        "PLAN DE CONTINGENCIA",
+        "CLÁUSULAS",
+        "COMPROMISO CON LA IGUALDAD Y LA PERSPECTIVA DE GÉNERO",
+    }
+)
 
 
-def rotulos_desconocidos(datos: bytes) -> list[str]:
-    """Rótulos del PDF que no están en la plantilla conocida, sin repetir.
+def rotulos_presentes(datos: bytes) -> list[str]:
+    """Rótulos de sección conocidos que aparecen en el PDF, en orden de lectura.
 
-    Es la comprobación que sostiene toda la extracción: mientras salga vacía,
-    la plantilla es la esperada y las fronteras de sección caen donde el código
-    cree. En cuanto devuelva algo, hay que mirarlo antes de fiarse del corpus.
+    Se localizan como línea completa, que es como los compone la plantilla y
+    como los usa :func:`_seccion` para delimitar. No se usa la tipografía: se
+    intentó (negrita a doce puntos) y **no funciona sobre el corpus real**,
+    porque la plantilla usa esa misma tipografía para resaltar contenido dentro
+    de las secciones —criterios de evaluación, títulos de capítulo del
+    temario— y para la segunda línea del nombre de la asignatura cuando no cabe
+    en la cabecera.
 
     Args:
         datos: Bytes del PDF descargado.
 
     Returns:
-        Los rótulos desconocidos, ordenados y sin duplicados.
+        Los rótulos hallados, en el orden en que aparecen. Vacío si el PDF no
+        se puede leer.
     """
-    conocidos = _ROTULOS_SECCION | _SUBROTULOS
-    return sorted({r for r in rotulos_del_pdf(datos) if r not in conocidos})
+    return [
+        linea
+        for linea in _lineas_utiles(_texto_del_pdf(datos))
+        if linea in _ROTULOS_SECCION
+    ]
+
+
+def rotulos_ausentes(datos: bytes) -> list[str]:
+    """Rótulos que la plantilla debería traer y este PDF no trae.
+
+    Es la comprobación que sostiene toda la extracción, y va por ausencia y no
+    por presencia de rótulos desconocidos. El motivo es que buscar rótulos
+    desconocidos no se puede hacer sin falsos positivos: sobre las 293 guías
+    reales produce 68 avisos distintos, todos legítimos (``'tecnológica'`` es
+    la continuación del nombre de la asignatura en la cabecera; ``'Capítulo
+    I.- ...'`` es un título del temario). Un verificador que avisa siempre se
+    acaba ignorando.
+
+    Preguntar por ausencia sí es exacto, y cubre el caso que de verdad hace
+    daño: si la Universidad renombra o retira un rótulo, la sección que
+    delimitaba deja de terminar donde debe. Da igual que el rótulo perdido sea
+    uno de los dos permitidos —entonces se pierde su contenido— o el que venía
+    justo después —entonces la sección permitida se traga la siguiente—: en
+    ambos casos el rótulo desaparece de la lista esperada y se detecta.
+
+    Lo que **no** cubre, y conviene declararlo: una sección enteramente nueva
+    intercalada entre dos conocidas, con un rótulo que nunca se ha visto. Esa
+    sí se colaría dentro de la sección anterior. El daño queda acotado por la
+    lista de permitidos —solo dos secciones pasan al corpus— y por la redacción
+    final de correos y teléfonos, que se aplica sobre lo ya extraído.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Los rótulos esperados que faltan, ordenados. Vacío si están todos.
+    """
+    return sorted(_ROTULOS_ESPERADOS - set(rotulos_presentes(datos)))
 
 
 def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
@@ -180,8 +189,17 @@ def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
     return cuerpo[:5] == b"%PDF-"
 
 
+@lru_cache(maxsize=1)
 def _texto_del_pdf(datos: bytes) -> str:
-    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede."""
+    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede.
+
+    Se memoriza el último resultado porque al auditar se pregunta varias cosas
+    seguidas por el mismo PDF (rótulos, contenido y reparto por sección), y
+    volver a parsearlo cada vez multiplicaba por tres el trabajo: sobre las 288
+    guías del corpus, la diferencia entre medio minuto y un minuto y medio.
+    Basta con recordar uno, que es el patrón real de uso, y así no se acumulan
+    en memoria los megabytes de todo el corpus.
+    """
     try:
         lector = PdfReader(io.BytesIO(datos))
         return "\n".join(pagina.extract_text() for pagina in lector.pages)
@@ -280,8 +298,13 @@ def reparto_por_seccion(datos: bytes) -> dict[str, int]:
         Caracteres por rótulo, en orden de aparición en el documento. Vacío si
         el PDF no se puede leer.
     """
+    # Se extrae el texto UNA vez y de ahí salen tanto los rótulos como sus
+    # contenidos: llamar a `rotulos_presentes` aquí volvería a parsear el PDF
+    # entero, y sobre las 288 guías del corpus eso se nota (el verificador
+    # pasaba de segundos a minutos).
     lineas = _lineas_utiles(_texto_del_pdf(datos))
-    return {rotulo: len(_seccion(lineas, rotulo)) for rotulo in rotulos_del_pdf(datos)}
+    rotulos = [linea for linea in lineas if linea in _ROTULOS_SECCION]
+    return {rotulo: len(_seccion(lineas, rotulo)) for rotulo in rotulos}
 
 
 #: Los dos rótulos cuyo contenido sí pasa al corpus, para que quien audite el

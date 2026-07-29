@@ -36,7 +36,7 @@ from tfg_uja.guia_pdf import (  # noqa: E402
     PERMITIDOS,
     extraer_guia,
     reparto_por_seccion,
-    rotulos_desconocidos,
+    rotulos_ausentes,
 )
 
 
@@ -83,10 +83,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    # --- Los rótulos del PDF siguen siendo los que el código conoce ---
-    # Es la comprobación que sostiene todo lo demás: mientras salga vacía, las
-    # fronteras de sección caen donde el código cree que caen.
-    desconocidos: dict[str, list[str]] = {}
+    # --- La plantilla sigue trayendo todos los rótulos que se esperan ---
+    # Es la comprobación que sostiene todo lo demás. Va por AUSENCIA y no por
+    # presencia de rótulos desconocidos: buscar desconocidos da 68 avisos sobre
+    # las 293 guías reales, todos legítimos (contenido en negrita dentro de las
+    # secciones y la segunda línea del nombre en la cabecera).
+    faltantes: dict[str, list[str]] = {}
     ausentes: list[str] = []
     discrepancias: list[str] = []
     total_pdf = 0
@@ -101,9 +103,9 @@ def main(argv: list[str] | None = None) -> int:
         crudo = pdf.read_bytes()
         codigo = str(guia.get("codigo"))
 
-        nuevos = rotulos_desconocidos(crudo)
-        if nuevos:
-            desconocidos[codigo] = nuevos
+        perdidos = rotulos_ausentes(crudo)
+        if perdidos:
+            faltantes[codigo] = perdidos
 
         # Lo que sale hoy del PDF debe ser lo que hay en el dataset: si no
         # coincide, uno de los dos está viejo y las cifras no son de fiar.
@@ -119,12 +121,12 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 descartado_por_rotulo[rotulo] += largo
 
-    assert not desconocidos, (
-        f"{len(desconocidos)} guía(s) con rótulos de sección que el código no "
-        f"conoce, p. ej. {list(desconocidos)[0]}: "
-        f"{desconocidos[list(desconocidos)[0]]}. La plantilla de la UJA ha "
-        f"cambiado: una sección puede estar quedándose corta (se pierde "
-        f"contenido) o tragándose la siguiente (puede arrastrar profesorado)."
+    assert not faltantes, (
+        f"{len(faltantes)} guía(s) a las que les falta algún rótulo de la "
+        f"plantilla, p. ej. {list(faltantes)[0]}: "
+        f"{faltantes[list(faltantes)[0]]}. La plantilla de la UJA ha cambiado: "
+        f"la sección que ese rótulo delimitaba deja de terminar donde debe, "
+        f"así que o se pierde su contenido o la anterior se traga la siguiente."
     )
     assert not discrepancias, (
         f"{len(discrepancias)} guía(s) donde re-extraer el PDF no reproduce lo "
