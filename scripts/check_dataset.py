@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 #: Tamaño esperado del corpus. Son las cifras del último rastreo aceptado, no
@@ -141,6 +142,20 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"  AVISO: {len(sin_curso)} de {len(guias)} guias sin curso en su "
             "URL; el formato de la fuente puede haber cambiado."
+        )
+
+    # De que camino viene cada guia (IT-95). Se informa, no se comprueba: que
+    # el reparto cambie no es un error, es la fuente migrando de formato. Lo
+    # que no puede pasar es que migre sin que nadie se entere, que es lo que
+    # ocurrio entre el 23 y el 28 de julio de 2026: el corpus paso de 62 de
+    # 296 guias en PDF a las 288 de 288, y solo se supo mucho despues,
+    # deduciendolo de los saltos de linea del texto extraido.
+    formatos = Counter(g.get("formato") or "sin declarar" for g in guias)
+    print(f"  Formato de las guias: {dict(formatos)}")
+    if formatos.get("sin declarar"):
+        print(
+            "  AVISO: hay guias sin el campo `formato` (dataset anterior a "
+            "IT-95). Regeneralo para poder auditar su extraccion."
         )
 
     # Va antes que las cifras esperadas a propósito: si una titulación se ha

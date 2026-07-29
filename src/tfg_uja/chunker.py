@@ -405,11 +405,17 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         # el mismo, y el corpus no puede afirmar el que no es: decir que no
         # está publicada cuando sí lo está sería dar por buena una respuesta
         # falsa al estudiante que pregunte por ella.
+        #
+        # IT-95 corrige el segundo texto. Decía «no ha podido obtenerse», que
+        # insinúa un fallo del sistema, y resultó ser falso: descargadas las
+        # seis guías implicadas el 29/07/2026, las seis se leen perfectamente y
+        # lo que está vacío son sus secciones de contenido en el origen. El
+        # corpus tampoco puede atribuirse un fallo que no ha cometido.
         if asignatura["tiene_guia"]:
             texto = (
-                "El contenido de la guía docente de esta asignatura no ha "
-                "podido obtenerse de la web de la EPSJ, por lo que solo se "
-                "dispone de sus datos básicos."
+                "La guía docente de esta asignatura está publicada en la web de "
+                "la EPSJ, pero no recoge ni resumen ni temario, por lo que solo "
+                "se dispone de sus datos básicos."
             )
         else:
             texto = (

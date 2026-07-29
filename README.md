@@ -99,7 +99,15 @@ antes de cada *push*:
 py scripts/check_dataset.py    # integridad de grados/asignaturas/guías/salidas
 py scripts/check_chunks.py     # tamaños y deduplicación de los fragmentos
 py scripts/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
+py scripts/check_guias_pdf.py  # la extracción de los PDF es fiel a los originales
 ```
+
+`check_guias_pdf.py` compara lo extraído con los PDF que el rastreo guarda en
+`data/guias_pdf/`, y falla si aparece un rótulo de sección que el código no
+conoce: sería la señal de que la plantilla de la fuente ha cambiado y de que una
+sección puede estar quedándose corta o tragándose la siguiente. Enumera además
+qué se descarta y cuánto, por sección, para que el filtrado se pueda revisar en
+lugar de tener que creérselo.
 
 ### Experimentos
 

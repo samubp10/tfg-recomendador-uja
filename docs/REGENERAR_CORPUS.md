@@ -61,6 +61,28 @@ número distinto puede ser un cambio legítimo de la fuente **o** una pérdida s
 datos, y el script no puede distinguirlos por ti. Solo cuando esté claro que el cambio es
 legítimo se actualiza `ESPERADO` y se anota el porqué.
 
+## 2 bis. Auditar la extracción de los PDF
+
+```bash
+py scripts/check_guias_pdf.py
+```
+
+Desde IT-95 el rastreo deja una copia de cada PDF en `data/guias_pdf/`, y este
+script la compara con lo que se extrajo. **Es el único que puede detectar que la
+plantilla de la fuente ha cambiado**: si aparece un rótulo de sección
+desconocido, una sección puede estar quedándose corta —se pierde contenido— o
+tragándose la siguiente, que en el peor caso arrastra el bloque de profesorado.
+Ninguna de las dos cosas falla de forma visible en ningún otro sitio.
+
+Imprime además cuánto se descarta y bajo qué rótulo. Que se conserve una fracción
+pequeña del documento es lo esperado: la lista de permitidos deja fuera
+evaluación, bibliografía, cláusulas y profesorado a propósito. Lo que hay que
+mirar es que los nombres de esa lista sean los de siempre.
+
+⚠️ Los PDF guardados **contienen datos personales del profesorado**. Están en
+`data/`, que no se versiona, y son copia local de trabajo: no se publican ni
+entran al corpus.
+
 ## 3. Fragmentar
 
 ```bash

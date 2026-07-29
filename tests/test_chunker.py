@@ -462,12 +462,23 @@ def test_una_guia_anunciada_que_no_se_extrajo_no_borra_la_asignatura():
 
 
 def test_ese_fragmento_no_afirma_que_la_guia_no_este_publicada():
-    # La guía SÍ está publicada: lo que ha fallado es la extracción. Decir lo
-    # contrario metería una afirmación falsa en el propio corpus, y el sistema
-    # se la daría por buena al estudiante que preguntase por la asignatura.
+    # La guía SÍ está publicada. Decir lo contrario metería una afirmación
+    # falsa en el propio corpus, y el sistema se la daría por buena al
+    # estudiante que preguntase por la asignatura.
     texto = trocear_dataset([_CRIPTOGRAFIA])[0]["texto"]
-    assert "no ha podido obtenerse" in texto
+    assert "está publicada" in texto
     assert "no está publicada" not in texto
+
+
+def test_ese_fragmento_tampoco_se_atribuye_un_fallo_propio():
+    # IT-95. El texto decía «no ha podido obtenerse», que insinúa que el fallo
+    # es del sistema. Se comprobó descargando las seis guías implicadas: las
+    # seis se leen perfectamente y lo vacío son sus secciones en el origen.
+    # Atribuirse un fallo inexistente es tan poco honesto como el error que
+    # IT-94 evitó, solo que en la otra dirección.
+    texto = trocear_dataset([_CRIPTOGRAFIA])[0]["texto"]
+    assert "no ha podido obtenerse" not in texto
+    assert "no recoge ni resumen ni temario" in texto
 
 
 def test_la_asignatura_sin_guia_publicada_conserva_su_mensaje():

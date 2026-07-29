@@ -16,7 +16,14 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja.guia_pdf import es_pdf, extraer_guia
+from tfg_uja.guia_pdf import (
+    ILEGIBLE,
+    es_pdf,
+    extraer_guia,
+    motivo_sin_guia,
+    rotulos_del_pdf,
+    rotulos_desconocidos,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -97,3 +104,60 @@ def test_es_pdf_detecta_por_cabecera_y_por_firma() -> None:
     assert es_pdf(b"text/html; charset=utf-8", contenido)
     # Un HTML de verdad no es PDF.
     assert not es_pdf(b"text/html", b"<!DOCTYPE html><html>...")
+
+
+# --- IT-95: la plantilla de la fuente sigue siendo la que el código supone ---
+#
+# Toda la extracción se apoya en una lista de rótulos escrita a mano contra la
+# plantilla observada, y desde el curso 2026-27 el 100 % del contenido de la
+# colección pasa por ahí. Si la Universidad cambia un rótulo, la sección deja de
+# terminar donde debe: o se pierde contenido, o se arrastra el bloque de
+# profesorado hasta el corpus. Ninguna de las dos cosas falla de forma visible,
+# así que hace falta comprobarlo explícitamente.
+
+
+@pytest.mark.parametrize("fixture, _", _GUIAS)
+def test_los_rotulos_del_pdf_son_todos_conocidos(fixture: str, _: str) -> None:
+    assert rotulos_desconocidos(_bytes(fixture)) == []
+
+
+@pytest.mark.parametrize("fixture, _", _GUIAS)
+def test_encuentra_los_rotulos_de_las_dos_secciones_permitidas(
+    fixture: str, _: str
+) -> None:
+    rotulos = rotulos_del_pdf(_bytes(fixture))
+    assert "RESUMEN" in rotulos
+    assert "DESCRIPCIÓN DE CONTENIDOS" in rotulos
+
+
+def test_los_rotulos_se_localizan_por_tipografia_y_no_por_mayusculas() -> None:
+    # La idea evidente —avisar de toda línea en mayúsculas que no esté en la
+    # lista— produce entre 17 y 25 falsos avisos por guía, porque el bloque de
+    # profesorado trae en mayúsculas los nombres y los departamentos. Se
+    # comprueba con un caso real: ese texto NO se confunde con un rótulo.
+    rotulos = rotulos_del_pdf(_bytes("guia_cartografia_geomatica2025.pdf"))
+    assert not [r for r in rotulos if "ARIZA" in r]
+    assert not [r for r in rotulos if r.startswith("CAMPUS LAS LAGUNILLAS")]
+
+
+def test_la_cabecera_de_pagina_no_cuenta_como_rotulo() -> None:
+    # «Guía Docente», el código con el nombre y el curso académico se repiten en
+    # cada página con la misma tipografía que los rótulos de sección.
+    rotulos = rotulos_del_pdf(_bytes("guia_estadistica_iayc.pdf"))
+    assert "Guía Docente" not in rotulos
+    assert not [r for r in rotulos if r.startswith("Curso Académico")]
+
+
+# --- IT-95: por qué una guía en PDF no aporta contenido ---
+
+
+def test_un_pdf_ilegible_se_distingue_como_tal() -> None:
+    assert motivo_sin_guia(b"esto no es un PDF") == ILEGIBLE
+    assert motivo_sin_guia(b"") == ILEGIBLE
+
+
+def test_una_guia_correcta_no_necesita_motivo() -> None:
+    # Coherencia entre las dos funciones: si extraer_guia devuelve algo, no
+    # tiene sentido preguntar por qué falló.
+    for fixture, _ in _GUIAS:
+        assert extraer_guia(_bytes(fixture)) is not None
