@@ -236,14 +236,21 @@ def main(argv: list[str] | None = None) -> int:
         f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
         f"sin guía {len(informativos)}, salidas {len(grados_salidas)})"
     )
-    # IT-94: las que la fuente publica pero no se han podido extraer se
+    # IT-94: las que la fuente publica pero que no aportan contenido se
     # cuentan aparte, porque no son lo mismo que una guía inexistente y su
     # número mide directamente cuánto contenido se está perdiendo.
+    #
+    # IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
+    # apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
+    # casos son la contraria: el PDF se lee entero y sus secciones de
+    # contenido están vacías en el origen (DQA-0004). Tercer y último sitio
+    # donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
     no_extraidas = sum(1 for a in asignaturas if a["tiene_guia"]) - len(guias)
     if no_extraidas:
         print(
-            f"  AVISO: {no_extraidas} asignaturas anuncian guía pero no se ha "
-            "podido extraer su contenido; aparecen solo con sus datos básicos."
+            f"  AVISO: {no_extraidas} asignaturas enlazan una guía que no "
+            "aporta ni resumen ni temario; aparecen solo con sus datos "
+            "básicos. `check_guias_pdf.py` dice de cada una por qué."
         )
     print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
