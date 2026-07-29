@@ -118,6 +118,47 @@ Cifras re-verificadas el 21/07/2026 sobre `data/grados.json` y
   del máximo), 0 inconsistencias de numeración en 301 unidades.
 - Verificado por `scripts/check_chunks.py` (en positivo y en negativo).
 
+### Adenda de 2026-07-29 — las mismas cifras sobre el corpus 2026-27
+
+Las cifras de arriba son las del corpus de julio (curso 2025-26, 296 guías) y
+se dejan tal cual porque son las que justificaron la decisión. Pero ese corpus
+ya no existe: el rastreo del 29/07/2026 trae el curso 2026-27, sin la
+titulación en extinción (IT-77), con las tablas de Geomática recuperadas
+(IT-76) y con el 100 % de las guías servidas en PDF (DQA-0002). Se vuelven a
+medir aquí para que nadie tenga que preguntarse cuál de las dos series es la
+buena.
+
+| Magnitud | Corpus 2025-26 (21/07) | Corpus 2026-27 (29/07) |
+|---|---:|---:|
+| Guías | 296 | 288 |
+| Unidades de guía tras deduplicar | 225 | 210 |
+| Unidades compartidas entre titulaciones | 28 | 38 |
+| Chunks sin deduplicar | 1.172 | 1.134 |
+| **Chunks con deduplicación** | **892** (−24 %) | **781** (−31 %) |
+| Reparto (guía · sin guía · salidas) | 818 · 65 · 9 | 711 · 62 · 8 |
+| Tamaño mín / mediana / p90 / máx | 227 / 1.093 / — / 1.499 | 227 / 1.128 / 1.234 / 1.499 |
+
+**La decisión no cambia, pero su efecto es mayor de lo que decía el ADR:** la
+deduplicación quita ahora 353 de los 1.064 chunks de guía, un 33 %, frente al
+25 % de julio. El motivo es que las unidades compartidas han pasado de 28 a
+38: la fuente publica cada curso más guías comunes entre titulaciones, así que
+el argumento que sostiene la deduplicación se refuerza con el tiempo en vez de
+desgastarse.
+
+Dos matices que sí son nuevos:
+
+- Las asignaturas sin contenido de guía bajan de 65 a 62, pero **5 de ellas ya
+  no son «sin guía» sino «guía publicada y vacía»** (DQA-0004): la EPSJ publica
+  el PDF con los rótulos «Resumen» y «Descripción de contenidos» impresos y
+  nada debajo. En julio ese caso no existía. El fragmento informativo lo dice
+  con otras palabras para no atribuirle a la fuente algo que no ha hecho.
+- El máximo de 1.499 sigue por debajo de la restricción dura de 1.500 y ningún
+  chunk la supera, verificado por `check_chunks.py` sobre el corpus completo.
+
+Los parámetros (1.200 objetivo, 1.500 máximo, 200 mínimo) **siguen sin
+validación experimental propia**. La amenaza que declaraba el ADR en julio
+sigue viva y se resuelve en la Fase 1, no aquí.
+
 ## Consecuencias
 
 ### Positivas
