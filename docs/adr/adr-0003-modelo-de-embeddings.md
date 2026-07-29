@@ -330,12 +330,23 @@ decisión del recuperador de la Fase 2.
   `docs/experimentos/it28-embeddings-historico.md` (24/07).
 - Documentación de sentence-transformers, sobre `max_seq_length` y el recorte
   automático: [https://www.sbert.net/](https://www.sbert.net/)
-- L. Wang et al., "Multilingual E5 Text Embeddings: A Technical Report"
-  (familia E5 multilingüe y el uso de los prefijos `query:`/`passage:`).
+- L. Wang, N. Yang, X. Huang, L. Yang, R. Majumder, F. Wei, "Multilingual E5
+  Text Embeddings: A Technical Report", 2024. arXiv:2402.05672
+  ([https://arxiv.org/abs/2402.05672](https://arxiv.org/abs/2402.05672)) —
+  familia E5 multilingüe y el uso de los prefijos de papel.
+- L. Wang, N. Yang, X. Huang, B. Jiao, L. Yang, D. Jiang, R. Majumder, F. Wei,
+  "Text Embeddings by Weakly-Supervised Contrastive Pre-training", 2022.
+  arXiv:2212.03533
+  ([https://arxiv.org/abs/2212.03533](https://arxiv.org/abs/2212.03533)) —
+  el entrenamiento contrastivo del que sale la familia E5.
 - N. Reimers, I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese
-  BERT-Networks", EMNLP 2019 (base de la familia *paraphrase*).
-- N. Muennighoff et al., "MTEB: Massive Text Embedding Benchmark" (contexto
-  sobre por qué un modelo entrenado para recuperación rinde distinto que uno
-  entrenado para similitud).
+  BERT-Networks", EMNLP 2019. arXiv:1908.10084
+  ([https://arxiv.org/abs/1908.10084](https://arxiv.org/abs/1908.10084)) —
+  base de la familia *paraphrase* (opciones A y B).
+- N. Muennighoff, N. Tazi, L. Magne, N. Reimers, "MTEB: Massive Text Embedding
+  Benchmark", 2022. arXiv:2210.07316
+  ([https://arxiv.org/abs/2210.07316](https://arxiv.org/abs/2210.07316)) —
+  contexto sobre por qué un modelo entrenado para recuperación rinde distinto
+  que uno entrenado para similitud.
 - M. Nygard, "Documenting Architecture Decisions", cognitect.com
   ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
