@@ -1,5 +1,7 @@
 # Recomendador de Grados de la EPSJ
 
+[![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-blue.svg)](README.md)
+[![English](https://img.shields.io/badge/lang-English-red.svg)](README.en.md)
 [![Tests](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml/badge.svg)](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml)
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue)
 ![Licencia GPL-3.0](https://img.shields.io/badge/licencia-GPL--3.0-green)
@@ -124,7 +126,7 @@ Los resultados reales de cada ejecución quedan en `docs/experimentos/`.
 ## Calidad
 
 ```console
-pytest                                          # 137 pruebas, con fixtures HTML/PDF/JSON reales
+pytest                                          # 184 pruebas, con fixtures HTML/PDF/JSON reales
 mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
 black src/ tests/ scripts/                      # formato
 flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)
