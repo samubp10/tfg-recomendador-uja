@@ -20,9 +20,13 @@
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
 \usepackage{hyperref}
 \usepackage{xcolor}
-\usepackage[normalem]{ulem}
+% ulem con [normalem]: sin esa opcion, ulem redefine \emph como subrayado en
+% lugar de cursiva y cambiaria el aspecto de todo el documento. Se cargaba dos
+% veces (la segunda sin opciones), lo que no daba error pero era una bomba de
+% relojeria: si alguien cambiaba el orden, el segundo \usepackage habria pasado
+% a ser el que manda y \emph se habria subrayado en toda la memoria.
+\usepackage[normalem]{ulem}   % \sout para tachar texto pendiente de corregir
 \usepackage{xstring}
-\usepackage{ulem} % For \sout (strikeout) command
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, fit, shapes.geometric, backgrounds, shapes.multipart}
 \usepackage{titlesec}
