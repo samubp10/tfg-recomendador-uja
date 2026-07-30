@@ -1,110 +1,222 @@
-# Recomendador UJA
+# EPSJ Degree Recommender
 
 [![Español](https://img.shields.io/badge/lang-Español-blue.svg)](README.md)
 [![English](https://img.shields.io/badge/lang-English-red.svg)](README.en.md)
-[![CI](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml/badge.svg)](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml)
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
+[![Tests](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml/badge.svg)](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml)
+[![Python 3.13](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/)
+[![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-green)](https://www.gnu.org/licenses/gpl-3.0.html)
 
-RAG Chatbot that recommends bachelor's degrees from the Higher Polytechnic School of Jaén (EPSJ) at the University of Jaén. Bachelor's Thesis (TFG) for the Degree in Computer Engineering.
+> English version of [`README.md`](README.md). The project itself — code comments,
+> documentation, thesis and commit messages — is written in Spanish.
 
-## Table of contents
-- [Problem & solution](#problem--solution)
-- [Phased architecture](#phased-architecture)
-- [Dataset](#dataset)
-- [Repository structure](#repository-structure)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Tests](#tests)
-- [Methodology](#methodology)
-- [Design decisions](#design-decisions)
-- [Legal & ethical notice](#legal--ethical-notice)
-- [License](#license)
-- [Authorship & acknowledgments](#authorship--acknowledgments)
+Chatbot that answers questions about the bachelor's degrees of the Higher
+Polytechnic School of Jaén (EPSJ), University of Jaén. It is aimed at
+pre-university students deciding what to study: it answers questions about
+subjects, curricula and career prospects using the information the university
+publishes.
 
-## Problem & solution
-Choosing a university degree is difficult: official information is scattered across dozens of pages. **Recomendador UJA** centralizes this information and allows querying it in natural language through a RAG (Retrieval-Augmented Generation) system built on public data from the EPSJ.
+Internally it combines Retrieval-Augmented Generation (RAG) with an open-weights
+language model run locally, so that answers rest on real university data rather
+than on the model's generic knowledge.
 
-## Phased architecture
-- **Phase 0 — Scraping + chunking (completed):** dataset extraction using Scrapy and chunk preparation.
-- **Phase 1 — RAG (planned):** vector indexing and retrieval.
-- **Phase 2 — Evaluation (planned):** quality metrics for the recommender.
-- **Phase 3 — Application (planned):** chatbot interface.
+This repository is a Bachelor's Thesis (TFG) in Computer Engineering at the
+University of Jaén, academic year 2025/2026.
+
+**Author:** Samuel Blanco Palmero · **Supervisor:** Juan Carlos Cuevas Martinez
+
+## Project status
+
+| Phase | Contents | Status |
+| ----- | -------- | ------ |
+| 0 | Web scraping, cleaning, validation and chunking | ✅ Complete |
+| 1 | Vector indexing, evaluation set and embeddings comparison | 🚧 In progress |
+| 2 | Full RAG pipeline with a local LLM, and its evaluation | Pending |
+| 3 | Web chat application | Pending |
+| 4 | User validation | Pending |
+
+## Architecture
+
+```text
+EPSJ website ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ vector index ──▶ [RAG + LLM] ──▶ [chat web app]
+```
+
+Each stage is decoupled from the next and produces a regenerable artefact:
+re-chunking or re-indexing is cheap and happens often while experimenting;
+re-crawling the website is expensive and impolite towards the university's
+server, so it only happens when the source changes.
 
 ## Dataset
+
+Figures are a **snapshot, not a constant**: the EPSJ publishes new syllabuses
+throughout the year, so they change on every crawl. Both `grados.json` and
+`chunks.json` carry their own extraction date and academic year inside the file.
+
 | Metric | Value |
-|---|---|
-| Degrees | 8 |
-| Subjects | 361 |
-| Syllabuses | 296 |
-| Syllabus coverage | 81 % |
+|---|---:|
+| Crawled on | 2026-07-30 (academic year 2026-27) |
+| Degrees (5 of them double degrees) | 12 |
+| Degrees with subjects of their own | 7 |
+| Subjects | 350 |
+| Syllabuses (all served as PDF) | 288 |
+| Syllabus coverage | 82.3 % |
+| Subjects with no syllabus content | 62 |
+| Career-prospects blocks | 7 |
+| **Chunks after deduplication** | **781** |
 
-Generated with Scrapy from the public website of the EPSJ.
+Two crawls a day apart (2026-07-29 and 2026-07-30) produced a **byte-identical
+corpus**, chunk by chunk.
 
-## Repository structure
-```text
-src/tfg_uja/       # Source code (spider + utilities)
-tests/             # Tests + real HTML fixtures
-data/              # Dataset (grados.json) & check_dataset.py
-docs/adr/          # Architecture Decision Records
-.github/workflows/ # CI (GitHub Actions)
-```
+Verify any of these figures yourself with the checkers below — do not trust this
+table, it is only as fresh as the last time someone edited it.
 
-> **Note**: The project's thesis document (memoria), written in LaTeX, is kept in the `docs` branch.
+## Requirements
+
+- Python 3.13 (3.10 minimum).
+- To run the actual indexing: the `[index]` extra (see below), which pulls in
+  PyTorch through `sentence-transformers`.
 
 ## Installation
-Requires **Python 3.13**.
 
 **Windows (CMD or PowerShell)**
-```
+
+```console
 py -m venv .venv
 .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
 **Linux / macOS**
-```
+
+```console
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
+
 > On Git Bash for Windows: `source .venv/Scripts/activate`.
+
+For vector indexing (downloads the embeddings model, hundreds of MB):
+
+```console
+pip install -e ".[dev,index]"
+```
 
 ## Usage
 
-### Run the spider
-```bash
+Generated data lives in `data/` and is **not versioned**: it is regenerated by
+the pipeline itself, and that regeneration is what guarantees reproducibility.
+
+```console
+# 1. Extract the dataset — makes REAL requests to the UJA website.
+#    Use sparingly (respects robots.txt and delays requests).
 scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+
+# 2. Chunk the corpus (offline, cheap)
+py -m tfg_uja.chunker data/grados.json data/chunks.json
+
+# 3. Index into the vector database (requires the [index] extra).
+#    The default model is the one chosen in ADR-0003; another one can be
+#    passed as a third argument to repeat the experiment without touching code.
+py -m tfg_uja.indexer data/chunks.json data/indice_chroma
 ```
 
-### Verify the dataset
-```bash
-py data/check_dataset.py
+### Dataset checkers (local only)
+
+They do not run in CI because `data/` does not exist in a clean checkout; run
+them before every push:
+
+```console
+py scripts/check_dataset.py     # integrity of degrees/subjects/syllabuses/prospects
+py scripts/check_chunks.py      # chunk sizes and deduplication
+py scripts/check_evalset.py     # the evaluation set resolves against the dataset
+py scripts/check_guias_pdf.py   # PDF extraction, audited against the stored PDFs
 ```
+
+### Experiments
+
+```console
+# Compares embedding models (Recall@3, Recall@5, MRR) over the evaluation set.
+# Requires the [index] extra and network access the first time. Local only.
+py scripts/experimento_embeddings.py
+```
+
+Real results of every run are kept in `docs/experimentos/`.
 
 ## Tests
-```bash
-pytest
+
+```console
+pytest                                          # 184 tests, with real HTML/PDF/JSON fixtures
+mypy src/tfg_uja/ --ignore-missing-imports      # clean static typing
+black src/ tests/ scripts/                      # formatting
+flake8 src/ tests/ scripts/                     # style (configured in .flake8)
 ```
 
+Testing principles: **real** fixtures downloaded from the EPSJ (never network
+requests in tests, never made-up data), and every defect found enters as a
+regression test with its real case.
+
+## Repository structure
+
+```text
+src/tfg_uja/        # source code (spider, PDF syllabuses, cleaning, validation,
+                    #   chunker, embeddings, indexer and retrieval metrics)
+tests/              # tests with real fixtures (EPSJ HTML and PDF, dataset chunks)
+scripts/            # dataset checkers and experiments
+eval/               # retrieval evaluation set (manual, versioned)
+docs/adr/           # Architecture Decision Records (ADR)
+docs/dqa/           # Data Quality Assessment records (DQA)
+docs/experimentos/  # real results of the experiments
+memoria/            # the thesis itself, in LaTeX (EPSJ template)
+data/               # generated artefacts (NOT versioned)
+```
+
+> **Note:** the thesis document (*memoria*), written in LaTeX, lives in the
+> **`doc`** branch, not in `main`.
+
 ## Methodology
-- **Kanban** with GitHub Projects.
-- **Conventional Commits** (`type(IT-XX): description`).
-- **ADRs** in `docs/adr/`.
-- **Real HTML fixtures** for deterministic, offline testing.
+
+- **Kanban** on GitHub Projects: every task is an `IT-XX` issue with its phase,
+  MoSCoW priority and milestone.
+- **Conventional Commits** (`type(IT-XX): description`), with a mandatory body
+  explaining the *why* of each decision.
+- Short-lived branches off `main` (code) or `doc` (thesis); always merged with a
+  *merge commit*, never *squash*.
+- Design decisions recorded as **ADRs** in `docs/adr/`; data-source anomalies as
+  **DQAs** in `docs/dqa/`.
+- CI on GitHub Actions: `pytest` + `mypy` on every push and pull request.
 
 ## Design decisions
-Relevant architectural decisions are documented as ADRs in [`docs/adr/`](docs/adr/), e.g., the choice of Scrapy ([ADR-0002](docs/adr/adr-0002-alternativas-extraccion-datos.md)).
+
+Architectural decisions are documented as ADRs, each with the alternatives
+considered and the evidence that settled it:
+
+| ADR | Decision |
+|---|---|
+| [ADR-0001](docs/adr/adr-0001-estrategia-chunking.md) | Chunking strategy and deduplication |
+| [ADR-0002](docs/adr/adr-0002-alternativas-extraccion-datos.md) | Scrapy as the extraction framework |
+| [ADR-0003](docs/adr/adr-0003-modelo-de-embeddings.md) | Embeddings model |
+
+## Scope
+
+The first version covers the EPSJ bachelor's degrees. The system is designed to
+be extended to other schools of the University of Jaén by adding sources to the
+extraction stage, without rewriting the retrieval and generation core. Teaching
+staff is deliberately excluded from the extracted data (privacy).
 
 ## Legal & ethical notice
-- `robots.txt` is respected (`ROBOTSTXT_OBEY = True`) and polite throttling is applied (`DOWNLOAD_DELAY`) towards the UJA server.
+
+- `robots.txt` is respected (`ROBOTSTXT_OBEY = True`) and polite throttling is
+  applied (`DOWNLOAD_DELAY`) towards the UJA server.
 - Only **public data** of an academic nature is extracted.
-- **Teaching staff is excluded** for privacy: personal data is not collected. "The principles of data protection should therefore not apply to anonymous information, namely information which does not relate to an identified or identifiable natural person" (Recital 26, Regulation (EU) 2016/679).
+- **Teaching staff is excluded** for privacy. Syllabuses served as PDF do carry a
+  staff block with names, e-mail addresses and phone numbers: only the *Summary*
+  and *Description of contents* sections are extracted — an allowlist, not a
+  blocklist — and e-mail addresses and phone numbers are stripped afterwards as a
+  safety net. **No personal data ever reaches the vector database.**
+- "The principles of data protection should therefore not apply to anonymous
+  information, namely information which does not relate to an identified or
+  identifiable natural person" (Recital 26, Regulation (EU) 2016/679).
 
 ## License
-Distributed under the **GPL-3.0** license. See [`LICENSE`](LICENSE).
 
-## Authorship & acknowledgments
-- **Author:** Samuel (samubp10).
-- **Tutor:** [TFG tutor].
-- Bachelor's Thesis (TFG) in Computer Engineering, University of Jaén (UJA).
+[GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). See [`LICENSE`](LICENSE).
