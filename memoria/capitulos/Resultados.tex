@@ -37,7 +37,9 @@
         constructo}, y de las más serias que tiene el trabajo. Todo el contenido de
         la colección se obtiene hoy de guías en PDF (288 de 288), y la extracción se
         apoya en una lista de 17 rótulos de sección escrita a mano contra la
-        plantilla que la Universidad usaba al observarla.
+        plantilla que la Universidad usaba al observarla. \textit{(Verificado el
+        30/07/2026: el código conoce 17 rótulos y espera encontrar 13 en toda guía;
+        de esos, solo 2 pasan el filtro de contenido.)}
   \item Si esa plantilla cambia, una sección deja de terminar donde debe: o se queda
         corta, y se pierde contenido, o absorbe la siguiente, y puede arrastrar el
         bloque de profesorado con sus datos personales. \textbf{Ninguno de los dos
@@ -54,21 +56,42 @@
         de pasar inadvertido. Es una diferencia que conviene marcar, porque es la
         misma lección de los cuatro defectos anteriores: lo que no se comprueba no
         está protegido, aunque no haya fallado todavía.
-  \item Vale la pena contar por qué la comprobación evidente no sirve, porque
+  \item \sout{Vale la pena contar por qué la comprobación evidente no sirve, porque
         explica una decisión de diseño que si no parece arbitraria. Buscar líneas en
         mayúsculas que no estén en la lista produce entre 17 y 25 falsos avisos por
         guía: el bloque de profesorado trae en mayúsculas los nombres, los
         departamentos y las ubicaciones. Un verificador que avisa siempre acaba
         ignorándose, que es una forma más de que mida algo distinto de lo que dice
-        medir. Los rótulos se localizan por su \emph{tipografía} —la plantilla los
-        compone en negrita a doce puntos— y así salen cero falsos avisos sobre los
-        cuatro PDF reales comprobados.
+        medir. Los rótulos se localizan por su tipografía ---la plantilla los
+        compone en negrita a doce puntos--- y así salen cero falsos avisos sobre los
+        cuatro PDF reales comprobados.}
+  \item \textbf{CORREGIDO el 30/07/2026: el método tachado se abandonó en IT-97,
+        y la propia frase explica por qué.} <<Cero falsos avisos sobre los cuatro
+        PDF reales comprobados>>: sobre las \textbf{293} guías del rastreo completo,
+        ese mismo detector por tipografía dio \textbf{68 falsos positivos}. La
+        plantilla usa la misma negrita a doce puntos para el nombre de la asignatura
+        en la cabecera y para resaltar contenido dentro de las secciones.
+  \item \textbf{Lo que se usa ahora} es la comprobación invertida: en vez de buscar
+        rótulos desconocidos, se comprueba qué rótulos \emph{faltan} de los trece
+        que la plantilla siempre compone. Un rótulo de más no significa nada; un
+        rótulo de menos significa que la plantilla ha cambiado, que es justo lo que
+        hay que detectar.
+  \item \textbf{Esto es mejor material de defensa que lo que sustituye}, y conviene
+        contarlo así: una heurística validada sobre 4 casos aguantó, y se rompió al
+        pasarla a 293. Es el mismo patrón que los defectos de la Fase 0 --- las
+        pruebas cubren lo que los datos contienen --- pero esta vez ocurrió sobre un
+        \emph{verificador}, es decir, sobre la herramienta que existe precisamente
+        para que no pase.
   \item Dato útil para la defensa, y para adelantarse a la pregunta obvia sobre
-        cuánto se tira: de los 53.969 caracteres de secciones que suman las tres
-        guías de prueba se conservan 8.534, alrededor del 15 \%. El resto se descarta
-        a propósito y con nombre —evaluación, bibliografía, cláusulas, profesorado,
-        metodologías— y el verificador lo enumera sección por sección, de modo que el
+        cuánto se tira: de los \sout{53.969} \textbf{50.715} caracteres de secciones
+        que suman las tres guías de prueba se conservan 8.534,
+        \sout{alrededor del 15 \%} el \textbf{16,8~\%}. El resto se descarta
+        a propósito y con nombre ---evaluación, bibliografía, cláusulas, profesorado,
+        metodologías--- y el verificador lo enumera sección por sección, de modo que el
         filtrado se puede revisar en lugar de tener que creérselo.
+  \item (El total cambió porque IT-97 movió las fronteras de sección al cambiar cómo
+        se detectan los rótulos; los 8.534 conservados son los mismos. Medido de
+        nuevo el 30/07/2026 sobre las tres guías de prueba.)
 \end{borrador}
 
 \begin{borrador}
