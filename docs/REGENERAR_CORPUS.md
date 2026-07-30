@@ -137,6 +137,18 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
   py scripts/experimento_embeddings.py
   ```
 
+- **El índice vectorial**, que queda describiendo un corpus que ya no existe. Se reconstruye
+  entero, que es barato y es la política del proyecto:
+
+  ```bash
+  py -m tfg_uja.indexer data/chunks.json data/indice_chroma
+  ```
+
+  Desde IT-98 el índice **graba en sus metadatos el modelo y el prefijo de documento** con
+  los que se construyó. Conviene mirarlo si hay alguna duda de qué contiene, porque el
+  modelo del ADR-0003 y el anterior producen vectores de la misma dimensión (384): un índice
+  viejo consultado con el modelo nuevo **no da ningún error**, solo resultados peores.
+
 ## Registro de ejecuciones
 
 | Fecha | Curso | Asignaturas | Guías | Fragmentos | Notas |
