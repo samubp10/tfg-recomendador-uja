@@ -49,6 +49,20 @@ _NOMBRE_TIPO: Final[dict[str, str]] = {
     "TFG": "Trabajo Fin de Grado",
 }
 
+#: Agrupaciones del plan de estudios que el corpus publica como listado
+#: (IT-100). La clave es el nombre que aparece en el encabezado del fragmento;
+#: el valor, los tipos de asignatura que agrupa.
+#:
+#: «Obligatorias» reúne formación básica, obligatorias comunes, obligatorias de
+#: especialidad y el TFG, porque desde el punto de vista de un estudiante
+#: preuniversitario son lo mismo: asignaturas que hay que superar sí o sí. La
+#: distinción entre FB y OB es administrativa y sigue estando en el fragmento
+#: de cada asignatura, que es donde importa.
+_GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
+    "obligatorias": frozenset({"FB", "OB", "OB-IS", "OB-SI", "OB-TI", "TFG"}),
+    "optativas": frozenset({"OP"}),
+}
+
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
 
@@ -307,6 +321,80 @@ def _clave_asignatura(grado: str, codigo: str | None, nombre: str) -> tuple[str,
     return (grado, codigo or nombre)
 
 
+def _chunks_de_plan_de_estudios(
+    items: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Genera el listado de asignaturas de cada titulación, por grupo (IT-100).
+
+    Resuelve un problema que el troceo por asignatura no puede resolver. Una
+    pregunta como «dime todas las obligatorias de Informática» tiene, en el
+    corpus troceado por asignatura, **118 fragmentos relevantes**: ningún
+    top-K razonable los recupera, y no por un fallo del recuperador sino
+    porque es una pregunta de agregación y la recuperación devuelve los K
+    mejores, no todos. Medido el 01/08/2026: el techo de Recall@5 de esa
+    pregunta es 0,042.
+
+    Con el listado ya agregado en el corpus, la misma pregunta pasa a tener
+    **un solo fragmento relevante**. Y el generador copia una lista completa
+    en vez de reconstruirla a partir de cincuenta trozos, que es donde se deja
+    asignaturas.
+
+    Es contenido **derivado**, no literal de la fuente, igual que los
+    fragmentos informativos de las asignaturas sin guía (IT-09) y por el mismo
+    motivo: se compone de forma determinista a partir de datos que la fuente
+    sí publica, sin añadir nada. Queda declarado en el ADR-0001.
+
+    Args:
+        items: Dataset completo tal como lo exporta el spider.
+
+    Returns:
+        Items ``chunk`` de origen ``plan_de_estudios``, uno o más por cada par
+        (titulación, grupo) que tenga asignaturas.
+    """
+    por_grado: dict[str, list[dict[str, Any]]] = {}
+    for a in items:
+        if a["tipo"] == "asignatura":
+            por_grado.setdefault(a["grado"], []).append(a)
+
+    chunks: list[dict[str, Any]] = []
+    for grado in sorted(por_grado):
+        for grupo, tipos in _GRUPOS_PLAN.items():
+            asignaturas = [a for a in por_grado[grado] if a["tipo_asignatura"] in tipos]
+            if not asignaturas:
+                continue
+            # Orden alfabético y no el de la fuente: el de la fuente depende
+            # del orden de las filas de la tabla, que ya ha cambiado una vez
+            # (IT-76). Alfabético es estable y además se lee mejor.
+            lineas = []
+            for a in sorted(asignaturas, key=lambda x: x["nombre"]):
+                # El ECTS ausente se refleja, no se imputa (decisión 9).
+                ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
+                lineas.append(f"{a['nombre']}{ects}.")
+            encabezado = (
+                f"Asignaturas {grupo} del {grado}. " f"En total son {len(asignaturas)}:"
+            )
+            base = {
+                "grados": [grado],
+                "codigos": [None],
+                "nombre": f"Asignaturas {grupo} del {grado}",
+                "tipo_asignatura": "",
+            }
+            chunks.extend(
+                _chunks_de_unidad(
+                    # Cada asignatura es su propio párrafo, no una frase de una
+                    # lista corrida. Así el troceo corta siempre entre
+                    # asignaturas y nunca a mitad de una, y el formato es el
+                    # mismo tanto si el listado cabe en un fragmento como si
+                    # necesita dos.
+                    encabezado,
+                    "\n\n".join(lineas),
+                    base,
+                    "plan_de_estudios",
+                )
+            )
+    return chunks
+
+
 def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Convierte el dataset del spider en la lista de chunks del RAG.
 
@@ -363,7 +451,18 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             if asignatura
             else _encabezado_sin_metadatos(nombre, grados)
         )
-        base = {"grados": grados, "codigos": codigos, "nombre": nombre}
+        # IT-100: el tipo viaja también como metadato, no solo dentro del
+        # encabezado. Sin él no se puede filtrar el índice por «obligatorias»
+        # ni anotar una pregunta de listado sin enumerar cincuenta nombres.
+        # Se toma de la primera titulación del grupo: el ADR-0001 verificó que
+        # el tipo y los ECTS nunca varían entre titulaciones que comparten
+        # guía (0 de 28 grupos), así que colapsarlo no pierde información.
+        base = {
+            "grados": grados,
+            "codigos": codigos,
+            "nombre": nombre,
+            "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
+        }
         chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia"))
 
     for item in items:
@@ -373,8 +472,14 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "grados": [item["grado"]],
                 "codigos": [None],
                 "nombre": item["grado"],
+                # Las salidas no son una asignatura: el campo queda vacío en
+                # lugar de inventarle un tipo, con el mismo criterio que se
+                # aplica al ECTS ausente.
+                "tipo_asignatura": "",
             }
             chunks.extend(_chunks_de_unidad(encabezado, item["texto"], base, "salidas"))
+
+    chunks.extend(_chunks_de_plan_de_estudios(items))
 
     # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
     # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
@@ -426,6 +531,7 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "grados": [asignatura["grado"]],
             "codigos": [asignatura["codigo"]],
             "nombre": asignatura["nombre"],
+            "tipo_asignatura": asignatura["tipo_asignatura"],
         }
         chunks.append(
             {
