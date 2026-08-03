@@ -16,6 +16,7 @@ Acepta rutas alternativas como argumentos::
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -163,11 +164,43 @@ def main(argv: list[str] | None = None) -> int:
         if c["origen"] in ("guia", "asignatura_sin_guia")
         and not c["texto"].startswith(f"«{c['nombre']}»")
     ]
+    # IT-100: los fragmentos de plan de estudios llevan su nombre sin comillas
+    # angulares, porque no nombran una asignatura sino un listado. Se comprueban
+    # igual: dejarlos fuera habría metido 16 fragmentos que ningún verificador
+    # mira, que es exactamente el patrón de fallo que este proyecto arrastra.
+    descuadres += [
+        c
+        for c in chunks
+        if c["origen"] == "plan_de_estudios" and not c["texto"].startswith(c["nombre"])
+    ]
     assert not descuadres, (
-        f"{len(descuadres)} chunks con el encabezado de otra asignatura "
+        f"{len(descuadres)} chunks con el encabezado de otra unidad "
         f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
         f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
     )
+
+    # IT-100: el listado debe decir cuántas asignaturas contiene, y esa cifra
+    # tiene que cuadrar con el dataset. Es la única forma de detectar que el
+    # listado se ha quedado corto: un fragmento con 40 asignaturas de las 50
+    # que tiene la titulación se lee igual de bien y es igual de falso.
+    planes = [c for c in chunks if c["origen"] == "plan_de_estudios"]
+    for c in planes:
+        if c["chunk_index"] != 0:
+            continue
+        declarado = re.search(r"En total son (\d+):", c["texto"])
+        assert declarado, f"el plan {c['nombre']!r} no declara cuántas son"
+        cuerpo = "\n".join(
+            x["texto"].split("\n", 1)[1]
+            for x in sorted(
+                (p for p in planes if p["nombre"] == c["nombre"]),
+                key=lambda p: p["chunk_index"],
+            )
+        )
+        listadas = len([t for t in cuerpo.split("\n") if t.strip()])
+        assert listadas == int(declarado.group(1)), (
+            f"{c['nombre']!r} dice tener {declarado.group(1)} asignaturas "
+            f"pero el listado trae {listadas}"
+        )
 
     # --- Numeración consistente dentro de cada unidad ---
     por_unidad: dict[tuple, list] = {}
