@@ -58,6 +58,23 @@ def chunks_relevantes(
     return relevantes
 
 
+def unidad_de_chunk(chunk: dict[str, Any]) -> tuple[str, str, tuple[str, ...]]:
+    """Identidad de la unidad semántica a la que pertenece un chunk.
+
+    Una unidad es una asignatura, un bloque de salidas o un listado del plan
+    de estudios; el troceo puede repartirla en varios chunks, pero sigue
+    siendo una sola cosa. Es la misma identidad que usa
+    ``scripts/check_chunks.py`` para numerar los chunks de cada unidad.
+
+    Args:
+        chunk: Item ``chunk`` del dataset.
+
+    Returns:
+        Terna ``(origen, nombre, grados)`` que identifica la unidad.
+    """
+    return (chunk["origen"], chunk["nombre"], tuple(chunk["grados"]))
+
+
 def rankear(
     vector_pregunta: list[float], vectores_chunks: list[list[float]]
 ) -> list[int]:
@@ -112,6 +129,64 @@ def recall_en_k(ranking: list[int], relevantes: set[int], k: int) -> float:
     return len(recuperados & relevantes) / len(relevantes)
 
 
+def recall_de_unidad_en_k(
+    ranking: list[int],
+    relevantes: set[int],
+    chunks: list[dict[str, Any]],
+    k: int,
+) -> float:
+    """Recall@K contando UNIDADES recuperadas, no fragmentos.
+
+    Responde a una pregunta distinta que :func:`recall_en_k`, y la diferencia
+    entre las dos es informativa. Por fragmento se mide *cobertura*: cuántos
+    de los trozos de la asignatura correcta se han traído. Por unidad se mide
+    *acierto*: si se ha encontrado la asignatura correcta, sin castigar que
+    haya quedado fuera alguno de sus trozos.
+
+    Importa porque el criterio de relevancia declarado en
+    ``eval/preguntas_evaluacion.json`` anota **unidades semánticas**, mientras
+    que la métrica original cuenta fragmentos. Ese desajuste tiene una
+    consecuencia medida el 01/08/2026: 12 de las 36 preguntas apuntan a más de
+    tres fragmentos, así que el techo de Recall@3 por fragmento es 0,868 y no
+    1. Por unidad el techo vuelve a ser 1 y la cifra se interpreta sola.
+
+    Las dos se reportan juntas a propósito: por fragmento describe el sistema
+    tal como está hoy, que le pasa al generador solo los fragmentos
+    recuperados; por unidad describe el sistema con expansión por unidad, que
+    todavía no existe. Dar solo la segunda prometería algo que el sistema no
+    hace.
+
+    Se toman las ``k`` primeras unidades DISTINTAS del ranking, no los ``k``
+    primeros fragmentos: de lo contrario dos fragmentos de la misma asignatura
+    gastarían dos posiciones de las k.
+
+    Args:
+        ranking: Índices de chunk ordenados por similitud descendente.
+        relevantes: Índices de chunk relevantes para la pregunta.
+        chunks: Chunks completos, para resolver a qué unidad pertenece cada
+            índice.
+        k: Número de unidades distintas que se consideran recuperadas.
+
+    Returns:
+        Valor en ``[0, 1]``.
+
+    Raises:
+        ValueError: Si ``relevantes`` está vacío.
+    """
+    if not relevantes:
+        raise ValueError("una pregunta sin chunks relevantes no es evaluable")
+    unidades_relevantes = {unidad_de_chunk(chunks[i]) for i in relevantes}
+    recuperadas: list[tuple[str, str, tuple[str, ...]]] = []
+    for indice in ranking:
+        unidad = unidad_de_chunk(chunks[indice])
+        if unidad not in recuperadas:
+            recuperadas.append(unidad)
+        if len(recuperadas) == k:
+            break
+    aciertos = len(set(recuperadas) & unidades_relevantes)
+    return aciertos / len(unidades_relevantes)
+
+
 def mrr_de_pregunta(ranking: list[int], relevantes: set[int]) -> float:
     """Recíproco de la posición (1-indexada) del primer chunk relevante.
 
@@ -161,23 +236,37 @@ def evaluar_modelo(
     vectores_preguntas = incrustar_preguntas([p["pregunta"] for p in preguntas])
 
     detalle: list[dict[str, Any]] = []
-    acumulado: dict[str, list[float]] = {f"recall@{k}": [] for k in ks}
-    acumulado["mrr"] = []
+    metricas = [f"recall@{k}" for k in ks] + [f"recall_unidad@{k}" for k in ks]
+    metricas.append("mrr")
+    acumulado: dict[str, list[float]] = {m: [] for m in metricas}
 
     for pregunta, vector_pregunta in zip(preguntas, vectores_preguntas):
         relevantes = chunks_relevantes(pregunta, chunks)
         ranking = rankear(vector_pregunta, vectores_chunks)
         fila: dict[str, Any] = {"id": pregunta["id"], "tipo": pregunta["tipo"]}
         for k in ks:
-            valor = recall_en_k(ranking, relevantes, k)
-            fila[f"recall@{k}"] = valor
-            acumulado[f"recall@{k}"].append(valor)
-        valor_mrr = mrr_de_pregunta(ranking, relevantes)
-        fila["mrr"] = valor_mrr
-        acumulado["mrr"].append(valor_mrr)
+            fila[f"recall@{k}"] = recall_en_k(ranking, relevantes, k)
+            fila[f"recall_unidad@{k}"] = recall_de_unidad_en_k(
+                ranking, relevantes, chunks, k
+            )
+        fila["mrr"] = mrr_de_pregunta(ranking, relevantes)
+        for m in metricas:
+            acumulado[m].append(fila[m])
         detalle.append(fila)
 
     agregados = {
         clave: sum(valores) / len(valores) for clave, valores in acumulado.items()
     }
-    return {"agregados": agregados, "detalle": detalle}
+
+    # Desglose por tipo de pregunta. Sin él la media general deja de ser
+    # interpretable en cuanto conviven tipos con techos muy distintos: una
+    # pregunta de listado tiene un techo de Recall@5 de 0,042 por su propia
+    # naturaleza, y arrastra la media sin que el sistema haya empeorado.
+    por_tipo: dict[str, dict[str, float]] = {}
+    for tipo in sorted({f["tipo"] for f in detalle}):
+        filas = [f for f in detalle if f["tipo"] == tipo]
+        por_tipo[tipo] = {"n": float(len(filas))}
+        for m in metricas:
+            por_tipo[tipo][m] = sum(f[m] for f in filas) / len(filas)
+
+    return {"agregados": agregados, "por_tipo": por_tipo, "detalle": detalle}
