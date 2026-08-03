@@ -161,38 +161,41 @@ lo que impone exigencias específicas de legibilidad y fiabilidad.
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-\textcolor{borrador2}{Un sistema que trata información publicada por una universidad y que además conversa con estudiantes, buena parte de ellos menores de edad, queda sujeto a dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen aquí solo los puntos que condicionan alguna decisión concreta de diseño de este trabajo, sin entrar en un análisis jurídico exhaustivo.}
+Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales contienen nombres, correos electrónicos y teléfonos de profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios puede ser menor de edad. Estos dos tipos de información sitúan al proyecto bajo dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+
+
+Con respecto a la extracción automatizada de información de la web, actualmente el scraper solo se descarga los pdf de las guías docentes que contienen datos personales del profesorado, pero al ser datos publicados por la universidad en su página web, se considera que están a disposición del público y por tanto no infringe ninguna normativa. No obstante, luego de estos pdf se extrae la información verdaderamente útil para el alumnado nuevo. (Insertar referencia sobre si es legal o no scraping y también lo de los datos personales en las guías docentes)
 
 \textcolor{borrador2}{En materia de protección de datos son de aplicación el Reglamento General de Protección de Datos (RGPD)\cite{rgpd2016} y la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD)\cite{lopdgdd2018}. El considerando 26 del RGPD deja fuera de su ámbito la información anónima, esto es, aquella que no permite identificar ni directa ni indirectamente a una persona física. La colección documental de este trabajo se encuentra en ese supuesto: recoge planes de estudio, guías docentes y salidas profesionales, y el profesorado se excluye deliberadamente de la extracción, por lo que de la fuente no se obtiene ningún dato personal.}
 
-\begin{borrador}
+\begin{borrador}          
   \item \textbf{Fase:} 1 (IT-95) --- matiz que hay que añadir a este párrafo, porque
-        tal como está se puede rebatir con el propio repositorio en la mano.
+  tal como está se puede rebatir con el propio repositorio en la mano.
   \item La afirmación es cierta \emph{de la colección}: en la base de datos vectorial
-        no entra ningún dato personal. Pero conviene distinguir la colección del
-        material de trabajo, porque no son lo mismo y el tribunal puede mirar los dos.
+  no entra ningún dato personal. Pero conviene distinguir la colección del
+  material de trabajo, porque no son lo mismo y el tribunal puede mirar los dos.
   \item Lo que hay que explicar: de cada guía docente en PDF se extraen únicamente dos
-        secciones —el resumen y la descripción de contenidos—, por una lista de lo que
-        \emph{sí} pasa y no de lo que se excluye; el bloque de profesorado, con nombres,
-        correos y teléfonos, queda fuera por construcción, y sobre lo ya extraído se
-        aplica además un borrado final de correos y teléfonos como red de seguridad.
-        \textbf{Nombres de profesorado, correos y teléfonos no entran en la base de
-        datos vectorial en ningún caso.}
+  secciones —el resumen y la descripción de contenidos—, por una lista de lo que
+  \emph{sí} pasa y no de lo que se excluye; el bloque de profesorado, con nombres,
+  correos y teléfonos, queda fuera por construcción, y sobre lo ya extraído se
+  aplica además un borrado final de correos y teléfonos como red de seguridad.
+  \textbf{Nombres de profesorado, correos y teléfonos no entran en la base de
+    datos vectorial en ningún caso.}
   \item Y decir con naturalidad lo otro: los PDF de origen son documentos que la propia
-        Universidad publica en abierto y a los que puede acceder cualquiera. El
-        repositorio conserva unos pocos como material de prueba —hacen falta
-        precisamente para poder demostrar que el bloque de profesorado se descarta— y el
-        rastreo guarda una copia local, no publicada, para poder auditar la extracción.
-        Ni se redistribuyen como colección ni se usan para entrenar ningún modelo.
+  Universidad publica en abierto y a los que puede acceder cualquiera. El
+  repositorio conserva unos pocos como material de prueba —hacen falta
+  precisamente para poder demostrar que el bloque de profesorado se descarta— y el
+  rastreo guarda una copia local, no publicada, para poder auditar la extracción.
+  Ni se redistribuyen como colección ni se usan para entrenar ningún modelo.
   \item Conviene que esto vaya aquí y no escondido en un anexo: enunciarlo antes de que
-        lo pregunten es mucho más sólido que responderlo después.
+  lo pregunten es mucho más sólido que responderlo después.
 \end{borrador}
 
 \textcolor{borrador2}{El punto delicado no está, por tanto, en los datos de origen, sino en la conversación. El público objetivo es preuniversitario, así que una parte de los usuarios será menor de edad, y el artículo 7 de la LOPDGDD\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos; por debajo de esa edad se exige el consentimiento de quien ostente la patria potestad o la tutela. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una barrera de entrada. La alternativa elegida es evitar el problema en el origen: el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva el historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. ADA resuelve la misma tensión de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}). [Nota para el autor: esta decisión hay que confirmarla al construir la interfaz en la Fase 3; si finalmente se guardase algún registro, aunque fuera para depurar, este párrafo dejaría de ser cierto.]}
 
 \textcolor{borrador2}{La segunda cuestión es la legalidad de la extracción automatizada. La referencia jurisprudencial más citada en España es la sentencia del caso Ryanair contra Atrápalo\cite{sts572_2012}, que resolvió un litigio entre dos empresas por el aprovechamiento comercial de datos ajenos. El supuesto de este trabajo es distinto en lo esencial: los datos los publica abiertamente un organismo público, el uso es académico y sin ánimo de lucro, y no existe reventa ni competencia con la Universidad de Jaén. A ello se añaden las precauciones técnicas adoptadas durante la extracción —respetar el fichero \texttt{robots.txt}, espaciar las peticiones para no sobrecargar el servidor e identificarse mediante un agente de usuario propio—, que se detallan en el Capítulo~\ref{cap:materialesymetodos}. [Nota para el autor: es una valoración divulgativa, no un dictamen jurídico; conviene presentarla así también en la defensa.]}
 
-\begin{borrador}                                  
+\begin{borrador}                                            
   \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web
   \item \textbf{Licencias} La licencia del modelo concreto se fijará con el ADR-0005 (Fase 2), luego de elegirlo finalmente.
 \end{borrador}
