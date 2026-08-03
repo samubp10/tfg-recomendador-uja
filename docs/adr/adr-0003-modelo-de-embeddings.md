@@ -249,6 +249,78 @@ adenda; **es la clase de premisa que hay que medir en vez de suponer.**
    más nuevas— y es donde peor se está midiendo.
 6. **Los tiempos son de CPU** en una máquina concreta. Valen para comparar
    entre sí los cuatro modelos, no como afirmación de rendimiento del sistema.
+7. **El Recall@3 de este ADR no puede llegar a 1: su techo es 0,868.** Añadida
+   el 01/08/2026 y desarrollada en el apartado siguiente. Es la que más cambia
+   cómo se leen las cifras de la tabla.
+
+## Adenda de 2026-08-01 — de dónde sale K, y su techo
+
+Dos cosas que este ADR usaba sin decirlas. Ninguna cambia la decisión; las dos
+cambian cómo hay que leer los números.
+
+### Por qué K vale 3 y 5
+
+Vienen de la Definición de Hecho de IT-28 («al menos K=3 y K=5»), y hasta hoy no
+estaban justificados en ninguna parte: ni aquí, ni en el cuerpo del commit que
+los introdujo, ni en la memoria. La razón es el **presupuesto de contexto** del
+LLM local. Con la mediana real de **264 tokens por fragmento**:
+
+| K | Contexto que consume |
+|---:|---:|
+| 3 | ~790 tokens |
+| 5 | ~1.320 |
+| 10 | ~2.640 |
+| 20 | ~5.280 |
+
+No es un techo del modelo —los candidatos de pesos abiertos admiten de 32k
+tokens en adelante— sino una elección de coste: cada fragmento de más es tiempo
+de proceso del *prompt* en CPU y un distractor más para el generador. **K podrá
+subir** si la evaluación de la Fase 2 muestra que hace falta; lo que decidirá no
+es la recuperación sino la fidelidad de la respuesta.
+
+⚠️ **Son dos K distintos y hoy coinciden por casualidad:** el de la métrica (este)
+y el del sistema, es decir, cuántos fragmentos entran de verdad en el *prompt*,
+que no está decidido y es parámetro del estudio de ablación (IT-49). Si el
+segundo cambia, este debe seguirlo, o se estará midiendo una configuración que el
+sistema no usa.
+
+### El techo de Recall@3 es 0,868, no 1
+
+Medido el 01/08/2026 sobre el conjunto de evaluación:
+
+| Fragmentos relevantes por pregunta | 1 | 2 | 3 | 4 | 5 | 6 | 9 | 11 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Nº de preguntas | 9 | 11 | 4 | 5 | 4 | 1 | 1 | 1 |
+
+**12 de las 36 preguntas apuntan a más de 3 fragmentos**, así que es
+matemáticamente imposible recuperarlos todos en un top-3. Una pregunta con 11
+fragmentos relevantes tiene un Recall@3 máximo de 0,27 aunque el sistema acierte
+perfectamente. Promediando el máximo alcanzable de cada una sale **0,868**.
+
+Consecuencia para la lectura de la tabla de este ADR:
+
+| | |
+|---|---:|
+| Recall@3 del modelo elegido | 0,705 |
+| Techo alcanzable con este etiquetado | **0,868** |
+| Hueco real | **0,163**, no 0,295 |
+
+No invalida la comparación —los cuatro modelos comparten el mismo techo, así que
+el orden no se mueve— pero **presentar el 0,705 sin el techo hace que el sistema
+parezca bastante peor de lo que es**.
+
+El origen no es un defecto del recuperador sino la definición de relevancia:
+`evaluacion.py` documenta que Recall@K aquí mide **cobertura** y no acierto
+binario, y esa elección era deliberada. Lo que no se había calculado es su
+consecuencia numérica. Dónde está el orden real de lo recuperado:
+
+- **35 de 36 preguntas** ya tienen al menos un fragmento relevante en el top-3.
+- La posición mediana del primer relevante es **1**; la peor de las 36, la 6.
+
+Es decir: lo que falta para llegar al techo **no son documentos mal ordenados,
+son los demás fragmentos de la misma unidad**. Revisar el criterio de relevancia
+corresponde a IT-69, y la posible expansión por unidad al recuperar es una
+decisión del recuperador de la Fase 2.
 
 ## Referencias
 

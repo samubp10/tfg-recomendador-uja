@@ -28,6 +28,24 @@ RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_RESULTADOS = RAIZ / "docs" / "experimentos" / "it28-embeddings.md"
 
+#: Puntos de corte del ranking para Recall@K.
+#:
+#: Vienen de la Definición de Hecho de IT-28 («al menos K=3 y K=5») y hasta el
+#: 01/08/2026 no estaban justificados en ninguna parte. La razón es el
+#: presupuesto de contexto del LLM local: con una mediana real de 264 tokens por
+#: fragmento, K=3 consume unos 790 tokens y K=5 unos 1.320, que caben de sobra
+#: junto al prompt y la respuesta en un modelo cuantizado ejecutable en esta
+#: máquina. No es un techo del modelo —los candidatos abiertos admiten de 32k
+#: tokens en adelante— sino una elección de coste: cada fragmento de más es
+#: tiempo de proceso del prompt y un distractor más para el generador.
+#:
+#: CUIDADO, son dos K distintos que hoy coinciden por casualidad:
+#:   - el K de la MÉTRICA, que es este, y solo dice dónde se corta el ranking
+#:     para medir;
+#:   - el K del SISTEMA, cuántos fragmentos se meten de verdad en el prompt, que
+#:     no está decidido y es parámetro del estudio de ablación (IT-49).
+#: Si el segundo cambia, este debería seguirlo, o se estará midiendo una
+#: configuración que el sistema no usa.
 KS = (3, 5)
 
 
