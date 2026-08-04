@@ -55,6 +55,139 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 
 Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. A continuación se revisan, primero, los asistentes conversacionales que varias universidades españolas ponen a disposición de sus estudiantes y, después, otros sistemas que recomiendan estudios sin usar un chatbot. El apartado final sitúa este trabajo frente a todos ellos.
 
+\textcolor{borrador2}{Esa revisión se aborda en dos bloques. El primero recoge el estado del
+arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y
+por qué alucina, en qué consiste la recuperación aumentada por generación, qué distingue a
+un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección
+documental y una base de datos vectorial. El segundo revisa los sistemas ya desplegados que
+persiguen un objetivo parecido al de este trabajo. Las decisiones concretas que se han
+tomado sobre cada una de estas tecnologías, junto con las alternativas descartadas, se
+justifican en el Capítulo~\ref{cap:materialesymetodos}.}
+
+\subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
+
+\textcolor{red}{[jccuevas] Lo que te he comentado antes, no pases de un título a otro sin explicar.}
+
+\textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
+
+El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano de una manera computacionalmente útil\cite{jurafsky2026slp3}. Los transformadores, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM): un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
+
+Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en inglés) son aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado; estas se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
+
+\begin{itemize}
+  \item \textbf{Alucinaciones intrínsecas:} El modelo genera información que contradice directamente los datos o el texto proporcionado como fuente.
+  \item \textbf{Alucinaciones extrínsecas:} El modelo genera información adicional que no aparece en la fuente original. Aunque esta información inventada pueda ser correcta en el mundo real, se considera alucinación porque no puede ser verificada utilizando únicamente la entrada proporcionada.
+\end{itemize}
+
+Uno de los factores por los que los modelos podrían alucinar son los datos de entrada, dado que muchos conjuntos de datos se construyen de forma automatizada, emparejando fuentes con textos de referencia que contienen información extra (por ejemplo, emparejar una tabla de datos de Wikipedia con el primer párrafo del artículo, el cual suele contener más datos que la tabla)\cite{ji2023hallucination}.
+
+Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios: inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la Escuela Politécnica Superior de Jaén (EPSJ), la respuesta incluye información falsa: oferta titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{imagenes/Alucinacion1_Deepseek.png}\\[4pt]
+  \includegraphics[width=0.92\textwidth]{imagenes/Alucinacion2_Deepseek.png}
+  \caption[Ejemplo real de alucinación de un LLM sin RAG]{Respuesta de
+    DeepSeek al pedirle la oferta actual de grados de la EPSJ (julio de 2026):
+    entre titulaciones reales, el modelo intercala grados que no se imparten
+    en el centro, como Ingeniería Civil o Ingeniería de Tecnologías Mineras.
+    Fuente: captura propia de la interfaz web de DeepSeek.}
+  \label{fig:alucinacion_deepseek}
+\end{figure}
+
+Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de recuperación aumentada por generación (RAG) que se describe en el apartado siguiente: no elimina por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales.
+
+\subsection{Recuperación aumentada por generación (RAG)}
+\label{subsec:rag_concepto}
+
+Los modelos de lenguaje almacenan en sus parámetros parte del conocimiento adquirido durante el entrenamiento. Una vez finalizado este proceso, dicho conocimiento permanece condicionado por los datos utilizados y por la fecha en la que fueron recopilados. Por tanto, el modelo no incorpora automáticamente los cambios que se produzcan con posterioridad (si estos cambiaron) y sus respuestas tampoco incluyen necesariamente una indicación verificable del origen y fecha de la información empleada. Estas limitaciones resultan especialmente relevantes en dominios sujetos a actualizaciones periódicas, como la oferta académica de la universidad, en este caso, la UJA.
+
+La recuperación aumentada por generación fue propuesta por Lewis et al.~\cite{lewis2020rag} como una arquitectura que combina la memoria paramétrica de un modelo de lenguaje con una memoria externa formada por una colección de documentos. Ante una consulta, el sistema recupera primero los textos que considera más relevantes y los proporciona al modelo como contexto para generar la respuesta. De esta forma, el conocimiento almacenado en los parámetros no constituye la única fuente disponible durante la generación.
+
+Este enfoque presenta dos ventajas principales. En primer lugar, permite actualizar la información disponible modificando la colección documental, sin necesidad de volver a entrenar el modelo completo. En segundo lugar, posibilita relacionar las respuestas con los documentos recuperados, lo que mejora su trazabilidad y facilita comprobar si están respaldadas por una fuente. Esta capacidad resulta útil para reducir el problema de las alucinaciones descrito más arriba, aunque no lo elimina por completo: el sistema todavía puede recuperar información poco pertinente, interpretar incorrectamente el contexto o generar afirmaciones que no estén contenidas en él.
+
+\subsection{Modelos propietarios frente a modelos de pesos abiertos}
+\label{subsec:propietarios_abiertos}
+
+Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicamente y a los que se accede normalmente mediante una aplicación o una interfaz de programación de aplicaciones (API) gestionada por el proveedor. GPT (OpenAI)~\cite{openai_api2020}, Claude (Anthropic)~\cite{anthropic_claude2026} y Gemini (Google)~\cite{google_gemini2026} son ejemplos destacados de esta categoría. En este modelo de distribución, la empresa desarrolladora conserva el control sobre los pesos, la infraestructura de ejecución y la información técnica que publica acerca de la arquitectura y del proceso de entrenamiento.
+
+En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
+
+La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
+
+\textcolor{borrador2}{La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas familias y sitúa en cada bando las que se citan en este apartado.}
+
+% ------------------------------------------------------------------
+% Figura "VS": dos bandos (propietarios vs pesos abiertos) con los nombres
+% de cada familia como insignias en un color aproximado de su marca. NO son
+% los logotipos oficiales (evita problemas de marca registrada y mantiene la
+% figura como elaboración propia): solo identifican visualmente cada familia.
+% ------------------------------------------------------------------
+\definecolor{marcaOpenAI}{HTML}{10A37F}
+\definecolor{marcaClaude}{HTML}{CC785C}
+\definecolor{marcaGemini}{HTML}{1A73E8}
+\definecolor{marcaLlama}{HTML}{0866FF}
+\definecolor{marcaMistral}{HTML}{FA520F}
+\definecolor{marcaQwen}{HTML}{615CED}
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      insignia/.style={rounded corners=4pt, text=white, align=center,
+          font=\small\bfseries, minimum width=2.7cm,
+          minimum height=0.9cm, inner sep=3pt},
+      subt/.style={font=\footnotesize\itshape, align=center, text=black},
+      bando/.style={rounded corners=6pt, draw=diagGrupoBorde, fill=diagGrupo,
+          inner sep=12pt}
+    ]
+    % --- Bando izquierdo: modelos propietarios ---
+    \node[insignia, fill=marcaOpenAI] (gpt)    at (0,3.1) {GPT\\[-1pt]{\footnotesize\mdseries OpenAI}};
+    \node[insignia, fill=marcaClaude] (claude) at (0,1.8) {Claude\\[-1pt]{\footnotesize\mdseries Anthropic}};
+    \node[insignia, fill=marcaGemini] (gemini) at (0,0.5) {Gemini\\[-1pt]{\footnotesize\mdseries Google}};
+    \node[subt] (subP) at (0,-0.9) {Pesos cerrados\\Acceso mediante API};
+    % --- Bando derecho: modelos de pesos abiertos ---
+    \node[insignia, fill=marcaLlama]   (llama)   at (7,3.1) {Llama\\[-1pt]{\footnotesize\mdseries Meta}};
+    \node[insignia, fill=marcaMistral] (mistral) at (7,1.8) {Mistral\\[-1pt]{\footnotesize\mdseries Mistral AI}};
+    \node[insignia, fill=marcaQwen]    (qwen)    at (7,0.5) {Qwen\\[-1pt]{\footnotesize\mdseries Alibaba}};
+    \node[subt] (subA) at (7,-0.9) {Parámetros descargables\\Ejecución local · control de los datos};
+    % --- VS central ---
+    \node[circle, draw=diagNodoBorde, fill=white, line width=1pt,
+      minimum size=1.25cm, font=\LARGE\bfseries, text=diagNodoBorde] (vs) at (3.0,1.8) {VS};
+    % Paneles de fondo con su título
+    \begin{scope}[on background layer]
+      \node[bando, fit=(gpt)(gemini)(subP),
+        label={[font=\bfseries]north:Modelos propietarios}] {};
+      \node[bando, fit=(llama)(qwen)(subA),
+        label={[font=\bfseries]north:Modelos de pesos abiertos}] {};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Modelos de lenguaje propietarios (pesos
+    cerrados, acceso mediante la API del proveedor) frente a modelos de pesos
+    abiertos (parámetros descargables, ejecución local y control de los datos).
+    Los nombres se muestran como insignias identificativas, no como los
+    logotipos oficiales de cada marca. Fuente: elaboración propia.}
+  \label{fig:privativos_vs_abiertos}
+\end{figure}
+
+\subsection{Fragmentación de la colección documental}
+\label{subsec:chunking_concepto}
+
+Los modelos de incrustaciones operan sobre una \gl{ventana de contexto} limitada, por lo que la colección
+no puede indexarse documento a documento tal y como se recoge desde la página web: es necesario dividir cada texto en fragmentos (\textit{chunks}).
+El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
+mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
+
+\subsection{Bases de datos vectoriales}
+\label{subsec:vectordb_concepto}
+
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-31). Panorama de bases de datos vectoriales: qué son,
+        búsqueda exacta frente a aproximada y qué familias de índice existen
+        (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
+        de la Fase 1; falta volcarlo aquí.
+  \item Este apartado describe \emph{qué existe}. La comparativa experimental
+        entre candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos}.
+\end{borrador}
+
 \subsection{Asistentes conversacionales en el ámbito universitario}
 
 
@@ -161,160 +294,23 @@ lo que impone exigencias específicas de legibilidad y fiabilidad.
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales contienen nombres, correos electrónicos y teléfonos de profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios pueden ser menor de edad. Estos dos tipos de información sitúan al proyecto bajo dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales pueden llegar a contener información de carácter personal del profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios pueden ser menor de edad. Estos dos tipos de información sitúan al proyecto bajo dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+
+Con respecto a la extracción automatizada de información de la web, actualmente el scraper se descarga los pdf de las guías docentes (previamente en formato HTML) que contienen datos como direcciones de correo, nombres y teléfenos. De cada documento se extrae únicamente el resumen y la descripción de contenido mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, ningún dato personal llega a la colección indexada. Gracias a esta actividad, me puedo apoyar en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
+
+Siguiendo con la misma extracción/scraping y Propiedad Intelectual, me acojo en el artículo 67 del Real Decreto-Ley 24/2021\cite{rdl24_2021} que dice que no es necesario pedir <<la autorización del titular de los derechos para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minerías de datos>>.
+
+Es cierto que el apartado 3 de este mismo artículo desactiva la exención cuando el propietario ha reservado expresamente el uso de las obras a medios de lectura mecánica u otros medios que resulten adecuados, pero comprobado a fecha del 4 de agosto de 2026, el fichero \texttt{robots.txt} de la Escuela Politécnica Superior de Jaén no prohíbe ninguna de las rutas que se rastrean, y el aviso legal de la Universidad de Jaén \cite{uja_avisolegal} contienen una cláusula genérica de propiedad intelectual sin reserva específica con respecto a la extracción automatizada.
+
+La otra categoría de información sensible es la de el público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD), fija en catorce años la edad a partir de la cual un menos puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+
+La alternativa elegida es evitar el problema en el origen,, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
+
+Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y accesible de que está interactuando con un sistema de IA en el momento de la primera interacción.
 
 
-Con respecto a la extracción automatizada de información de la web, actualmente el scraper solo se descarga los pdf de las guías docentes que contienen datos personales del profesorado, pero al ser datos publicados por la universidad en su página web, se considera que están a disposición del público y por tanto no infringe ninguna normativa. No obstante, luego de estos pdf se extrae la información verdaderamente útil para el alumnado nuevo. (Insertar referencia sobre si es legal o no scraping y también lo de los datos personales en las guías docentes)
-
-\textcolor{borrador2}{\textbf{[Material para reescribir el párrafo anterior. Los datos son
-correctos y están comprobados; la redacción es tuya. Sustituye el párrafo de arriba por lo
-que salga de aquí y borra este bloque.]}}
-
-\textcolor{borrador2}{\textbf{Primer dato: qué se descarga exactamente.} El rastreador
-descarga las guías docentes en PDF, y esos documentos contienen un bloque de profesorado con
-nombres, direcciones de correo y teléfonos. De cada PDF se extraen únicamente dos secciones,
-el resumen y la descripción de contenidos, mediante una lista de secciones permitidas y no de
-secciones excluidas; sobre lo ya extraído se aplica además un borrado final de correos y
-teléfonos. La consecuencia es que ningún dato personal llega a la colección indexada.}
-
-\textcolor{borrador2}{\textbf{Segundo dato: por qué la lista es de permitidos y no de
-excluidos.} Con una lista de exclusiones, cualquier sección nueva que la Universidad añadiese
-a su plantilla entraría sola en la colección, y bastaría con que contuviera datos personales
-para que se colaran sin que nada fallara. Con una lista de permitidos ocurre lo contrario: lo
-que no se ha declarado, no pasa. Es una decisión de diseño que conviene justificar aquí
-porque es lo que sostiene la afirmación anterior.}
-
-\textcolor{borrador2}{\textbf{Tercera razón, y es la que hay que cambiar del párrafo actual:
-el argumento de que los datos están publicados no basta.} Que una información sea accesible
-no la libera ni de la propiedad intelectual ni de la normativa de protección de datos, y ese
-salto es exactamente el que un tribunal señala. El argumento correcto no es que los datos
-sean públicos, sino que no se recogen: se apoya en el principio de minimización del artículo
-5.1.c del RGPD\cite{rgpd2016}, según el cual los datos tratados deben limitarse a lo
-necesario para la finalidad perseguida. Recomendar una titulación no requiere saber quién la
-imparte.}
-
-\textcolor{borrador2}{\textbf{Cuarta razón: la cobertura legal de la propia extracción.} El
-artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021} exime de recabar autorización del
-titular de los derechos para las reproducciones y extracciones realizadas con fines de
-minería de textos y datos sobre contenidos accesibles de forma legítima, y su apartado 7
-extiende esa exención a la extracción de una parte sustancial de una base de datos. El
-artículo 66.3 de la misma norma define «organismo de investigación» como entidad sin ánimo de
-lucro que actúa conforme a una misión de interés público, supuesto en el que encaja una
-universidad pública.}
-
-\textcolor{borrador2}{\textbf{Quinta razón, y conviene enunciarla antes de que la plantee el
-tribunal: el contraargumento.} El apartado 3 de ese mismo artículo 67 desactiva la exención
-cuando el titular ha reservado expresamente el uso de sus contenidos a medios de lectura
-mecánica. Comprobado el 4 de agosto de 2026: el fichero \texttt{robots.txt} de la Escuela no
-prohíbe ninguna de las rutas que se rastrean, y el aviso legal de la Universidad de
-Jaén\cite{uja_avisolegal} contiene una cláusula genérica de propiedad intelectual sin
-reserva específica frente a la extracción automatizada. Si una cláusula redactada en
-términos generales constituye o no una reserva expresa es discutible, y lo defendible es
-reconocer que lo es y apoyarse en que el canal legible por máquina, que es el que la norma
-contempla para los contenidos en línea, permanece abierto.}
-
-\textcolor{borrador2}{\textbf{Sexta razón: la jurisprudencia, y en qué lugar ponerla.} La
-sentencia del caso Ryanair\cite{sts572_2012} es la referencia habitual en España sobre
-extracción automatizada, pero es de 2012 y por tanto anterior al límite de minería de textos
-y datos. Conviene situarla como refuerzo histórico y no como fundamento principal, porque hoy
-la respuesta la da directamente la norma.}
-
-\textcolor{borrador2}{\textbf{Séptimo dato: las precauciones técnicas.} El rastreo respeta el
-fichero \texttt{robots.txt}, espacia deliberadamente las peticiones para no sobrecargar el
-servidor y se identifica mediante un agente de usuario propio. No son exigencias legales,
-sino prácticas de cortesía que conviene mencionar porque demuestran que el acceso fue
-legítimo también en su forma, que es lo que exige la expresión «accesibles de forma legítima»
-del artículo 67.}
-
-\begin{borrador}
-  \item \textbf{Fase: 1} --- las referencias que pedías en el paréntesis de arriba. Están
-  todas comprobadas contra la fuente oficial (BOE y EUR-Lex, leyendo el articulado, no
-  resúmenes) el 4 de agosto de 2026, y ya están en el \texttt{.bib}.
-  \item \textbf{Ojo con el argumento actual}, que es el flanco débil del párrafo: «están
-  publicados, luego no infringe ninguna normativa» no se sostiene solo. Que un dato sea
-  accesible no lo convierte en libre ni de derechos de autor ni de protección de datos; es
-  justo el salto que un tribunal marca. El argumento bueno es otro y tiene tres patas.
-  \item \textbf{Pata 1 --- propiedad intelectual.} El artículo 67 del Real
-  Decreto-ley 24/2021\cite{rdl24_2021} exceptúa de autorización del titular las
-  reproducciones y extracciones con fines de \emph{minería de textos y datos} sobre
-  contenidos «accesibles de forma legítima», y su apartado 7 añade que el usuario legítimo
-  de una base de datos puede extraer una parte sustancial de ella con ese fin sin permiso
-  del fabricante. El artículo 66.3 define «organismo de investigación» como entidad sin
-  ánimo de lucro con misión de interés público: la Universidad encaja. \textbf{Ya está en el
-  glosario} (Capítulo~\ref{cap:definiciones}), con la definición legal del artículo 66.1 del
-  propio real decreto-ley, así que al redactar el párrafo definitivo marca su primera
-  aparición con \texttt{\textbackslash gl\{minería de textos y datos\}}.
-  \item \textbf{Pata 2 --- el contraargumento, que conviene decir tú antes de que lo diga
-    el tribunal.} El artículo 67.3 desactiva esa excepción si el titular «ha reservado
-  expresamente» el uso a medios de lectura mecánica. Comprobado el 4 de agosto de 2026: el
-  \texttt{robots.txt} de \texttt{eps.ujaen.es} es el de serie de Drupal y no prohíbe
-  ninguna de las rutas que se rastrean, y el aviso legal de la UJA\cite{uja_avisolegal}
-  solo tiene una cláusula genérica de propiedad intelectual, sin reserva específica frente
-  a la extracción automatizada. Si esa cláusula genérica basta o no como reserva expresa es
-  discutible; lo honesto es reconocer que es discutible y apoyarse en que la vía legible
-  por máquina, que es la que contempla la norma para el contenido en línea, está abierta.
-  \item \textbf{Pata 3 --- jurisprudencia.} Aquí es donde encaja la sentencia del caso
-  Ryanair\cite{sts572_2012} que ya citas más abajo, pero conviene situarla: es de 2012, o
-  sea \emph{anterior} al límite de minería, y resolvió que no había base de datos
-  protegible. Hoy la respuesta ya no depende de esa interpretación, la da directamente el
-  artículo 67. Presentarla como refuerzo histórico y no como fundamento principal es más
-  sólido.
-  \item \textbf{Y lo de los datos personales de las guías:} el encaje es el principio de
-  minimización del artículo 5.1.c del RGPD\cite{rgpd2016}. No se apoya en que los datos
-  estén publicados, sino en que no se recogen: la lista de permitidos deja pasar solo
-  «Resumen» y «Descripción de contenidos», y hay un borrado final de correos y teléfonos.
-  Es el mismo argumento que ya tienes preparado en el borrador de más abajo, así que los
-  dos bloques deberían acabar fundiéndose en uno.
-\end{borrador}
-
-\textcolor{borrador2}{En materia de protección de datos son de aplicación el Reglamento General de Protección de Datos (RGPD)\cite{rgpd2016} y la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD)\cite{lopdgdd2018}. El considerando 26 del RGPD deja fuera de su ámbito la información anónima, esto es, aquella que no permite identificar ni directa ni indirectamente a una persona física. La colección documental de este trabajo se encuentra en ese supuesto: recoge planes de estudio, guías docentes y salidas profesionales, y el profesorado se excluye deliberadamente de la extracción, por lo que de la fuente no se obtiene ningún dato personal.}
-
-\begin{borrador}            
-  \item \textbf{Fase:} 1 (IT-95) --- matiz que hay que añadir a este párrafo, porque
-  tal como está se puede rebatir con el propio repositorio en la mano.
-  \item La afirmación es cierta \emph{de la colección}: en la base de datos vectorial
-  no entra ningún dato personal. Pero conviene distinguir la colección del
-  material de trabajo, porque no son lo mismo y el tribunal puede mirar los dos.
-  \item Lo que hay que explicar: de cada guía docente en PDF se extraen únicamente dos
-  secciones —el resumen y la descripción de contenidos—, por una lista de lo que
-  \emph{sí} pasa y no de lo que se excluye; el bloque de profesorado, con nombres,
-  correos y teléfonos, queda fuera por construcción, y sobre lo ya extraído se
-  aplica además un borrado final de correos y teléfonos como red de seguridad.
-  \textbf{Nombres de profesorado, correos y teléfonos no entran en la base de
-    datos vectorial en ningún caso.}
-  \item Y decir con naturalidad lo otro: los PDF de origen son documentos que la propia
-  Universidad publica en abierto y a los que puede acceder cualquiera. El
-  repositorio conserva unos pocos como material de prueba —hacen falta
-  precisamente para poder demostrar que el bloque de profesorado se descarta— y el
-  rastreo guarda una copia local, no publicada, para poder auditar la extracción.
-  Ni se redistribuyen como colección ni se usan para entrenar ningún modelo.
-  \item Conviene que esto vaya aquí y no escondido en un anexo: enunciarlo antes de que
-  lo pregunten es mucho más sólido que responderlo después.
-\end{borrador}
-
-\textcolor{borrador2}{El punto delicado no está, por tanto, en los datos de origen, sino en la conversación. El público objetivo es preuniversitario, así que una parte de los usuarios será menor de edad, y el artículo 7 de la LOPDGDD\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos; por debajo de esa edad se exige el consentimiento de quien ostente la patria potestad o la tutela. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una barrera de entrada. La alternativa elegida es evitar el problema en el origen: el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva el historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. ADA resuelve la misma tensión de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}). [Nota para el autor: esta decisión hay que confirmarla al construir la interfaz en la Fase 3; si finalmente se guardase algún registro, aunque fuera para depurar, este párrafo dejaría de ser cierto.]}
-
-\textcolor{borrador2}{La segunda cuestión es la legalidad de la extracción automatizada. La referencia jurisprudencial más citada en España es la sentencia del caso Ryanair contra Atrápalo\cite{sts572_2012}, que resolvió un litigio entre dos empresas por el aprovechamiento comercial de datos ajenos. El supuesto de este trabajo es distinto en lo esencial: los datos los publica abiertamente un organismo público, el uso es académico y sin ánimo de lucro, y no existe reventa ni competencia con la Universidad de Jaén. A ello se añaden las precauciones técnicas adoptadas durante la extracción —respetar el fichero \texttt{robots.txt}, espaciar las peticiones para no sobrecargar el servidor e identificarse mediante un agente de usuario propio—, que se detallan en el Capítulo~\ref{cap:materialesymetodos}. [Nota para el autor: es una valoración divulgativa, no un dictamen jurídico; conviene presentarla así también en la defensa.]}
-
-\begin{borrador}  
-  \item \textbf{Falta una tercera cuestión, y es la que hoy no está en la sección:} el
-  Reglamento de Inteligencia Artificial\cite{aiact2024}. Está en la bibliografía pero no se
-  cita en ningún sitio, y es la norma más directamente aplicable de las tres, porque este
-  sistema es exactamente su supuesto: una IA que conversa con personas.
-  \item \textbf{Lo que obliga.} Su artículo 50.1 exige que el usuario sepa que está
-  interactuando con un sistema de IA, salvo que resulte evidente, y el 50.5 añade que hay
-  que informarle «de manera clara y distinguible a más tardar en el momento de la primera
-  interacción», y en forma accesible. Es un requisito de interfaz, no un párrafo teórico:
-  condiciona la Fase 3 y debería bajar a la tabla de requisitos junto al RU-05.
-  \item \textbf{El detalle que vale en la defensa.} Por su artículo 113, esas obligaciones
-  de transparencia se aplican \textbf{desde el 2 de agosto de 2026}, es decir, ya están
-  vigentes mientras escribes esto. No es una norma futura que «habrá que tener en cuenta»:
-  es derecho aplicable hoy. Comprobado el 4 de agosto de 2026 en el articulado y en la
-  página de la Comisión Europea, porque varios resúmenes divulgativos lo sitúan mal en 2025
-  al confundir el capítulo IV con el V.
-  \item \textbf{APLAZADO: nada de este bloque toca en la Fase 1.} Se deja escrito para no
-  volver a buscarlo, pero la accesibilidad depende de que exista la interfaz y la licencia
-  del modelo, de que esté elegido. Ninguna de las dos condiciones se cumple todavía.
+\begin{borrador}                          
+  
   \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
   conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
   obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
