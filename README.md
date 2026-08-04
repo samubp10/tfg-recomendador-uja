@@ -1,5 +1,7 @@
 # Recomendador de Grados de la EPSJ
 
+[![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-blue.svg)](README.md)
+[![English](https://img.shields.io/badge/lang-English-red.svg)](README.en.md)
 [![Tests](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml/badge.svg)](https://github.com/samubp10/tfg-recomendador-uja/actions/workflows/tests.yml)
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue)
 ![Licencia GPL-3.0](https://img.shields.io/badge/licencia-GPL--3.0-green)
@@ -87,6 +89,8 @@ scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
 py -m tfg_uja.chunker data/grados.json data/chunks.json
 
 # 3. Indexar en la base de datos vectorial (requiere el extra [index])
+#    El modelo por defecto es el del ADR-0003; se puede pasar otro como
+#    tercer argumento para repetir el experimento sin tocar el código.
 py -m tfg_uja.indexer data/chunks.json data/indice_chroma
 ```
 
@@ -99,7 +103,15 @@ antes de cada *push*:
 py scripts/check_dataset.py    # integridad de grados/asignaturas/guías/salidas
 py scripts/check_chunks.py     # tamaños y deduplicación de los fragmentos
 py scripts/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
+py scripts/check_guias_pdf.py  # la extracción de los PDF es fiel a los originales
 ```
+
+`check_guias_pdf.py` compara lo extraído con los PDF que el rastreo guarda en
+`data/guias_pdf/`, y falla si aparece un rótulo de sección que el código no
+conoce: sería la señal de que la plantilla de la fuente ha cambiado y de que una
+sección puede estar quedándose corta o tragándose la siguiente. Enumera además
+qué se descarta y cuánto, por sección, para que el filtrado se pueda revisar en
+lugar de tener que creérselo.
 
 ### Experimentos
 
@@ -114,7 +126,7 @@ Los resultados reales de cada ejecución quedan en `docs/experimentos/`.
 ## Calidad
 
 ```console
-pytest                                          # 137 pruebas, con fixtures HTML/PDF/JSON reales
+pytest                                          # 184 pruebas, con fixtures HTML/PDF/JSON reales
 mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
 black src/ tests/ scripts/                      # formato
 flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)

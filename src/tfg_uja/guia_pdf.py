@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import logging
 import re
+from functools import lru_cache
 from typing import Final
 
 from pypdf import PdfReader
@@ -79,6 +80,89 @@ _RUIDO_PAGINA: Final[tuple[re.Pattern[str], ...]] = (
 _CORREO: Final[re.Pattern[str]] = re.compile(r"[\w.\-]+@[\w.\-]+\.\w+")
 _TELEFONO: Final[re.Pattern[str]] = re.compile(r"\b\d{9}\b")
 
+#: Rótulos que la plantilla de la UJA trae en TODAS las guías. Medido sobre
+#: las 293 guías del rastreo del 29/07/2026: estos trece aparecen en las 293.
+#: El resto de `_ROTULOS_SECCION` son variantes que unas veces salen y otras no
+#: («COMPETENCIAS» en 33, «SISTEMA DE EVALUACIÓN» en 5) o que ya no aparecen
+#: nunca («RESULTADOS DE APRENDIZAJE», «METODOLOGÍA DOCENTE»); siguen en el
+#: conjunto porque como frontera no estorban, pero exigirlas sería inventarse
+#: un invariante que la fuente no cumple.
+_ROTULOS_ESPERADOS: Final[frozenset[str]] = frozenset(
+    {
+        "FICHA IDENTIFICATIVA",
+        "PROFESORADO",
+        "RESUMEN",
+        "COMPETENCIAS / RESULTADOS DEL PROCESO DE FORMACIÓN Y APRENDIZAJE",
+        "DESCRIPCIÓN DE CONTENIDOS",
+        "METODOLOGÍAS DOCENTES Y ACTIVIDADES FORMATIVAS",
+        "SISTEMAS DE EVALUACIÓN",
+        "BIBLIOGRAFÍA",
+        "OBJETIVOS DE DESARROLLO SOSTENIBLE",
+        "ESTUDIANTADO CON NECESIDADES ESPECÍFICAS DE APOYO EDUCATIVO",
+        "PLAN DE CONTINGENCIA",
+        "CLÁUSULAS",
+        "COMPROMISO CON LA IGUALDAD Y LA PERSPECTIVA DE GÉNERO",
+    }
+)
+
+
+def rotulos_presentes(datos: bytes) -> list[str]:
+    """Rótulos de sección conocidos que aparecen en el PDF, en orden de lectura.
+
+    Se localizan como línea completa, que es como los compone la plantilla y
+    como los usa :func:`_seccion` para delimitar. No se usa la tipografía: se
+    intentó (negrita a doce puntos) y **no funciona sobre el corpus real**,
+    porque la plantilla usa esa misma tipografía para resaltar contenido dentro
+    de las secciones —criterios de evaluación, títulos de capítulo del
+    temario— y para la segunda línea del nombre de la asignatura cuando no cabe
+    en la cabecera.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Los rótulos hallados, en el orden en que aparecen. Vacío si el PDF no
+        se puede leer.
+    """
+    return [
+        linea
+        for linea in _lineas_utiles(_texto_del_pdf(datos))
+        if linea in _ROTULOS_SECCION
+    ]
+
+
+def rotulos_ausentes(datos: bytes) -> list[str]:
+    """Rótulos que la plantilla debería traer y este PDF no trae.
+
+    Es la comprobación que sostiene toda la extracción, y va por ausencia y no
+    por presencia de rótulos desconocidos. El motivo es que buscar rótulos
+    desconocidos no se puede hacer sin falsos positivos: sobre las 293 guías
+    reales produce 68 avisos distintos, todos legítimos (``'tecnológica'`` es
+    la continuación del nombre de la asignatura en la cabecera; ``'Capítulo
+    I.- ...'`` es un título del temario). Un verificador que avisa siempre se
+    acaba ignorando.
+
+    Preguntar por ausencia sí es exacto, y cubre el caso que de verdad hace
+    daño: si la Universidad renombra o retira un rótulo, la sección que
+    delimitaba deja de terminar donde debe. Da igual que el rótulo perdido sea
+    uno de los dos permitidos —entonces se pierde su contenido— o el que venía
+    justo después —entonces la sección permitida se traga la siguiente—: en
+    ambos casos el rótulo desaparece de la lista esperada y se detecta.
+
+    Lo que **no** cubre, y conviene declararlo: una sección enteramente nueva
+    intercalada entre dos conocidas, con un rótulo que nunca se ha visto. Esa
+    sí se colaría dentro de la sección anterior. El daño queda acotado por la
+    lista de permitidos —solo dos secciones pasan al corpus— y por la redacción
+    final de correos y teléfonos, que se aplica sobre lo ya extraído.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Los rótulos esperados que faltan, ordenados. Vacío si están todos.
+    """
+    return sorted(_ROTULOS_ESPERADOS - set(rotulos_presentes(datos)))
+
 
 def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
     """Indica si una respuesta es un PDF y no el HTML esperado.
@@ -105,8 +189,17 @@ def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
     return cuerpo[:5] == b"%PDF-"
 
 
+@lru_cache(maxsize=1)
 def _texto_del_pdf(datos: bytes) -> str:
-    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede."""
+    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede.
+
+    Se memoriza el último resultado porque al auditar se pregunta varias cosas
+    seguidas por el mismo PDF (rótulos, contenido y reparto por sección), y
+    volver a parsearlo cada vez multiplicaba por tres el trabajo: sobre las 288
+    guías del corpus, la diferencia entre medio minuto y un minuto y medio.
+    Basta con recordar uno, que es el patrón real de uso, y así no se acumulan
+    en memoria los megabytes de todo el corpus.
+    """
     try:
         lector = PdfReader(io.BytesIO(datos))
         return "\n".join(pagina.extract_text() for pagina in lector.pages)
@@ -188,3 +281,74 @@ def extraer_guia(datos: bytes) -> dict[str, str] | None:
     if not resumen and not temario:
         return None
     return {"resumen": resumen, "temario": temario}
+
+
+def reparto_por_seccion(datos: bytes) -> dict[str, int]:
+    """Caracteres que aporta cada sección del PDF, esté permitida o no.
+
+    Sirve para que «se descarta la mayor parte del documento» deje de ser una
+    alarma suelta y pase a ser una lista de secciones con nombre, cada una
+    descartada a propósito. Sin esto no hay forma de distinguir una pérdida
+    deliberada —profesorado, bibliografía, cláusulas— de una accidental.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Caracteres por rótulo, en orden de aparición en el documento. Vacío si
+        el PDF no se puede leer.
+    """
+    # Se extrae el texto UNA vez y de ahí salen tanto los rótulos como sus
+    # contenidos: llamar a `rotulos_presentes` aquí volvería a parsear el PDF
+    # entero, y sobre las 288 guías del corpus eso se nota (el verificador
+    # pasaba de segundos a minutos).
+    lineas = _lineas_utiles(_texto_del_pdf(datos))
+    rotulos = [linea for linea in lineas if linea in _ROTULOS_SECCION]
+    return {rotulo: len(_seccion(lineas, rotulo)) for rotulo in rotulos}
+
+
+#: Los dos rótulos cuyo contenido sí pasa al corpus, para que quien audite el
+#: reparto no tenga que volver a escribirlos.
+PERMITIDOS: Final[tuple[str, str]] = (_RESUMEN, _CONTENIDOS)
+
+
+#: Motivos por los que una guía en PDF no aporta contenido. Se distinguen
+#: porque NO son lo mismo y el sistema no puede afirmar el que no es: decirle
+#: a un estudiante que la guía «no se ha podido obtener» cuando la Universidad
+#: la publica vacía es meter una afirmación falsa en la colección (IT-95).
+ILEGIBLE: Final[str] = "ilegible"
+SIN_TEXTO: Final[str] = "sin_texto"
+ROTULOS_DESCONOCIDOS: Final[str] = "rotulos_desconocidos"
+SECCIONES_VACIAS: Final[str] = "secciones_vacias"
+
+
+def motivo_sin_guia(datos: bytes) -> str:
+    """Explica por qué un PDF no ha dado ni resumen ni temario.
+
+    Se llama solo cuando :func:`extraer_guia` ha devuelto ``None``, para poder
+    registrar qué ha pasado en vez de un aviso genérico. Hasta IT-95 los cuatro
+    casos eran indistinguibles y el rastreo los llamaba a todos «PDF ilegible»,
+    que resultó ser falso: los seis casos reales observados el 29/07/2026 se
+    leían perfectamente y lo que estaba vacío eran las secciones en el origen.
+
+    Args:
+        datos: Bytes del PDF descargado.
+
+    Returns:
+        Uno de :data:`ILEGIBLE` (el PDF está corrupto, cifrado o truncado),
+        :data:`SIN_TEXTO` (se abre pero no tiene capa de texto, típico de un
+        escaneo), :data:`ROTULOS_DESCONOCIDOS` (la plantilla ha cambiado y las
+        secciones permitidas no se localizan) o :data:`SECCIONES_VACIAS` (la
+        guía está publicada y sus secciones de contenido no traen nada).
+    """
+    try:
+        PdfReader(io.BytesIO(datos))
+    except Exception:
+        return ILEGIBLE
+    texto = _texto_del_pdf(datos)
+    if not texto.strip():
+        return SIN_TEXTO
+    lineas = _lineas_utiles(texto)
+    if _RESUMEN not in lineas and _CONTENIDOS not in lineas:
+        return ROTULOS_DESCONOCIDOS
+    return SECCIONES_VACIAS

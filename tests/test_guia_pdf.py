@@ -16,7 +16,15 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja.guia_pdf import es_pdf, extraer_guia
+from tfg_uja import guia_pdf
+from tfg_uja.guia_pdf import (
+    ILEGIBLE,
+    es_pdf,
+    extraer_guia,
+    motivo_sin_guia,
+    rotulos_ausentes,
+    rotulos_presentes,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -97,3 +105,80 @@ def test_es_pdf_detecta_por_cabecera_y_por_firma() -> None:
     assert es_pdf(b"text/html; charset=utf-8", contenido)
     # Un HTML de verdad no es PDF.
     assert not es_pdf(b"text/html", b"<!DOCTYPE html><html>...")
+
+
+# --- IT-95: la plantilla de la fuente sigue siendo la que el código supone ---
+#
+# Toda la extracción se apoya en una lista de rótulos escrita a mano contra la
+# plantilla observada, y desde el curso 2026-27 el 100 % del contenido de la
+# colección pasa por ahí. Si la Universidad cambia un rótulo, la sección deja de
+# terminar donde debe: o se pierde contenido, o se arrastra el bloque de
+# profesorado hasta el corpus. Ninguna de las dos cosas falla de forma visible,
+# así que hace falta comprobarlo explícitamente.
+
+
+@pytest.mark.parametrize("fixture, _", _GUIAS)
+def test_no_le_falta_a_la_guia_ningun_rotulo_de_la_plantilla(
+    fixture: str, _: str
+) -> None:
+    assert rotulos_ausentes(_bytes(fixture)) == []
+
+
+@pytest.mark.parametrize("fixture, _", _GUIAS)
+def test_encuentra_los_rotulos_de_las_dos_secciones_permitidas(
+    fixture: str, _: str
+) -> None:
+    rotulos = rotulos_presentes(_bytes(fixture))
+    assert "RESUMEN" in rotulos
+    assert "DESCRIPCIÓN DE CONTENIDOS" in rotulos
+
+
+def test_se_detecta_que_la_fuente_renombre_un_rotulo(monkeypatch) -> None:
+    # El caso que importa: si la Universidad renombra un rótulo, la sección que
+    # delimitaba deja de terminar donde debe. Se simula esperando un rótulo que
+    # la plantilla actual no trae, que es exactamente lo que ocurriría.
+    monkeypatch.setattr(
+        guia_pdf,
+        "_ROTULOS_ESPERADOS",
+        frozenset({"RESUMEN", "CONTENIDOS DE LA MATERIA"}),
+    )
+    assert rotulos_ausentes(_bytes("guia_estadistica_iayc.pdf")) == [
+        "CONTENIDOS DE LA MATERIA"
+    ]
+
+
+def test_ni_el_profesorado_ni_la_cabecera_se_confunden_con_un_rotulo() -> None:
+    # Este es el motivo de que la comprobación vaya por ausencia y no buscando
+    # rótulos desconocidos. Se intentó localizarlos por su tipografía (negrita a
+    # doce puntos) y sobre las 293 guías reales dio 68 avisos distintos, todos
+    # legítimos: la plantilla usa esa misma tipografía para el nombre de la
+    # asignatura en la cabecera y para resaltar contenido dentro de las
+    # secciones. Aquí se comprueba con casos reales de las dos familias.
+    rotulos = rotulos_presentes(_bytes("guia_cartografia_geomatica2025.pdf"))
+    assert not [r for r in rotulos if "ARIZA" in r]
+    assert not [r for r in rotulos if r.startswith("CAMPUS LAS LAGUNILLAS")]
+    assert "Guía Docente" not in rotulos
+    assert not [r for r in rotulos if r.startswith("Curso Académico")]
+
+
+def test_los_rotulos_salen_en_orden_de_lectura() -> None:
+    # El orden importa: `_seccion` recorta desde un rótulo hasta el siguiente,
+    # así que una lista desordenada delataría que se están leyendo mal.
+    rotulos = rotulos_presentes(_bytes("guia_estadistica_iayc.pdf"))
+    assert rotulos.index("FICHA IDENTIFICATIVA") < rotulos.index("PROFESORADO")
+    assert rotulos.index("RESUMEN") < rotulos.index("DESCRIPCIÓN DE CONTENIDOS")
+
+
+# --- IT-95: por qué una guía en PDF no aporta contenido ---
+
+
+def test_un_pdf_ilegible_se_distingue_como_tal() -> None:
+    assert motivo_sin_guia(b"esto no es un PDF") == ILEGIBLE
+    assert motivo_sin_guia(b"") == ILEGIBLE
+
+
+def test_una_guia_correcta_no_necesita_motivo() -> None:
+    # Coherencia entre las dos funciones: si extraer_guia devuelve algo, no
+    # tiene sentido preguntar por qué falló.
+    for fixture, _ in _GUIAS:
+        assert extraer_guia(_bytes(fixture)) is not None

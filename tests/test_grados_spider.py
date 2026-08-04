@@ -591,27 +591,44 @@ def test_el_fallback_excluye_profesorado_y_clausulas():
 # vuelca binario en la colección.
 
 
-def _guia_pdf(fixture, codigo, nombre, grado):
+def _respuesta_pdf(cuerpo, codigo="15711008", nombre="Estadística", grado="G"):
     from scrapy.http import Response
 
-    resp = Response(
+    return Response(
         url=_URL_GUIA,
-        body=(FIXTURES / fixture).read_bytes(),
+        body=cuerpo,
         headers={"Content-Type": "application/pdf"},
         request=Request(
             _URL_GUIA,
             meta={"codigo": codigo, "nombre": nombre, "grado": grado},
         ),
     )
-    return list(GradosSpider().parse_guia(resp))
 
 
-def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
+def _spider_con_pdf_en(destino):
+    """Spider que deja las copias de los PDF en un directorio temporal.
+
+    Sin esto, cada ejecución de la batería escribiría dentro del `data/` real
+    del proyecto: pasó al implementar IT-95 y dejó allí un `X.pdf` de trece
+    bytes salido de la prueba del PDF corrupto.
+    """
+    spider = GradosSpider()
+    spider.DIR_PDF = destino
+    return spider
+
+
+def _guia_pdf(fixture, codigo, nombre, grado, destino):
+    resp = _respuesta_pdf((FIXTURES / fixture).read_bytes(), codigo, nombre, grado)
+    return list(_spider_con_pdf_en(destino).parse_guia(resp))
+
+
+def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback(tmp_path):
     items = _guia_pdf(
         "guia_estadistica_iayc.pdf",
         "15711008",
         "Estadística",
         "Grado en Inteligencia Artificial y Ciberseguridad",
+        tmp_path,
     )
     assert len(items) == 1
     item = items[0]
@@ -621,18 +638,57 @@ def test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback():
     assert "estadística descriptiva" in item["temario"].lower()
 
 
-def test_una_guia_en_pdf_ilegible_no_emite_item():
+def test_una_guia_en_pdf_ilegible_no_emite_item(tmp_path):
     # Un PDF corrupto: no se emite guía, y la asignatura queda como «sin guía»,
     # nunca con el binario volcado por el mecanismo de respaldo.
-    from scrapy.http import Response
+    resp = _respuesta_pdf(b"%PDF-1.6 roto", codigo="X", nombre="Y", grado="Z")
+    assert list(_spider_con_pdf_en(tmp_path).parse_guia(resp)) == []
 
-    resp = Response(
-        url=_URL_GUIA,
-        body=b"%PDF-1.6 roto",
-        headers={"Content-Type": "application/pdf"},
-        request=Request(_URL_GUIA, meta={"codigo": "X", "nombre": "Y", "grado": "Z"}),
+
+# --- IT-95: de qué camino viene cada guía y copia para poder auditarla ---
+
+
+def test_la_guia_declara_de_que_formato_viene(tmp_path):
+    # Hasta IT-95 el formato solo se podía deducir mirando los saltos de línea
+    # del texto extraído. Servía como pista, pero deja de ser concluyente en
+    # cuanto la fuente vuelva a servir HTML y PDF a la vez.
+    en_pdf = _guia_pdf("guia_estadistica_iayc.pdf", "15711008", "E", "G", tmp_path)
+    assert en_pdf[0]["formato"] == "pdf"
+
+    en_html = _guia("guia_matematicas_oi.html", "13011009", "Matemáticas I", "G")
+    assert en_html["formato"] == "html"
+
+
+def test_el_rastreo_guarda_una_copia_del_pdf_para_auditarlo(tmp_path):
+    # El rastreo lee el PDF, se queda con dos secciones y tira el resto: sin
+    # esta copia, comprobar que no se ha perdido contenido exigiría volver a
+    # rastrear la web entera.
+    original = (FIXTURES / "guia_estadistica_iayc.pdf").read_bytes()
+    _guia_pdf("guia_estadistica_iayc.pdf", "15711008", "E", "G", tmp_path)
+    guardado = tmp_path / "15711008.pdf"
+    assert guardado.exists()
+    assert guardado.read_bytes() == original
+
+
+def test_tambien_se_guarda_el_pdf_del_que_no_se_extrae_nada(tmp_path):
+    # Es justo el que más falta hace para auditar: si no se guarda el que
+    # falla, no hay forma de averiguar por qué falló.
+    resp = _respuesta_pdf(b"%PDF-1.6 roto", codigo="15411008")
+    list(_spider_con_pdf_en(tmp_path).parse_guia(resp))
+    assert (tmp_path / "15411008.pdf").read_bytes() == b"%PDF-1.6 roto"
+
+
+def test_un_fallo_al_guardar_el_pdf_no_tumba_el_rastreo(tmp_path):
+    # Perder la copia de auditoría es un contratiempo; tumbar un rastreo de
+    # 300 peticiones por no poder crear un fichero sería mucho peor. Se fuerza
+    # el fallo apuntando el destino a un fichero, no a un directorio.
+    estorbo = tmp_path / "estorbo"
+    estorbo.write_text("no soy un directorio", encoding="utf-8")
+    items = _guia_pdf(
+        "guia_estadistica_iayc.pdf", "15711008", "E", "G", estorbo / "dentro"
     )
-    assert list(GradosSpider().parse_guia(resp)) == []
+    assert len(items) == 1
+    assert "estadística descriptiva" in items[0]["temario"].lower()
 
 
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():
@@ -761,3 +817,88 @@ def test_la_guia_lleva_el_curso_deducido_de_su_url():
     )
     item = next(GradosSpider().parse_guia(resp))
     assert item["curso"] == "2025-26"
+
+
+# --- IT-96: el nombre sale del enlace a la guía, no del texto de la celda ---
+#
+# La EPSJ añadió en 2026-27 un segundo enlace a la celda del nombre, a un
+# documento «Syllabus». Como el nombre se componía juntando TODO el texto de la
+# celda, ese rótulo se pegaba al final: 43 de las 350 asignaturas del rastreo
+# del 28/07/2026 salieron como «... ( Syllabus )», y cuatro preguntas del
+# conjunto de evaluación dejaron de resolver.
+#
+# IT-93 lo arregló borrando ese rótulo concreto. IT-96 cambia el criterio: el
+# nombre es el texto del enlace que lleva a su guía, así que cualquier otro
+# enlace de la celda queda fuera por construcción, se llame como se llame.
+
+
+def _una_fila(celda_nombre, tipo="OB"):
+    """Construye una tabla de una sola fila con la celda del nombre dada."""
+    html = f"""
+    <table>
+      <tr><th>Código</th><th>Asignatura</th><th>Tipo</th><th>Créditos ECTS</th></tr>
+      <tr><td>13011009</td><td>{celda_nombre}</td><td>{tipo}</td><td>6</td></tr>
+    </table>
+    """
+    resp = HtmlResponse(
+        url=_URL_ASIG,
+        body=html.encode("utf-8"),
+        encoding="utf-8",
+        request=Request(_URL_ASIG, meta=_META_ASIG),
+    )
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_el_nombre_no_arrastra_el_enlace_de_syllabus():
+    # La celda tal como la sirve la fuente: el nombre dentro de su enlace a la
+    # guía y el del Syllabus a continuación, entre paréntesis.
+    items = _una_fila(
+        '<a href="/guia_es.html">Automática industrial</a>'
+        ' ( <a href="/syllabus.pdf">Syllabus</a> )'
+    )
+
+    assert len(items) == 1
+    assert items[0]["nombre"] == "Automática industrial"
+    # El enlace que se sigue es el de la guía, no el del Syllabus.
+    assert items[0]["tiene_guia"] is True
+    assert "syllabus" not in items[0]["url_guia"].lower()
+
+
+def test_el_nombre_tampoco_arrastra_un_enlace_con_otro_rotulo():
+    # Este es el caso que el patrón de IT-93 no cubría: bastaba con que la
+    # fuente llamara «Programa» a ese enlace para que el nombre volviera a
+    # salir contaminado. Aquí no se nombra ningún rótulo, así que da igual
+    # cómo lo llame mañana.
+    items = _una_fila(
+        '<a href="/guia_es.html">Electrotecnia</a>'
+        ' [ <a href="/programa.pdf">Programa</a> ]'
+    )
+
+    assert items[0]["nombre"] == "Electrotecnia"
+
+
+def test_una_asignatura_sin_enlace_conserva_su_nombre():
+    # Las asignaturas sin guía publicada no tienen enlace en la celda; ahí el
+    # texto de la celda sigue siendo lo único que hay.
+    items = _una_fila("Ingeniería civil e ingeniería ambiental")
+
+    assert items[0]["nombre"] == "Ingeniería civil e ingeniería ambiental"
+    assert items[0]["tiene_guia"] is False
+    assert items[0]["url_guia"] is None
+
+
+def test_la_marca_de_no_ofertada_sobrevive_aunque_haya_enlace():
+    # La marca va FUERA del enlace, en un <em> de la celda (verificado en
+    # tabla_electrica.html). Si la oferta se decidiera con el texto del enlace
+    # en vez de con la celda entera, se perdería sin que fallara nada.
+    #
+    # En las fixtures reales no coinciden nunca enlace y marca de no ofertada,
+    # pero se prueba la coincidencia a propósito: dar por imposible una
+    # combinación de la fuente es justo lo que ya ha fallado tres veces aquí.
+    items = _una_fila(
+        '<a href="/guia_es.html">Topografía y construcción</a>'
+        "<em> (No ofertada en 2025/26)</em>"
+    )
+
+    assert items[0]["nombre"] == "Topografía y construcción"
+    assert items[0]["ofertada"] is False

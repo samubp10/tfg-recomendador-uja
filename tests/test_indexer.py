@@ -21,6 +21,7 @@ from uuid import uuid4
 import chromadb
 import pytest
 
+from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
 from tfg_uja.indexer import (
     COLECCION,
     SEPARADOR_LISTAS,
@@ -174,3 +175,24 @@ def test_un_chunks_json_anterior_a_it90_no_rompe_al_indexar(tmp_path):
     fichero.write_text(json.dumps([]), encoding="utf-8")
     assert cargar_chunks(fichero) == []
     assert procedencia_de_indice(fichero) == {}
+
+
+# --- IT-98: el índice dice con qué modelo se construyó ---
+
+
+def test_el_indice_registra_el_modelo_y_el_prefijo(tmp_path, chunks_reales):
+    # Dos modelos distintos pueden dar vectores de la misma dimensión (384
+    # tanto el del ADR-0003 como el anterior), así que consultar un índice con
+    # el modelo equivocado NO da ningún error: solo resultados peores. Sin este
+    # registro, nadie tiene forma de detectarlo.
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(
+        json.dumps(chunks_reales, ensure_ascii=False), encoding="utf-8"
+    )
+    ruta_indice = tmp_path / "indice"
+    reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
+
+    cliente = chromadb.PersistentClient(path=str(ruta_indice))
+    metadatos = cliente.get_collection(COLECCION).metadata
+    assert metadatos["modelo"] == MODELO
+    assert metadatos["prefijo_documento"] == PREFIJO_DOCUMENTO

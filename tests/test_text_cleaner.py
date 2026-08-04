@@ -118,3 +118,11 @@ def test_separar_oferta_con_vacio_o_none():
 
     assert separar_oferta("") == ("", True)
     assert separar_oferta(None) == (None, True)
+
+
+# El «Syllabus» que la fuente añadió en 2026-27 se trataba aquí, con un patrón
+# que borraba ese rótulo del final del nombre (IT-93). Desde IT-96 el nombre se
+# toma del enlace a la guía, así que ya no hay nada que borrar: cualquier enlace
+# añadido a la celda queda fuera por construcción, se llame como se llame. Las
+# pruebas de esa regresión viven ahora en test_grados_spider.py, que es donde
+# está la decisión.

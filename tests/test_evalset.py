@@ -13,8 +13,12 @@ from pathlib import Path
 
 RUTA_EVAL = Path(__file__).parent.parent / "eval" / "preguntas_evaluacion.json"
 
-ORIGENES_VALIDOS = {"guia", "salidas", "asignatura_sin_guia"}
-TIPOS_VALIDOS = {"salidas", "temario", "metadatos", "sin_guia"}
+ORIGENES_VALIDOS = {"guia", "salidas", "asignatura_sin_guia", "plan_de_estudios"}
+# `listado` (IT-100): preguntas que piden TODAS las asignaturas de un grupo de
+# una titulación. Se separan de los demás tipos porque miden otra cosa —
+# agregación, no recuperación de una unidad concreta— y porque su media hay que
+# poder mirarla aparte.
+TIPOS_VALIDOS = {"salidas", "temario", "metadatos", "sin_guia", "listado"}
 
 
 def cargar():

@@ -118,10 +118,103 @@ Cifras re-verificadas el 21/07/2026 sobre `data/grados.json` y
   del máximo), 0 inconsistencias de numeración en 301 unidades.
 - Verificado por `scripts/check_chunks.py` (en positivo y en negativo).
 
+### Adenda de 2026-07-29 — las mismas cifras sobre el corpus 2026-27
+
+Las cifras de arriba son las del corpus de julio (curso 2025-26, 296 guías) y
+se dejan tal cual porque son las que justificaron la decisión. Pero ese corpus
+ya no existe: el rastreo del 29/07/2026 trae el curso 2026-27, sin la
+titulación en extinción (IT-77), con las tablas de Geomática recuperadas
+(IT-76) y con el 100 % de las guías servidas en PDF (DQA-0002). Se vuelven a
+medir aquí para que nadie tenga que preguntarse cuál de las dos series es la
+buena.
+
+| Magnitud | Corpus 2025-26 (21/07) | Corpus 2026-27 (29/07) |
+|---|---:|---:|
+| Guías | 296 | 288 |
+| Unidades de guía tras deduplicar | 225 | 210 |
+| Unidades compartidas entre titulaciones | 28 | 38 |
+| Chunks sin deduplicar | 1.172 | 1.134 |
+| **Chunks con deduplicación** | **892** (−24 %) | **781** (−31 %) |
+| Reparto (guía · sin guía · salidas) | 818 · 65 · 9 | 711 · 62 · 8 |
+| Tamaño mín / mediana / p90 / máx | 227 / 1.093 / — / 1.499 | 227 / 1.128 / 1.234 / 1.499 |
+
+**La decisión no cambia, pero su efecto es mayor de lo que decía el ADR:** la
+deduplicación quita ahora 353 de los 1.064 chunks de guía, un 33 %, frente al
+25 % de julio. El motivo es que las unidades compartidas han pasado de 28 a
+38: la fuente publica cada curso más guías comunes entre titulaciones, así que
+el argumento que sostiene la deduplicación se refuerza con el tiempo en vez de
+desgastarse.
+
+Dos matices que sí son nuevos:
+
+- Las asignaturas sin contenido de guía bajan de 65 a 62, pero **5 de ellas ya
+  no son «sin guía» sino «guía publicada y vacía»** (DQA-0004): la EPSJ publica
+  el PDF con los rótulos «Resumen» y «Descripción de contenidos» impresos y
+  nada debajo. En julio ese caso no existía. El fragmento informativo lo dice
+  con otras palabras para no atribuirle a la fuente algo que no ha hecho.
+- El máximo de 1.499 sigue por debajo de la restricción dura de 1.500 y ningún
+  chunk la supera, verificado por `check_chunks.py` sobre el corpus completo.
+
+Los parámetros (1.200 objetivo, 1.500 máximo, 200 mínimo) **siguen sin
+validación experimental propia**. La amenaza que declaraba el ADR en julio
+sigue viva y se resuelve en la Fase 1, no aquí.
+
+### 🔴 Corrección de 2026-07-29 — la premisa de los «~512 tokens» era falsa
+
+El apartado «Contexto» de este ADR afirma que «los modelos de embeddings
+multilingües habituales admiten ~512 tokens (~2.000 caracteres en español)», y
+sobre esa premisa se eligió el máximo de 1.500 caracteres. La lista de
+consecuencias positivas remata diciendo que ningún chunk «supera la ventana de
+embeddings».
+
+**Medido el 29/07/2026 con el modelo que el sistema monta de verdad
+—`paraphrase-multilingual-MiniLM-L12-v2` en `indexer.py`— eso no es cierto.**
+Sentence-transformers lo sirve con `max_seq_length = 128`, no con los 512 del
+transformador que lleva dentro:
+
+| | |
+|---|---:|
+| Mediana de fragmento | 264 tokens |
+| Máximo | 469 tokens |
+| Ventana útil del modelo | 126 tokens |
+| **Fragmentos truncados** | **685 de 781 (88 %)** |
+| **Tokens del corpus que el modelo llega a leer** | **94.023 de 189.929 (49,5 %)** |
+
+Y `encode` recorta **en silencio**: no avisa, no falla y devuelve un vector de
+aspecto normal. Se comprobó de forma directa, no leyendo la configuración:
+incrustar un fragmento completo y ese mismo fragmento con la cola sustituida
+por texto basura da vectores **idénticos** (coseno 1,0000).
+
+Qué se corrige y qué no:
+
+- **La premisa era falsa, pero la decisión de fragmentación no se toca.** El
+  troceo estructural por unidad semántica no depende de la ventana del modelo:
+  la restricción de que un chunk nunca mezcle dos asignaturas sigue siendo la
+  razón principal, y sigue en pie.
+- **Lo que queda invalidado es la justificación del valor 1.500.** Se eligió
+  para caber en una ventana que el modelo no tenía. Sigue sin validar, como ya
+  decía el ADR, pero ahora se sabe además que la referencia estaba mal.
+- **La consecuencia positiva «ni supera la ventana de embeddings» hay que
+  leerla tachada** para el modelo de la línea base. Con el modelo que elige el
+  **ADR-0003** (`intfloat/multilingual-e5-small`, ventana de 510 útiles) vuelve
+  a ser cierta: 0 fragmentos truncados. Es decir, la afirmación no se arregla
+  cambiando el troceo, sino cambiando el modelo.
+- **Lección, que es la parte que importa:** este ADR daba por buena una cifra
+  general sobre «los modelos habituales» sin medirla en el modelo concreto que
+  el proyecto usaba. Cuarto caso de la serie de este proyecto en que algo pasa
+  desapercibido porque nada lo comprobaba: no falló ningún test, no falló ningún
+  verificador, y el sistema llevaba desde IT-30 indexando media guía.
+
+Detalle completo, con la tabla de los cuatro modelos y sus ventanas, en el
+**ADR-0003** y en `docs/experimentos/it28-embeddings.md`.
+
 ## Consecuencias
 
 ### Positivas
 - Ningún chunk mezcla asignaturas ni supera la ventana de embeddings.
+  ⚠️ **La segunda mitad de esta frase es falsa para el modelo de la línea base**
+  (88 % de fragmentos truncados) y solo es cierta con el modelo del ADR-0003.
+  Ver la corrección del 29/07/2026, más arriba.
 - Se elimina el 28 % de redundancia del índice de guías y el sesgo que
   causaba en el retrieval.
 - Chunks autocontenidos; las 65 asignaturas sin guía quedan representadas

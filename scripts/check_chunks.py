@@ -16,6 +16,7 @@ Acepta rutas alternativas como argumentos::
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -163,11 +164,43 @@ def main(argv: list[str] | None = None) -> int:
         if c["origen"] in ("guia", "asignatura_sin_guia")
         and not c["texto"].startswith(f"«{c['nombre']}»")
     ]
+    # IT-100: los fragmentos de plan de estudios llevan su nombre sin comillas
+    # angulares, porque no nombran una asignatura sino un listado. Se comprueban
+    # igual: dejarlos fuera habría metido 16 fragmentos que ningún verificador
+    # mira, que es exactamente el patrón de fallo que este proyecto arrastra.
+    descuadres += [
+        c
+        for c in chunks
+        if c["origen"] == "plan_de_estudios" and not c["texto"].startswith(c["nombre"])
+    ]
     assert not descuadres, (
-        f"{len(descuadres)} chunks con el encabezado de otra asignatura "
+        f"{len(descuadres)} chunks con el encabezado de otra unidad "
         f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
         f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
     )
+
+    # IT-100: el listado debe decir cuántas asignaturas contiene, y esa cifra
+    # tiene que cuadrar con el dataset. Es la única forma de detectar que el
+    # listado se ha quedado corto: un fragmento con 40 asignaturas de las 50
+    # que tiene la titulación se lee igual de bien y es igual de falso.
+    planes = [c for c in chunks if c["origen"] == "plan_de_estudios"]
+    for c in planes:
+        if c["chunk_index"] != 0:
+            continue
+        declarado = re.search(r"En total son (\d+):", c["texto"])
+        assert declarado, f"el plan {c['nombre']!r} no declara cuántas son"
+        cuerpo = "\n".join(
+            x["texto"].split("\n", 1)[1]
+            for x in sorted(
+                (p for p in planes if p["nombre"] == c["nombre"]),
+                key=lambda p: p["chunk_index"],
+            )
+        )
+        listadas = len([t for t in cuerpo.split("\n") if t.strip()])
+        assert listadas == int(declarado.group(1)), (
+            f"{c['nombre']!r} dice tener {declarado.group(1)} asignaturas "
+            f"pero el listado trae {listadas}"
+        )
 
     # --- Numeración consistente dentro de cada unidad ---
     por_unidad: dict[tuple, list] = {}
@@ -199,12 +232,26 @@ def main(argv: list[str] | None = None) -> int:
         f"sobran {len(unidades_guia - con_guia)}"
     )
 
-    sin_guia = {_clave_item(a) for a in asignaturas if not a["tiene_guia"]}
     informativos = set()
     for c in chunks:
         if c["origen"] == "asignatura_sin_guia":
             informativos |= _claves_chunk(c)
-    assert sin_guia == informativos, "asignaturas sin guía sin chunk informativo"
+
+    # IT-94: toda asignatura del dataset tiene que quedar representada en algún
+    # fragmento, sea por su guía o por su chunk informativo. Antes se
+    # comprobaba solo que las de `tiene_guia=False` tuvieran informativo y que
+    # las guías tuvieran sus fragmentos, y entre ambas comprobaciones quedaba
+    # un hueco: una asignatura con `tiene_guia=True` cuya guía no llegó a
+    # emitirse (PDF ilegible, IT-67) no entraba en ninguna de las dos y
+    # desaparecía del corpus mientras el verificador respondía «OK».
+    todas = {_clave_item(a) for a in asignaturas}
+    representadas = unidades_guia | informativos
+    perdidas = todas - representadas
+    assert not perdidas, (
+        f"{len(perdidas)} asignaturas del dataset no aparecen en ningún "
+        f"fragmento (p. ej. {sorted(perdidas)[0]}): ni con guía ni como "
+        f"asignatura sin guía. Se han perdido del corpus (IT-94)."
+    )
 
     grados_salidas = {s["grado"] for s in salidas}
     grados_chunk_salidas = {
@@ -220,8 +267,24 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Chunks totales: {len(chunks)}  {dict(origenes)}")
     print(
         f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
-        f"sin guía {len(sin_guia)}, salidas {len(grados_salidas)})"
+        f"sin guía {len(informativos)}, salidas {len(grados_salidas)})"
     )
+    # IT-94: las que la fuente publica pero que no aportan contenido se
+    # cuentan aparte, porque no son lo mismo que una guía inexistente y su
+    # número mide directamente cuánto contenido se está perdiendo.
+    #
+    # IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
+    # apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
+    # casos son la contraria: el PDF se lee entero y sus secciones de
+    # contenido están vacías en el origen (DQA-0004). Tercer y último sitio
+    # donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
+    no_extraidas = sum(1 for a in asignaturas if a["tiene_guia"]) - len(guias)
+    if no_extraidas:
+        print(
+            f"  AVISO: {no_extraidas} asignaturas enlazan una guía que no "
+            "aporta ni resumen ni temario; aparecen solo con sus datos "
+            "básicos. `check_guias_pdf.py` dice de cada una por qué."
+        )
     print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
     tamanos = sorted(len(c["texto"]) for c in chunks)

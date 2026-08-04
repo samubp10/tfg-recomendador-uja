@@ -4,6 +4,27 @@ Define el spider que recorre la web de la Escuela Politécnica Superior de Jaén
 Parte del listado de titulaciones de https://eps.ujaen.es/grados y, por cada
 grado, sigue hasta su portada para localizar sus asignaturas y sus salidas
 profesionales.
+
+Dos caminos para extraer una guía docente, y solo uno está vivo
+---------------------------------------------------------------
+
+La guía se puede servir como HTML o como PDF, y :meth:`GradosSpider.parse_guia`
+elige por el tipo real de la respuesta. Al empezar el proyecto todas eran HTML;
+durante el curso 2026-27 la EPSJ migró al PDF, y en el rastreo del 28/07/2026
+**las 288 guías del corpus vienen de PDF y ninguna de HTML** (DQA-0002).
+
+El camino HTML se conserva a propósito, como **retrocompatibilidad**, no por
+descuido: la fuente ha cambiado de formato dos veces en un año y servir un PDF
+detrás de una URL acabada en ``.html`` parece más un artefacto de migración que
+una decisión firme. Conservarlo no cuesta nada apreciable; retirarlo costaría
+reescribirlo si la Escuela revierte.
+
+Lo que hoy **no se ejecuta ni una vez** y hay que leer sabiéndolo:
+:meth:`GradosSpider._contenido_seccion`, :data:`GradosSpider.UMBRAL_CONTENIDO_GUIA`,
+:meth:`GradosSpider._limpieza_general` y el campo ``cuerpo_general`` que produce.
+Sus pruebas seguirán pasando, porque usan fixtures HTML de 2025-26 que ya no se
+corresponden con lo que sirve la web: comprueban bien un escenario que hoy no
+ocurre. Todo el esfuerzo de mejora va al camino PDF (:mod:`tfg_uja.guia_pdf`).
 """
 
 from __future__ import annotations
@@ -12,13 +33,14 @@ import re
 import unicodedata
 from collections.abc import Iterator
 from datetime import date
+from pathlib import Path
 from typing import Any, Final
 
 import scrapy
 from scrapy.http import Request, Response
 from parsel import Selector, SelectorList
 
-from tfg_uja.guia_pdf import es_pdf, extraer_guia
+from tfg_uja.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
@@ -26,6 +48,12 @@ from tfg_uja.text_cleaner import (
     separar_oferta,
 )
 from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
+
+#: Raíz del repositorio, deducida de la ubicación de este módulo
+#: (``src/tfg_uja/grados_spider.py``). Se resuelve así, y no como ruta relativa
+#: al directorio de trabajo, para que el rastreo deje los ficheros en el mismo
+#: sitio se lance desde donde se lance.
+_RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 
 
 def _normalizar(texto: str) -> str:
@@ -95,6 +123,12 @@ class GradosSpider(scrapy.Spider):
     #: admite nuevas matrículas. Se compara sin tildes y en minúsculas, porque
     #: la fuente no es consistente al escribirla.
     MARCA_EXTINCION: Final[str] = "en extincion"
+
+    #: Dónde se deja copia de los PDF de las guías para poder auditarlos
+    #: después (IT-95). Es atributo de clase y no una constante del módulo
+    #: para que las pruebas puedan redirigirlo a un directorio temporal: si no,
+    #: ejecutar la batería escribiría dentro del `data/` real del proyecto.
+    DIR_PDF: Path = _RAIZ / "data" / "guias_pdf"
 
     def parse(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Sigue cada grado del listado hacia su portada.
@@ -271,8 +305,22 @@ class GradosSpider(scrapy.Spider):
                 if len(celdas) <= max(columnas.values()):
                     continue
                 codigo = self._texto_celda(celdas, columnas.get("codigo"))
+                celda_nombre = celdas[columnas["nombre"]]
                 nombre_bruto = self._texto_celda(celdas, columnas["nombre"])
-                nombre, ofertada = separar_oferta(nombre_bruto)
+                # La oferta se decide con la celda ENTERA: la fuente escribe
+                # "(No ofertada en 2025/26)" fuera del enlace, en un <em>, así
+                # que mirar solo el enlace la perdería.
+                _, ofertada = separar_oferta(nombre_bruto)
+                # El nombre, en cambio, es el texto del enlace que lleva a su
+                # guía (ver enlace_guia): la celda puede traer además otros
+                # enlaces que no forman parte del nombre, y juntar todo su
+                # texto los pegaba al final (IT-93, «... ( Syllabus )»).
+                enlace_guia = celda_nombre.css("a")
+                if enlace_guia:
+                    nombre_bruto = (
+                        self._texto_de(enlace_guia[0].css("::text")) or nombre_bruto
+                    )
+                nombre, _ = separar_oferta(nombre_bruto)
                 # Un nombre ausente equivale a uno vacío: en ambos casos la
                 # fila la descarta es_asignatura_valida unas líneas más abajo.
                 nombre = quitar_nota_al_pie(nombre) or ""
@@ -287,7 +335,10 @@ class GradosSpider(scrapy.Spider):
                 if not es_asignatura_valida(codigo, nombre, tipo_asig):
                     continue
                 ects = self._texto_celda(celdas, columnas["ects"])
-                enlace = celdas[columnas["nombre"]].css("a::attr(href)").get()
+                # El mismo <a> del que ha salido el nombre: así el nombre y la
+                # URL no pueden hablar de cosas distintas, que es lo que pasaba
+                # cuando uno salía de la celda entera y la otra de un elemento.
+                enlace = enlace_guia.attrib.get("href") if enlace_guia else None
                 if enlace:
                     url_guia = reparar_url(response.urljoin(enlace))
                     tiene_guia = True
@@ -383,7 +434,20 @@ class GradosSpider(scrapy.Spider):
         """
         if posicion is None:
             return ""
-        return limpiar_texto(" ".join(celdas[posicion].css("::text").getall()))
+        return GradosSpider._texto_de(celdas[posicion].css("::text"))
+
+    @staticmethod
+    def _texto_de(nodos: SelectorList[Selector]) -> str:
+        """Une los nodos de texto de una selección y los deja limpios.
+
+        Args:
+            nodos (SelectorList): Nodos de texto, tal como los devuelve
+                ``::text``.
+
+        Returns:
+            str: Texto unido y normalizado, vacío si no hay ninguno.
+        """
+        return limpiar_texto(" ".join(nodos.getall()))
 
     @staticmethod
     def _menciones(celda: Selector) -> list[str]:
@@ -419,6 +483,10 @@ class GradosSpider(scrapy.Spider):
     #: reales observadas combinan mínimo ~1480 caracteres entre ambas
     #: secciones; 200 deja margen amplio para no activarse en guías
     #: legítimas y sí detectar una estructura rota.
+    #:
+    #: SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo): el
+    #: rastreo del 28/07/2026 no lo activa ni una vez, porque las 288 guías
+    #: llegan como PDF y la extracción de PDF no pasa por este umbral.
     UMBRAL_CONTENIDO_GUIA: Final[int] = 200
 
     #: IDs de las secciones que se excluyen del fallback de limpieza general
@@ -528,6 +596,12 @@ class GradosSpider(scrapy.Spider):
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
             "curso": curso_de_url(response.url),
+            # De qué camino ha salido esta guía (IT-95). Hasta ahora solo se
+            # podía deducir a posteriori mirando los saltos de línea del texto,
+            # que es una pista y no un dato: sirvió para descubrir que el
+            # corpus ya era 100 % PDF, pero deja de ser concluyente en cuanto
+            # la fuente vuelva a servir las dos cosas a la vez.
+            "formato": "html",
             "fallback": fallback,
             **secciones,
         }
@@ -549,34 +623,83 @@ class GradosSpider(scrapy.Spider):
 
         Yields:
             dict: Resumen y temario de la guía, con ``fallback`` siempre
-                ``False``. No se emite nada si el PDF es ilegible.
+                ``False``. No se emite nada si el PDF no aporta contenido.
         """
+        codigo = response.meta["codigo"]
+        self._guardar_pdf(codigo, response.body)
         datos = extraer_guia(response.body)
         if datos is None:
+            # El motivo importa: hasta IT-95 los cuatro casos posibles se
+            # anunciaban como «PDF ilegible», y resultó ser falso. Los seis
+            # casos reales del rastreo del 28/07/2026 se leían perfectamente
+            # y lo vacío eran las secciones en el origen.
             self.logger.warning(
-                "Guía %s servida como PDF ilegible o sin secciones útiles; "
-                "se omite y la asignatura queda como «sin guía».",
-                response.meta["codigo"],
+                "Guía %s sin contenido extraíble (motivo: %s); se omite y la "
+                "asignatura queda como «sin guía».",
+                codigo,
+                motivo_sin_guia(response.body),
             )
             return
         yield {
             "tipo": "guia",
-            "codigo": response.meta["codigo"],
+            "codigo": codigo,
             "nombre": response.meta["nombre"],
             "grado": response.meta["grado"],
             "curso": curso_de_url(response.url),
+            "formato": "pdf",
             "fallback": False,
             "resumen": datos["resumen"],
             "temario": datos["temario"],
         }
 
+    def _guardar_pdf(self, codigo: str, cuerpo: bytes) -> None:
+        """Guarda el PDF de una guía para poder auditar después su extracción.
+
+        Sin esto no hay nada contra lo que comparar: el rastreo lee el PDF,
+        se queda con dos secciones y tira el resto, así que comprobar que no
+        se ha perdido contenido exigiría volver a rastrear la web entera
+        (IT-95). Guardarlos durante el rastreo cuesta cero peticiones.
+
+        Los ficheros van a ``data/``, que no se versiona. **Contienen datos
+        personales del profesorado**, así que son una copia local de trabajo y
+        no salen de la máquina; el corpus sigue sin ellos.
+
+        Cualquier fallo al escribir se registra y se ignora: perder la copia de
+        auditoría es un contratiempo, pero tumbar un rastreo de 300 peticiones
+        por no poder crear un fichero sería mucho peor.
+
+        Args:
+            codigo (str): Código de la asignatura, que da nombre al fichero.
+            cuerpo (bytes): Bytes del PDF tal como los sirvió el servidor.
+        """
+        try:
+            self.DIR_PDF.mkdir(parents=True, exist_ok=True)
+            (self.DIR_PDF / f"{codigo or 'sin_codigo'}.pdf").write_bytes(cuerpo)
+        except OSError as error:
+            self.logger.warning(
+                "No se ha podido guardar el PDF de la guía %s (%s); el rastreo "
+                "sigue, pero esa guía no se podrá auditar.",
+                codigo,
+                error,
+            )
+
     @staticmethod
     def _contenido_seccion(response: Response, id_seccion: str) -> str:
         """Extrae el texto de una sección de la guía docente por su id.
 
+        SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo).
+        Hoy no se ejecuta: las 288 guías del corpus llegan como PDF y las
+        extrae :mod:`tfg_uja.guia_pdf`.
+
         Une los bloques de valor de la sección, descartando los que son
         únicamente el marcador "sin contenido" (un guion suelto) que usa la
         web cuando un campo no se ha rellenado.
+
+        Los bloques se unen con un salto de línea DOBLE, y cada uno pasa antes
+        por ``limpiar_texto``, que colapsa todo espacio en blanco en espacios
+        simples. Eso hace que el texto salido de aquí no pueda contener nunca
+        un salto suelto, y es lo que permite distinguir a posteriori una guía
+        extraída del HTML de una extraída del PDF (DQA-0002).
 
         Args:
             response (scrapy.http.Response): Respuesta de la guía docente.
@@ -597,6 +720,12 @@ class GradosSpider(scrapy.Spider):
     @classmethod
     def _limpieza_general(cls, response: Response) -> str:
         """Extrae texto general de la ficha cuando falla la estructura.
+
+        SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo).
+        Es el mecanismo de respaldo, y hoy no se activa ninguna vez: 0 de 288
+        guías en el rastreo del 28/07/2026. Una guía en PDF que no se pueda
+        extraer NO llega aquí a propósito, porque volcaría el binario en la
+        colección; queda como «sin guía» (DQA-0002).
 
         Recorre todo el contenido de la ficha docente salvo las secciones de
         profesorado (datos personales), cláusulas legales y objetivos de

@@ -1,42 +1,607 @@
 {
- "descripcion": "Conjunto de evaluación del retrieval (IT-27): preguntas reales de un estudiante preuniversitario sobre la oferta de la EPSJ, con las unidades relevantes anotadas a mano. Curso rastreado: 2025/26. Desde IT-77 no se anota ninguna unidad del grado en extinción, que se excluyó del corpus por no admitir nuevas matrículas.",
- "criterio_relevancia": "Cada pregunta anota la(s) unidad(es) semántica(s) que el sistema debería recuperar, identificadas por (origen, nombre[, grado]) y NO por id de chunk: los ids son posicionales y cambian al re-fragmentar, mientras que la unidad (una asignatura o el bloque de salidas de un grado) es estable. Un chunk recuperado se considera relevante si pertenece a una unidad anotada: chunk.origen == origen, chunk.nombre == nombre y, si el selector lleva grado, grado ∈ chunk.grados.",
- "preguntas": [
-  {"id": "P-001", "tipo": "salidas", "pregunta": "¿Qué salidas profesionales tiene el Grado en Ingeniería Informática?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Informática"}]},
-  {"id": "P-002", "tipo": "salidas", "pregunta": "Si estudio Inteligencia Artificial y Ciberseguridad, ¿de qué podré trabajar cuando termine?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Inteligencia Artificial y Ciberseguridad"}]},
-  {"id": "P-003", "tipo": "salidas", "pregunta": "¿Qué trabajos hay para alguien que estudie Ingeniería Mecánica?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Mecánica"}]},
-  {"id": "P-004", "tipo": "salidas", "pregunta": "¿Dónde puede trabajar un ingeniero eléctrico al acabar la carrera?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Eléctrica"}]},
-  {"id": "P-005", "tipo": "salidas", "pregunta": "¿Cuáles son las salidas laborales del grado de Electrónica Industrial?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Electrónica Industrial"}]},
-  {"id": "P-006", "tipo": "salidas", "pregunta": "¿Qué futuro profesional tiene el Grado en Ingeniería de Organización Industrial?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería de Organización Industrial"}]},
-  {"id": "P-007", "tipo": "salidas", "pregunta": "¿De qué se trabaja después de estudiar Geomática y Topográfica?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
-  {"id": "P-008", "tipo": "salidas", "pregunta": "¿Qué salidas profesionales tienen los grados de la rama industrial de la EPSJ?", "relevantes": [{"origen": "salidas", "nombre": "Grado en Ingeniería Mecánica"}, {"origen": "salidas", "nombre": "Grado en Ingeniería Eléctrica"}, {"origen": "salidas", "nombre": "Grado en Ingeniería Electrónica Industrial"}, {"origen": "salidas", "nombre": "Grado en Ingeniería de Organización Industrial"}]},
-  {"id": "P-009", "tipo": "temario", "pregunta": "¿Qué se estudia en la asignatura de Inteligencia artificial del grado de Informática?", "relevantes": [{"origen": "guia", "nombre": "Inteligencia artificial", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-010", "tipo": "temario", "pregunta": "¿Qué contenido tiene la asignatura de Desarrollo de videojuegos?", "relevantes": [{"origen": "guia", "nombre": "Desarrollo de videojuegos"}]},
-  {"id": "P-011", "tipo": "temario", "pregunta": "¿Hay alguna asignatura en Informática donde se aprenda a hacer páginas web?", "relevantes": [{"origen": "guia", "nombre": "Desarrollo de aplicaciones web"}]},
-  {"id": "P-012", "tipo": "temario", "pregunta": "¿Qué temario tiene Estructuras de datos?", "relevantes": [{"origen": "guia", "nombre": "Estructuras de datos", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-013", "tipo": "temario", "pregunta": "¿Qué necesito saber antes de cursar Análisis y métodos numéricos?", "relevantes": [{"origen": "guia", "nombre": "Análisis y métodos numéricos"}]},
-  {"id": "P-014", "tipo": "temario", "pregunta": "¿De qué trata Diseño de máquinas en Ingeniería Mecánica?", "relevantes": [{"origen": "guia", "nombre": "Diseño de máquinas", "grado": "Grado en Ingeniería Mecánica"}]},
-  {"id": "P-015", "tipo": "temario", "pregunta": "¿Qué se da en Centrales eléctricas I?", "relevantes": [{"origen": "guia", "nombre": "Centrales eléctricas I", "grado": "Grado en Ingeniería Eléctrica"}]},
-  {"id": "P-016", "tipo": "temario", "pregunta": "¿En qué asignatura de Electrónica Industrial se estudia la domótica?", "relevantes": [{"origen": "guia", "nombre": "Domótica e Inmótica", "grado": "Grado en Ingeniería Electrónica Industrial"}]},
-  {"id": "P-017", "tipo": "temario", "pregunta": "¿Qué contenidos tiene la asignatura de Automática industrial?", "relevantes": [{"origen": "guia", "nombre": "Automática industrial"}]},
-  {"id": "P-018", "tipo": "temario", "pregunta": "¿De qué va la asignatura de Creación de empresas de base tecnológica de Organización Industrial?", "relevantes": [{"origen": "guia", "nombre": "Creación de empresas de base tecnológica", "grado": "Grado en Ingeniería de Organización Industrial"}]},
-  {"id": "P-019", "tipo": "temario", "pregunta": "¿Qué se aprende en Cartografía y SIG I del nuevo plan de Geomática?", "relevantes": [{"origen": "guia", "nombre": "Cartografía y SIG I", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
-  {"id": "P-020", "tipo": "temario", "pregunta": "¿Qué temario tiene Instalaciones fotovoltaicas?", "relevantes": [{"origen": "guia", "nombre": "Instalaciones fotovoltaicas", "grado": "Grado en Ingeniería Eléctrica"}]},
-  {"id": "P-021", "tipo": "temario", "pregunta": "¿Qué se estudia en Energía hidráulica y eólica?", "relevantes": [{"origen": "guia", "nombre": "Energía hidráulica y eólica", "grado": "Grado en Ingeniería Mecánica"}]},
-  {"id": "P-022", "tipo": "temario", "pregunta": "¿Hay alguna asignatura sobre auditoría en el grado de Informática?", "relevantes": [{"origen": "guia", "nombre": "Auditoría informática", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-023", "tipo": "metadatos", "pregunta": "¿Cuántos créditos tiene la asignatura de Estadística en Ingeniería Informática?", "relevantes": [{"origen": "guia", "nombre": "Estadística", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-024", "tipo": "metadatos", "pregunta": "¿Es obligatoria la asignatura de Arquitectura de computadores en Informática?", "relevantes": [{"origen": "guia", "nombre": "Arquitectura de computadores", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-025", "tipo": "metadatos", "pregunta": "¿Cuántos ECTS tiene Diseño de software?", "relevantes": [{"origen": "guia", "nombre": "Diseño de software", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-026", "tipo": "metadatos", "pregunta": "¿A qué mención de Informática pertenece Desarrollo de videojuegos?", "relevantes": [{"origen": "guia", "nombre": "Desarrollo de videojuegos", "grado": "Grado en Ingeniería Informática"}]},
-  {"id": "P-027", "tipo": "metadatos", "pregunta": "¿La asignatura de Electrotecnia se imparte en varios grados?", "relevantes": [{"origen": "guia", "nombre": "Electrotecnia"}]},
-  {"id": "P-028", "tipo": "metadatos", "pregunta": "¿Cuántos créditos tiene Expresión gráfica?", "relevantes": [{"origen": "guia", "nombre": "Expresión gráfica"}]},
-  {"id": "P-029", "tipo": "sin_guia", "pregunta": "¿Qué se estudia en Aprendizaje profundo del grado de IA y Ciberseguridad?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Aprendizaje profundo", "grado": "Grado en Inteligencia Artificial y Ciberseguridad"}]},
-  {"id": "P-030", "tipo": "sin_guia", "pregunta": "¿Hay una asignatura de Criptografía en IA y Ciberseguridad?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Criptografía", "grado": "Grado en Inteligencia Artificial y Ciberseguridad"}]},
-  {"id": "P-031", "tipo": "sin_guia", "pregunta": "¿Qué es la asignatura de Arquitectura de entornos inteligentes?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Arquitectura de entornos inteligentes", "grado": "Grado en Inteligencia Artificial y Ciberseguridad"}]},
-  {"id": "P-032", "tipo": "sin_guia", "pregunta": "¿Se estudia aprendizaje automático en el grado de IA y Ciberseguridad?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Aprendizaje automático I", "grado": "Grado en Inteligencia Artificial y Ciberseguridad"}, {"origen": "asignatura_sin_guia", "nombre": "Aprendizaje automático II", "grado": "Grado en Inteligencia Artificial y Ciberseguridad"}]},
-  {"id": "P-033", "tipo": "temario", "pregunta": "¿En qué grados se imparte Ciencia e ingeniería de materiales?", "relevantes": [{"origen": "guia", "nombre": "Ciencia e ingeniería de materiales"}]},
-  {"id": "P-034", "tipo": "temario", "pregunta": "¿Qué temario tiene Ampliación de matemáticas?", "relevantes": [{"origen": "guia", "nombre": "Ampliación de matemáticas"}]},
-  {"id": "P-035", "tipo": "temario", "pregunta": "¿En qué asignatura del plan 2025 de Geomática se estudian los instrumentos topográficos?", "relevantes": [{"origen": "guia", "nombre": "Instrumentos topográficos", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]},
-  {"id": "P-036", "tipo": "sin_guia", "pregunta": "¿Qué es la asignatura de Geodesia geométrica de Geomática?", "relevantes": [{"origen": "asignatura_sin_guia", "nombre": "Geodesia geométrica", "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"}]}
- ]
+  "descripcion": "Conjunto de evaluación del retrieval (IT-27): preguntas reales de un estudiante preuniversitario sobre la oferta de la EPSJ, con las unidades relevantes anotadas a mano. Curso rastreado: 2026/27 (extracción del 01/08/2026). Desde IT-77 no se anota ninguna unidad del grado en extinción, que se excluyó del corpus por no admitir nuevas matrículas. Ampliado en IT-100 con 14 preguntas de tipo `listado`, dos por cada titulación con asignaturas propias.",
+  "criterio_relevancia": "Cada pregunta anota la(s) unidad(es) semántica(s) que el sistema debería recuperar, identificadas por (origen, nombre[, grado]) y NO por id de chunk: los ids son posicionales y cambian al re-fragmentar, mientras que la unidad (una asignatura o el bloque de salidas de un grado) es estable. Un chunk recuperado se considera relevante si pertenece a una unidad anotada: chunk.origen == origen, chunk.nombre == nombre y, si el selector lleva grado, grado ∈ chunk.grados. Las preguntas de tipo `listado` (IT-100) apuntan a la unidad `plan_de_estudios` de su titulación, que contiene el listado ya agregado. Anotarlas contra las asignaturas una a una habría dado hasta 118 fragmentos relevantes por pregunta y un techo de Recall@5 de 0,042: no por un fallo del recuperador, sino porque un top-K responde con los K mejores y esas preguntas piden todos.",
+  "preguntas": [
+    {
+      "id": "P-001",
+      "tipo": "salidas",
+      "pregunta": "¿Qué salidas profesionales tiene el Grado en Ingeniería Informática?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-002",
+      "tipo": "salidas",
+      "pregunta": "Si estudio Inteligencia Artificial y Ciberseguridad, ¿de qué podré trabajar cuando termine?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-003",
+      "tipo": "salidas",
+      "pregunta": "¿Qué trabajos hay para alguien que estudie Ingeniería Mecánica?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Mecánica"
+        }
+      ]
+    },
+    {
+      "id": "P-004",
+      "tipo": "salidas",
+      "pregunta": "¿Dónde puede trabajar un ingeniero eléctrico al acabar la carrera?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-005",
+      "tipo": "salidas",
+      "pregunta": "¿Cuáles son las salidas laborales del grado de Electrónica Industrial?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Electrónica Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-006",
+      "tipo": "salidas",
+      "pregunta": "¿Qué futuro profesional tiene el Grado en Ingeniería de Organización Industrial?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-007",
+      "tipo": "salidas",
+      "pregunta": "¿De qué se trabaja después de estudiar Geomática y Topográfica?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-008",
+      "tipo": "salidas",
+      "pregunta": "¿Qué salidas profesionales tienen los grados de la rama industrial de la EPSJ?",
+      "relevantes": [
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Mecánica"
+        },
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Eléctrica"
+        },
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería Electrónica Industrial"
+        },
+        {
+          "origen": "salidas",
+          "nombre": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-009",
+      "tipo": "temario",
+      "pregunta": "¿Qué se estudia en la asignatura de Inteligencia artificial del grado de Informática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Inteligencia artificial",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-010",
+      "tipo": "temario",
+      "pregunta": "¿Qué contenido tiene la asignatura de Desarrollo de videojuegos?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Desarrollo de videojuegos"
+        }
+      ]
+    },
+    {
+      "id": "P-011",
+      "tipo": "temario",
+      "pregunta": "¿Hay alguna asignatura en Informática donde se aprenda a hacer páginas web?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Desarrollo de aplicaciones web"
+        }
+      ]
+    },
+    {
+      "id": "P-012",
+      "tipo": "temario",
+      "pregunta": "¿Qué temario tiene Estructuras de datos?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Estructuras de datos",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-013",
+      "tipo": "temario",
+      "pregunta": "¿Qué necesito saber antes de cursar Análisis y métodos numéricos?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Análisis y métodos numéricos"
+        }
+      ]
+    },
+    {
+      "id": "P-014",
+      "tipo": "temario",
+      "pregunta": "¿De qué trata Diseño de máquinas en Ingeniería Mecánica?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Diseño de máquinas",
+          "grado": "Grado en Ingeniería Mecánica"
+        }
+      ]
+    },
+    {
+      "id": "P-015",
+      "tipo": "temario",
+      "pregunta": "¿Qué se da en Centrales eléctricas I?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Centrales eléctricas I",
+          "grado": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-016",
+      "tipo": "temario",
+      "pregunta": "¿En qué asignatura de Electrónica Industrial se estudia la domótica?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Domótica e Inmótica",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-017",
+      "tipo": "temario",
+      "pregunta": "¿Qué contenidos tiene la asignatura de Automática industrial?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Automática industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-018",
+      "tipo": "temario",
+      "pregunta": "¿De qué va la asignatura de Creación de empresas de base tecnológica de Organización Industrial?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Creación de empresas de base tecnológica",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-019",
+      "tipo": "temario",
+      "pregunta": "¿Qué se aprende en Cartografía y SIG I del nuevo plan de Geomática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Cartografía y SIG I",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-020",
+      "tipo": "temario",
+      "pregunta": "¿Qué temario tiene Instalaciones fotovoltaicas?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Instalaciones fotovoltaicas",
+          "grado": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-021",
+      "tipo": "temario",
+      "pregunta": "¿Qué se estudia en Energía hidráulica y eólica?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Energía hidráulica y eólica",
+          "grado": "Grado en Ingeniería Mecánica"
+        }
+      ]
+    },
+    {
+      "id": "P-022",
+      "tipo": "temario",
+      "pregunta": "¿Hay alguna asignatura sobre auditoría en el grado de Informática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Auditoría informática",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-023",
+      "tipo": "metadatos",
+      "pregunta": "¿Cuántos créditos tiene la asignatura de Estadística en Ingeniería Informática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Estadística",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-024",
+      "tipo": "metadatos",
+      "pregunta": "¿Es obligatoria la asignatura de Arquitectura de computadores en Informática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Arquitectura de computadores",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-025",
+      "tipo": "metadatos",
+      "pregunta": "¿Cuántos ECTS tiene Diseño de software?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Diseño de software",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-026",
+      "tipo": "metadatos",
+      "pregunta": "¿A qué mención de Informática pertenece Desarrollo de videojuegos?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Desarrollo de videojuegos",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-027",
+      "tipo": "metadatos",
+      "pregunta": "¿La asignatura de Electrotecnia se imparte en varios grados?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Electrotecnia"
+        }
+      ]
+    },
+    {
+      "id": "P-028",
+      "tipo": "metadatos",
+      "pregunta": "¿Cuántos créditos tiene Expresión gráfica?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Expresión gráfica"
+        }
+      ]
+    },
+    {
+      "id": "P-029",
+      "tipo": "sin_guia",
+      "pregunta": "¿Qué se estudia en Aprendizaje profundo del grado de IA y Ciberseguridad?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Aprendizaje profundo",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-030",
+      "tipo": "sin_guia",
+      "pregunta": "¿Hay una asignatura de Criptografía en IA y Ciberseguridad?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Criptografía",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-031",
+      "tipo": "temario",
+      "pregunta": "¿Qué es la asignatura de Arquitectura de entornos inteligentes?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Arquitectura de entornos inteligentes",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-032",
+      "tipo": "temario",
+      "pregunta": "¿Se estudia aprendizaje automático en el grado de IA y Ciberseguridad?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Aprendizaje automático I",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        },
+        {
+          "origen": "guia",
+          "nombre": "Aprendizaje automático II",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-033",
+      "tipo": "temario",
+      "pregunta": "¿En qué grados se imparte Ciencia e ingeniería de materiales?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Ciencia e ingeniería de materiales"
+        }
+      ]
+    },
+    {
+      "id": "P-034",
+      "tipo": "temario",
+      "pregunta": "¿Qué temario tiene Ampliación de matemáticas?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Ampliación de matemáticas"
+        }
+      ]
+    },
+    {
+      "id": "P-035",
+      "tipo": "temario",
+      "pregunta": "¿En qué asignatura del plan 2025 de Geomática se estudian los instrumentos topográficos?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Instrumentos topográficos",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-036",
+      "tipo": "temario",
+      "pregunta": "¿Qué es la asignatura de Geodesia geométrica de Geomática?",
+      "relevantes": [
+        {
+          "origen": "guia",
+          "nombre": "Geodesia geométrica",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-037",
+      "tipo": "listado",
+      "pregunta": "¿Qué asignaturas obligatorias hay que aprobar para sacarse el Grado en Ingeniería Electrónica Industrial?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Electrónica Industrial",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-038",
+      "tipo": "listado",
+      "pregunta": "¿Qué asignaturas optativas puedo elegir en el Grado en Ingeniería Electrónica Industrial?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería Electrónica Industrial",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-039",
+      "tipo": "listado",
+      "pregunta": "Dime todas las asignaturas obligatorias del Grado en Ingeniería Eléctrica.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Eléctrica",
+          "grado": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-040",
+      "tipo": "listado",
+      "pregunta": "Dime las optativas que podría coger en el Grado en Ingeniería Eléctrica.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería Eléctrica",
+          "grado": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-041",
+      "tipo": "listado",
+      "pregunta": "¿Cuáles son las asignaturas que tengo que cursar sí o sí en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-042",
+      "tipo": "listado",
+      "pregunta": "¿Qué optativas se ofertan en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-043",
+      "tipo": "listado",
+      "pregunta": "Quiero ver la lista completa de asignaturas obligatorias del Grado en Ingeniería Informática.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Informática",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-044",
+      "tipo": "listado",
+      "pregunta": "Quiero saber qué asignaturas optativas hay en el Grado en Ingeniería Informática.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería Informática",
+          "grado": "Grado en Ingeniería Informática"
+        }
+      ]
+    },
+    {
+      "id": "P-045",
+      "tipo": "listado",
+      "pregunta": "¿Qué materias son obligatorias en el Grado en Ingeniería Mecánica?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Mecánica",
+          "grado": "Grado en Ingeniería Mecánica"
+        }
+      ]
+    },
+    {
+      "id": "P-046",
+      "tipo": "listado",
+      "pregunta": "¿Entre qué optativas puedo escoger si estudio el Grado en Ingeniería Mecánica?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería Mecánica",
+          "grado": "Grado en Ingeniería Mecánica"
+        }
+      ]
+    },
+    {
+      "id": "P-047",
+      "tipo": "listado",
+      "pregunta": "Lista de asignaturas obligatorias para superar el Grado en Ingeniería de Organización Industrial.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Ingeniería de Organización Industrial",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-048",
+      "tipo": "listado",
+      "pregunta": "Lista de asignaturas optativas del Grado en Ingeniería de Organización Industrial.",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Ingeniería de Organización Industrial",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-049",
+      "tipo": "listado",
+      "pregunta": "¿Qué asignaturas tendría que aprobar obligatoriamente en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias del Grado en Inteligencia Artificial y Ciberseguridad",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    },
+    {
+      "id": "P-050",
+      "tipo": "listado",
+      "pregunta": "¿Qué materias optativas ofrece el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "relevantes": [
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas optativas del Grado en Inteligencia Artificial y Ciberseguridad",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        }
+      ]
+    }
+  ]
 }

@@ -11,12 +11,14 @@ garantiza que el índice refleja exactamente el ``chunks.json`` de entrada,
 igual que re-fragmentar garantiza reflejar el dataset (mismo argumento de
 reproducibilidad que separa el spider del chunker).
 
-PROVISIONAL (Fase 1): tanto el modelo de embeddings por defecto como la
-elección de ChromaDB son valores de trabajo para poder construir y probar el
-pipeline; las elecciones definitivas se decidirán experimentalmente en
-IT-28/IT-31 y se justificarán en los ADR-0003 y ADR-0004. El modelo es un
-parámetro de la función precisamente para que el experimento de IT-28 pueda
-intercambiarlo sin tocar este módulo.
+El **modelo de embeddings ya no es provisional** (IT-98): lo fija el ADR-0003
+y vive en ``incrustaciones.py``, junto con la convención de prefijos que ese
+modelo exige. Este módulo no la conoce ni debe conocerla; recibe una función
+de incrustación ya construida, que es lo que además permite probarlo sin red.
+
+La elección de **ChromaDB sí sigue siendo provisional**: es un valor de
+trabajo para poder construir el pipeline, y se decidirá experimentalmente en
+IT-31, con su ADR-0004.
 """
 
 from __future__ import annotations
@@ -25,16 +27,16 @@ import json
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Callable, Final
+from typing import Any, Final
 
 import chromadb
 
-#: Modelo de embeddings por defecto. PROVISIONAL hasta el experimento IT-28
-#: (ADR-0003): es el punto de partida razonable por ser multilingüe (el
-#: corpus está en español), compacto (ejecutable en CPU doméstica, requisito
-#: del proyecto) y un modelo de referencia de la librería sentence-transformers.
-#: No se presenta como óptimo: es el valor de trabajo del pipeline.
-MODELO_PROVISIONAL: Final[str] = "paraphrase-multilingual-MiniLM-L12-v2"
+from tfg_uja.incrustaciones import (
+    MODELO,
+    PREFIJO_DOCUMENTO,
+    Incrustador,
+    incrustador_de_documentos,
+)
 
 #: Nombre de la colección dentro del índice de ChromaDB.
 COLECCION: Final[str] = "chunks_epsj"
@@ -48,10 +50,6 @@ TAMANO_LOTE: Final[int] = 64
 #: escalares (str/int/float/bool) como metadato. Se eligió una secuencia que
 #: no aparece en ningún nombre de grado ni código del dataset real.
 SEPARADOR_LISTAS: Final[str] = " | "
-
-#: Firma de la función de incrustación: recibe una lista de textos y
-#: devuelve un vector de números reales por texto, en el mismo orden.
-Incrustador = Callable[[list[str]], list[list[float]]]
 
 
 def cargar_chunks(ruta: Path) -> list[dict[str, Any]]:
@@ -109,6 +107,12 @@ def metadatos_de_chunk(chunk: dict[str, Any]) -> dict[str, str | int]:
         "codigos": SEPARADOR_LISTAS.join(
             codigo if codigo is not None else "" for codigo in chunk["codigos"]
         ),
+        # IT-100: el tipo viaja como metadato para poder filtrar el índice por
+        # él («solo obligatorias de esta titulación»), que es una consulta que
+        # la búsqueda vectorial no sabe hacer y el estudiante sí pregunta. Se
+        # usa `.get` porque un chunks.json anterior a IT-100 no lo lleva y
+        # reindexar un corpus viejo no tiene por qué fallar.
+        "tipo_asignatura": chunk.get("tipo_asignatura", ""),
         "chunk_index": chunk["chunk_index"],
         "total_chunks": chunk["total_chunks"],
     }
@@ -148,34 +152,11 @@ def indexar_chunks(
     return len(chunks)
 
 
-def crear_incrustador(nombre_modelo: str) -> Incrustador:
-    """Construye la función de incrustación a partir de un modelo.
-
-    La importación de ``sentence_transformers`` es perezosa: solo la
-    ejecución real del pipeline la necesita (extra ``[index]`` del
-    proyecto); las pruebas usan un incrustador falso inyectado y no
-    requieren descargar ningún modelo.
-
-    Args:
-        nombre_modelo: Nombre del modelo en el Hub de Hugging Face.
-
-    Returns:
-        Función que incrusta lotes de textos con ese modelo.
-    """
-    from sentence_transformers import SentenceTransformer
-
-    modelo = SentenceTransformer(nombre_modelo)
-
-    def incrustar(textos: list[str]) -> list[list[float]]:
-        return modelo.encode(textos, show_progress_bar=False).tolist()
-
-    return incrustar
-
-
 def reconstruir_indice(
     ruta_chunks: Path,
     ruta_indice: Path,
     incrustar: Incrustador,
+    modelo: str = MODELO,
 ) -> int:
     """Reconstruye desde cero el índice vectorial persistente.
 
@@ -183,10 +164,21 @@ def reconstruir_indice(
     derivado y regenerable, nunca la fuente de verdad (esa es el pipeline
     ``scrapy`` → ``chunker`` → este módulo).
 
+    El nombre del modelo y el prefijo de documento quedan grabados en los
+    metadatos de la colección. No es adorno: dos modelos distintos pueden
+    producir vectores de la misma dimensión —384 tanto el actual como el
+    anterior—, así que consultar un índice con el modelo equivocado **no da
+    ningún error**, solo resultados peores. Grabarlo es lo que permite al
+    recuperador comprobarlo en vez de suponerlo.
+
     Args:
         ruta_chunks: Ruta del ``chunks.json`` de entrada.
         ruta_indice: Carpeta donde persiste el índice de ChromaDB.
         incrustar: Función de incrustación a utilizar.
+        modelo: Nombre del modelo que se registra en la colección. Debe
+            corresponder al que usa ``incrustar``; se pasa aparte porque el
+            incrustador es una función y no se le puede preguntar de dónde
+            viene, y porque las pruebas inyectan uno falso.
 
     Returns:
         Número de chunks indexados.
@@ -199,9 +191,17 @@ def reconstruir_indice(
         # La colección no existía todavía: primera ejecución.
         pass
     # Distancia coseno: la métrica habitual para embeddings de texto de
-    # sentence-transformers. PROVISIONAL como el resto de elecciones de este
-    # módulo (se revisará en IT-31 junto con la base de datos vectorial).
-    coleccion = cliente.create_collection(COLECCION, metadata={"hnsw:space": "cosine"})
+    # sentence-transformers. PROVISIONAL (se revisará en IT-31 junto con la
+    # base de datos vectorial), a diferencia del modelo, que ya lo fija el
+    # ADR-0003.
+    coleccion = cliente.create_collection(
+        COLECCION,
+        metadata={
+            "hnsw:space": "cosine",
+            "modelo": modelo,
+            "prefijo_documento": PREFIJO_DOCUMENTO,
+        },
+    )
     return indexar_chunks(chunks, coleccion, incrustar)
 
 
@@ -215,12 +215,16 @@ def main(argumentos: list[str]) -> None:
     Args:
         argumentos: ``[ruta_chunks, ruta_indice]`` y, opcionalmente, el
             nombre del modelo de embeddings (por defecto,
-            :data:`MODELO_PROVISIONAL`).
+            :data:`tfg_uja.incrustaciones.MODELO`, el del ADR-0003). Sigue
+            siendo un parámetro para poder repetir el experimento con otro
+            modelo sin tocar el código, no porque la elección esté abierta.
     """
     ruta_chunks = Path(argumentos[0])
     ruta_indice = Path(argumentos[1])
-    modelo = argumentos[2] if len(argumentos) > 2 else MODELO_PROVISIONAL
-    total = reconstruir_indice(ruta_chunks, ruta_indice, crear_incrustador(modelo))
+    modelo = argumentos[2] if len(argumentos) > 2 else MODELO
+    total = reconstruir_indice(
+        ruta_chunks, ruta_indice, incrustador_de_documentos(modelo), modelo
+    )
     print(f"{total} chunks indexados en {ruta_indice} con el modelo {modelo}")
 
 
