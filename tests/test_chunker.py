@@ -459,6 +459,56 @@ def test_un_par_que_si_cabe_junto_se_sigue_fusionando():
     assert len(resultado) == 1
 
 
+# --- La fusión tampoco termina si el reparto AUMENTA el número de fragmentos ---
+
+# El arreglo de IT-92 dejó fuera un segundo camino por el que el bucle no
+# termina, y solo quedó a la vista al hacer parametrizables los tamaños de
+# fragmento: con un máximo de 380 caracteres, el fragmentador se colgaba sobre
+# el dataset completo.
+#
+# Aquel arreglo razonaba que el número de fragmentos solo podía disminuir, y
+# que por eso reiniciar el recorrido tras cada fusión estaba acotado. Pero el
+# reparto de un par que no cabe junto puede devolver TRES fragmentos donde
+# había dos, y entonces el recuento sube. Alternando fusiones que bajan el
+# recuento y repartos que lo suben, oscilaba (7, 8, 7, 8...) sin converger.
+#
+# Este es el caso real más pequeño que lo reproduce, reducido automáticamente
+# desde el corpus de 2026-27: dos fragmentos del temario de una asignatura de
+# empresa, ambos por debajo del mínimo. Juntos suman 191 caracteres y no caben
+# bajo el máximo de 188; al repartirlos, sus fronteras de frase producen tres.
+_TEMARIO_A = (
+    "Decisiones de inversión y financiación\n"
+    "- Tipos de interés: TAE, TIN, efectivo por periodos."
+)
+_TEMARIO_B = (
+    "- Interés con inflación.\n"
+    "- Capitalización simple y compuesta.\n"
+    "Movimiento de capitales en el tiempo."
+)
+_MINIMO_TEMARIO = 100
+_MAXIMO_TEMARIO = 188
+
+
+def test_la_fusion_termina_cuando_el_reparto_devuelve_mas_fragmentos():
+    piezas = [_TEMARIO_A, _TEMARIO_B]
+    # La geometría del caso es lo que lo hace válido: si alguien "arregla" los
+    # textos y dejan de cumplirla, la prueba pasaría sin ejercitar nada.
+    assert all(len(p) < _MINIMO_TEMARIO for p in piezas)
+    assert len(f"{_TEMARIO_A}\n{_TEMARIO_B}") > _MAXIMO_TEMARIO
+
+    resultado = _con_limite_de_tiempo(
+        lambda: _fusionar_pequenos(piezas, _MINIMO_TEMARIO, _MAXIMO_TEMARIO)
+    )
+
+    # Nunca más fragmentos de los que entraron: es justo la propiedad que
+    # garantiza la terminación, porque hace que el recuento sea monótono no
+    # creciente y acote los reinicios del recorrido.
+    assert len(resultado) <= len(piezas)
+    assert all(len(c) <= _MAXIMO_TEMARIO for c in resultado)
+    # Y renunciar al reparto no puede costar contenido.
+    assert sum(len(c) for c in resultado) >= sum(len(p) for p in piezas)
+
+
 # --- IT-94: la guía anunciada que no llegó a extraerse ---
 
 # Caso real del rastreo del 28/07/2026: cinco asignaturas cuya guía se sirve
