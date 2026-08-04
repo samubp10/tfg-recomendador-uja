@@ -9,9 +9,71 @@
   \item \textbf{Fase:} 1, generacion de las preguntas y etiquetas para la evaluacion.
 \end{borrador}
 
+\section{Selección del modelo de incrustaciones}
+\label{secc:resultados_embeddings}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva, con los resultados del
+  experimento del 04/08/2026. Andamiaje: la prosa la escribes tú. La tabla ya está
+  puesta y sus cifras salen del fichero que genera el propio guion, así que
+  \textbf{no las copies a mano en el texto}: si cambian, cambian ahí.
+  \item Regla del capítulo, para no repetir el error de otras secciones: aquí van
+  \emph{los resultados}, no la justificación del método. El diseño del experimento y
+  el porqué de cada candidato es Capítulo~\ref{cap:materialesymetodos}. Y la
+  interpretación fina («qué significa esto para el sistema») no debería mezclarse con
+  el dato.
+  \item Orden sugerido para redactar: (1) qué se midió y sobre qué; (2) la tabla;
+  (3) el resultado del modelo en español, que es el hallazgo; (4) el desglose por tipo
+  de pregunta; (5) las dos lecturas erróneas que hay que evitar.
+  \item Lo que \textbf{no} se ha medido y hay que decir en algún sitio: la latencia de
+  una consulta, ni con este modelo ni con ningún otro. Los tiempos que se manejan son
+  de incrustar la colección entera, que es una operación por lotes y poco frecuente.
+\end{borrador}
+
+\textcolor{borrador2}{La comparativa se ejecutó sobre la colección completa, con las
+cincuenta preguntas anotadas del conjunto de evaluación, y sus resultados se recogen en la
+Tabla~\ref{tab:comparativa_embeddings}. Los cuatro candidatos admiten al menos quinientos
+doce \glr{tokens}{token}, de modo que ninguno se queda sin leer parte de los fragmentos:
+esa condición se comprueba en cada ejecución y no se da por supuesta, porque en las
+ejecuciones anteriores del experimento dos de los modelos evaluados solo alcanzaban a leer
+la mitad del texto y sus cifras no eran comparables con las del resto.}
+
+\input{tablas/TablaComparativaEmbeddings}
+
+\textcolor{borrador2}{El resultado que más información aporta no es cuál de los modelos
+obtiene la mejor puntuación, sino la distancia a la que queda el único candidato entrenado
+específicamente en español. Su exhaustividad por unidad en los tres primeros resultados es
+de 0,320 frente al 0,945 del modelo multilingüe de tamaño equivalente, y no recupera ninguna
+de las catorce preguntas que piden el listado completo de asignaturas de una titulación. Al
+haber leído exactamente el mismo texto que los demás, la diferencia no puede atribuirse a
+que dispusiera de menos información, sino a la tarea para la que fue entrenado: reconocer si
+dos frases significan lo mismo, que no es lo que se le pide a un sistema de recuperación,
+donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no
+se le parece. Conviene precisar el alcance de esta conclusión: no permite afirmar que no
+pueda existir un modelo en español adecuado para recuperación, sino que el mejor disponible
+en el momento de la comparación no lo es.}
+
+\begin{borrador}
+  \item \textbf{Dos lecturas erróneas de la tabla que conviene desactivar tú mismo}, porque
+  son las dos preguntas que va a hacer el tribunal.
+  \item \textbf{«Un 0,771 significa que falla una de cada cuatro veces.»} No. La
+  exhaustividad por fragmento \textbf{no tiene techo 1}: hay unidades repartidas en hasta
+  veinticuatro fragmentos, que no caben enteras en los tres primeros resultados. Sobre esta
+  colección el máximo alcanzable es \textbf{0,905} para K=3, 0,977 para K=5 y 0,998 para
+  K=10. Hay que restar del techo, no de la unidad.
+  \item \textbf{«El mejor es el que tiene el MRR más alto.»} No son la misma virtud.
+  \texttt{bge-m3} tiene el mejor MRR y peor exhaustividad por unidad que
+  \texttt{e5-large}: coloca antes el primer acierto, pero deja más unidades fuera. El MRR
+  dice dónde aparece el primero; la exhaustividad, cuántos aparecen.
+  \item \textbf{Y una tercera, sobre el crecimiento con K.} La exhaustividad es monótona
+  creciente en K, así que que K=10 supere a K=5 es una propiedad de la métrica y no un
+  hallazgo. Lo que decide K es el coste de contexto del generador, y eso se mide en la
+  Fase 2.
+\end{borrador}
+
 \section{Evaluación de sistemas RAG}
 
-\begin{borrador}      
+\begin{borrador}
   \item \textbf{Trasladado desde Antecedentes} (reencuadre del capítulo 2).
   \item \textbf{Fase:} 2 (IT-38)
 \end{borrador}
@@ -148,4 +210,21 @@ conjunto de datos lo había activado: lo activó el cambio de la fuente, porque 
 nuevo llegan en un formato distinto y con ello cambian las fronteras del texto. La lección no es
 solo que las pruebas cubren lo que los datos contienen, sino que la fuente puede modificar el
 comportamiento del sistema sin que se toque una línea de código.}
+
+\textcolor{borrador2}{Ese mismo procedimiento volvió a no terminar por segunda vez, y el
+segundo caso enseña algo distinto del primero. La corrección anterior se apoyaba en un
+razonamiento explícito sobre por qué el proceso acaba: el número de fragmentos solo puede
+disminuir, y como no puede bajar de uno, el número de reintentos está acotado. El
+razonamiento era falso. Repartir de nuevo un par que no cabe junto puede devolver tres
+fragmentos donde había dos, de modo que la cuenta también sube, y alternando uniones que la
+bajan con repartos que la suben el proceso oscila indefinidamente sin llegar a ninguna
+parte. Con los tamaños de fragmento en uso el caso era inalcanzable, y quedó al descubierto
+al hacerlos configurables para poder ensayar valores menores. La corrección consiste en
+descartar todo reparto que produzca más fragmentos de los que había, con lo que la cuenta
+pasa a ser efectivamente decreciente y el razonamiento de terminación se sostiene. Lo que
+merece señalarse no es el defecto en sí, sino que la primera corrección venía acompañada de
+un argumento escrito de por qué no podía repetirse, y ese argumento no cubría todos los
+casos: una demostración informal da una confianza que no siempre está justificada, y la
+prueba de regresión que se añadió entonces no podía detectarlo porque comprobaba
+exactamente el escenario que el argumento sí contemplaba.}
 

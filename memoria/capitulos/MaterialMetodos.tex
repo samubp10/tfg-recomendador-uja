@@ -1103,3 +1103,99 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
         pendiente para IT-58 dar esa fecha y ese curso al caracterizar el corpus,
         en vez de presentarlo como atemporal.
 \end{borrador}
+
+\section{Fase 1: selección del modelo de incrustaciones}
+\label{secc:fase1_embeddings}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva. Andamiaje: la prosa
+  la escribes tú. Aquí va \textbf{el método y el porqué}; los números van al
+  Capítulo~\ref{cap:resultados}, Sección~\ref{secc:resultados_embeddings}. Si una frase de
+  aquí empieza por «se obtuvo», está en el capítulo equivocado.
+  \item Lo que esta sección tiene que dejar establecido, por orden: qué se compara, con
+  qué se mide, sobre qué se mide, con qué criterio se eligieron los candidatos y qué
+  amenazas quedan vivas.
+  \item \textbf{Hay dos decisiones abiertas} que no puedes dejar sin resolver antes de
+  entregar, y que son tuyas: (1) ratificar \texttt{e5-small} o cambiar a
+  \texttt{e5-large}, con la justificación de coste que está en la adenda del ADR-0003;
+  (2) decidir si el \emph{listado} de asignaturas se presenta como parte del diseño de la
+  colección (Fase~0) o como una corrección posterior (Fase~1). Hoy está contado como lo
+  segundo.
+\end{borrador}
+
+\subsection{Diseño de la comparación}
+
+\textcolor{borrador2}{La elección del modelo de incrustaciones se resolvió de forma
+experimental y no por reputación de los modelos, comparando varios candidatos sobre la
+colección real del proyecto y sobre un conjunto de preguntas anotadas manualmente. El diseño
+es de un solo factor: todos los candidatos reciben exactamente los mismos fragmentos y las
+mismas preguntas, el orden de los resultados se calcula de forma exacta y no aproximada, y lo
+único que varía entre una ejecución y otra es el modelo. Esta última precisión no es
+accesoria: si el orden se obtuviera consultando la base de datos vectorial, cada medida
+mezclaría la calidad de las representaciones con el error que introduce su índice, que es
+aproximado por naturaleza, y dejaría de poder atribuirse la diferencia al modelo.}
+
+\textcolor{borrador2}{Se emplean dos medidas complementarias de exhaustividad. La primera
+cuenta fragmentos recuperados y describe la cobertura del sistema tal como está construido
+hoy; la segunda cuenta unidades semánticas ---la asignatura completa, con independencia de en
+cuántos fragmentos se haya dividido--- y describe su capacidad de acertar la materia por la
+que se pregunta. Se presentan juntas de forma deliberada, porque la distancia entre ambas
+indica dónde está la limitación: si el sistema encuentra la asignatura correcta pero no todos
+sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se
+delimitan las unidades.}
+
+\begin{borrador}
+  \item \textbf{Criterios de selección de los candidatos}, que hay que enunciar porque es
+  lo que un tribunal pregunta («¿y por qué esos cuatro?»). En orden:
+  (1)~ventana de al menos 512 \textit{tokens}, para que ninguno lea menos texto que otro;
+  (2)~cuatro papeles complementarios, no cuatro modelos populares;
+  (3)~licencia compatible con la del repositorio;
+  (4)~ejecutable en la máquina donde se defiende el trabajo;
+  (5)~disponible sin ejecutar código descargado.
+  \item \textbf{Los papeles}, que es lo que convierte la lista en un diseño: un modelo
+  pequeño (el titular), otro de la misma familia y entrenamiento con cinco veces su tamaño
+  ---único par que aísla el efecto del \emph{tamaño}---, un tercero de tamaño similar pero
+  de otra familia ---que aísla el efecto del \emph{entrenamiento}--- y el mejor específico
+  de español ---que aísla \emph{idioma frente a tarea}---.
+  \item \textbf{Los descartes también son método, y hay tres, cada uno por un motivo
+  distinto}: uno por licencia incompatible; otro por exigir la ejecución de código
+  descargado de un repositorio externo; y un tercero \textbf{por medición}, al comprobarse
+  que no era ejecutable en un tiempo razonable en el equipo disponible. Merece la pena
+  contar los tres: demuestra que el criterio se aplicó y no se enunció.
+\end{borrador}
+
+\subsection{Las preguntas de agregación y su efecto sobre la colección}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-100).} Esto es lo más defendible de la tarjeta y conviene que
+  tenga sitio propio, porque es una decisión de diseño de la colección tomada a partir de
+  una medición.
+  \item \textbf{El problema:} las preguntas más naturales de un estudiante ---«dime todas
+  las asignaturas obligatorias de este grado»--- no las puede contestar un sistema que
+  devuelve los K fragmentos más parecidos. La respuesta correcta estaba repartida en hasta
+  \textbf{118 fragmentos}, lo que deja el máximo alcanzable en \textbf{0,042} con K=5.
+  Ningún valor de K lo arregla, porque el problema no es de recuperación sino de
+  agregación.
+  \item \textbf{La solución:} incorporar a la colección el listado ya agregado, uno por
+  cada par (titulación, grupo de asignaturas). Son dieciséis fragmentos sobre casi
+  ochocientos, y el máximo alcanzable de esas preguntas pasa de 0,042 a 1,000.
+  \item \textbf{Lo que hay que declarar sin que lo pregunten:} son fragmentos
+  \emph{sintetizados}, no texto literal de la fuente. No es un caso nuevo ---la colección
+  ya contiene los fragmentos informativos de las asignaturas sin guía--- y el criterio es el
+  mismo: texto derivado de forma determinista de un dato de la fuente, nunca contenido
+  inventado. Pero decirlo antes de que lo pregunten vale mucho más que responderlo después.
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{Amenazas que quedan vivas} y que hay que enlazar con la
+  Sección~\ref{secc:amenazas_validez}, no repetir aquí:
+  \item La comparación se ejecutó \textbf{sin haber fijado antes los umbrales} de la
+  hipótesis. Que el resultado sea holgado no lo arregla, y fijarlos ahora sería peor. Se
+  declara y ya está; para la comparación de bases vectoriales sí están escritos antes.
+  \item El conjunto de evaluación son \textbf{cincuenta preguntas anotadas por una sola
+  persona}, que es además quien construyó el sistema. La diferencia entre los dos mejores
+  modelos son dos preguntas y media: cabe dentro de lo que movería otra anotación.
+  \item Los tiempos son \textbf{reloj de pared} en un equipo que hace otras cosas. Entre dos
+  ejecuciones seguidas las medidas de calidad salieron idénticas y los tiempos variaron
+  hasta un 25\,\%.
+\end{borrador}

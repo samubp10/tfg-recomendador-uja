@@ -161,38 +161,104 @@ lo que impone exigencias específicas de legibilidad y fiabilidad.
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-\textcolor{borrador2}{Un sistema que trata información publicada por una universidad y que además conversa con estudiantes, buena parte de ellos menores de edad, queda sujeto a dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen aquí solo los puntos que condicionan alguna decisión concreta de diseño de este trabajo, sin entrar en un análisis jurídico exhaustivo.}
+Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales contienen nombres, correos electrónicos y teléfonos de profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios puede ser menor de edad. Estos dos tipos de información sitúan al proyecto bajo dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+
+
+Con respecto a la extracción automatizada de información de la web, actualmente el scraper solo se descarga los pdf de las guías docentes que contienen datos personales del profesorado, pero al ser datos publicados por la universidad en su página web, se considera que están a disposición del público y por tanto no infringe ninguna normativa. No obstante, luego de estos pdf se extrae la información verdaderamente útil para el alumnado nuevo. (Insertar referencia sobre si es legal o no scraping y también lo de los datos personales en las guías docentes)
+
+\begin{borrador}
+  \item \textbf{Fase: 1} --- las referencias que pedías en el paréntesis de arriba. Están
+  todas comprobadas contra la fuente oficial (BOE y EUR-Lex, leyendo el articulado, no
+  resúmenes) el 4 de agosto de 2026, y ya están en el \texttt{.bib}.
+  \item \textbf{Ojo con el argumento actual}, que es el flanco débil del párrafo: «están
+  publicados, luego no infringe ninguna normativa» no se sostiene solo. Que un dato sea
+  accesible no lo convierte en libre ni de derechos de autor ni de protección de datos; es
+  justo el salto que un tribunal marca. El argumento bueno es otro y tiene tres patas.
+  \item \textbf{Pata 1 --- propiedad intelectual.} El artículo 67 del Real
+  Decreto-ley 24/2021\cite{rdl24_2021} exceptúa de autorización del titular las
+  reproducciones y extracciones con fines de \emph{minería de textos y datos} sobre
+  contenidos «accesibles de forma legítima», y su apartado 7 añade que el usuario legítimo
+  de una base de datos puede extraer una parte sustancial de ella con ese fin sin permiso
+  del fabricante. El artículo 66.3 define «organismo de investigación» como entidad sin
+  ánimo de lucro con misión de interés público: la Universidad encaja. Va en cursiva y no
+  con \texttt{\textbackslash gl}\{\} a propósito: «minería de textos y datos» todavía no
+  está en el Capítulo de definiciones, y marcarlo generaría una nota al pie remitiendo a
+  una entrada que no existe. Merece entrada propia, y el artículo 66.1 del propio real
+  decreto-ley trae una definición legal que puedes reaprovechar.
+  \item \textbf{Pata 2 --- el contraargumento, que conviene decir tú antes de que lo diga
+  el tribunal.} El artículo 67.3 desactiva esa excepción si el titular «ha reservado
+  expresamente» el uso a medios de lectura mecánica. Comprobado el 4 de agosto de 2026: el
+  \texttt{robots.txt} de \texttt{eps.ujaen.es} es el de serie de Drupal y no prohíbe
+  ninguna de las rutas que se rastrean, y el aviso legal de la UJA\cite{uja_avisolegal}
+  solo tiene una cláusula genérica de propiedad intelectual, sin reserva específica frente
+  a la extracción automatizada. Si esa cláusula genérica basta o no como reserva expresa es
+  discutible; lo honesto es reconocer que es discutible y apoyarse en que la vía legible
+  por máquina, que es la que contempla la norma para el contenido en línea, está abierta.
+  \item \textbf{Pata 3 --- jurisprudencia.} Aquí es donde encaja la sentencia del caso
+  Ryanair\cite{sts572_2012} que ya citas más abajo, pero conviene situarla: es de 2012, o
+  sea \emph{anterior} al límite de minería, y resolvió que no había base de datos
+  protegible. Hoy la respuesta ya no depende de esa interpretación, la da directamente el
+  artículo 67. Presentarla como refuerzo histórico y no como fundamento principal es más
+  sólido.
+  \item \textbf{Y lo de los datos personales de las guías:} el encaje es el principio de
+  minimización del artículo 5.1.c del RGPD\cite{rgpd2016}. No se apoya en que los datos
+  estén publicados, sino en que no se recogen: la lista de permitidos deja pasar solo
+  «Resumen» y «Descripción de contenidos», y hay un borrado final de correos y teléfonos.
+  Es el mismo argumento que ya tienes preparado en el borrador de más abajo, así que los
+  dos bloques deberían acabar fundiéndose en uno.
+\end{borrador}
 
 \textcolor{borrador2}{En materia de protección de datos son de aplicación el Reglamento General de Protección de Datos (RGPD)\cite{rgpd2016} y la Ley Orgánica de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD)\cite{lopdgdd2018}. El considerando 26 del RGPD deja fuera de su ámbito la información anónima, esto es, aquella que no permite identificar ni directa ni indirectamente a una persona física. La colección documental de este trabajo se encuentra en ese supuesto: recoge planes de estudio, guías docentes y salidas profesionales, y el profesorado se excluye deliberadamente de la extracción, por lo que de la fuente no se obtiene ningún dato personal.}
 
-\begin{borrador}
+\begin{borrador}          
   \item \textbf{Fase:} 1 (IT-95) --- matiz que hay que añadir a este párrafo, porque
-        tal como está se puede rebatir con el propio repositorio en la mano.
+  tal como está se puede rebatir con el propio repositorio en la mano.
   \item La afirmación es cierta \emph{de la colección}: en la base de datos vectorial
-        no entra ningún dato personal. Pero conviene distinguir la colección del
-        material de trabajo, porque no son lo mismo y el tribunal puede mirar los dos.
+  no entra ningún dato personal. Pero conviene distinguir la colección del
+  material de trabajo, porque no son lo mismo y el tribunal puede mirar los dos.
   \item Lo que hay que explicar: de cada guía docente en PDF se extraen únicamente dos
-        secciones —el resumen y la descripción de contenidos—, por una lista de lo que
-        \emph{sí} pasa y no de lo que se excluye; el bloque de profesorado, con nombres,
-        correos y teléfonos, queda fuera por construcción, y sobre lo ya extraído se
-        aplica además un borrado final de correos y teléfonos como red de seguridad.
-        \textbf{Nombres de profesorado, correos y teléfonos no entran en la base de
-        datos vectorial en ningún caso.}
+  secciones —el resumen y la descripción de contenidos—, por una lista de lo que
+  \emph{sí} pasa y no de lo que se excluye; el bloque de profesorado, con nombres,
+  correos y teléfonos, queda fuera por construcción, y sobre lo ya extraído se
+  aplica además un borrado final de correos y teléfonos como red de seguridad.
+  \textbf{Nombres de profesorado, correos y teléfonos no entran en la base de
+    datos vectorial en ningún caso.}
   \item Y decir con naturalidad lo otro: los PDF de origen son documentos que la propia
-        Universidad publica en abierto y a los que puede acceder cualquiera. El
-        repositorio conserva unos pocos como material de prueba —hacen falta
-        precisamente para poder demostrar que el bloque de profesorado se descarta— y el
-        rastreo guarda una copia local, no publicada, para poder auditar la extracción.
-        Ni se redistribuyen como colección ni se usan para entrenar ningún modelo.
+  Universidad publica en abierto y a los que puede acceder cualquiera. El
+  repositorio conserva unos pocos como material de prueba —hacen falta
+  precisamente para poder demostrar que el bloque de profesorado se descarta— y el
+  rastreo guarda una copia local, no publicada, para poder auditar la extracción.
+  Ni se redistribuyen como colección ni se usan para entrenar ningún modelo.
   \item Conviene que esto vaya aquí y no escondido en un anexo: enunciarlo antes de que
-        lo pregunten es mucho más sólido que responderlo después.
+  lo pregunten es mucho más sólido que responderlo después.
 \end{borrador}
 
 \textcolor{borrador2}{El punto delicado no está, por tanto, en los datos de origen, sino en la conversación. El público objetivo es preuniversitario, así que una parte de los usuarios será menor de edad, y el artículo 7 de la LOPDGDD\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos; por debajo de esa edad se exige el consentimiento de quien ostente la patria potestad o la tutela. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una barrera de entrada. La alternativa elegida es evitar el problema en el origen: el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva el historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. ADA resuelve la misma tensión de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}). [Nota para el autor: esta decisión hay que confirmarla al construir la interfaz en la Fase 3; si finalmente se guardase algún registro, aunque fuera para depurar, este párrafo dejaría de ser cierto.]}
 
 \textcolor{borrador2}{La segunda cuestión es la legalidad de la extracción automatizada. La referencia jurisprudencial más citada en España es la sentencia del caso Ryanair contra Atrápalo\cite{sts572_2012}, que resolvió un litigio entre dos empresas por el aprovechamiento comercial de datos ajenos. El supuesto de este trabajo es distinto en lo esencial: los datos los publica abiertamente un organismo público, el uso es académico y sin ánimo de lucro, y no existe reventa ni competencia con la Universidad de Jaén. A ello se añaden las precauciones técnicas adoptadas durante la extracción —respetar el fichero \texttt{robots.txt}, espaciar las peticiones para no sobrecargar el servidor e identificarse mediante un agente de usuario propio—, que se detallan en el Capítulo~\ref{cap:materialesymetodos}. [Nota para el autor: es una valoración divulgativa, no un dictamen jurídico; conviene presentarla así también en la defensa.]}
 
-\begin{borrador}                                  
-  \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web
+\begin{borrador}
+  \item \textbf{Falta una tercera cuestión, y es la que hoy no está en la sección:} el
+  Reglamento de Inteligencia Artificial\cite{aiact2024}. Está en la bibliografía pero no se
+  cita en ningún sitio, y es la norma más directamente aplicable de las tres, porque este
+  sistema es exactamente su supuesto: una IA que conversa con personas.
+  \item \textbf{Lo que obliga.} Su artículo 50.1 exige que el usuario sepa que está
+  interactuando con un sistema de IA, salvo que resulte evidente, y el 50.5 añade que hay
+  que informarle «de manera clara y distinguible a más tardar en el momento de la primera
+  interacción», y en forma accesible. Es un requisito de interfaz, no un párrafo teórico:
+  condiciona la Fase 3 y debería bajar a la tabla de requisitos junto al RU-05.
+  \item \textbf{El detalle que vale en la defensa.} Por su artículo 113, esas obligaciones
+  de transparencia se aplican \textbf{desde el 2 de agosto de 2026}, es decir, ya están
+  vigentes mientras escribes esto. No es una norma futura que «habrá que tener en cuenta»:
+  es derecho aplicable hoy. Comprobado el 4 de agosto de 2026 en el articulado y en la
+  página de la Comisión Europea, porque varios resúmenes divulgativos lo sitúan mal en 2025
+  al confundir el capítulo IV con el V.
+  \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
+  conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
+  obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
+  Real Decreto 1112/2018\cite{rd1112_2018}. Ese real decreto no nombra a las universidades:
+  su artículo 2.1.d) remite al sector público institucional del artículo 2.2 de la
+  Ley 39/2015, y es ahí donde encajan las públicas. Merece la pena que sigas tú esa cadena
+  de remisiones antes de afirmarlo, que es justo el tipo de detalle que se pregunta.
   \item \textbf{Licencias} La licencia del modelo concreto se fijará con el ADR-0005 (Fase 2), luego de elegirlo finalmente.
 \end{borrador}
