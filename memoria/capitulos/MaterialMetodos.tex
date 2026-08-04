@@ -1099,12 +1099,11 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   \item Lo que esta sección tiene que dejar establecido, por orden: qué se compara, con
   qué se mide, sobre qué se mide, con qué criterio se eligieron los candidatos y qué
   amenazas quedan vivas.
-  \item \textbf{Hay dos decisiones abiertas} que no puedes dejar sin resolver antes de
-  entregar, y que son tuyas: (1) ratificar \texttt{e5-small} o cambiar a
-  \texttt{e5-large}, con la justificación de coste que está en la adenda del ADR-0003;
-  (2) decidir si el \emph{listado} de asignaturas se presenta como parte del diseño de la
-  colección (Fase~0) o como una corrección posterior (Fase~1). Hoy está contado como lo
-  segundo.
+  \item \textbf{Decisión cerrada el 04/08/2026:} se ratifica \texttt{e5-small}. El
+  razonamiento está abajo, en el apartado~\ref{secc:eleccion_e5small}.
+  \item \textbf{Queda una decisión abierta}, y es tuya: si el \emph{listado} de asignaturas
+  se presenta como parte del diseño de la colección (Fase~0) o como una corrección
+  posterior (Fase~1). Hoy está contado como lo segundo.
 \end{borrador}
 
 \subsection{Diseño de la comparación}
@@ -1146,6 +1145,62 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   descargado de un repositorio externo; y un tercero \textbf{por medición}, al comprobarse
   que no era ejecutable en un tiempo razonable en el equipo disponible. Merece la pena
   contar los tres: demuestra que el criterio se aplicó y no se enunció.
+\end{borrador}
+
+\subsection{Elección final: por qué el modelo pequeño}
+\label{secc:eleccion_e5small}
+
+\textcolor{borrador2}{De los cuatro candidatos, dos pertenecen a la misma familia y difieren
+  solo en el tamaño, con casi cinco veces más parámetros el mayor. Es el único par que permite
+  atribuir una diferencia al tamaño y no a otra cosa, y por eso la elección entre ambos se
+  trata aquí como una decisión propia y no como una consecuencia automática de la tabla de
+  resultados. El modelo mayor recupera mejor: la pregunta es si esa mejora justifica su
+  coste.}
+
+\textcolor{borrador2}{La respuesta depende de con cuántos fragmentos se vaya a alimentar
+  después al modelo generativo. Con los tres primeros resultados, la ventaja del modelo grande
+  es apreciable; con los diez primeros, los dos localizan la asignatura correcta en la
+  totalidad de las preguntas del conjunto de evaluación, de modo que la diferencia desaparece
+  en la métrica que describe si el sistema acierta la materia por la que se le pregunta. Como
+  la ventana de contexto de un modelo generativo actual admite holgadamente diez fragmentos de
+  esta colección, la configuración prevista es precisamente la que anula esa ventaja.}
+
+\textcolor{borrador2}{El coste, en cambio, no desaparece. El modelo grande tarda unas ocho
+  veces más en incrustar la colección completa, pero ese coste apenas se paga: la indexación
+  es un proceso por lotes que solo se repite cuando cambia la colección. El coste que sí se
+  paga de forma permanente es la memoria que ocupa el modelo mientras el servicio está en
+  ejecución, más de cuatro veces mayor. Y ese consumo no compite contra un equipo vacío: en la
+  Fase~2 el recuperador tendrá que convivir en la misma máquina con el modelo generativo, que
+  es con diferencia el componente más exigente del sistema. La primera ejecución de la
+  comparativa, de hecho, se interrumpió por falta de memoria al cargar el modelo grande.}
+
+\textcolor{borrador2}{Se elige, por tanto, el modelo pequeño, y el criterio que lo decide no
+  es la calidad de la recuperación sino la viabilidad del sistema completo en el equipo en el
+  que debe ejecutarse. Conviene enunciar en qué condiciones la decisión sería la contraria,
+  porque es lo que la hace revisable y no arbitraria: dispondría de una unidad de procesamiento
+  gráfico utilizable, se desplegaría en un servidor en lugar de en un equipo personal, o se
+  decidiera operar con solo tres resultados por consulta.}
+
+\begin{borrador}
+  \item \textbf{Fase: 1.} Decisión tomada el 04/08/2026. Andamiaje: las cifras exactas no van
+        aquí sino en el Capítulo~\ref{cap:resultados}; aquí va el criterio.
+  \item \textbf{Cuidado con cómo lo cuentas, que aquí es fácil pasarse de fuerte.} Al pasar a
+        diez resultados los dos modelos empatan en \emph{acertar la asignatura} (1,000 los
+        dos), pero el pequeño sigue algo por detrás en \emph{recuperar todos los fragmentos}
+        de esa asignatura (0,938 frente a 0,985, sobre un máximo alcanzable de 0,998). Decir
+        que «con K=10 alcanza al grande» sin ese matiz es una afirmación que se cae en cuanto
+        alguien mire la tabla. Lo que sí es cierto y basta: empata en lo que determina si la
+        respuesta hablará de la asignatura correcta.
+  \item \textbf{La diferencia son 2,5 preguntas sobre 50}, y el conjunto lo has anotado tú
+        solo. Esa magnitud cabe dentro de lo que movería una anotación distinta, así que no
+        presentes la separación como establecida: es un argumento más a favor de no pagar el
+        coste del grande.
+  \item \textbf{Falta por medir, y hay que decirlo:} la latencia de una consulta con cada
+        modelo, y el consumo de memoria del sistema completo con el modelo generativo dentro.
+        Lo segundo no puede medirse hasta el ADR-0005. Mientras tanto, esto es un argumento de
+        orden de magnitud, no una medición del conjunto.
+  \item \textbf{Deuda:} el ADR-0003 necesita una adenda con esta ratificación. Va en una rama
+        desde \texttt{main}, no desde \texttt{doc}.
 \end{borrador}
 
 \subsection{Las preguntas de agregación y su efecto sobre la colección}
