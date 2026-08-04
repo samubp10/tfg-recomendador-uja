@@ -151,12 +151,26 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     adelante: incumplir una preferencia es admisible, romper la restricción
     dura no lo es.
 
-    Reconocer ese caso es además lo que garantiza que el bucle termine. Solo
-    se vuelve a empezar cuando el número de fragmentos ha disminuido de
-    verdad, y como no puede bajar de uno, el número de reinicios está
-    acotado; en cualquier otra situación se avanza. Sin esa condición, un
-    par irreducible hacía que la función no terminara nunca (caso real:
-    «Minería web», 13313008, en el corpus de 2026-27).
+    Reconocer ese caso es además parte de lo que garantiza que el bucle
+    termine. Solo se vuelve a empezar cuando el número de fragmentos ha
+    disminuido de verdad; en cualquier otra situación se avanza. Sin esa
+    condición, un par irreducible hacía que la función no terminara nunca
+    (caso real: «Minería web», 13313008, en el corpus de 2026-27).
+
+    Eso, por sí solo, resultó no bastar. El argumento de terminación suponía
+    que el número de fragmentos únicamente podía bajar, y **el reparto también
+    puede subirlo**: devolver tres fragmentos donde había dos. Alternando
+    fusiones que lo bajan con repartos que lo suben, el recuento oscilaba
+    (7, 8, 7, 8...) y no se llegaba nunca al final. Por eso se descarta todo
+    reparto que produzca más fragmentos de los que había: así el recuento es
+    monótono no creciente, no puede bajar de uno, y los reinicios quedan
+    acotados.
+
+    Con los tamaños del ADR-0001 el caso no se alcanzaba, y salió a la luz al
+    hacerlos parametrizables para el experimento de ventana igualada: con un
+    máximo de 380 caracteres, el fragmentador se colgaba sobre el dataset
+    completo. Es la segunda vez que esta función no termina por un motivo que
+    las pruebas en verde no veían.
 
     Args:
         chunks: Chunks de una misma unidad semántica, en orden.
@@ -186,8 +200,22 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
         objetivo_local = min(len(combinado) // 2 + 1, maximo)
         piezas = _dividir_en_piezas(combinado, maximo)
         reequilibrado = _empaquetar(piezas, objetivo_local, maximo)
+        if len(reequilibrado) > segundo - primero + 1:
+            # El reparto devuelve MÁS fragmentos de los que había: no
+            # reequilibra, empeora. Se descarta y se acepta el fragmento
+            # corto, igual que cuando el reparto no cambia nada.
+            #
+            # Esto es lo que garantiza que el bucle termine, y es la parte que
+            # a IT-92 se le escapó. Aquel arreglo razonaba que el número de
+            # fragmentos solo podía bajar, y por eso reiniciar en `i = 0` tras
+            # cada fusión estaba acotado. Pero el reparto SÍ podía subirlo, de
+            # 2 a 3, con lo que el recuento oscilaba (7, 8, 7, 8...) y el
+            # bucle no acababa nunca. Con esta guarda el número de fragmentos
+            # es monótono no creciente, así que los reinicios están acotados.
+            i = segundo + 1
+            continue
         resultado[primero : segundo + 1] = reequilibrado
-        if len(reequilibrado) < 2:
+        if len(reequilibrado) < segundo - primero + 1:
             i = 0  # el reparto ha reducido el número de fragmentos
         else:
             # El reparto no reduce nada: puede ser el mismo de partida. Se
@@ -255,6 +283,7 @@ def _chunks_de_unidad(
     texto: str,
     base: dict[str, Any],
     origen: str,
+    tamanos: tuple[int, int, int] = (TAMANO_OBJETIVO, TAMANO_MAXIMO, TAMANO_MINIMO),
 ) -> list[dict[str, Any]]:
     """Genera los chunks de una unidad semántica completa.
 
@@ -265,20 +294,23 @@ def _chunks_de_unidad(
         encabezado: Línea de contexto que se antepone a cada chunk.
         texto: Contenido de la unidad (guía, ficha o salidas).
         base: Campos comunes del item (grado, codigo, nombre).
-        origen: Procedencia del contenido (``"guia"``, ``"asignatura_sin_guia"``
-            o ``"salidas"``).
+        origen: Procedencia del contenido (``"guia"``,
+            ``"asignatura_sin_guia"``, ``"salidas"`` o ``"plan_de_estudios"``).
+        tamanos: Terna ``(objetivo, máximo, mínimo)`` en caracteres. Por
+            defecto, los del ADR-0001.
 
     Returns:
         Items de tipo ``chunk``, en orden.
     """
     # El encabezado y su salto de línea restan espacio al cuerpo: se
     # descuentan del presupuesto para que el chunk completo (encabezado +
-    # cuerpo) nunca supere TAMANO_MAXIMO. Sin este descuento, 40 chunks del
+    # cuerpo) nunca supere el máximo. Sin este descuento, 40 chunks del
     # dataset real superaban el máximo (hasta 1.758 caracteres).
+    tam_objetivo, tam_maximo, tam_minimo = tamanos
     hueco = len(encabezado) + 1
-    maximo = max(TAMANO_MAXIMO - hueco, 1)
-    objetivo = max(TAMANO_OBJETIVO - hueco, 1)
-    minimo = min(TAMANO_MINIMO, maximo)
+    maximo = max(tam_maximo - hueco, 1)
+    objetivo = max(tam_objetivo - hueco, 1)
+    minimo = min(tam_minimo, maximo)
     piezas = _dividir_en_piezas(texto, maximo)
     cuerpos = _empaquetar(piezas, objetivo, maximo)
     cuerpos = _fusionar_pequenos(cuerpos, minimo, maximo)
@@ -323,6 +355,7 @@ def _clave_asignatura(grado: str, codigo: str | None, nombre: str) -> tuple[str,
 
 def _chunks_de_plan_de_estudios(
     items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int],
 ) -> list[dict[str, Any]]:
     """Genera el listado de asignaturas de cada titulación, por grupo (IT-100).
 
@@ -390,12 +423,20 @@ def _chunks_de_plan_de_estudios(
                     "\n\n".join(lineas),
                     base,
                     "plan_de_estudios",
+                    tamanos,
                 )
             )
     return chunks
 
 
-def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def trocear_dataset(
+    items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int] = (
+        TAMANO_OBJETIVO,
+        TAMANO_MAXIMO,
+        TAMANO_MINIMO,
+    ),
+) -> list[dict[str, Any]]:
     """Convierte el dataset del spider en la lista de chunks del RAG.
 
     Recorre las guías docentes (contenido principal), las asignaturas sin
@@ -463,7 +504,7 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
             "nombre": nombre,
             "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
         }
-        chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia"))
+        chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
 
     for item in items:
         if item["tipo"] == "salidas":
@@ -477,9 +518,11 @@ def trocear_dataset(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 # aplica al ECTS ausente.
                 "tipo_asignatura": "",
             }
-            chunks.extend(_chunks_de_unidad(encabezado, item["texto"], base, "salidas"))
+            chunks.extend(
+                _chunks_de_unidad(encabezado, item["texto"], base, "salidas", tamanos)
+            )
 
-    chunks.extend(_chunks_de_plan_de_estudios(items))
+    chunks.extend(_chunks_de_plan_de_estudios(items, tamanos))
 
     # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
     # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
@@ -585,7 +628,15 @@ def procedencia_de(items: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def main(ruta_entrada: str, ruta_salida: str) -> None:
+def main(
+    ruta_entrada: str,
+    ruta_salida: str,
+    tamanos: tuple[int, int, int] = (
+        TAMANO_OBJETIVO,
+        TAMANO_MAXIMO,
+        TAMANO_MINIMO,
+    ),
+) -> None:
     """Trocea un dataset JSON y escribe los chunks resultantes.
 
     El fichero de salida empieza por el item ``procedencia`` (IT-90) para que
@@ -596,10 +647,13 @@ def main(ruta_entrada: str, ruta_salida: str) -> None:
     Args:
         ruta_entrada: Ruta del ``grados.json`` exportado por el spider.
         ruta_salida: Ruta donde escribir el ``chunks.json`` resultante.
+        tamanos: Terna ``(objetivo, máximo, mínimo)`` en caracteres. Por
+            defecto, los del ADR-0001.
     """
     items = json.loads(Path(ruta_entrada).read_text(encoding="utf-8"))
-    chunks = trocear_dataset(items)
+    chunks = trocear_dataset(items, tamanos)
     procedencia = procedencia_de(items)
+    procedencia["tamanos"] = list(tamanos)
     Path(ruta_salida).write_text(
         json.dumps([procedencia, *chunks], ensure_ascii=False, indent=1),
         encoding="utf-8",
@@ -607,9 +661,22 @@ def main(ruta_entrada: str, ruta_salida: str) -> None:
     cursos = ", ".join(procedencia["cursos"]) or "sin determinar"
     print(
         f"{len(chunks)} chunks escritos en {ruta_salida} "
-        f"(extraccion {procedencia['fecha_extraccion']}, curso {cursos})"
+        f"(extraccion {procedencia['fecha_extraccion']}, curso {cursos}, "
+        f"tamanos {tamanos[0]}/{tamanos[1]}/{tamanos[2]})"
     )
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    # Los tamaños son opcionales y solo se pasan para experimentar (IT-100:
+    # re-trocear a la ventana de los modelos de 128 tokens para compararlos en
+    # igualdad de condiciones). Sin ellos, el comportamiento es el de siempre.
+    #
+    #     py -m tfg_uja.chunker entrada.json salida.json [objetivo maximo minimo]
+    if len(sys.argv) >= 6:
+        main(
+            sys.argv[1],
+            sys.argv[2],
+            (int(sys.argv[3]), int(sys.argv[4]), int(sys.argv[5])),
+        )
+    else:
+        main(sys.argv[1], sys.argv[2])
