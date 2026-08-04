@@ -322,6 +322,83 @@ son los demás fragmentos de la misma unidad**. Revisar el criterio de relevanci
 corresponde a IT-69, y la posible expansión por unidad al recuperar es una
 decisión del recuperador de la Fase 2.
 
+## Adenda de 2026-08-04 — la comparativa rehecha en igualdad de condiciones
+
+El cuerpo de este ADR se apoya en la ejecución del 29/07, que tenía un defecto de
+diseño reconocido en «Amenazas a la validez»: **dos de los cuatro candidatos no
+podían leer los fragmentos enteros**. Esa amenaza queda saldada, con evidencia, y
+la decisión hay que revisarla a la luz de lo siguiente. **El cuerpo original no se
+toca**; esta adenda dice qué sigue en pie y qué no.
+
+### Qué se hizo distinto
+
+Se rehízo el experimento (IT-100) con **cuatro candidatos de ventana ≥ 512 tokens**,
+de modo que los cuatro leen el corpus completo. La igualdad de condiciones ya no es
+una promesa del texto: la columna «Corpus leído» del informe la comprueba en cada
+ejecución. Corpus de 797 fragmentos (rastreo del 01/08/2026) y 50 preguntas.
+
+Los dos modelos *paraphrase* de ventana 128 salen de la comparativa. Sus cifras y el
+hallazgo del truncado quedan en `docs/experimentos/it28-embeddings-historico.md`.
+
+Resultados literales en `docs/experimentos/it28-embeddings.md`:
+
+| Modelo | RU@3 | RU@5 | RU@10 | R@3 | MRR | Truncados |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| intfloat/multilingual-e5-small | 0,945 | 0,970 | **1,000** | 0,771 | 0,881 | 0 |
+| **intfloat/multilingual-e5-large** | **0,995** | **1,000** | **1,000** | **0,831** | 0,948 | 0 |
+| BAAI/bge-m3 | 0,950 | 0,990 | 0,995 | 0,808 | **0,955** | 0 |
+| hiiamsid/sentence_similarity_spanish_es | 0,320 | 0,400 | 0,480 | 0,168 | 0,278 | 1 |
+
+### Lo que confirma
+
+**La conclusión sobre el modelo específico de español sale reforzada, y ahora sí
+demostrada.** En el cuerpo de este ADR se argumentaba que la tarea de entrenamiento
+pesa más que el idioma, pero se podía objetar que las cifras estaban contaminadas
+por el truncado. Ya no: `hiiamsid` lee el corpus entero —trunca 1 fragmento de 797—
+y aun así saca **0,320 de RU@3 frente a 0,945**, y **0,000** en las preguntas de
+listado. La explicación que queda es que está entrenado para similitud semántica y
+no para recuperación.
+
+Limitación que hay que mantener declarada: esto no demuestra que no pueda existir un
+modelo español bueno para recuperación, sino que **el mejor disponible hoy no lo es**.
+Comprobado el 04/08/2026: es el único específico de español con uso real.
+
+### Lo que obliga a revisar
+
+🔴 **`multilingual-e5-large` recupera mejor que el modelo elegido, en todas las
+métricas.** RU@3 de 0,995 frente a 0,945, y RU@5 de 1,000. Sobre 50 preguntas son
+**dos preguntas y media** de diferencia.
+
+Mantener `multilingual-e5-small` sigue siendo defendible, pero **por coste y no por
+calidad**, y el ADR tiene que decirlo con esas palabras:
+
+- El grande ocupa **~2,2 GB de RAM frente a ~0,5 GB**, en una máquina de 16 GB donde
+  en la Fase 2 tendrá que convivir con un LLM. No es un argumento de velocidad: la
+  primera ejecución de la comparativa **murió por falta de memoria** cargándolo.
+- El pequeño alcanza **RU@10 = 1,000**: la unidad correcta siempre está entre las
+  diez primeras.
+- Lo que el pequeño pierde está **localizado** —preguntas de metadatos (0,602 frente
+  a 0,870) y de salidas—, y es atacable filtrando por metadatos en el índice, para lo
+  que ya existe `tipo_asignatura` desde IT-100, en vez de cambiando de modelo.
+
+El análisis completo de ese compromiso, con las frecuencias de cada coste, está en
+`docs/experimentos/modelo-grande-frente-a-pequeno.md`.
+
+**Decisión pendiente del autor:** ratificar `multilingual-e5-small` con la
+justificación de coste, o cambiar a `multilingual-e5-large` y asumir el impacto en
+IT-98, en `incrustaciones.py` y en el índice.
+
+### Lo que NO arregla esta adenda
+
+La amenaza principal declarada en el cuerpo —**el experimento se ejecutó sin fijar
+antes los umbrales de la hipótesis**— sigue en pie. Fijarlos ahora, conociendo los
+resultados, sería peor que no fijarlos. Se mantiene declarada, y se corrige de cara
+al ADR-0004 (base vectorial), cuyos umbrales están escritos antes de ejecutar nada.
+
+Y los tiempos de las tres ejecuciones **no son comparables entre sí**: cambiaron el
+corpus, el conjunto de preguntas, el tamaño de lote (de 32 a 8, por memoria) y los
+modelos. La columna de tiempo solo separa órdenes de magnitud.
+
 ## Referencias
 
 - Fichas de los cuatro modelos evaluados, enlazadas en cada alternativa.
