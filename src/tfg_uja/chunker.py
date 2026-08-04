@@ -167,7 +167,7 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     acotados.
 
     Con los tamaños del ADR-0001 el caso no se alcanzaba, y salió a la luz al
-    hacerlos parametrizables para el experimento de ventana igualada: con un
+    hacerlos parametrizables y probar valores pequeños: con un
     máximo de 380 caracteres, el fragmentador se colgaba sobre el dataset
     completo. Es la segunda vez que esta función no termina por un motivo que
     las pruebas en verde no veían.
