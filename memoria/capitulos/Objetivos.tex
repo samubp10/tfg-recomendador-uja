@@ -18,8 +18,10 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
   \item \textbf{OE1.} Construir una colección documental estructurada y
         trazable con los planes de estudio, las guías docentes y las salidas
         profesionales de la EPSJ, mediante un proceso de extracción web propio.
-  \item \textbf{OE2.} Definir y evaluar experimentalmente una estrategia de
-        fragmentación (\textit{chunking}) de esa colección adecuada al dominio.
+  \item \textbf{OE2.} \textcolor{borrador2}{Definir una estrategia de
+        fragmentación (\textit{chunking}) de esa colección adecuada al dominio,
+        justificada sobre la medición de sus textos y el contraste razonado de
+        alternativas.}
   \item \textbf{OE3.} Seleccionar, con criterios cuantitativos, el modelo de
         incrustaciones (\textit{embeddings}) y la base de datos vectorial del
         sistema.
@@ -30,6 +32,33 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
   \item \textbf{OE6.} Ofrecer el sistema a través de una aplicación web de
         chat accesible y sin registro.
 \end{itemize}
+
+\begin{borrador}
+  \item \textbf{OE2 reformulado el 04/08/2026.} Decía: <<Definir y \emph{evaluar
+          experimentalmente} una estrategia de fragmentación (\textit{chunking}) de esa
+        colección adecuada al dominio>>.
+  \item \textbf{El motivo, que hay que poder decir en voz alta:} ese experimento no se ha
+        hecho ni está planificado. Lo que sí se hizo fue medir la colección (mediana,
+        percentil 90 y máximo de las guías), comparar cuatro estrategias de fragmentación y
+        justificar la elegida en el ADR-0001. Eso es contraste razonado, no evaluación
+        experimental de los parámetros: el tamaño objetivo, el máximo y el mínimo siguen
+        siendo \textbf{provisionales}, como declara el propio ADR-0001.
+  \item 🔴 \textbf{Reformular un objetivo para que encaje con lo hecho es exactamente lo
+        que un tribunal llama mover la portería}, salvo que se declare. Por eso el
+        parámetro sin validar no desaparece: baja a las amenazas a la validez del
+        Capítulo~\ref{cap:resultados} y a trabajo futuro en el
+        Capítulo~\ref{cap:conclusiones}. Si lo quitas de aquí y no lo pones allí, el cambio
+        deja de ser honesto y pasa a ser cosmético.
+  \item \textbf{Alternativa, por si prefieres no reformular:} hacer el experimento. Sería
+        comparar dos o tres juegos de parámetros con las mismas métricas de recuperación
+        del conjunto de IT-27. No es caro ---el guion ya existe---, pero obliga a
+        re-fragmentar y reindexar, y con la entrega el 03/09 compite con IT-31 y con la
+        Fase 2. Es tu decisión de calendario, no mía.
+  \item \textbf{Comprobado además:} ni OE2 ni OE3 tienen ningún requisito de usuario
+        trazado hasta ellos en la Tabla~\ref{tab:requisitos_usuario}. No es un defecto
+        ---son objetivos técnicos internos--- pero si alguien pregunta por la trazabilidad
+        completa, conviene tener la respuesta preparada.
+\end{borrador}
 
 \section{Hipótesis de trabajo}
 
