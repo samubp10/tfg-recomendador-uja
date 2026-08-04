@@ -99,9 +99,9 @@ se recogen en el Capítulo~\ref{cap:resultados}.}
   \item \textbf{Fase:} 1 (tutoría del 04/08/2026: <<diferenciar tests de código y las
         pruebas del LLM>>). Este apartado es el andamiaje de esa distinción; reescríbelo con
         tus palabras.
-  \item \textbf{Falta un número aquí y no lo pongo yo inventado:} cuántas pruebas tiene hoy
-        la batería. Cuéntalo con \texttt{pytest} sobre \texttt{main}, no sobre \texttt{doc}
-        --- esta rama va por detrás y da una cifra menor de la real.
+  \item \textbf{La batería tiene 185 pruebas} y todas pasan (ejecutado el 04/08/2026, ya
+        con \texttt{doc} sincronizada con \texttt{main}). La cifra crece en cada tarjeta:
+        vuelve a contarla al cerrar la memoria en vez de arrastrar esta.
   \item El tercer nivel se completa cuando exista la Fase 2. Hasta entonces, lo de la
         fidelidad y la pertinencia está en futuro a propósito: todavía no se ha medido.
   \item \textit{Recall@K} y MRR aparecen aquí sin marcar con \texttt{\textbackslash gl}
@@ -337,14 +337,12 @@ apartado~\ref{secc:verificacion_fase0}.}
 
 \begin{borrador}
   \item \textbf{Cifras contadas con \texttt{gh} el 04/08/2026}: 98 historias, 54 cerradas
-        y 44 abiertas; 65 \textit{must}, 27 \textit{should} y 5 \textit{could}. Hay que
+        y 44 abiertas; 66 \textit{must}, 27 \textit{should} y 5 \textit{could}. Hay que
         volver a contarlas al cerrar la memoria, porque el \textit{backlog} sigue vivo.
-  \item \textbf{Dos etiquetas del repositorio están incompletas} y por eso los números de
-        arriba no salen solos de \texttt{gh}: IT-55 no tiene ni fase ni tipo (aquí se
-        cuenta como Gestión de la Fase 0, que es como aparecía en la tabla anterior) e
-        IT-100 tiene dos tipos a la vez, código y experimento (aquí se cuenta una sola
-        vez, como código) y no tiene prioridad. Son dos clics en GitHub, pero hazlos tú:
-        el \textit{backlog} es tuyo.
+  \item \textbf{Las 98 tarjetas tienen ya exactamente una fase, un tipo y una prioridad},
+        así que la tabla se reproduce entera con \texttt{gh issue list} y no hace falta
+        ajustar nada a mano. Se corrigió el 04/08/2026: a IT-55 le faltaban la fase y el
+        tipo, e IT-100 tenía dos tipos a la vez y ninguna prioridad.
   \item \textbf{La tabla anterior (\texttt{TablaBacklog.tex}) se ha eliminado.} Listaba las
         historias hasta IT-69 y se había quedado a mitad; mantenerla al día con 98 tarjetas
         y creciendo era condenarla a discrepar con el repositorio. Sigue en el historial de
