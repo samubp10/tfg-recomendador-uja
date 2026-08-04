@@ -204,8 +204,10 @@ def cargar_datos(
 
     Args:
         ruta_chunks: Corpus a evaluar. Es parámetro para poder medir el mismo
-            conjunto de preguntas sobre un troceado distinto (experimento de
-            ventana igualada) sin tocar el corpus real.
+            conjunto de preguntas sobre un troceado distinto sin tocar el
+            corpus real, que es lo que hará falta cuando se validen
+            experimentalmente los tamaños de fragmento (siguen provisionales
+            según el ADR-0001).
 
     Returns:
         Tupla ``(chunks, preguntas)``.
@@ -376,8 +378,8 @@ def main(argumentos: list[str] | None = None) -> int:
     Uso::
 
         py scripts/experimento_embeddings.py
-        py scripts/experimento_embeddings.py --chunks data/chunks_126.json \\
-            --salida docs/experimentos/it28-troceado-corto.md
+        py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
+            --salida docs/experimentos/otro-informe.md
 
     Args:
         argumentos: Argumentos de línea de comandos. ``None`` toma los reales.
