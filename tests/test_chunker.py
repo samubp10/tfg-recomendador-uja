@@ -23,6 +23,19 @@ from tfg_uja.chunker import (
     trocear_dataset,
 )
 
+
+def _de_origen(chunks, origen):
+    """Chunks de un origen concreto.
+
+    Desde IT-100 cualquier dataset con asignaturas genera ademas sus
+    fragmentos de `plan_de_estudios`, asi que asertar sobre el total acopla
+    cada prueba a tipos de fragmento que no esta comprobando. Filtrar por
+    origen deja cada prueba mirando lo suyo y la hace inmune a que se anadan
+    tipos nuevos.
+    """
+    return [c for c in chunks if c["origen"] == origen]
+
+
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
@@ -104,7 +117,21 @@ def test_el_troceo_es_determinista(muestra):
 
 def test_ningun_chunk_queda_por_debajo_del_minimo(chunks):
     # La fusión debe absorber los fragmentos residuales del troceo.
-    assert all(len(c["texto"]) >= TAMANO_MINIMO for c in chunks)
+    #
+    # El invariante real no es «ningún chunk baja del mínimo» sino «ninguno
+    # baja del mínimo pudiendo evitarlo»: una unidad cuyo texto completo es
+    # más corto que el umbral no tiene con qué fusionarse, y el ADR-0001 deja
+    # claro que el mínimo es una preferencia y solo el máximo es restricción
+    # dura. Antes de IT-100 ninguna unidad del corpus era tan corta y la
+    # distinción no se notaba; los listados de plan de estudios de una
+    # titulación con pocas optativas sí lo son.
+    cortos = [
+        c for c in chunks if len(c["texto"]) < TAMANO_MINIMO and c["total_chunks"] > 1
+    ]
+    assert not cortos, (
+        f"{len(cortos)} chunks por debajo del mínimo teniendo vecinos con los "
+        f"que fusionarse (p. ej. {cortos[0]['nombre']!r})"
+    )
 
 
 def test_asignatura_sin_guia_genera_chunk_informativo(chunks):
@@ -268,7 +295,7 @@ def test_asignaturas_sin_codigo_no_se_pisan_entre_ellas():
         _asignatura_sin_codigo("Métodos topográficos", "OB", "6"),
         _asignatura_sin_codigo("Trabajo de Fin de Grado", "TFG", "12"),
     ]
-    chunks = trocear_dataset(asignaturas)
+    chunks = _de_origen(trocear_dataset(asignaturas), "asignatura_sin_guia")
 
     assert len(chunks) == 3
     for chunk in chunks:
@@ -432,6 +459,56 @@ def test_un_par_que_si_cabe_junto_se_sigue_fusionando():
     assert len(resultado) == 1
 
 
+# --- La fusión tampoco termina si el reparto AUMENTA el número de fragmentos ---
+
+# El arreglo de IT-92 dejó fuera un segundo camino por el que el bucle no
+# termina, y solo quedó a la vista al hacer parametrizables los tamaños de
+# fragmento: con un máximo de 380 caracteres, el fragmentador se colgaba sobre
+# el dataset completo.
+#
+# Aquel arreglo razonaba que el número de fragmentos solo podía disminuir, y
+# que por eso reiniciar el recorrido tras cada fusión estaba acotado. Pero el
+# reparto de un par que no cabe junto puede devolver TRES fragmentos donde
+# había dos, y entonces el recuento sube. Alternando fusiones que bajan el
+# recuento y repartos que lo suben, oscilaba (7, 8, 7, 8...) sin converger.
+#
+# Este es el caso real más pequeño que lo reproduce, reducido automáticamente
+# desde el corpus de 2026-27: dos fragmentos del temario de una asignatura de
+# empresa, ambos por debajo del mínimo. Juntos suman 191 caracteres y no caben
+# bajo el máximo de 188; al repartirlos, sus fronteras de frase producen tres.
+_TEMARIO_A = (
+    "Decisiones de inversión y financiación\n"
+    "- Tipos de interés: TAE, TIN, efectivo por periodos."
+)
+_TEMARIO_B = (
+    "- Interés con inflación.\n"
+    "- Capitalización simple y compuesta.\n"
+    "Movimiento de capitales en el tiempo."
+)
+_MINIMO_TEMARIO = 100
+_MAXIMO_TEMARIO = 188
+
+
+def test_la_fusion_termina_cuando_el_reparto_devuelve_mas_fragmentos():
+    piezas = [_TEMARIO_A, _TEMARIO_B]
+    # La geometría del caso es lo que lo hace válido: si alguien "arregla" los
+    # textos y dejan de cumplirla, la prueba pasaría sin ejercitar nada.
+    assert all(len(p) < _MINIMO_TEMARIO for p in piezas)
+    assert len(f"{_TEMARIO_A}\n{_TEMARIO_B}") > _MAXIMO_TEMARIO
+
+    resultado = _con_limite_de_tiempo(
+        lambda: _fusionar_pequenos(piezas, _MINIMO_TEMARIO, _MAXIMO_TEMARIO)
+    )
+
+    # Nunca más fragmentos de los que entraron: es justo la propiedad que
+    # garantiza la terminación, porque hace que el recuento sea monótono no
+    # creciente y acote los reinicios del recorrido.
+    assert len(resultado) <= len(piezas)
+    assert all(len(c) <= _MAXIMO_TEMARIO for c in resultado)
+    # Y renunciar al reparto no puede costar contenido.
+    assert sum(len(c) for c in resultado) >= sum(len(p) for p in piezas)
+
+
 # --- IT-94: la guía anunciada que no llegó a extraerse ---
 
 # Caso real del rastreo del 28/07/2026: cinco asignaturas cuya guía se sirve
@@ -454,7 +531,7 @@ _CRIPTOGRAFIA = {
 
 
 def test_una_guia_anunciada_que_no_se_extrajo_no_borra_la_asignatura():
-    chunks = trocear_dataset([_CRIPTOGRAFIA])
+    chunks = _de_origen(trocear_dataset([_CRIPTOGRAFIA]), "asignatura_sin_guia")
     assert len(chunks) == 1
     assert chunks[0]["origen"] == "asignatura_sin_guia"
     assert chunks[0]["nombre"] == "Criptografía"
@@ -465,7 +542,8 @@ def test_ese_fragmento_no_afirma_que_la_guia_no_este_publicada():
     # La guía SÍ está publicada. Decir lo contrario metería una afirmación
     # falsa en el propio corpus, y el sistema se la daría por buena al
     # estudiante que preguntase por la asignatura.
-    texto = trocear_dataset([_CRIPTOGRAFIA])[0]["texto"]
+    chunks = _de_origen(trocear_dataset([_CRIPTOGRAFIA]), "asignatura_sin_guia")
+    texto = chunks[0]["texto"]
     assert "está publicada" in texto
     assert "no está publicada" not in texto
 
@@ -476,7 +554,8 @@ def test_ese_fragmento_tampoco_se_atribuye_un_fallo_propio():
     # seis se leen perfectamente y lo vacío son sus secciones en el origen.
     # Atribuirse un fallo inexistente es tan poco honesto como el error que
     # IT-94 evitó, solo que en la otra dirección.
-    texto = trocear_dataset([_CRIPTOGRAFIA])[0]["texto"]
+    chunks = _de_origen(trocear_dataset([_CRIPTOGRAFIA]), "asignatura_sin_guia")
+    texto = chunks[0]["texto"]
     assert "no ha podido obtenerse" not in texto
     assert "no recoge ni resumen ni temario" in texto
 
@@ -484,7 +563,9 @@ def test_ese_fragmento_tampoco_se_atribuye_un_fallo_propio():
 def test_la_asignatura_sin_guia_publicada_conserva_su_mensaje():
     # El otro caso no cambia: si la fuente no publica la guía, se dice así.
     sin_publicar = {**_CRIPTOGRAFIA, "tiene_guia": False}
-    texto = trocear_dataset([sin_publicar])[0]["texto"]
+    texto = _de_origen(trocear_dataset([sin_publicar]), "asignatura_sin_guia")[0][
+        "texto"
+    ]
     assert "no está publicada" in texto
 
 
@@ -501,4 +582,4 @@ def test_si_la_guia_si_llega_no_se_duplica_la_asignatura():
         "temario": "Tema 1. Cifrado clásico. Tema 2. Clave pública.",
     }
     chunks = trocear_dataset([_CRIPTOGRAFIA, guia])
-    assert {c["origen"] for c in chunks} == {"guia"}
+    assert "asignatura_sin_guia" not in {c["origen"] for c in chunks}

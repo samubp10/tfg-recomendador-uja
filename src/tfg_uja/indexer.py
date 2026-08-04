@@ -107,6 +107,12 @@ def metadatos_de_chunk(chunk: dict[str, Any]) -> dict[str, str | int]:
         "codigos": SEPARADOR_LISTAS.join(
             codigo if codigo is not None else "" for codigo in chunk["codigos"]
         ),
+        # IT-100: el tipo viaja como metadato para poder filtrar el índice por
+        # él («solo obligatorias de esta titulación»), que es una consulta que
+        # la búsqueda vectorial no sabe hacer y el estudiante sí pregunta. Se
+        # usa `.get` porque un chunks.json anterior a IT-100 no lo lleva y
+        # reindexar un corpus viejo no tiene por qué fallar.
+        "tipo_asignatura": chunk.get("tipo_asignatura", ""),
         "chunk_index": chunk["chunk_index"],
         "total_chunks": chunk["total_chunks"],
     }
