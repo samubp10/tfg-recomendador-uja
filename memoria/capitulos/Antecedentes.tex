@@ -56,13 +56,13 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. A continuación se revisan, primero, los asistentes conversacionales que varias universidades españolas ponen a disposición de sus estudiantes y, después, otros sistemas que recomiendan estudios sin usar un chatbot. El apartado final sitúa este trabajo frente a todos ellos.
 
 \textcolor{borrador2}{Esa revisión se aborda en dos bloques. El primero recoge el estado del
-arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y
-por qué alucina, en qué consiste la recuperación aumentada por generación, qué distingue a
-un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección
-documental y una base de datos vectorial. El segundo revisa los sistemas ya desplegados que
-persiguen un objetivo parecido al de este trabajo. Las decisiones concretas que se han
-tomado sobre cada una de estas tecnologías, junto con las alternativas descartadas, se
-justifican en el Capítulo~\ref{cap:materialesymetodos}.}
+  arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y
+  por qué alucina, en qué consiste la recuperación aumentada por generación, qué distingue a
+  un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección
+  documental y una base de datos vectorial. El segundo revisa los sistemas ya desplegados que
+  persiguen un objetivo parecido al de este trabajo. Las decisiones concretas que se han
+  tomado sobre cada una de estas tecnologías, junto con las alternativas descartadas, se
+  justifican en el Capítulo~\ref{cap:materialesymetodos}.}
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
 
@@ -181,11 +181,11 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 
 \begin{borrador}
   \item \textbf{Fase:} 1 (IT-31). Panorama de bases de datos vectoriales: qué son,
-        búsqueda exacta frente a aproximada y qué familias de índice existen
-        (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
-        de la Fase 1; falta volcarlo aquí.
+  búsqueda exacta frente a aproximada y qué familias de índice existen
+  (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
+  de la Fase 1; falta volcarlo aquí.
   \item Este apartado describe \emph{qué existe}. La comparativa experimental
-        entre candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos}.
+  entre candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos}.
 \end{borrador}
 
 \subsection{Asistentes conversacionales en el ámbito universitario}
@@ -294,23 +294,80 @@ lo que impone exigencias específicas de legibilidad y fiabilidad.
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales pueden llegar a contener información de carácter personal del profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios pueden ser menor de edad. Estos dos tipos de información sitúan al proyecto bajo dos marcos normativos distintos: el de la protección de datos personales y el que regula la extracción automatizada de información de la web. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales pueden llegar a contener información de carácter personal del profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios pueden ser menores de edad. Estos dos tipos de información sitúan al proyecto bajo tres marcos normativos distintos: el que regula la extracción automatizada de información de la web, el de la protección de datos personales y el de la transparencia en el uso de la inteligencia artificial. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
 
-Con respecto a la extracción automatizada de información de la web, actualmente el scraper se descarga los pdf de las guías docentes (previamente en formato HTML) que contienen datos como direcciones de correo, nombres y teléfenos. De cada documento se extrae únicamente el resumen y la descripción de contenido mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, ningún dato personal llega a la colección indexada. Gracias a esta actividad, me puedo apoyar en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
+\subsection{Extracción automatizada de información de la web}
 
-Siguiendo con la misma extracción/scraping y Propiedad Intelectual, me acojo en el artículo 67 del Real Decreto-Ley 24/2021\cite{rdl24_2021} que dice que no es necesario pedir <<la autorización del titular de los derechos para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minerías de datos>>.
+Con respecto a la extracción automatizada de información de la web, actualmente el \textit{scraper} se descarga los PDF de las guías docentes (previamente en formato HTML) que contienen datos como direcciones de correo, nombres y teléfonos. De cada documento se extrae únicamente el resumen y la descripción de contenidos mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, ningún dato personal llega a la colección indexada. Gracias a esta actividad, el trabajo puede apoyarse en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
 
-Es cierto que el apartado 3 de este mismo artículo desactiva la exención cuando el propietario ha reservado expresamente el uso de las obras a medios de lectura mecánica u otros medios que resulten adecuados, pero comprobado a fecha del 4 de agosto de 2026, el fichero \texttt{robots.txt} de la Escuela Politécnica Superior de Jaén no prohíbe ninguna de las rutas que se rastrean, y el aviso legal de la Universidad de Jaén \cite{uja_avisolegal} contienen una cláusula genérica de propiedad intelectual sin reserva específica con respecto a la extracción automatizada.
+\textcolor{borrador2}{Ese filtrado es una lista de \emph{permitidos} y no de prohibidos, y la
+diferencia no es un detalle de implementación: solo se conservan las dos secciones nombradas
+expresamente, de modo que cualquier apartado que la fuente añada en el futuro queda fuera por
+omisión. Con una lista de prohibidos habría bastado con que la universidad publicase una
+sección nueva con datos de contacto para que entrase sola en la colección. Sobre lo extraído
+se aplica además una redacción final de direcciones de correo y números de teléfono, como red
+de seguridad ante un cambio de plantilla en el origen.}
 
-La otra categoría de información sensible es la de el público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD), fija en catorce años la edad a partir de la cual un menos puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga se ampara en el artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021}, cuyo apartado 1 establece que <<no será precisa la autorización del titular de los derechos de propiedad intelectual para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minería de textos y datos>>.
 
-La alternativa elegida es evitar el problema en el origen,, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
+\textcolor{borrador2}{La expresión <<accesibles de forma legítima>> se sostiene aquí sobre
+hechos comprobables y no sobre una declaración de intenciones: las páginas se sirven de forma
+pública y sin autenticación, el rastreador respeta el fichero \texttt{robots.txt}, espacia sus
+peticiones y se identifica con un agente de usuario propio, y en ningún momento se elude una
+medida de protección.}
 
-Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y accesible de que está interactuando con un sistema de IA en el momento de la primera interacción.
+Es cierto que el apartado 3 de este mismo artículo desactiva la exención cuando el propietario ha reservado expresamente el uso de las obras a medios de lectura mecánica u otros medios que resulten adecuados, pero comprobado a fecha del 4 de agosto de 2026, el fichero \texttt{robots.txt} de la Escuela Politécnica Superior de Jaén no prohíbe ninguna de las rutas que se rastrean.
+
+\textcolor{borrador2}{Conviene no dejar el argumento ahí, porque el aviso legal de la
+Universidad de Jaén\cite{uja_avisolegal} sí contiene, en su apartado sexto, una prohibición
+general de extraer el contenido del sitio. La pregunta pertinente es entonces si esa cláusula
+constituye ya la reserva del artículo 67.3, y la respuesta es que no reúne la forma que el
+propio precepto exige: la reserva ha de hacerse <<a medios de lectura mecánica u otros medios
+que resulten adecuados>>, y un párrafo redactado en prosa dentro de una página de avisos no
+es legible por una máquina. Ningún rastreador puede interpretarlo ni obedecerlo de forma
+automática. El medio que sí cumple esa condición, y que es el estándar aceptado en la
+práctica para expresar esa reserva, es precisamente el fichero \texttt{robots.txt}: de ahí
+que sea él, y no el aviso legal, la prueba que se comprueba.}
+
+\textcolor{borrador2}{Esta lectura es la razonable a la vista de la literalidad del precepto,
+pero no es una certeza: qué medios resultan <<adecuados>> a efectos del artículo 67.3 es una
+cuestión interpretativa, y no puede descartarse que una cláusula contractual llegase a
+considerarse suficiente. Se declara aquí como incertidumbre, y no se presenta como un
+dictamen jurídico. La circunstancia que
+reduce su alcance práctico es que la fuente rastreada es la propia institución en la que se
+presenta este trabajo, y que el resultado no se explota comercialmente.}
+
+\subsection{Protección de datos y usuarios menores de edad}
+
+La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018}, fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+
+La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
+
+\subsection{Transparencia en el uso de la inteligencia artificial}
+
+Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de IA en el momento de la primera interacción.
+
+\textcolor{borrador2}{No se trata de una previsión para el futuro: el artículo 113 del propio
+reglamento fija el 2 de agosto de 2026 como fecha de aplicación de las obligaciones de su
+capítulo IV, de manera que este deber ya es exigible mientras se escribe este trabajo. Es
+también el único de los tres marcos que impone una obligación positiva sobre la interfaz, y
+no un límite a lo que el sistema puede hacer: obliga a que la propia aplicación lo declare.}
 
 
-\begin{borrador}                          
-  
+\begin{borrador}
+  \item \textbf{Los tres títulos de subsección de este apartado los he propuesto yo}
+        (extracción automatizada · protección de datos y menores · transparencia de la IA).
+        Cámbialos si prefieres otros: no van en turquesa porque el color en un título se
+        arrastraría al índice.
+  \item \textbf{Comprobado el 04/08/2026 contra el articulado, no contra resúmenes:} la cita
+        del artículo 67.1 es literal del texto consolidado del BOE, y el 50.5 del Reglamento
+        de IA dice <<clara y distinguible>>, con la accesibilidad en frase aparte. Varias
+        fuentes divulgativas sitúan la minería de textos y datos en otros artículos del Real
+        Decreto-ley; no te fíes de ellas.
+  \item \textbf{Queda una afirmación que tendrás que poder sostener en la defensa:} que el
+        sistema no conserva historial de conversaciones. Hoy es cierta porque la interfaz no
+        existe. Al construirla en la Fase 3, si se guardara algo aunque fuera para depurar,
+        este párrafo dejaría de serlo.
   \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
   conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
   obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
