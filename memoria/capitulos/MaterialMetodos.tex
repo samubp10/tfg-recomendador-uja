@@ -798,11 +798,30 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 
 \subsection{Extracción de las salidas profesionales}
 
-Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce \sout{8} 7 bloques de salidas,
-uno por cada grado simple con contenido propio. Los dobles grados son un caso particular: no publican salidas profesionales propias,
-sino que su perfil de egreso es la unión de las salidas de los dos grados simples que los componen.
-Se comprobó contra los datos reales que esa unión es exacta, de modo que las salidas de un doble grado se reconstruyen a
-partir de las de sus grados base en lugar de almacenarse por duplicado.
+Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce \sout{8} \sout{7} 8 bloques de salidas,
+uno por cada grado simple con contenido propio. \sout{Los dobles grados son un caso particular: no publican salidas profesionales propias,
+  sino que su perfil de egreso es la unión de las salidas de los dos grados simples que los componen.
+  Se comprobó contra los datos reales que esa unión es exacta, de modo que las salidas de un doble grado se reconstruyen a
+  partir de las de sus grados base en lugar de almacenarse por duplicado.}
+
+\textcolor{borrador2}{El párrafo tachado sostenía que las salidas de un doble grado son
+la unión exacta de las de sus dos grados base y que, por tanto, no hacía falta
+recogerlas. Al comprobarlo frase a frase contra la página real, la afirmación resultó ser
+cierta solo en parte: la lista de ámbitos profesionales sí es la concatenación de las de
+los dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones
+reguladas da acceso la doble titulación, y eso no aparece en ninguno de los dos grados
+simples. Reconstruir esa frase uniendo los dos textos habría exigido escribirla, es decir,
+inventar contenido que la fuente sí publica; por eso se rastrea la página en lugar de
+sintetizarla. De las cinco titulaciones dobles, solo una la publica, de ahí que los
+bloques sean ocho y no doce.}
+
+\textcolor{borrador2}{La comprobación destapó además un defecto propio: la extracción
+recogía únicamente los elementos de la lista y descartaba los párrafos del cuerpo, de modo
+que ese texto de presentación se venía perdiendo \emph{en las siete titulaciones} desde
+que se implementó. Es el quinto caso en este trabajo de un dato que desaparece sin que
+nada falle, y el más ilustrativo de todos: la prueba automática que cubría esta función
+daba por buenas dieciséis líneas sobre una página que traía dieciocho, porque comprobaba
+lo que el código producía y no lo que la fuente contenía.}
 
 \subsection{Troceado y deduplicación de la colección}
 \label{subsec:chunking}
