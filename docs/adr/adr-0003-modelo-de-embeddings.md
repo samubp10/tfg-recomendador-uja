@@ -2,7 +2,7 @@
 
 *Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
 
-- **Estado:** Propuesta (pendiente de aceptación del autor)
+- **Estado:** **Aceptada** (ratificada el 2026-08-05, ver la adenda final)
 - **Fecha:** 2026-07-29
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 1 (indexación y recuperación) del Recomendador UJA
@@ -221,9 +221,11 @@ adenda; **es la clase de premisa que hay que medir en vez de suponer.**
   obvia, que cualquiera que retome el proyecto puede romper sin darse cuenta.
 - La reproducibilidad depende de que Hugging Face siga sirviendo esos pesos.
   Mitigación: quedan en caché local tras la primera descarga.
-- `indexer.py` **sigue montando la línea base**. Mientras no se cambie, el
+- ~~`indexer.py` **sigue montando la línea base**. Mientras no se cambie, el
   índice del sistema se construye con el modelo que este ADR descarta, y
-  truncando la mitad del corpus.
+  truncando la mitad del corpus.~~ **Saldada en IT-98** (2026-08-04): el modelo
+  vive en `incrustaciones.py` y tanto el indexador como el recuperador lo
+  toman de ahí, de modo que no pueden discrepar entre sí.
 
 ## Amenazas a la validez
 
@@ -251,7 +253,10 @@ adenda; **es la clase de premisa que hay que medir en vez de suponer.**
    entre sí los cuatro modelos, no como afirmación de rendimiento del sistema.
 7. **El Recall@3 de este ADR no puede llegar a 1: su techo es 0,868.** Añadida
    el 01/08/2026 y desarrollada en el apartado siguiente. Es la que más cambia
-   cómo se leen las cifras de la tabla.
+   cómo se leen las cifras de la tabla. *(Ese 0,868 es el del corpus de 781
+   fragmentos y 36 preguntas. Sobre los 797 fragmentos y 50 preguntas de la
+   adenda del 04/08 el techo es **0,905**, y sobre el corpus vigente de 884
+   habría que recalcularlo: ver la adenda del 05/08.)*
 
 ## Adenda de 2026-08-01 — de dónde sale K, y su techo
 
@@ -384,9 +389,46 @@ calidad**, y el ADR tiene que decirlo con esas palabras:
 El análisis completo de ese compromiso, con las frecuencias de cada coste, está en
 `docs/experimentos/modelo-grande-frente-a-pequeno.md`.
 
-**Decisión pendiente del autor:** ratificar `multilingual-e5-small` con la
-justificación de coste, o cambiar a `multilingual-e5-large` y asumir el impacto en
-IT-98, en `incrustaciones.py` y en el índice.
+### Ratificación (2026-08-05)
+
+**Se ratifica `intfloat/multilingual-e5-small`.** El criterio que decide **no es la
+calidad de la recuperación sino la viabilidad del sistema completo** en el equipo en
+el que se va a defender, y este ADR tiene que decirlo con esas palabras y no dar a
+entender que gana en las métricas, porque no gana.
+
+Los tres apoyos, con las cifras de `docs/experimentos/it28-embeddings.md`:
+
+1. **Con diez resultados por consulta los dos empatan en lo que importa.** RU@10 vale
+   **1,000 en ambos**: la unidad correcta siempre está entre las diez primeras. La
+   ventaja del grande vive en K=3 (0,945 frente a 0,995), y K=10 son unos 2.640
+   tokens de contexto, holgados para cualquier LLM de pesos abiertos.
+   ⚠️ **El matiz que no se puede omitir:** empatan en exhaustividad *por unidad*, no
+   *por fragmento*. En R@10 el pequeño saca **0,938 frente a 0,985**, sobre un techo
+   alcanzable de 0,998. Decir «con K=10 alcanza al grande» sin acotar a qué métrica es
+   una afirmación que se cae en cuanto alguien mira la tabla.
+2. **El coste que se paga siempre es la memoria residente**, ~0,5 GB frente a ~2,2 GB,
+   y en la Fase 2 el recuperador tendrá que convivir con el modelo generativo en una
+   máquina de 16 GB. El factor 8× de tiempo de indexación, que es lo que más llama la
+   atención, es justo lo que **menos** importa: solo se paga al reindexar. La primera
+   ejecución de la comparativa **murió por falta de memoria** cargando el grande.
+3. **La diferencia total son 2,5 preguntas sobre 50**, y el conjunto lo ha anotado una
+   sola persona. Esa magnitud cabe dentro de lo que movería otra anotación, así que la
+   separación no se presenta como establecida.
+
+**En qué condiciones la decisión sería la contraria**, que es lo que la hace revisable
+y no arbitraria: si hubiera una GPU utilizable, si el sistema se desplegara en un
+servidor en lugar de en un equipo personal, o si se decidiera operar con K=3.
+
+🔴 **Una dependencia que hay que declarar, porque es circular si no se dice.** El
+apoyo principal de esta ratificación es que el sistema usará K=10, y **K=10 no está
+decidido**: es parámetro del estudio de ablación (IT-49), como advierte este mismo ADR
+unas líneas más arriba. Si la Fase 2 acabara operando con K=3 por coste de contexto,
+esta ratificación se quedaría sin su argumento principal y habría que reabrirla.
+
+**Lo que no se ha medido**, y por tanto no se afirma: la latencia de una consulta con
+cada modelo, y el consumo de memoria del sistema completo con el generativo dentro. Lo
+segundo no puede medirse hasta el ADR-0005. Mientras tanto, el punto 2 es un argumento
+de orden de magnitud, no una medición del conjunto.
 
 ### Lo que NO arregla esta adenda
 
@@ -398,6 +440,28 @@ al ADR-0004 (base vectorial), cuyos umbrales están escritos antes de ejecutar n
 Y los tiempos de las tres ejecuciones **no son comparables entre sí**: cambiaron el
 corpus, el conjunto de preguntas, el tamaño de lote (de 32 a 8, por memoria) y los
 modelos. La columna de tiempo solo separa órdenes de magnitud.
+
+## Adenda de 2026-08-05 — el corpus ya no es el que se midió
+
+IT-101 incorporó al corpus los planes de estudio de las cinco titulaciones dobles, que
+hasta entonces estaban sin una sola asignatura. **El corpus pasó de 797 a 884
+fragmentos** (+11 %), y el conjunto de asignaturas de 350 a 528.
+
+Consecuencia para este ADR, que hay que tener presente al citarlo:
+
+- **Las cifras absolutas de sus tablas corresponden a un corpus que ya no existe.** No
+  se recalculan aquí: el experimento se ejecutó sobre 797 fragmentos y así queda
+  registrado, con su fecha.
+- **El orden entre los modelos no debería moverse.** Ya se comprobó estable sobre dos
+  corpus distintos (892 y 781 fragmentos), que es justamente lo que permitió fijar la
+  decisión. Pero eso es una expectativa razonable, **no una medición sobre el corpus
+  nuevo**, y como tal se declara.
+- **El techo de exhaustividad por fragmento cambia con el corpus.** Sobre los 797
+  fragmentos y las 50 preguntas valía 0,905 para K=3, 0,977 para K=5 y 0,998 para
+  K=10. Los 0,868 que cita la adenda del 01/08/2026 son de un corpus y un conjunto de
+  preguntas anteriores (781 fragmentos, 36 preguntas) y no deben mezclarse con las
+  tablas de la adenda del 04/08.
+- **IT-31 debe ejecutarse sobre los 884 fragmentos**, no sobre los 797.
 
 ## Referencias
 
