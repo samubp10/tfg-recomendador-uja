@@ -196,11 +196,18 @@ class GradosSpider(scrapy.Spider):
         profesionales». Si alguno no existe, su valor queda a ``None``.
 
         Cuando existe el enlace a asignaturas, emite además una petición
-        para descargar la tabla de asignaturas del grado. Si existe el enlace
-        a salidas y el grado no es un doble grado, emite también una petición
-        para sus salidas profesionales: las salidas de un doble grado son la
-        unión de las de sus dos grados base (que ya se rastrean por separado),
-        por lo que no se duplican.
+        para descargar la tabla de asignaturas del grado, y otra para sus
+        salidas profesionales si están publicadas.
+
+        Las salidas de los dobles grados se excluían a propósito, dando por
+        supuesto que eran la unión exacta de las de sus dos grados base.
+        **IT-101 comprobó que no lo son**: la página del Doble Grado en
+        Ingeniería Eléctrica y Mecánica enuncia además a qué profesiones
+        reguladas da acceso la doble titulación, que es justo lo que un
+        estudiante preuniversitario quiere saber, y no repite las salidas
+        comunes a los dos grados. Reproducir eso uniendo dos textos exigiría
+        deduplicar y redactar la frase de cabecera; leer la página que ya lo
+        dice es más simple y más fiel.
 
         Args:
             response (scrapy.http.Response): Respuesta de la portada del grado.
@@ -213,6 +220,16 @@ class GradosSpider(scrapy.Spider):
         url_asignaturas = response.css(
             'a[href*="asignaturas-y-profesorado"]::attr(href)'
         ).get()
+        if not url_asignaturas:
+            # Los dobles grados publican su plan bajo otra ruta (IT-101):
+            # «plan-de-estudios» en lugar de «asignaturas-y-profesorado». No es
+            # que la fuente no lo publique, es que el patrón del enlace es
+            # otro, y buscando solo el primero las cinco titulaciones dobles se
+            # quedaban sin una sola asignatura. Se busca en segundo lugar para
+            # no cambiar de página en los grados simples, que traen las dos.
+            url_asignaturas = response.css(
+                'a[href*="plan-de-estudios"]::attr(href)'
+            ).get()
         url_salidas = response.css('a[href*="salidas-profesionales"]::attr(href)').get()
         yield {
             "tipo": "grado",
@@ -229,7 +246,7 @@ class GradosSpider(scrapy.Spider):
                 callback=self.parse_asignaturas,
                 meta={"nombre": nombre},
             )
-        if url_salidas and "Doble Grado" not in nombre:
+        if url_salidas:
             yield response.follow(
                 url_salidas,
                 callback=self.parse_salidas,
@@ -406,7 +423,9 @@ class GradosSpider(scrapy.Spider):
                 campo = "codigo"
             elif etiqueta.startswith("asignatura"):
                 campo = "nombre"
-            elif etiqueta.startswith("tipo"):
+            elif etiqueta.startswith("tipo") or etiqueta.startswith("caracter"):
+                # «Carácter» es como rotulan esa misma columna los planes de
+                # los dobles grados (IT-101). El rótulo cambia, el dato no.
                 campo = "tipo"
             elif etiqueta.startswith("mencion"):
                 campo = "mencion"
@@ -504,13 +523,20 @@ class GradosSpider(scrapy.Spider):
     def parse_salidas(self, response: Response) -> Iterator[dict[str, Any]]:
         """Extrae las salidas profesionales de un grado.
 
-        Las salidas se publican como una lista dentro del cuerpo del
-        contenido de la página (``.field--name-body``). Se extrae cada
-        elemento de la lista, se limpia con
-        :func:`~tfg_uja.text_cleaner.limpiar_texto` y se compone un texto con
-        una viñeta por salida. Si la página no contiene ese bloque (por
-        ejemplo, un grado sin salidas publicadas o una URL sin contenido), no
-        se emite ningún item, para no introducir registros vacíos.
+        Las salidas se publican dentro del cuerpo del contenido de la página
+        (``.field--name-body``): uno o dos párrafos de presentación y, debajo,
+        una lista de ámbitos profesionales. Se extrae cada elemento, se limpia
+        con :func:`~tfg_uja.text_cleaner.limpiar_texto` y se compone un texto
+        con los párrafos primero y una viñeta por salida después. Si la página
+        no contiene la lista (por ejemplo, un grado sin salidas publicadas o
+        una URL sin contenido), no se emite ningún item, para no introducir
+        registros vacíos.
+
+        Los párrafos de presentación **no se recogían hasta IT-101** y se
+        perdían en silencio, en las siete titulaciones. Son los que dicen a qué
+        profesiones reguladas da acceso el título, que es información que la
+        lista de viñetas no contiene y que un estudiante preuniversitario sí
+        pregunta.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de
@@ -520,11 +546,22 @@ class GradosSpider(scrapy.Spider):
             dict: Salidas del grado, con el texto en viñetas. Solo se emite
                 si hay al menos una salida.
         """
+        introduccion = []
+        for parrafo in response.css(".field--name-body p"):
+            texto = limpiar_texto(" ".join(parrafo.css("::text").getall()))
+            if texto:
+                introduccion.append(texto)
         elementos = response.css(".field--name-body ul li")
         salidas = []
         for elemento in elementos:
             texto = limpiar_texto(" ".join(elemento.css("::text").getall()))
-            if texto:
+            # La fuente repite viñetas: la página de un doble grado encadena
+            # las listas de sus dos grados base sin fusionarlas, de modo que
+            # las salidas comunes a ambos aparecen dos veces (4 de 16 en el
+            # Doble Grado en Ingeniería Eléctrica y Mecánica). Se conserva la
+            # primera aparición y se descartan las repetidas: repetir una
+            # salida no añade información y sí desplaza a otras del fragmento.
+            if texto and texto not in salidas:
                 salidas.append(texto)
         if not salidas:
             self.logger.warning(
@@ -532,10 +569,11 @@ class GradosSpider(scrapy.Spider):
                 response.url,
             )
             return
+        vinetas = "\n".join(f"- {salida}" for salida in salidas)
         yield {
             "tipo": "salidas",
             "grado": response.meta["nombre"],
-            "texto": "\n".join(f"- {salida}" for salida in salidas),
+            "texto": "\n".join([*introduccion, vinetas]) if introduccion else vinetas,
         }
 
     def parse_guia(self, response: Response) -> Iterator[dict[str, Any]]:
