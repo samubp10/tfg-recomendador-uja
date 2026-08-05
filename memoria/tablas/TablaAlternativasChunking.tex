@@ -15,10 +15,9 @@
     Respeta la restricción por construcción, ya que parte de la unidad (la guía de una asignatura o el bloque de salidas de una titulación) y solo la divide si excede el máximo, cortando por fronteras naturales del texto. & 
     \textbf{Elegida}                                                                                                                                                                                                                                                                              \\
     \addlinespace
-    Semántica por incrustaciones                                                                                                                                                                                              & 
-    Cortar donde cae la similitud entre frases obligaría a elegir ya el modelo de incrustaciones, 
-    que es una decisión de la Fase 1. Prematura.                                                                                                                                                                              & 
-    Descartada                                                                                                                                                                                                                                                                                    \\
+    Semántica por incrustaciones                                                                                                                                                                                              &
+    \textcolor{borrador2}{Cortar donde cae la similitud entre frases exige tener elegido el modelo de incrustaciones. Ya lo está, así que hoy podría implementarse; lo que no hay es forma de medir si mejora, porque el acierto por unidad está saturado. Se compara en la Fase 2 con métricas de generación.} &
+    \textcolor{borrador2}{Aplazada}                                                                                                                                                                                                                                                               \\
     \addlinespace
     Un fragmento por asignatura, sin dividir                                                                                                                                                                                  & 
     La mitad de las guías supera los 2\,677 caracteres y la mayor llega a 23\,940: el sobrante se truncaría en silencio al calcular la incrustación, perdiendo contenido sin aviso.                                           & 
