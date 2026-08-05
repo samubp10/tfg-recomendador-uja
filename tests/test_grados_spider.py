@@ -731,9 +731,14 @@ def test_extrae_las_salidas_profesionales_de_un_grado():
     assert item["tipo"] == "salidas"
     assert item["grado"] == "Grado en Ingeniería Informática"
     lineas = item["texto"].split("\n")
-    assert len(lineas) == 16
-    assert lineas[0] == "- Programador de aplicaciones."
-    assert all(linea.startswith("- ") for linea in lineas)
+    # Dos párrafos de presentación y dieciséis viñetas. Los párrafos se
+    # perdían hasta IT-101: este test daba por buenas 16 líneas, todas
+    # viñetas, sobre una página que traía además dos párrafos con contenido.
+    assert len(lineas) == 18
+    assert lineas[0].startswith("El graduado en Ingeniería Informática")
+    vinetas = [linea for linea in lineas if linea.startswith("- ")]
+    assert len(vinetas) == 16
+    assert vinetas[0] == "- Programador de aplicaciones."
 
 
 def test_no_emite_item_si_no_hay_bloque_de_salidas():
@@ -902,3 +907,107 @@ def test_la_marca_de_no_ofertada_sobrevive_aunque_haya_enlace():
 
     assert items[0]["nombre"] == "Topografía y construcción"
     assert items[0]["ofertada"] is False
+
+
+# --- IT-101: los dobles grados publican su plan bajo otra ruta ---
+
+_URL_PORTADA_DOBLE = (
+    "https://eps.ujaen.es/grados/doble-grado-en-ingenieria-electrica-y-mecanica"
+)
+_NOMBRE_DOBLE = "Doble Grado en Ingeniería Eléctrica y Mecánica"
+
+
+def _salida_portada_doble():
+    return list(
+        GradosSpider().parse_portada(
+            _respuesta(
+                "portada_doble_grado.html",
+                url=_URL_PORTADA_DOBLE,
+                meta={"nombre": _NOMBRE_DOBLE},
+            )
+        )
+    )
+
+
+def test_la_portada_de_un_doble_grado_encuentra_su_plan_de_estudios():
+    """El enlace se llama «plan-de-estudios», no «asignaturas-y-profesorado».
+
+    Con un solo patrón, las cinco titulaciones dobles se quedaban sin una
+    asignatura en el corpus, y sin ningún aviso: la fuente sí publica el plan.
+    """
+    item = next(s for s in _salida_portada_doble() if isinstance(s, dict))
+    assert item["es_doble_grado"] is True
+    assert item["url_asignaturas"] is not None
+    assert item["url_asignaturas"].endswith("/plan-de-estudios")
+
+
+def test_un_doble_grado_pide_sus_salidas_profesionales():
+    """Las salidas de un doble grado no son la unión exacta de sus bases.
+
+    Se excluían por suponer que sí lo eran. La página del doble grado añade a
+    qué profesiones reguladas da acceso la doble titulación, que no aparece en
+    ninguno de los dos grados simples.
+    """
+    urls = [s.url for s in _salida_portada_doble() if isinstance(s, Request)]
+    assert any(u.endswith("/salidas-profesionales") for u in urls)
+
+
+def _asignaturas_del_plan_doble():
+    resp = _respuesta(
+        "plan_doble_electrica_mecanica.html",
+        url=f"{_URL_PORTADA_DOBLE}/plan-de-estudios",
+        meta={"nombre": _NOMBRE_DOBLE},
+    )
+    return [
+        s
+        for s in GradosSpider().parse_asignaturas(resp)
+        if isinstance(s, dict) and s["tipo"] == "asignatura"
+    ]
+
+
+def test_el_plan_de_un_doble_grado_da_sus_asignaturas():
+    asignaturas = _asignaturas_del_plan_doble()
+    assert len(asignaturas) == 44
+    assert sum(int(a["ects"]) for a in asignaturas if a["ects"]) == 285
+    assert all(a["grado"] == _NOMBRE_DOBLE for a in asignaturas)
+
+
+def test_el_caracter_obl_del_plan_doble_se_normaliza_a_ob():
+    """La columna se rotula «CARÁCTER» y abrevia «OBL», no «OB».
+
+    Con el rótulo sin reconocer y la abreviatura sin mapear, la validación
+    descartaba las 44 asignaturas y la tabla se perdía entera.
+    """
+    tipos = {a["tipo_asignatura"] for a in _asignaturas_del_plan_doble()}
+    assert tipos == {"OB", "TFG"}
+
+
+def test_las_asignaturas_del_plan_doble_no_enlazan_guia():
+    """No hay que descargar ninguna guía nueva: ya están en los grados base."""
+    assert not any(a["tiene_guia"] for a in _asignaturas_del_plan_doble())
+
+
+# --- IT-101: las salidas traen párrafos de presentación, no solo viñetas ---
+
+
+def _salida_unica(fixture, nombre):
+    resp = _respuesta(fixture, url="https://x/salidas", meta={"nombre": nombre})
+    return next(iter(GradosSpider().parse_salidas(resp)))
+
+
+def test_las_salidas_recogen_los_parrafos_de_presentacion():
+    """Los párrafos se perdían en silencio en las siete titulaciones."""
+    item = _salida_unica("salidas_doble_electrica_mecanica.html", _NOMBRE_DOBLE)
+    assert "profesiones reguladas" in item["texto"]
+    assert item["texto"].splitlines()[0].startswith("La Doble titulación")
+
+
+def test_las_salidas_repetidas_de_un_doble_grado_no_se_duplican():
+    """La fuente encadena las listas de los dos grados base sin fusionarlas.
+
+    Cuatro de las dieciséis viñetas aparecen dos veces, una por cada grado.
+    """
+    item = _salida_unica("salidas_doble_electrica_mecanica.html", _NOMBRE_DOBLE)
+    vinetas = [ln for ln in item["texto"].splitlines() if ln.startswith("- ")]
+    assert len(vinetas) == len(set(vinetas))
+    assert len(vinetas) == 12
