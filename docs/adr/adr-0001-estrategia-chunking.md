@@ -208,6 +208,96 @@ Qué se corrige y qué no:
 Detalle completo, con la tabla de los cuatro modelos y sus ventanas, en el
 **ADR-0003** y en `docs/experimentos/it28-embeddings.md`.
 
+### 🔴 Revisión de 2026-08-05 — el motivo por el que se descartó la Opción C ha caducado
+
+La Opción C (chunking semántico por embeddings) se descartó por una razón de
+**secuencia**, no de calidad: «exige elegir ya el modelo de embeddings (decisión
+de Fase 1, ADR-0003, **sin experimento aún**)». Esa frase describe un estado del
+proyecto que ya no existe. El ADR-0003 está cerrado y ratificado, el modelo es
+`intfloat/multilingual-e5-small`, y por tanto **hoy nada impide implementar la
+Opción C**. Un motivo de calendario que ya se ha cumplido deja de ser un motivo.
+
+Se plantea entonces la pregunta directa: ¿hay que probarla ahora? Se responde
+midiendo qué podría enseñar el experimento **antes** de ejecutarlo.
+
+#### Lo que un experimento de fragmentación podría resolver hoy
+
+Medido el 2026-08-05 sobre el corpus vigente (884 fragmentos, 322 unidades) con
+el modelo del ADR-0003 y las 50 preguntas del conjunto de evaluación:
+
+| Métrica | Valor | Margen hasta su techo | En preguntas de 50 |
+|---|---:|---:|---:|
+| Acierto por unidad, K=3 | 0,965 | 0,035 | 1,75 |
+| **Acierto por unidad, K=5** | **0,990** | **0,010** | **0,5** |
+| Acierto por unidad, K=10 | 0,995 | 0,005 | 0,25 |
+| Cobertura por fragmento, K=5 | 0,849 | 0,114 (techo 0,963) | — |
+
+Y la estructura del corpus explica por qué: la mediana de una unidad son **2
+fragmentos**, y **116 de las 322 unidades caben en uno solo**, de modo que en más
+de un tercio del corpus la estrategia de troceo no llega ni a intervenir.
+
+🔴 **Hay un problema metodológico que pesa más que los márgenes.** La cobertura
+por fragmento **no es comparable entre dos fragmentaciones distintas**: al
+cambiar el troceo cambia cuántos fragmentos tiene cada unidad, es decir, cambia
+el denominador de la propia métrica y también su techo. Una fragmentación que
+produjese trozos más grandes subiría esa cifra sin recuperar mejor: estaría
+moviendo la vara, no saltando más alto. La única métrica que sí se puede
+comparar entre fragmentaciones es el acierto por unidad, porque el conjunto de
+evaluación anota unidades y no fragmentos.
+
+Juntando las dos cosas: **la única métrica comparable está saturada en 0,990, y
+las que tienen margen no son comparables.** Un experimento entre estrategias de
+fragmentación produciría, en el mejor de los casos, una diferencia de media
+pregunta sobre cincuenta, que es menos que la resolución del propio conjunto
+(1/50 = 0,02). No se podría distinguir de la variación de una anotación
+distinta.
+
+#### Qué se decide en esta revisión
+
+**La Opción B se mantiene, y la Opción C queda aplazada a la Fase 2, no
+descartada.** El motivo que se registra a partir de ahora **no es la secuencia
+del proyecto ni el coste de reindexar** —el autor ha manifestado explícitamente
+que asume ese coste—, sino que **el experimento no puede resolver la pregunta
+con los instrumentos de medida disponibles hoy**.
+
+Esto no es un tecnicismo, es dónde actúa realmente la fragmentación. Las métricas
+de recuperación responden a «¿ha encontrado la asignatura correcta?», y la
+respuesta ya es «casi siempre». Lo que la fragmentación decide de verdad es si el
+trozo que llega al modelo generativo **se entiende por sí solo**: si una
+definición queda partida entre dos fragmentos y solo llega la mitad, la
+recuperación puntúa igual de bien y la respuesta sale peor. Eso lo miden las
+métricas de generación, que no existirán hasta la Fase 2.
+
+**Condición explícita de reapertura**, para que no quede como una promesa vaga:
+si la evaluación de la generación encuentra fallos de fidelidad atribuibles a
+fragmentos que parten el contexto, se reabre este ADR y se compara la Opción C
+contra la B **con métricas de generación**, no de recuperación.
+
+#### Consecuencia para la memoria
+
+La Tabla de estrategias del Capítulo 4 no puede seguir diciendo que la Opción C
+es «prematura», porque ya no lo es. El motivo del descarte hay que sustituirlo
+por el de esta revisión: aplazada por falta de un instrumento de medida capaz de
+distinguirla, con su condición de reapertura escrita.
+
+### Adenda de 2026-08-05 — cifras del corpus tras IT-101
+
+Las series anteriores tampoco son ya las vigentes. IT-101 incorporó los planes de
+estudio de los dobles grados y los fragmentos agregados de plan de estudios:
+
+| Magnitud | Corpus 2026-27 (29/07) | Corpus vigente (05/08) |
+|---|---:|---:|
+| Guías | 288 | 288 |
+| **Fragmentos** | **781** | **884** |
+| Reparto | 711 guía · 62 sin guía · 8 salidas | 761 guía · 86 sin guía · 24 plan de estudios · 13 salidas |
+| Unidades | — | 322 |
+| Tamaño mín / mediana / p90 / máx | 227 / 1.128 / 1.234 / 1.499 | 227 / 1.139 / 1.267 / **1.498** |
+
+El máximo sigue por debajo de la restricción dura de 1.500 y ningún fragmento la
+supera. Los parámetros (1.200 / 1.500 / 200) **continúan sin validación
+experimental propia**, y por lo dicho arriba tampoco la tendrán en la Fase 1: la
+amenaza se mantiene declarada y pasa a trabajo futuro.
+
 ## Consecuencias
 
 ### Positivas
