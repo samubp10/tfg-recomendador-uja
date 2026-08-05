@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import unicodedata
 from datetime import date
 from pathlib import Path
 from typing import Any, Final
@@ -64,6 +65,34 @@ _GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
 }
 
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
+
+
+#: Acrónimo del grado de procedencia que los planes de los dobles grados
+#: añaden al final del nombre de una asignatura, entre paréntesis: «CIRCUITOS
+#: (GIE)», «MARKETING INDUSTRIAL (GIOI)». No forma parte del nombre con el que
+#: la asignatura figura en su grado simple.
+_SUFIJO_GRADO: Final[re.Pattern[str]] = re.compile(r"\s*\([A-Z]{2,8}\)\s*$")
+
+
+def _normalizar(nombre: str) -> str:
+    """Devuelve un nombre de asignatura en forma comparable.
+
+    Los planes de los dobles grados escriben los nombres en mayúsculas
+    («MATEMÁTICAS I») y los de los grados simples en minúsculas
+    («Matemáticas I»). Comparando en crudo no casaba ni uno solo de los 178
+    nombres, y las asignaturas del doble grado acababan con un fragmento que
+    afirmaba en falso que no tenían guía publicada.
+
+    Args:
+        nombre: Nombre de la asignatura tal como llega de la fuente.
+
+    Returns:
+        El nombre en minúsculas, sin tildes y con los espacios colapsados.
+    """
+    sin_tildes = (
+        unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode("ascii")
+    )
+    return " ".join(sin_tildes.split()).lower()
 
 
 def _dividir_en_piezas(texto: str, maximo: int) -> list[str]:
@@ -479,11 +508,81 @@ def trocear_dataset(
             )
         grupos_guia.setdefault((item["nombre"], texto), []).append(item)
 
+    # IT-101: un doble grado no publica guías propias. Sus asignaturas son, casi
+    # todas, las mismas que las de sus dos grados base, pero con códigos de otra
+    # serie, así que no se pueden cruzar por código: se cruzan por nombre. En vez
+    # de duplicar el temario bajo la titulación doble ---unos 200 fragmentos de
+    # contenido idéntico, que además rompería la deduplicación de arriba--- se
+    # añade el doble grado a la lista de titulaciones de la unidad que ya existe.
+    # El fragmento recuperado dice entonces que esa asignatura se imparte también
+    # en el doble grado, sin que el corpus crezca ni un carácter.
+    dobles = {
+        g["nombre"] for g in items if g["tipo"] == "grado" and g.get("es_doble_grado")
+    }
+    grupos_por_nombre: dict[str, list[tuple[str, str]]] = {}
+    for clave in grupos_guia:
+        grupos_por_nombre.setdefault(_normalizar(clave[0]), []).append(clave)
+    dobles_por_grupo: dict[tuple[str, str], list[tuple[str, str | None]]] = {}
+    atendidas: set[tuple[str, str]] = set()
+    ambiguas: list[tuple[str, str]] = []
+    for asig_doble in (
+        a for a in items if a["tipo"] == "asignatura" and a["grado"] in dobles
+    ):
+        candidatos = grupos_por_nombre.get(_normalizar(asig_doble["nombre"]), [])
+        if not candidatos:
+            # El plan del doble grado desambigua algunas asignaturas anotando
+            # entre paréntesis el acrónimo del grado del que provienen
+            # («GESTIÓN FINANCIERA (GIOI)»). Ese sufijo no forma parte del
+            # nombre en el grado base, así que se reintenta sin él: recupera 90
+            # de las 98 que quedaban sueltas. Se prueba en segundo lugar para
+            # no arriesgar una coincidencia falsa cuando el nombre completo ya
+            # casa por sí solo.
+            candidatos = grupos_por_nombre.get(
+                _normalizar(_SUFIJO_GRADO.sub("", asig_doble["nombre"])), []
+            )
+        if len(candidatos) != 1:
+            # Ni se adivina ni se reparte entre varios: con más de un grupo
+            # candidato no se sabe de cuál cuelga, y con ninguno la asignatura
+            # es realmente propia del doble grado (los dos TFG). En ambos casos
+            # sigue su camino y acaba con su fragmento informativo.
+            if candidatos:
+                ambiguas.append((asig_doble["grado"], asig_doble["nombre"]))
+            continue
+
+        dobles_por_grupo.setdefault(candidatos[0], []).append(
+            (asig_doble["grado"], asig_doble["codigo"])
+        )
+        atendidas.add(
+            _clave_asignatura(
+                asig_doble["grado"], asig_doble["codigo"], asig_doble["nombre"]
+            )
+        )
+
+    if ambiguas:
+        # Un nombre que casa con varios grupos de guía no se reparte a ojo. Se
+        # avisa porque este proyecto ya ha pagado cuatro veces el precio de un
+        # dato que se pierde sin decir nada.
+        print(
+            f"AVISO: {len(ambiguas)} asignaturas de dobles grados con nombre "
+            "ambiguo entre varias guías; no se enganchan a ninguna.",
+            file=sys.stderr,
+        )
+        for grado_doble, nombre_asig in ambiguas:
+            print(f"   {grado_doble} - {nombre_asig}", file=sys.stderr)
+
     for (nombre, texto), guias in grupos_guia.items():
         # Orden estable de titulaciones para que el troceo sea determinista.
         guias = sorted(guias, key=lambda g: g["grado"])
         grados = [g["grado"] for g in guias]
         codigos = [g["codigo"] for g in guias]
+        # Los dobles grados se añaden DESPUÉS de ordenar y de calcular
+        # `guias[0]`: los metadatos del encabezado (ECTS, tipo) tienen que
+        # seguir saliendo de una titulación que sí publica la guía.
+        for grado_doble, codigo_doble in sorted(
+            dobles_por_grupo.get((nombre, texto), [])
+        ):
+            grados.append(grado_doble)
+            codigos.append(codigo_doble)
         asignatura = asignaturas.get(
             _clave_asignatura(guias[0]["grado"], guias[0]["codigo"], nombre)
         )
@@ -547,6 +646,11 @@ def trocear_dataset(
         if a["tipo"] == "asignatura"
         and _clave_asignatura(a["grado"], a["codigo"], a["nombre"])
         not in guias_presentes
+        # IT-101: las asignaturas de un doble grado que ya se han enganchado a
+        # la guía de su grado base no van por aquí. Emitirles un fragmento
+        # informativo diciendo que «no tiene guía publicada» sería falso: la
+        # tiene, y está en el corpus bajo la titulación simple.
+        and _clave_asignatura(a["grado"], a["codigo"], a["nombre"]) not in atendidas
     ):
         encabezado = _encabezado_asignatura(asignatura, [asignatura["grado"]])
         # Los dos motivos por los que una asignatura se queda sin guía no son

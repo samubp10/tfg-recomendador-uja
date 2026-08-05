@@ -226,10 +226,24 @@ def main(argv: list[str] | None = None) -> int:
     for c in chunks:
         if c["origen"] == "guia":
             unidades_guia |= _claves_chunk(c)
-    assert con_guia == unidades_guia, (
-        "descuadre guía<->chunk: "
-        f"faltan {len(con_guia - unidades_guia)}, "
-        f"sobran {len(unidades_guia - con_guia)}"
+    # IT-101: un fragmento de guía puede citar además la titulación doble en la
+    # que esa misma asignatura se imparte, y esos pares NO tienen item `guia`
+    # propio porque el doble grado no publica guías. Son legítimos, pero solo
+    # ellos: la comprobación sigue exigiendo que no falte ninguna guía y que
+    # todo par sobrante pertenezca a un doble grado. Aflojarla sin esa segunda
+    # condición dejaría pasar justo lo que este verificador existe para pillar.
+    dobles = {
+        g["nombre"] for g in dataset if g["tipo"] == "grado" and g.get("es_doble_grado")
+    }
+    faltan = con_guia - unidades_guia
+    sobran = unidades_guia - con_guia
+    ajenos = {par for par in sobran if par[0] not in dobles}
+    assert (
+        not faltan
+    ), f"descuadre guía<->chunk: faltan {len(faltan)}: {sorted(faltan)[:5]}"
+    assert not ajenos, (
+        f"{len(ajenos)} pares de fragmento de guía sin item `guia` y sin ser de "
+        f"un doble grado: {sorted(ajenos)[:5]}"
     )
 
     informativos = set()

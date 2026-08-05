@@ -31,6 +31,11 @@ _MAPA_TIPOS: Final[dict[str, str]] = {
     "formación básica": "FB",
     "obligatoria": "OB",
     "optativa": "OP",
+    # Los planes de los dobles grados abrevian el carácter de otra forma
+    # (IT-101): su columna «CARÁCTER» trae «OBL» donde los grados simples
+    # escriben «OB». Sin esta entrada, es_asignatura_valida rechazaba las 44
+    # asignaturas del plan y la titulación entera se quedaba fuera del corpus.
+    "obl": "OB",
 }
 
 
