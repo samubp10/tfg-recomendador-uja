@@ -11,6 +11,7 @@ Acepta una ruta alternativa como argumento.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -29,11 +30,17 @@ from pathlib import Path
 #: fallen tras un rastreo NO significa por sí solo que algo esté roto, pero
 #: tampoco se actualizan sin mirar de dónde sale la diferencia.
 ESPERADO = {
-    "asignaturas": 350,
+    # IT-101: 350 antes de rastrear los planes de los dobles grados. Las 178
+    # nuevas son sus asignaturas; casi todas son las mismas que las de sus
+    # grados base, pero con código propio, así que aquí cuentan aparte.
+    "asignaturas": 528,
     "grados": 12,
     "guias": 288,
-    # Los dobles grados no emiten salidas (decisión de IT-07): 7, no 12.
-    "salidas": 7,
+    # IT-101: 8, no 7. Los dobles grados sí emiten salidas desde que se
+    # comprobó que su página no es la unión exacta de las de sus grados base:
+    # añade a qué profesiones reguladas da acceso la doble titulación. Solo uno
+    # de los cinco la publica, de ahí que sean 8 y no 12.
+    "salidas": 8,
     "no_ofertadas": 10,
     # Fiel a la fuente: la web no publica los ECTS de una asignatura y no se
     # imputan (decisión 9 del proyecto).
@@ -193,7 +200,20 @@ def main(argv: list[str] | None = None) -> int:
     # parte de él. Este invariante lleva vigente desde IT-10 y saltó por
     # primera vez el 28/07/2026: la fuente había empezado a incrustar un
     # enlace «( Syllabus )» dentro de la celda del nombre (IT-93).
-    sucios = [a for a in asignaturas if "(" in a["nombre"]]
+    #
+    # IT-101 añade la única excepción legítima: los planes de los dobles grados
+    # anotan entre paréntesis el acrónimo del grado del que procede cada
+    # asignatura («GESTIÓN FINANCIERA (GIOI)»). Eso lo escribe la fuente y no es
+    # basura arrastrada, así que se admite —y solo eso: cualquier otro
+    # paréntesis, y cualquiera en una titulación simple, sigue fallando.
+    dobles = {g["nombre"] for g in grados if g.get("es_doble_grado")}
+    acronimo_de_grado = re.compile(r"^[^()]+ \([A-Z]{2,8}\)$")
+    sucios = [
+        a
+        for a in asignaturas
+        if "(" in a["nombre"]
+        and not (a["grado"] in dobles and acronimo_de_grado.match(a["nombre"]))
+    ]
     assert not sucios, (
         f"{len(sucios)} nombres con paréntesis, p. ej. {sucios[0]['nombre']!r}. "
         f"Se ha colado en el nombre algo que no le pertenece."
