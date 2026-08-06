@@ -1,0 +1,26 @@
+% Extracto de la rejilla de fragmentación de IT-16: la mejor configuración de
+% cada estrategia, más la que el sistema usaba antes de la revisión, como
+% referencia. Las 45 configuraciones completas están en el ADR-0001 y en
+% docs/experimentos/it16-fragmentacion.md, que lo escribe el propio guion.
+% RU@K es la exhaustividad por unidad; la columna de fragmentos va al lado
+% porque la métrica no es del todo independiente del número de trozos.
+\begin{table}[htbp]
+  \centering
+  \caption[Mejor configuración de cada estrategia de fragmentación]{Mejor
+    configuración de cada estrategia de fragmentación, sobre las cincuenta
+    preguntas del conjunto de evaluación. La última fila es la configuración
+    que el sistema empleaba antes de esta comparación.}
+  \label{tab:rejilla_fragmentacion}
+  \small
+  \begin{tabular}{@{}llrrrrrr@{}}
+    \toprule
+    \textbf{Estrategia}  & \textbf{Ajuste} & \textbf{Máx.} & \textbf{Frag.} & \textbf{RU@1} & \textbf{RU@3} & \textbf{MRR} & \textbf{Trunc.} \\
+    \midrule
+    Tamaño fijo          & solape 0 \%     & 600           & 2.312          & \textbf{0,950} & 0,985        & \textbf{0,972} & 0                \\
+    \textbf{Estructural} & objetivo 100 \% & \textbf{900}  & 1.334          & 0,930          & \textbf{0,985} & 0,970        & 0                \\
+    Semántica            & percentil 30    & 600           & 2.931          & 0,930          & 0,980        & 0,965          & 0                \\
+    \addlinespace
+    \textit{Estructural} & \textit{objetivo 80 \%} & \textit{1.500} & \textit{884} & \textit{0,780} & \textit{0,965} & \textit{0,875} & \textit{0} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
