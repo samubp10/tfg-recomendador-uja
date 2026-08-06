@@ -2,7 +2,7 @@
 
 *Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
 
-- **Estado:** **Aceptada** (ratificada el 2026-08-05, ver la adenda final)
+- **Estado:** **Aceptada** (ratificada el 2026-08-05 y reforzada el 2026-08-06, ver las adendas finales)
 - **Fecha:** 2026-07-29
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 1 (indexación y recuperación) del Recomendador UJA
@@ -462,6 +462,110 @@ Consecuencia para este ADR, que hay que tener presente al citarlo:
   preguntas anteriores (781 fragmentos, 36 preguntas) y no deben mezclarse con las
   tablas de la adenda del 04/08.
 - **IT-31 debe ejecutarse sobre los 884 fragmentos**, no sobre los 797.
+
+## Adenda de 2026-08-06 — el troceado cambia la distancia entre los dos candidatos
+
+La adenda anterior avisaba de que las cifras correspondían a un corpus que ya no existía y
+de que el orden entre los modelos era **una expectativa razonable y no una medición**. Se ha
+medido. IT-16 fijó experimentalmente los parámetros de fragmentación y bajó el máximo de
+fragmento de 1.500 a 900 caracteres, con lo que el corpus pasó de 884 a **1.334 fragmentos**.
+La comparativa se repitió el 06/08/2026 sobre ese corpus, con las mismas 50 preguntas y los
+mismos cuatro candidatos.
+
+### Resultados
+
+| Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| **intfloat/multilingual-e5-small** | 0,697 | 0,803 | 0,911 | **0,985** | 0,990 | **1,000** | **0,970** | 108,0 |
+| intfloat/multilingual-e5-large | 0,740 | 0,852 | 0,938 | **0,995** | 1,000 | 1,000 | **0,970** | 604,3 |
+| BAAI/bge-m3 | 0,720 | 0,836 | 0,917 | 0,985 | 0,995 | 0,995 | 0,949 | 650,3 |
+| hiiamsid/sentence\_similarity\_spanish\_es | 0,152 | 0,194 | 0,307 | 0,410 | 0,505 | 0,610 | 0,342 | 220,6 |
+
+Techos de exhaustividad por fragmento sobre este corpus: **0,789** (K=3), **0,906** (K=5) y
+**0,968** (K=10). Bajan respecto a los del corpus anterior (0,905 / 0,977 / 0,998) porque
+cada unidad se reparte ahora en más fragmentos y caben peor enteras en un top-K.
+
+### Lo que confirma
+
+**El orden de los cuatro modelos se mantiene, y ya van cuatro corpus distintos** (892, 781,
+797 y 1.334 fragmentos, con dos troceados y dos conjuntos de preguntas). Esa es la
+comprobación que la adenda anterior dejaba pendiente de forma explícita, y sale a favor.
+
+**La conclusión sobre el modelo específico de español se sostiene por tercera vez.**
+`hiiamsid` mejora con el troceado fino —RU@3 de 0,320 a 0,410— y sigue estando **más de dos
+veces por debajo** del peor de los multilingües, con **0,000 en las preguntas de listado**.
+
+### Lo que cambia, y afecta al argumento de la ratificación
+
+🔴 **La distancia entre el modelo pequeño y el grande se reduce a la décima parte.**
+
+| | Corpus de 797 (máx. 1.500) | Corpus de 1.334 (máx. 900) |
+|---|---:|---:|
+| RU@3 del pequeño | 0,945 | **0,985** |
+| RU@3 del grande | 0,995 | 0,995 |
+| Diferencia | 0,050 | **0,010** |
+| Traducido a preguntas de 50 | 2,5 | **0,5** |
+| MRR del pequeño / del grande | 0,881 / 0,948 | **0,970 / 0,970** |
+
+Y hay una inversión que conviene mirar dos veces, porque contradice el análisis anterior:
+
+| Recall@5 por tipo | Pequeño (797) | Grande (797) | Pequeño (1.334) | Grande (1.334) |
+|---|---:|---:|---:|---:|
+| metadatos | 0,602 | **0,870** | **0,697** | 0,664 |
+| salidas | 0,812 | **1,000** | 0,690 | **0,889** |
+| temario | 0,782 | **0,878** | 0,723 | **0,776** |
+
+En **metadatos**, que era «donde está el grueso» de la ventaja del grande según el análisis
+de `docs/experimentos/modelo-grande-frente-a-pequeno.md`, el pequeño pasa a ir por delante.
+Esa nota queda por tanto **desactualizada en su apartado 2** y hay que leerla con esta adenda
+al lado.
+
+**Consecuencia sobre la ratificación del 05/08.** Aquella ratificación se declaró a sí misma
+frágil por una razón concreta: su apoyo principal era que el sistema operaría con diez
+resultados por consulta, y **K=10 no está decidido**. Ese riesgo desaparece. Con el troceado
+vigente los dos modelos se separan por media pregunta de cincuenta ya en K=3, de modo que la
+decisión **deja de depender de un parámetro que aún no se ha fijado**. La ratificación sale
+reforzada, y por un motivo mejor que el que tenía.
+
+De la lista de condiciones que darían la vuelta a la decisión, **«si se decidiera operar con
+K=3» deja de valer**. Siguen en pie las otras dos: una GPU utilizable, o un despliegue en
+servidor en lugar de en un equipo personal.
+
+### Lo que NO se puede leer aquí
+
+⚠️ **Esto no dice que el modelo pequeño haya mejorado.** El modelo es el mismo; lo que ha
+cambiado es la colección. Un troceado más fino reparte cada unidad en más fragmentos y le da
+más oportunidades de aparecer en el top-K, y de eso se beneficia más el modelo que peor las
+aprovechaba. El propio ADR-0001 declara que la exhaustividad por unidad **no es inmune al
+troceo**, y esta tabla es un ejemplo de ello.
+
+⚠️ **La exhaustividad por fragmento baja (0,771 → 0,697 en el modelo elegido) y no es una
+regresión.** El techo baja con ella, de 0,905 a 0,789. Medido contra su techo, el hueco pasa
+de 0,134 a 0,092: el sistema cubre *mejor* cada unidad, no peor. Presentar el 0,697 sin el
+techo diría lo contrario de lo que ocurre.
+
+🔴 **Nadie ha explorado el espacio conjunto de las dos decisiones.** La rejilla de
+fragmentación se midió con el modelo ya fijado (`e5-small`), y esta comparativa de modelos se
+mide con el troceado ya fijado (900). Cada experimento mantiene constante la decisión del
+otro, que es lo que los hace interpretables por separado, pero **no se ha comprobado que la
+pareja elegida sea la mejor pareja**. Que el mejor troceado para el modelo pequeño lo sea
+también para el grande es una suposición, no un resultado. Es la amenaza a la validez que
+esta adenda añade, y no se resuelve con las dos ejecuciones que hay.
+
+**La amenaza principal del cuerpo sigue en pie**: el experimento se ejecutó sin fijar antes
+los umbrales de la hipótesis. Repetirlo por cuarta vez no lo arregla.
+
+Y los tiempos siguen sin ser comparables entre ejecuciones: cambiaron el corpus, el troceado
+y la carga de la máquina. El pequeño tarda 108 s frente a los 604 s del grande, que es el
+mismo orden de magnitud de diferencia de siempre y el argumento que menos pesa, porque solo
+se paga al reindexar.
+
+### Consecuencia práctica
+
+**IT-31 (ADR-0004) debe ejecutarse sobre los 1.334 fragmentos**, no sobre los 884 que decía
+la adenda anterior ni sobre los 797 de la comparativa del 04/08. Y el índice vectorial de
+`data/indice_chroma/` está construido con 781 vectores: hay que reconstruirlo antes de medir
+nada contra él.
 
 ## Referencias
 
