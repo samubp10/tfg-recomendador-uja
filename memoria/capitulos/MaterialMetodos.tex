@@ -855,7 +855,32 @@ los dos grados por separado.
 \subsection{Troceado y deduplicación de la colección}
 \label{subsec:chunking}
 
+\begin{borrador}
+  \item \textbf{Esta subsección se ha partido en subsubsecciones el 07/08/2026.} Ocupaba
+  casi quinientas líneas sin un solo título intermedio, y dentro de ella se pasaba de las
+  restricciones al algoritmo, de ahí a un experimento entero y de ahí a la deduplicación,
+  sin que el lector tuviera dónde agarrarse. \textbf{No se ha movido ni reescrito nada}:
+  solo se han insertado los títulos, de modo que el texto que había sigue exactamente en el
+  mismo orden.
+  \item \textbf{Los títulos van en turquesa porque son una propuesta.} Reescríbelos con tus
+  palabras y quítales el color, igual que el resto del andamiaje.
+  \item \textbf{Uno no se ha tocado porque es tuyo:} <<Comparación experimental de las
+  estrategias>> encabeza ahora solo el diseño de la rejilla, y las tres subsubsecciones
+  siguientes son partes de ese mismo experimento, no apartados hermanos. Si quieres que la
+  jerarquía se lea bien, lo suyo es renombrarla <<Diseño de la rejilla>>; lo dejo a tu
+  criterio porque el título lo escribiste tú.
+  \item \textbf{Hay un desorden de fondo que la partición deja a la vista}, y ahora que los
+  títulos están numerados se nota más: el experimento se cuela entre el algoritmo y la figura
+  que explica el proceso completo, de manera que la figura llega cuando ya se ha hablado de
+  otra cosa. Dos salidas posibles: mover el bloque del experimento detrás de la deduplicación,
+  o llevárselo entero a la Fase 1, que es donde dice que le corresponde el borrador del final.
+  Es decisión tuya y no la he tomado por ti.
+\end{borrador}
+
 Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir es este apartado
+
+\subsubsection[Restricciones del troceado y estrategias consideradas]{\textcolor{borrador2}{Restricciones del troceado y estrategias consideradas}}
+\label{secc:troceado_restricciones}
 
 La decisión no se tomó al azar, sino estudiando antes la colección y haciendo uso de la estadística.
 Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}.
@@ -895,6 +920,9 @@ se documentó en el registro de decisión de arquitectura ADR-0001\cite{repo_tfg
 
 \input{tablas/TablaAlternativasChunking.tex}
 
+\subsubsection[El algoritmo de troceado y sus parámetros]{\textcolor{borrador2}{El algoritmo de troceado y sus parámetros}}
+\label{secc:troceado_algoritmo}
+
 Ya en la estrategia elegida, el algoritmo elegido parte de la unidad completa y solo la divide cuando hace
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
 por último fusiona con sus vecinos los fragmentos residuales que se han quedado demasiado cortos y reequilibra el par resultante.
@@ -932,6 +960,9 @@ con la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres
 objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la estrategia de corte semántica y el solape en la estrategia del tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
 
 Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos datos de entrada (las guías de cada asignatura y el bloque de salidas de cada titulación), y lo único que hacen es decidir cómo cortar los datos.
+
+\subsubsection[Procedimiento seguido en cada configuración]{\textcolor{borrador2}{Procedimiento seguido en cada configuración}}
+\label{secc:rejilla_procedimiento}
 
 \textcolor{borrador2}{El procedimiento seguido en cada una de las cuarenta y cinco
   configuraciones es el mismo, y conviene detallarlo porque de él depende que la comparación
@@ -987,6 +1018,9 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
     validado por este experimento}, y el propio conjunto de evaluación. La ejecución completa
   tarda alrededor de una hora, porque cada configuración vuelve a trocear y a vectorizar la
   colección entera, y es determinista: repetirla devuelve las mismas cifras.}
+
+\subsubsection[Efecto de la estrategia de corte]{\textcolor{borrador2}{Efecto de la estrategia de corte}}
+\label{secc:rejilla_estrategia}
 
 La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
 de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.
@@ -1059,6 +1093,9 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
   Tabla~\ref{tab:alternativas_chunking}.
 \end{borrador}
 
+
+\subsubsection[Efecto del tamaño del fragmento]{\textcolor{borrador2}{Efecto del tamaño del fragmento}}
+\label{secc:rejilla_tamano}
 
 Lo que podemos observar viendo los resultados es que un troceo más fino produce más fragmentos, y cuantos más 
 fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos aparezca entre los primeros resultados al recuperar $k$ fragmentos. También se le añade que recuperar un fragmento de 900 caracteres entrega menos texto que un fragmento de 1.500.
@@ -1146,6 +1183,9 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   la recuperación puntúa igual de bien y la respuesta sale peor. Exige métricas de la Fase 2.
 \end{borrador}
 
+\subsubsection[El proceso completo y la estructura del fragmento]{\textcolor{borrador2}{El proceso completo y la estructura del fragmento}}
+\label{secc:estructura_fragmento}
+
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
 El diagrama recoge además las dos ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.
@@ -1229,6 +1269,9 @@ salió cada respuesta.
   \label{fig:estructura_chunk}
 \end{figure}
 
+\subsubsection[Deduplicación de las guías compartidas]{\textcolor{borrador2}{Deduplicación de las guías compartidas}}
+\label{secc:deduplicacion}
+
 Al revisar los datos extraídos apareció un problema que hacía ineficiente el corpus: buena parte de las guías son contenido repetido,
 porque asignaturas de primeros cursos como Matemáticas I o Física se imparten en varias titulaciones con la misma guía carácter por carácter, esto pasa puesto que muchas titulaciones de primero y segundo de ingeniería tienen las mismas asignaturas.
 La redundancia tiene un efecto directo sobre la recuperación: hasta cuatro copias idénticas podrían ocupar los primeros puestos del \textit{ranking} y
@@ -1303,6 +1346,9 @@ idénticas solo deja el índice ligeramente más grande.
   argumento que sostiene esta decisión se refuerza con el tiempo en lugar de
   desgastarse. Recogido en la adenda del ADR-0001.
 \end{borrador}
+
+\subsubsection[La identidad de una asignatura dentro del fragmentador]{\textcolor{borrador2}{La identidad de una asignatura dentro del fragmentador}}
+\label{secc:identidad_asignatura}
 
 \textcolor{borrador2}{Decidir cuándo dos guías son la misma no es lo único que obliga a fijar un
   criterio de identidad. El fragmentador necesita además localizar, para cada guía, la asignatura de
