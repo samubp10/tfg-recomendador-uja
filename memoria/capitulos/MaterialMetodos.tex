@@ -1175,7 +1175,7 @@ idénticas solo deja el índice ligeramente más grande.
   párrafo.
 \end{borrador}
 
-\section{Verificación y reproducibilidad de la Fase 0}
+\subsection{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
 \begin{borrador}                                                                                                                                                                                                                                
@@ -1228,25 +1228,68 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   en vez de presentarlo como atemporal.
 \end{borrador}
 
-\section{Fase 1: selección del modelo de incrustaciones}
-\label{secc:fase1_embeddings}
+\section{Fase 1: incrustaciones y base de datos vectorial}
+\label{secc:fase1}
 
-\begin{borrador}                                                                                                              
-  \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva. Andamiaje: la prosa
-  la escribes tú. Aquí va \textbf{el método y el porqué}; los números van al
-  Capítulo~\ref{cap:resultados}, Sección~\ref{secc:resultados_embeddings}. Si una frase de
-  aquí empieza por «se obtuvo», está en el capítulo equivocado.
-  \item Lo que esta sección tiene que dejar establecido, por orden: qué se compara, con
-  qué se mide, sobre qué se mide, con qué criterio se eligieron los candidatos y qué
-  amenazas quedan vivas.
-  \item \textbf{Decisión cerrada el 04/08/2026:} se ratifica \texttt{e5-small}. El
-  razonamiento está abajo, en el apartado~\ref{secc:eleccion_e5small}.
-  \item \textbf{Queda una decisión abierta}, y es tuya: si el \emph{listado} de asignaturas
-  se presenta como parte del diseño de la colección (Fase~0) o como una corrección
-  posterior (Fase~1). Hoy está contado como lo segundo.
+\begin{borrador}
+  \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
+  diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
+  recuperar por significado--- y en qué orden se cuenta: primero el instrumento con el que
+  se mide, después los parámetros del troceado, después el modelo y por último el índice.
+  Ese orden no es cronológico por casualidad: cada paso necesita que el anterior esté
+  decidido.
+  \item \textbf{Ojo con la regla que separa capítulos.} Aquí va el método y el porqué; los
+  números van al Capítulo~\ref{cap:resultados}. Si una frase empieza por «se obtuvo», está
+  en el capítulo equivocado.
 \end{borrador}
 
-\subsection{Diseño de la comparación}
+\subsection{El conjunto de evaluación como instrumento de medida}
+\label{secc:conjunto_evaluacion}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-27, deuda declarada en IT-69).} Esta subsección no existe
+  todavía y es la primera que hay que escribir, porque todo lo que viene después se mide
+  con ella. Sin explicar el instrumento, las cifras del Capítulo~\ref{cap:resultados} no
+  significan nada.
+  \item Qué tiene que dejar dicho: que son \textbf{cincuenta preguntas anotadas a mano},
+  cómo se eligieron, qué cubre cada uno de los cinco tipos (temario, listado, salidas,
+  metadatos y sin guía) y por qué esos tipos y no otros.
+  \item \textbf{Lo que no se puede omitir:} el tipo \emph{sin guía} tiene hoy
+  \textbf{dos preguntas de cincuenta}, y bajó de cinco cuando la fuente publicó tres de
+  esas guías. Es justo el punto ciego de la colección ---86 asignaturas sin contenido,
+  concentradas en las dos titulaciones más nuevas--- y es donde peor se está midiendo.
+  Decirlo aquí es mucho más fuerte que esperar a que lo pregunten.
+  \item Un solo anotador, que además construyó el sistema. Va enlazado con las amenazas a
+  la validez, no repetido aquí.
+\end{borrador}
+
+\subsection{Fijación experimental de los parámetros de fragmentación}
+\label{secc:fase1_fragmentacion}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-16).} \textbf{Decisión tuya antes de escribir nada:} el
+  experimento de la rejilla está contado en la Sección~\ref{secc:rejilla_fragmentacion},
+  dentro de la Fase~0, porque va pegado a la tabla de alternativas del troceado. Pero es un
+  experimento de la Fase~1: necesitaba el modelo de incrustaciones ya elegido, que es
+  precisamente por lo que el ADR-0001 lo había aplazado.
+  \item \textbf{Opción A ---la de menos trabajo---:} esta subsección se queda en cuatro o
+  cinco líneas que remiten a la Sección~\ref{secc:rejilla_fragmentacion} y solo dicen lo
+  que es propio de la Fase~1: que los parámetros dejaron de ser provisionales al poder
+  medirlos, y qué cambió en la colección al aplicarlos.
+  \item \textbf{Opción B:} se trae aquí el experimento entero y en la Fase~0 queda solo el
+  mecanismo del troceado con un puntero. Es más coherente con la división por fases y deja
+  la Fase~0 más limpia, pero separa la comparación de la tabla de alternativas que la
+  motiva.
+  \item Sea cual sea, tiene que quedar dicho que \textbf{la configuración vigente hasta la
+  revisión era la segunda peor de las 45}, y que la que gana deja la ventana del modelo a
+  dos tercios de su capacidad. Eso derriba la premisa con la que se había elegido el 1.500
+  original, que era aprovechar los ~512 \textit{tokens}.
+\end{borrador}
+
+\subsection{Selección del modelo de incrustaciones}
+\label{secc:fase1_embeddings}
+
+\subsubsection{Diseño de la comparación}
 
 \textcolor{borrador2}{La elección del modelo de incrustaciones se resolvió de forma
   experimental y no por reputación de los modelos, comparando varios candidatos sobre la
@@ -1287,7 +1330,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   contar los tres: demuestra que el criterio se aplicó y no se enunció.
 \end{borrador}
 
-\subsection{Elección final: por qué el modelo pequeño}
+\subsubsection{Elección final: por qué el modelo pequeño}
 \label{secc:eleccion_e5small}
 
 \textcolor{borrador2}{De los cuatro candidatos, dos pertenecen a la misma familia y difieren
@@ -1343,7 +1386,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   desde \texttt{main}, no desde \texttt{doc}.
 \end{borrador}
 
-\subsection{Las preguntas de agregación y su efecto sobre la colección}
+\subsubsection{Las preguntas de agregación y su efecto sobre la colección}
 
 \begin{borrador}                                                                                                              
   \item \textbf{Fase: 1 (IT-100).} Esto es lo más defendible de la tarjeta y conviene que
@@ -1377,4 +1420,26 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   \item Los tiempos son \textbf{reloj de pared} en un equipo que hace otras cosas. Entre dos
   ejecuciones seguidas las medidas de calidad salieron idénticas y los tiempos variaron
   hasta un 25\,\%.
+\end{borrador}
+
+\subsection{Indexación y base de datos vectorial}
+\label{secc:fase1_indexacion}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-30, deuda declarada en IT-68; IT-31 e IT-32 para el ADR-0004).}
+  Subsección por escribir. Es la única parte de la Fase~1 que todavía no tiene ni
+  experimento ni decisión cerrada.
+  \item Qué tiene que dejar dicho de lo que YA existe: que el índice se reconstruye entero
+  en cada ejecución ---mismo argumento que separa el rastreador del fragmentador---, y que
+  desde IT-98 el índice \textbf{graba con qué modelo y con qué prefijo se construyó}.
+  Esto último no es un detalle: el modelo nuevo y el anterior producen vectores de la misma
+  dimensión, así que consultar un índice con el modelo equivocado \textbf{no da ningún
+  error}, solo respuestas peores.
+  \item Qué queda pendiente: la elección de la base vectorial (ADR-0004). El material está
+  preparado y ---a diferencia de la comparación de modelos--- \textbf{con los umbrales
+  escritos antes de ejecutar nada}, que es lo que corrige la amenaza principal del
+  ADR-0003. Conviene decirlo con esas palabras, porque demuestra que la lección se aplicó.
+  \item Amenaza que hay que declarar aquí y no en otro sitio: con menos de mil quinientos
+  fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}, de modo que la
+  base vectorial no se puede justificar por velocidad sin haberla medido.
 \end{borrador}
