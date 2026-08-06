@@ -51,6 +51,38 @@ fragmentos y 50 preguntas al incorporar los listados de plan de estudios.
 | intfloat/multilingual-e5-small | 0.705 | 0.787 | 0.856 | 108.5 | 510 | 0 | 100% |
 | hiiamsid/sentence_similarity_spanish_es | 0.233 | 0.302 | 0.381 | 281.1 | 510 | 1 | 100% |
 
+## 04/08/2026 — corpus de 797 fragmentos, 50 preguntas, candidatos de ventana >= 512
+
+Primera ejecución en igualdad de condiciones: los cuatro candidatos leen el corpus entero.
+Salen los dos modelos *paraphrase* de ventana 128 y entran `e5-large` y `bge-m3`. Corpus del
+rastreo del 01/08/2026, con los fragmentos de plan de estudios de IT-100 y **el troceado
+todavía con el máximo en 1.500 caracteres**.
+
+| Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| intfloat/multilingual-e5-small | 0,771 | 0,835 | 0,938 | 0,945 | 0,970 | 1,000 | 0,881 | 61,3 |
+| intfloat/multilingual-e5-large | 0,831 | 0,936 | 0,985 | 0,995 | 1,000 | 1,000 | 0,948 | 485,8 |
+| BAAI/bge-m3 | 0,808 | 0,895 | 0,973 | 0,950 | 0,990 | 0,995 | 0,955 | 475,6 |
+| hiiamsid/sentence_similarity_spanish_es | 0,168 | 0,218 | 0,273 | 0,320 | 0,400 | 0,480 | 0,278 | 140,7 |
+
+Recall@5 por tipo de pregunta:
+
+| Modelo | listado (14) | metadatos (6) | salidas (8) | sin_guia (2) | temario (20) |
+|---|---:|---:|---:|---:|---:|
+| e5-small | 1,000 | 0,602 | 0,812 | 1,000 | 0,782 |
+| e5-large | 1,000 | 0,870 | 1,000 | 1,000 | 0,878 |
+| bge-m3 | 1,000 | 0,787 | 0,938 | 1,000 | 0,826 |
+| hiiamsid | 0,000 | 0,111 | 0,188 | 1,000 | 0,336 |
+
+Es la ejecución sobre la que se escribió la adenda del 04/08 del ADR-0003 y la que sostiene
+la ratificación de `e5-small`. **Sus dos argumentos principales quedan matizados por la
+ejecución del 06/08**, hecha ya con el troceado de IT-16: allí la distancia entre el modelo
+pequeño y el grande se reduce a la décima parte y el MRR se iguala, de modo que la
+ratificación deja de depender de operar con diez resultados por consulta.
+
+Techos de exhaustividad por fragmento sobre este corpus: 0,905 (K=3), 0,977 (K=5) y
+0,998 (K=10).
+
 ## Cómo leer las tres últimas columnas
 
 «Ventana» es el `max_seq_length` del modelo tal como lo sirve sentence-transformers, descontados los dos tokens especiales. Todo lo que pase de ahí `encode` lo recorta **en silencio**: no avisa, no falla y devuelve un vector de aspecto normal. «Corpus leído» es la proporción de tokens del corpus que el modelo llega a mirar, así que una diferencia de Recall entre dos modelos con ventanas distintas no se puede atribuir solo a la calidad de sus representaciones.
