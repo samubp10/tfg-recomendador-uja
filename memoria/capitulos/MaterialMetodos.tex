@@ -3,7 +3,7 @@
 
 Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Revisar introducción antes de dar por cerrador el capítulo}
 \end{borrador}
 
@@ -17,7 +17,7 @@ Además de esta metodología para la gestión de tareas, el proyecto se apoya en
 
 El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en unidades de trabajo atómicas o historias de usuario. Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
 
-\begin{borrador}
+\begin{borrador}                                
   \item Al final no vamos a poner la cifra, dado que va a ser gigantesca, además muchas son arreglos de otra lo que ha hecho que se disuelva el propósito objetivo que tenían
 \end{borrador}
 
@@ -25,26 +25,26 @@ Para gestionar la priorización de las tareas, se ha aplicado la técnica de \te
 
 \subsection{Estrategia de control de versiones y trazabilidad}
 Para aislar los entornos de desarrollo y proteger la integridad del sistema, se ha definido una estrategia estricta de ramas (\textit{Git Flow}):
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Ramas permanentes:} Se mantiene una rama \texttt{main} que aloja de forma exclusiva el código estable y funcional, y una rama paralela \texttt{doc} dedicada íntegramente a la redacción iterativa de la presente memoria en \LaTeX.
   \item \textbf{Ramas volátiles:} Cada nueva característica, corrección o experimento se desarrolla en una rama aislada de un solo uso (ej. \texttt{IT-XX-descripcion}).
-
+        
         La Figura~\ref{fig:git_flow} recoge esta estrategia: cada rama volátil (que se borrará después de terminar el IT) nace siempre de \texttt{main} actualizado y vuelve a él mediante una confirmación de fusión, de modo que la rama \texttt{doc} avanza en paralelo sin bloquear el desarrollo del código.
-
+        
         \begin{figure}[H]
           \centering
           \includegraphics[width=0.8\textwidth]{imagenes/GitFlow.pdf}
           \caption{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
           \label{fig:git_flow}
         \end{figure}
-
+        
 \end{itemize}
 
 
 Para garantizar la trazabilidad de las decisiones de diseño a lo largo del tiempo, se ha adoptado el estándar \textit{Conventional Commits} \cite{conventionalcommits}. Esta convención impone una estructura estandarizada para cada entrega de código, facilitando la lectura semántica del historial del proyecto. El formato base utilizado es \texttt{tipo(item de trabajo): descripción}, donde el \textit{item de trabajo} corresponde al identificador de la historia técnica en curso (ej. \texttt{IT-05}).
 
 Para clasificar semánticamente los cambios, los tipos de confirmación (\textit{commits}) se han restringido a la siguiente taxonomía:
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{\texttt{feat}:} Incorporación de una nueva funcionalidad al sistema (ej. implementación de un nuevo módulo de extracción o lógica de procesamiento).
   \item \textbf{\texttt{fix}:} Corrección de errores o fallos detectados en el código existente.
   \item \textbf{\texttt{docs}:} Creación o actualización de documentación, incluyendo la redacción de la presente memoria y el registro de decisiones arquitectónicas (ADR).
@@ -91,7 +91,7 @@ resultado no es un fallo que arreglar, sino una comparación que interpretar.
 Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
 
 
-\begin{borrador}
+\begin{borrador}                                
   \item Falta añadir el contenido de este apartado cuando se llegue a la Fase 2. No se habla de futuro, dado que el que lea esta memoria ya habrán terminado todas las fases.
   \item \textit{Recall@K} y MRR tendrán su apartado.
 \end{borrador}
@@ -99,7 +99,7 @@ Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
 \subsection{Criterios de finalización (Definición de Hecho)}
 \label{secc:dod}
 Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
-\begin{enumerate}
+\begin{enumerate}                                
   \item \textbf{Funcionalidad:} El código cumple el objetivo técnico estipulado.
   \item \textbf{Pruebas:} Incluye casos de prueba exitosos basados en datos reales de la fuente.
   \item \textbf{Documentación:} El código incorpora cadenas de documentación (\textit{docstrings}) formateadas según el estándar \textit{Google Style}\cite{googlestyle} y las convenciones oficiales de Python (PEP 257)\cite{pep257}.
@@ -108,7 +108,7 @@ Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido 
   \item \textbf{Memoria:} La justificación técnica, las métricas o los descubrimientos derivados de la tarea han sido volcados en el borrador de la memoria académica.
 \end{enumerate}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 1 --- pendiente de tarjeta; encaja en IT-84, que ya va de separar las
   pruebas de software de la evaluación del sistema.
   \item Diferenciar en este apartado los DoD dependiendo de cada tipo de tarjeta.
@@ -141,19 +141,19 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 Para proporcionar una visión global del cronograma y asegurar la viabilidad del proyecto de cara a la fecha de entrega del proyecto, el \textit{backlog} se ha agrupado en seis fases lógicas de desarrollo.
 
 Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos, los módulos de limpieza de texto y la fragmentación semántica preliminar (\textit{chunking}).
-
+        
   \item \textbf{Fase 1 (Incrustaciones y base vectorial):} Comprende la experimentación para la selección del modelo de \textit{embeddings} y el despliegue de la base de datos vectorial local.
-
+        
   \item \textbf{Fase 2 (Pipeline RAG y LLM):} Consiste en el diseño del \textit{prompt} del sistema, la selección e integración del modelo de lenguaje grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
-
+        
   \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
-
+        
   \item \textbf{Fase 4 (Validación experimental):} Pruebas del sistema con usuarios reales (estudiantes de perfil preuniversitario) y estudios de ablación sobre los hiperparámetros del sistema.
-
+        
   \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral (Aunque la memoria se está haciendo a la par que el desarrollo).
-
+        
 \end{itemize}
 
 
@@ -161,7 +161,7 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 \begin{figure}[htbp]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{ganttchart}[
+    \begin{ganttchart}[                                
         hgrid, vgrid,
         bar/.append style={fill=blue!40},
         bar height=0.5,
@@ -188,7 +188,7 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
   \label{fig:gantt}
 \end{figure}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 2 (IT-89). \textbf{Este diagrama es una previsión, no el
     avance real, y a 30/07/2026 ya no coinciden.} Conviene mirarlo antes de
   que la diferencia crezca más.
@@ -231,7 +231,7 @@ El valor se ha clasificado con la técnica \textbf{MoSCoW}~\cite{moscow}, que
 divide las tareas en cuatro categorías según su necesidad real para el
 proyecto:
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{\textit{Must have} (imprescindible):} sin esta tarea el
         sistema no funciona o la memoria no es defendible. Aquí están el rastreo de la
         web, la fragmentación de los textos, la elección experimental de los
@@ -251,7 +251,7 @@ primero lo \textit{could} y después lo \textit{should}, pero nunca lo
 \textit{must}. Este reparto no es una foto fija:
 el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo.
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 5 (IT-52) --- cifras a refrescar al cerrar la memoria.
   \item \textbf{Recuento real del 30/07/2026}, hecho con \texttt{gh} sobre las
   etiquetas del repositorio: \textbf{65 \textit{must}, 27 \textit{should} y
@@ -278,7 +278,7 @@ fiables. Comparar tamaños relativos es más honesto y, sobre todo, más útil.
 
 Las tallas empleadas son:
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{XS:} tarea mecánica, sin decisiones de diseño (por ejemplo,
         generar un diagrama a partir del código).
   \item \textbf{S:} una sola unidad de trabajo bien acotada, resoluble en una
@@ -305,7 +305,7 @@ A lo largo del proyecto se han creado muchas historias de usuario de diferentes 
 
 
 Los cinco tipos de historias son los siguientes:
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Código}: se escribe o se corrige software y sus pruebas.
   \item \textbf{Memoria}: se redacta una parte de este documento.
   \item \textbf{Experimento}: se mide algo sobre datos reales para poder decidir con evidencia la mejor opción posible.
@@ -315,7 +315,7 @@ Los cinco tipos de historias son los siguientes:
 
 \input{tablas/TablaResumenBacklog.tex}
 
-\begin{borrador}
+\begin{borrador}                                
   \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
   \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
 \end{borrador}
@@ -324,7 +324,7 @@ Los cinco tipos de historias son los siguientes:
 
 \section{Tecnologías y herramientas}
 
-\begin{borrador}
+\begin{borrador}                                
   \item Falta el párrafo que abre la
   sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.
   \item \textbf{Fase:} 0 en parte, cerrable ya.  Bastan cuatro o cinco líneas
@@ -362,15 +362,15 @@ en el laboratorio por el que no se ha podido elegir modelos de más prestaciones
 
 \input{tablas/TablaEquipo.tex}
 
-\begin{borrador}
-
+\begin{borrador}                                
+  
   \item La tarjeta gráfica no se usará para los embedding, pero sí la usará el modelo de lenguaje generativom, por lo que decir que no se usará es un graso error.
   \item Revisar este apartado, queda vivo y abierto.
 \end{borrador}
 
 \section{Arquitectura del sistema}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Faltan:} Concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
 \end{borrador}
 
@@ -457,7 +457,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \begin{figure}[H]
   \centering
   \resizebox{0.95\textwidth}{!}{%
-    \begin{tikzpicture}[
+    \begin{tikzpicture}[                                
         node distance=1.1cm and 1.4cm,
         clase/.style={rectangle split, rectangle split parts=2,
             draw=diagNodoBorde, fill=diagNodo, align=left,
@@ -529,7 +529,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
   \label{fig:modelo_datos}
 \end{figure}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Diagrama actualizado el 30/07/2026} contra los campos reales del
   conjunto de datos. Lo que cambió, por si hay que explicarlo en el texto:
   \texttt{Grado} no tiene un campo \texttt{url} sino dos
@@ -553,7 +553,7 @@ Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer
 
 Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \textit{slugs} inconsistentes en el cuerpo de las páginas.
   \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
   \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
@@ -569,7 +569,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
   diseño, porque obligan a que la extracción no dependa de que la Escuela publique hoy como
   publicaba ayer.}
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textcolor{borrador2}{\textbf{El formato de las guías cambió a mitad del
             desarrollo.} Las guías docentes dejaron de servirse como páginas HTML y pasaron a
           servirse como documentos PDF. El cambio no fue gradual: en cinco días de julio de 2026 la
@@ -597,7 +597,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
           colección no puede decir que ha fallado ella cuando el hueco es del origen.}
 \end{itemize}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 0, revisión. Andamiaje: la prosa la escribes tú. Cada uno de estos
   cinco puntos tiene su registro con la evidencia ---DQA-0002 el cambio a PDF, DQA-0003 las
   tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---, así
@@ -635,9 +635,9 @@ Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracc
 
 Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
-        \begin{enumerate}
+        \begin{enumerate}                                
           \item Codificación indicada explícitamente al construir la respuesta.
           \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
           \item Cabecera HTTP \texttt{Content-Type}.
@@ -645,15 +645,15 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono c
           \item Autodetección por parte del \textit{framework}.
         \end{enumerate}
         Las guías docentes de la UJA no llevan BOM, por lo que decide la cabecera HTTP: al anteponerla a la etiqueta \texttt{<meta>} del cuerpo, Scrapy decodifica correctamente unas guías servidas en ISO-8859-1 pese a que se declaren como UTF-8, resolviendo el problema de codificación sin necesidad de código adicional.
-
+        
   \item \textbf{Respeto a robots.txt:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
-
+        
   \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
-
+        
   \item \textbf{Pruebas sin conexión:} Permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
-
+        
   \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
-
+        
   \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
 \end{itemize}
 
@@ -662,7 +662,7 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono c
 
 Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
   \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
 \end{itemize}
@@ -670,7 +670,7 @@ Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{
 \subsubsection{Selenium \cite{selenium} / Playwright}
 Se basa en la automatización de navegadores con renderizado real.
 
-\begin{itemize}
+\begin{itemize}                                
   \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
   \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
@@ -691,7 +691,7 @@ rastreador (\textit{spider}) y la página web, así como las posibles alteracion
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\begin{borrador}
+\begin{borrador}                                
   \item Las bifurcaciones ya no son tres sino más, y conviene
   enumerarlas en este orden, que es el del recorrido del dato. Volver a reescribir este párrafo anterior con tener esto en cuenta
   \item \textbf{(1) Titulación vigente o en extinción.} Las que están en extinción
@@ -735,7 +735,7 @@ No todas las asignaturas disponen de guía publicada: \sout{de las 361 asignatur
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Cifras del 05/08/2026}, tras incorporar los planes de los dobles grados
   (IT-101): de las \textbf{528} asignaturas del catálogo, \textbf{442} cuentan con guía y
   \textbf{86} no, una cobertura del \textbf{83,7~\%}. Las \textbf{288} guías se agrupan en
@@ -760,7 +760,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   treinta segundos abriendo el conjunto de datos.
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
     mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
   extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
@@ -800,7 +800,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
   del criterio general del proyecto, así que merece un párrafo aquí.
   \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
@@ -822,11 +822,11 @@ Las salidas profesionales se extraen como un bloque de texto por titulación. El
 uno por cada grado simple con contenido propio. En el caso de los dobles grados, la lista de salidas son la concatenación de
 los dos grados por separado.
 
-\begin{borrador}
+\begin{borrador}                                
   \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{OJO, esto hay que resolverlo antes de cerrar el apartado.} \textbf{Cuidado con la frase que acabas de escribir: la evidencia del proyecto
     dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
   con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
@@ -862,8 +862,8 @@ Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}.
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede violar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
-\begin{borrador}
-
+\begin{borrador}                                
+  
   \item \textbf{La segunda frase tachada es la importante, y es falsa.} Medido
   el 29/07/2026 sobre el corpus real: el modelo que el sistema montaba
   (\texttt{paraphrase-multilingual-MiniLM-L12-v2}) lo sirve
@@ -899,23 +899,17 @@ Ya en la estrategia elegida, el algoritmo elegido parte de la unidad completa y 
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
 por último fusiona con sus vecinos los fragmentos residuales que se han quedado demasiado cortos y reequilibra el par resultante.
 A cada fragmento se le antepone un encabezado autocontenido con el nombre de la asignatura, su tipo, sus créditos ECTS y
-la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. Los parámetros de partida son 1\,200 caracteres de tamaño objetivo, 1\,500 de máximo (contando el encabezado), y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
+la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. 
+Los parámetros de 900 caracteres (contando el encabezado) y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
 
-\begin{borrador}
-  \item \textbf{Los tres números de arriba son los de partida y ya no son los vigentes.} Comprobado el 06/08/2026 contra \texttt{chunker.py}: hoy el objetivo y el máximo valen \textbf{900 los dos}, y el mínimo sigue en 200. Lo cambió la rejilla de esta misma sección.
-  \item No está mal escrito ---dice «de partida», y el orden del relato es ese---, pero el valor vigente \textbf{solo aparece en turquesa}, al final del apartado siguiente. Si ese turquesa se reescribe sin conservar la cifra, el capítulo se queda diciendo 1.500 y nadie se entera. Conviene que la cifra nueva quede en tu prosa, no solo en el andamiaje.
-  \item \textbf{Y hay algo que merece una frase propia:} que el objetivo y el máximo coincidan no es una simplificación, es un resultado. La rejilla midió el objetivo al 60~\%, al 80~\% y al 100~\% del máximo, y ganó el 100~\%: no hay motivo para dejar hueco sin usar. Antes eran dos números distintos (1.200 y 1.500) porque el objetivo se había fijado a ojo.
-  \item Lo de «(contando el encabezado)» \textbf{sí es correcto} y conviene conservarlo: el encabezado autocontenido va dentro del campo que se mide y que se convierte en vector, así que gasta parte del máximo. Verificado con \texttt{check\_chunks.py}, que sobre la colección real da un máximo de 900 clavados.
-\end{borrador}
-
-Esto último solo ocurre cuando a la unión resultante caben dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
+La unión de fragmentos solo ocurre cuando a la unión resultante caben dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
 
 
 \subsubsection{Comparación experimental de las estrategias}
 \label{secc:rejilla_fragmentacion}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Lo que no se puede perder al reescribirlos}, por orden de importancia para
   el tribunal:
   (1) la estrategia apenas influye y \emph{el tamaño sí}, que es justo lo contrario de lo que comparaba el ADR-0001 original;
@@ -932,46 +926,62 @@ Esto último solo ocurre cuando a la unión resultante caben dentro del máximo 
 \end{borrador}
 
 
-\textcolor{borrador2}{La comparación se organiza como una \textbf{búsqueda en rejilla}: se
-  prueban sistemáticamente todas las combinaciones de unos parámetros en lugar de tantear
-  valores sueltos. Las tres estrategias recorren el mismo eje de tamaño máximo ---de 600 a
-  1.800 caracteres--- y cada una aporta tres variantes de su parámetro propio: el tamaño
-  objetivo en la estructural, el percentil de corte en la semántica y el solape en la de
-  tamaño fijo. Son cuarenta y cinco configuraciones, quince por estrategia. Esa simetría no
-  es un adorno: una versión anterior de la comparación barría solo el parámetro de la
-  estrategia semántica y dejaba fijos los de las otras dos, de modo que competía con quince
-  intentos frente a uno y su mejor resultado habría ganado aunque no existiera diferencia
-  real.}
+La comparación de metodologías de troceado se organiza como una \textbf{búsqueda en rejilla}, se
+prueban sistemáticamente todas las combinaciones de unos parámetros. Las tres estrategias elegidas para el experimento
+con la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
+objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la estrategia de corte semántica y el solape en la estrategia del tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
 
-\textcolor{borrador2}{Las tres estrategias trabajan dentro de una misma unidad: el
-  procedimiento recibe ya separadas la guía de cada asignatura y el bloque de salidas de cada
-  titulación, y lo único que cambia entre ellas es dónde colocan los cortes interiores.
-  Conviene subrayarlo, porque evita una lectura equivocada de la tabla: el troceo por tamaño
-  fijo que aquí se mide no es el que se descartó en la Tabla~\ref{tab:alternativas_chunking},
-  que recorría la colección entera sin atender a las unidades y podía dejar dos asignaturas
-  en un mismo fragmento. Ese se descarta por una restricción del sistema, no por su
-  rendimiento, y por eso no vuelve a la comparación. Lo que se compara es la colocación de
-  los cortes, que es donde las tres se diferencian de verdad.}
+Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos datos de entrada (las guías de cada asignatura y el bloque de salidas de cada titulación), y lo único que hacen es decidir cómo cortar los datos.
 
-\textcolor{borrador2}{La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
-  de cada estrategia y, en la última fila, la que el sistema empleaba antes de esta
-  comparación. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.}
+La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
+de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.
+
+\begin{borrador}
+  \item \textbf{La tabla se ha rehecho en tres bloques el 06/08/2026, y el párrafo de
+    arriba ya no la describe.} La versión anterior ponía en tres filas seguidas la mejor
+  configuración de cada estrategia, pero cada una tenía un tamaño máximo distinto (600, 900
+  y 600), de modo que las filas se diferenciaban en \emph{dos} variables a la vez y no se
+  podía saber cuál explicaba la diferencia. Ahora el bloque (a) fija el tamaño y compara
+  estrategias, el (b) fija la estrategia y compara tamaños, y el (c) es la configuración
+  anterior del sistema. Reescribe el párrafo para anunciar esa estructura.
+  \item \textbf{Por qué había que rehacerla, y conviene que lo cuentes:} tal como estaba,
+  la fila de tamaño fijo con máximo 600 salía mejor que la elegida en RU@1 y en MRR, y
+  empataba en RU@3. Una tabla que contradice la decisión que acompaña es lo primero que mira
+  un tribunal.
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{ESTO HAY QUE RESOLVERLO ANTES DE CERRAR IT-16, y no es cosmético.} A
+  igualdad de tamaño máximo ---bloque (a)--- \textbf{el experimento no distingue las tres
+    estrategias}: las nueve configuraciones de 900 se reparten entre 0,890 y 0,935 de RU@1,
+  es decir, \textbf{2,3 preguntas de cincuenta} de recorrido total, y las cuatro mejores
+  caben en un cuarto de pregunta. Eso está por debajo de lo que el propio trabajo declara
+  como distinguible con un solo anotador.
+  \item \textbf{Y el rival directo sale mejor parado de lo que conviene admitir:} el
+  troceo de tamaño fijo sin solape, con el mismo máximo de 900, produce \textbf{1.228
+    fragmentos} ---ciento seis menos que la estrategia elegida--- y \textbf{empata} en RU@1
+  (0,930) y en RU@3 (0,985); solo pierde 0,007 de MRR. Dicho claro: \textbf{la recuperación
+    no justifica la estrategia estructural frente a la de tamaño fijo}.
+  \item \textbf{La justificación que hay escrita hoy no cierra ese hueco.} El ADR-0001 dice
+  que se elige la estructural por ser <<la más simple y la única que no ata el fragmentador
+  al modelo de incrustaciones>>. Ese argumento descarta la \emph{semántica}, que sí necesita
+  el modelo; \textbf{no descarta la de tamaño fijo}, que tampoco lo necesita y que además es
+  más simple. Hay que reescribirlo o el tribunal preguntará exactamente esto.
+  \item \textbf{El argumento que sí se sostiene, y que hay que declarar como no medido:} la
+  estrategia estructural corta por fronteras naturales del texto ---párrafos y frases--- y la
+  de tamaño fijo corta al llegar a un número de caracteres, a mitad de frase y a veces a
+  mitad de palabra. Para la recuperación da igual, y la tabla lo demuestra; para el modelo
+  que después tiene que redactar la respuesta con ese fragmento delante, no. \textbf{Eso no
+    se ha medido}, porque exige métricas de la Fase 2, así que la forma honesta de decirlo es
+  que se conserva la estructural por una ventaja que el experimento no captura, y no que gane
+  en las métricas, porque no gana.
+\end{borrador}
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-\textcolor{borrador2}{El resultado principal es que \textbf{la estrategia apenas influye y el
-    tamaño sí}. Las tres aparecen mezcladas al ordenar la tabla completa, y lo que la ordena
-  es el tamaño máximo del fragmento: cuanto más pequeño, mejor recupera. Dicho de otro modo,
-  la comparación original se centró en aquello que menos afectaba al resultado y calificó de
-  provisional justamente el parámetro que más.}
+Lo que podemos observar viendo los resultados es que un troceo más fino produce más fragmentos, y cuantos más 
+fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos aparezca entre los primeros resultados al recuperar $k$ fragmentos. También se le añade que recuperar un fragmento de 900 caracteres entrega menos texto que un fragmento de 1.500.
 
-\textcolor{borrador2}{Ese resultado, sin embargo, no puede leerse tal cual, y conviene
-  declarar por qué. Un troceo más fino produce más fragmentos por asignatura, y cuantos más
-  fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos aparezca entre
-  los primeros resultados: la métrica premia en parte a quien compra más papeletas. A eso se
-  añade que recuperar un fragmento de 600 caracteres entrega menos texto que recuperar uno de
-  1.500, así que a igual número de resultados no se está comparando la misma cantidad de
-  información. Por ese motivo no se elige sin más la primera fila.}
 
 \textcolor{borrador2}{La comparación que sí aísla el efecto es la que mantiene constante el
   número de fragmentos. Con el tamaño máximo en 900 caracteres, la estrategia estructural
@@ -979,21 +989,28 @@ Esto último solo ocurre cuando a la unión resultante caben dentro del máximo 
   veces; con el máximo en 1.200 y más fragmentos ---1.499--- el acierto baja al 89,0~\%. Con
   menos trozos y mejor resultado, la diferencia ya no la explica el recuento.}
 
-\textcolor{borrador2}{Hay por último una comprobación que no depende de ninguna métrica
-  discutible, porque se cuenta directamente con el analizador léxico del modelo: los
-  fragmentos que superan su ventana y que el modelo recorta \emph{en silencio}, sin avisar ni
-  fallar. Con un máximo de 1.800 caracteres llegan a veintinueve; con 1.500 aparecen los
-  primeros; y en las nueve configuraciones de 600, 900 y 1.200 no hay ninguno. Es la
-  demostración empírica de que el tamaño máximo no puede fijarse sin contrastarlo con el
-  modelo que va a leer los fragmentos.}
-
-\textcolor{borrador2}{En consecuencia se mantiene la estrategia estructural ---las tres son
-  equivalentes a igualdad de tamaño, y es la única que no ata el fragmentador al modelo de
-  incrustaciones, de forma que cambiar de modelo no obliga a trocear otra vez toda la
-  colección--- y se fijan sus parámetros en 900 caracteres de máximo y de objetivo. Dejan de
-  ser provisionales: salen de la medición.}
-
 \begin{borrador}
+  \item \textbf{Tres cosas se han perdido al reescribir esta sección} y conviene decidir si
+  vuelven, porque las tres se usan después o se defienden solas.
+  \item \textbf{(1) El recuento de fragmentos truncados}, que es el único argumento del
+  experimento que \emph{no} depende de ninguna métrica discutible: se cuenta con el
+  analizador léxico del propio modelo. Con un máximo de 1.800 caracteres llegan a
+  veintinueve; con 1.500 aparecen los primeros; y en las nueve configuraciones de 600, 900 y
+  1.200 no hay ninguno. Está en la columna \textbf{Trunc.} del bloque (b) de la tabla, pero
+  ningún párrafo la comenta.
+  \item \textbf{(2) La conclusión.} La sección ya no dice en ninguna parte qué se decidió:
+  que se mantiene la estrategia estructural y que sus parámetros pasan a 900 de máximo y de
+  objetivo, dejando de ser provisionales. Un apartado que compara alternativas y no enuncia
+  cuál gana deja el trabajo a medias.
+  \item \textbf{(3) El aviso de que el troceo de tamaño fijo de esta tabla no es el que se
+    descartó} en la Tabla~\ref{tab:alternativas_chunking}. Allí se descarta un troceo que
+  recorre la colección entera y puede juntar dos asignaturas en un fragmento; aquí las tres
+  estrategias trabajan ya dentro de una unidad. Sin esa aclaración, las dos tablas se
+  contradicen a la vista: una descarta el tamaño fijo y la otra lo pone arriba.
+\end{borrador}
+
+
+\begin{borrador}                                
   \item \textbf{Fase:} 1 (IT-16). Andamiaje: la prosa la escribes tú. Aquí va el método y el
   porqué; si quieres llevar las cifras al Capítulo~\ref{cap:resultados}, este texto se queda
   con el diseño de la rejilla y allí van los números.
@@ -1030,7 +1047,7 @@ salió cada respuesta.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
+  \begin{tikzpicture}[                                
       font=\footnotesize,
       bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
           inner sep=7pt, rounded corners=2pt},
@@ -1051,7 +1068,7 @@ salió cada respuesta.
       1.2 Sistemas (en automática). 1.3 Aplicabilidad de la automática.
       1.4 Evolución histórica. Tema 2: Automatización de sistemas de eventos
       discretos\dots};
-
+    
     % --- Columna derecha: metadatos ---
     \node[bloque, text width=5.6cm, right=9mm of enc.north east,
     anchor=north west] (met) {%
@@ -1062,7 +1079,7 @@ salió cada respuesta.
     \texttt{codigos}: [13112002, 13512002,\\ \hphantom{\texttt{codigos}: [}13412001, 13012001]\\
     \texttt{chunk\_index}: 1\\
     \texttt{total\_chunks}: 5};
-
+    
     % --- Agrupaciones ---
     \begin{scope}[on background layer]
       \node[grupoDiag, rounded corners=3pt, fit=(enc)(cue)] (gtxt) {};
@@ -1072,7 +1089,7 @@ salió cada respuesta.
     at ([yshift=1.4mm]gtxt.north west) {campo \texttt{texto}: lo único que se convierte en vector};
     \node[titulo, anchor=south west] (lmet)
     at ([yshift=1.4mm]gmet.north west) {acompañan al vector, no se buscan};
-
+    
     % --- Marco exterior (engloba también los rótulos de cada grupo) ---
     \begin{scope}[on background layer]
       \node[draw=diagNodoBorde, thick, rounded corners=4pt, inner sep=9pt,
@@ -1120,7 +1137,7 @@ positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: f
 idénticas solo deja el índice ligeramente más grande.
 
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
   con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
   \texttt{check\_chunks.py} el 06/08/2026, tiene \textbf{1.334 fragmentos}: 1.193 de guía,
@@ -1181,7 +1198,7 @@ idénticas solo deja el índice ligeramente más grande.
   fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
   asignatura de la misma manera.}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Cifras del 30/07/2026:} son \textbf{48} asignaturas sin código
   publicado --- 29 en Geomática (plan 2025), 18 en IA y Ciberseguridad y
   \textbf{1 en Ingeniería Electrónica Industrial}. El reparto se ha dado la
@@ -1197,7 +1214,7 @@ idénticas solo deja el índice ligeramente más grande.
 \subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
 \label{secc:verificacion_fase0}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
 \end{borrador}
 
@@ -1230,7 +1247,7 @@ Las pruebas unitarias se emplean en base a los ficheros reales descargados llama
 
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
   adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
   \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
@@ -1250,7 +1267,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \section[Fase 1: incrustaciones y base de datos vectorial]{\textcolor{borrador2}{Fase 1: incrustaciones y base de datos vectorial}}
 \label{secc:fase1}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
   diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
   recuperar por significado--- y en qué orden se cuenta: primero el instrumento con el que
@@ -1265,7 +1282,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \subsection[El conjunto de evaluación como instrumento de medida]{\textcolor{borrador2}{El conjunto de evaluación como instrumento de medida}}
 \label{secc:conjunto_evaluacion}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase: 1 (IT-27, deuda declarada en IT-69).} Esta subsección no existe
   todavía y es la primera que hay que escribir, porque todo lo que viene después se mide
   con ella. Sin explicar el instrumento, las cifras del Capítulo~\ref{cap:resultados} no
@@ -1285,7 +1302,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \subsection[Fijación experimental de los parámetros de fragmentación]{\textcolor{borrador2}{Fijación experimental de los parámetros de fragmentación}}
 \label{secc:fase1_fragmentacion}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase: 1 (IT-16).} \textbf{Decisión tuya antes de escribir nada:} el
   experimento de la rejilla está contado en la Sección~\ref{secc:rejilla_fragmentacion},
   dentro de la Fase~0, porque va pegado a la tabla de alternativas del troceado. Pero es un
@@ -1329,7 +1346,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se
   delimitan las unidades.}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Criterios de selección de los candidatos}, que hay que enunciar porque es
   lo que un tribunal pregunta («¿y por qué esos cuatro?»). En orden:
   (1)~ventana de al menos 512 \textit{tokens}, para que ninguno lea menos texto que otro;
@@ -1383,7 +1400,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   gráfico utilizable, se desplegaría en un servidor en lugar de en un equipo personal, o se
   decidiera operar con solo tres resultados por consulta.}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase: 1.} Decisión tomada el 04/08/2026. Andamiaje: las cifras exactas no van
   aquí sino en el Capítulo~\ref{cap:resultados}; aquí va el criterio.
   \item \textbf{Cuidado con cómo lo cuentas, que aquí es fácil pasarse de fuerte.} Al pasar a
@@ -1407,7 +1424,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 
 \subsubsection{Las preguntas de agregación y su efecto sobre la colección}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase: 1 (IT-100).} Esto es lo más defendible de la tarjeta y conviene que
   tenga sitio propio, porque es una decisión de diseño de la colección tomada a partir de
   una medición.
@@ -1427,7 +1444,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   inventado. Pero decirlo antes de que lo pregunten vale mucho más que responderlo después.
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Amenazas que quedan vivas} y que hay que enlazar con la
   Sección~\ref{secc:amenazas_validez}, no repetir aquí:
   \item La comparación se ejecutó \textbf{sin haber fijado antes los umbrales} de la
@@ -1444,7 +1461,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \subsection[Indexación y base de datos vectorial]{\textcolor{borrador2}{Indexación y base de datos vectorial}}
 \label{secc:fase1_indexacion}
 
-\begin{borrador}
+\begin{borrador}                                
   \item \textbf{Fase: 1 (IT-30, deuda declarada en IT-68; IT-31 e IT-32 para el ADR-0004).}
   Subsección por escribir. Es la única parte de la Fase~1 que todavía no tiene ni
   experimento ni decisión cerrada.
