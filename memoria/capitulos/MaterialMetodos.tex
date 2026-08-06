@@ -613,6 +613,63 @@ Durante el estudio de la fuente de datos, se han documentado los siguientes obst
 
 Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
 
+\textcolor{borrador2}{Los obstáculos anteriores describen la fuente tal y como estaba al
+  comenzar el trabajo. Durante el desarrollo apareció una segunda familia de dificultades de
+  naturaleza distinta: no son defectos del código de las páginas, sino cambios de la propia
+  fuente mientras el sistema se construía sobre ella. Son los que más han condicionado el
+  diseño, porque obligan a que la extracción no dependa de que la Escuela publique hoy como
+  publicaba ayer.}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{El formato de las guías cambió a mitad del
+    desarrollo.} Las guías docentes dejaron de servirse como páginas HTML y pasaron a
+  servirse como documentos PDF. El cambio no fue gradual: en cinco días de julio de 2026 la
+  proporción pasó de ninguna a la totalidad, según la Escuela iba publicando el curso nuevo.
+  Hoy \textbf{el contenido de la colección procede íntegramente de documentos PDF}, aunque
+  el catálogo ---el menú de titulaciones, las portadas, las tablas de asignaturas y las
+  salidas profesionales--- se sigue leyendo del HTML.}
+  \item \textcolor{borrador2}{\textbf{La dirección del enlace no dice qué se va a
+    recibir.} El enlace de cada guía sigue terminando en \texttt{.html} y devuelve un PDF,
+  de modo que decidir por la extensión de la dirección conduce a interpretar un binario como
+  si fuera texto. La decisión se toma por el tipo de contenido que declara la respuesta.}
+  \item \textcolor{borrador2}{\textbf{El documento nuevo trae datos personales que el
+    anterior no traía.} La guía en PDF incorpora un bloque de profesorado con nombre,
+  departamento, despacho, correo electrónico y teléfono, información que la versión en HTML
+  no publicaba. Como el trabajo excluye deliberadamente los datos del profesorado, extraer
+  el documento entero habría introducido en la colección justamente aquello que se había
+  decidido dejar fuera.}
+  \item \textcolor{borrador2}{\textbf{La estructura de las tablas tampoco es estable.} Dos
+  titulaciones intercalaron una columna nueva y las titulaciones dobles rotulan y abrevian
+  esa misma columna de otra manera. En ambos casos la titulación entera desaparecía de la
+  extracción sin producir ningún error, solo un aviso en el registro.}
+  \item \textcolor{borrador2}{\textbf{Hay contenido publicado que está vacío.} Cinco guías
+  se publican con el esqueleto de la plantilla y las secciones de contenido sin rellenar.
+  No es un fallo de la extracción ---el documento se lee perfectamente--- y por eso la
+  colección no puede decir que ha fallado ella cuando el hueco es del origen.}
+\end{itemize}
+
+\begin{borrador}
+  \item \textbf{Fase:} 0, revisión. Andamiaje: la prosa la escribes tú. Cada uno de estos
+  cinco puntos tiene su registro con la evidencia ---DQA-0002 el cambio a PDF, DQA-0003 las
+  tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---, así
+  que aquí van a alto nivel igual que los anteriores.
+  \item \textbf{Cuidado con una frase que es fácil escribir mal:} <<ya no hay HTML>> es
+  falso. Lo que ya no llega en HTML es \emph{el contenido de las guías}. La navegación
+  ---menú, portadas, tablas de asignaturas y salidas--- sigue siendo HTML, y por eso el
+  problema de la codificación mentirosa que se cuenta más abajo sigue vigente.
+  \item \textbf{Revisa la lista anterior a la luz de esto.} El párrafo que la abre dice
+  <<un análisis técnico a nivel de código (sobre todo HTML)>>, y conviene matizarlo. De los
+  cuatro obstáculos originales, tres siguen siendo ciertos tal cual; el de los enlaces rotos
+  con el sufijo duplicado (\texttt{\dots\_es.htmles.html}) pertenece a la etapa en la que
+  las guías eran páginas HTML: decide si lo mantienes como parte del relato ---la
+  reparación de enlaces sigue en el código--- o si lo mueves a donde se cuenta la limpieza.
+  \item \textbf{Esto es lo que contesta a la pregunta del tutor} sobre cómo se mantiene
+  actualizada la información. La respuesta honesta no es <<se vuelve a rastrear>>, sino que
+  la fuente ha cambiado tres veces en un verano y que el sistema detectó y absorbió cada
+  cambio. Merece la pena que lo digas aquí y lo enlaces con las amenazas a la validez.
+\end{borrador}
+
+
 \subsection{Justificación del enfoque técnico}
 
 Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la implementación de un motor de extracción personalizado (\textit{web scraper}) y de limpieza de texto.
@@ -657,7 +714,7 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 \begin{figure}[H]
   \centering
   \includegraphics[height=0.9\textheight]{imagenes/Diagrama_secuencia_scraping.pdf}
-  \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{Diagrama de secuencia del \textit{scraping}, con sus tres ramas alternativas: asignatura con guía docente frente a sin guía, guía con la estructura esperada frente a un resumen general de la página, y grado simple frente a doble grado. Fuente: Elaboración propia.}
+  \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{Diagrama de secuencia del \textit{scraping}. Recoge las cuatro bifurcaciones del recorrido: titulación vigente frente a titulación en extinción, asignatura con guía publicada frente a sin ella, guía con contenido frente a guía publicada vacía, y grado simple frente a doble grado. Fuente: Elaboración propia.}
   \label{fig:secuencia_scraping}
 \end{figure}
 
