@@ -118,6 +118,75 @@ Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido 
   no hay que inventar ninguna categoría nueva: basta con apoyarse en ella.
 \end{borrador}
 
+\textcolor{borrador2}{Los seis criterios anteriores están escritos pensando en una tarjeta de
+  código, y solo 33 de las 98 historias del proyecto lo son
+  (Tabla~\ref{tab:resumen_backlog}). Exigirle a una tarjeta de memoria que incluya casos de
+  prueba con datos reales, o a una de gestión que su código incorpore cadenas de
+  documentación, no la hace más rigurosa: la deja fuera de la definición. Y una definición
+  que dos tercios de las tarjetas no pueden cumplir deja de ser un criterio de cierre para
+  convertirse en un adorno. Los seis criterios se reparten, por tanto, en dos grupos: los que
+  valen para toda tarjeta y los que dependen de qué produce la tarjeta.}
+
+\textcolor{borrador2}{\textbf{Tres criterios rigen para toda tarjeta, sin excepción}, porque
+  no dependen de qué se haya construido sino de que quede cerrado:}
+
+\begin{enumerate}
+  \item \textcolor{borrador2}{\textbf{Integración:} el trabajo está fusionado en la rama
+        principal y la integración continua está en verde.}
+  \item \textcolor{borrador2}{\textbf{Defendibilidad:} la decisión que hay detrás se explica
+        en dos minutos, con la evidencia delante y diciendo qué alternativas se descartaron.}
+  \item \textcolor{borrador2}{\textbf{Memoria:} lo que la tarjeta ha producido está volcado en
+        la sección que le corresponde de este documento.}
+\end{enumerate}
+
+\textcolor{borrador2}{\textbf{Los tres restantes dependen de la naturaleza de la tarjeta}, que
+  es la clasificación que ya usa el tablero y que recoge la
+  Tabla~\ref{tab:resumen_backlog}:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Código.} El programa hace lo que promete, comprobado
+        \emph{ejecutándolo} y no leyéndolo; trae pruebas automáticas construidas sobre datos
+        reales de la fuente, incluida la de regresión de cualquier defecto que se haya
+        encontrado; y sus funciones nacen documentadas.}
+  \item \textcolor{borrador2}{\textbf{Experimento.} El guion que produce las cifras está
+        versionado y es determinista, de modo que otra persona pueda repetirlo y obtener lo
+        mismo; el resultado lo escribe el propio guion en su registro, nunca se copia a mano;
+        y las amenazas a la validez de lo medido quedan enunciadas junto al resultado.}
+  \item \textcolor{borrador2}{\textbf{Decisión.} Existe el registro correspondiente ---de
+        arquitectura o de calidad de datos--- con las alternativas consideradas, la evidencia
+        que sostiene la elegida y sus limitaciones.}
+  \item \textcolor{borrador2}{\textbf{Memoria.} El documento compila, no queda texto de
+        andamiaje sin reescribir en la sección afectada, y toda cifra que se dé procede de la
+        salida de un verificador y va acompañada de su fecha.}
+  \item \textcolor{borrador2}{\textbf{Gestión.} No añade criterios propios: le bastan los tres
+        universales.}
+\end{itemize}
+
+\textcolor{borrador2}{Enunciar aquí una definición más estricta que la que se ha aplicado de
+  verdad sería contraproducente, porque es comprobable: cualquiera puede abrir dos tarjetas
+  cerradas del repositorio y ver si las cumplen. La definición que se describe es la que se ha
+  usado, con las excepciones que se documentan en el propio historial del proyecto.}
+
+\begin{borrador}
+  \item \textbf{Esto es la propuesta que pide el punto anterior}, escrita ya como quedaría el
+  apartado. Si te convence, sustituye la enumeración de arriba por esta y quítale el color;
+  si no, dime qué cambiarías. Lo que no puede quedarse es la versión de seis criterios
+  planos, porque la tabla del \textit{backlog} la contradice a la vista.
+  \item \textbf{Antes de dar por buena la última frase, compruébala.} Dice que la definición
+  descrita es la que se ha aplicado. Abre dos o tres tarjetas ya cerradas y mira si cumplen
+  el criterio 6, que es el que más fácilmente se queda atrás: cerrar el código y aplazar la
+  memoria es exactamente lo que pasó con las tarjetas del conjunto de evaluación y del
+  índice. Si sigue habiendo tarjetas cerradas sin volcar, o lo dices aquí como deuda
+  reconocida, o no afirmes que la definición se cumplió siempre.
+  \item \textbf{Nombres de las naturalezas:} he usado los cinco rótulos de la
+  Tabla~\ref{tab:resumen_backlog} tal cual (código, memoria, experimento, decisión y
+  gestión). Si cambias alguno en la tabla, cámbialo también aquí o dejarán de casar.
+  \item \textbf{Una pregunta que puede caer en la defensa:} si los criterios dependen de la
+  naturaleza, ¿quién decide la naturaleza de una tarjeta? La respuesta honesta es que la
+  decides tú al crearla, con la etiqueta del tablero, y que por eso la clasificación es una
+  decisión de gestión y no una propiedad objetiva. Merece una frase.
+\end{borrador}
+
 
 \section{Planificación temporal}
 
@@ -456,14 +525,14 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \begin{figure}[H]
   \centering
-  \resizebox{0.95\textwidth}{!}{%
+  \resizebox{0.82\textwidth}{!}{%
     \begin{tikzpicture}[
         clase/.style={rectangle split, rectangle split parts=2,
             draw=diagNodoBorde, fill=diagNodo, align=left,
-            font=\footnotesize, inner sep=5pt},
+            font=\footnotesize, inner sep=4pt},
         meta/.style={rectangle split, rectangle split parts=2,
             draw=borrador2, densely dashed, fill=diagNodo, align=left,
-            text=borrador2, font=\footnotesize, inner sep=5pt},
+            text=borrador2, font=\footnotesize, inner sep=4pt},
         etiqRel/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
         etiqOrigen/.style={font=\scriptsize\ttfamily, text=borrador2,
             fill=white, inner sep=1.5pt},
@@ -476,7 +545,9 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
       % tipo_asignatura, y aparece el item de procedencia que encabeza cada
       % fichero. Las cuatro flechas que llegan a Chunk son los cuatro valores
       % reales del campo origen: guia (1.193), asignatura_sin_guia (86),
-      % plan_de_estudios (33) y salidas (22).
+      % plan_de_estudios (33) y salidas (22). El trazado es ortogonal a
+      % proposito: con lineas rectas y angulos rectos ninguna flecha cruza a
+      % otra ni pasa por encima de una caja.
       \node[clase] (grado) at (0,0) {\textbf{Grado}
         \nodepart{two}
         nombre: \texttt{str}\\
@@ -484,12 +555,12 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         url\_asignaturas: \texttt{str}\\
         url\_salidas: \texttt{str}};
 
-      \node[clase] (salidas) at (6.6,-0.35) {\textbf{Salidas}
+      \node[clase] (salidas) at (5.6,-0.5) {\textbf{Salidas}
         \nodepart{two}
         grado: \texttt{str}\\
         texto: \texttt{str}};
 
-      \node[clase] (asig) at (0,-5.6) {\textbf{Asignatura}
+      \node[clase] (asig) at (0,-4.9) {\textbf{Asignatura}
         \nodepart{two}
         grado: \texttt{str}\\
         codigo: \texttt{str}\\
@@ -501,7 +572,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         menciones: \texttt{list}\\
         url\_guia: \texttt{str}};
 
-      \node[clase] (guia) at (0,-11.6) {\textbf{Guía}
+      \node[clase] (guia) at (0,-9.9) {\textbf{Guía}
         \nodepart{two}
         grado: \texttt{str}\\
         codigo: \texttt{str}\\
@@ -512,7 +583,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         curso: \texttt{str}\\
         formato: \texttt{str}};
 
-      \node[clase] (chunk) at (13.4,-5.6) {\textbf{Chunk}
+      \node[clase] (chunk) at (11.2,-4.9) {\textbf{Chunk}
         \nodepart{two}
         origen: \texttt{str}\\
         grados: \texttt{list}\\
@@ -523,7 +594,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         chunk\_index: \texttt{int}\\
         total\_chunks: \texttt{int}};
 
-      \node[meta] (proc) at (7.2,-14.6) {\textbf{Procedencia}
+      \node[meta] (proc) at (6.4,-12.3) {\textbf{Procedencia}
         \nodepart{two}
         fecha\_extraccion: \texttt{str}\\
         origen: \texttt{str}\\
@@ -531,35 +602,35 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         cursos: \texttt{list}\\
         tamanos: \texttt{list}};
       \node[font=\scriptsize, text=borrador2, align=left, anchor=north west]
-        at ([xshift=-2mm,yshift=-2mm]proc.south west)
-        {encabeza cada fichero de la colección; no se indexa,\\
-         y es lo que permite decir de cuándo es el corpus};
+        at ([yshift=-1.5mm]proc.south west)
+        {cabecera de cada fichero de la colección;\\
+         no se indexa};
 
       % Relaciones entre las entidades extraídas
       \draw[flechaDiag] (grado.south) -- node[etiqRel]{ofrece}
-        node[mult, pos=0.08, right]{1} node[mult, pos=0.93, right]{*} (asig.north);
+        node[mult, pos=0.1, right]{1} node[mult, pos=0.9, right]{*} (asig.north);
       \draw[flechaDiag] (grado.east) -- node[etiqRel]{tiene}
-        node[mult, pos=0.08, above]{1} node[mult, pos=0.9, above]{0..1} (salidas.west);
+        node[mult, pos=0.1, above]{1} node[mult, pos=0.8, above]{0..1} (salidas.west);
       \draw[flechaDiag] (asig.south) -- node[etiqRel]{documentada por}
-        node[mult, pos=0.08, right]{1} node[mult, pos=0.92, right]{0..1} (guia.north);
+        node[mult, pos=0.1, right]{1} node[mult, pos=0.82, right]{0..1} (guia.north);
 
       % Las cuatro procedencias posibles de un fragmento
-      \draw[flechaDiag] (guia.east) to[out=0,in=215]
-        node[etiqRel, pos=0.45, above]{troceada y deduplicada en}
-        node[etiqOrigen, pos=0.45, below]{origen: guia}
-        node[mult, pos=0.04, above]{*} node[mult, pos=0.96, below right]{*} (chunk.south west);
       \draw[flechaDiag] (asig.east) --
-        node[etiqRel, pos=0.5, above]{resumida en, si no tiene guía}
-        node[etiqOrigen, pos=0.5, below]{origen: asignatura\_sin\_guia}
-        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, above]{1} (chunk.west);
-      \draw[flechaDiag] (salidas.south) to[out=-90,in=155]
-        node[etiqRel, pos=0.55, above right]{troceadas en}
-        node[etiqOrigen, pos=0.55, below left]{origen: salidas}
-        node[mult, pos=0.05, right]{1} node[mult, pos=0.95, above left]{*} (chunk.north west);
-      \draw[flechaDiag] (grado.north east) to[out=35,in=115]
-        node[etiqRel, pos=0.5, above]{resume su plan de estudios en}
-        node[etiqOrigen, pos=0.5, below]{origen: plan\_de\_estudios}
-        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, above right]{*} (chunk.north);
+        node[etiqRel, pos=0.45, above]{resumida en, si no tiene guía}
+        node[etiqOrigen, pos=0.45, below]{origen: asignatura\_sin\_guia}
+        node[mult, pos=0.04, above]{1} node[mult, pos=0.96, above]{1} (chunk.west);
+      \draw[flechaDiag] (guia.east) -|
+        node[etiqRel, pos=0.2, above]{troceada y deduplicada en}
+        node[etiqOrigen, pos=0.2, below]{origen: guia}
+        node[mult, pos=0.02, above]{*} node[mult, pos=0.97, right]{*} (chunk.south);
+      \draw[flechaDiag] (salidas.east) -|
+        node[etiqRel, pos=0.25, above]{troceadas en}
+        node[etiqOrigen, pos=0.25, below]{origen: salidas}
+        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, left]{*} (chunk.north west);
+      \draw[flechaDiag] (grado.north) -- ++(0,0.7) -|
+        node[etiqRel, pos=0.3, above]{resume su plan de estudios en}
+        node[etiqOrigen, pos=0.3, below]{origen: plan\_de\_estudios}
+        node[mult, pos=0.02, above]{1} node[mult, pos=0.97, right]{*} (chunk.north east);
     \end{tikzpicture}%
   }
   \caption{Modelo de datos conceptual de las entidades extraídas mediante
