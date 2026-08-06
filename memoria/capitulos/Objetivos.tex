@@ -14,14 +14,14 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
 \section{Objetivos específicos}
 
 % Están redactados para poder responder sí/no a cada uno al terminar el TFG.
-\begin{itemize}                                          
+\begin{itemize}                                                                                                                
   \item \textbf{OE1.} Construir una colección documental estructurada y
         trazable con los planes de estudio, las guías docentes y las salidas
         profesionales de la EPSJ, mediante un proceso de extracción web propio.
-  \item \textbf{OE2.} \textcolor{borrador2}{Definir una estrategia de
+  \item \textbf{OE2.} Definir una estrategia de
         fragmentación (\textit{chunking}) de esa colección adecuada al dominio,
         justificada sobre la medición de sus textos y el contraste razonado de
-        alternativas.}
+        alternativas.
   \item \textbf{OE3.} Seleccionar, con criterios cuantitativos, el modelo de
         incrustaciones (\textit{embeddings}) y la base de datos vectorial del
         sistema.
@@ -33,45 +33,71 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
         chat accesible y sin registro.
 \end{itemize}
 
-\begin{borrador}
-  \item \textbf{OE2 reformulado el 04/08/2026.} Decía: <<Definir y \emph{evaluar
-          experimentalmente} una estrategia de fragmentación (\textit{chunking}) de esa
-        colección adecuada al dominio>>.
-  \item \textbf{El motivo, que hay que poder decir en voz alta:} ese experimento no se ha
-        hecho ni está planificado. Lo que sí se hizo fue medir la colección (mediana,
-        percentil 90 y máximo de las guías), comparar cuatro estrategias de fragmentación y
-        justificar la elegida en el ADR-0001. Eso es contraste razonado, no evaluación
-        experimental de los parámetros: el tamaño objetivo, el máximo y el mínimo siguen
-        siendo \textbf{provisionales}, como declara el propio ADR-0001.
+\begin{borrador}                                                                        
   \item \textbf{Reformular un objetivo para que encaje con lo hecho es exactamente lo
-        que un tribunal llama mover la portería}, salvo que se declare. Por eso el
-        parámetro sin validar no desaparece: baja a las amenazas a la validez del
-        Capítulo~\ref{cap:resultados} y a trabajo futuro en el
-        Capítulo~\ref{cap:conclusiones}. Si lo quitas de aquí y no lo pones allí, el cambio
-        deja de ser honesto y pasa a ser cosmético.
+    que un tribunal llama mover la portería}, salvo que se declare. Por eso el
+  parámetro sin validar no desaparece: baja a las amenazas a la validez del
+  Capítulo~\ref{cap:resultados} y a trabajo futuro en el
+  Capítulo~\ref{cap:conclusiones}. Si lo quitas de aquí y no lo pones allí, el cambio
+  deja de ser honesto y pasa a ser cosmético.
   \item \textbf{Alternativa, por si prefieres no reformular:} hacer el experimento. Sería
-        comparar dos o tres juegos de parámetros con las mismas métricas de recuperación
-        del conjunto de IT-27. No es caro ---el guion ya existe---, pero obliga a
-        re-fragmentar y reindexar, y con la entrega el 03/09 compite con IT-31 y con la
-        Fase 2. Es tu decisión de calendario, no mía.
+  comparar dos o tres juegos de parámetros con las mismas métricas de recuperación
+  del conjunto de IT-27. No es caro ---el guion ya existe---, pero obliga a
+  re-fragmentar y reindexar, y con la entrega el 03/09 compite con IT-31 y con la
+  Fase 2. Es tu decisión de calendario, no mía.
   \item \textbf{Comprobado además:} ni OE2 ni OE3 tienen ningún requisito de usuario
-        trazado hasta ellos en la Tabla~\ref{tab:requisitos_usuario}. No es un defecto
-        ---son objetivos técnicos internos--- pero si alguien pregunta por la trazabilidad
-        completa, conviene tener la respuesta preparada.
+  trazado hasta ellos en la Tabla~\ref{tab:requisitos_usuario}. No es un defecto
+  ---son objetivos técnicos internos--- pero si alguien pregunta por la trazabilidad
+  completa, conviene tener la respuesta preparada.
 \end{borrador}
 
 \section{Hipótesis de trabajo}
+\label{secc:hipotesis}
 
 % La hipótesis debe ser falsable: al evaluar el sistema se confirma o se refuta.
-Es posible construir, con recursos de cómputo modestos y modelos de código
-abierto, un sistema RAG que responda preguntas sobre la oferta académica de la
-EPSJ con una fidelidad y una capacidad de recuperación suficientes para resultar
-útil a un estudiante preuniversitario, sin incurrir en respuestas inventadas
-sobre asignaturas o titulaciones de un modelo de lenguaje grande de internet.
 
-\begin{borrador}    
-  \item \textbf{Fase:} 1--2 (IT-28 / IT-38). Falta por sustituir los adjetivos por valores cuantificables
-  con los que se pueda decir si es correcta o no la hipótesis.
+Es posible construir, con hardware doméstico y modelos de pesos abiertos, un sistema RAG que responda preguntas
+sobre la oferta académica de la EPSJ apoyando cada respuesta en la documentación oficial del
+centro, y no en el conocimiento previo del modelo de lenguaje.
+La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro condiciones siguientes:
+
+\begin{enumerate}                                      
+  \item El recuperador del RAG deberá situar la unidad de la cual sacar la información entre
+        los cinco primeros resultados en al menos el 90\,\% de las preguntas, medido con
+        \textit{Recall@5} \textbf{por unidad} sobre un conjunto de 50
+        preguntas de prueba.
+        
+  \item Ninguna respuesta del sistema tiene que contener información sobre un dato de una
+        asignatura, sus créditos, su carácter o la titulación en que se imparte que no aparezca
+        en los fragmentos recuperados. Contaría como error, pues, toda información que invente o alucine el modelo de lenguaje.
+        
+  \item El sistema responderá con contenido, y no con una contestación evasiva, en al menos el
+        90\,\% de las preguntas, siempre y cuando sean sobre la información recuperada y no
+        sobre información ajena a la EPSJ. No cuenta como evasiva responder que una asignatura no tiene guía docente publicada
+        cuando en efecto no es posible encontrar ninguna en su página de la EPSJ.
+        
+  \item El sistema completo deberá ejecutarse en el equipo doméstico descrito en el
+        Capítulo~\ref{cap:materialesymetodos}, y ser utilizable en él. Deberá dar una respuesta en menos de treinta segundos
+        de mediana sobre las preguntas de prueba. Este tiempo se elige puesto que por encima de esta cifra, un usuario abandonaría la aplicación.
+        
+\end{enumerate}
+
+\begin{borrador}      
+  \item \textbf{Fase:} 1 --- pendiente de tarjeta.
+  \item \textbf{Qué se quitó del enunciado el 05/08/2026 y por qué.} Decía «\emph{una
+    aplicación web de chat accesible y sin registro}». Eso es el \textbf{envase} ---cómo se
+  sirve el sistema--- y ya está dicho en el OE6 y en los requisitos de usuario, de modo que
+  aquí solo duplicaba. Además no puede resultar falso: que se puede construir una aplicación
+  web de chat no hay que demostrarlo, y una hipótesis tiene que ser algo que podría salir mal.
+  No se pierde nada: sigue estando donde le toca.
+  \item \textbf{Qué se conservó.} «\emph{Con un sistema RAG}» tampoco es una afirmación
+  falsable ---es una decisión de diseño, y se justifica en el
+  Capítulo~\ref{cap:materialesymetodos}---, pero se queda porque acota de qué sistema se
+  habla. Sin eso, la hipótesis no diría sobre qué se está afirmando nada.
+  \item \textbf{Lo que va en turquesa es lo que hace falsable la frase, y hay que
+    reescribirlo con tus palabras:} que el sistema responde apoyándose en la documentación
+  oficial y no en lo que el modelo se supiera de antes. Eso sí puede fallar, y es lo que el
+  trabajo entero se dedica a sostener. La condición 2 lo mide.
 \end{borrador}
 
 \section{Restricciones del proyecto}
@@ -98,6 +124,6 @@ Los requisitos de usuario se formulan desde la perspectiva del estudiante preuni
 
 \subsection{Requisitos del sistema}
 
-\begin{borrador}                                          
+\begin{borrador}                                                                                                                
   \item \textbf{Fase:} 1 (IT-59) --> Aún no se sabe el modelo de LLM
 \end{borrador}
