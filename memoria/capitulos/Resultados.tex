@@ -7,6 +7,33 @@
 \section{Selección del modelo de incrustaciones}
 \label{secc:resultados_embeddings}
 
+\begin{borrador}
+  \item \textbf{LA TABLA DE ESTA SECCIÓN ESTÁ CADUCADA (IT-16).} Sus cifras son de la
+  ejecución del 04/08/2026 sobre 797 fragmentos, con el máximo de fragmento todavía en
+  1.500 caracteres. Al fijar los parámetros de fragmentación el corpus pasó a
+  \textbf{1.334} y la comparativa se repitió el 06/08/2026. Las cifras vigentes están en
+  \texttt{docs/experimentos/it28-embeddings.md}, que escribe el propio guion: cópialas de
+  ahí a \texttt{tablas/TablaComparativaEmbeddings.tex}, no a mano desde aquí.
+  \item \textbf{Y hay que reescribir la conclusión, no solo los números.} El texto de
+  abajo dice que el modelo grande recupera mejor y que se descarta por coste. Con el
+  troceado nuevo la diferencia entre los dos baja de dos preguntas y media de cincuenta a
+  \textbf{media pregunta}, y el MRR se iguala en 0,970. La elección no cambia; el
+  argumento sí, y a mejor: ya no depende de que el sistema acabe usando diez resultados
+  por consulta, que es un parámetro que todavía no está decidido.
+  \item \textbf{Se da la vuelta además el desglose por tipo de pregunta.} En las de
+  metadatos ---donde el modelo pequeño era claramente peor--- pasa a ir por delante
+  (0,697 frente a 0,664). Si dejas la frase anterior sin tocar, estarás defendiendo la
+  decisión con una razón que hoy es falsa.
+  \item \textbf{Lo que no se puede decir:} que el modelo pequeño haya mejorado. El modelo
+  es el mismo y lo que cambió fue la colección. Trocear más fino reparte cada unidad en
+  más fragmentos y le da más oportunidades de entrar entre los primeros resultados, y de
+  eso se beneficia más el modelo que peor las aprovechaba.
+  \item \textbf{Cuidado con la exhaustividad por fragmento, que baja} (0,771 a 0,697) y
+  \emph{no} es una regresión: su techo baja con ella, de 0,905 a 0,789. Medido contra el
+  techo, el hueco se reduce de 0,134 a 0,092. Sin el techo al lado, la cifra dice lo
+  contrario de lo que ocurre.
+\end{borrador}
+
 \begin{borrador}      
   \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva, con los resultados del
   experimento del 04/08/2026. Andamiaje: la prosa la escribes tú. La tabla ya está
