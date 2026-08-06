@@ -50,69 +50,51 @@ Para clasificar semánticamente los cambios, los tipos de confirmación (\textit
 
 Cada entrega de código exige no solo el título estandarizado que describe \textit{qué} se ha modificado, sino un cuerpo explicativo obligatorio que documenta con claridad \textit{por qué} se ha tomado dicha decisión técnica frente a otras alternativas.
 
-Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la rama principal (\texttt{main}) se realizan exclusivamente mediante confirmaciones de fusión explícitas (\textit{Merge Commits}). Se ha descartado la técnica de aplastamiento (\textit{Squash}) al fusionar las ramas efímeras, garantizando que la historia atómica y el razonamiento de cada paso del desarrollo se conserven de manera inmutable.
+Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la rama principal (\texttt{main}) se realizan exclusivamente mediante confirmaciones de fusión explícitas (\textit{Merge Commits}). Se ha descartado la técnica de aplastamiento (\textit{Squash}) al fusionar las ramas efímeras, garantizando que todo el historial y el razonamiento de cada paso del desarrollo se conserven de manera inmutable.
 
 \subsection{Integración Continua (CI) y automatización de pruebas}
+\label{secc:Integracion_continua}
 El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
-\subsection{Qué se comprueba y con qué: tres niveles distintos}
+\subsection{Tipos de pruebas del proyecto}
 \label{secc:niveles_de_prueba}
 
-\textcolor{borrador2}{En este trabajo conviven tres actividades que en lenguaje corriente se
-  llamarían todas <<probar el sistema>>, pero que responden a preguntas distintas, se ejecutan
-  en momentos distintos y, sobre todo, no significan lo mismo cuando fallan. Confundirlas
-  llevaría a creer que un sistema con las pruebas en verde da buenas respuestas, y este
-  proyecto tiene evidencia propia de que eso es falso: tres defectos graves de la colección
-  documental convivieron con la batería de pruebas al completo en verde.}
+En este trabajo conviven tres tipos de pruebas que responden a preguntas distintas, se ejecutan
+en momentos distintos y, sobre todo, no significan lo mismo cuando fallan. Estos tipos son de vital importancia 
+para asegurar que todas las partes del sistema funcionan correctamente y que los resultados son fidedignos.
 
-\textcolor{borrador2}{\textbf{El primer nivel son las pruebas del código}, escritas con
-  \texttt{pytest} y ejecutadas en la integración continua ante cada actualización del
-  repositorio. Comprueban que cada módulo hace lo que promete sobre entradas conocidas, son
-  deterministas y su resultado es binario: pasan o no pasan. Cuando fallan, el defecto está en
-  el código. A ellas pertenece la regla de que todo defecto encontrado entra como caso de
-  regresión con el fragmento real de la fuente que lo destapó.}
+\textbf{El primer tipo son las pruebas del código}, escritas con
+\texttt{pytest} y ejecutadas antes de la ejecución del código que comprueban y cuando se suben al repositorio (explicado en la sección ~\ref{secc:Integracion_continua}). Comprueban que cada módulo o script hace lo que está previsto que haga, son deterministas y su resultado es de carácter booleano, es decir, pasan o no pasan. Cuando fallan, el defecto está en el código.
 
-\textcolor{borrador2}{\textbf{El segundo nivel son los verificadores de la colección
-    documental}, que no examinan el código sino el resultado de ejecutarlo sobre la fuente
-  completa. Responden a preguntas que ninguna prueba unitaria puede responder, porque dependen
-  de los datos reales y no de una muestra: si alguna titulación se ha quedado sin asignaturas,
-  si algún fragmento supera el tamaño máximo o si el encabezado de un fragmento nombra a una
-  unidad distinta de la suya. Se ejecutan a mano antes de cada subida y no en la integración
-  continua, porque la colección no se versiona (Sección~\ref{secc:verificacion_fase0}). Los
-  tres defectos mencionados arriba los destapó este nivel, no el anterior.}
+\textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que continen toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los chunks de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de los chunks supera el tamaño máximo o si el fragmento nombra a una unidad  (Asignatura, plan de estudio o Salida profesional) distinta a la suya. 
 
-\textcolor{borrador2}{\textbf{El tercer nivel es la evaluación del sistema}, y no es una
-  prueba en absoluto: es una medición. No produce un veredicto de correcto o incorrecto, sino
-  un número que solo significa algo comparado con el de otra configuración. Sobre la
-  recuperación se miden \textit{Recall@K} y MRR contra un conjunto de preguntas etiquetadas a
-  mano; sobre la generación se medirán, en la Fase 2, la fidelidad de la respuesta al contexto
-  recuperado y su pertinencia. Esta actividad no puede automatizarse en la integración
-  continua por dos motivos: necesita descargar modelos de varios cientos de megabytes y su
-  resultado no es un fallo que arreglar, sino una comparación que interpretar. Los resultados
-  se recogen en el Capítulo~\ref{cap:resultados}.}
+Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no en la integración continua debido a que la colección de datos no se versiona ya que son ficheros grandes y con previsión a ser aún más grandes en el futuro (Sección~\ref{secc:verificacion_fase0}).
 
-\begin{borrador}  
-  \item \textbf{Fase:} 1 (tutoría del 04/08/2026: <<diferenciar tests de código y las
-  pruebas del LLM>>). Este apartado es el andamiaje de esa distinción; reescríbelo con
-  tus palabras.
-  \item \textbf{La batería tiene 185 pruebas} y todas pasan (ejecutado el 04/08/2026, ya
-  con \texttt{doc} sincronizada con \texttt{main}). La cifra crece en cada tarjeta:
-  vuelve a contarla al cerrar la memoria en vez de arrastrar esta.
-  \item El tercer nivel se completa cuando exista la Fase 2. Hasta entonces, lo de la
-  fidelidad y la pertinencia está en futuro a propósito: todavía no se ha medido.
-  \item \textit{Recall@K} y MRR aparecen aquí sin marcar con \texttt{\textbackslash gl}
-  porque no están en el glosario. Son las dos métricas centrales del trabajo y
-  merecen entrada propia; decide tú si la añades.
+\textbf{El tercer tipo es la evaluación del sistema}, la cuál más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
+uno o varios números que solo tienen significado si se comparan con el de otra configuración. 
+
+Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquedas escritas a mano pensando en lo que el usuario puediera querer saber.
+sobre la generación de la respuesta se medirán la fidelidad de la respuesta al contexto
+recuperado y su pertinencia.
+
+Esta actividad no puede automatizarse en la integración continua por dos motivos: necesita descargar modelos para la experimentación y comprobación de cuál es mejor (de varios cientos de megabytes) y su
+resultado no es un fallo que arreglar, sino una comparación que interpretar.
+Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
+
+
+\begin{borrador}                                                                                                          
+  \item Falta añadir el contenido de este apartado cuando se llegue a la Fase 2. No se habla de futuro, dado que el que lea esta memoria ya habrán terminado todas las fases.
+  \item \textit{Recall@K} y MRR tendrán su apartado.
 \end{borrador}
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 \label{secc:dod}
 Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple simultáneamente seis condiciones:
-\begin{enumerate}                                                                                                                                                                        
+\begin{enumerate}                                                                                                                                                                                                                                                                                
   \item \textbf{Funcionalidad:} El código cumple el objetivo técnico estipulado.
   \item \textbf{Pruebas:} Incluye casos de prueba exitosos basados en datos reales de la fuente.
   \item \textbf{Documentación:} El código incorpora cadenas de documentación (\textit{docstrings}) formateadas según el estándar \textit{Google Style}\cite{googlestyle} y las convenciones oficiales de Python (PEP 257)\cite{pep257}.
@@ -121,27 +103,14 @@ Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido 
   \item \textbf{Memoria:} La justificación técnica, las métricas o los descubrimientos derivados de la tarea han sido volcados en el borrador de la memoria académica.
 \end{enumerate}
 
-\begin{borrador}
+\begin{borrador}                                                                                                        
   \item \textbf{Fase:} 1 --- pendiente de tarjeta; encaja en IT-84, que ya va de separar las
   pruebas de software de la evaluación del sistema.
-  \item \textbf{Los seis criterios están redactados para tarjetas de código, pero el texto
-    dice que se aplican a todas y encima <<simultáneamente>>.} Contado el 05/08/2026 con
-  \texttt{gh} sobre las 99 tarjetas del repositorio: 34 son de código, 42 de memoria, 10 de
-  experimento, 5 de ADR, 6 de gestión y 2 de DQA. Es decir, \textbf{65 de 99 no tienen
-    código}, así que no pueden cumplir el criterio 1 (<<el código cumple el objetivo>>), ni el
-  2 (<<casos de prueba>>), ni el 3 (<<\textit{docstrings}>>). La afirmación es comprobable y
-  hoy es falsa para dos tercios del \textit{backlog}: basta con abrir IT-33, que es un
-  capítulo de la memoria, y preguntar dónde están sus pruebas.
+  \item Diferenciar en este apartado los DoD dependiendo de cada tipo de tarjeta.
   \item \textbf{Cómo matizarlo sin debilitarlo:} los criterios 1, 2 y 3 rigen para las
   tarjetas cuya naturaleza es código; los criterios 4, 5 y 6, para todas sin excepción. La
   clasificación por naturaleza ya existe y está en la Tabla~\ref{tab:resumen_backlog}, así que
   no hay que inventar ninguna categoría nueva: basta con apoyarse en ella.
-  \item \textbf{Hay además dos incumplimientos reales del criterio 6, y conviene declararlos}
-  en lugar de esperar a que los encuentren. IT-27 e IT-30 se cerraron y se fusionaron sin
-  volcar su contenido en la memoria. No es una sospecha: lo certifica el propio tablero,
-  porque las tarjetas abiertas que lo saldan se titulan literalmente <<deuda de IT-27>> y
-  <<deuda de IT-30>>. Declararlo es más fuerte que ocultarlo, porque demuestra que el proceso
-  se aplica de verdad: solo se detecta un incumplimiento allí donde alguien comprueba.
 \end{borrador}
 
 
