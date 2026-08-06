@@ -689,18 +689,14 @@ Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramient
 En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones entre el
 rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
 
-El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web: primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado con el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
+El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
 \begin{borrador}                                                                                                              
-  \item \textbf{Figura rehecha el 30/07/2026.} La anterior describía un flujo que
-  ya no es el que se ejecuta, así que el párrafo tachado tampoco.
-  \item Las bifurcaciones ya no son tres sino \textbf{cuatro}, y conviene
-  enumerarlas en este orden, que es el del recorrido del dato:
+  \item Las bifurcaciones ya no son tres sino más, y conviene
+  enumerarlas en este orden, que es el del recorrido del dato. Volver a reescribir este párrafo anterior con tener esto en cuenta
   \item \textbf{(1) Titulación vigente o en extinción.} Las que están en extinción
-  se descartan \emph{antes} de rastrearlas, no después: no se gastan
-  peticiones en datos que no se van a usar, y un preuniversitario no puede
-  matricularse en un plan que ya no admite alumnado nuevo.
-  \item \textbf{(2) Asignatura con guía publicada o sin ella.} Sin cambios.
+  se descartan \emph{antes} de rastrearlas.
+  \item \textbf{(2) Asignatura con guía publicada o sin ella.} Sin cambios, pero hay que volver a añadirla.
   \item \textbf{(3) La guía llega en PDF o en HTML.} Es la bifurcación nueva y la
   que más pesa: el enlace acaba en \texttt{.html} pero puede devolver un PDF,
   así que la decisión se toma por el tipo de contenido real y no por la
@@ -708,8 +704,6 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
     la rama del PDF}; la rama HTML se conserva por retrocompatibilidad y no la
   recorre ninguna.
   \item \textbf{(4) Grado simple o doble.} Sin cambios.
-  \item Lo que \emph{desaparece} del párrafo: el <<resumen general de la página>>.
-  Ese respaldo pertenece a la rama HTML y no se activa nunca (0 de 288).
 \end{borrador}
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
@@ -825,26 +819,38 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada grado simple con contenido propio.
+uno por cada grado simple con contenido propio. En el caso de los dobles grados, la lista de salidas son la concatenación de
+los dos grados por separado.
 
-\textcolor{borrador2}{El párrafo tachado sostenía que las salidas de un doble grado son
-  la unión exacta de las de sus dos grados base y que, por tanto, no hacía falta
-  recogerlas. Al comprobarlo frase a frase contra la página real, la afirmación resultó ser
-  cierta solo en parte: la lista de ámbitos profesionales sí es la concatenación de las de
-  los dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones
-  reguladas da acceso la doble titulación, y eso no aparece en ninguno de los dos grados
-  simples. Reconstruir esa frase uniendo los dos textos habría exigido escribirla, es decir,
-  inventar contenido que la fuente sí publica; por eso se rastrea la página en lugar de
-  sintetizarla. De las cinco titulaciones dobles, solo una la publica, de ahí que los
-  bloques sean ocho y no doce.}
+\begin{borrador}
+  \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
+\end{borrador}
 
-\textcolor{borrador2}{La comprobación destapó además un defecto propio: la extracción
-  recogía únicamente los elementos de la lista y descartaba los párrafos del cuerpo, de modo
-  que ese texto de presentación se venía perdiendo \emph{en las siete titulaciones} desde
-  que se implementó. Es el quinto caso en este trabajo de un dato que desaparece sin que
-  nada falle, y el más ilustrativo de todos: la prueba automática que cubría esta función
-  daba por buenas dieciséis líneas sobre una página que traía dieciocho, porque comprobaba
-  lo que el código producía y no lo que la fuente contenía.}
+\begin{borrador}
+  \item 🔴 \textbf{Cuidado con la frase que acabas de escribir: la evidencia del proyecto
+    dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
+  con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
+  dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones reguladas
+  da acceso la doble titulación, y ese párrafo \textbf{no aparece en ninguno de los dos
+    grados base}. Por eso la página se rastrea en lugar de sintetizarse: reconstruir esa
+  frase uniendo los dos textos habría obligado a escribirla, es decir, a inventar contenido
+  que la fuente sí publica.
+  \item Y por eso los bloques son \textbf{ocho y no doce}: de las cinco titulaciones dobles
+  solo una publica ese texto. Tal y como está redactado ahora, el <<8>> del párrafo se queda
+  sin explicación, porque si las salidas de un doble grado fueran una concatenación no
+  harían falta bloques propios para ellas.
+  \item Está registrado en el DQA-0005 y en el cuerpo de las confirmaciones de IT-101, así
+  que es comprobable: si alguien del tribunal abre la página de un doble grado, ve el
+  párrafo. \textbf{Decide tú cómo redactarlo}, pero la versión corta que hay ahora afirma
+  algo que el propio trabajo demostró falso.
+  \item Se perdió también, al reescribir, el hallazgo de que la extracción recogía solo los
+  elementos de la lista y descartaba los párrafos del cuerpo, con lo que ese texto se venía
+  perdiendo en las siete titulaciones. Es el quinto caso de la serie <<un dato desaparece
+  sin que nada falle>>, y el más ilustrativo: la prueba automática daba por buenas dieciséis
+  líneas sobre una página que traía dieciocho, porque comprobaba lo que el código producía y
+  no lo que la fuente contenía. Si no lo quieres aquí, llévalo a las amenazas a la validez,
+  pero no lo dejes fuera de la memoria.
+\end{borrador}
 
 \subsection{Troceado y deduplicación de la colección}
 \label{subsec:chunking}
