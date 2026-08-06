@@ -7,6 +7,20 @@
 > **Fuente de las cifras:** `docs/experimentos/it28-embeddings.md`. Si no coinciden, manda
 > ese fichero, que lo escribe el propio script.
 
+> 🔴 **AVISO DEL 06/08/2026 — esta nota está medida sobre un corpus anterior.** Se escribió
+> con los 797 fragmentos que producía el troceado de 1.500 caracteres. Al fijar los
+> parámetros de fragmentación (IT-16, máximo 900) el corpus pasó a 1.334 fragmentos y la
+> comparativa se repitió: **la ventaja del modelo grande cae de 2,5 preguntas de 50 a media
+> pregunta, y el MRR se iguala en 0,970.** La cifra concreta que este documento usa como
+> argumento central —que el pequeño pierde sobre todo en las preguntas de metadatos— **se ha
+> dado la vuelta**: hoy el pequeño saca 0,697 y el grande 0,664 en ese tipo.
+>
+> Lo que **no** cambia es la conclusión: se elige el pequeño. Cambia el motivo, y a mejor —
+> ya no hace falta apoyarse en operar con diez resultados por consulta. Las cifras vigentes y
+> su lectura están en la adenda del 06/08 del ADR-0003; el §2 de esta nota hay que leerlo con
+> ella al lado, y el §4 (cuántas veces se paga cada coste) sigue siendo válido tal cual,
+> porque no depende del corpus.
+
 Esta nota separa una pregunta que en la tabla de resultados queda escondida: **el modelo
 grande recupera mejor, así que ¿por qué no usarlo?** La respuesta no es «porque sí» ni
 «porque el pequeño ya vale»; depende de cuántas veces se paga cada coste y de qué se pierde
