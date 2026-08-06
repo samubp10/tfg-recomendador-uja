@@ -120,11 +120,11 @@ Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificac
 
 \subsection{Micro-planificación: Tablero Kanban}
 
-La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las \sout{61 historias técnicas de usuario (IT-01 a IT-61)} historias técnicas de usuario que componen el \textit{backlog} del proyecto.
+La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las  historias técnicas de usuario que componen el \textit{backlog} del proyecto.
 
 Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta micro-planificación es el límite de Trabajo en Curso (\glr{Work In Progress}{WIP}, WIP), que impide iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=1 \textwidth]{imagenes/tableroKanBan.png}
   \caption{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
@@ -214,8 +214,7 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 
 \section{Priorización y estimación del esfuerzo}
 
-El \textit{backlog} del proyecto está formado por \sout{61 historias de usuario
-  (IT-01 a IT-61)} historias de usuario. Para decidir en qué orden abordarlas se han
+El \textit{backlog} del proyecto está formado por historias de usuario. Para decidir en qué orden abordarlas se han
 combinado dos criterios independientes: cuánto valor aporta cada una al resultado
 final y cuánto esfuerzo cuesta.
 
@@ -242,13 +241,10 @@ proyecto:
 
 Esta clasificación tiene una consecuencia práctica: ante un retraso, se sacrifica
 primero lo \textit{could} y después lo \textit{should}, pero nunca lo
-\textit{must}. \sout{El reparto actual es de 37 historias \textit{must},
-  20 \textit{should} y 4 \textit{could}.} Este reparto no es una foto fija:
-el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo
-\sout{(las historias IT-57 a IT-61 se añadieron al descubrir necesidades nuevas o
-  al dividir historias que mezclaban trabajos de naturaleza distinta)}.
+\textit{must}. Este reparto no es una foto fija:
+el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo.
 
-\begin{borrador}      
+\begin{borrador}                                                                                                              
   \item \textbf{Fase:} 5 (IT-52) --- cifras a refrescar al cerrar la memoria.
   \item \textbf{Recuento real del 30/07/2026}, hecho con \texttt{gh} sobre las
   etiquetas del repositorio: \textbf{65 \textit{must}, 27 \textit{should} y
@@ -295,69 +291,36 @@ sería la primera candidata a quedar fuera.
 
 \subsection{Relación de historias de usuario}
 
-Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el
-ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
-la incidencia correspondiente en el repositorio, de modo que cualquier línea de
-código puede rastrearse hasta la necesidad que la originó.
+Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
+la incidencia correspondiente en el repositorio, de modo que cualquier línea de código puede rastrearse hasta la necesidad que la originó.
 
-\textcolor{borrador2}{Esa correspondencia rige el trabajo planificado, que es la práctica
-  totalidad del proyecto: 200 de las 241 confirmaciones de la rama principal llevan su historia
-  en el ámbito, y 42 de las 53 ramas de un solo uso llevan su código en el nombre. Las
-  excepciones son correcciones documentales menores que nunca llegaron a abrir tarjeta
-  ---actualizar el fichero de presentación del repositorio, retocar un registro de decisión ya
-  escrito--- y se agrupan bajo un prefijo propio. Se declaran aquí porque el repositorio es
-  público y la afirmación es comprobable: enunciar una regla sin excepciones sobre un historial
-  que las tiene sería una promesa que el propio proyecto desmiente.}
+A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la tabla ~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
-\textcolor{borrador2}{Enumerar aquí las noventa y ocho historias una a una no ayudaría a
-  leer el trabajo: son títulos escritos para quien desarrolla, no para quien evalúa. La
-  Tabla~\ref{tab:resumen_backlog} recoge en su lugar cuántas hay en cada fase y de qué
-  naturaleza, que es lo que informa sobre cómo se ha repartido el esfuerzo. El detalle
-  completo de cada historia —su enunciado, su discusión, la rama y las confirmaciones que la
-  resolvieron y la revisión con la que se cerró— queda accesible en el gestor de incidencias
-  del repositorio\cite{repo_tfg}, que es donde ese detalle se produjo y donde conserva su
-  contexto.}
 
-\textcolor{borrador2}{Las cinco naturalezas de la tabla son estas. \textbf{Código}: se
-  escribe o se corrige software y sus pruebas. \textbf{Memoria}: se redacta una parte de este
-  documento. \textbf{Experimento}: se mide algo sobre datos reales para poder decidir con
-  evidencia. \textbf{Decisión}: se documenta una elección de arquitectura (ADR) o una anomalía
-  de la fuente de datos (DQA) con sus alternativas y sus motivos. \textbf{Gestión}:
-  infraestructura del propio proyecto, como la integración continua o el material de la
-  defensa.}
+Los cinco tipos de historias son los siguientes:
+\begin{itemize}                                
+  \item \textbf{Código}: se escribe o se corrige software y sus pruebas.
+  \item \textbf{Memoria}: se redacta una parte de este documento.
+  \item \textbf{Experimento}: se mide algo sobre datos reales para poder decidir con evidencia la mejor opción posible.
+  \item \textbf{Decisión}: se documenta una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA) con sus alternativas y sus motivos.
+  \item \textbf{Gestión}: infraestructura del propio proyecto, como la integración continua o el material de la defensa.
+\end{itemize}
 
 \input{tablas/TablaResumenBacklog.tex}
 
-\textcolor{borrador2}{Dos rasgos del reparto merecen comentarse. El primero es que la
-  redacción de la memoria (42 historias) pesa más que el desarrollo del software (33): no es
-  un desequilibrio, sino la consecuencia de que el criterio de finalización exija que ninguna
-  tarjeta se cierre sin quedar reflejada en este documento. El segundo es que las Fases 0 y 1
-  concentran 62 de las 98: la construcción y verificación de la colección documental ha
-  absorbido bastante más trabajo del previsto, y el motivo se explica en el
-  apartado~\ref{secc:verificacion_fase0}.}
-
-\begin{borrador}  
-  \item \textbf{Cifras contadas con \texttt{gh} el 04/08/2026}: 98 historias, 54 cerradas
-  y 44 abiertas; 66 \textit{must}, 27 \textit{should} y 5 \textit{could}. Hay que
-  volver a contarlas al cerrar la memoria, porque el \textit{backlog} sigue vivo.
-  \item \textbf{Las 98 tarjetas tienen ya exactamente una fase, un tipo y una prioridad},
-  así que la tabla se reproduce entera con \texttt{gh issue list} y no hace falta
-  ajustar nada a mano. Se corrigió el 04/08/2026: a IT-55 le faltaban la fase y el
-  tipo, e IT-100 tenía dos tipos a la vez y ninguna prioridad.
-  \item \textbf{La tabla anterior (\texttt{TablaBacklog.tex}) se ha eliminado.} Listaba las
-  historias hasta IT-69 y se había quedado a mitad; mantenerla al día con 98 tarjetas
-  y creciendo era condenarla a discrepar con el repositorio. Sigue en el historial de
-  Git por si la quieres recuperar.
+\begin{borrador}                                                                                                          
+  \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
+  \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
 \end{borrador}
 
 
 
 \section{Tecnologías y herramientas}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 0 en parte, cerrable ya. Falta el párrafo que abre la
-  sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada, que
-  es justo lo que el tutor marcó en 4.4.2. Bastan cuatro o cinco líneas
+\begin{borrador}                       
+  \item Falta el párrafo que abre la
+  sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.                   
+  \item \textbf{Fase:} 0 en parte, cerrable ya.  Bastan cuatro o cinco líneas
   diciendo qué se va a comparar y en qué orden (extracción, PLN y
   alucinaciones, RAG, tipo de modelo, base vectorial) y por qué ese orden
   sigue el recorrido del dato.
