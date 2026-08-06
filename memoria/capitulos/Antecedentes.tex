@@ -55,20 +55,13 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 
 Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la recuperación aumentada por generación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
 
-\begin{borrador}
-  \item \textbf{Dos cosas que se perdieron al reescribir esta introducción el 05/08/2026}, y
-  conviene decidir si vuelven.
+\begin{borrador}                        
   \item \textbf{La frase puente al Capítulo~\ref{cap:materialesymetodos}:} «las decisiones
   concretas que se han tomado sobre cada una de estas tecnologías, junto con las alternativas
   descartadas, se justifican en el Capítulo~4». Era lo que hacía cumplir la regla que separa
   los dos capítulos ---aquí \emph{qué existe}, allí \emph{qué se eligió}--- y avisaba al
   lector de que las decisiones llegan después. Sin ella, quien lea este capítulo puede
   echarlas en falta.
-  \item \textbf{El comentario de la figura VS:} explicaba que las insignias \textbf{no son
-    los logotipos oficiales}, para evitar problemas de marca registrada y para que la figura
-  sea elaboración propia. Era un comentario de \LaTeX{} ---invisible en el PDF--- pero
-  documentaba una decisión con implicaciones legales. Si alguien pregunta por qué los colores
-  se parecen a los de las marcas, esa era la respuesta.
 \end{borrador}
 
 
@@ -82,7 +75,7 @@ El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) tie
 
 Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en inglés) son aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado; estas se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
 
-\begin{itemize}                
+\begin{itemize}                                        
   \item \textbf{Alucinaciones intrínsecas:} El modelo genera información que contradice directamente los datos o el texto proporcionado como fuente.
   \item \textbf{Alucinaciones extrínsecas:} El modelo genera información adicional que no aparece en la fuente original. Aunque esta información inventada pueda ser correcta en el mundo real, se considera alucinación porque no puede ser verificada utilizando únicamente la entrada proporcionada.
 \end{itemize}
@@ -134,7 +127,7 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
 \definecolor{marcaQwen}{HTML}{615CED}
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[                
+  \begin{tikzpicture}[                                        
       insignia/.style={rounded corners=4pt, text=white, align=center,
           font=\small\bfseries, minimum width=2.7cm,
           minimum height=0.9cm, inner sep=3pt},
@@ -179,10 +172,17 @@ no puede indexarse documento a documento tal y como se recoge desde la página w
 El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
+\subsection{Métricas de comprobación (a revisar)}
+
+\begin{borrador}                    
+  \item Explicar todas las métricas de comprobación. (RAGEval, qEVAL, Faithfulness, Recall, k, y demás, \textit{Recall@K} y MRR).
+  \item Crear tarjeta para rellenar este apartado, hacer varias, una por cada fase que contenga estos términos.
+\end{borrador}
+
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-\begin{borrador}                
+\begin{borrador}                                        
   \item \textbf{Fase:} 1 (IT-31). Panorama de bases de datos vectoriales: qué son,
   búsqueda exacta frente a aproximada y qué familias de índice existen
   (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
@@ -319,13 +319,13 @@ Por último, en lo referente al uso de la inteligencia artificial generativa en 
 
 
 
-\begin{borrador}                
+\begin{borrador}                                        
   
   \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
   conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
   obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
   Real Decreto 1112/2018\cite{rd1112_2018}. Ese real decreto no nombra a las universidades:
-  su artículo 2.1.d) remite al sector público institucional del artículo 2.2 de la
+  su artículo 2.1.d remite al sector público institucional del artículo 2.2 de la
   Ley 39/2015, y es ahí donde encajan las públicas. Merece la pena que sigas tú esa cadena
   de remisiones antes de afirmarlo, que es justo el tipo de detalle que se pregunta.
   \item \textbf{Licencias} La licencia del modelo concreto se fijará con el ADR-0005 (Fase 2), luego de elegirlo finalmente.
