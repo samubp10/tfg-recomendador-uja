@@ -402,32 +402,26 @@ En este trabajo se prioriza un mayor control sobre la infraestructura y el trata
 \subsection{Equipo de ejecución}
 \label{secc:equipo_ejecucion}
 
-\textcolor{borrador2}{Todo el sistema ---extracción, fragmentación, indexación, recuperación
-  y generación--- se ejecuta y se demuestra sobre un único equipo portátil doméstico, cuyas
-  características recoge la Tabla~\ref{tab:equipo}. Esa máquina no es un detalle de
-  implementación: es una restricción de diseño que aparece enunciada en la hipótesis de
-  trabajo (Sección~\ref{secc:hipotesis}) y que ya ha condicionado decisiones tomadas, entre
-  ellas la del modelo de incrustaciones.}
+Todo el sistema (extracción, fragmentación, indexación, recuperación
+y generación) ha sido probado y ejecutado sobre un único equipo portátil doméstico, cuyas
+características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una resticción de diseño que 
+aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado a las decisiones tomadas al no poder contar
+con hardware más potente haciendo que el sistema funcionase de manera más rápida con modelos mejores y más grandes.
 
-\textcolor{borrador2}{El dato que más pesa no es la velocidad del procesador, sino los 16 GB
-  de memoria principal, porque en la Fase 2 el modelo de recuperación y el modelo generativo
-  tendrán que convivir en ella. De ahí que la comparación entre el modelo pequeño y el grande
-  (Sección~\ref{secc:eleccion_e5small}) acabara resolviéndose por memoria residente y no por
-  calidad de la recuperación.}
-
-\textcolor{borrador2}{Queda por declarar una limitación que resulta contraintuitiva al leer
-  la tabla: el equipo tiene una tarjeta gráfica con 6 GB de memoria dedicada, pero
-  \textbf{el proyecto no la utiliza}. El entorno de ejecución monta la compilación de PyTorch
-  destinada exclusivamente a procesador ---comprobado el 05/08/2026:
-  \texttt{torch.cuda.is\_available()} devuelve falso---, de modo que todos los tiempos que
-  aparecen en esta memoria son de cómputo en CPU. La tarjeta está físicamente disponible y
-  aprovecharla es trabajo futuro, no una capacidad que el sistema tenga hoy.}
+Los datos que más pesan hoy en día en el mundo de inteligencia artificial es sin lugar a dudas la memoria RAM, siendo uno de los mayores limitantes
+en el laboratorio por el que no se ha podido elegir modelos de más prestaciones e inteligencia ya que este aparte de tener que alojar los modelos de incrustaciones, tiene que almacenar el modelo de lenguaje generativo y su contexto, además de la base de datos vectorial con los embeddings de la colección.
 
 \input{tablas/TablaEquipo.tex}
 
+\begin{borrador}  
+  
+  \item La tarjeta gráfica no se usará para los embedding, pero sí la usará el modelo de lenguaje generativom, por lo que decir que no se usará es un graso error.
+  \item Revisar este apartado, queda vivo y abierto.
+\end{borrador}
+
 \section{Arquitectura del sistema}
 
-\begin{borrador}                                                                                                                                                                        
+\begin{borrador}                                                                                                                                                                                                                                                                                
   \item \textbf{Faltan:} Concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
 \end{borrador}
 
