@@ -457,42 +457,51 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \begin{figure}[H]
   \centering
   \resizebox{0.95\textwidth}{!}{%
-    \begin{tikzpicture}[                                  
-        node distance=1.1cm and 1.4cm,
+    \begin{tikzpicture}[
         clase/.style={rectangle split, rectangle split parts=2,
             draw=diagNodoBorde, fill=diagNodo, align=left,
             font=\footnotesize, inner sep=5pt},
+        meta/.style={rectangle split, rectangle split parts=2,
+            draw=borrador2, densely dashed, fill=diagNodo, align=left,
+            text=borrador2, font=\footnotesize, inner sep=5pt},
         etiqRel/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+        etiqOrigen/.style={font=\scriptsize\ttfamily, text=borrador2,
+            fill=white, inner sep=1.5pt},
         mult/.style={font=\scriptsize, inner sep=1pt}
       ]
-      % Entidades
-      % Actualizado el 30/07/2026 contra los campos reales de grados.json:
-      % Grado no tiene un campo "url" sino dos (asignaturas y salidas), la
-      % Asignatura guarda la direccion de su guia, y la Guia incorpora "curso"
-      % (IT-90) y "formato" (IT-95), que son los dos campos que permiten decir
-      % de que curso academico es cada guia y por que camino se extrajo.
-      \node[clase] (grado) {\textbf{Grado}
+      % Entidades y campos comprobados el 07/08/2026 contra los ficheros reales
+      % data/grados.json (837 items) y data/chunks.json (1.335). Respecto a la
+      % version del 30/07: Asignatura.ects es una cadena y no un decimal (la
+      % fuente publica "6", y una asignatura lo trae vacio), Chunk incorpora
+      % tipo_asignatura, y aparece el item de procedencia que encabeza cada
+      % fichero. Las cuatro flechas que llegan a Chunk son los cuatro valores
+      % reales del campo origen: guia (1.193), asignatura_sin_guia (86),
+      % plan_de_estudios (33) y salidas (22).
+      \node[clase] (grado) at (0,0) {\textbf{Grado}
         \nodepart{two}
         nombre: \texttt{str}\\
         es\_doble\_grado: \texttt{bool}\\
         url\_asignaturas: \texttt{str}\\
         url\_salidas: \texttt{str}};
-      \node[clase, below left=of grado] (asig) {\textbf{Asignatura}
+
+      \node[clase] (salidas) at (6.6,-0.35) {\textbf{Salidas}
+        \nodepart{two}
+        grado: \texttt{str}\\
+        texto: \texttt{str}};
+
+      \node[clase] (asig) at (0,-5.6) {\textbf{Asignatura}
         \nodepart{two}
         grado: \texttt{str}\\
         codigo: \texttt{str}\\
         nombre: \texttt{str}\\
         tipo\_asignatura: \texttt{str}\\
-        ects: \texttt{float}\\
+        ects: \textcolor{borrador2}{\texttt{str}}\\
         ofertada: \texttt{bool}\\
         tiene\_guia: \texttt{bool}\\
         menciones: \texttt{list}\\
         url\_guia: \texttt{str}};
-      \node[clase, below right=of grado] (salidas) {\textbf{Salidas}
-        \nodepart{two}
-        grado: \texttt{str}\\
-        texto: \texttt{str}};
-      \node[clase, below=of asig] (guia) {\textbf{Guía}
+
+      \node[clase] (guia) at (0,-11.6) {\textbf{Guía}
         \nodepart{two}
         grado: \texttt{str}\\
         codigo: \texttt{str}\\
@@ -502,26 +511,55 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         fallback: \texttt{bool}\\
         curso: \texttt{str}\\
         formato: \texttt{str}};
-      \node[clase, below=3.2cm of salidas] (chunk) {\textbf{Chunk}
+
+      \node[clase] (chunk) at (13.4,-5.6) {\textbf{Chunk}
         \nodepart{two}
         origen: \texttt{str}\\
         grados: \texttt{list}\\
         codigos: \texttt{list}\\
         nombre: \texttt{str}\\
+        \textcolor{borrador2}{tipo\_asignatura: \texttt{str}}\\
         texto: \texttt{str}\\
         chunk\_index: \texttt{int}\\
         total\_chunks: \texttt{int}};
-      % Relaciones
-      \draw[flechaDiag] (grado.south west) -- node[etiqRel]{ofrece}
-      node[mult, pos=0.1, left]{1} node[mult, pos=0.92, above right]{*} (asig.north);
-      \draw[flechaDiag] (grado.south east) -- node[etiqRel]{tiene}
-      node[mult, pos=0.1, right]{1} node[mult, pos=0.9, above left]{0..1} (salidas.north);
+
+      \node[meta] (proc) at (7.2,-14.6) {\textbf{Procedencia}
+        \nodepart{two}
+        fecha\_extraccion: \texttt{str}\\
+        origen: \texttt{str}\\
+        fecha\_troceado: \texttt{str}\\
+        cursos: \texttt{list}\\
+        tamanos: \texttt{list}};
+      \node[font=\scriptsize, text=borrador2, align=left, anchor=north west]
+        at ([xshift=-2mm,yshift=-2mm]proc.south west)
+        {encabeza cada fichero de la colección; no se indexa,\\
+         y es lo que permite decir de cuándo es el corpus};
+
+      % Relaciones entre las entidades extraídas
+      \draw[flechaDiag] (grado.south) -- node[etiqRel]{ofrece}
+        node[mult, pos=0.08, right]{1} node[mult, pos=0.93, right]{*} (asig.north);
+      \draw[flechaDiag] (grado.east) -- node[etiqRel]{tiene}
+        node[mult, pos=0.08, above]{1} node[mult, pos=0.9, above]{0..1} (salidas.west);
       \draw[flechaDiag] (asig.south) -- node[etiqRel]{documentada por}
-      node[mult, pos=0.08, right]{1} node[mult, pos=0.92, right]{0..1} (guia.north);
-      \draw[flechaDiag] (guia.east) -- node[etiqRel]{troceada y deduplicada en}
-      node[mult, pos=0.08, above]{*} node[mult, pos=0.9, above]{*} (chunk.west);
-      \draw[flechaDiag] (salidas.south) -- node[etiqRel]{troceada en}
-      node[mult, pos=0.08, right]{1} node[mult, pos=0.9, right]{*} (chunk.north);
+        node[mult, pos=0.08, right]{1} node[mult, pos=0.92, right]{0..1} (guia.north);
+
+      % Las cuatro procedencias posibles de un fragmento
+      \draw[flechaDiag] (guia.east) to[out=0,in=215]
+        node[etiqRel, pos=0.45, above]{troceada y deduplicada en}
+        node[etiqOrigen, pos=0.45, below]{origen: guia}
+        node[mult, pos=0.04, above]{*} node[mult, pos=0.96, below right]{*} (chunk.south west);
+      \draw[flechaDiag] (asig.east) --
+        node[etiqRel, pos=0.5, above]{resumida en, si no tiene guía}
+        node[etiqOrigen, pos=0.5, below]{origen: asignatura\_sin\_guia}
+        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, above]{1} (chunk.west);
+      \draw[flechaDiag] (salidas.south) to[out=-90,in=155]
+        node[etiqRel, pos=0.55, above right]{troceadas en}
+        node[etiqOrigen, pos=0.55, below left]{origen: salidas}
+        node[mult, pos=0.05, right]{1} node[mult, pos=0.95, above left]{*} (chunk.north west);
+      \draw[flechaDiag] (grado.north east) to[out=35,in=115]
+        node[etiqRel, pos=0.5, above]{resume su plan de estudios en}
+        node[etiqOrigen, pos=0.5, below]{origen: plan\_de\_estudios}
+        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, above right]{*} (chunk.north);
     \end{tikzpicture}%
   }
   \caption{Modelo de datos conceptual de las entidades extraídas mediante
@@ -530,19 +568,28 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \end{figure}
 
 \begin{borrador}                                  
-  \item \textbf{Diagrama actualizado el 30/07/2026} contra los campos reales del
-  conjunto de datos. Lo que cambió, por si hay que explicarlo en el texto:
-  \texttt{Grado} no tiene un campo \texttt{url} sino dos
-  (\texttt{url\_asignaturas} y \texttt{url\_salidas}), \texttt{Asignatura}
-  guarda la dirección de su guía, y \texttt{Guía} incorpora \texttt{curso}
-  (IT-90) y \texttt{formato} (IT-95).
-  \item \textbf{Falta una entidad que el diagrama no recoge:} el ítem
-  \texttt{procedencia} que encabeza tanto \texttt{grados.json} como
-  \texttt{chunks.json} con la fecha de extracción, la de troceado y los
-  cursos presentes. No es contenido recuperable ---se descarta antes de
-  indexar--- pero sí forma parte del modelo de datos, y es justamente lo que
-  permite decir de cuándo es el corpus. Decidir si entra en la figura o se
-  explica solo en el texto.
+  \item \textbf{Diagrama vuelto a comprobar el 07/08/2026} contra los ficheros reales
+  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json}, 1.335). En turquesa,
+  lo que ha cambiado respecto a la versión del 30/07, que es lo que tienes que explicar en
+  el texto o dejar dicho en el pie:
+  \item \textbf{(1) Faltaban dos de las cuatro procedencias de un fragmento.} El campo
+  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia} (1.193 fragmentos),
+  \texttt{asignatura\_sin\_guia} (86), \texttt{plan\_de\_estudios} (33) y \texttt{salidas}
+  (22)--- y el diagrama solo dibujaba dos flechas hacia \texttt{Chunk}. Tal como estaba,
+  daba a entender que una asignatura sin guía no llega al índice, y sí llega.
+  \item \textbf{(2) \texttt{Chunk} tiene un campo más:} \texttt{tipo\_asignatura}, que no
+  estaba.
+  \item \textbf{(3) \texttt{ects} no es un decimal, es una cadena.} La fuente publica
+  <<6>>, y una asignatura lo trae vacío. Ponerlo como \texttt{float} en la memoria
+  contradice el fichero, y es de lo que se comprueba en treinta segundos.
+  \item \textbf{(4) La procedencia ya entra en la figura}, en trazo discontinuo para que
+  se vea que no es una entidad extraída de la web sino la cabecera de cada fichero. Decide
+  si te vale así o prefieres sacarla y explicarla solo en el texto; si la dejas, el pie de
+  figura debería decir por qué va con otro trazo.
+  \item \textbf{Ojo al pie actual:} habla de <<entidades extraídas mediante \textit{web
+      scraping}>>, y ni \texttt{Chunk} ni \texttt{Procedencia} se extraen: se generan. O
+  ajustas el pie, o dices en el texto que la figura recoge el modelo completo y no solo lo
+  extraído.
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
@@ -735,6 +782,85 @@ No todas las asignaturas disponen de guía publicada: \sout{de las 361 asignatur
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
+\textcolor{borrador2}{La Figura~\ref{fig:anatomia_guia} recoge sobre un caso real qué parte
+  de una guía docente llega a la colección y qué se queda fuera. A la izquierda, los rótulos
+  de sección de la plantilla que publica la Escuela; a la derecha, el registro que produce la
+  extracción. Solo dos de los diecisiete rótulos pasan el filtro, y el resto se descarta por
+  no estar en la lista, no por estar prohibido.}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\footnotesize,
+        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+            inner sep=7pt, rounded corners=2pt}
+      ]
+      % La plantilla de guia docente en PDF, con sus 17 rotulos de seccion.
+      % Se listan los nueve que hacen falta para entender el filtro; los ocho
+      % restantes se resumen en la ultima fila.
+      \node[bloque, text width=9.6cm] (pdf) {%
+        \textbf{Guía docente en PDF} \hfill \textit{plantilla de la UJA}\\[4pt]
+        \begin{tabular}{@{}p{7.4cm}l@{}}
+          \small FICHA IDENTIFICATIVA               & \small descartada           \\
+          \small PROFESORADO                        & \small descartada           \\
+          \small \textbf{RESUMEN}                   & \small \textbf{pasa}        \\
+          \small COMPETENCIAS                       & \small descartada           \\
+          \small RESULTADOS DE APRENDIZAJE          & \small descartada           \\
+          \small \textbf{DESCRIPCIÓN DE CONTENIDOS} & \small \textbf{pasa}        \\
+          \small METODOLOGÍA DOCENTE                & \small descartada           \\
+          \small SISTEMA DE EVALUACIÓN              & \small descartada           \\
+          \small BIBLIOGRAFÍA                       & \small descartada           \\
+          \small \textit{y 8 rótulos más}           & \small \textit{descartados} \\
+        \end{tabular}};
+
+      \node[bloque, text width=8.6cm, right=2.6cm of pdf.north east,
+        anchor=north west] (reg) {%
+        \textbf{Registro \texttt{guia} de la colección} \hfill \textit{ejemplo real}\\[4pt]
+        \texttt{grado}: Grado en Ingeniería Informática\\
+        \texttt{codigo}: 13312005\\
+        \texttt{nombre}: Desarrollo ágil\\
+        \texttt{curso}: 2026-27 \qquad \texttt{formato}: pdf\\[4pt]
+        \texttt{resumen}: «Conocimientos previos y recomendaciones.
+        Se recomienda NO cursar esta asignatura si no se ha cursado antes
+        \textit{Gestión y control de proyectos informáticos}\dots»\\[4pt]
+        \texttt{temario}: «Teoría. Introducción. eXtreme Programming y TDD.
+        Lean, Kanban y ScrumBan. Scrum y GASPs. DevOps. Práctica. Gestión ágil
+        y trazabilidad\dots»};
+
+      \draw[flechaDiag] (pdf.east) --
+        node[align=center, font=\scriptsize, above, midway]
+        {lista de\\PERMITIDOS} (reg.west |- pdf.east);
+
+      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=9.6cm,
+        below=6mm of pdf.south west, anchor=north west] (fuera) {%
+        La sección \textbf{PROFESORADO} trae nombres, correos y teléfonos que la
+        versión en HTML no publicaba. Con una lista de prohibidos, una sección
+        nueva con datos personales entraría sola; con una de permitidos, se
+        queda fuera por defecto.};
+    \end{tikzpicture}%
+  }
+  \caption[Anatomía de una guía docente en PDF]{\textcolor{borrador2}{Qué se conserva de una
+      guía docente servida en PDF y qué se descarta. El ejemplo es real: la guía de
+      \textit{Desarrollo ágil}, del Grado en Ingeniería Informática, curso 2026-27. Fuente:
+      Elaboración propia.}}
+  \label{fig:anatomia_guia}
+\end{figure}
+
+\begin{borrador}
+  \item \textbf{Esta figura da por hecha la reescritura que pide IT-95}, la del borrador de
+  abajo: describe la extracción \emph{desde PDF}, que es por donde pasa hoy el 100~\% del
+  contenido, mientras que los párrafos de arriba siguen contando el camino HTML. Si
+  reescribes la subsección, la figura ya está; si decides no reescribirla todavía, la figura
+  se adelanta al texto y hay que avisarlo.
+  \item \textbf{Los diecisiete rótulos no son una invención ni una lista teórica:} están
+  escritos a mano en el código contra la plantilla observada, y son los que delimitan las
+  secciones. La figura lista nueve y resume los ocho restantes para no llenarse de ruido.
+  \item Comprueba que el texto explique antes lo que la figura usa ---qué es la lista de
+  permitidos y por qué no es de prohibidos---, porque la norma que te fijaste es que una
+  figura no puede contener nada que el texto no haya explicado.
+\end{borrador}
+
 \begin{borrador}                                  
   \item \textbf{Cifras del 05/08/2026}, tras incorporar los planes de los dobles grados
   (IT-101): de las \textbf{528} asignaturas del catálogo, \textbf{442} cuentan con guía y
@@ -821,6 +947,64 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
 uno por cada grado simple con contenido propio. En el caso de los dobles grados, la lista de salidas son la concatenación de
 los dos grados por separado.
+
+\textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
+  esos bloques sobre un caso real. Es el más simple de los cuatro tipos de ítem de la
+  colección: un único campo de texto corrido, sin estructura interna que aprovechar, y como
+  único dato de identificación el nombre de la titulación. No lleva código de asignatura
+  porque la unidad de la que habla es la titulación entera.}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\footnotesize,
+        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+            inner sep=7pt, rounded corners=2pt}
+      ]
+      % Caso real: bloque de salidas del Grado en Ingenieria Informatica
+      % (1.137 caracteres en data/grados.json, rastreo del 05/08/2026).
+      \node[bloque, text width=10.5cm] (txt) {%
+        \textbf{Campo \texttt{texto}} \hfill \textit{un único bloque, sin estructura interna}\\[4pt]
+        «El graduado en Ingeniería Informática presenta multitud de salidas
+        profesionales. Es una de las titulaciones que tiene más demanda en el
+        mercado laboral, con una tasa de paro inexistente y una oferta de
+        trabajo que crece cada día. El graduado en Ingeniería Informática
+        desempeña sus funciones en todos los sectores de la actividad
+        económica, en empresas, consultoras informáticas, la
+        administración\dots»};
+      \node[bloque, text width=5.2cm, right=8mm of txt.north east,
+        anchor=north west] (met) {%
+        \textbf{Metadatos}\\[4pt]
+        \texttt{tipo}: salidas\\
+        \texttt{grado}: Grado en Ingeniería Informática\\[4pt]
+        No lleva código: la unidad es la \textbf{titulación entera}, no una
+        asignatura.};
+      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=16.6cm,
+        below=6mm of txt.south west, anchor=north west] (nota) {%
+        La colección tiene \textbf{8 bloques para 12 titulaciones}: los siete
+        grados simples y un único doble grado. Los otros cuatro dobles no
+        publican salidas propias.};
+    \end{tikzpicture}%
+  }
+  \caption[Estructura de un bloque de salidas profesionales]{\textcolor{borrador2}{Estructura
+      de un bloque de salidas profesionales, sobre el caso real del Grado en Ingeniería
+      Informática. Fuente: Elaboración propia.}}
+  \label{fig:estructura_salidas}
+\end{figure}
+
+\begin{borrador}
+  \item \textbf{La figura contradice a propósito la última frase del párrafo anterior}, y
+  esto hay que resolverlo antes de cerrar el apartado (está desarrollado en el borrador de
+  más abajo). El recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
+  \emph{sí} publica salidas propias; el párrafo dice que las de un doble grado son la
+  concatenación de las de sus dos grados base. Si eso fuera cierto, no habría ningún bloque
+  propio de un doble grado y serían siete, no ocho. Comprobado el 07/08/2026 en
+  \texttt{data/grados.json}: los ocho son los siete grados simples más el Doble Grado en
+  Ingeniería Eléctrica y Mecánica.
+  \item Cuando decidas cómo redactarlo, ajusta también el recuadro amarillo de la figura,
+  que es donde va la cifra.
+\end{borrador}
 
 \begin{borrador}                                  
   \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
