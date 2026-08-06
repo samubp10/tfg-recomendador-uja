@@ -53,16 +53,24 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \section{Estado del arte}
 \label{secc:estado_arte}
 
-Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. A continuación se revisan, primero, los asistentes conversacionales que varias universidades españolas ponen a disposición de sus estudiantes y, después, otros sistemas que recomiendan estudios sin usar un chatbot. El apartado final sitúa este trabajo frente a todos ellos.
+Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la recuperación aumentada por generación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
 
-\textcolor{borrador2}{Esa revisión se aborda en dos bloques. El primero recoge el estado del
-  arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y
-  por qué alucina, en qué consiste la recuperación aumentada por generación, qué distingue a
-  un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección
-  documental y una base de datos vectorial. El segundo revisa los sistemas ya desplegados que
-  persiguen un objetivo parecido al de este trabajo. Las decisiones concretas que se han
-  tomado sobre cada una de estas tecnologías, junto con las alternativas descartadas, se
-  justifican en el Capítulo~\ref{cap:materialesymetodos}.}
+\begin{borrador}
+  \item \textbf{Dos cosas que se perdieron al reescribir esta introducción el 05/08/2026}, y
+  conviene decidir si vuelven.
+  \item \textbf{La frase puente al Capítulo~\ref{cap:materialesymetodos}:} «las decisiones
+  concretas que se han tomado sobre cada una de estas tecnologías, junto con las alternativas
+  descartadas, se justifican en el Capítulo~4». Era lo que hacía cumplir la regla que separa
+  los dos capítulos ---aquí \emph{qué existe}, allí \emph{qué se eligió}--- y avisaba al
+  lector de que las decisiones llegan después. Sin ella, quien lea este capítulo puede
+  echarlas en falta.
+  \item \textbf{El comentario de la figura VS:} explicaba que las insignias \textbf{no son
+    los logotipos oficiales}, para evitar problemas de marca registrada y para que la figura
+  sea elaboración propia. Era un comentario de \LaTeX{} ---invisible en el PDF--- pero
+  documentaba una decisión con implicaciones legales. Si alguien pregunta por qué los colores
+  se parecen a los de las marcas, esa era la respuesta.
+\end{borrador}
+
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
 
@@ -70,11 +78,11 @@ Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolve
 
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
 
-El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano de una manera computacionalmente útil\cite{jurafsky2026slp3}. Los transformadores, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM): un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
+El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Los transformadores, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM): un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
 
 Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en inglés) son aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado; estas se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
 
-\begin{itemize}
+\begin{itemize}                
   \item \textbf{Alucinaciones intrínsecas:} El modelo genera información que contradice directamente los datos o el texto proporcionado como fuente.
   \item \textbf{Alucinaciones extrínsecas:} El modelo genera información adicional que no aparece en la fuente original. Aunque esta información inventada pueda ser correcta en el mundo real, se considera alucinación porque no puede ser verificada utilizando únicamente la entrada proporcionada.
 \end{itemize}
@@ -115,14 +123,9 @@ En contraposición, los modelos de pesos abiertos permiten descargar los paráme
 
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
-\textcolor{borrador2}{La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas familias y sitúa en cada bando las que se citan en este apartado.}
+La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas familias y sitúa en cada bando las que se citan en este apartado.
 
-% ------------------------------------------------------------------
-% Figura "VS": dos bandos (propietarios vs pesos abiertos) con los nombres
-% de cada familia como insignias en un color aproximado de su marca. NO son
-% los logotipos oficiales (evita problemas de marca registrada y mantiene la
-% figura como elaboración propia): solo identifican visualmente cada familia.
-% ------------------------------------------------------------------
+
 \definecolor{marcaOpenAI}{HTML}{10A37F}
 \definecolor{marcaClaude}{HTML}{CC785C}
 \definecolor{marcaGemini}{HTML}{1A73E8}
@@ -131,7 +134,7 @@ La disponibilidad de los pesos puede permitir a usuarios e instituciones despleg
 \definecolor{marcaQwen}{HTML}{615CED}
 \begin{figure}[H]
   \centering
-  \begin{tikzpicture}[
+  \begin{tikzpicture}[                
       insignia/.style={rounded corners=4pt, text=white, align=center,
           font=\small\bfseries, minimum width=2.7cm,
           minimum height=0.9cm, inner sep=3pt},
@@ -179,7 +182,7 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-\begin{borrador}
+\begin{borrador}                
   \item \textbf{Fase:} 1 (IT-31). Panorama de bases de datos vectoriales: qué son,
   búsqueda exacta frente a aproximada y qué familias de índice existen
   (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
@@ -316,8 +319,8 @@ Por último, en lo referente al uso de la inteligencia artificial generativa en 
 
 
 
-\begin{borrador}
-
+\begin{borrador}                
+  
   \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
   conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
   obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
