@@ -66,6 +66,28 @@
   Fase 2.
 \end{borrador}
 
+\section{Parámetros de fragmentación}
+\label{secc:resultados_fragmentacion}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-16).} Sección nueva y vacía a propósito. Hoy los resultados de
+  la rejilla están en el Capítulo~\ref{cap:materialesymetodos}, junto al método, y eso
+  incumple la misma regla que se respetó con las incrustaciones: allí el método y aquí los
+  números. \textbf{Decisión tuya:} traerlos o dejarlos donde están y retirar esta sección.
+  \item Si los traes, lo que tiene que quedar aquí es: la tabla de la rejilla
+  (\texttt{tablas/TablaRejillaFragmentacion.tex}, ya escrita), el resultado de que la
+  estrategia apenas separa y el tamaño sí, la comparación a igualdad de número de
+  fragmentos y el recuento de fragmentos truncados por tamaño máximo.
+  \item Y lo que \textbf{no} debe quedar aquí, porque es método y no resultado: por qué se
+  eligieron esas tres estrategias, por qué la rejilla da el mismo número de intentos a cada
+  una y por qué el mínimo de fragmento no se barrió.
+  \item \textbf{Un dato honesto que conviene no esconder:} al bajar el máximo, la
+  exhaustividad \emph{por fragmento} empeora. No es una regresión: al multiplicarse los
+  fragmentos de cada unidad, el denominador de esa métrica crece y su techo baja. Es
+  justamente por lo que la métrica comparable entre dos fragmentaciones distintas es la de
+  unidad y no la de fragmento, y merece una frase explícita.
+\end{borrador}
+
 \section{Evaluación de sistemas RAG}
 
 \section{Validación con usuarios}
