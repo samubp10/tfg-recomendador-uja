@@ -1,28 +1,28 @@
 # IT-28 — Resultados del experimento comparativo de embeddings
 
-Generado el 04/08/2026 ejecutando `py scripts/experimento_embeddings.py` contra `data/chunks.json` (797 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
+Generado el 06/08/2026 ejecutando `py scripts/experimento_embeddings.py` contra `data/chunks.json` (1334 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
 
 | Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) | Ventana | Truncados | Corpus leído |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| intfloat/multilingual-e5-small | 0.771 | 0.835 | 0.938 | 0.945 | 0.970 | 1.000 | 0.881 | 61.3 | 510 | 0 | 100% |
-| intfloat/multilingual-e5-large | 0.831 | 0.936 | 0.985 | 0.995 | 1.000 | 1.000 | 0.948 | 485.8 | 510 | 0 | 100% |
-| BAAI/bge-m3 | 0.808 | 0.895 | 0.973 | 0.950 | 0.990 | 0.995 | 0.955 | 475.6 | 8190 | 0 | 100% |
-| hiiamsid/sentence_similarity_spanish_es | 0.168 | 0.218 | 0.273 | 0.320 | 0.400 | 0.480 | 0.278 | 140.7 | 510 | 1 | 100% |
+| intfloat/multilingual-e5-small | 0.697 | 0.803 | 0.911 | 0.985 | 0.990 | 1.000 | 0.970 | 108.0 | 510 | 0 | 100% |
+| intfloat/multilingual-e5-large | 0.740 | 0.852 | 0.938 | 0.995 | 1.000 | 1.000 | 0.970 | 604.3 | 510 | 0 | 100% |
+| BAAI/bge-m3 | 0.720 | 0.836 | 0.917 | 0.985 | 0.995 | 0.995 | 0.949 | 650.3 | 8190 | 0 | 100% |
+| hiiamsid/sentence_similarity_spanish_es | 0.152 | 0.194 | 0.307 | 0.410 | 0.505 | 0.610 | 0.342 | 220.6 | 510 | 0 | 100% |
 
 ## Recall@5 por tipo de pregunta
 
 | Modelo | listado (n=14) | metadatos (n=6) | salidas (n=8) | sin_guia (n=2) | temario (n=20) |
 |---|---|---|---|---|---|
-| intfloat/multilingual-e5-small | 1.000 | 0.602 | 0.812 | 1.000 | 0.782 |
-| intfloat/multilingual-e5-large | 1.000 | 0.870 | 1.000 | 1.000 | 0.878 |
-| BAAI/bge-m3 | 1.000 | 0.787 | 0.938 | 1.000 | 0.826 |
-| hiiamsid/sentence_similarity_spanish_es | 0.000 | 0.111 | 0.188 | 1.000 | 0.336 |
+| intfloat/multilingual-e5-small | 1.000 | 0.697 | 0.690 | 1.000 | 0.723 |
+| intfloat/multilingual-e5-large | 1.000 | 0.664 | 0.889 | 1.000 | 0.776 |
+| BAAI/bge-m3 | 1.000 | 0.631 | 0.917 | 1.000 | 0.733 |
+| hiiamsid/sentence_similarity_spanish_es | 0.000 | 0.096 | 0.350 | 0.500 | 0.266 |
 
 La media general no se puede leer sin este desglose. Las preguntas de tipo `listado` piden **todas** las asignaturas de un grupo, así que su techo depende de cuántas unidades relevantes tengan y no de lo bien que recupere el modelo.
 
 ## Cómo leer las columnas
 
-- **R@K** es Recall@K por **fragmento**: cuántos de los trozos de la unidad correcta se han recuperado. Mide cobertura. **Su techo no es 1**, porque una unidad repartida en más de K fragmentos no cabe entera en el top-K: sobre este corpus el máximo posible es **0.905** para R@3, **0.977** para R@5, **0.998** para R@10. Hay que restar del techo, no de 1, para saber lo que falta de verdad.
+- **R@K** es Recall@K por **fragmento**: cuántos de los trozos de la unidad correcta se han recuperado. Mide cobertura. **Su techo no es 1**, porque una unidad repartida en más de K fragmentos no cabe entera en el top-K: sobre este corpus el máximo posible es **0.789** para R@3, **0.906** para R@5, **0.968** para R@10. Hay que restar del techo, no de 1, para saber lo que falta de verdad.
 - **RU@K** es Recall@K por **unidad**: si se ha encontrado la asignatura correcta, sin castigar que falte alguno de sus trozos. Mide acierto, y su techo sí es 1.
 - Las dos van juntas a propósito. La primera describe el sistema tal como está hoy; la segunda, el sistema con expansión por unidad, que todavía no existe. **La brecha entre ambas es el dato**: dice si lo que falla es encontrar la asignatura o completarla.
 - **Ventana** es el `max_seq_length` con el que sentence-transformers sirve el modelo, descontados los dos tokens especiales. Todo lo que pase de ahí, `encode` lo recorta **en silencio**: no avisa, no falla y devuelve un vector de aspecto normal. Por eso una diferencia de Recall entre modelos de ventana distinta no se puede atribuir solo a la calidad de sus representaciones.
