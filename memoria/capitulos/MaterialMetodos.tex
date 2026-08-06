@@ -868,7 +868,7 @@ un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque 
   el 29/07/2026 sobre el corpus real: el modelo que el sistema montaba
   (\texttt{paraphrase-multilingual-MiniLM-L12-v2}) lo sirve
   sentence-transformers con una ventana de \textbf{128 \textit{tokens}}, no
-  de 512. Sobre este corpus eso trunca \textbf{685 de los 781 fragmentos} y
+  de 512. Sobre aquel corpus eso truncaba \textbf{685 de los 781 fragmentos} y
   descarta el \textbf{50,5~\%} de los \textit{tokens}, sin dar ningún aviso.
   \item \textbf{Por qué duele especialmente aquí:} el párrafo siguiente justifica
   el máximo de 1\,500 caracteres apoyándose precisamente en esa frase. El
@@ -915,6 +915,28 @@ ya que una unidad más corta que ese umbral no se puede alargar.
 
 \subsubsection{Comparación experimental de las estrategias}
 \label{secc:rejilla_fragmentacion}
+
+\begin{borrador}
+  \item \textbf{Fase: 1 (IT-16). Esto es lo que falta para cerrar la tarjeta.} Los párrafos
+  que vienen a continuación son andamiaje: llevan el método y el porqué de la rejilla, pero
+  la prosa la tienes que escribir tú.
+  \item \textbf{Lo que no se puede perder al reescribirlos}, por orden de importancia para
+  el tribunal: (1) la estrategia apenas influye y \emph{el tamaño sí}, que es justo lo
+  contrario de lo que comparaba el ADR-0001 original; (2) la comparación buena es a
+  igualdad de número de fragmentos, no la primera fila de la tabla, porque más fragmentos
+  por unidad significan más papeletas de aparecer entre los primeros resultados; (3) el
+  recuento de fragmentos truncados, que no depende de ninguna métrica discutible; y (4) que
+  la configuración vigente hasta esta revisión era \textbf{la segunda peor de las cuarenta
+    y cinco}.
+  \item \textbf{El hallazgo que se defiende solo:} la configuración ganadora deja la ventana
+  del modelo a dos tercios de su capacidad y aun así recupera mejor que las que la llenaban.
+  Eso derriba la premisa con la que se eligió el 1.500 original ---aprovechar los 512
+  \textit{tokens}---: el problema nunca fue desaprovechar la ventana, sino que un fragmento
+  largo mezcla asuntos distintos y su vector queda a medio camino de todos ellos.
+  \item \textbf{Decide dónde van los números.} Hoy la tabla de la rejilla está aquí, y la
+  regla del trabajo dice que los resultados van al Capítulo~\ref{cap:resultados}, que es lo
+  que ya se hizo con las incrustaciones. Hay una sección esperándolos.
+\end{borrador}
 
 \textcolor{borrador2}{Los descartes de la Tabla~\ref{tab:alternativas_chunking} se razonaron
   sobre las propiedades de cada estrategia, no sobre medidas. Uno de ellos, además, tenía
@@ -1111,8 +1133,17 @@ idénticas solo deja el índice ligeramente más grande.
 
 
 \begin{borrador}                                                                                                              
-  \item \textbf{Cifras del 30/07/2026}, curso 2026-27, medidas con
-  \texttt{check\_chunks.py} sobre el conjunto completo:
+  \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
+  con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
+  \texttt{check\_chunks.py} el 06/08/2026, tiene \textbf{1.334 fragmentos}: 1.193 de guía,
+  86 informativos de asignaturas sin contenido, 33 de plan de estudios y 22 de salidas, en
+  \textbf{322 unidades} de las que 78 se comparten entre titulaciones. Los tamaños van de
+  \textbf{171 a 900} caracteres, con mediana de 838 y percentil 90 de 894.
+  \item \textbf{Ojo al porcentaje de reducción}, que no se puede copiar del de abajo: al
+  bajar el máximo, una misma unidad produce más fragmentos, de modo que cambian tanto el
+  número del que se parte como aquel al que se llega. Sácalo de la salida del verificador
+  en vez de ajustarlo a mano.
+  \item Cifras anteriores, del 30/07/2026, que son las que hay que sustituir:
   \item Reducción de \textbf{1\,134 a 781 fragmentos}, un \textbf{31~\%} menos. De
   esos 781: \textbf{711} de guías, \textbf{62} informativos de asignaturas
   sin guía y \textbf{8} de salidas.
