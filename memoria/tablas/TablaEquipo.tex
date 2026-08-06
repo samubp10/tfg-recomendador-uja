@@ -1,0 +1,22 @@
+% Especificaciones del equipo donde se ejecuta y se demuestra el sistema.
+% Verificadas el 24/07/2026 con comandos reales (Get-CimInstance, nvidia-smi);
+% la compilación de PyTorch se volvió a comprobar el 05/08/2026.
+% La VRAM son 6 GB medidos con `nvidia-smi`: Windows reporta 4 GB por un
+% desbordamiento conocido del campo AdapterRAM de WMI, y ese dato es falso.
+\begin{table}[htbp]
+  \centering
+  \caption{Especificaciones del equipo de ejecución del sistema.}
+  \label{tab:equipo}
+  \small
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Componente}       & \textbf{Especificación}                                 \\
+    \midrule
+    Procesador                & AMD Ryzen 7 5800H (Zen 3), 8 núcleos / 16 hilos         \\
+    Memoria principal         & 16 GB DDR4-3200 ($2 \times 8$ GB)                       \\
+    Tarjeta gráfica dedicada  & NVIDIA GeForce RTX 3060 Laptop, 6 GB de VRAM            \\
+    Cómputo realmente empleado & \textbf{Procesador exclusivamente} (PyTorch 2.13.0+cpu) \\
+    Sistema operativo         & Windows 11 Pro N (10.0.26200), 64 bits                  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
