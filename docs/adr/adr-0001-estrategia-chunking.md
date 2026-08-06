@@ -208,6 +208,207 @@ Qué se corrige y qué no:
 Detalle completo, con la tabla de los cuatro modelos y sus ventanas, en el
 **ADR-0003** y en `docs/experimentos/it28-embeddings.md`.
 
+### Revisión de 2026-08-05 — la rejilla completa (IT-16)
+
+#### Por qué se reabre
+
+La Opción C se descartó por una razón de **secuencia**: «exige elegir ya el modelo de
+embeddings (decisión de Fase 1, ADR-0003, **sin experimento aún**)». Ese motivo describe un
+estado del proyecto que ya no existe: el ADR-0003 se cerró y ratificó en IT-29. Un descarte
+por calendario que ya se ha cumplido deja de ser un descarte, así que la alternativa se
+mide en vez de darse por buena.
+
+Y al medirla apareció un problema de diseño mayor. Una primera versión del experimento
+barría el umbral de la estrategia semántica y **congelaba** los parámetros de las otras dos
+en los valores que el proyecto ya usaba. Eso daba a la semántica once intentos y a las demás
+uno: quedarse con su mejor resultado la favorecía aunque no hubiera diferencia real, porque
+el máximo de once tiradas gana al de una por puro muestreo. La comparación se rehízo como
+**rejilla**, con las tres estrategias sobre el mismo eje de tamaño máximo y con el mismo
+número de variantes de su parámetro propio.
+
+#### Diseño
+
+`scripts/experimento_fragmentacion.py`, ejecutado el 2026-08-05 sobre `data/grados.json`
+con las 50 preguntas del conjunto de evaluación y el modelo del ADR-0003, en CPU.
+
+- **Eje común:** tamaño máximo de 600, 900, 1.200, 1.500 y 1.800 caracteres.
+- **Estructural:** tamaño objetivo al 60 %, 80 % y 100 % del máximo.
+- **Semántica:** corte en el percentil 30, 50 y 70 de la distribución real de distancias
+  coseno entre piezas consecutivas del corpus. Se usa percentil y no una distancia
+  absoluta porque el valor absoluto depende del modelo, mientras que el percentil se
+  adapta solo a la distribución que ese modelo produzca.
+- **Tamaño fijo:** solape del 0 %, 10 % y 20 %. El 0 % entra a propósito, porque un solape
+  duplica contenido y le regala oportunidades de ser recuperado.
+
+**45 configuraciones, quince por estrategia.** La única variable que cambia es dónde se
+proponen las fronteras: el guion sustituye `chunker._chunks_de_unidad` y deja que
+`trocear_dataset` aporte todo lo demás —unidades, deduplicación, encabezados, dobles
+grados, planes de estudio y fusión de residuos—, de modo que ninguna diferencia medida
+pueda venir de otra parte del proceso. El mínimo de fragmento se mantiene fijo en 200 y se
+declara: es una preferencia, no una restricción dura.
+
+La tabla completa de las 45 está en `docs/experimentos/it16-fragmentacion.md`.
+
+#### Resultado 1 — la estrategia casi no importa; el tamaño sí
+
+Ordenadas por acierto por unidad en el primer resultado, las tres estrategias aparecen
+mezcladas en la cabeza y en la cola. Lo que ordena la tabla es el **tamaño máximo**. Con
+`fijo, solape 0 %`, cambiando solo el máximo:
+
+| Máximo | Fragmentos | RU@1 |
+|---:|---:|---:|
+| 600 | 2.312 | 0,950 |
+| 900 | 1.228 | 0,930 |
+| 1.200 | 912 | 0,910 |
+| 1.500 | 736 | 0,850 |
+| 1.800 | 623 | 0,790 |
+
+Monótono, y el mismo patrón en las otras dos estrategias. **El ADR-0001 comparó lo que menos
+influía y declaró «provisional» lo que más.**
+
+#### Resultado 2 — el sesgo que impide quedarse con la primera fila
+
+El orden de RU@1 sigue al número de fragmentos: con 2.312 fragmentos cada unidad tiene unos
+siete trozos en el índice y con 884 tiene dos y medio, es decir, siete papeletas frente a
+dos y media para caer en el primer puesto. Y hay algo peor: recuperar el primer resultado
+de 600 caracteres entrega 600 caracteres de contexto, y el de 1.500 entrega 1.500. **A K
+fijo no se está comparando lo mismo.**
+
+Por eso no se elige la primera fila. La comparación que sí aísla el efecto es a **igualdad
+de número de fragmentos**:
+
+| Configuración | Fragmentos | RU@1 | MRR |
+|---|---:|---:|---:|
+| estructural, máx. 900, objetivo 100 % | 1.334 | **0,930** | **0,970** |
+| estructural, máx. 1.200, objetivo 60 % | 1.499 | 0,890 | 0,940 |
+
+Con **165 fragmentos menos**, el máximo de 900 gana en las dos métricas. Ahí el conteo ya no
+lo explica.
+
+#### Resultado 3 — el truncado, que no depende de ninguna métrica discutible
+
+Contado con el tokenizador del modelo, no estimado:
+
+| Máximo | Fragmentos truncados |
+|---:|---:|
+| 600, 900, 1.200 | **0** en las nueve configuraciones de cada uno |
+| 1.500 | 3 – 4 |
+| 1.800 | hasta **29** |
+
+Con 1.800 el modelo deja de leer parte de hasta 29 fragmentos **sin avisar**. Con 1.500 —el
+valor vigente hasta ahora— ya hay 3 o 4 en algunas configuraciones. Es la comprobación
+directa de que el máximo no se puede subir a ojo, y confirma sobre el terreno la corrección
+del 2026-07-29.
+
+#### Qué se decide
+
+1. **La Opción B se confirma, y ahora con evidencia en vez de con un razonamiento.** Las
+   tres estrategias son indistinguibles a igualdad de tamaño, de modo que se elige la más
+   simple y la única que **no ata el fragmentador al modelo de incrustaciones**: con
+   troceo semántico, cambiar de modelo obligaría a re-trocear todo el corpus.
+2. **Los parámetros cambian: máximo y objetivo pasan a 900 caracteres**, frente a los 1.500
+   y 1.200 anteriores. Dejan de ser provisionales: salen de la rejilla.
+3. **La Opción C queda medida y descartada**, ya no aplazada. No es peor, es que no es
+   mejor, y cuesta una dependencia que la estructural no tiene.
+
+La configuración vigente hasta esta revisión (estructural, máximo 1.500, objetivo 1.200)
+resultó ser **la segunda peor de las 45** en RU@1, con 0,780.
+
+#### Amenazas a la validez de esta revisión
+
+- **Cincuenta preguntas anotadas por una sola persona**, que es además quien construyó el
+  sistema. Una diferencia de una pregunta vale 0,020: las diferencias de ese orden que
+  aparecen en la tabla **no son distinguibles** de lo que movería otra anotación.
+- **RU@K no es del todo inmune al troceo**, como se explica en el resultado 2. La decisión
+  se apoya en la comparación a igualdad de fragmentos, no en el orden bruto de la tabla.
+- **No se ha medido el efecto sobre la generación**, que es donde la fragmentación actúa de
+  verdad: si un fragmento parte una definición y solo llega la mitad, la recuperación
+  puntúa igual de bien y la respuesta sale peor. Eso exige métricas de la Fase 2.
+- **El mínimo de fragmento no se barrió.** Queda como el único parámetro sin validar.
+
+### Aplicación de 2026-08-06 — lo que salió al cambiarlo de verdad (IT-16)
+
+La rejilla se midió con un guion que sustituía la colocación de los cortes y dejaba que el
+fragmentador de producción hiciera todo lo demás. Un experimento así puede medir algo que
+luego el sistema no reproduce, así que se anota aparte lo que ocurrió al aplicar la decisión.
+
+**El corpus pasa de 884 a 1.334 fragmentos, que es exactamente la cifra que predijo la
+rejilla** para «estructural, máximo 900, objetivo 100 %». Que coincida al fragmento es la
+comprobación de que el guion no medía una fragmentación distinta de la real.
+
+| | Antes (1.500 / 1.200) | Ahora (900 / 900) |
+| --- | ---: | ---: |
+| Fragmentos | 884 | 1.334 |
+| Guía · sin guía · plan · salidas | 761 · 86 · 24 · 13 | 1.193 · 86 · 33 · 22 |
+| Unidades | 322 | 322 |
+| Tamaño mín / mediana / p90 / máx | 227 / 1.139 / 1.267 / 1.498 | 171 / 838 / 894 / 900 |
+| Fragmentos truncados por el modelo | 0 | 0 |
+
+`check_dataset.py` no cambia (528 asignaturas, 288 guías, 8 salidas): trocear distinto no
+toca el dataset, solo el corpus derivado. Las unidades tampoco: siguen siendo 322, porque la
+fragmentación reparte dentro de la unidad y no crea ni destruye ninguna.
+
+#### Las métricas se vuelven a medir sobre el corpus real, no sobre el del experimento
+
+| Métrica | Rejilla (guion) | Producción (`data/chunks.json`) |
+| --- | ---: | ---: |
+| RU@1 | 0,930 | **0,930** |
+| RU@3 | 0,985 | **0,985** |
+| MRR | 0,970 | **0,970** |
+| Truncados | 0 | **0** |
+
+Coinciden en las tres cifras, no solo en el número de fragmentos. La sustitución que hacía
+el guion queda validada y sus 45 filas se pueden leer como lo que el sistema haría.
+
+Aparecen además dos cosas que la rejilla no reportaba:
+
+- **RU@10 sube de 0,995 a 1,000.** Con 884 fragmentos quedaba una pregunta sin acierto ni
+  siquiera con diez unidades: P-008, sobre las salidas profesionales de los grados de la
+  rama industrial, que es una pregunta de agregación sin fragmento agregado que la conteste.
+  Con el troceo fino entra. No es un resultado grande —hablamos de una pregunta de
+  cincuenta— pero sí es la primera vez que el conjunto entero se recupera.
+- **El fragmento más largo del corpus ocupa 335 tokens, y la mediana 204**, sobre una
+  ventana de 512. Es decir: **la configuración ganadora deja la ventana del modelo a dos
+  tercios de su capacidad**, y aun así recupera mejor que las que la llenaban. Eso derriba
+  del todo la premisa con la que se eligió el 1.500 original, que era aprovechar los ~512
+  tokens: el problema nunca fue desaprovechar la ventana, sino que un fragmento largo mezcla
+  varios asuntos y su vector queda a medio camino de todos ellos.
+
+La cobertura por fragmento, en cambio, **empeora** (R@3 pasa de 0,965 a 0,697). No es una
+regresión: al multiplicarse los fragmentos de cada unidad, el denominador de esa métrica
+crece y su techo baja. Es justamente por lo que la métrica comparable entre dos
+fragmentaciones distintas es la de unidad y no la de fragmento.
+
+#### Un defecto que solo apareció al bajar el máximo
+
+`check_chunks.py` **falló**, y al mirarlo el equivocado era el verificador. Exigía
+`len(texto) >= TAMANO_MINIMO` sin excepciones, es decir, trataba el mínimo como restricción
+dura cuando la decisión 5 de este proyecto dice lo contrario: el máximo es duro y el mínimo
+es una preferencia. El propio `_fusionar_pequenos` lo documenta —«alguno puede quedar por
+debajo del mínimo si no había manera de evitarlo»— porque unir una cola corta a su vecino a
+veces desborda el máximo, y romper la restricción dura es peor.
+
+Con el máximo en 1.500 ese caso no llegaba a darse sobre el corpus real y la comprobación
+pasaba sin que nadie notara que era incorrecta. Con 900 aparecen **seis colas de entre 171 y
+196 caracteres**, el 0,45 % del corpus, todas el último fragmento de su unidad y todas
+legítimas.
+
+La corrección no afloja el umbral: aflojarlo con un margen sería repetir el error del margen
+de 250 caracteres que ocultó 40 fragmentos por encima del máximo. Se sustituye por el
+**invariante exacto** —un fragmento corto solo es admisible si unirlo a su vecino desbordaría
+el máximo—, reconstruyendo la unión igual que la haría el fragmentador. El recuento de colas
+se imprime como estadística, para que una subida se vea.
+
+Se aprovecha para quitar de ese guion la copia a mano de `TAMANO_MAXIMO` y `TAMANO_MINIMO`,
+que se justificaba diciendo que el verificador corría en CI. No corre: `data/` no está
+versionado. De haberse quedado la copia, el verificador habría seguido exigiendo `<= 1500`
+sobre un corpus cuyo máximo es 900, que se cumple siempre; habría pasado en verde sin
+verificar nada. Es el mismo patrón que los encabezados cruzados de IT-91.
+
+**Coste de la decisión que la rejilla no medía:** con 900, el mínimo empieza a rozarse. No
+pasaba con 1.500. Es un argumento más para no bajar a 600, donde el margen entre mínimo y
+máximo se estrecha todavía más y las colas irreducibles serían bastantes más.
+
 ## Consecuencias
 
 ### Positivas

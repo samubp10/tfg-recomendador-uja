@@ -6,11 +6,16 @@ pertenece a una única unidad semántica: una asignatura o el bloque de
 salidas de un grado; nunca se mezclan dos asignaturas en un mismo chunk.
 
 La estrategia y sus parámetros se justifican en el ADR-0001 a partir de la
-distribución real de tamaños del dataset (mediana de 2.675 caracteres por
-guía, percentil 90 de 6.450): la mayoría de guías no cabe en un solo chunk
-del tamaño que admiten los modelos de embeddings habituales, por lo que se
-trocea respetando párrafos y frases, y cada chunk se hace autocontenido
-anteponiendo un encabezado con la asignatura y el grado.
+distribución real de tamaños del dataset (mediana de 2.656 caracteres por
+guía, percentil 90 de 6.023, máximo de 24.046): la mayoría de guías no cabe
+en un solo chunk del tamaño que admite el modelo de incrustaciones elegido,
+por lo que se trocea respetando párrafos y frases, y cada chunk se hace
+autocontenido anteponiendo un encabezado con la asignatura y el grado.
+
+Los tamaños dejaron de ser provisionales en IT-16: salen de una búsqueda en
+rejilla de 45 configuraciones (tres estrategias × cinco máximos × tres
+valores del parámetro propio de cada una) medida sobre el conjunto de
+evaluación, no de una estimación de cuántos tokens caben en un carácter.
 """
 
 from __future__ import annotations
@@ -23,16 +28,33 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Final
 
-#: Tamaño objetivo de un chunk, en caracteres. Aproximación conservadora a
-#: los ~512 tokens que admiten los modelos de embeddings multilingües más
-#: comunes (≈4 caracteres por token en español deja margen para el
-#: encabezado). Valor de referencia inicial; el definitivo se fijará
-#: experimentalmente en la Fase 1 (ver ADR-0001).
-TAMANO_OBJETIVO: Final[int] = 1200
+#: Tamaño objetivo de un chunk, en caracteres. Coincide a propósito con el
+#: máximo: la rejilla de IT-16 midió las tres proporciones (60 %, 80 % y
+#: 100 % del máximo) y la de 100 % fue la mejor de la estrategia estructural,
+#: así que no hay motivo para dejar hueco sin usar.
+#:
+#: Valía 1200, elegido como aproximación a los ~512 tokens que se suponía que
+#: admitían los modelos multilingües habituales. Esa premisa resultó falsa
+#: —dos de los cuatro candidatos de IT-28 servían 128 tokens— y la estimación
+#: nunca se contrastó con el analizador léxico del modelo que acabó
+#: eligiéndose. Ahora sale de la medición y no de una regla de tres.
+TAMANO_OBJETIVO: Final[int] = 900
 
 #: Tamaño máximo estricto de un chunk. Ningún chunk lo supera: un párrafo
 #: más largo se divide por frases.
-TAMANO_MAXIMO: Final[int] = 1500
+#:
+#: Valía 1500. La rejilla de IT-16 recorrió 600, 900, 1200, 1500 y 1800 con
+#: las tres estrategias y encontró que este parámetro pesa mucho más que la
+#: estrategia: a igualdad de estrategia, cuanto menor es el máximo, mejor se
+#: recupera. Se elige 900 y no 600 porque 600 gana en las métricas pero
+#: multiplica los fragmentos, y esa ventaja no sobrevive al controlar por su
+#: número; la de 900 sí (ver ADR-0001).
+#:
+#: El argumento que no depende de ninguna métrica discutible es el truncado:
+#: con 900 ningún fragmento supera la ventana del modelo de incrustaciones,
+#: con 1500 aparecen los primeros y con 1800 llegan a 29. El modelo los
+#: recortaría en silencio, sin avisar ni fallar.
+TAMANO_MAXIMO: Final[int] = 900
 
 #: Tamaño mínimo de un chunk. Un fragmento residual por debajo de este
 #: umbral se fusiona con el chunk anterior de su misma unidad (IT-09) para
