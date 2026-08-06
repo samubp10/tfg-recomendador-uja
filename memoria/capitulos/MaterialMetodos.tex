@@ -335,63 +335,6 @@ Los cinco tipos de historias son los siguientes:
   un comentario del código fuente, si al final se hace.
 \end{borrador}
 
-\subsection{Extracción de datos}
-\label{sec:eleccion_herramientas}
-
-Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado tres claras opciones, las cuales se comentan en los apartados siguientes.
-
-\subsubsection{Scrapy\cite{scrapy}}
-
-Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
-
-\begin{itemize}                                                                                                                                                                                                                                                                                
-  \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
-        \begin{enumerate}                
-          \item Codificación indicada explícitamente al construir la respuesta.
-          \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
-          \item Cabecera HTTP \texttt{Content-Type}.
-          \item Declaración de codificación dentro del propio documento (etiqueta \texttt{<meta>}).
-          \item Autodetección por parte del \textit{framework}.
-        \end{enumerate}
-        Las guías docentes de la UJA no llevan BOM, por lo que decide la cabecera HTTP: al anteponerla a la etiqueta \texttt{<meta>} del cuerpo, Scrapy decodifica correctamente unas guías servidas en ISO-8859-1 pese a que se declaren como UTF-8, resolviendo el problema de codificación sin necesidad de código adicional.
-        
-  \item \textbf{Respeto a robots.txt:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
-        
-  \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
-        
-  \item \textbf{Pruebas sin conexión:} Permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
-        
-  \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
-        
-  \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
-\end{itemize}
-
-
-\subsubsection{BeautifulSoup\cite{beautifulsoup}}
-
-Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
-
-\begin{itemize}                                                                                                                                                                                                                                                                                
-  \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
-  \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
-\end{itemize}
-
-\subsubsection{Selenium \cite{selenium} / Playwright}
-Se basa en la automatización de navegadores con renderizado real.
-
-\begin{itemize}                                                                                                                                                                                                                                                                                
-  \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
-  \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
-\end{itemize}
-
-%[jccuevas] \paragraph{Decisión final}
-Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
-
-
-
-% Python 3.13, Scrapy (justificado en el ADR-0002), pytest con casos de prueba
-% reales, mypy, GitHub Actions. Conviene una tabla: herramienta - papel.
-
 \subsection{RAG frente al ajuste fino}
 
 Una alternativa sería ajustar los parámetros del modelo con información específica del dominio mediante ajuste fino (\textit{fine-tuning}). Este procedimiento puede resultar adecuado para adaptar el comportamiento, el formato de salida o el desempeño del modelo en una tarea concreta, pero no ofrece por sí solo una referencia explícita a la fuente de cada afirmación. Además, cuando los datos cambian con frecuencia, mantener el conocimiento actualizado exigiría preparar nuevos ejemplos y repetir el proceso de ajuste.
@@ -676,6 +619,63 @@ Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la imp
 
 Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad.
 
+
+\subsection{Elección de la herramienta de extracción}
+\label{sec:eleccion_herramientas}
+
+Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado tres claras opciones, las cuales se comentan en los apartados siguientes.
+
+\subsubsection{Scrapy\cite{scrapy}}
+
+Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
+
+\begin{itemize}                                                                                                                                                                                                                                                                                
+  \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
+        \begin{enumerate}                
+          \item Codificación indicada explícitamente al construir la respuesta.
+          \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
+          \item Cabecera HTTP \texttt{Content-Type}.
+          \item Declaración de codificación dentro del propio documento (etiqueta \texttt{<meta>}).
+          \item Autodetección por parte del \textit{framework}.
+        \end{enumerate}
+        Las guías docentes de la UJA no llevan BOM, por lo que decide la cabecera HTTP: al anteponerla a la etiqueta \texttt{<meta>} del cuerpo, Scrapy decodifica correctamente unas guías servidas en ISO-8859-1 pese a que se declaren como UTF-8, resolviendo el problema de codificación sin necesidad de código adicional.
+        
+  \item \textbf{Respeto a robots.txt:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
+        
+  \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
+        
+  \item \textbf{Pruebas sin conexión:} Permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
+        
+  \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
+        
+  \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
+\end{itemize}
+
+
+\subsubsection{BeautifulSoup\cite{beautifulsoup}}
+
+Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
+
+\begin{itemize}                                                                                                                                                                                                                                                                                
+  \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
+  \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
+\end{itemize}
+
+\subsubsection{Selenium \cite{selenium} / Playwright}
+Se basa en la automatización de navegadores con renderizado real.
+
+\begin{itemize}                                                                                                                                                                                                                                                                                
+  \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
+  \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
+\end{itemize}
+
+%[jccuevas] \paragraph{Decisión final}
+Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
+
+
+
+% Python 3.13, Scrapy (justificado en el ADR-0002), pytest con casos de prueba
+% reales, mypy, GitHub Actions. Conviene una tabla: herramienta - papel.
 
 \subsection{Extracción del catálogo de titulaciones y asignaturas}
 
