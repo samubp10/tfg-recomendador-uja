@@ -205,6 +205,81 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
   \item Crear tarjeta para rellenar este apartado, hacer varias, una por cada fase que contenga estos términos.
 \end{borrador}
 
+\textcolor{borrador2}{Un sistema de recuperación aumentada por generación puede fallar en
+  dos sitios distintos, y por eso no se mide con una sola cifra. Puede fallar al buscar, si
+  los fragmentos que recupera no contienen la respuesta, y puede fallar al redactar, si con
+  los fragmentos correctos delante escribe algo que no se sigue de ellos. Una única
+  puntuación global ocultaría cuál de las dos mitades falla, que es precisamente lo que hace
+  falta saber para arreglarla. Las métricas se agrupan, por tanto, en dos familias.}
+
+\textcolor{borrador2}{\textbf{Las métricas de recuperación} proceden del campo clásico de la
+  recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo: un conjunto
+  de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué
+  documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué
+  comparar lo que el sistema devuelve.}
+
+\textcolor{borrador2}{La más directa es la \textit{Recall@K}, o exhaustividad entre los $K$
+  primeros: la proporción de preguntas cuyo documento correcto aparece entre los $K$
+  resultados que el sistema devuelve. Responde a si el material necesario ha llegado, no a
+  en qué orden. Su complementaria, la \textit{Precision@K}, mide qué proporción de esos $K$
+  resultados es pertinente; cuando cada pregunta tiene un único documento correcto su valor
+  máximo es $1/K$, de modo que por sí sola informa poco y se lee junto a las demás.}
+
+\textcolor{borrador2}{El \textit{Mean Reciprocal Rank} (MRR) añade la posición. Para cada
+  pregunta toma el inverso del puesto en el que aparece el primer resultado correcto ---uno
+  si sale el primero, un medio si sale el segundo, un tercio si sale el tercero--- y
+  promedia ese valor sobre todas las preguntas. Premia por tanto colocar la respuesta
+  arriba, y no solo colocarla. La \textit{Normalized Discounted Cumulative Gain} (nDCG)
+  generaliza la misma idea a los casos en que la pertinencia no es un sí o un no sino una
+  gradación, y descuenta el valor de cada acierto según lo abajo que aparezca.}
+
+\textcolor{borrador2}{La elección de $K$ no es un detalle de la medición. En un sistema de
+  recuperación aumentada por generación, $K$ es el número de fragmentos que se le entregan
+  al modelo que redacta, así que medir con un $K$ distinto del que usa el sistema es medir
+  un sistema distinto del que se va a desplegar.}
+
+\textcolor{borrador2}{\textbf{Las métricas de generación} son más difíciles de definir,
+  porque no existe una única respuesta correcta: dos redacciones distintas pueden ser
+  igual de válidas. Por eso no se comparan contra una respuesta modelo, sino que se
+  comprueban propiedades de la respuesta producida. La \textbf{fidelidad}
+  (\textit{faithfulness}) mide si cada afirmación de la respuesta está respaldada por el
+  contexto recuperado, y es la que persigue directamente la alucinación. La
+  \textbf{pertinencia} mide si la respuesta contesta a lo que se preguntó, porque un texto
+  puede ser fiel al contexto y no venir a cuento. Y la \textbf{precisión} y la
+  \textbf{cobertura del contexto} miran el contexto en lugar de la respuesta: si lo
+  recuperado contiene lo que hacía falta, y si contiene además mucho ruido.}
+
+\textcolor{borrador2}{Herramientas como RAGAS\cite{es2023ragas} empaquetan estas métricas y
+  las calculan de forma automática, y conviene saber cómo lo hacen: encargan el juicio a
+  otro modelo de lenguaje, que lee la pregunta, el contexto y la respuesta y dictamina. Eso
+  las hace baratas y aplicables a gran escala, pero traslada al evaluador los mismos
+  defectos que se están midiendo, y su veredicto no es determinista. Es una limitación que
+  hay que declarar cuando se usan, no un detalle de implementación.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 2. Andamiaje: la prosa la escribes tú, y aquí más que en ningún sitio,
+  porque son las definiciones que te van a preguntar en la defensa.
+  \item \textbf{Dos nombres de tu lista se han quedado fuera a propósito:} <<RAGEval>> y
+  <<qEVAL>>. No los he puesto porque no me consta que existan con ese nombre exacto y aquí
+  no se puede citar de oídas. RAGAS sí está comprobado y ya figura en la bibliografía.
+  Compruébalos tú antes de añadirlos, y si no aparecen, quítalos de la lista sin más.
+  \item \textbf{La cita de las métricas clásicas es al manual entero.} Antes de defenderla,
+  localiza el capítulo concreto de recuperación de información y ajústala, o el tribunal
+  puede pedirte la página.
+  \item \textbf{Faltan entradas en el glosario} del Capítulo~\ref{cap:definiciones}: no
+  están \textit{Recall@K}, MRR, nDCG ni fidelidad, y las abreviaturas MRR y nDCG tampoco
+  aparecen en la lista de abreviaturas. Si las marcas con la macro del glosario sin darlas
+  de alta, la nota al pie remite a una definición que no existe.
+  \item \textbf{Lo que NO va aquí, aunque tengas la tentación:} qué métricas usa este
+  trabajo y con qué $K$. Eso es Material y Métodos. Este apartado dice qué existe; en cuanto
+  una frase empiece por <<se ha elegido>>, está en el capítulo equivocado.
+  \item \textbf{Un matiz que sí es tuyo y no de la literatura} y que conviene que cuentes
+  cuando llegues al Capítulo~\ref{cap:materialesymetodos}: contar el acierto por fragmento o
+  por unidad no da lo mismo, porque una asignatura se parte en varios fragmentos. Aquí basta
+  con dejar dicho que la exhaustividad depende de qué se considere <<el documento
+  correcto>>.
+\end{borrador}
+
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
