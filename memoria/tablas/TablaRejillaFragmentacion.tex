@@ -1,47 +1,32 @@
 \begin{table}[htbp]
   \centering
-  \caption[Efecto de la estrategia y del tamaño en la fragmentación]{\textcolor{borrador2}{Rejilla
-      de fragmentación, en dos bloques. Arriba, las tres estrategias a igualdad de tamaño
-      máximo; abajo, el efecto del tamaño con la estrategia fija. Cincuenta preguntas del
-      conjunto de evaluación.}}
+  \caption[Las tres estrategias de fragmentación a igualdad de tamaño]{\textcolor{borrador2}{Mejor
+      configuración de cada estrategia de fragmentación, todas con el mismo tamaño máximo de
+      900 caracteres. Cincuenta preguntas del conjunto de evaluación.}}
   \label{tab:rejilla_fragmentacion}
   \small
-  \begin{tabular}{@{}llrrrrrr@{}}
+  \begin{tabular}{@{}llrrrrl@{}}
     \toprule
-    \textbf{Estrategia}                                                                              & \textbf{Ajuste}         & \textbf{Máx.}  & \textbf{Frag.} & \textbf{RU@1}  & \textbf{RU@3}  & \textbf{MRR}   & \textbf{Trunc.} \\
+    \textbf{Estrategia}  & \textbf{Ajuste} & \textbf{Frag.} & \textbf{RU@1}  & \textbf{RU@3}  & \textbf{MRR}   & \textbf{Corte}   \\
     \midrule
-    \multicolumn{8}{@{}l}{\textit{(a) Las tres estrategias, con el tamaño máximo fijado en 900}}                                                                                                                              \\
-    \addlinespace[2pt]
-    Tamaño fijo                                                                                      & solape 20 \%            & 900            & 1.477          & \textbf{0,935} & 0,965          & \textbf{0,974} & 0               \\
-    \textbf{Estructural}                                                                             & objetivo 100 \%         & 900            & 1.334          & 0,930          & \textbf{0,985} & 0,970          & 0               \\
-    Tamaño fijo                                                                                      & solape 0 \%             & 900            & \textbf{1.228} & 0,930          & 0,985          & 0,963          & 0               \\
-    Semántica                                                                                        & percentil 70            & 900            & 1.647          & 0,930          & 0,985          & 0,963          & 0               \\
-    \midrule
-    \multicolumn{8}{@{}l}{\textit{(b) El tamaño máximo, con la estrategia fijada en tamaño fijo sin solape}}                                                                                                                  \\
-    \addlinespace[2pt]
-    Tamaño fijo                                                                                      & solape 0 \%             & 600            & 2.312          & 0,950          & 0,985          & 0,972          & 0               \\
-    Tamaño fijo                                                                                      & solape 0 \%             & 900            & 1.228          & 0,930          & 0,985          & 0,963          & 0               \\
-    Tamaño fijo                                                                                      & solape 0 \%             & 1.200          & 912            & 0,910          & 0,985          & 0,960          & 0               \\
-    Tamaño fijo                                                                                      & solape 0 \%             & 1.500          & 736            & 0,850          & 0,985          & 0,927          & 3               \\
-    Tamaño fijo                                                                                      & solape 0 \%             & 1.800          & 623            & 0,790          & 0,945          & 0,885          & 20              \\
-    \midrule
-    \multicolumn{8}{@{}l}{\textit{(c) La configuración que empleaba el sistema antes de esta comparación}}                                                                                                                    \\
-    \addlinespace[2pt]
-    \textit{Estructural}                                                                             & \textit{objetivo 80 \%} & \textit{1.500} & \textit{884}   & \textit{0,780} & \textit{0,965} & \textit{0,875} & \textit{0}      \\
+    Tamaño fijo          & solape 20 \%    & 1.477          & \textbf{0,935} & 0,965          & \textbf{0,974} & por longitud     \\
+    \textbf{Estructural} & objetivo 100 \% & 1.334          & 0,930          & \textbf{0,985} & 0,970          & frontera natural \\
+    Tamaño fijo          & solape 0 \%     & \textbf{1.228} & 0,930          & 0,985          & 0,963          & por longitud     \\
+    Semántica            & percentil 70    & 1.647          & 0,930          & 0,985          & 0,963          & frontera natural \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textbf{Notas:} \textbf{Máx.}: tamaño máximo del fragmento, en caracteres;
-    \textbf{Frag.}: número total de fragmentos que produce esa configuración sobre la
-    colección completa; \textbf{RU@K} (\textit{Recall por Unidad}): proporción de preguntas
-    cuya asignatura correcta aparece entre los $K$ primeros resultados; \textbf{MRR}
-    (\textit{Mean Reciprocal Rank}): media del inverso de la posición en la que aparece el
-    primer resultado correcto, de modo que premia colocarlo antes; \textbf{Trunc.}: número
-    de fragmentos que superan la ventana del modelo de incrustaciones y que este recorta en
-    silencio, sin avisar ni fallar. En negrita, el mejor valor de cada columna dentro del
-    bloque (a). \textcolor{borrador2}{Una diferencia de 0,020 en RU@1 equivale a una
-      pregunta de las cincuenta.}
+    \textbf{Notas:} \textbf{Frag.}: número total de fragmentos que produce esa configuración
+    sobre la colección completa; \textbf{RU@K} (\textit{Recall por Unidad}): proporción de
+    preguntas cuya asignatura correcta aparece entre los $K$ primeros resultados;
+    \textbf{MRR} (\textit{Mean Reciprocal Rank}): media del inverso de la posición del primer
+    resultado correcto, de modo que premia colocarlo antes; \textbf{Corte}: si la estrategia
+    parte el texto por una frontera del propio texto ---final de párrafo o de frase--- o al
+    alcanzar un número de caracteres. En negrita, el mejor valor de cada columna.
+    \textcolor{borrador2}{Una diferencia de 0,020 en RU@1 equivale a una pregunta de las
+      cincuenta; el recorrido completo de las nueve configuraciones de 900 caracteres es de
+      2,3 preguntas.}
   \end{minipage}
 \end{table}
