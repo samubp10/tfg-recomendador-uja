@@ -4,15 +4,37 @@
 \section{Métricas de evaluación de la recuperación}
 \label{secc:metricas_recuperacion}
 
-\begin{borrador}      
-  \item \textbf{Trasladado desde Antecedentes} (reencuadre del capítulo 2).
-  \item \textbf{Fase:} 1, generacion de las preguntas y etiquetas para la evaluacion.
-\end{borrador}
-
 \section{Selección del modelo de incrustaciones}
 \label{secc:resultados_embeddings}
 
 \begin{borrador}
+  \item \textbf{LA TABLA DE ESTA SECCIÓN ESTÁ CADUCADA (IT-16).} Sus cifras son de la
+  ejecución del 04/08/2026 sobre 797 fragmentos, con el máximo de fragmento todavía en
+  1.500 caracteres. Al fijar los parámetros de fragmentación el corpus pasó a
+  \textbf{1.334} y la comparativa se repitió el 06/08/2026. Las cifras vigentes están en
+  \texttt{docs/experimentos/it28-embeddings.md}, que escribe el propio guion: cópialas de
+  ahí a \texttt{tablas/TablaComparativaEmbeddings.tex}, no a mano desde aquí.
+  \item \textbf{Y hay que reescribir la conclusión, no solo los números.} El texto de
+  abajo dice que el modelo grande recupera mejor y que se descarta por coste. Con el
+  troceado nuevo la diferencia entre los dos baja de dos preguntas y media de cincuenta a
+  \textbf{media pregunta}, y el MRR se iguala en 0,970. La elección no cambia; el
+  argumento sí, y a mejor: ya no depende de que el sistema acabe usando diez resultados
+  por consulta, que es un parámetro que todavía no está decidido.
+  \item \textbf{Se da la vuelta además el desglose por tipo de pregunta.} En las de
+  metadatos ---donde el modelo pequeño era claramente peor--- pasa a ir por delante
+  (0,697 frente a 0,664). Si dejas la frase anterior sin tocar, estarás defendiendo la
+  decisión con una razón que hoy es falsa.
+  \item \textbf{Lo que no se puede decir:} que el modelo pequeño haya mejorado. El modelo
+  es el mismo y lo que cambió fue la colección. Trocear más fino reparte cada unidad en
+  más fragmentos y le da más oportunidades de entrar entre los primeros resultados, y de
+  eso se beneficia más el modelo que peor las aprovechaba.
+  \item \textbf{Cuidado con la exhaustividad por fragmento, que baja} (0,771 a 0,697) y
+  \emph{no} es una regresión: su techo baja con ella, de 0,905 a 0,789. Medido contra el
+  techo, el hueco se reduce de 0,134 a 0,092. Sin el techo al lado, la cifra dice lo
+  contrario de lo que ocurre.
+\end{borrador}
+
+\begin{borrador}      
   \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva, con los resultados del
   experimento del 04/08/2026. Andamiaje: la prosa la escribes tú. La tabla ya está
   puesta y sus cifras salen del fichero que genera el propio guion, así que
@@ -31,29 +53,29 @@
 \end{borrador}
 
 \textcolor{borrador2}{La comparativa se ejecutó sobre la colección completa, con las
-cincuenta preguntas anotadas del conjunto de evaluación, y sus resultados se recogen en la
-Tabla~\ref{tab:comparativa_embeddings}. Los cuatro candidatos admiten al menos quinientos
-doce \glr{tokens}{token}, de modo que ninguno se queda sin leer parte de los fragmentos:
-esa condición se comprueba en cada ejecución y no se da por supuesta, porque en las
-ejecuciones anteriores del experimento dos de los modelos evaluados solo alcanzaban a leer
-la mitad del texto y sus cifras no eran comparables con las del resto.}
+  cincuenta preguntas anotadas del conjunto de evaluación, y sus resultados se recogen en la
+  Tabla~\ref{tab:comparativa_embeddings}. Los cuatro candidatos admiten al menos quinientos
+  doce \glr{tokens}{token}, de modo que ninguno se queda sin leer parte de los fragmentos:
+  esa condición se comprueba en cada ejecución y no se da por supuesta, porque en las
+  ejecuciones anteriores del experimento dos de los modelos evaluados solo alcanzaban a leer
+  la mitad del texto y sus cifras no eran comparables con las del resto.}
 
 \input{tablas/TablaComparativaEmbeddings}
 
 \textcolor{borrador2}{El resultado que más información aporta no es cuál de los modelos
-obtiene la mejor puntuación, sino la distancia a la que queda el único candidato entrenado
-específicamente en español. Su exhaustividad por unidad en los tres primeros resultados es
-de 0,320 frente al 0,945 del modelo multilingüe de tamaño equivalente, y no recupera ninguna
-de las catorce preguntas que piden el listado completo de asignaturas de una titulación. Al
-haber leído exactamente el mismo texto que los demás, la diferencia no puede atribuirse a
-que dispusiera de menos información, sino a la tarea para la que fue entrenado: reconocer si
-dos frases significan lo mismo, que no es lo que se le pide a un sistema de recuperación,
-donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no
-se le parece. Conviene precisar el alcance de esta conclusión: no permite afirmar que no
-pueda existir un modelo en español adecuado para recuperación, sino que el mejor disponible
-en el momento de la comparación no lo es.}
+  obtiene la mejor puntuación, sino la distancia a la que queda el único candidato entrenado
+  específicamente en español. Su exhaustividad por unidad en los tres primeros resultados es
+  de 0,320 frente al 0,945 del modelo multilingüe de tamaño equivalente, y no recupera ninguna
+  de las catorce preguntas que piden el listado completo de asignaturas de una titulación. Al
+  haber leído exactamente el mismo texto que los demás, la diferencia no puede atribuirse a
+  que dispusiera de menos información, sino a la tarea para la que fue entrenado: reconocer si
+  dos frases significan lo mismo, que no es lo que se le pide a un sistema de recuperación,
+  donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no
+  se le parece. Conviene precisar el alcance de esta conclusión: no permite afirmar que no
+  pueda existir un modelo en español adecuado para recuperación, sino que el mejor disponible
+  en el momento de la comparación no lo es.}
 
-\begin{borrador}
+\begin{borrador}      
   \item \textbf{Dos lecturas erróneas de la tabla que conviene desactivar tú mismo}, porque
   son las dos preguntas que va a hacer el tribunal.
   \item \textbf{«Un 0,771 significa que falla una de cada cuatro veces.»} No. La
@@ -71,201 +93,218 @@ en el momento de la comparación no lo es.}
   Fase 2.
 \end{borrador}
 
-\section{Evaluación de sistemas RAG}
+\section{Parámetros de fragmentación}
+\label{secc:resultados_fragmentacion}
 
 \begin{borrador}
-  \item \textbf{Trasladado desde Antecedentes} (reencuadre del capítulo 2).
-  \item \textbf{Fase:} 2 (IT-38)
+  \item \textbf{Fase: 1 (IT-16).} Sección nueva y vacía a propósito. Hoy los resultados de
+  la rejilla están en el Capítulo~\ref{cap:materialesymetodos}, junto al método, y eso
+  incumple la misma regla que se respetó con las incrustaciones: allí el método y aquí los
+  números. \textbf{Decisión tuya:} traerlos o dejarlos donde están y retirar esta sección.
+  \item Si los traes, lo que tiene que quedar aquí es: la tabla de la rejilla
+  (\texttt{tablas/TablaRejillaFragmentacion.tex}, ya escrita), el resultado de que la
+  estrategia apenas separa y el tamaño sí, la comparación a igualdad de número de
+  fragmentos y el recuento de fragmentos truncados por tamaño máximo.
+  \item Y lo que \textbf{no} debe quedar aquí, porque es método y no resultado: por qué se
+  eligieron esas tres estrategias, por qué la rejilla da el mismo número de intentos a cada
+  una y por qué el mínimo de fragmento no se barrió.
+  \item \textbf{Un dato honesto que conviene no esconder:} al bajar el máximo, la
+  exhaustividad \emph{por fragmento} empeora. No es una regresión: al multiplicarse los
+  fragmentos de cada unidad, el denominador de esa métrica crece y su techo baja. Es
+  justamente por lo que la métrica comparable entre dos fragmentaciones distintas es la de
+  unidad y no la de fragmento, y merece una frase explícita.
 \end{borrador}
+
+\section{Evaluación de sistemas RAG}
 
 \section{Validación con usuarios}
 
-\begin{borrador}
+\begin{borrador}      
   \item \textbf{Fase:} 4 Validación de usuarios reales (los tengo que buscar aún y no sé si será posible)
 \end{borrador}
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
 
-\textcolor{borrador2}{Cinco de las doce titulaciones del centro ---las dobles---
-estuvieron en la colección sin una sola asignatura hasta el 5 de agosto de 2026. No era
-que la fuente no publicase su plan de estudios, sino que lo publica bajo una dirección
-distinta de la de los grados simples, rotula una de sus columnas de otra forma y abrevia
-de otra manera el carácter de cada asignatura. Ninguna de esas tres diferencias provocaba
-un error: la titulación entera desaparecía y la verificación seguía dando el visto bueno.
-Es la misma clase de fallo que este trabajo ya ha documentado en otras cuatro ocasiones, y
-la que justifica que la colección se verifique contra la fuente completa y no contra una
-muestra.}
+
 
 \textcolor{borrador2}{De la corrección quedan vivas tres limitaciones que conviene
-declarar. La primera es que las asignaturas de una titulación doble llevan códigos de una
-serie propia, de modo que no se pueden emparejar por código con las de los grados que la
-componen y el emparejamiento tiene que hacerse por el nombre; eso funciona hoy en ciento
-setenta de ciento setenta y ocho casos, pero depende de que la fuente escriba igual la
-misma asignatura en dos planes distintos, y un cambio de redacción lo degradaría en
-silencio. La segunda es que cuando un nombre coincide con varias guías distintas no se
-resuelve la ambigüedad, y esas asignaturas reciben un fragmento que afirma que no tienen
-guía publicada cuando en realidad sí la tienen. La tercera es que una de las cinco
-titulaciones dobles no publica absolutamente nada, de modo que el sistema no puede decir
-qué se estudia en ella.}
+  declarar. La primera es que las asignaturas de una titulación doble llevan códigos de una
+  serie propia, de modo que no se pueden emparejar por código con las de los grados que la
+  componen y el emparejamiento tiene que hacerse por el nombre; eso funciona hoy en ciento
+  setenta de ciento setenta y ocho casos, pero depende de que la fuente escriba igual la
+  misma asignatura en dos planes distintos, y un cambio de redacción lo degradaría en
+  silencio. La segunda es que cuando un nombre coincide con varias guías distintas no se
+  resuelve la ambigüedad, y esas asignaturas reciben un fragmento que afirma que no tienen
+  guía publicada cuando en realidad sí la tienen. La tercera es que una de las cinco
+  titulaciones dobles no publica absolutamente nada, de modo que el sistema no puede decir
+  qué se estudia en ella.}
 
-\textcolor{borrador2}{Por último, la colección creció de setecientos noventa y siete a
-ochocientos ochenta y cuatro fragmentos al incorporar estas titulaciones. La comparación
-de modelos de incrustaciones se ejecutó sobre la colección anterior, así que sus cifras
-absolutas no corresponden a la colección vigente. El orden entre los modelos no debería
-verse afectado ---ya se comprobó estable sobre dos colecciones distintas---, pero
-presentarlas sin esta advertencia sería atribuirles una vigencia que no tienen.}
 
 \begin{borrador}
+  \item \textbf{Dos referencias quedaron colgando al borrar párrafos el 05/08/2026, y hay
+    que resolverlas.} El párrafo de arriba empieza por «\emph{De la corrección} quedan vivas
+  tres limitaciones», pero ya no hay ninguna corrección mencionada antes: se borró el párrafo
+  que contaba que cinco de las doce titulaciones estuvieron en la colección sin una sola
+  asignatura hasta el 05/08/2026. O vuelve ese párrafo, o hay que reescribir el arranque de
+  este para que no remita a nada.
+  \item \textbf{Y más abajo} queda un «CORREGIDO: \emph{el método tachado} se abandonó en
+  IT-97» cuyo texto tachado ya no existe.
+  \item \textbf{Se borró también el aviso de que las cifras son de otra colección}, y ese sí
+  hay que reponerlo en el cuerpo del capítulo y no solo aquí: la comparación de modelos de
+  incrustaciones se ejecutó sobre 797 fragmentos y la colección vigente tiene \textbf{1\,334}
+  desde IT-16, de modo que las cifras absolutas de la
+  Tabla~\ref{tab:comparativa_embeddings} no corresponden al corpus de hoy. Sin esa
+  advertencia, el capítulo las presenta como vigentes.
+  \item \textbf{Y la distancia ha crecido}: esa tabla va ya dos configuraciones por detrás
+  del corpus, porque entre medias entraron los planes de los dobles grados y bajó el máximo
+  de fragmento. Lo defendible no es convertir las cifras por regla de tres, sino declararlo
+  o volver a ejecutar la comparación. A favor de no rehacerla: el orden de los modelos se
+  mantuvo idéntico sobre dos corpus distintos, y eso es lo que sostiene el ADR-0003. En
+  contra: ese argumento vale para el orden, no para las cifras absolutas, y son las cifras
+  absolutas las que aparecen impresas en la tabla.
   \item \textbf{Fase:} 1 (IT-101). Andamiaje de la amenaza de los dobles grados; la
-        evidencia completa, con las seis anomalías de la fuente y sus mediciones, está en
-        el DQA-0005 del repositorio\cite{repo_tfg}.
-  \item \textbf{Cifras del 05/08/2026:} 528 asignaturas, 288 guías, 8 bloques de salidas,
-        884 fragmentos (761 de guía, 86 informativos, 24 de plan de estudios y 13 de
-        salidas). 363 fragmentos citan una titulación doble, y 329 de ellos son fragmentos
-        de guía reaprovechados: no se duplicó ni un carácter de temario.
+  evidencia completa, con las seis anomalías de la fuente y sus mediciones, está en
+  el DQA-0005 del repositorio\cite{repo_tfg}.
+  \item \textbf{Cifras del 06/08/2026:} 528 asignaturas, 288 guías, 8 bloques de salidas,
+  \textbf{1\,334} fragmentos (1\,193 de guía, 86 informativos, 33 de plan de estudios y 22
+  de salidas). \textbf{599} fragmentos citan una titulación doble, y \textbf{560} de ellos
+  son fragmentos de guía reaprovechados: no se duplicó ni un carácter de temario. El
+  dataset no cambia al fragmentar más fino ---las 528 asignaturas y las 288 guías son las
+  mismas---, solo cambia en cuántos trozos se reparte.
   \item \textbf{Hay que actualizar las cifras del resto del capítulo y del Capítulo~4},
-        que siguen siendo las de 797 fragmentos.
+  que siguen siendo las de 797 fragmentos.
+  \item \textbf{Y hay un resultado nuevo que este capítulo todavía no cuenta:} sobre los
+  1\,334 fragmentos, el acierto por unidad llega a \textbf{1,000 con K${=}$10}, cuando con
+  884 se quedaba en 0,995. La pregunta que faltaba era P-008, sobre las salidas
+  profesionales de los grados de la rama industrial, que es de agregación y no tenía ningún
+  fragmento que la contestara entera. Es una pregunta de cincuenta, así que no conviene
+  presentarlo como un salto: lo relevante es que por primera vez no queda ninguna fuera.
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}      
   \item \textbf{Fase:} 2 (IT-58). Aquí van todas las amenazas juntas, no solo la de abajo:
-        la codificación declarada en falso por la fuente, la cobertura de guías del 82 \% con
-        sesgo hacia las titulaciones en implantación, el ECTS ausente, los parámetros de
-        fragmentación sin validar y los umbrales de la hipótesis fijados después de IT-28.
+  la codificación declarada en falso por la fuente, la cobertura de guías del 82 \% con
+  sesgo hacia las titulaciones en implantación, el ECTS ausente, los parámetros de
+  fragmentación sin validar y los umbrales de la hipótesis fijados después de IT-28.
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}      
   \item \textbf{Fase:} 1 (IT-95) --- amenaza nueva, de \textbf{validez de
-        constructo}, y de las más serias que tiene el trabajo. Todo el contenido de
-        la colección se obtiene hoy de guías en PDF (288 de 288), y la extracción se
-        apoya en una lista de 17 rótulos de sección escrita a mano contra la
-        plantilla que la Universidad usaba al observarla. \textit{(Verificado el
-        30/07/2026: el código conoce 17 rótulos y espera encontrar 13 en toda guía;
-        de esos, solo 2 pasan el filtro de contenido.)}
+    constructo}, y de las más serias que tiene el trabajo. Todo el contenido de
+  la colección se obtiene hoy de guías en PDF (288 de 288), y la extracción se
+  apoya en una lista de 17 rótulos de sección escrita a mano contra la
+  plantilla que la Universidad usaba al observarla. \textit{(Verificado el
+    30/07/2026: el código conoce 17 rótulos y espera encontrar 13 en toda guía;
+    de esos, solo 2 pasan el filtro de contenido.)}
   \item Si esa plantilla cambia, una sección deja de terminar donde debe: o se queda
-        corta, y se pierde contenido, o absorbe la siguiente, y puede arrastrar el
-        bloque de profesorado con sus datos personales. \textbf{Ninguno de los dos
-        casos se manifiesta como un error}: el sistema sigue respondiendo, solo que
-        sobre menos contenido del que cree tener.
+  corta, y se pierde contenido, o absorbe la siguiente, y puede arrastrar el
+  bloque de profesorado con sus datos personales. \textbf{Ninguno de los dos
+    casos se manifiesta como un error}: el sistema sigue respondiendo, solo que
+  sobre menos contenido del que cree tener.
   \item \textbf{Actualización:} la amenaza sigue en pie, pero ya está
-        \emph{instrumentada}, que no es lo mismo que descartada. El rastreo conserva
-        ahora una copia de cada PDF y un verificador comprueba, contra el original,
-        que todos los rótulos que la plantilla compone son de los conocidos. Mientras
-        esa comprobación salga vacía, las fronteras de sección caen donde el código
-        cree; en cuanto devuelva algo, hay que mirarlo antes de fiarse del corpus.
+  \emph{instrumentada}, que no es lo mismo que descartada. El rastreo conserva
+  ahora una copia de cada PDF y un verificador comprueba, contra el original,
+  que todos los rótulos que la plantilla compone son de los conocidos. Mientras
+  esa comprobación salga vacía, las fronteras de sección caen donde el código
+  cree; en cuanto devuelva algo, hay que mirarlo antes de fiarse del corpus.
   \item La forma de enunciarla, entonces, es esta: no se puede garantizar que la
-        plantilla no cambie —eso no depende del trabajo—, pero sí que un cambio deje
-        de pasar inadvertido. Es una diferencia que conviene marcar, porque es la
-        misma lección de los cuatro defectos anteriores: lo que no se comprueba no
-        está protegido, aunque no haya fallado todavía.
-  \item \sout{Vale la pena contar por qué la comprobación evidente no sirve, porque
-        explica una decisión de diseño que si no parece arbitraria. Buscar líneas en
-        mayúsculas que no estén en la lista produce entre 17 y 25 falsos avisos por
-        guía: el bloque de profesorado trae en mayúsculas los nombres, los
-        departamentos y las ubicaciones. Un verificador que avisa siempre acaba
-        ignorándose, que es una forma más de que mida algo distinto de lo que dice
-        medir. Los rótulos se localizan por su tipografía ---la plantilla los
-        compone en negrita a doce puntos--- y así salen cero falsos avisos sobre los
-        cuatro PDF reales comprobados.}
-  \item \textbf{CORREGIDO el 30/07/2026: el método tachado se abandonó en IT-97,
-        y la propia frase explica por qué.} <<Cero falsos avisos sobre los cuatro
-        PDF reales comprobados>>: sobre las \textbf{293} guías del rastreo completo,
-        ese mismo detector por tipografía dio \textbf{68 falsos positivos}. La
-        plantilla usa la misma negrita a doce puntos para el nombre de la asignatura
-        en la cabecera y para resaltar contenido dentro de las secciones.
+  plantilla no cambie —eso no depende del trabajo—, pero sí que un cambio deje
+  de pasar inadvertido. Es una diferencia que conviene marcar, porque es la
+  misma lección de los cuatro defectos anteriores: lo que no se comprueba no
+  
   \item \textbf{Lo que se usa ahora} es la comprobación invertida: en vez de buscar
-        rótulos desconocidos, se comprueba qué rótulos \emph{faltan} de los trece
-        que la plantilla siempre compone. Un rótulo de más no significa nada; un
-        rótulo de menos significa que la plantilla ha cambiado, que es justo lo que
-        hay que detectar.
+  rótulos desconocidos, se comprueba qué rótulos \emph{faltan} de los trece
+  que la plantilla siempre compone. Un rótulo de más no significa nada; un
+  rótulo de menos significa que la plantilla ha cambiado, que es justo lo que
+  hay que detectar.
   \item \textbf{Esto es mejor material de defensa que lo que sustituye}, y conviene
-        contarlo así: una heurística validada sobre 4 casos aguantó, y se rompió al
-        pasarla a 293. Es el mismo patrón que los defectos de la Fase 0 --- las
-        pruebas cubren lo que los datos contienen --- pero esta vez ocurrió sobre un
-        \emph{verificador}, es decir, sobre la herramienta que existe precisamente
-        para que no pase.
+  contarlo así: una heurística validada sobre 4 casos aguantó, y se rompió al
+  pasarla a 293. Es el mismo patrón que los defectos de la Fase 0 --- las
+  pruebas cubren lo que los datos contienen --- pero esta vez ocurrió sobre un
+  \emph{verificador}, es decir, sobre la herramienta que existe precisamente
+  para que no pase.
   \item Dato útil para la defensa, y para adelantarse a la pregunta obvia sobre
-        cuánto se tira: de los \sout{53.969} \textbf{50.715} caracteres de secciones
-        que suman las tres guías de prueba se conservan 8.534,
-        \sout{alrededor del 15 \%} el \textbf{16,8~\%}. El resto se descarta
-        a propósito y con nombre ---evaluación, bibliografía, cláusulas, profesorado,
-        metodologías--- y el verificador lo enumera sección por sección, de modo que el
-        filtrado se puede revisar en lugar de tener que creérselo.
+  cuánto se tira: de los \sout{53.969} \textbf{50.715} caracteres de secciones
+  que suman las tres guías de prueba se conservan 8.534,
+  \sout{alrededor del 15 \%} el \textbf{16,8~\%}. El resto se descarta
+  a propósito y con nombre ---evaluación, bibliografía, cláusulas, profesorado,
+  metodologías--- y el verificador lo enumera sección por sección, de modo que el
+  filtrado se puede revisar en lugar de tener que creérselo.
   \item (El total cambió porque IT-97 movió las fronteras de sección al cambiar cómo
-        se detectan los rótulos; los 8.534 conservados son los mismos. Medido de
-        nuevo el 30/07/2026 sobre las tres guías de prueba.)
+  se detectan los rótulos; los 8.534 conservados son los mismos. Medido de
+  nuevo el 30/07/2026 sobre las tres guías de prueba.)
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}      
   \item \textbf{Fase:} 1 (IT-95) --- anomalía de la fuente, para el registro de
-        calidad de datos y para matizar la cifra de cobertura. Cinco asignaturas de
-        planes en implantación publican su guía docente \textbf{con el esqueleto
-        completo de la plantilla y las secciones de contenido vacías}.
+  calidad de datos y para matizar la cifra de cobertura. Cinco asignaturas de
+  planes en implantación publican su guía docente \textbf{con el esqueleto
+    completo de la plantilla y las secciones de contenido vacías}.
   \item Se comprobó descargando los seis PDF implicados: los seis se leen
-        correctamente, con entre 9.300 y 13.000 caracteres cada uno y los trece
-        rótulos de la plantilla en su sitio. En uno de ellos, las líneas
-        <<RESUMEN>>, <<DESCRIPCIÓN DE CONTENIDOS>> y <<METODOLOGÍAS DOCENTES>>
-        aparecen seguidas, sin nada en medio.
+  correctamente, con entre 9.300 y 13.000 caracteres cada uno y los trece
+  rótulos de la plantilla en su sitio. En uno de ellos, las líneas
+  <<RESUMEN>>, <<DESCRIPCIÓN DE CONTENIDOS>> y <<METODOLOGÍAS DOCENTES>>
+  aparecen seguidas, sin nada en medio.
   \item Lo que importa aquí no es el número, sino la distinción: no es un fallo de
-        extracción del sistema, es un hueco del origen. El aviso del rastreador decía
-        <<PDF ilegible>> y la colección decía <<no ha podido obtenerse>>; las dos
-        cosas insinuaban un fallo propio que no existe. Ya está corregido: es
-        cuestión de honestidad de la propia colección, que no puede afirmar algo
-        falso sobre por qué le falta un dato. Queda registrado en el DQA-0004.
+  extracción del sistema, es un hueco del origen. El aviso del rastreador decía
+  <<PDF ilegible>> y la colección decía <<no ha podido obtenerse>>; las dos
+  cosas insinuaban un fallo propio que no existe. Ya está corregido: es
+  cuestión de honestidad de la propia colección, que no puede afirmar algo
+  falso sobre por qué le falta un dato. Queda registrado en el DQA-0004.
   \item Merece contarse como pareja del defecto de IT-94, porque son el mismo error
-        en direcciones opuestas: allí la colección iba a negar una publicación que sí
-        existe; aquí iba a atribuirse un fallo que no había cometido. Las dos veces
-        el texto era cómodo de escribir y falso, y las dos veces lo que lo destapó
-        fue ir a mirar la fuente en lugar de fiarse de lo que el código creía.
+  en direcciones opuestas: allí la colección iba a negar una publicación que sí
+  existe; aquí iba a atribuirse un fallo que no había cometido. Las dos veces
+  el texto era cómodo de escribir y falso, y las dos veces lo que lo destapó
+  fue ir a mirar la fuente en lugar de fiarse de lo que el código creía.
   \item Enlaza con la amenaza ya declarada del sesgo de cobertura: las titulaciones
-        de implantación reciente no solo concentran las asignaturas sin guía, sino
-        también las guías publicadas y vacías, que hasta ahora se contaban como
-        cobertura. \textbf{La cifra de cobertura que se publique debería separar
-        guías con contenido de guías vacías}, o declarar expresamente que no lo hace.
+  de implantación reciente no solo concentran las asignaturas sin guía, sino
+  también las guías publicadas y vacías, que hasta ahora se contaban como
+  cobertura. \textbf{La cifra de cobertura que se publique debería separar
+    guías con contenido de guías vacías}, o declarar expresamente que no lo hace.
 \end{borrador}
 
 \textcolor{borrador2}{Entre las amenazas a la validez de construcción conviene destacar una por lo
-que enseña sobre el propio método de trabajo. Durante la Fase 0 se dieron tres defectos que la
-batería de pruebas no llegó a detectar y que solo aparecieron al ejecutar el sistema contra el
-conjunto de datos completo. Al revisar el fragmentador apareció un cuarto caso del mismo tipo, con
-una diferencia que merece señalarse: se localizó antes de que los datos llegaran a activarlo. Las
-asignaturas que la fuente publica sin código se identificaban de forma que unas sobrescribían a
-otras, y el encabezado de un fragmento podía terminar atribuyendo el temario a una materia
-distinta. No llegó a ocurrir, porque ninguna de esas asignaturas tiene todavía guía publicada, pero
-tampoco había nada que lo hubiera avisado: el verificador comparaba las claves de los fragmentos y
-no el texto de sus encabezados, de manera que informaba de que el corpus era correcto. La
-conclusión que se extrae no es que las pruebas sobren, sino que su cobertura está limitada por los
-casos que el conjunto de datos contiene en un momento dado, y que un verificador solo protege de
-aquello que efectivamente comprueba.}
+  que enseña sobre el propio método de trabajo. Durante la Fase 0 se dieron tres defectos que la
+  batería de pruebas no llegó a detectar y que solo aparecieron al ejecutar el sistema contra el
+  conjunto de datos completo. Al revisar el fragmentador apareció un cuarto caso del mismo tipo, con
+  una diferencia que merece señalarse: se localizó antes de que los datos llegaran a activarlo. Las
+  asignaturas que la fuente publica sin código se identificaban de forma que unas sobrescribían a
+  otras, y el encabezado de un fragmento podía terminar atribuyendo el temario a una materia
+  distinta. No llegó a ocurrir, porque ninguna de esas asignaturas tiene todavía guía publicada, pero
+  tampoco había nada que lo hubiera avisado: el verificador comparaba las claves de los fragmentos y
+  no el texto de sus encabezados, de manera que informaba de que el corpus era correcto. La
+  conclusión que se extrae no es que las pruebas sobren, sino que su cobertura está limitada por los
+  casos que el conjunto de datos contiene en un momento dado, y que un verificador solo protege de
+  aquello que efectivamente comprueba.}
 
 \textcolor{borrador2}{La regeneración del corpus al curso siguiente confirmó ese diagnóstico de la
-peor manera posible, y conviene contarlo porque matiza la conclusión anterior. El fragmentador, que
-llevaba meses funcionando sin incidencias, dejó de terminar: no falló ni avisó de nada, sencillamente
-se quedó dando vueltas. El procedimiento que une los fragmentos demasiado cortos daba por hecho que
-repartir de nuevo un par siempre produce una división distinta, cuando el texto solo puede partirse
-por sus fronteras naturales y a veces las únicas disponibles son las que ya lo separaban. Bastó con
-que una guía tuviera dos fragmentos cuya suma excediera el máximo por un solo carácter para que el
-proceso se repitiera indefinidamente. El defecto estaba en el código desde la fase inicial y ningún
-conjunto de datos lo había activado: lo activó el cambio de la fuente, porque las guías del curso
-nuevo llegan en un formato distinto y con ello cambian las fronteras del texto. La lección no es
-solo que las pruebas cubren lo que los datos contienen, sino que la fuente puede modificar el
-comportamiento del sistema sin que se toque una línea de código.}
+  peor manera posible, y conviene contarlo porque matiza la conclusión anterior. El fragmentador, que
+  llevaba meses funcionando sin incidencias, dejó de terminar: no falló ni avisó de nada, sencillamente
+  se quedó dando vueltas. El procedimiento que une los fragmentos demasiado cortos daba por hecho que
+  repartir de nuevo un par siempre produce una división distinta, cuando el texto solo puede partirse
+  por sus fronteras naturales y a veces las únicas disponibles son las que ya lo separaban. Bastó con
+  que una guía tuviera dos fragmentos cuya suma excediera el máximo por un solo carácter para que el
+  proceso se repitiera indefinidamente. El defecto estaba en el código desde la fase inicial y ningún
+  conjunto de datos lo había activado: lo activó el cambio de la fuente, porque las guías del curso
+  nuevo llegan en un formato distinto y con ello cambian las fronteras del texto. La lección no es
+  solo que las pruebas cubren lo que los datos contienen, sino que la fuente puede modificar el
+  comportamiento del sistema sin que se toque una línea de código.}
 
 \textcolor{borrador2}{Ese mismo procedimiento volvió a no terminar por segunda vez, y el
-segundo caso enseña algo distinto del primero. La corrección anterior se apoyaba en un
-razonamiento explícito sobre por qué el proceso acaba: el número de fragmentos solo puede
-disminuir, y como no puede bajar de uno, el número de reintentos está acotado. El
-razonamiento era falso. Repartir de nuevo un par que no cabe junto puede devolver tres
-fragmentos donde había dos, de modo que la cuenta también sube, y alternando uniones que la
-bajan con repartos que la suben el proceso oscila indefinidamente sin llegar a ninguna
-parte. Con los tamaños de fragmento en uso el caso era inalcanzable, y quedó al descubierto
-al hacerlos configurables para poder ensayar valores menores. La corrección consiste en
-descartar todo reparto que produzca más fragmentos de los que había, con lo que la cuenta
-pasa a ser efectivamente decreciente y el razonamiento de terminación se sostiene. Lo que
-merece señalarse no es el defecto en sí, sino que la primera corrección venía acompañada de
-un argumento escrito de por qué no podía repetirse, y ese argumento no cubría todos los
-casos: una demostración informal da una confianza que no siempre está justificada, y la
-prueba de regresión que se añadió entonces no podía detectarlo porque comprobaba
-exactamente el escenario que el argumento sí contemplaba.}
+  segundo caso enseña algo distinto del primero. La corrección anterior se apoyaba en un
+  razonamiento explícito sobre por qué el proceso acaba: el número de fragmentos solo puede
+  disminuir, y como no puede bajar de uno, el número de reintentos está acotado. El
+  razonamiento era falso. Repartir de nuevo un par que no cabe junto puede devolver tres
+  fragmentos donde había dos, de modo que la cuenta también sube, y alternando uniones que la
+  bajan con repartos que la suben el proceso oscila indefinidamente sin llegar a ninguna
+  parte. Con los tamaños de fragmento en uso el caso era inalcanzable, y quedó al descubierto
+  al hacerlos configurables para poder ensayar valores menores. La corrección consiste en
+  descartar todo reparto que produzca más fragmentos de los que había, con lo que la cuenta
+  pasa a ser efectivamente decreciente y el razonamiento de terminación se sostiene. Lo que
+  merece señalarse no es el defecto en sí, sino que la primera corrección venía acompañada de
+  un argumento escrito de por qué no podía repetirse, y ese argumento no cubría todos los
+  casos: una demostración informal da una confianza que no siempre está justificada, y la
+  prueba de regresión que se añadió entonces no podía detectarlo porque comprobaba
+  exactamente el escenario que el argumento sí contemplaba.}
 
