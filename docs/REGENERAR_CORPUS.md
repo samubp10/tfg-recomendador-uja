@@ -4,7 +4,7 @@
 > Está escrito para poder ejecutarse delante de otra persona sin depender de que nadie
 > recuerde nada (Definición de Hecho de IT-80).
 >
-> Última ejecución: **28/07/2026**, curso **2026-27**.
+> Última ejecución: **05/08/2026** (rastreo) y **06/08/2026** (troceado), curso **2026-27**.
 
 ## Antes de empezar
 
@@ -156,15 +156,28 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
 | 09/07/2026 | 2025-26 | 361 | 296 | 892 | Snapshot inicial. Sin procedencia dentro del fichero (anterior a IT-90) |
 | 28/07/2026 | 2026-27 | 350 | 288 | 786 | Primer rastreo con IT-76, IT-77, IT-67 y IT-90. Destapó IT-92, IT-93 e IT-94 |
 | 29/07/2026 | 2026-27 | 350 | 288 | 781 | Con IT-95 e IT-96. **Los cuatro verificadores en verde.** Destapó IT-97 |
+| 30/07/2026 | 2026-27 | 350 | 288 | 781 | Reproduce el del 29/07 fragmento a fragmento: la fuente estaba estable |
+| 01/08/2026 | 2026-27 | 350 | 288 | 797 | Con IT-100: entran los 16 fragmentos de plan de estudios |
+| 05/08/2026 | 2026-27 | **528** | 288 | 884 | Con IT-101: los planes de los cinco dobles grados, que faltaban enteros |
+| 06/08/2026 | 2026-27 | 528 | 288 | **1 334** | Sin re-rastrear: solo se vuelve a trocear con el máximo de IT-16 en 900 |
 
-El rastreo del 29/07 es el primero que cierra el ciclo completo. Lo que dejó:
+⚠️ **Las dos últimas filas no son dos rastreos.** El 06/08 no se volvió a pedir nada a la
+web: se ejecutó solo el fragmentador con los parámetros nuevos. Conviene que el registro lo
+distinga, porque «cambió el corpus» y «cambió la fuente» son cosas distintas y solo la
+segunda obliga a repetir el rastreo.
 
-- **781 fragmentos**: 711 de guía, 62 informativos de asignaturas sin guía y 8 de
-  salidas. 279 unidades, 38 de ellas compartidas entre titulaciones.
-- Tamaños (mín/mediana/p90/máx): **227 / 1128 / 1234 / 1499**.
+Estado del corpus vigente (06/08/2026):
+
+- **1 334 fragmentos**: 1 193 de guía, 86 informativos de asignaturas sin contenido, 33 de
+  plan de estudios y 22 de salidas. 322 unidades, 78 de ellas compartidas.
+- Tamaños (mín/mediana/p90/máx): **171 / 838 / 894 / 900**. Seis fragmentos quedan por
+  debajo del mínimo de 200: son colas que no cabían junto a su vecino sin desbordar el
+  máximo, y el mínimo es una preferencia, no una restricción dura.
 - **0 nombres contaminados** por el enlace «Syllabus», que es lo que arreglaba IT-96.
 - 5 asignaturas con la guía publicada pero vacía en el origen (DQA-0004); entran al
   corpus con sus datos básicos.
-- Conjunto de evaluación: 36 preguntas, 7/7 titulaciones. Hubo que repuntar cuatro
-  selectores porque sus asignaturas ya tienen guía, así que el reparto por tipo queda
-  en 20 temario · 8 salidas · 6 metadatos · **2 sin guía** (eran 5).
+- Conjunto de evaluación: **50 preguntas, 11/11 titulaciones**, con el reparto
+  20 temario · 14 listado · 8 salidas · 6 metadatos · **2 sin guía**. Las 14 de listado
+  entraron en IT-100. El tipo `sin guía` bajó de 5 a 2 el 29/07, al publicar la fuente
+  tres de esas guías: es una limitación declarada del instrumento de medida, no un
+  descuido, y reponerlo sigue siendo una decisión abierta.
