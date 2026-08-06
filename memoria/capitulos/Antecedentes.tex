@@ -53,7 +53,7 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \section{Estado del arte}
 \label{secc:estado_arte}
 
-Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la recuperación aumentada por generación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y en qué consisten la minería de datos y el rastreo web con los que se construye la colección, y qué son la fragmentación de esa colección y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
+Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la recuperación aumentada por generación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
 
 \begin{borrador}                        
   \item \textbf{La frase puente al Capítulo~\ref{cap:materialesymetodos}:} «las decisiones
@@ -164,7 +164,7 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
   \label{fig:privativos_vs_abiertos}
 \end{figure}
 
-\subsection{Minería de datos y rastreo web}
+\subsection[Minería de datos y rastreo web]{\textcolor{borrador2}{Minería de datos y rastreo web}}
 \label{subsec:mineria_rastreo}
 
 \textcolor{borrador2}{El rastreo web (\textit{web scraping}) es el proceso automatizado de descargar páginas y extraer de ellas datos estructurados a partir de su HTML. A alto nivel, una herramienta de rastreo emite una petición HTTP, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores (CSS o XPath) para, por último, normalizar el resultado. Este proceso rara vez es limpio y uniforme: la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript.}
@@ -181,6 +181,12 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
   conseguir esos textos.
   \item Decide si merece una figura. El diagrama de secuencia del rastreo ya está en el
   Capítulo~4 y repetirlo aquí sería redundante.
+  \item \textbf{El párrafo que enumera el contenido de este capítulo no menciona este
+    apartado.} Dice «qué son la fragmentación de una colección de datos y una base de
+  datos vectorial» y ahora hay un apartado antes que no anuncia. Añádelo tú con tus
+  palabras; una posibilidad es intercalar «en qué consisten la minería de datos y el
+  rastreo web con los que se construye la colección» antes de la fragmentación, que es
+  el orden en el que el dato recorre el sistema.
 \end{borrador}
 
 
