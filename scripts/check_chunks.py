@@ -21,10 +21,20 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-#: Deben coincidir con ``tfg_uja.chunker``; se duplican aquí para que el
-#: script no dependa del paquete instalado (se ejecuta también en CI).
-TAMANO_MAXIMO = 1500
-TAMANO_MINIMO = 200
+#: Se importan del fragmentador en vez de copiarse. Antes estaban duplicados
+#: aquí «para que el script no dependa del paquete instalado, que se ejecuta
+#: también en CI», y esa razón ya no existe: el flujo de trabajo declara que
+#: este verificador NO corre en CI, porque ``data/`` no está versionado y en
+#: un checkout limpio los ficheros que verifica no existen.
+#:
+#: Lo que quedaba era el peor modo de fallo posible. Al bajar el máximo de
+#: 1500 a 900 (IT-16), una copia sin actualizar habría seguido comprobando
+#: ``len(texto) <= 1500`` sobre un corpus cuyo máximo real es 900: pasa en
+#: verde y deja de verificar la restricción que el sistema declara. Sería el
+#: cuarto caso de esta serie en el proyecto, después de los encabezados
+#: cruzados de IT-91, y el patrón siempre es el mismo: el verificador mide
+#: algo distinto de lo que cree medir, y nadie se entera porque dice «OK».
+from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 
 
 def _clave_item(item: dict) -> tuple:
@@ -61,6 +71,59 @@ def _claves_chunk(chunk: dict) -> set[tuple]:
         (grado, codigo or chunk["nombre"])
         for grado, codigo in zip(chunk["grados"], chunk["codigos"])
     }
+
+
+def cortos_evitables(lista: list[dict]) -> list[int]:
+    """Longitudes de los chunks cortos que sí se habrían podido fusionar.
+
+    El mínimo no es una restricción dura, a diferencia del máximo: el
+    fragmentador conserva un fragmento corto cuando unirlo a su vecino haría
+    que el par superase el máximo y el texto no ofrece ninguna frontera por la
+    que repartirlo mejor. Su propio ``_fusionar_pequenos`` lo documenta:
+    «alguno puede quedar por debajo del mínimo si no había manera de
+    evitarlo».
+
+    Este verificador exigía ``len(texto) >= TAMANO_MINIMO`` sin más, es decir,
+    trataba una preferencia como si fuera un invariante. Con el máximo en
+    1.500 el caso no llegaba a darse sobre el corpus real y la comprobación
+    pasaba; al bajarlo a 900 (IT-16) aparecieron seis colas de entre 171 y 196
+    caracteres, todas legítimas, y el verificador las daba por defecto.
+
+    Comprobar en su lugar «que no sea demasiado corto» con algún margen sería
+    peor que no comprobar nada: en este proyecto un margen de 250 caracteres
+    ya ocultó una vez que 40 fragmentos superaban el máximo. Así que no se
+    afloja el umbral, se cambia por el invariante exacto: un fragmento corto
+    solo es admisible si unirlo a su vecino desbordaría el máximo. Se
+    reconstruye la unión tal como la haría el fragmentador ---mismo
+    encabezado, mismo separador, mismo presupuesto descontado--- en lugar de
+    estimarla.
+
+    Args:
+        lista: Chunks de una misma unidad semántica, ordenados por
+            ``chunk_index``.
+
+    Returns:
+        Longitudes de los chunks cortos que se podían haber fusionado, vacío
+        si no hay ninguno. Una unidad de un solo chunk nunca aporta: no tiene
+        con quién fusionarse.
+    """
+    if len(lista) < 2:
+        return []
+    evitables = []
+    for i, chunk in enumerate(lista):
+        texto = chunk["texto"]
+        if len(texto) >= TAMANO_MINIMO:
+            continue
+        # El encabezado se repite en cada chunk de la unidad y ocupa la
+        # primera línea; el cuerpo es lo que queda. `_fusionar_pequenos`
+        # trabaja sobre cuerpos, con el máximo ya descontado del encabezado.
+        hueco = len(texto.split("\n", 1)[0]) + 1
+        vecino = lista[i - 1] if i > 0 else lista[i + 1]
+        primero, segundo = (vecino, chunk) if i > 0 else (chunk, vecino)
+        combinado = f'{primero["texto"][hueco:]}\n{segundo["texto"][hueco:]}'
+        if len(combinado) <= TAMANO_MAXIMO - hueco:
+            evitables.append(len(texto))
+    return evitables
 
 
 def _imprimir_procedencia(procedencia: dict, total_guias: int) -> None:
@@ -207,6 +270,7 @@ def main(argv: list[str] | None = None) -> int:
     for c in chunks:
         clave = (c["nombre"], tuple(c["grados"]), c["origen"])
         por_unidad.setdefault(clave, []).append(c)
+    cortos = 0
     for unidad, lista in por_unidad.items():
         lista.sort(key=lambda c: c["chunk_index"])
         indices = [c["chunk_index"] for c in lista]
@@ -214,10 +278,16 @@ def main(argv: list[str] | None = None) -> int:
         assert all(
             c["total_chunks"] == len(lista) for c in lista
         ), f"total_chunks inconsistente en {unidad}"
-        if len(lista) > 1:
-            assert all(
-                len(c["texto"]) >= TAMANO_MINIMO for c in lista
-            ), f"chunk bajo el mínimo tras la fusión en {unidad}"
+        evitables = cortos_evitables(lista)
+        assert not evitables, (
+            f"{len(evitables)} chunk(s) por debajo del mínimo en {unidad} que "
+            f"sí se podían fusionar (el más corto, {min(evitables)} caracteres). "
+            f"`_fusionar_pequenos` los tenía que haber unido con su vecino: si "
+            f"aparecen aquí es que la fusión ha dejado de funcionar."
+        )
+        cortos += sum(
+            1 for c in lista if len(lista) > 1 and len(c["texto"]) < TAMANO_MINIMO
+        )
 
     # --- Cobertura: cada item del dataset queda representado ---
     # Se expanden los chunks a pares (grado, código) por la deduplicación.
@@ -307,6 +377,15 @@ def main(argv: list[str] | None = None) -> int:
         f"Tamaño (chars): min={tamanos[0]} mediana={tamanos[n // 2]} "
         f"p90={tamanos[int(n * 0.9)]} max={tamanos[-1]}"
     )
+    # Se informa, no se falla: son colas irreducibles y su número mide cuánto
+    # cuesta la preferencia incumplida. Que suba mucho sí es señal de que el
+    # máximo se ha quedado corto para este corpus, y eso solo se ve mirándolo.
+    if cortos:
+        print(
+            f"  {cortos} fragmentos por debajo del mínimo ({TAMANO_MINIMO}), "
+            f"todos colas que no cabían junto a su vecino sin pasarse del "
+            f"máximo. El mínimo es una preferencia, no una restricción dura."
+        )
 
     print("Chunks OK: invariantes verificados.")
     return 0
