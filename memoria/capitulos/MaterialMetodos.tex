@@ -225,6 +225,21 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
         
 \end{itemize}
 
+\begin{borrador}
+  \item \textbf{Este reparto ya no coincide con el capítulo (07/08/2026).} El punto de la
+  Fase~0 dice que abarca <<la fragmentación semántica preliminar (\textit{chunking})>>, y el
+  troceado se cuenta ahora en la Fase~1, junto al experimento que fija sus parámetros
+  (Sección~\ref{subsec:chunking}). El de la Fase~1 solo habla del modelo de incrustaciones y
+  de la base vectorial, y le falta el troceado.
+  \item \textbf{La palabra que salva el punto es <<preliminar>>}, y conviene no perderla: la
+  planificación ya preveía que lo que se hiciera en la Fase~0 fuese provisional. Una forma
+  honesta de reescribirlo es dejar en la Fase~0 la construcción del fragmentador y llevar a
+  la Fase~1 la fijación de sus parámetros, que es exactamente lo que ocurrió.
+  \item \textbf{Ojo, esto no es solo redacción:} el hito del \textit{backlog} se llama
+  <<Fase 0 · Cimientos (datos + scraping + chunking)>>. Si cambias el punto de aquí y no el
+  hito, la memoria y el tablero dejan de contar lo mismo.
+\end{borrador}
+
 
 
 \begin{figure}[htbp]
@@ -389,6 +404,18 @@ Los cinco tipos de historias son los siguientes:
   \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
 \end{borrador}
 
+\begin{borrador}
+  \item \textbf{Las cifras de la Fase~0 incluyen el troceado, que el capítulo cuenta ahora en
+    la Fase~1 (07/08/2026).} En el hito de la Fase~0 están IT-08 y IT-09 (código del
+  fragmentador), IT-11 (el ADR-0001 de la estrategia) e IT-56 (deduplicación). Solo la última
+  sigue narrándose en la Fase~0.
+  \item \textbf{No las cambies a mano.} Si decides mover las tarjetas de hito, vuelve a
+  contarlas con \texttt{gh} y actualiza la tabla con la salida real; si decides no moverlas,
+  entonces la tabla está bien y lo que hay que explicar es que el reparto de la tabla es el
+  del tablero y el del capítulo es temático. Lo que no puede quedarse es que digan cosas
+  distintas sin que nadie lo advierta.
+\end{borrador}
+
 
 
 \section{Tecnologías y herramientas}
@@ -517,6 +544,18 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
     desarrollo. Fuente: Elaboración propia.}
   \label{fig:arquitectura_pipeline}
 \end{figure}
+
+\begin{borrador}
+  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no
+    (07/08/2026).} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
+  fragmentos y la flecha del \textit{chunker}, pero el troceado se cuenta ahora en la Fase~1
+  (Sección~\ref{subsec:chunking}).
+  \item \textbf{Decide qué cuenta la figura antes de tocarla}, porque las dos lecturas son
+  defendibles y no dan el mismo dibujo: si los recuadros son \emph{fases del proyecto}, hay
+  que mover la caja de los fragmentos al grupo de la Fase~1; si son \emph{etapas del
+    sistema} ---lo que se extrae frente a lo que se vectoriza---, está bien como está y lo
+  que sobra es el rótulo <<Fase 0>>. Yo no la he tocado porque es una decisión tuya.
+\end{borrador}
 
 \section{Diseño de los datos}
 
@@ -664,6 +703,16 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
+
+\begin{borrador}
+  \item \textbf{El alcance de esta fase se ha reducido el 07/08/2026:} el troceado se cuenta
+  ahora en la Fase~1 (Sección~\ref{subsec:chunking}) y aquí se ha quedado la deduplicación.
+  Con eso, lo que produce esta fase es \texttt{grados.json} ---el contenido extraído de la
+  web, deduplicado--- y no \texttt{chunks.json}.
+  \item \textbf{Merece una frase en el párrafo de apertura de la fase}, si es que llegas a
+  escribirlo: qué entra y qué sale de la Fase~0. Es la forma más barata de que el lector no
+  eche de menos el troceado al llegar al final del apartado.
+\end{borrador}
 
 \subsection{Situación de partida}
 
@@ -1259,6 +1308,18 @@ idénticas solo deja el índice ligeramente más grande.
 La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
+
+\begin{borrador}
+  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos
+    (07/08/2026).} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
+  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
+  deduplicación, que sí se queda aquí, comprueba la otra mitad.
+  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
+  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
+  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
+  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
+  respetar el reparto de fases es peor remedio que la enfermedad.
+\end{borrador}
 
 \textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
   Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
