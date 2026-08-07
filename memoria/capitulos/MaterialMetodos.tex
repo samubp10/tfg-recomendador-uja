@@ -1237,19 +1237,13 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   en vez de presentarlo como atemporal.
 \end{borrador}
 
-\section[Fase 1: Fragmentación e Incrustaciones]{\textcolor{borrador2}{Fase 1: Fragmentación e Incrustaciones}}
+\section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
 \label{secc:fase1}
 
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
   diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
   recuperar por significado--- y en qué orden se cuenta.
-  \item \textbf{El orden se ha rehecho el 07/08/2026} y ahora sí se sostiene: primero el
-  instrumento con el que se mide, después el mecanismo del troceado, después el modelo de
-  incrustaciones y por último la fijación experimental de los parámetros del troceado. Cada
-  paso necesita que el anterior esté decidido, y el último es el que lo explica: la rejilla
-  \emph{usó} el modelo, así que no podía ir antes que él. Antes estaba al revés y el propio
-  párrafo afirmaba lo contrario de lo que hacía.
   \item \textbf{Lo que hay que declarar al contarlo}, porque es la grieta del razonamiento:
   la comparación de modelos se hizo sobre un troceado provisional y la rejilla se hizo con el
   modelo ya fijado, de manera que \textbf{ninguno de los dos experimentos exploró el espacio
@@ -1260,41 +1254,16 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   en el capítulo equivocado.
 \end{borrador}
 
-\subsection[El conjunto de evaluación como instrumento de medida]{\textcolor{borrador2}{El conjunto de evaluación como instrumento de medida}}
+\subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
 
-\begin{borrador}                                                                                                                                                    
-  \item Qué tiene que dejar dicho: que son \textbf{cincuenta preguntas anotadas a mano},
-  cómo se eligieron, qué cubre cada uno de los cinco tipos (temario, listado, salidas,
-  metadatos y sin guía) y por qué esos tipos y no otros.
-  \item \textbf{Lo que no se puede omitir:} el tipo \emph{sin guía} tiene hoy
-  \textbf{dos preguntas de cincuenta}, y bajó de cinco cuando la fuente publicó tres de
-  esas guías. Es justo el punto ciego de la colección ---86 asignaturas sin contenido,
-  concentradas en las dos titulaciones más nuevas--- y es donde peor se está midiendo.
-  Decirlo aquí es mucho más fuerte que esperar a que lo pregunten.
-  \item Un solo anotador, que además construyó el sistema. Va enlazado con las amenazas a
-  la validez, no repetido aquí.
-\end{borrador}
+Para la experimentación se ha usado el conjunto de datos extraídos y 50 preguntas creadas para abarcar todo tipo de cuestiones que el usario promedio de 
+la aplicación podría querer saber. Las preguntas abarcan desde cuestiones como temario de una asignatura en específico, como listado de asignaturas de una
+titulación, como salidas profesionales de un grado.
 
-\subsection[Troceado de la colección]{\textcolor{borrador2}{Troceado de la colección}}
+
+\subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
-
-\begin{borrador}                                                                                                
-  \item \textbf{El troceado estaba en la Fase~0 y se ha traído aquí el 07/08/2026.} El
-  motivo es que el troceado existe por la ventana del modelo de incrustaciones: sin modelo no
-  hay tamaño que decidir. Así el mecanismo y el experimento que fija sus parámetros quedan
-  seguidos, en vez de obligar al lector a ir y volver entre dos fases.
-  \item \textbf{En la Fase~0 se ha quedado la deduplicación}
-  (Sección~\ref{subsec:deduplicacion}), porque responde a una anomalía de la fuente y no a
-  cómo se recupera. Comprueba al releer que el corte no deja ninguna frase coja: las dos
-  cosas las hace el mismo módulo.
-  \item \textbf{Ojo al orden de esta fase.} Ahora es: instrumento de medida, troceado,
-  fijación de sus parámetros, modelo de incrustaciones e índice. Pero la rejilla \emph{usó}
-  el modelo, así que el modelo estaba decidido antes que los parámetros. O reordenas
-  ---modelo antes que rejilla--- o dejas dicho en el párrafo de apertura de la fase que el
-  orden es temático y no cronológico. Hoy ese párrafo afirma justo lo contrario: que <<cada
-  paso necesita que el anterior esté decidido>>.
-\end{borrador}
 
 Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir es este apartado
 
@@ -1303,7 +1272,7 @@ Los datos o corpus se tienen que trocear debido a la ventana de contexto explica
 
 La decisión se tomó estudiando antes la colección y haciendo uso de la estadística.
 Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}.
-A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede violar,
+A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
 
@@ -1312,7 +1281,7 @@ se documentó en el registro de decisión de arquitectura ADR-0001\cite{repo_tfg
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-\subsubsection[El algoritmo de troceado y sus parámetros]{\textcolor{borrador2}{El algoritmo de troceado y sus parámetros}}
+\subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
 Ya en la estrategia elegida, el algoritmo elegido parte de la unidad completa y solo la divide cuando hace
