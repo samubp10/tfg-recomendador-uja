@@ -1270,36 +1270,84 @@ Los datos o corpus se tienen que trocear debido a la ventana de contexto explica
 \subsubsection[Restricciones del troceado ]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-La decisión se tomó estudiando antes la colección y haciendo uso de la estadística.
+\sout{La decisión se tomó estudiando antes la colección y haciendo uso de la estadística.}
 Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}.
+
+\textcolor{borrador2}{Que haya que trocear no es una preferencia de diseño, es lo que dice la
+  colección al medirla. El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres,
+  con percentil 90 de 6.024 y un máximo de 24.047, de modo que el 99~\% de las guías no cabe
+  en un fragmento de 900 caracteres y el 83~\% tampoco en uno de 1.500. Indexar cada guía
+  entera obligaría al modelo a recortar la mayoría, y a hacerlo \textbf{en silencio}: la
+  función que convierte texto en vectores no avisa ni falla cuando el texto excede su
+  ventana, simplemente lee menos de lo que se le entrega.}
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
 
-Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. El razonamiento completo, con la evidencia que respalda cada descarte,
-se documentó en el registro de decisión de arquitectura ADR-0001\cite{repo_tfg}.
+Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. \sout{El razonamiento completo, con la evidencia que respalda cada descarte,
+  se documentó en el registro de decisión de arquitectura ADR-0001}\cite{repo_tfg}.
+
+\textcolor{borrador2}{La tabla recoge la comparación de diseño, la que se hace leyendo qué
+  promete cada estrategia. Solo sirve para descartar la cuarta, y lo hace con un dato y no con
+  una opinión: si el 99~\% de las guías no cabe entera, no dividir no es una alternativa. Las
+  otras tres no se descartan aquí. Se descartan midiéndolas, en la
+  Sección~\ref{secc:fase1_fragmentacion}, porque cuál corta mejor no se sabe leyendo su
+  descripción. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
+  experimento completo, con sus cuarenta y cinco configuraciones.}
 
 \input{tablas/TablaAlternativasChunking.tex}
 
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
-Ya en la estrategia elegida, el algoritmo elegido parte de la unidad completa y solo la divide cuando hace
+\sout{Ya en la estrategia elegida, el algoritmo elegido} \textcolor{borrador2}{La estrategia
+  que gana el experimento de la Sección~\ref{secc:fase1_fragmentacion} es la estructural, y su
+  algoritmo} parte de la unidad completa y solo la divide cuando hace
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
 por último fusiona con sus vecinos los fragmentos residuales que se han quedado demasiado cortos y reequilibra el par resultante.
 A cada fragmento se le antepone un encabezado autocontenido con el nombre de la asignatura, su tipo, sus créditos ECTS y
 la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. 
-Los parámetros de 900 caracteres (contando el encabezado) y 200 de mínimo. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
+\sout{Los parámetros de 900 caracteres (contando el encabezado) y 200 de mínimo.} El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
+
+\textcolor{borrador2}{El tamaño máximo y el objetivo son de 900 caracteres, encabezado
+  incluido, y el mínimo de 200. Los dos primeros son el resultado de la rejilla de la
+  Sección~\ref{secc:fase1_fragmentacion}: no se eligieron al escribir el algoritmo, se
+  midieron sobre cinco tamaños distintos. El tercero no entró en esa rejilla, que lo mantuvo
+  fijo en las cuarenta y cinco configuraciones, y es por tanto el único parámetro del
+  fragmentador sin validación experimental propia. Conviene decirlo aquí y no esperar a las
+  amenazas a la validez.}
 
 La unión de fragmentos solo ocurre cuando a la unión resultante caben dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
 
 
-\textcolor{borrador2}{Esos dos valores no se eligieron al escribir el algoritmo. El
-  ADR-0001 los dejó a propósito como provisionales, porque decidirlos exige comprobar cuánto
-  se recupera con cada uno y eso obliga a vectorizar los fragmentos, de modo que hasta que no
-  estuvo elegido el modelo de incrustaciones no se pudo medir. La
-  Sección~\ref{secc:fase1_fragmentacion}, ya con el modelo elegido, es la que los fija.}
+\textcolor{borrador2}{Este apartado describe el mecanismo; la evidencia que lo sostiene
+  ---qué estrategia y con qué tamaños--- está en la Sección~\ref{secc:fase1_fragmentacion}.
+  El orden es ese porque medir un troceado obliga a convertir sus fragmentos en vectores, de
+  modo que el experimento necesita antes el modelo de incrustaciones de la
+  Sección~\ref{secc:fase1_embeddings}.}
+
+\begin{borrador}
+  \item \textbf{Reescrito el 07/08/2026 para que el apartado no dé nada por elegido.} Lo
+  tachado decía que la decisión salió de estudiar la colección con estadística, que el
+  ADR-0001 recogía la evidencia de cada descarte y que los parámetros eran unos valores sin
+  procedencia. Ninguna de las tres cosas se sostiene ahora: la estrategia y los tamaños salen
+  de un experimento, y el ADR-0001 se ha reescrito entero con ese experimento dentro.
+  \item \textbf{Decisión de orden que te dejo a ti.} El mecanismo va antes que la evidencia
+  que lo justifica. Se lee bien porque el texto lo anuncia, pero si prefieres el orden
+  inverso ---experimento primero, algoritmo después--- hay que mover dos subsubsecciones y
+  reescribir los enganches. Dime cuál prefieres.
+  \item \textbf{La Tabla~\ref{tab:alternativas_chunking} contradice al párrafo que tiene
+  encima, y se ve en la misma página.} Su última fila dice «la mitad de las guías supera los
+  2\,677 caracteres y la mayor llega a 23\,940»; esas son las cifras del corpus anterior, de
+  296 guías. Las de hoy, medidas sobre las 288 actuales, son \textbf{mediana 2.653 y máximo
+  24.047}. Cámbialas ahí, o quita las cifras de la celda y deja que las ponga el texto.
+  \item \textbf{Y la primera fila necesita un matiz.} Dice que el tamaño fijo se descarta
+  porque «sobre la colección completa puede juntar dos asignaturas», y es cierto. Pero el
+  tamaño fijo que compite en la rejilla \emph{no} es ese: allí las tres estrategias trabajan
+  ya dentro de una unidad, así que ninguna puede juntar dos asignaturas. Sin esa aclaración,
+  las dos tablas se contradicen a la vista: una lo descarta y la otra lo pone arriba.
+\end{borrador}
 
 \subsubsection[El proceso completo y la estructura del fragmento]{\textcolor{borrador2}{El proceso completo y la estructura del fragmento}}
 \label{secc:estructura_fragmento}
