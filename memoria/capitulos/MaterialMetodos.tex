@@ -1243,15 +1243,21 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
   diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
-  recuperar por significado--- y en qué orden se cuenta.
+  recuperar por significado--- y en qué orden se cuenta: el instrumento con el que se mide,
+  el troceado con el experimento que fija sus parámetros, y el modelo de incrustaciones.
+  \item \textbf{Y una advertencia sobre ese orden, que es la única costura que queda:} la
+  rejilla del troceado \emph{usó} el modelo, que se elige después. Se cuenta antes porque el
+  troceado es lo primero que le ocurre al texto, no porque se decidiera antes. Basta una
+  frase para que el lector no lo tome por una dependencia rota.
   \item \textbf{Lo que hay que declarar al contarlo}, porque es la grieta del razonamiento:
   la comparación de modelos se hizo sobre un troceado provisional y la rejilla se hizo con el
   modelo ya fijado, de manera que \textbf{ninguno de los dos experimentos exploró el espacio
     conjunto}. Está reconocido en el ADR-0003 y hay que decirlo aquí también, porque este
   orden lo hace evidente.
-  \item \textbf{Ojo con la regla que separa capítulos.} Aquí va el método y el porqué; los
-  números van al Capítulo~\ref{cap:resultados}. Si una frase empieza por «se obtuvo», está
-  en el capítulo equivocado.
+  \item \textbf{La regla que separa capítulos ya está aplicada (07/08/2026):} aquí queda el
+  método y el porqué, y las cifras están en el Capítulo~\ref{cap:resultados}. Al releer,
+  comprueba que no se ha colado ninguna de vuelta: si una frase empieza por «se obtuvo»,
+  está en el capítulo equivocado.
 \end{borrador}
 
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
@@ -1289,19 +1295,20 @@ Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla
 \label{secc:fase1_fragmentacion}
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Lo que no se puede perder al reescribirlos}, por orden de importancia para
-  el tribunal:
-  (1) la estrategia apenas influye y \emph{el tamaño sí}, que es justo lo contrario de lo que comparaba el ADR-0001 original;
-  (2) la comparación buena es a igualdad de número de fragmentos, no la primera fila de la tabla, porque más fragmentos
-  por unidad significan más papeletas de aparecer entre los primeros resultados;
-  (3) el  recuento de fragmentos truncados, que no depende de ninguna métrica discutible;
-  \item \textbf{El hallazgo que se defiende solo:} la configuración ganadora deja la ventana
-  del modelo a dos tercios de su capacidad y aun así recupera mejor que las que la llenaban.
-  el problema nunca fue desaprovechar la ventana, sino que un fragmento
-  largo mezcla asuntos distintos y su vector queda a medio camino de todos ellos.
-  \item \textbf{Decide dónde van los números.} Hoy la tabla de la rejilla está aquí, y la
-  regla del trabajo dice que los resultados van al Capítulo~\ref{cap:resultados}, que es lo
-  que ya se hizo con las incrustaciones. Hay una sección esperándolos.
+  \item \textbf{Este apartado se quedó solo con el diseño el 07/08/2026}, y las cifras se
+  fueron a la Sección~\ref{secc:resultados_fragmentacion}. Lo que tiene que seguir aquí, y es
+  lo primero que un tribunal ataca, es \emph{por qué la comparación es justa}: que las tres
+  estrategias reciben el mismo número de configuraciones, que solo se sustituye dónde se
+  colocan los cortes y que el mínimo se mantiene fijo en las cuarenta y cinco.
+  \item \textbf{Lo que no puede perderse al reescribir el turquesa}, porque son las tres
+  cosas que sostienen la conclusión y las que más fácil se caen al condensar: que la
+  comparación se lee a igualdad de número de fragmentos y no por la fila con mejor número;
+  que trocear más fino da a cada unidad más papeletas de aparecer entre los primeros
+  resultados, y eso es un sesgo y no una virtud; y que el recuento de fragmentos truncados es
+  el único dato de todo el experimento que no depende de ninguna métrica opinable.
+  \item \textbf{Cuidado con una frase que ya no se puede escribir:} no hay «ADR-0001
+  original» al que contraponer nada. El registro se reescribió entero y hoy contiene este
+  experimento, así que la memoria y el ADR cuentan lo mismo y en el mismo orden.
 \end{borrador}
 
 
@@ -1375,7 +1382,7 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
-\sout{Ya en la estrategia elegida, el algoritmo elegido} \textcolor{borrador2}{La estrategia
+\textcolor{borrador2}{La estrategia
   que gana el experimento es la estructural ---el resultado está en la
   Sección~\ref{secc:resultados_fragmentacion}---, y su
   algoritmo} parte de la unidad completa y solo la divide cuando hace
@@ -1406,20 +1413,18 @@ La unión de fragmentos solo ocurre cuando a la unión resultante caben dentro d
   en la Sección~\ref{secc:fase1_embeddings}, más adelante en este mismo capítulo.}
 
 \begin{borrador}
-  \item \textbf{Reescrito el 07/08/2026 para que el apartado no dé nada por elegido.} Lo
-  tachado decía que la decisión salió de estudiar la colección con estadística, que el
-  ADR-0001 recogía la evidencia de cada descarte y que los parámetros eran unos valores sin
-  procedencia. Ninguna de las tres cosas se sostiene ahora: la estrategia y los tamaños salen
-  de un experimento, y el ADR-0001 se ha reescrito entero con ese experimento dentro.
-  \item \textbf{Decisión de orden que te dejo a ti.} El mecanismo va antes que la evidencia
-  que lo justifica. Se lee bien porque el texto lo anuncia, pero si prefieres el orden
-  inverso ---experimento primero, algoritmo después--- hay que mover dos subsubsecciones y
-  reescribir los enganches. Dime cuál prefieres.
-  \item \textbf{La Tabla~\ref{tab:alternativas_chunking} contradice al párrafo que tiene
-  encima, y se ve en la misma página.} Su última fila dice «la mitad de las guías supera los
-  2\,677 caracteres y la mayor llega a 23\,940»; esas son las cifras del corpus anterior, de
-  296 guías. Las de hoy, medidas sobre las 288 actuales, son \textbf{mediana 2.653 y máximo
-  24.047}. Cámbialas ahí, o quita las cifras de la celda y deja que las ponga el texto.
+  \item \textbf{Queda un solo tachado en el apartado}, el de los parámetros. Sustitúyelo por
+  la frase en turquesa de debajo, que dice de dónde sale cada uno de los tres valores, y
+  bórralo.
+  \item \textbf{El orden ya está resuelto (07/08/2026):} el diseño del experimento va ahora
+  antes que el algoritmo, de modo que ningún valor se enuncia antes de la comparación que lo
+  produce. No hacía falta mover nada más: bastó con sacar las cifras al
+  Capítulo~\ref{cap:resultados}.
+  \item \textbf{La Tabla~\ref{tab:alternativas_chunking} sigue con cifras del corpus
+  anterior.} Su última fila dice «la mitad de las guías supera los 2\,677 caracteres y la
+  mayor llega a 23\,940», que son las de 296 guías. Medidas sobre las 288 de hoy son
+  \textbf{mediana 2.653 y máximo 24.047}. Cámbialas ahí, o quita las cifras de la celda y
+  deja que las ponga el texto.
   \item \textbf{Y la primera fila necesita un matiz.} Dice que el tamaño fijo se descarta
   porque «sobre la colección completa puede juntar dos asignaturas», y es cierto. Pero el
   tamaño fijo que compite en la rejilla \emph{no} es ese: allí las tres estrategias trabajan
@@ -1609,8 +1614,12 @@ salió cada respuesta.
   modelo, y el consumo de memoria del sistema completo con el modelo generativo dentro.
   Lo segundo no puede medirse hasta el ADR-0005. Mientras tanto, esto es un argumento de
   orden de magnitud, no una medición del conjunto.
-  \item \textbf{Deuda:} el ADR-0003 necesita una adenda con esta ratificación. Va en una rama
-  desde \texttt{main}, no desde \texttt{doc}.
+  \item \sout{\textbf{Deuda:} el ADR-0003 necesita una adenda con esta ratificación.}
+  \textbf{Hecho:} el ADR-0003 ya recoge la ratificación sobre el corpus de 1.334 fragmentos,
+  con el matiz que la da la vuelta ---en las preguntas de metadatos el modelo pequeño pasa a
+  ir por delante---. Lo que sigue pendiente es la otra mitad: la
+  Tabla~\ref{tab:comparativa_embeddings} del Capítulo~\ref{cap:resultados} todavía lleva las
+  cifras de la ejecución anterior.
 \end{borrador}
 
 \subsubsection{Las preguntas de agregación y su efecto sobre la colección}
