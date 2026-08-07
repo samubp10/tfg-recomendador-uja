@@ -3,7 +3,7 @@
 
 Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Revisar introducción antes de dar por cerrador el capítulo}
 \end{borrador}
 
@@ -17,7 +17,7 @@ Además de esta metodología para la gestión de tareas, el proyecto se apoya en
 
 El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en unidades de trabajo atómicas o historias de usuario. Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Al final no vamos a poner la cifra, dado que va a ser gigantesca, además muchas son arreglos de otra lo que ha hecho que se disuelva el propósito objetivo que tenían
 \end{borrador}
 
@@ -25,7 +25,7 @@ Para gestionar la priorización de las tareas, se ha aplicado la técnica de \te
 
 \subsection{Estrategia de control de versiones y trazabilidad}
 Para aislar los entornos de desarrollo y proteger la integridad del sistema, se ha definido una estrategia estricta de ramas (\textit{Git Flow}):
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Ramas permanentes:} Se mantiene una rama \texttt{main} que aloja de forma exclusiva el código estable y funcional, y una rama paralela \texttt{doc} dedicada íntegramente a la redacción iterativa de la presente memoria en \LaTeX.
   \item \textbf{Ramas volátiles:} Cada nueva característica, corrección o experimento se desarrolla en una rama aislada de un solo uso (ej. \texttt{IT-XX-descripcion}).
         
@@ -44,7 +44,7 @@ Para aislar los entornos de desarrollo y proteger la integridad del sistema, se 
 Para garantizar la trazabilidad de las decisiones de diseño a lo largo del tiempo, se ha adoptado el estándar \textit{Conventional Commits} \cite{conventionalcommits}. Esta convención impone una estructura estandarizada para cada entrega de código, facilitando la lectura semántica del historial del proyecto. El formato base utilizado es \texttt{tipo(item de trabajo): descripción}, donde el \textit{item de trabajo} corresponde al identificador de la historia técnica en curso (ej. \texttt{IT-05}).
 
 Para clasificar semánticamente los cambios, los tipos de confirmación (\textit{commits}) se han restringido a la siguiente taxonomía:
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{\texttt{feat}:} Incorporación de una nueva funcionalidad al sistema (ej. implementación de un nuevo módulo de extracción o lógica de procesamiento).
   \item \textbf{\texttt{fix}:} Corrección de errores o fallos detectados en el código existente.
   \item \textbf{\texttt{docs}:} Creación o actualización de documentación, incluyendo la redacción de la presente memoria y el registro de decisiones arquitectónicas (ADR).
@@ -91,83 +91,74 @@ resultado no es un fallo que arreglar, sino una comparación que interpretar.
 Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
 
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Falta añadir el contenido de este apartado cuando se llegue a la Fase 2. No se habla de futuro, dado que el que lea esta memoria ya habrán terminado todas las fases.
   \item \textit{Recall@K} y MRR tendrán su apartado.
 \end{borrador}
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 \label{secc:dod}
-Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta.
+Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta. Siguiendo esta lógico, se ha dividido estos criterios en dos grupos, los que valen para todas las tarjetas, y los que dependen de qué tipo de tarea va enfocada la tarjeta (Tabla~\ref{tab:resumen_backlog}).
 
+Los tres criterios que valen para todas las tarjetas:
 
-\textcolor{borrador2}{Los seis criterios anteriores están escritos pensando en una tarjeta de
-  código, y solo 33 de las 98 historias del proyecto lo son
-  (Tabla~\ref{tab:resumen_backlog}). Exigirle a una tarjeta de memoria que incluya casos de
-  prueba con datos reales, o a una de gestión que su código incorpore cadenas de
-  documentación, no la hace más rigurosa: la deja fuera de la definición. Y una definición
-  que dos tercios de las tarjetas no pueden cumplir deja de ser un criterio de cierre para
-  convertirse en un adorno. Los seis criterios se reparten, por tanto, en dos grupos: los que
-  valen para toda tarjeta y los que dependen de qué produce la tarjeta.}
-
-\textcolor{borrador2}{\textbf{Tres criterios rigen para toda tarjeta, sin excepción}, porque
-  no dependen de qué se haya construido sino de que quede cerrado:}
-
-\begin{enumerate}                          
-  \item \textcolor{borrador2}{\textbf{Integración:} el trabajo está fusionado en la rama
-          principal y la integración continua está en verde.}
-  \item \textcolor{borrador2}{\textbf{Defendibilidad:} la decisión que hay detrás se explica
-          en dos minutos, con la evidencia delante y diciendo qué alternativas se descartaron.}
-  \item \textcolor{borrador2}{\textbf{Memoria:} lo que la tarjeta ha producido está volcado en
-          la sección que le corresponde de este documento.}
+\begin{enumerate}                                          
+  \item \textbf{Integración:} el trabajo está fusionado en la rama principal y la integración continua está en verde.
+  \item \textbf{Defendibilidad:} la decisión que hay detrás se puede explicar, con la evidencia delante y diciendo qué alternativas se descartaron.
+  \item \textbf{Memoria:} lo que la tarjeta ha producido está volcado en la sección que le corresponde de este documento.
 \end{enumerate}
 
-\textcolor{borrador2}{\textbf{Los tres restantes dependen de la naturaleza de la tarjeta}, que
-  es la clasificación que ya usa el tablero y que recoge la
-  Tabla~\ref{tab:resumen_backlog}:}
+Los otros cuatro tipos de tarjetas con sus criterios de finalización son:
 
-\begin{itemize}                          
-  \item \textcolor{borrador2}{\textbf{Código.} El programa hace lo que promete, comprobado
-          \emph{ejecutándolo} y no leyéndolo; trae pruebas automáticas construidas sobre datos
-          reales de la fuente, incluida la de regresión de cualquier defecto que se haya
-          encontrado; y sus funciones nacen documentadas.}
-  \item \textcolor{borrador2}{\textbf{Experimento.} El guion que produce las cifras está
-          versionado y es determinista, de modo que otra persona pueda repetirlo y obtener lo
-          mismo; el resultado lo escribe el propio guion en su registro, nunca se copia a mano;
-          y las amenazas a la validez de lo medido quedan enunciadas junto al resultado.}
-  \item \textcolor{borrador2}{\textbf{Decisión.} Existe el registro correspondiente ---de
-          arquitectura o de calidad de datos--- con las alternativas consideradas, la evidencia
-          que sostiene la elegida y sus limitaciones.}
-  \item \textcolor{borrador2}{\textbf{Memoria.} El documento compila, no queda texto de
-          andamiaje sin reescribir en la sección afectada, y toda cifra que se dé procede de la
-          salida de un verificador y va acompañada de su fecha.}
-  \item \textcolor{borrador2}{\textbf{Gestión.} No añade criterios propios: le bastan los tres
-          universales.}
+\begin{itemize}                                                                          
+  \item \textbf{Código.} El programa hace lo que promete, comprobado
+        \emph{ejecutándolo} y con las pruebas automatizadas construidas sobre los datos reales de la fuente
+        , incluida la de regresión de cualquier defecto que se haya encontrado.
+  \item \textbf{Experimento.} El guion que produce las cifras está
+        versionado y es determinista, de modo que otra persona pueda repetirlo y obtener lo
+        mismo, y este además se encuentra en la memoria y en un documento técnico.
+  \item \textbf{Decisión.} Existe el registro correspondiente de arquitectura o de calidad de datos con las alternativas consideradas, la evidencia
+        que sostiene la elegida y sus limitaciones.
+  \item \textbf{Memoria.} El documento compila, no queda texto de
+        borrador de la sección sin reescribir en la parte afectada, y toda cifra que se dé procede de la
+        salida de un experimento.
+  \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
 \end{itemize}
 
-\textcolor{borrador2}{Enunciar aquí una definición más estricta que la que se ha aplicado de
-  verdad sería contraproducente, porque es comprobable: cualquiera puede abrir dos tarjetas
-  cerradas del repositorio y ver si las cumplen. La definición que se describe es la que se ha
-  usado, con las excepciones que se documentan en el propio historial del proyecto.}
-
 \begin{borrador}                          
-  \item \textbf{Esto es la propuesta que pide el punto anterior}, escrita ya como quedaría el
-  apartado. Si te convence, sustituye la enumeración de arriba por esta y quítale el color;
-  si no, dime qué cambiarías. Lo que no puede quedarse es la versión de seis criterios
-  planos, porque la tabla del \textit{backlog} la contradice a la vista.
-  \item \textbf{Antes de dar por buena la última frase, compruébala.} Dice que la definición
-  descrita es la que se ha aplicado. Abre dos o tres tarjetas ya cerradas y mira si cumplen
-  el criterio 6, que es el que más fácilmente se queda atrás: cerrar el código y aplazar la
-  memoria es exactamente lo que pasó con las tarjetas del conjunto de evaluación y del
-  índice. Si sigue habiendo tarjetas cerradas sin volcar, o lo dices aquí como deuda
-  reconocida, o no afirmes que la definición se cumplió siempre.
-  \item \textbf{Nombres de las naturalezas:} he usado los cinco rótulos de la
-  Tabla~\ref{tab:resumen_backlog} tal cual (código, memoria, experimento, decisión y
-  gestión). Si cambias alguno en la tabla, cámbialo también aquí o dejarán de casar.
-  \item \textbf{Una pregunta que puede caer en la defensa:} si los criterios dependen de la
-  naturaleza, ¿quién decide la naturaleza de una tarjeta? La respuesta honesta es que la
-  decides tú al crearla, con la etiqueta del tablero, y que por eso la clasificación es una
-  decisión de gestión y no una propiedad objetiva. Merece una frase.
+  \item sección viva, si se crea algún otro tipo de tarjeta.
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{Revisión del 07/08/2026, sin tocar nada.} Lo que has quitado me parece bien
+  quitado en casi todo: los <<dos minutos>> de la defendibilidad eran arbitrarios y el
+  <<Gestión no añade criterios propios>> quedaba flojo. Lo que sigue son cinco cosas que sí
+  te señalaría, dos de ellas comprobables en treinta segundos.
+  \item \textbf{Dice <<los otros cuatro tipos>> y la lista tiene cinco:} Código,
+  Experimento, Decisión, Memoria y Gestión. Es de las erratas que un tribunal lee en voz
+  alta.
+  \item \textbf{El párrafo de entrada se muerde la cola:} dice que una tarjeta se considera
+  finalizada \emph{y se fusiona} si cumple los criterios, y el primer criterio es estar ya
+  fusionada. Se arregla quitando <<y se fusiona>> de la frase, o enunciando el criterio como
+  la integración continua en verde y la fusión hecha.
+  \item \textbf{Al quitar el criterio de documentación se han quedado dos citas sin usar.}
+  \texttt{googlestyle} y \texttt{pep257} ya no se citan en ningún sitio de la memoria, y
+  \textit{docstring} tampoco aparece en ninguna página. No digo que el criterio tenga que
+  volver ---es defendible que documentar el código sea una convención y no un criterio de
+  cierre---, pero entonces la convención debería estar dicha en alguna parte, porque ahora
+  mismo el trabajo no dice cómo se documenta su propio código.
+  \item \textbf{En el criterio de Memoria, <<toda cifra procede de la salida de un
+      experimento>> deja fuera de la regla casi todas las cifras del trabajo.} Los 1.334
+  fragmentos, las 528 asignaturas o las 288 guías no salen de un experimento, salen de un
+  verificador. Con añadir <<o de un verificador>> queda cubierto.
+  \item \textbf{Y en ese mismo criterio echo de menos la fecha.} Es la regla que más veces te
+  ha salvado: las cifras de la colección han cambiado tres veces este verano, y una cifra sin
+  fecha en esta memoria es una cifra que caduca sin avisar. Es tu decisión, pero si la dejas
+  fuera de la DoD, conviene que esté dicha en otro sitio.
+  \item \textbf{Comprobación que sí depende solo de ti:} el criterio 3 dice que lo que la
+  tarjeta produce está volcado en su sección. Abre dos tarjetas cerradas de la Fase~1 y
+  míralo. Si hay alguna que no lo cumple, la salida honesta no es rebajar el criterio, es
+  declarar la deuda ---que además ya tiene tarjeta propia, IT-68 e IT-69---.
 \end{borrador}
 
 
@@ -193,12 +184,12 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 Para proporcionar una visión global del cronograma y asegurar la viabilidad del proyecto de cara a la fecha de entrega del proyecto, el \textit{backlog} se ha agrupado en seis fases lógicas de desarrollo.
 
 Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
-\begin{itemize}                                                            
-  \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos, los módulos de limpieza de texto y la fragmentación semántica preliminar (\textit{chunking}).
+\begin{itemize}                                                                                                            
+  \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos y los módulos de limpieza de texto.
         
-  \item \textbf{Fase 1 (Incrustaciones y base vectorial):} Comprende la experimentación para la selección del modelo de \textit{embeddings} y el despliegue de la base de datos vectorial local.
+  \item \textbf{Fase 1 (Troceado e Incrustaciones):} Comprende la experimentación para la selección del algoritmo de troceado y la experimentación para la elección del modelo de \textit{embeddings}.
         
-  \item \textbf{Fase 2 (Pipeline RAG y LLM):} Consiste en el diseño del \textit{prompt} del sistema, la selección e integración del modelo de lenguaje grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
+  \item \textbf{Fase 2 (Base de datos vectorial, Pipeline RAG y LLM):} Comprende la indexación de los fragmentos en la base de datos vectorial, el diseño del \textit{prompt} del sistema, la selección e integración del modelo de lenguaje grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
         
   \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
         
@@ -208,27 +199,13 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
         
 \end{itemize}
 
-\begin{borrador}        
-  \item \textbf{Este reparto ya no coincide con el capítulo (07/08/2026).} El punto de la
-  Fase~0 dice que abarca <<la fragmentación semántica preliminar (\textit{chunking})>>, y el
-  troceado se cuenta ahora en la Fase~1, junto al experimento que fija sus parámetros
-  (Sección~\ref{subsec:chunking}). El de la Fase~1 solo habla del modelo de incrustaciones y
-  de la base vectorial, y le falta el troceado.
-  \item \textbf{La palabra que salva el punto es <<preliminar>>}, y conviene no perderla: la
-  planificación ya preveía que lo que se hiciera en la Fase~0 fuese provisional. Una forma
-  honesta de reescribirlo es dejar en la Fase~0 la construcción del fragmentador y llevar a
-  la Fase~1 la fijación de sus parámetros, que es exactamente lo que ocurrió.
-  \item \textbf{Ojo, esto no es solo redacción:} el hito del \textit{backlog} se llama
-  <<Fase 0 · Cimientos (datos + scraping + chunking)>>. Si cambias el punto de aquí y no el
-  hito, la memoria y el tablero dejan de contar lo mismo.
-\end{borrador}
 
 
 
 \begin{figure}[htbp]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{ganttchart}[                                                            
+    \begin{ganttchart}[                                                                                                            
         hgrid, vgrid,
         bar/.append style={fill=blue!40},
         bar height=0.5,
@@ -240,9 +217,9 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
       \gantttitle{Julio}{31}
       \gantttitle{Agosto}{31}
       \gantttitle{Sept.}{3} \\
-      \ganttbar{F0 · Cimientos}{1}{17} \\
-      \ganttbar{F1 · Embeddings y vector DB}{18}{31} \\
-      \ganttbar{F2 · Pipeline RAG}{32}{48} \\
+      \ganttbar{F0 · Cimientos y extracción web}{1}{17} \\
+      \ganttbar{F1 · Embeddings y troceado}{18}{31} \\
+      \ganttbar{F2 · Pipeline RAG y Vector DB}{32}{48} \\
       \ganttbar{F3 · Aplicación web}{49}{59} \\
       \ganttbar{F4 · Validación y ablation}{60}{68} \\
       \ganttbar{F5 · Cierre y defensa}{69}{72} \\
@@ -255,29 +232,9 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
   \label{fig:gantt}
 \end{figure}
 
-\begin{borrador}                                                            
-  \item \textbf{Fase:} 2 (IT-89). \textbf{Este diagrama es una previsión, no el
-    avance real, y a 30/07/2026 ya no coinciden.} Conviene mirarlo antes de
-  que la diferencia crezca más.
-  \item Con el día 1 en el 24/06/2026, la barra de la Fase 1 termina en el día 31,
-  que es el \textbf{24/07}. Hoy es 30 de julio y la Fase 1 sigue abierta: el
-  experimento de incrustaciones y su ADR-0003 están cerrados, pero falta la
-  comparativa de bases vectoriales (IT-31) y su ADR-0004. Son \textbf{seis
-    días de desfase} sobre una fase de catorce.
-  \item La Fase 2 tenía asignados los días 32 al 48 (25/07 a 10/08), así que
-  debería estar en marcha. El desfase se arrastra hacia las fases
-  siguientes, y las que menos margen tienen son la 4 (validación con
-  usuarios) y la 5 (cierre y defensa), que suman doce días entre las dos.
-  \item \textbf{Cómo actualizarlo, que es una decisión y no un retoque:} un Gantt
-  de una sola serie de barras solo puede contar una cosa, o lo previsto o lo
-  real. Las dos opciones razonables son (a) redibujar las barras con las
-  fechas reales y decir en el pie que refleja la ejecución, o (b) mantener
-  la previsión y añadir una segunda serie de barras con lo realmente
-  ejecutado, que es lo que hace ver de un vistazo dónde se desvió el
-  proyecto. La segunda es más trabajo y bastante más defendible: un
-  desfase declarado y explicado es metodología; un Gantt que se reescribe
-  para que cuadre es maquillaje.
-  \item Sea cual sea, el pie de figura debe decir a qué fecha corresponde.
+\begin{borrador}                                                                                                            
+  \item Este diagrama queda vivo, a modificar según pasen los días y las fases
+  \item Modificar el pie del diagrama.
 \end{borrador}
 
 
@@ -298,7 +255,7 @@ El valor se ha clasificado con la técnica \textbf{MoSCoW}~\cite{moscow}, que
 divide las tareas en cuatro categorías según su necesidad real para el
 proyecto:
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{\textit{Must have} (imprescindible):} sin esta tarea el
         sistema no funciona o la memoria no es defendible. Aquí están el rastreo de la
         web, la fragmentación de los textos, la elección experimental de los
@@ -318,7 +275,7 @@ primero lo \textit{could} y después lo \textit{should}, pero nunca lo
 \textit{must}. Este reparto no es una foto fija:
 el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo.
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 5 (IT-52) --- cifras a refrescar al cerrar la memoria.
   \item \textbf{Recuento real del 30/07/2026}, hecho con \texttt{gh} sobre las
   etiquetas del repositorio: \textbf{65 \textit{must}, 27 \textit{should} y
@@ -345,7 +302,7 @@ fiables. Comparar tamaños relativos es más honesto y, sobre todo, más útil.
 
 Las tallas empleadas son:
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{XS:} tarea mecánica, sin decisiones de diseño (por ejemplo,
         generar un diagrama a partir del código).
   \item \textbf{S:} una sola unidad de trabajo bien acotada, resoluble en una
@@ -372,7 +329,7 @@ A lo largo del proyecto se han creado muchas historias de usuario de diferentes 
 
 
 Los cinco tipos de historias son los siguientes:
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Código}: se escribe o se corrige software y sus pruebas.
   \item \textbf{Memoria}: se redacta una parte de este documento.
   \item \textbf{Experimento}: se mide algo sobre datos reales para poder decidir con evidencia la mejor opción posible.
@@ -382,28 +339,33 @@ Los cinco tipos de historias son los siguientes:
 
 \input{tablas/TablaResumenBacklog.tex}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
   \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
 \end{borrador}
 
-\begin{borrador}        
-  \item \textbf{Las cifras de la Fase~0 incluyen el troceado, que el capítulo cuenta ahora en
-    la Fase~1 (07/08/2026).} En el hito de la Fase~0 están IT-08 y IT-09 (código del
-  fragmentador), IT-11 (el ADR-0001 de la estrategia) e IT-56 (deduplicación). Solo la última
-  sigue narrándose en la Fase~0.
-  \item \textbf{No las cambies a mano.} Si decides mover las tarjetas de hito, vuelve a
-  contarlas con \texttt{gh} y actualiza la tabla con la salida real; si decides no moverlas,
-  entonces la tabla está bien y lo que hay que explicar es que el reparto de la tabla es el
-  del tablero y el del capítulo es temático. Lo que no puede quedarse es que digan cosas
-  distintas sin que nadie lo advierta.
+\begin{borrador}                                                        
+  \item \textbf{Tabla recontada el 07/08/2026 con la salida real de \texttt{gh}}, después de
+  renombrar los hitos y de llevar a la Fase~2 las cuatro tarjetas de indexación y base
+  vectorial (IT-30, IT-31, IT-32 e IT-68). El total sube de 98 a 99 historias: la que faltaba
+  es un registro de calidad de datos que el recuento anterior no clasificaba, porque su
+  etiqueta es \texttt{tipo:dqa} y no \texttt{tipo:adr}.
+  \item \textbf{Queda una discrepancia con el capítulo, y es la única.} Las tarjetas del
+  troceado ---IT-08 e IT-09, código del fragmentador, e IT-11, el ADR-0001 de la
+  estrategia--- siguen en el hito de la Fase~0, y el capítulo cuenta el troceado en la
+  Fase~1. Son tres tarjetas de un hito ya cerrado. Muévelas y vuelvo a contar, o déjalo así y
+  se explica en una frase; lo que no puede quedarse es sin decidir.
+  \item \textbf{Confirmado lo que preguntabas arriba:} la Fase~0 no tiene ninguna tarjeta de
+  Experimento, y no es un error del recuento. Tiene sentido, porque en esa fase no se compara
+  nada: se extrae, se verifica y se decide con evidencia de la fuente, que es lo que registran
+  las tres tarjetas de Decisión.
 \end{borrador}
 
 
 
 \section{Tecnologías y herramientas}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Falta el párrafo que abre la
   sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.
   \item \textbf{Fase:} 0 en parte, cerrable ya.  Bastan cuatro o cinco líneas
@@ -441,7 +403,7 @@ en el laboratorio por el que no se ha podido elegir modelos de más prestaciones
 
 \input{tablas/TablaEquipo.tex}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   
   \item La tarjeta gráfica no se usará para los embedding, pero sí la usará el modelo de lenguaje generativom, por lo que decir que no se usará es un graso error.
   \item Revisar este apartado, queda vivo y abierto.
@@ -449,7 +411,7 @@ en el laboratorio por el que no se ha podido elegir modelos de más prestaciones
 
 \section{Arquitectura del sistema}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Faltan:} Concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
 \end{borrador}
 
@@ -528,7 +490,7 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
   \label{fig:arquitectura_pipeline}
 \end{figure}
 
-\begin{borrador}        
+\begin{borrador}                                                        
   \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no
     (07/08/2026).} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
   fragmentos y la flecha del \textit{chunker}, pero el troceado se cuenta ahora en la Fase~1
@@ -548,7 +510,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \begin{figure}[H]
   \centering
   \resizebox{0.82\textwidth}{!}{%
-    \begin{tikzpicture}[                          
+    \begin{tikzpicture}[                                                                          
         clase/.style={rectangle split, rectangle split parts=2,
             draw=diagNodoBorde, fill=diagNodo, align=left,
             font=\footnotesize, inner sep=4pt},
@@ -660,7 +622,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
   \label{fig:modelo_datos}
 \end{figure}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Diagrama vuelto a comprobar el 07/08/2026} contra los ficheros reales
   (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json}, 1.335). En turquesa,
   lo que ha cambiado respecto a la versión del 30/07, que es lo que tienes que explicar en
@@ -687,7 +649,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \section{Fase 0: construcción de la colección documental}
 
-\begin{borrador}        
+\begin{borrador}                                                        
   \item \textbf{El alcance de esta fase se ha reducido el 07/08/2026:} el troceado se cuenta
   ahora en la Fase~1 (Sección~\ref{subsec:chunking}) y aquí se ha quedado la deduplicación.
   Con eso, lo que produce esta fase es \texttt{grados.json} ---el contenido extraído de la
@@ -703,7 +665,7 @@ Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer
 
 Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \textit{slugs} inconsistentes en el cuerpo de las páginas.
   \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
   \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
@@ -719,7 +681,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
   diseño, porque obligan a que la extracción no dependa de que la Escuela publique hoy como
   publicaba ayer.}
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textcolor{borrador2}{\textbf{El formato de las guías cambió a mitad del
             desarrollo.} Las guías docentes dejaron de servirse como páginas HTML y pasaron a
           servirse como documentos PDF. El cambio no fue gradual: en cinco días de julio de 2026 la
@@ -747,7 +709,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
           colección no puede decir que ha fallado ella cuando el hueco es del origen.}
 \end{itemize}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 0, revisión. Andamiaje: la prosa la escribes tú. Cada uno de estos
   cinco puntos tiene su registro con la evidencia ---DQA-0002 el cambio a PDF, DQA-0003 las
   tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---, así
@@ -785,9 +747,9 @@ Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracc
 
 Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
-        \begin{enumerate}                                                            
+        \begin{enumerate}                                                                                                            
           \item Codificación indicada explícitamente al construir la respuesta.
           \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
           \item Cabecera HTTP \texttt{Content-Type}.
@@ -812,7 +774,7 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono c
 
 Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
   \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
 \end{itemize}
@@ -820,7 +782,7 @@ Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{
 \subsubsection{Selenium \cite{selenium} / Playwright}
 Se basa en la automatización de navegadores con renderizado real.
 
-\begin{itemize}                                                            
+\begin{itemize}                                                                                                            
   \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
   \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
@@ -841,7 +803,7 @@ rastreador (\textit{spider}) y la página web, así como las posibles alteracion
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Las bifurcaciones ya no son tres sino más, y conviene
   enumerarlas en este orden, que es el del recorrido del dato. Volver a reescribir este párrafo anterior con tener esto en cuenta
   \item \textbf{(1) Titulación vigente o en extinción.} Las que están en extinción
@@ -894,7 +856,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[                          
+    \begin{tikzpicture}[                                                                          
         font=\footnotesize,
         bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
             inner sep=7pt, rounded corners=2pt}
@@ -950,7 +912,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \label{fig:anatomia_guia}
 \end{figure}
 
-\begin{borrador}                          
+\begin{borrador}                                                                          
   \item \textbf{Esta figura da por hecha la reescritura que pide IT-95}, la del borrador de
   abajo: describe la extracción \emph{desde PDF}, que es por donde pasa hoy el 100~\% del
   contenido, mientras que los párrafos de arriba siguen contando el camino HTML. Si
@@ -964,7 +926,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   figura no puede contener nada que el texto no haya explicado.
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Cifras del 05/08/2026}, tras incorporar los planes de los dobles grados
   (IT-101): de las \textbf{528} asignaturas del catálogo, \textbf{442} cuentan con guía y
   \textbf{86} no, una cobertura del \textbf{83,7~\%}. Las \textbf{288} guías se agrupan en
@@ -989,7 +951,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   treinta segundos abriendo el conjunto de datos.
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
     mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
   extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
@@ -1029,7 +991,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
   del criterio general del proyecto, así que merece un párrafo aquí.
   \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
@@ -1060,7 +1022,7 @@ los dos grados por separado.
 \begin{figure}[H]
   \centering
   \resizebox{0.95\textwidth}{!}{%
-    \begin{tikzpicture}[                          
+    \begin{tikzpicture}[                                                                          
         font=\footnotesize,
         bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
             inner sep=7pt, rounded corners=2pt}
@@ -1096,7 +1058,7 @@ los dos grados por separado.
   \label{fig:estructura_salidas}
 \end{figure}
 
-\begin{borrador}                          
+\begin{borrador}                                                                          
   \item \textbf{La figura contradice a propósito la última frase del párrafo anterior}, y
   esto hay que resolverlo antes de cerrar el apartado (está desarrollado en el borrador de
   más abajo). El recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
@@ -1109,11 +1071,11 @@ los dos grados por separado.
   que es donde va la cifra.
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{OJO, esto hay que resolverlo antes de cerrar el apartado.} \textbf{Cuidado con la frase que acabas de escribir: la evidencia del proyecto
     dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
   con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
@@ -1142,7 +1104,7 @@ los dos grados por separado.
 \subsection[Deduplicación de la colección]{\textcolor{borrador2}{Deduplicación de la colección}}
 \label{subsec:deduplicacion}
 
-\begin{borrador}                          
+\begin{borrador}                                                                          
   
   \item \textbf{El troceado se ha movido a la Fase~1 el 07/08/2026} y la deduplicación se
   queda aquí, que es la opción que elegiste. El criterio: el troceado existe por la ventana
@@ -1152,13 +1114,12 @@ los dos grados por separado.
   \item \textbf{El título de esta subsección era tuyo} (<<Troceado y deduplicación de la
   colección>>) y he tenido que cambiarlo, porque ya no hay troceado dentro. Está en turquesa:
   ponle el nombre que prefieras y quítale el color.
-  \item \textbf{Lo que hay que arreglar fuera de la memoria}, y es el precio de esta opción:
-  el hito del \textit{backlog} se llama <<Fase 0 · Cimientos (datos + scraping + chunking)>>
-  y cuelgan de él IT-08, IT-09, IT-11 e IT-56; el punto del Gantt dice que la Fase 0 abarca
-  <<la fragmentación semántica preliminar>>. Si el capítulo cuenta el troceado en la Fase 1 y
-  el tablero lo sitúa en la Fase 0, un miembro del tribunal con el repositorio abierto ve la
-  contradicción. Decide tú si mueves las tarjetas, si renombras el hito o si lo explicas en
-  el texto; yo no toco el \textit{backlog}.
+  \item \textbf{Lo que queda por arreglar fuera de la memoria.} El hito del \textit{backlog}
+  ya se llama <<Fase 0 · Cimientos y extracción web>> y el punto del Gantt ya no menciona el
+  troceado, pero de ese hito siguen colgando IT-08 e IT-09 (código del fragmentador) e IT-11
+  (el ADR-0001 de la estrategia). Solo IT-56, la deduplicación, corresponde a lo que este
+  apartado cuenta. Muévelas de hito o explica en una frase por qué no coinciden; con el
+  repositorio abierto se ve.
   \item \textbf{Queda una remisión hacia adelante} que conviene mirar: el párrafo de la
   identidad de la asignatura habla de <<los metadatos del encabezado>>, y el encabezado se
   explica ahora en la Fase~1. Es una frase, pero o la explicas aquí en media línea o la
@@ -1204,7 +1165,7 @@ positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: f
 idénticas solo deja el índice ligeramente más grande.
 
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
   con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
   \texttt{check\_chunks.py} el 06/08/2026, tiene \textbf{1.334 fragmentos}: 1.193 de guía,
@@ -1268,7 +1229,7 @@ idénticas solo deja el índice ligeramente más grande.
   fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
   asignatura de la misma manera.}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Cifras del 30/07/2026:} son \textbf{48} asignaturas sin código
   publicado --- 29 en Geomática (plan 2025), 18 en IA y Ciberseguridad y
   \textbf{1 en Ingeniería Electrónica Industrial}. El reparto se ha dado la
@@ -1284,7 +1245,7 @@ idénticas solo deja el índice ligeramente más grande.
 \subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
 \label{secc:verificacion_fase0}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
 \end{borrador}
 
@@ -1292,7 +1253,7 @@ La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el c
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
-\begin{borrador}        
+\begin{borrador}                                                        
   \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos
     (07/08/2026).} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
   los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
@@ -1329,7 +1290,7 @@ Las pruebas unitarias se emplean en base a los ficheros reales descargados llama
 
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
   adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
   \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
@@ -1349,7 +1310,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \section[Fase 1: incrustaciones y base de datos vectorial]{\textcolor{borrador2}{Fase 1: incrustaciones y base de datos vectorial}}
 \label{secc:fase1}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
   diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
   recuperar por significado--- y en qué orden se cuenta.
@@ -1372,7 +1333,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \subsection[El conjunto de evaluación como instrumento de medida]{\textcolor{borrador2}{El conjunto de evaluación como instrumento de medida}}
 \label{secc:conjunto_evaluacion}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase: 1 (IT-27, deuda declarada en IT-69).} Esta subsección no existe
   todavía y es la primera que hay que escribir, porque todo lo que viene después se mide
   con ella. Sin explicar el instrumento, las cifras del Capítulo~\ref{cap:resultados} no
@@ -1392,7 +1353,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \subsection[Troceado de la colección]{\textcolor{borrador2}{Troceado de la colección}}
 \label{subsec:chunking}
 
-\begin{borrador}        
+\begin{borrador}                                                        
   \item \textbf{El troceado estaba en la Fase~0 y se ha traído aquí el 07/08/2026.} El
   motivo es que el troceado existe por la ventana del modelo de incrustaciones: sin modelo no
   hay tamaño que decidir. Así el mecanismo y el experimento que fija sus parámetros quedan
@@ -1469,7 +1430,7 @@ salió cada respuesta.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[                                                            
+  \begin{tikzpicture}[                                                                                                            
       font=\footnotesize,
       bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
           inner sep=7pt, rounded corners=2pt},
@@ -1555,7 +1516,7 @@ salió cada respuesta.
   sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se
   delimitan las unidades.}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Criterios de selección de los candidatos}, que hay que enunciar porque es
   lo que un tribunal pregunta («¿y por qué esos cuatro?»). En orden:
   (1)~ventana de al menos 512 \textit{tokens}, para que ninguno lea menos texto que otro;
@@ -1609,7 +1570,7 @@ salió cada respuesta.
   gráfico utilizable, se desplegaría en un servidor en lugar de en un equipo personal, o se
   decidiera operar con solo tres resultados por consulta.}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase: 1.} Decisión tomada el 04/08/2026. Andamiaje: las cifras exactas no van
   aquí sino en el Capítulo~\ref{cap:resultados}; aquí va el criterio.
   \item \textbf{Cuidado con cómo lo cuentas, que aquí es fácil pasarse de fuerte.} Al pasar a
@@ -1633,7 +1594,7 @@ salió cada respuesta.
 
 \subsubsection{Las preguntas de agregación y su efecto sobre la colección}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase: 1 (IT-100).} Esto es lo más defendible de la tarjeta y conviene que
   tenga sitio propio, porque es una decisión de diseño de la colección tomada a partir de
   una medición.
@@ -1653,7 +1614,7 @@ salió cada respuesta.
   inventado. Pero decirlo antes de que lo pregunten vale mucho más que responderlo después.
 \end{borrador}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Amenazas que quedan vivas} y que hay que enlazar con la
   Sección~\ref{secc:amenazas_validez}, no repetir aquí:
   \item La comparación se ejecutó \textbf{sin haber fijado antes los umbrales} de la
@@ -1670,7 +1631,7 @@ salió cada respuesta.
 \subsection[Fijación experimental de los parámetros de fragmentación]{\textcolor{borrador2}{Fijación experimental de los parámetros de fragmentación}}
 \label{secc:fase1_fragmentacion}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase: 1 (IT-16).} El experimento se trajo aquí desde la Fase~0 el
   07/08/2026, y con él el mecanismo del troceado que lo precede
   (Sección~\ref{subsec:chunking}). Los dos necesitaban el modelo de incrustaciones ya
@@ -1699,7 +1660,7 @@ salió cada respuesta.
 \subsubsection{Comparación experimental de las estrategias}
 \label{secc:rejilla_fragmentacion}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Lo que no se puede perder al reescribirlos}, por orden de importancia para
   el tribunal:
   (1) la estrategia apenas influye y \emph{el tamaño sí}, que es justo lo contrario de lo que comparaba el ADR-0001 original;
@@ -1787,7 +1748,7 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
 de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.
 
-\begin{borrador}                            
+\begin{borrador}                                                                            
   \item \textbf{Las tablas se han rehecho el 06/08/2026 y el párrafo de arriba ya no las
     describe.} Antes había una sola tabla con la mejor configuración de cada estrategia,
   pero cada una a un tamaño máximo distinto ---600, 900 y 600---, de modo que sus filas se
@@ -1841,7 +1802,7 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
   estructural por una ventaja que el experimento no captura, y no porque gane en las
   métricas, porque no gana.}
 
-\begin{borrador}                            
+\begin{borrador}                                                                            
   \item \textbf{Este es el punto que hay que dejar bien atado antes de defender.} El
   ADR-0001 dice hoy que se elige la estructural por ser <<la más simple y la única que no ata
   el fragmentador al modelo de incrustaciones>>. Ese argumento descarta la
@@ -1889,7 +1850,7 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   necesidad de discutir sus métricas, porque sobre esos fragmentos el sistema estaría
   midiendo un texto que el modelo nunca llegó a leer.}
 
-\begin{borrador}                            
+\begin{borrador}                                                                            
   \item \textbf{Objeción que conviene adelantarse a responder, porque es la primera que se
     le ocurre a cualquiera:} si el modelo de incrustaciones ya estaba elegido y se conocía su
   ventana, ¿por qué se probaron tamaños máximos que iban a truncar?
@@ -1908,7 +1869,7 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   suponerlo, que es de lo que se venía.
 \end{borrador}
 
-\begin{borrador}                            
+\begin{borrador}                                                                            
   \item \textbf{Tres cosas se han perdido al reescribir esta sección} y conviene decidir si
   vuelven, porque las tres se usan después o se defienden solas.
   \item \textbf{(1) El recuento de fragmentos truncados}, que es el único argumento del
@@ -1929,7 +1890,7 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
 \end{borrador}
 
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase:} 1 (IT-16). Andamiaje: la prosa la escribes tú. Aquí va el método y el
   porqué; si quieres llevar las cifras al Capítulo~\ref{cap:resultados}, este texto se queda
   con el diseño de la rejilla y allí van los números.
@@ -1948,7 +1909,7 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
 \section[Fase 2: base de datos vectorial y \textit{pipeline} RAG]{\textcolor{borrador2}{Fase 2: base de datos vectorial y \textit{pipeline} RAG}}
 \label{secc:fase2}
 
-\begin{borrador}    
+\begin{borrador}                                                    
   \item \textbf{Fase creada el 07/08/2026 al repartir el capítulo.} La Fase~1 se estaba
   quedando con cinco apartados y el peso de los dos experimentos, así que la indexación y la
   base vectorial se traen aquí, donde además tienen compañía natural: la recuperación y la
@@ -1961,20 +1922,16 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   \item \textbf{El nombre de la fase es una propuesta.} El Gantt la llama <<Pipeline RAG y
   LLM>> y no menciona la base vectorial, porque en la planificación la base vectorial estaba
   en la Fase~1. Ponle el nombre que decidas y ajusta el punto del Gantt.
-  \item \textbf{Y aquí está el precio, que ya va siendo el mismo tres veces seguidas:} el
-  hito del \textit{backlog} se llama literalmente <<Fase 1 · Embeddings y vector DB>>, y de
-  él cuelgan IT-30, IT-31 e IT-32. Con esta mudanza el capítulo y el tablero discrepan en dos
-  sitios (el troceado y la base vectorial). Llega el momento de decidirlo de una vez y de una
-  sola manera: o se renumeran los hitos del tablero para que casen con el capítulo, o se
-  escribe en la memoria ---una vez, en la macro-planificación--- que las fases del tablero
-  son de ejecución y los apartados del capítulo son temáticos. Lo que no se sostiene es
-  arrastrar la discrepancia sin declararla.
+  \item \textbf{El tablero ya está alineado con esto (07/08/2026):} el hito se llama
+  <<Fase 2 · Pipeline RAG y Vector DB>> y las cuatro tarjetas de indexación y base vectorial
+  ---IT-30, IT-31, IT-32 e IT-68--- cuelgan de él. Las cifras de la
+  Tabla~\ref{tab:resumen_backlog} están recontadas después de esa mudanza.
 \end{borrador}
 
 \subsection[Indexación y base de datos vectorial]{\textcolor{borrador2}{Indexación y base de datos vectorial}}
 \label{secc:fase2_indexacion}
 
-\begin{borrador}                                                            
+\begin{borrador}                                                                                                            
   \item \textbf{Fase: 1 (IT-30, deuda declarada en IT-68; IT-31 e IT-32 para el ADR-0004).}
   Subsección por escribir. Es la única parte de la Fase~1 que todavía no tiene ni
   experimento ni decisión cerrada.
