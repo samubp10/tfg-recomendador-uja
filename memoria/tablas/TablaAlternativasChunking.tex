@@ -3,26 +3,22 @@
   \small
   \caption{Estrategias de fragmentación consideradas (ADR-0001).}
   \label{tab:alternativas_chunking}
-  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.5cm} Y c@{}}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} X@{}}
     \toprule
-    \textbf{Estrategia}                                                                                                                                                                                                                                                                                                                                    & \textbf{Descripción del método y motivo de la decisión} & \textbf{Decisión} \\
+    \textbf{Estrategia} & \textbf{Descripción del método} \\
     \midrule
-    Tamaño fijo con solape                                                                                                                                                                                                                                                                                                                                 & 
-    Es la más simple, pero corta a mitad de frase y, sobre la colección completa, puede juntar dos asignaturas en un mismo fragmento.                                                                                                                                                                                                                      & 
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Tamaño fijo con solape &
+    Corta el texto cada $n$ tokens con ventana de solape. Simple, pero rompe frases y puede mezclar dos asignaturas en un mismo fragmento. \\
     \addlinespace
-    Estructural por unidad semántica                                                                                                                                                                                                                                                                                                                       & 
-    Respeta la restricción por construcción, ya que parte de la unidad (la guía de una asignatura o el bloque de salidas de una titulación) y solo la divide si excede el máximo, cortando por fronteras naturales del texto.                                                                                                                              & 
-    \textbf{Elegida}                                                                                                                                                                                                                                                                                                                                                                                                                     \\
+    Estructural por unidad semántica &
+    Parte de la unidad docente (guía o bloque de salidas) y solo subdivide si excede el máximo, cortando por fronteras naturales. Respeta los límites entre asignaturas por construcción. \\
     \addlinespace
-    Semántica por incrustaciones                                                                                                                                                                                                                                                                                                                           & 
-    Divide el texto identificando cambios de tema mediante la comparación del significado de frases consecutivas. Descartada tras evaluación en rejilla (Sección~\ref{secc:rejilla_fragmentacion}), su precisión en recuperación no supera a la estructural, obliga a calcular embeddings antes de trocear y triplica la cantidad de fragmentos generados. & 
-    
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Semántica por incrustaciones &
+    Detecta cambios de tema comparando \emph{embeddings} de frases consecutivas.\\
     \addlinespace
-    Un fragmento por asignatura, sin dividir                                                                                                                                                                                                                                                                                                               & 
-    La mitad de las guías supera los 2\,677 caracteres y la mayor llega a 23\,940: el sobrante se truncaría en silencio al calcular la incrustación, perdiendo contenido sin aviso.                                                                                                                                                                        & 
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Un fragmento por asignatura &
+    Sin subdivisión. El 50\,\% de las guías supera los 2\,677 caracteres (máx.\ 23\,940), por lo que la incrustación truncaría contenido en silencio.\\
     \bottomrule
   \end{tabularx}
 \end{table}
+
