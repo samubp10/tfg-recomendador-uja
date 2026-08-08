@@ -3,11 +3,7 @@
 
 
 \begin{borrador}
-  \item \textbf{Revisión de estructura (08/08/2026).} Dos de las ocho secciones de este
-  capítulo están vacías y son las que responden a un objetivo: la de la colección
-  (OE1) y la de la discusión. Mientras sigan vacías, el criterio de evaluación que exige la
-  correspondencia entre los objetivos y la discusión de resultados no se puede cumplir, y es
-  un criterio con el que se puntúa.
+  \item Capítulo vivo mientras se hacen las fases, a escribir mientras pasan las tarjetas y fases.
   \item \textbf{Regla de este capítulo, que conviene tener delante al escribir:} aquí van los
   resultados, y en la sección de discusión su interpretación. Si una frase de las secciones
    anteriores empieza por <<esto implica>> o <<esto demuestra>>, pertenece a la discusión. Es
@@ -15,40 +11,70 @@
   \item \textbf{Orden de lectura dentro de cada sección}, que también es convención y ayuda
   al lector: qué se midió y sobre qué colección; la tabla o figura; el resultado principal;
   los desgloses; y las lecturas erróneas que conviene desactivar antes de que las haga otro.
+  \item \sout{falta texto introductorio del capítulo.} \textbf{Debajo lo tienes en
+    turquesa}; reescríbelo y quítale el color. Si cambia el reparto de secciones, el primer
+  párrafo deja de ser cierto, porque anuncia el orden.
 \end{borrador}
+
+\textcolor{borrador2}{Este capítulo recoge lo que el sistema produce y lo que se ha medido
+  sobre él. Se organiza siguiendo los objetivos específicos enunciados en el
+  Capítulo~\ref{cap:objetivos}: la colección documental que se construye, la fragmentación
+  con la que se parte, el modelo de incrustaciones y la base de datos vectorial con los que
+  se representa y se indexa, la evaluación del sistema completo y su validación con usuarios.
+  La última sección discute qué responde cada resultado a cada objetivo y con qué alcance.}
+
+\textcolor{borrador2}{Todas las cifras proceden de la ejecución de los verificadores y de los
+  guiones de experimentación sobre la colección completa del curso 2026-27, y no sobre una
+  muestra. El método con el que se obtuvieron ---qué se compara, con qué instrumento y por
+  qué--- está en el Capítulo~\ref{cap:materialesymetodos}; aquí están las cifras y su
+  lectura.}
 \section[La colección documental construida]{\textcolor{borrador2}{La colección documental construida}}
 \label{secc:resultados_coleccion}
 
+\textcolor{borrador2}{La colección documental resultante recoge las \textbf{12 titulaciones}
+  que la Escuela ofrece en el curso 2026-27 ---siete grados y cinco dobles grados--- con sus
+  \textbf{528 asignaturas}, las \textbf{288 guías docentes} publicadas y \textbf{8 bloques} de
+  salidas profesionales. Es el conjunto completo del centro y no una muestra.}
+
+\textcolor{borrador2}{De esas 528 asignaturas, \textbf{442 disponen de guía docente}, una
+  cobertura del \textbf{83,7~\%}. Las \textbf{86 restantes} no la tienen, y su reparto no es
+  uniforme: se concentran en las titulaciones de implantación reciente, cuyos cursos
+  superiores todavía no han publicado sus guías. Esa concentración condiciona lo que el
+  sistema puede responder y conviene tenerla presente al leer cualquier resultado posterior,
+  porque significa que sabe menos precisamente de las titulaciones más nuevas.}
+
+\textcolor{borrador2}{Sobre esa colección, el fragmentador produce \textbf{1.334 fragmentos}
+  repartidos en \textbf{322 unidades}, de las cuales \textbf{78 se comparten entre varias
+    titulaciones}. Por origen son 1.193 de guía docente, 86 informativos de asignaturas sin
+  guía publicada, 33 de plan de estudios y 22 de salidas profesionales. Los tamaños van de
+  \textbf{171 a 900} caracteres, con una mediana de 838 y un percentil 90 de 894; los seis
+  fragmentos que quedan por debajo del mínimo de 200 son colas irreducibles y suponen el
+  0,45~\% del total. Ninguno supera la ventana del modelo de incrustaciones.}
+
 \begin{borrador}
-  \item \textbf{Sección nueva, por escribir (07/08/2026).} Es la que responde al \textbf{OE1}
-  y hoy no existe, de modo que el primer objetivo del trabajo no tiene resultado en el
-  capítulo donde el tribunal lo va a buscar.
-  \item Qué tiene que llevar: cuántas titulaciones, asignaturas, guías y bloques de salidas
-  tiene la colección; la cobertura de guías y su sesgo; cuántas asignaturas se quedan sin
-  contenido y por qué; y las anomalías de la fuente que se encontraron por el camino. Las
-  cifras salen de \texttt{check\_dataset.py} y \texttt{check\_chunks.py}, no de la memoria.
+  \item \textbf{Los tres párrafos de arriba son el andamiaje de esta sección}, que es la que
+  responde al \textbf{OE1}. Reescríbelos y quítales el color. Las cifras salen de
+  \texttt{check\_dataset.py} y \texttt{check\_chunks.py}: si regeneras la colección, cópialas
+  de su salida y no de aquí.
+  \item \textbf{Lo que falta y tienes que escribir tú}, porque es lo que un tribunal
+  agradece: las anomalías de la fuente que condicionan lo que la colección puede contener.
+  Están registradas en los DQA del repositorio, así que es cuestión de resumirlas.
+  \item \textbf{Un matiz de la cobertura que conviene no ocultar:} entre las guías que cuentan
+  como publicadas hay algunas cuyas secciones de contenido vienen vacías desde el origen. O se
+  separan de la cifra, o se dice expresamente que no se separan.
   \item \textbf{Aquí NO va} cómo se extrajo ---eso es el Capítulo~\ref{cap:materialesymetodos}---
   sino qué salió.
-  \item \textbf{Se ha retirado la sección <<Métricas de evaluación de la recuperación>>} que
-  ocupaba este sitio y estaba vacía: lo que iba a explicar ---qué son la exhaustividad, el
-  MRR y los demás--- ya está en el Capítulo~\ref{cap:antecedentes}, que es donde va lo que
-  existe. Si la echas de menos, dímelo y la repongo.
 \end{borrador}
 
 \section[Fragmentación de la colección]{\textcolor{borrador2}{Fragmentación de la colección}}
 \label{secc:resultados_fragmentacion}
 
 \begin{borrador}
-  \item \textbf{Los resultados de la rejilla se han traído aquí desde el
-    Capítulo~\ref{cap:materialesymetodos} el 07/08/2026.} Allí se quedó el diseño del
-  experimento ---qué se compara, cómo y por qué con el mismo número de intentos cada una---
-  y aquí vienen las cifras, que es el reparto que ya se seguía con las incrustaciones y el
-  que exige la estructura de la memoria.
-  \item Con eso desaparece además el problema que lo motivó: el Capítulo~4 ya no enuncia
-  ningún resultado antes del experimento que lo produce.
-  \item Esta sección responde al \textbf{OE2}. Al reescribirla, comprueba que se lea así:
-  que la fragmentación quedó justificada sobre la medición de los textos y el contraste de
-  alternativas, que es literalmente lo que ese objetivo promete.
+  \item Falta texto introductorio en este apartado: una o dos frases que digan qué se comparó
+  y sobre qué, y remitan al Capítulo~\ref{cap:materialesymetodos} para el diseño.
+  \item \textbf{Esta sección responde al \textbf{OE2}}, que promete una estrategia de
+  fragmentación justificada sobre la medición de los textos y el contraste de alternativas.
+  Al releerla, comprueba que se lea así.
 \end{borrador}
 
 \subsection[Efecto de la estrategia de corte]{\textcolor{borrador2}{Efecto de la estrategia de corte}}
@@ -56,21 +82,6 @@
 
 La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
 de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.
-
-\begin{borrador}                                                                                                                    
-  \item \textbf{Las tablas se han rehecho el 06/08/2026 y el párrafo de arriba ya no las
-    describe.} Antes había una sola tabla con la mejor configuración de cada estrategia,
-  pero cada una a un tamaño máximo distinto ---600, 900 y 600---, de modo que sus filas se
-  diferenciaban en \emph{dos} variables a la vez y no se podía saber cuál explicaba la
-  diferencia. Peor todavía: así leída, la fila de tamaño fijo con máximo 600 salía mejor que
-  la elegida en dos de las tres métricas. Una tabla que contradice la decisión que acompaña
-  es lo primero que mira un tribunal.
-  \item Ahora son dos tablas, cada una con una sola variable. La
-  Tabla~\ref{tab:rejilla_fragmentacion} compara las estrategias con el tamaño fijado en 900,
-  y la Tabla~\ref{tab:tamano_fragmento} recorre el tamaño con la estrategia ya fijada.
-  Anuncia las dos en el texto, en ese orden, y ---como pide el tutor--- coméntalas antes de
-  que aparezcan.
-\end{borrador}
 
 \textcolor{borrador2}{La comparación se presenta en dos tablas porque responde a dos
   preguntas distintas y mezclarlas impide contestar ninguna. La primera pregunta es si la
@@ -112,12 +123,12 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
   métricas, porque no gana.}
 
 \begin{borrador}                                                                                                                    
-  \item \textbf{Este es el punto que hay que dejar bien atado antes de defender.} El
-  ADR-0001 dice hoy que se elige la estructural por ser <<la más simple y la única que no ata
-  el fragmentador al modelo de incrustaciones>>. Ese argumento descarta la
-  \emph{semántica}, que sí necesita el modelo; \textbf{no descarta la de longitud}, que
-  tampoco lo necesita y que además es más simple. Hay que corregir el ADR con el razonamiento
-  de los párrafos de arriba, o queda un hueco que el tribunal va a encontrar.
+  \item \textbf{Este es el punto que hay que dejar bien atado antes de defender}, y la
+  pregunta que lo destapa es: «si la de longitud empata y es más simple, ¿por qué la
+  estructural?». La respuesta está en los párrafos de arriba y hay que poder darla sin leer:
+  las dos empatan en recuperación, y lo que las separa ---cortar por una frontera del texto o
+  a mitad de frase--- afecta a la generación, que este trabajo no mide. El ADR-0001 lo dice
+  con esas mismas palabras, así que la memoria y el registro no se contradicen.
   \item \textbf{Ojo con el nombre de la estrategia}, que se presta a confusión: <<tamaño
   fijo>> es una \emph{estrategia} y <<tamaño máximo>> es un \emph{parámetro} que tienen las
   tres. Al leer la tabla parece que solo una usa un tamaño. Piensa si te conviene llamarla
@@ -168,34 +179,21 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   códigos de asignatura y las palabras poco frecuentes consumen más \textit{tokens} por
   carácter que la prosa corriente. Un máximo en caracteres solo se traduce a un máximo en
   \textit{tokens} midiéndolo sobre el corpus real.
-  \item \textbf{Y este proyecto ya se equivocó exactamente así.} El máximo de 1.500
-  caracteres del ADR-0001 se obtuvo por una regla de tres a partir de los 512
-  \textit{tokens} que se suponía que admitían los modelos habituales, y esa estimación nunca
-  se contrastó con el analizador léxico del modelo que acabó eligiéndose. La rejilla incluye
-  los tamaños grandes precisamente para \textbf{localizar dónde empieza el truncado en vez
-    de suponerlo}: no son candidatos serios, son el control que convierte la columna en un
-  argumento. Sin medir el 1.500 y el 1.800 no se podría afirmar que el 900 tiene margen, solo
-  suponerlo, que es de lo que se venía.
+  \item \textbf{Por eso la rejilla incluye tamaños que truncan}, y conviene decirlo así: no
+  son candidatos, son el control que permite \textbf{localizar dónde empieza el truncado en
+    vez de suponerlo}. Sin medir el 1.500 y el 1.800 no se podría afirmar que el 900 tiene
+  margen; solo suponerlo, que es exactamente lo que este experimento viene a evitar.
 \end{borrador}
 
-\begin{borrador}                                                                                                                    
-  \item \textbf{Tres cosas se han perdido al reescribir esta sección} y conviene decidir si
-  vuelven, porque las tres se usan después o se defienden solas.
-  \item \textbf{(1) El recuento de fragmentos truncados}, que es el único argumento del
-  experimento que \emph{no} depende de ninguna métrica discutible: se cuenta con el
-  analizador léxico del propio modelo. Con un máximo de 1.800 caracteres llegan a
-  veintinueve; con 1.500 aparecen los primeros; y en las nueve configuraciones de 600, 900 y
-  1.200 no hay ninguno. Está en la columna \textbf{Trunc.} del bloque (b) de la tabla, pero
-  ningún párrafo la comenta.
-  \item \textbf{(2) La conclusión.} La sección ya no dice en ninguna parte qué se decidió:
-  que se mantiene la estrategia estructural y que sus parámetros pasan a 900 de máximo y de
-  objetivo, dejando de ser provisionales. Un apartado que compara alternativas y no enuncia
-  cuál gana deja el trabajo a medias.
-  \item \textbf{(3) El aviso de que el troceo de tamaño fijo de esta tabla no es el que se
-    descartó} en la Tabla~\ref{tab:alternativas_chunking}. Allí se descarta un troceo que
-  recorre la colección entera y puede juntar dos asignaturas en un fragmento; aquí las tres
-  estrategias trabajan ya dentro de una unidad. Sin esa aclaración, las dos tablas se
-  contradicen a la vista: una descarta el tamaño fijo y la otra lo pone arriba.
+\begin{borrador}
+  \item \textbf{Falta enunciar la conclusión.} La sección compara y no dice en ninguna parte
+  qué se decide: estrategia estructural, con máximo y objetivo en 900 caracteres y mínimo en
+  200. Un apartado que compara alternativas y no enuncia cuál gana deja el trabajo a medias.
+  \item \textbf{Y falta un aviso que evita una contradicción aparente:} el troceo por
+  longitud de esta tabla \emph{no} es el que descarta la
+  Tabla~\ref{tab:alternativas_chunking}. Allí se descarta uno que recorre la colección entera
+  y puede juntar dos asignaturas en un fragmento; aquí las tres estrategias trabajan ya dentro
+  de una unidad. Sin esa frase, una tabla lo descarta y la otra lo pone arriba.
 \end{borrador}
 
 
@@ -289,15 +287,25 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
 \begin{borrador}      
   \item \textbf{Dos lecturas erróneas de la tabla que conviene desactivar tú mismo}, porque
   son las dos preguntas que va a hacer el tribunal.
-  \item \textbf{«Un 0,771 significa que falla una de cada cuatro veces.»} No. La
-  exhaustividad por fragmento \textbf{no tiene techo 1}: hay unidades repartidas en hasta
-  veinticuatro fragmentos, que no caben enteras en los tres primeros resultados. Sobre esta
-  colección el máximo alcanzable es \textbf{0,905} para K=3, 0,977 para K=5 y 0,998 para
-  K=10. Hay que restar del techo, no de la unidad.
-  \item \textbf{«El mejor es el que tiene el MRR más alto.»} No son la misma virtud.
-  \texttt{bge-m3} tiene el mejor MRR y peor exhaustividad por unidad que
-  \texttt{e5-large}: coloca antes el primer acierto, pero deja más unidades fuera. El MRR
-  dice dónde aparece el primero; la exhaustividad, cuántos aparecen.
+  \item \textbf{«Un 0,697 significa que falla una de cada tres veces.»} No. La
+  exhaustividad por fragmento \textbf{no tiene techo 1}: una unidad repartida en más de $K$
+  fragmentos no cabe entera en los $K$ primeros resultados. Sobre esta colección el máximo
+  alcanzable es \textbf{0,789} para K=3, \textbf{0,906} para K=5 y \textbf{0,968} para K=10.
+  Hay que restar del techo, no de la unidad.
+  \item \textbf{«\texttt{bge-m3} recupera mejor que el modelo elegido.»} Solo en una columna,
+  y no es la que decide. Gana en exhaustividad \emph{por fragmento} (0,720 frente a 0,697 con
+  K=3), empata en la \emph{por unidad} con K=3, y con K=10 la pierde: 0,995 frente al
+  \textbf{1,000} del pequeño. Y en MRR queda claramente por detrás ---0,949 frente a
+  0,970---, es decir, coloca el primer acierto más abajo.
+  \item \textbf{Y esa ventaja no está repartida, está concentrada.} En el desglose por tipo,
+  \texttt{bge-m3} gana solo en las preguntas de salidas profesionales (0,917 frente a 0,690);
+  en las de metadatos \textbf{es el peor de los tres} (0,631 frente a 0,697 del pequeño). Una
+  media general que no se desglosa aquí diría lo contrario de lo que ocurre.
+  \item \textbf{Cuidado con explicar por qué.} \texttt{bge-m3} se diferencia del modelo
+  elegido en tamaño, familia, entrenamiento y convención de prefijos \emph{a la vez}, así que
+  este experimento \textbf{no puede atribuir} la diferencia a ninguna de esas causas. El único
+  par que aísla una sola variable es el de los dos modelos de la misma familia. Decirlo así es
+  más fuerte que aventurar una explicación.
   \item \textbf{Y una tercera, sobre el crecimiento con K.} La exhaustividad es monótona
   creciente en K, así que que K=10 supere a K=5 es una propiedad de la métrica y no un
   hallazgo. Lo que decide K es el coste de contexto del generador, y eso se mide en la
