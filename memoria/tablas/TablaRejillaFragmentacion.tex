@@ -5,14 +5,14 @@
       900 caracteres. Cincuenta preguntas del conjunto de evaluación.}}
   \label{tab:rejilla_fragmentacion}
   \small
-  \begin{tabular}{@{}llrrrrl@{}}
+  \begin{tabular}{@{}llrrrr@{}}
     \toprule
-    \textbf{Estrategia}  & \textbf{Ajuste} & \textbf{Frag.} & \textbf{RU@1}  & \textbf{RU@3}  & \textbf{MRR}   & \textbf{Corte}   \\
+    \textbf{Estrategia}  & \textbf{Ajuste} & \textbf{Frag.} & \textbf{RU@1}  & \textbf{RU@3}  & \textbf{MRR}   \\
     \midrule
-    Tamaño fijo          & solape 20 \%    & 1.477          & \textbf{0,935} & 0,965          & \textbf{0,974} & por longitud     \\
-    \textbf{Estructural} & objetivo 100 \% & 1.334          & 0,930          & \textbf{0,985} & 0,970          & frontera natural \\
-    Tamaño fijo          & solape 0 \%     & \textbf{1.228} & 0,930          & 0,985          & 0,963          & por longitud     \\
-    Semántica            & percentil 70    & 1.647          & 0,930          & 0,985          & 0,963          & frontera natural \\
+    Tamaño fijo          & solape 20 \%    & 1.477          & \textbf{0,935} & 0,965          & \textbf{0,974} \\
+    \textbf{Estructural} & objetivo 100 \% & 1.334          & 0,930          & \textbf{0,985} & 0,970          \\
+    Tamaño fijo          & solape 0 \%     & \textbf{1.228} & 0,930          & 0,985          & 0,963          \\
+    Semántica            & percentil 70    & 1.647          & 0,930          & 0,985          & 0,963          \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
@@ -22,9 +22,7 @@
     sobre la colección completa; \textbf{RU@K} (\textit{Recall por Unidad}): proporción de
     preguntas cuya asignatura correcta aparece entre los $K$ primeros resultados;
     \textbf{MRR} (\textit{Mean Reciprocal Rank}): media del inverso de la posición del primer
-    resultado correcto, de modo que premia colocarlo antes; \textbf{Corte}: si la estrategia
-    parte el texto por una frontera del propio texto ---final de párrafo o de frase--- o al
-    alcanzar un número de caracteres. En negrita, el mejor valor de cada columna.
+    resultado correcto, de modo que premia colocarlo antes. En negrita, el mejor valor de cada columna.
     \textcolor{borrador2}{Una diferencia de 0,020 en RU@1 equivale a una pregunta de las
       cincuenta; el recorrido completo de las nueve configuraciones de 900 caracteres es de
       2,3 preguntas.}
