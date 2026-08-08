@@ -69,9 +69,29 @@
 \section[Fragmentación de la colección]{\textcolor{borrador2}{Fragmentación de la colección}}
 \label{secc:resultados_fragmentacion}
 
+\textcolor{borrador2}{La rejilla descrita en el Capítulo~\ref{cap:materialesymetodos}
+  produce cuarenta y cinco configuraciones, y la forma cómoda de presentarlas sería
+  ordenarlas por acierto y quedarse con la primera. Esa tabla diría cuál quedó arriba, que no
+  es lo que hay que decidir: entre dos filas cualesquiera cambian a la vez la estrategia de
+  corte y el tamaño máximo, así que la diferencia entre ellas no se puede atribuir ni a lo
+  uno ni a lo otro. Ordenada de ese modo, además, la primera fila no es la configuración
+  adoptada, y el apartado tendría que empezar explicando por qué se descarta la que
+  encabeza.}
+
+\textcolor{borrador2}{Los resultados se presentan, por tanto, separando los dos factores, que
+  es para lo que la rejilla se diseñó simétrica. Primero se pregunta si la estrategia importa,
+  y para responder a eso hay que dejar el tamaño quieto y comparar solo configuraciones que
+  lo compartan; después se pregunta cuánto importa el tamaño, y para eso hay que dejar quieta
+  la estrategia. Son dos preguntas distintas y, sobre todo, tienen respuestas de distinta
+  naturaleza: una se contesta con las métricas y la otra no. Una única ordenación esconde esa
+  asimetría, que es justamente lo que hay que explicar.}
+
+\textcolor{borrador2}{Leer los dos efectos por separado da por supuesto que no se estorban
+  entre sí ---que una estrategia no pueda ser buena troceando corto y mala troceando largo, o
+  ganar a un tamaño y perder a otro---. Ese supuesto no se da por bueno: se comprueba en la
+  Sección~\ref{secc:rejilla_interaccion}, una vez medido cada efecto por su cuenta.}
+
 \begin{borrador}
-  \item Falta texto introductorio en este apartado: una o dos frases que digan qué se comparó
-  y sobre qué, y remitan al Capítulo~\ref{cap:materialesymetodos} para el diseño.
   \item \textbf{Esta sección responde al \textbf{OE2}}, que promete una estrategia de
   fragmentación justificada sobre la medición de los textos y el contraste de alternativas.
   Al releerla, comprueba que se lea así.
@@ -82,12 +102,6 @@
 
 La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
 de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tfg}.
-
-\textcolor{borrador2}{La comparación se presenta en dos tablas porque responde a dos
-  preguntas distintas y mezclarlas impide contestar ninguna. La primera pregunta es si la
-  estrategia importa, y para responderla hay que dejar el tamaño quieto; la segunda es cuánto
-  importa el tamaño, y para responderla hay que dejar quieta la estrategia. Una tabla en la
-  que cada fila cambia las dos cosas a la vez no mide ni lo uno ni lo otro.}
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
@@ -105,8 +119,8 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
   fragmentos menos que la estructural y empata con ella en las dos medidas de acierto. Si el
   único criterio fuera el rendimiento medido, las dos serían igual de defendibles.}
 
-\textcolor{borrador2}{Lo que separa a una de otra no aparece en ninguna columna de métricas,
-  y por eso se ha añadido la última columna de la tabla. La estrategia estructural parte el
+\textcolor{borrador2}{Lo que separa a una de otra no aparece en ninguna columna de la
+  tabla, y ese es exactamente el problema. La estrategia estructural parte el
   texto por sus propias fronteras ---el final de un párrafo o de una frase---, mientras que la
   de longitud parte al alcanzar un número de caracteres, con lo que empieza y termina a mitad
   de frase y a veces a mitad de palabra. Para recuperar da igual, y la tabla lo demuestra:
@@ -185,11 +199,86 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   margen; solo suponerlo, que es exactamente lo que este experimento viene a evitar.
 \end{borrador}
 
+\subsection[Interacción y configuración adoptada]{\textcolor{borrador2}{Interacción entre los
+    dos efectos y configuración adoptada}}
+\label{secc:rejilla_interaccion}
+
+\textcolor{borrador2}{Las dos secciones anteriores han medido cada factor con el otro quieto,
+  y esa lectura solo vale si los dos son independientes. Podría no serlo: cabe perfectamente
+  que una estrategia se comporte bien partiendo en trozos cortos y mal partiéndolos largos, o
+  que gane a un tamaño y pierda a otro, en cuyo caso hablar de <<la mejor estrategia>> sin
+  decir a qué tamaño no significaría nada. La rejilla permite comprobarlo precisamente porque
+  dedica el mismo número de configuraciones a cada combinación: promediando las tres de cada
+  casilla se ve qué hace cada estrategia a cada tamaño.}
+
+\input{tablas/TablaInteraccionFragmentacion.tex}
+
+\textcolor{borrador2}{La Tabla~\ref{tab:interaccion_fragmentacion} muestra que los dos
+  factores \textbf{sí se estorban}, y conviene decirlo antes que nada porque se ve a simple
+  vista: la distancia entre la mejor y la peor estrategia crece de forma sostenida con el
+  tamaño ---de 0,000 con 600 caracteres a 0,050 con 1.800--- y el orden llega a invertirse.
+  Con 600 las tres empatan exactamente, con 900 encabeza la estructural y en los tres tamaños
+  grandes pasa a encabezar el corte por longitud. La estrategia, por tanto, no es indiferente
+  en toda la rejilla, y la pregunta que abre esta sección no tiene una respuesta cómoda.}
+
+\textcolor{borrador2}{Lo que sí se sostiene es más estrecho, pero es lo único que hace falta:
+  \textbf{no se estorban en la región donde se decide}. Con 600 y 900 caracteres las tres
+  estrategias no llegan a separarse 0,012, poco más de media pregunta de cincuenta, y la
+  distancia solo empieza a notarse a partir de 1.200. Y ahí ya no queda nada que decidir: la
+  última columna recuerda que con 1.500 truncan siete de las nueve configuraciones y con
+  1.800, ocho. Los tamaños en los que la estrategia empieza a importar son exactamente los
+  que quedan descartados por un recuento que no depende de ninguna métrica ni del conjunto de
+  evaluación.}
+
+\textcolor{borrador2}{Hay una segunda comprobación que apunta en la misma dirección y que es
+  la que convierte el empate en un argumento. Con el máximo en 900, cambiar de estrategia
+  mueve el acierto 0,012, mientras que cambiar el parámetro propio de una sola de ellas lo
+  mueve hasta 0,045: dentro del corte por longitud, las tres cantidades de solape se reparten
+  entre 0,890 y 0,935. \textbf{El factor <<estrategia>> pesa menos que el ajuste interno de
+    cualquiera de las tres}, de modo que a este tamaño no es que las estrategias empaten por
+  poco, sino que el instrumento no las distingue.}
+
+\textcolor{borrador2}{Queda por explicar por qué el corte por longitud remonta con fragmentos
+  grandes, y la explicación desaconseja leerlo como una virtud suya. Es la única de las tres
+  que puede solapar fragmentos, y el solape multiplica las papeletas de cada unidad: con
+  1.800 caracteres, pasar de no solapar a solapar el 20~\% le sube el acierto de 0,790 a
+  0,910 \emph{sin cambiar de estrategia}. Sin solape produce 623 fragmentos y acierta 0,790,
+  que es lo mismo que hace la estructural con 632. Sobre las cuarenta y cinco configuraciones
+  el acierto y el número de fragmentos correlacionan a $r = 0{,}72$, así que buena parte de
+  lo que parece ventaja de una estrategia es el efecto de trocear más fino descrito más
+  arriba.}
+
+\textcolor{borrador2}{Con todo lo anterior sobre la mesa, la configuración adoptada es el
+  \textbf{corte estructural, con el tamaño máximo y el objetivo en 900 caracteres y el mínimo
+    en 200}. El tamaño lo decide la medición: por encima de 1.200 caracteres el modelo
+  empieza a recortar fragmentos en silencio, y de los tamaños que no truncan el de 900 es el
+  único que gana en las tres métricas a la vez, con la mitad de fragmentos que el de 600. La
+  estrategia no la deciden las métricas, porque a ese tamaño las tres son indistinguibles,
+  sino el criterio que enuncia la Sección~\ref{secc:rejilla_estrategia}: entre tres opciones
+  que empatan se conserva la que corta por las fronteras del texto, cuya ventaja está en la
+  generación y no en la recuperación. Es una decisión tomada con las métricas agotadas, no en
+  contra de ellas.}
+
 \begin{borrador}
-  \item \textbf{Falta enunciar la conclusión.} La sección compara y no dice en ninguna parte
-  qué se decide: estrategia estructural, con máximo y objetivo en 900 caracteres y mínimo en
-  200. Un apartado que compara alternativas y no enuncia cuál gana deja el trabajo a medias.
-  \item \textbf{Y falta un aviso que evita una contradicción aparente:} el troceo por
+  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Esta subsección es la que
+  cierra el apartado y contesta a la objeción de fondo, así que conviene que suene tuya.
+  \item \textbf{Las cifras de la tabla salen de las 45 filas del anexo del ADR-0001}, no de
+  una ejecución aparte: cada celda es la media de las tres configuraciones de esa casilla.
+  Si vuelves a lanzar el guion de la rejilla, hay que recalcularlas.
+  \item \textbf{Si la tabla te sobra}, todo lo que sostiene cabe en dos frases: con 600 y 900
+  las tres estrategias se separan como mucho 0,012, y a partir de 1.200 la separación crece
+  hasta 0,050 justo donde el truncado ya descarta las configuraciones. La tabla, eso sí,
+  ahorra tener que pedirle al lector que se crea las quince medias.
+  \item \textbf{Respuesta de defensa}, que es la razón de ser de esta subsección: <<mide
+  usted los dos efectos por separado, pero podrían depender el uno del otro>>. Sí dependen, y
+  está medido y dicho; lo que se sostiene es que no dependen por debajo de 1.200 caracteres,
+  y que por encima la decisión ya está tomada por el truncado, que no es una métrica
+  opinable. Conviene poder decirlo en ese orden: primero se concede, después se acota.
+\end{borrador}
+
+
+\begin{borrador}
+  \item \textbf{Falta un aviso que evita una contradicción aparente:} el troceo por
   longitud de esta tabla \emph{no} es el que descarta la
   Tabla~\ref{tab:alternativas_chunking}. Allí se descarta uno que recorre la colección entera
   y puede juntar dos asignaturas en un fragmento; aquí las tres estrategias trabajan ya dentro
@@ -198,9 +287,10 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
 
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-16). Andamiaje: la prosa la escribes tú. Aquí va el método y el
-  porqué; si quieres llevar las cifras al Capítulo~\ref{cap:resultados}, este texto se queda
-  con el diseño de la rejilla y allí van los números.
+  \item \textbf{Fase:} 1 (IT-16). Aquí van las cifras y su lectura; el diseño de la rejilla
+  ---qué se comparó y con qué instrumento--- se queda en el
+  Capítulo~\ref{cap:materialesymetodos}. Si al releer encuentras aquí una frase que explica
+  \emph{cómo} se midió, es que pertenece allí.
   \item \textbf{Cuidado con cómo lo cuentas}, que aquí es fácil pasarse de listo: la
   conclusión no es «la fragmentación semántica es peor». Es que \textbf{no es mejor}, que es
   distinto y más difícil de rebatir. Se descarta por coste, no por calidad.
