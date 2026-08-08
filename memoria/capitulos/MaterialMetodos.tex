@@ -82,7 +82,7 @@ Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no
 \textbf{El tercer tipo es la evaluación del sistema}, la cuál más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
 uno o varios números que solo tienen significado si se comparan con el de otra configuración.
 
-Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquedas escritas a mano pensando en lo que el usuario puediera querer saber.
+Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra \sout{un conjunto de preguntas etiquedas escritas a mano pensando en lo que el usuario puediera querer saber} \textcolor{borrador2}{un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el usuario pudiera querer saber}.
 sobre la generación de la respuesta se medirán la fidelidad de la respuesta al contexto
 recuperado y su pertinencia.
 
@@ -1276,19 +1276,24 @@ Los datos o corpus se tienen que trocear debido a la ventana de contexto explica
 \subsubsection[Restricciones del troceado ]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}. Esta ventana de contexto no es ilimitada por lo que se explicó en la sección~\ref{subsec:chunking_concepto}, y esto obliga a trocear la colección y sus unidades. El cuerpo de una guía docente ocupa de media 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si las dejáramos tal cuál, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
+Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}. Esta ventana de contexto no es ilimitada por lo que se explicó en la sección~\ref{subsec:chunking_concepto}, y esto obliga a trocear la colección y sus unidades. El cuerpo de una guía docente \sout{ocupa de media 2.653 caracteres} \textcolor{borrador2}{ocupa una mediana de 2.653 caracteres} y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. \sout{Si las dejáramos tal cuál} \textcolor{borrador2}{Si las dejáramos tal cual}, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
 
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
-Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. Esta misma tabla dice el nombre de la estrategia y la descripción de lo que haría el algoritmo. La cuarta estrategia se nombra como una que se pensó en un inicio, pero por los argumentos dados anteriormente, se descarta desde un inicio, las otras tres pasarán por debajo del experimento. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
+Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. Esta misma tabla dice el nombre de la estrategia y la descripción de lo que haría el algoritmo. La cuarta estrategia se nombra como una que se pensó en un inicio, \sout{pero por los argumentos dados anteriormente, se descarta desde un inicio, las otras tres pasarán por debajo del experimento} \textcolor{borrador2}{pero por los argumentos dados anteriormente se descarta sin llegar a medirla; las otras tres pasan por el experimento}. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
   experimento completo, con sus cuarenta y cinco configuraciones.
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-Las otras tres corta no se sabe leyendo su descripción cuál es mejor que otra, así que
+\sout{Las otras tres corta no se sabe leyendo su descripción cuál es mejor que otra, así que
   se miden. Lo que sigue es el diseño de esa comparación, sus cifras, por la estructura que
-  exige la memoria, están en el Capítulo~\ref{cap:resultados}.
+  exige la memoria, están en el Capítulo~\ref{cap:resultados}.}
+
+\textcolor{borrador2}{De esas tres no se sabe, leyendo su descripción, cuál corta mejor, así
+  que se miden. Lo que sigue es el diseño de esa comparación; sus cifras están en el
+  Capítulo~\ref{cap:resultados}, porque la estructura que exige la memoria reserva este
+  capítulo para el método.}
 
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
 \label{secc:rejilla_fragmentacion}
@@ -1308,18 +1313,18 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 \subsubsection[Procedimiento seguido en cada configuración]{Procedimiento seguido en cada configuración}
 \label{secc:rejilla_procedimiento}
 
-El procedimiento seguido en este experimento en cada una de las cuarente y cinco configuraciones es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
+El procedimiento seguido en este experimento en cada una de las \sout{cuarente y cinco configuraciones} \textcolor{borrador2}{cuarenta y cinco configuraciones} es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
 
-El modelo de incrustaciones elegido en el ADR-0003, el cuál también tiene su apartado en resultados~\ref{secc:resultados_embeddings}, se carga una sola vez para toda la
-ejecución, y de él se cogen dos funciones distinas, la primera para convertir los trozos en vectores y su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
+El modelo de incrustaciones elegido en el ADR-0003, \sout{el cuál también tiene su apartado en resultados~\ref{secc:resultados_embeddings}} \textcolor{borrador2}{el cual tiene su propio apartado en la Sección~\ref{secc:resultados_embeddings}}, se carga una sola vez para toda la
+ejecución, y de él se cogen \sout{dos funciones distinas} \textcolor{borrador2}{dos funciones distintas}, la primera para convertir los trozos en vectores y su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
 
-El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre las incrustraciones de piezas consecutivas del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que este se adapta a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
+El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre \sout{las incrustraciones de piezas consecutivas} \textcolor{borrador2}{las incrustaciones de piezas consecutivas} del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que este se adapta a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
 
-Con los umbrales ya calculados de la estategia de referencia, se generan las nueve configuraciones diferentes, tres tamaños objetivo distintos $n$ para la estrategia estructural, tres solapes para la estrategia de longitud y tres percentiles para la semántica. Dentro de cada una se sustituya únicamente la función que decide dónde colocar los cortes dentro de una unidad y se ejecuta el código. 
+\sout{Con los umbrales ya calculados de la estategia de referencia} \textcolor{borrador2}{Con los umbrales ya calculados de la estrategia de referencia}, se generan las nueve configuraciones diferentes, tres tamaños objetivo distintos $n$ para la estrategia estructural, tres solapes para la estrategia de longitud y tres percentiles para la semántica. \sout{Dentro de cada una se sustituya únicamente la función} \textcolor{borrador2}{Dentro de cada una se sustituye únicamente la función} que decide dónde colocar los cortes dentro de una unidad y se ejecuta el código. 
 
-De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), el número de fragmentos generados, su tamaño medio y cuántos de ellos superan la ventana del modelo y por lo que se truncan o cortan. Recogido todos los valores anteriores, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
+De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), \sout{el número de fragmentos generados, su tamaño medio} \textcolor{borrador2}{el número de fragmentos generados, su tamaño mediano} y cuántos de ellos superan la ventana del modelo y por lo que se truncan o cortan. Recogido todos los valores anteriores, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
 
-Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera repetir una y otra vez sin cambiar nada, daría los mismos resultados.
+Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que \sout{si se volviera repetir una y otra vez} \textcolor{borrador2}{si se volviera a repetir una y otra vez} sin cambiar nada, daría los mismos resultados.
 
 
 
@@ -1327,16 +1332,16 @@ Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es
 \label{secc:troceado_algoritmo}
 
 La estrategia elegida como ganadora del experimento es la estructural (el resultado está en la
-  Sección~\ref{secc:resultados_fragmentacion}), y su funciona de la siguiente manera:
+  Sección~\ref{secc:resultados_fragmentacion}), \sout{y su funciona de la siguiente manera} \textcolor{borrador2}{y funciona de la siguiente manera}:
   El algoritmo parte de la unidad completa y solo la divide cuando hace
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
 por último fusiona con sus vecinos los fragmentos residuales que se han quedado demasiado cortos y reequilibra el par resultante.
 A cada fragmento se le antepone un encabezado autocontenido con el nombre de la asignatura, su tipo, sus créditos ECTS y
-la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. El tamaño máximo son de 900 caracteres, encabezado incluido, y el mínimo de 200. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
+la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. \sout{El tamaño máximo son de 900 caracteres} \textcolor{borrador2}{El tamaño máximo es de 900 caracteres}, encabezado incluido, y el mínimo de 200. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
 
 
-La unión de fragmentos solo ocurre cuando a la unión resultante caben dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
+La unión de fragmentos \sout{solo ocurre cuando a la unión resultante caben dentro del máximo establecido} \textcolor{borrador2}{solo ocurre cuando la unión resultante cabe dentro del máximo establecido}, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
 
 
 \subsubsection[El proceso completo y la estructura del fragmento]{El proceso completo y la estructura del fragmento}
@@ -1428,20 +1433,30 @@ salió cada respuesta.
 \subsection[Selección del modelo de incrustaciones]{Selección del modelo de incrustaciones}
 \label{secc:fase1_embeddings}
 
+\textcolor{borrador2}{Las cifras de esta comparación ---los cuatro modelos, sus métricas y
+  el desglose por tipo de pregunta--- están en la Sección~\ref{secc:resultados_embeddings}
+  del Capítulo~\ref{cap:resultados}. Aquí se describe cómo se comparan y por qué esos cuatro
+  candidatos y no otros.}
+
 \subsubsection{Diseño de la comparación}
 
-La elección del modelo de incrustaciones o modelo de \textit{embedding} se resolvió de forma experimental y no por únicamente por ficha técnica u opiniones en internet, comparando varios candidatos sobre los mismos fragmentos realizados por el modelo elegido en \ref{secc:troceado_algoritmo} y sobre el conjunto de preguntas usadas también en el anterior experimento, lo único que varía de iteración a iteración es el modelo.
+La elección del modelo de incrustaciones o modelo de \textit{embedding} \sout{se resolvió de forma experimental y no por únicamente por ficha técnica u opiniones en internet} \textcolor{borrador2}{se resolvió de forma experimental y no únicamente por ficha técnica u opiniones en internet}, comparando varios candidatos \sout{sobre los mismos fragmentos realizados por el modelo elegido en \ref{secc:troceado_algoritmo}} \textcolor{borrador2}{sobre los mismos fragmentos, los que produce la estrategia fijada en la Sección~\ref{secc:troceado_algoritmo}} y sobre el conjunto de preguntas usadas también en el anterior experimento, lo único que varía de iteración a iteración es el modelo.
 
-Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el critero con el que se delimitan las unidades.
+Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, \sout{independientemente de cuántos fragmentos se haya dividido} \textcolor{borrador2}{independientemente de en cuántos fragmentos se haya dividido}). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en \sout{el critero con el que se delimitan las unidades} \textcolor{borrador2}{el criterio con el que se delimitan las unidades}.
 
 
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Criterios de selección de los candidatos}, que hay que enunciar porque es
   lo que un tribunal pregunta («¿y por qué esos cuatro?»). En orden:
   (1)~ventana de al menos 512 \textit{tokens}, para que ninguno lea menos texto que otro;
+  (2)~multilingüe o entrenado en español, porque la colección está en español;
   (3)~licencia compatible con la del repositorio;
   (4)~ejecutable en la máquina donde se defiende el trabajo;
   (5)~disponible sin ejecutar código descargado.
+  \item \textbf{Ojo, este punto (2) lo he repuesto yo (08/08/2026):} la lista saltaba del (1)
+  al (3) y el criterio del idioma se había perdido. Compruébalo contra el ADR-0003 antes de
+  darlo por bueno, porque es el criterio que justifica que entre en la comparación el modelo
+  específico de español.
   \item \textbf{Los papeles}, que es lo que convierte la lista en un diseño: un modelo
   pequeño (el titular), otro de la misma familia y entrenamiento con cinco veces su tamaño
   ---único par que aísla el efecto del \emph{tamaño}---, un tercero de tamaño similar pero
