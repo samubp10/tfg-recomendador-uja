@@ -198,7 +198,7 @@ no puede indexarse documento a documento tal y como se recoge desde la página w
 El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
-\subsection{Métricas de comprobación (a revisar)}
+\subsection{Métricas de comprobación}
 
 \begin{borrador}                    
   \item Explicar todas las métricas de comprobación. (RAGEval, qEVAL, Faithfulness, Recall, k, y demás, \textit{Recall@K} y MRR).
@@ -395,6 +395,19 @@ Superior de Jaén (ver sección \ref{secc:alcance}), que responde en lenguaje na
 lo que impone exigencias específicas de legibilidad y fiabilidad.
 
 
+\begin{borrador}
+  \item \textbf{Dos frases de este apartado necesitan que las reescribas tú}, porque no se
+  arreglan cambiando una palabra.
+  \item La que empieza por <<Según el siguiente artículo sobre sistemas de recomendación\dots
+  identifica el filtrado colaborativo>> se queda sin sujeto: <<según>> ya introduce la fuente,
+  así que el verbo se queda colgado. Con <<El artículo\dots identifica>> o con <<Según el
+  artículo\dots, el filtrado colaborativo es uno de los enfoques más habituales>> se resuelve.
+  Y <<el siguiente artículo>> no señala a nada, porque la cita va después.
+  \item La de los <<tres aspectos fundamentales>> del posicionamiento enumera tres cosas que no
+  son del mismo tipo: un dominio acotado, una oración de relativo (<<que responde en lenguaje
+  natural\dots>>) y un público objetivo. Con tres sintagmas paralelos se lee sola.
+\end{borrador}
+
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
@@ -409,7 +422,7 @@ Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga
 
 \subsection{Protección de datos y usuarios menores de edad}
 
-La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018}, fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
 
 La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
 
