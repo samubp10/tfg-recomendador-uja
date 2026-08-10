@@ -113,7 +113,7 @@ Sobre esta recopilación de información, el fragmentador produce 1.334 fragment
 
 El experimento de rejilla descrito en el Apartado~\ref{secc:rejilla_fragmentacion} produce cuarenta y cinco configuraciones, todas ellas explicadas en el Registro de Decisiones de Arquitectura \mbox{ADR-0001}\cite{repo_tfg}. 
 
-Cada uno de los resultados se presentan separando dos factores, que es por lo que la rejilla se diseñó de manera simétrica. Primero se pregunta si es que la estrategia en sí de corte importa, y para responder eso, hay que elegir un tamaño y dejarlo fijo y comparar solo los diferentes cortes. Después de esto, se pregunta cuánto importa el tamaño, y para ello hay que dejar fija la estrategia y de nuevo ver los diferentes tamaños.
+\sout{Cada uno de los resultados se presentan separando dos factores} \textcolor{borrador2}{Cada uno de los resultados se presenta separando dos factores}, que es por lo que la rejilla se diseñó de manera simétrica. Primero se pregunta si es que la estrategia en sí de corte importa, y para responder eso, hay que elegir un tamaño y dejarlo fijo y comparar solo los diferentes cortes. Después de esto, se pregunta cuánto importa el tamaño, y para ello hay que dejar fija la estrategia y de nuevo ver los diferentes tamaños.
 
 \subsection[Efecto de la estrategia de corte]{Efecto de la estrategia de corte}
 \label{secc:rejilla_estrategia}
@@ -123,58 +123,12 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-La tabla de arriba contesta a la duda que estamos abarcando esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
+La tabla de arriba contesta a \sout{la duda que estamos abarcando esta subsección} \textcolor{borrador2}{la duda que aborda esta subsección}, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
 
-Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, por lo que si solo nos moviéramos por el rendimiento medido, eligiríamos esta sin dudarlo.
+Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, \sout{por lo que si solo nos moviéramos por el rendimiento medido, eligiríamos esta sin dudarlo} \textcolor{borrador2}{de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo}.
 
-Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa.
+Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud fija parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa, \sout{puesto que no le estaríamos dando al usuario toda la información} \textcolor{borrador2}{puesto que no se le estaría dando al usuario toda la información} disponible de ese apartado.
 
-
-\textcolor{borrador2}{Merece la pena desarrollar ese último punto, porque la objeción
-  inmediata es razonable: si una frase queda partida entre dos fragmentos, bastaría con
-  recuperar los dos y el modelo la recompone. El problema es que nada en el sistema garantiza
-  que eso ocurra. La recuperación no devuelve vecinos, devuelve los $K$ fragmentos más
-  parecidos a la pregunta, y las dos mitades de una frase no se parecen a ella por igual: la
-  que contiene los términos de la consulta puntúa alto y la otra puede quedarse fuera. No hay
-  ninguna regla que diga «si entra este fragmento, entra también el siguiente».}
-
-\textcolor{borrador2}{Y aunque entrasen las dos, llegan ordenadas por parecido y no por el
-  orden que tenían en el texto, sin ninguna marca que indique que una continúa a la otra. El
-  modelo generativo recibe una lista de fragmentos, no un documento: puede recomponer la frase
-  o puede no hacerlo, y mirando la respuesta no hay forma de saber cuál de las dos cosas ha
-  ocurrido.}
-
-\textcolor{borrador2}{Lo que convierte esto en un problema serio no es que el sistema deje de
-  responder, sino justo lo contrario. Con media lista de contenidos delante, el modelo
-  responde con la media lista, y esa respuesta se parece exactamente a una respuesta completa:
-  un temario al que le faltan tres apartados, un requisito sin la condición que lo acota, una
-  competencia a medias. El destinatario del sistema es un estudiante que todavía no conoce la
-  titulación y que, por definición, no puede detectar lo que falta. Un fallo silencioso y
-  verosímil hace más daño que una negativa a responder.}
-
-\textcolor{borrador2}{Hay una salida técnica a esto y conviene reconocerla en lugar de esperar
-  a que la señale otro: se puede recuperar el fragmento y entregar además sus vecinos, o la
-  unidad completa a la que pertenece. Cortar por las fronteras del texto no es, por tanto, la
-  única forma de evitar el problema; es la que lo evita \emph{sin} añadir ese mecanismo y sin
-  gastar en cada consulta el contexto que ese mecanismo consume.}
-
-\textcolor{borrador2}{Queda por decir por qué nada de esto asoma en la tabla, y la razón está
-  en cómo se mide. El conjunto de evaluación anota \emph{unidades} ---la asignatura a la que
-  corresponde cada pregunta--- y no fragmentos, de modo que una configuración acierta en
-  cuanto recupera un fragmento de la asignatura correcta, contenga la respuesta entera o la
-  mitad. El instrumento es ciego, por construcción, justo a la diferencia que separa las dos
-  estrategias: no es que la medición diga que da igual, es que no mide eso.}
-
-\begin{borrador}
-  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.}
-  \item \textbf{Esta es la respuesta a la pregunta que más probablemente te hagan:} «si la de
-  longitud empata y es más simple, ¿por qué la estructural?». Conviene darla en este orden: se
-  concede que las métricas no la eligen, se explica qué falla con media frase, se reconoce que
-  existe otra solución posible y se dice por qué esta sale más barata.
-  \item \textbf{Lo que no se puede decir} es que la estructural recupere mejor, porque no lo
-  hace. La ventaja está en la generación, y esa parte se mide en la Fase 2 con las métricas de
-  fidelidad al contexto.
-\end{borrador}
 
 
 
@@ -186,38 +140,12 @@ La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia y
 
 \input{tablas/TablaTamanoFragmento.tex}
 
-El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. Si se fija en el documento que recoge el experimento (\mbox{ADR-0001}), podríamos ver que hay una cosa que se repite constantemente, y es que a menos fragmentos, mejores métricas ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese \sout{exáctamente} \textcolor{borrador2}{exactamente} son más altas.
+El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente son más altas.
 
-La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones con máximos de 1500 y 1800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
+La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones \sout{con máximos de 1500 y 1800} \textcolor{borrador2}{con máximos de 1.500 y 1.800}, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
-\textcolor{borrador2}{Con todo lo anterior sobre la mesa, la configuración adoptada es el
-  \textbf{corte estructural, con el tamaño máximo y el objetivo en 900 caracteres y el mínimo
-    en 200}. El tamaño lo decide la medición: por encima de 1.200 caracteres el modelo empieza
-  a recortar fragmentos en silencio, y de los tamaños que no truncan el de 900 es el único que
-  gana en las tres métricas a la vez, con la mitad de fragmentos que el de 600. La estrategia
-  no la deciden las métricas, porque a ese tamaño las tres son indistinguibles, sino el
-  criterio que enuncia el Apartado~\ref{secc:rejilla_estrategia}: entre tres opciones que
-  empatan se conserva la que corta por las fronteras del texto, cuya ventaja está en la
-  generación y no en la recuperación. Es una decisión tomada con las métricas agotadas, no en
-  contra de ellas.}
+En resumen de este apartado, la configuración es el corte estructural con un tamaño máximo de 900 y mínimo de 200 caracteres. Por encima de 1.200 caracteres el modelo empieza a recortar fragmentos, y de las opciones por debajo de esta cifra, el de 900 es el único en ganar en tres categorías, con la mitad de fragmentos que el de 600. Entre tres opciones con métricas prácticamente iguales, se conserva la que corta por las fronteras de texto, cuya ventaja está más que en la recuperación, en la generación.
 
-
-\begin{borrador}                                                                                                                    
-  \item \textbf{Revisa la frase sobre fragmentos y métricas}, porque afirma lo contrario de lo
-  que muestran los datos y su segunda mitad contradice a la primera. La relación va al revés:
-  \textbf{a más fragmentos, mejores métricas por unidad}, porque una unidad partida en más
-  trozos ocupa más huecos entre los $K$ primeros resultados. Sobre las cuarenta y cinco
-  configuraciones, el acierto y el número de fragmentos correlacionan a $r = 0{,}72$.
-  \item \textbf{Y eso no es un mérito del troceo fino, sino un sesgo}, de modo que el 900 se
-  defiende justamente por lo contrario: acierta lo mismo que el 600 con la mitad de fragmentos
-  y además coloca antes el correcto ---0,970 de MRR frente a 0,960---. Un índice con el doble
-  de piezas entrega menos texto por resultado, así que a igual número de resultados el modelo
-  generativo recibe menos contexto.
-  \item \textbf{Matiza «mucha información se perdía»:} con 1.500 caracteres el recorte alcanza
-  a 4 fragmentos de 753 y con 1.800, a 11 de 632. El argumento no es el volumen, que es
-  pequeño, sino que el recorte es \emph{silencioso}: el modelo no avisa ni falla, y sobre esos
-  fragmentos el sistema estaría midiendo un texto que nunca llegó a leer.
-\end{borrador}
 
 \begin{borrador}
   \item \textbf{Objeción de defensa:} «si el modelo de incrustaciones ya estaba elegido y se
