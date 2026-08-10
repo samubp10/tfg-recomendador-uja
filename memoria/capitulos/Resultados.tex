@@ -33,18 +33,10 @@
 
 La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo.\sout{,} El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
-Sobre esta recopilación de información, el fragmentador produce 1.334 fragmentos repartidos en \sout{332} \textcolor{borrador2}{322} unidades, de las cuales 78 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.193 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 33 de plan de estudios y 22 salidas profesionales. Los tamaños de estos fragmentos van desde los 171 a 900 caracteres, con una mediana de 838 y un percentil 90 de 894. Ninguno supera la ventana del modelo de incrustaciones.
+Sobre esta recopilación de información, el fragmentador produce 1.334 fragmentos repartidos en 322 unidades, de las cuales 78 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.193 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 33 de plan de estudios y 22 salidas profesionales. Los tamaños de estos fragmentos van desde los 171 a 900 caracteres, con una mediana de 838 y un percentil 90 de 894. Ninguno supera la ventana del modelo de incrustaciones.
 
-
-
-\textcolor{borrador2}{Estas cifras no proceden de una fuente uniforme, y conviene
-  dejar constancia de ello porque condiciona lo que la colección puede llegar a contener. La
-  web de la EPSJ no publica ningún esquema de sus páginas: cada titulación las genera con la
-  plantilla de su plan y esas plantillas no coinciden entre sí. El repositorio recoge cinco
-  registros de anomalías de calidad de datos ---la serie DQA--- con la evidencia de cada
-  una\cite{repo_tfg}, y todas comparten un rasgo: casi ninguna produce un error.}
 
 \textcolor{borrador2}{La primera afecta al formato. Las 288 guías docentes del curso 2026-27
   se sirven como PDF y no como HTML, detrás de una dirección que sigue acabando en
@@ -294,193 +286,117 @@ En resumen de este apartado, la configuración es el corte estructural con un ta
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
 
+\textcolor{borrador2}{Los resultados anteriores se han obtenido sobre una colección concreta,
+  con un instrumento de medida concreto y en un equipo concreto, y cada una de esas tres cosas
+  acota lo que se puede concluir de ellos. Este apartado recoge esos límites siguiendo los
+  cuatro tipos habituales ---validez de conclusión, de construcción, interna y externa---, y
+  conviene leerlo sabiendo que ninguna de las amenazas que siguen está resuelta: están
+  declaradas, que no es lo mismo. La evidencia de cada una vive en el registro que le
+  corresponde, en los ADR y los DQA del repositorio\cite{repo_tfg}.}
 
+\textcolor{borrador2}{\textbf{Validez de conclusión.} El conjunto de evaluación tiene
+  cincuenta preguntas y las ha anotado una sola persona, que es además quien construyó el
+  sistema. Sobre cincuenta preguntas, \textbf{una pregunta vale 0,020}, y las dos comparaciones
+  que sostienen este capítulo se deciden por márgenes de ese orden o menores: las tres
+  estrategias de fragmentación se separan 0,012 con el tamaño adoptado, y los dos modelos de la
+  familia \texttt{e5} se separan media pregunta en la única medida en la que no empatan. Lo que
+  esos datos sostienen es el empate, no una ordenación, y así se han enunciado las dos
+  decisiones. A esto se añade que \textbf{los umbrales de la hipótesis se fijaron después} de
+  ejecutar la comparación de modelos: que el resultado los cumpla con holgura no repara el
+  orden en que se hicieron las cosas, y por eso se declara en lugar de presentarlos como
+  previos.}
 
-\textcolor{borrador2}{De la corrección quedan vivas tres limitaciones que conviene
-  declarar. La primera es que las asignaturas de una titulación doble llevan códigos de una
-  serie propia, de modo que no se pueden emparejar por código con las de los grados que la
-  componen y el emparejamiento tiene que hacerse por el nombre; eso funciona hoy en ciento
-  setenta de ciento setenta y ocho casos, pero depende de que la fuente escriba igual la
-  misma asignatura en dos planes distintos, y un cambio de redacción lo degradaría en
-  silencio. La segunda es que cuando un nombre coincide con varias guías distintas no se
-  resuelve la ambigüedad, y esas asignaturas reciben un fragmento que afirma que no tienen
-  guía publicada cuando en realidad sí la tienen. La tercera es que una de las cinco
-  titulaciones dobles no publica absolutamente nada, de modo que el sistema no puede decir
-  qué se estudia en ella.}
+\textcolor{borrador2}{\textbf{Validez de construcción.} La amenaza principal está en el propio
+  instrumento: el conjunto de evaluación anota \emph{unidades} y no fragmentos, de modo que una
+  configuración acierta en cuanto recupera un fragmento de la asignatura correcta, contenga
+  este la respuesta entera o solo la mitad. El instrumento es por tanto ciego justo a la
+  diferencia que separa las estrategias de corte, que es dónde cae el corte dentro del texto. Y
+  la exhaustividad por fragmento tampoco es una cifra autónoma: su techo depende del troceado,
+  así que dos configuraciones distintas no se pueden comparar por ese número sin poner el techo
+  al lado. De la otra mitad del sistema ---si la respuesta redactada es fiel al contexto
+  recuperado--- no hay ninguna medida en este trabajo, y sin embargo es donde actúa el
+  argumento con el que se elige la estrategia de corte.}
 
+\textcolor{borrador2}{La segunda amenaza de este grupo está en la extracción. Todo el contenido
+  de la colección procede de guías en PDF, y las fronteras entre secciones se localizan por los
+  rótulos de la plantilla que la Universidad publica hoy. Si esa plantilla cambia, una sección
+  deja de terminar donde debe: o se queda corta, y se pierde contenido, o absorbe la siguiente,
+  y puede arrastrar el bloque de profesorado con sus datos personales. \textbf{Ninguno de los
+    dos casos se manifiesta como un error}: el sistema sigue respondiendo, solo que sobre menos
+  contenido del que cree tener. No está en manos de este trabajo garantizar que la plantilla no
+  cambie, pero sí que un cambio no pase inadvertido, y para eso el rastreo conserva una copia
+  de cada documento y un verificador comprueba, sobre las 288 guías, que no falte ninguno de
+  los rótulos que la plantilla compone siempre. Ese mismo verificador enumera qué se descarta:
+  de los 5.010.100 caracteres de sección que suman las guías se conservan 946.218, un
+  \textbf{18,9~\%}, y el resto se descarta con nombre ---cláusulas, sistemas de evaluación,
+  metodologías, competencias, bibliografía y profesorado---, de modo que el filtrado se puede
+  revisar en lugar de tener que creérselo.}
 
-\begin{borrador}
-  \item \textbf{Dos referencias quedaron colgando al borrar párrafos el 05/08/2026, y hay
-    que resolverlas.} El párrafo de arriba empieza por «\emph{De la corrección} quedan vivas
-  tres limitaciones», pero ya no hay ninguna corrección mencionada antes: se borró el párrafo
-  que contaba que cinco de las doce titulaciones estuvieron en la colección sin una sola
-  asignatura hasta el 05/08/2026. O vuelve ese párrafo, o hay que reescribir el arranque de
-  este para que no remita a nada.
-  \item \textbf{Y más abajo} queda un «CORREGIDO: \emph{el método tachado} se abandonó en
-  IT-97» cuyo texto tachado ya no existe.
-  \item \textbf{Se borró también el aviso de que las cifras son de otra colección}, y ese sí
-  hay que reponerlo en el cuerpo del capítulo y no solo aquí: la comparación de modelos de
-  incrustaciones se ejecutó sobre 797 fragmentos y la colección vigente tiene \textbf{1\,334}
-  desde IT-16, de modo que las cifras absolutas de la
-  Tabla~\ref{tab:comparativa_embeddings} no corresponden al corpus de hoy. Sin esa
-  advertencia, el capítulo las presenta como vigentes.
-  \item \textbf{Y la distancia ha crecido}: esa tabla va ya dos configuraciones por detrás
-  del corpus, porque entre medias entraron los planes de los dobles grados y bajó el máximo
-  de fragmento. Lo defendible no es convertir las cifras por regla de tres, sino declararlo
-  o volver a ejecutar la comparación. A favor de no rehacerla: el orden de los modelos se
-  mantuvo idéntico sobre dos corpus distintos, y eso es lo que sostiene el ADR-0003. En
-  contra: ese argumento vale para el orden, no para las cifras absolutas, y son las cifras
-  absolutas las que aparecen impresas en la tabla.
-  \item \textbf{Fase:} 1 (IT-101). Andamiaje de la amenaza de los dobles grados; la
-  evidencia completa, con las seis anomalías de la fuente y sus mediciones, está en
-  el DQA-0005 del repositorio\cite{repo_tfg}.
-  \item \textbf{Cifras del 06/08/2026:} 528 asignaturas, 288 guías, 8 bloques de salidas,
-  \textbf{1\,334} fragmentos (1\,193 de guía, 86 informativos, 33 de plan de estudios y 22
-  de salidas). \textbf{599} fragmentos citan una titulación doble, y \textbf{560} de ellos
-  son fragmentos de guía reaprovechados: no se duplicó ni un carácter de temario. El
-  dataset no cambia al fragmentar más fino ---las 528 asignaturas y las 288 guías son las
-  mismas---, solo cambia en cuántos trozos se reparte.
-  \item \textbf{Hay que actualizar las cifras del resto del capítulo y del Capítulo~4},
-  que siguen siendo las de 797 fragmentos.
-  \item \textbf{Y hay un resultado nuevo que este capítulo todavía no cuenta:} sobre los
-  1\,334 fragmentos, el acierto por unidad llega a \textbf{1,000 con K${=}$10}, cuando con
-  884 se quedaba en 0,995. La pregunta que faltaba era P-008, sobre las salidas
-  profesionales de los grados de la rama industrial, que es de agregación y no tenía ningún
-  fragmento que la contestara entera. Es una pregunta de cincuenta, así que no conviene
-  presentarlo como un salto: lo relevante es que por primera vez no queda ninguna fuera.
-\end{borrador}
+\textcolor{borrador2}{\textbf{Validez interna.} Las dos decisiones grandes de la fase se
+  tomaron fijando una variable y moviendo la otra: la rejilla de fragmentación se midió con el
+  modelo de incrustaciones ya elegido, y la comparación de modelos con un troceado ya fijado.
+  \textbf{El espacio conjunto de las dos no se ha recorrido}, de modo que no puede descartarse
+  que otra combinación fuera mejor que la suma de las dos decisiones por separado. Dentro de la
+  rejilla hay además un factor de confusión declarado: trocear más fino reparte cada unidad en
+  más fragmentos y le da más oportunidades de aparecer entre los primeros resultados, hasta el
+  punto de que el acierto y el número de fragmentos correlacionan a $r = 0{,}72$ sobre las
+  cuarenta y cinco configuraciones. Por eso las comparaciones se leen a igualdad de tamaño y
+  con el recuento de truncados al lado, y no por el orden bruto de la tabla. Quedan por último
+  dos parámetros sin validación experimental propia: el tamaño mínimo del fragmento, que la
+  rejilla no barrió, y el solape, que se midió sobre la estrategia de longitud pero no sobre la
+  adoptada.}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 2 (IT-58). Aquí van todas las amenazas juntas, no solo la de abajo:
-  la codificación declarada en falso por la fuente, la cobertura de guías del 82 \% con
-  sesgo hacia las titulaciones en implantación, el ECTS ausente, los parámetros de
-  fragmentación sin validar y los umbrales de la hipótesis fijados después de IT-28.
-\end{borrador}
+\textcolor{borrador2}{\textbf{Validez externa.} La colección recoge un solo centro y un solo
+  curso académico, y no es un estado estable sino una fotografía: durante el propio desarrollo
+  la fuente cambió el formato de las guías, la estructura de las tablas de asignaturas y las
+  rutas desde las que cuelgan los planes. Cualquier cifra de este capítulo va con esa reserva.
+  Dentro de la colección, además, \textbf{la cobertura no está repartida de forma uniforme}:
+  las 86 asignaturas sin contenido de guía y las cinco guías publicadas con las secciones
+  vacías se concentran en las titulaciones de implantación reciente, de modo que el sistema
+  sabe menos precisamente de las titulaciones más nuevas, que son sobre las que un
+  preuniversitario tiene más dudas. Falta también el crédito de una asignatura, que la fuente
+  no publica y que la colección deja ausente en lugar de imputarlo.}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 1 (IT-95) --- amenaza nueva, de \textbf{validez de
-    constructo}, y de las más serias que tiene el trabajo. Todo el contenido de
-  la colección se obtiene hoy de guías en PDF (288 de 288), y la extracción se
-  apoya en una lista de 17 rótulos de sección escrita a mano contra la
-  plantilla que la Universidad usaba al observarla. \textit{(Verificado el
-    30/07/2026: el código conoce 17 rótulos y espera encontrar 13 en toda guía;
-    de esos, solo 2 pasan el filtro de contenido.)}
-  \item Si esa plantilla cambia, una sección deja de terminar donde debe: o se queda
-  corta, y se pierde contenido, o absorbe la siguiente, y puede arrastrar el
-  bloque de profesorado con sus datos personales. \textbf{Ninguno de los dos
-    casos se manifiesta como un error}: el sistema sigue respondiendo, solo que
-  sobre menos contenido del que cree tener.
-  \item \textbf{Actualización:} la amenaza sigue en pie, pero ya está
-  \emph{instrumentada}, que no es lo mismo que descartada. El rastreo conserva
-  ahora una copia de cada PDF y un verificador comprueba, contra el original,
-  que todos los rótulos que la plantilla compone son de los conocidos. Mientras
-  esa comprobación salga vacía, las fronteras de sección caen donde el código
-  cree; en cuanto devuelva algo, hay que mirarlo antes de fiarse del corpus.
-  \item La forma de enunciarla, entonces, es esta: no se puede garantizar que la
-  plantilla no cambie —eso no depende del trabajo—, pero sí que un cambio deje
-  de pasar inadvertido. Es una diferencia que conviene marcar, porque es la
-  misma lección de los cuatro defectos anteriores: lo que no se comprueba no
-  
-  \item \textbf{Lo que se usa ahora} es la comprobación invertida: en vez de buscar
-  rótulos desconocidos, se comprueba qué rótulos \emph{faltan} de los trece
-  que la plantilla siempre compone. Un rótulo de más no significa nada; un
-  rótulo de menos significa que la plantilla ha cambiado, que es justo lo que
-  hay que detectar.
-  \item \textbf{Esto es mejor material de defensa que lo que sustituye}, y conviene
-  contarlo así: una heurística validada sobre 4 casos aguantó, y se rompió al
-  pasarla a 293. Es el mismo patrón que los defectos de la Fase 0 --- las
-  pruebas cubren lo que los datos contienen --- pero esta vez ocurrió sobre un
-  \emph{verificador}, es decir, sobre la herramienta que existe precisamente
-  para que no pase.
-  \item Dato útil para la defensa, y para adelantarse a la pregunta obvia sobre
-  cuánto se tira: de los \sout{53.969} \textbf{50.715} caracteres de secciones
-  que suman las tres guías de prueba se conservan 8.534,
-  \sout{alrededor del 15 \%} el \textbf{16,8~\%}. El resto se descarta
-  a propósito y con nombre ---evaluación, bibliografía, cláusulas, profesorado,
-  metodologías--- y el verificador lo enumera sección por sección, de modo que el
-  filtrado se puede revisar en lugar de tener que creérselo.
-  \item (El total cambió porque IT-97 movió las fronteras de sección al cambiar cómo
-  se detectan los rótulos; los 8.534 conservados son los mismos. Medido de
-  nuevo el 30/07/2026 sobre las tres guías de prueba.)
-\end{borrador}
+\textcolor{borrador2}{Las titulaciones dobles concentran tres limitaciones más, todas con la
+  misma raíz: la fuente las publica de otra manera. Sus asignaturas llevan códigos de una serie
+  propia que no coincide con la de los grados base, así que la correspondencia entre unas y
+  otras se establece por el nombre, y hoy funciona en 170 de 178 casos; depende, por tanto, de
+  que la fuente escriba igual la misma asignatura en dos planes distintos, y un cambio de
+  redacción lo degradaría sin que nada fallara. Cuando un nombre casa con varias guías
+  distintas la ambigüedad no se resuelve, y esas asignaturas reciben un fragmento que afirma
+  que no tienen guía publicada cuando en realidad sí la tienen. Y una de las cinco titulaciones
+  dobles no publica plan de estudios, ni asignaturas, ni salidas: figura en la colección solo
+  con su nombre, y el sistema no puede decir qué se estudia en ella.}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 1 (IT-95) --- anomalía de la fuente, para el registro de
-  calidad de datos y para matizar la cifra de cobertura. Cinco asignaturas de
-  planes en implantación publican su guía docente \textbf{con el esqueleto
-    completo de la plantilla y las secciones de contenido vacías}.
-  \item Se comprobó descargando los seis PDF implicados: los seis se leen
-  correctamente, con entre 9.300 y 13.000 caracteres cada uno y los trece
-  rótulos de la plantilla en su sitio. En uno de ellos, las líneas
-  <<RESUMEN>>, <<DESCRIPCIÓN DE CONTENIDOS>> y <<METODOLOGÍAS DOCENTES>>
-  aparecen seguidas, sin nada en medio.
-  \item Lo que importa aquí no es el número, sino la distinción: no es un fallo de
-  extracción del sistema, es un hueco del origen. El aviso del rastreador decía
-  <<PDF ilegible>> y la colección decía <<no ha podido obtenerse>>; las dos
-  cosas insinuaban un fallo propio que no existe. Ya está corregido: es
-  cuestión de honestidad de la propia colección, que no puede afirmar algo
-  falso sobre por qué le falta un dato. Queda registrado en el DQA-0004.
-  \item Merece contarse como pareja del defecto de IT-94, porque son el mismo error
-  en direcciones opuestas: allí la colección iba a negar una publicación que sí
-  existe; aquí iba a atribuirse un fallo que no había cometido. Las dos veces
-  el texto era cómodo de escribir y falso, y las dos veces lo que lo destapó
-  fue ir a mirar la fuente en lugar de fiarse de lo que el código creía.
-  \item Enlaza con la amenaza ya declarada del sesgo de cobertura: las titulaciones
-  de implantación reciente no solo concentran las asignaturas sin guía, sino
-  también las guías publicadas y vacías, que hasta ahora se contaban como
-  cobertura. \textbf{La cifra de cobertura que se publique debería separar
-    guías con contenido de guías vacías}, o declarar expresamente que no lo hace.
-\end{borrador}
-
-\textcolor{borrador2}{Entre las amenazas a la validez de construcción conviene destacar una por lo
-  que enseña sobre el propio método de trabajo. Durante la Fase 0 se dieron tres defectos que la
-  batería de pruebas no llegó a detectar y que solo aparecieron al ejecutar el sistema contra el
-  conjunto de datos completo. Al revisar el fragmentador apareció un cuarto caso del mismo tipo, con
-  una diferencia que merece señalarse: se localizó antes de que los datos llegaran a activarlo. Las
-  asignaturas que la fuente publica sin código se identificaban de forma que unas sobrescribían a
-  otras, y el encabezado de un fragmento podía terminar atribuyendo el temario a una materia
-  distinta. No llegó a ocurrir, porque ninguna de esas asignaturas tiene todavía guía publicada, pero
-  tampoco había nada que lo hubiera avisado: el verificador comparaba las claves de los fragmentos y
-  no el texto de sus encabezados, de manera que informaba de que el corpus era correcto. La
-  conclusión que se extrae no es que las pruebas sobren, sino que su cobertura está limitada por los
-  casos que el conjunto de datos contiene en un momento dado, y que un verificador solo protege de
-  aquello que efectivamente comprueba.}
+\textcolor{borrador2}{Queda una última amenaza que atraviesa a las anteriores y que conviene
+  enunciar sin adornos: \textbf{la cobertura de las pruebas está acotada por los casos que la
+    colección contiene en un momento dado}, y un verificador solo protege de aquello que
+  efectivamente comprueba. Un cambio en la fuente puede alterar el comportamiento del sistema
+  sin que se toque una línea de código, y por eso los verificadores se ejecutan sobre la
+  colección completa antes de cada entrega en lugar de confiar únicamente en la batería de
+  pruebas unitarias, que trabaja sobre casos fijos.}
 
 \begin{borrador}
-  \item \textbf{Comprueba el <<Fase 0>> de este párrafo (07/08/2026).} Los tres defectos que
-  las pruebas no detectaron sí son de la Fase~0, pero el cuarto es del fragmentador, y el
-  troceado se cuenta ahora en la Fase~1. Tal como está redactado no dice que el cuarto sea de
-  la Fase~0, así que puede que no haya que tocar nada; míralo y decide.
-  \item Lo mismo con la frase de más arriba que habla de <<el mismo patrón que los defectos
-  de la Fase~0>>.
+  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} La sección está organizada en
+  los cuatro tipos de validez porque es como los va a buscar el tribunal y como los enuncia el
+  propio método de trabajo. Si prefieres otro orden, el que funciona igual de bien es por
+  fases.
+  \item \textbf{Cada afirmación tiene su registro detrás}, por si te piden la evidencia: las
+  amenazas de los dos experimentos están en el ADR-0001 y el ADR-0003; las de los dobles grados
+  ---el cruce por nombre, el nombre ambiguo y la titulación que no publica nada---, en el
+  DQA-0005; las guías publicadas vacías, en el DQA-0004; y las cifras del filtrado de las guías
+  las escribe \texttt{check\_guias\_pdf.py} al ejecutarlo sobre la colección completa.
+  \item \textbf{Falta cotejar esta sección con esos registros antes de entregar.} Es el sitio
+  del capítulo donde más fácil es acabar diciendo aquí una cosa y allí otra, y una
+  contradicción entre la memoria y el registro que la respalda hace más daño que la amenaza que
+  se estaba declarando.
+  \item \textbf{Esta sección no está terminada, y no puede estarlo todavía:} faltan las
+  amenazas de la Fase 2, que son las de la generación ---si la respuesta es fiel al contexto,
+  si el modelo evasivo cuenta como acierto, qué mide un evaluador que es a su vez un modelo de
+  lenguaje--- y las de la validación con usuarios. Hay que volver aquí cuando existan esos
+  resultados.
+  \item \textbf{Decide dónde encaja respecto de la discusión.} Hoy son dos secciones distintas
+  y hay solape natural entre ellas: la discusión dice qué significa cada resultado y esta dice
+  con qué límite. Si al releer las ves repetirse, lo habitual es cerrar cada bloque de la
+  discusión con sus propios límites y dejar aquí solo las amenazas transversales.
 \end{borrador}
-
-\textcolor{borrador2}{La regeneración del corpus al curso siguiente confirmó ese diagnóstico de la
-  peor manera posible, y conviene contarlo porque matiza la conclusión anterior. El fragmentador, que
-  llevaba meses funcionando sin incidencias, dejó de terminar: no falló ni avisó de nada, sencillamente
-  se quedó dando vueltas. El procedimiento que une los fragmentos demasiado cortos daba por hecho que
-  repartir de nuevo un par siempre produce una división distinta, cuando el texto solo puede partirse
-  por sus fronteras naturales y a veces las únicas disponibles son las que ya lo separaban. Bastó con
-  que una guía tuviera dos fragmentos cuya suma excediera el máximo por un solo carácter para que el
-  proceso se repitiera indefinidamente. El defecto estaba en el código desde la fase inicial y ningún
-  conjunto de datos lo había activado: lo activó el cambio de la fuente, porque las guías del curso
-  nuevo llegan en un formato distinto y con ello cambian las fronteras del texto. La lección no es
-  solo que las pruebas cubren lo que los datos contienen, sino que la fuente puede modificar el
-  comportamiento del sistema sin que se toque una línea de código.}
-
-\textcolor{borrador2}{Ese mismo procedimiento volvió a no terminar por segunda vez, y el
-  segundo caso enseña algo distinto del primero. La corrección anterior se apoyaba en un
-  razonamiento explícito sobre por qué el proceso acaba: el número de fragmentos solo puede
-  disminuir, y como no puede bajar de uno, el número de reintentos está acotado. El
-  razonamiento era falso. Repartir de nuevo un par que no cabe junto puede devolver tres
-  fragmentos donde había dos, de modo que la cuenta también sube, y alternando uniones que la
-  bajan con repartos que la suben el proceso oscila indefinidamente sin llegar a ninguna
-  parte. Con los tamaños de fragmento en uso el caso era inalcanzable, y quedó al descubierto
-  al hacerlos configurables para poder ensayar valores menores. La corrección consiste en
-  descartar todo reparto que produzca más fragmentos de los que había, con lo que la cuenta
-  pasa a ser efectivamente decreciente y el razonamiento de terminación se sostiene. Lo que
-  merece señalarse no es el defecto en sí, sino que la primera corrección venía acompañada de
-  un argumento escrito de por qué no podía repetirse, y ese argumento no cubría todos los
-  casos: una demostración informal da una confianza que no siempre está justificada, y la
-  prueba de regresión que se añadió entonces no podía detectarlo porque comprobaba
-  exactamente el escenario que el argumento sí contemplaba.}
