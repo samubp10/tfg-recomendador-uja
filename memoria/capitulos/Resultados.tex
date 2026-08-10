@@ -37,66 +37,48 @@ De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%
 
 Sobre esta recopilación de información, el fragmentador produce 1.334 fragmentos repartidos en 322 unidades, de las cuales 78 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.193 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 33 de plan de estudios y 22 salidas profesionales. Los tamaños de estos fragmentos van desde los 171 a 900 caracteres, con una mediana de 838 y un percentil 90 de 894. Ninguno supera la ventana del modelo de incrustaciones.
 
+Estas cifras recogidas no proceden de una fuente uniforme, lo que ha llevado a muchos problemas de recogida de datos durante el desarrollo de este proyecto. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}.
 
-\textcolor{borrador2}{La primera afecta al formato. Las 288 guías docentes del curso 2026-27
-  se sirven como PDF y no como HTML, detrás de una dirección que sigue acabando en
-  \texttt{.html}, de modo que el formato solo se conoce mirando el tipo de contenido de la
-  respuesta. El PDF incluye además un bloque de profesorado con nombre, categoría, despacho,
-  correo electrónico y teléfono ---entre cuatro y seis correos y entre dos y cuatro teléfonos
-  en los ejemplares analizados--- que la versión en HTML no traía. Como la colección excluye
-  el profesorado a propósito, la extracción admite únicamente las secciones de resumen y de
-  descripción de contenidos y descarta por defecto todo lo demás.}
+La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que finaliza en .html, de modo que el formato solo se puede conocer mirando el tipo de contenido de la respuesta que arroja el servidor.
 
-\textcolor{borrador2}{La segunda afecta a la estructura de las tablas de asignaturas, que no
-  es la misma en todos los planes. El plan de 2025 del Grado en Ingeniería Geomática y
-  Topográfica intercala una columna de curso recomendado en las tablas de mención, que reúnen
-  19 de las 39 asignaturas de la titulación; y los dobles grados rotulan «carácter» la columna
+La segunda anomalía afecta a la estructura de las tablas de asignaturas, y es que esta no es la misma en todos los planes. Un ejemplo de ello es que los dobles grados rotulan «carácter» la columna
   que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples escriben «OB».
-  Leída por la posición de la columna, una tabla así no falla: devuelve cada dato de la
-  columna equivocada y la fila se descarta sin excepción y sin traza. Por eso las columnas se
-  localizan por su rótulo.}
 
-\textcolor{borrador2}{La tercera afecta a los dobles grados, que son cinco de las doce
-  titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en
-  mayúsculas y a veces con el acrónimo de la titulación de procedencia, y usan una serie de
-  códigos propia: ninguno de los códigos de sus asignaturas coincide con el de la misma
-  asignatura en el grado base, de manera que la correspondencia entre unas y otras solo puede
-  establecerse por el nombre.}
+  La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas \sout{coincide} \textcolor{borrador2}{coincida} con el de la misma asignatura en los grados base.
 
-\textcolor{borrador2}{La cuarta afecta a lo que las guías dicen. De las 288 publicadas, cinco
-  traen la plantilla completa ---sus trece rótulos en su sitio--- y las secciones de resumen y
-  de contenidos vacías desde el origen. No son guías ilegibles ni mal extraídas: están
-  publicadas y no dicen nada, y todas pertenecen a planes en implantación. La colección las
-  distingue de las asignaturas cuya guía no se ha publicado todavía, porque no son lo mismo:
-  una existe y está vacía, la otra no existe.}
+La cuarta anomalía afecta a las guías docentes, ya que de las 288 publicadas, cinco traen la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
 
-\textcolor{borrador2}{Quedan las irregularidades menores, que no cambian las cifras pero sí
-  el código que hace falta para obtenerlas: direcciones que no siguen ningún patrón deducible
-  ---construirlas produce errores 404 reales---, tablas que mezclan asignaturas troncales con
-  optativas agrupadas por mención, el Trabajo Fin de Grado declarado con tipo propio en unos
-  planes y como obligatoria en otros, filas de relleno sin código que no corresponden a
-  ninguna asignatura, espacios duros y caracteres de ancho cero intercalados en el texto,
-  direcciones con la extensión repetida, asteriscos de nota al pie pegados al nombre y la
-  marca de asignatura no ofertada dentro del propio nombre. Cada una se trata con una regla
-  determinista, y ninguna se resuelve inventando el dato: el crédito que la fuente no publica
-  se queda ausente en la colección.}
+
+La quinta son irregularidades menores, como tablas que mezclan asignaturas troncales con optativas, el Trabajo Fin de Grado declarado con tipo propio en unos planes y como obligatoria en otros, filas de relleno sin código que no corresponden a ninguna asignatura\sout{, etc...}\textcolor{borrador2}{, entre otras}
+
+
 
 \begin{borrador}
-  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Son las anomalías de la
-  fuente que condicionan lo que la colección puede contener, resumidas de los cinco registros
-  DQA del repositorio.
-  \item \textbf{Cada afirmación tiene su registro detrás}, por si te la discuten: el formato
-  en PDF y el bloque de profesorado, el DQA-0002; las tablas con las columnas cambiadas, el
-  DQA-0003; los dobles grados, el DQA-0005; las guías publicadas vacías, el DQA-0004; y las
-  irregularidades menores, el DQA-0001.
+  \item \textbf{Cada anomalía tiene su registro detrás, y ahora los cinco llevan dentro la
+    trazabilidad completa:} la fecha en que se detectó, la página o el documento real que la
+  produjo, la prueba de regresión que la cubre y qué hacer si vuelve a ocurrir. El formato en
+  PDF y el bloque de profesorado están en el DQA-0002; las tablas con las columnas cambiadas,
+  en el DQA-0003; los dobles grados, en el DQA-0005; las guías publicadas vacías, en el
+  DQA-0004; y las irregularidades menores, en el DQA-0001. Si alguien del tribunal quiere
+  comprobar una, ahí encuentra el nombre exacto de la prueba.
   \item \textbf{Decide si los citas uno a uno o solo el repositorio.} Citarlos por su
   identificador ayuda a quien quiera comprobarlo, pero obliga a que los cinco estén
-  accesibles en la entrega.
+  accesibles en la entrega, y hoy el repositorio es privado.
+  \item \textbf{Se ha quedado fuera el motivo por el que la extracción del PDF funciona por
+    lista de permitidos}, que es la mitad interesante de la primera anomalía: el documento
+  trae un bloque de profesorado con correos y teléfonos que la versión en HTML no publicaba,
+  y el trabajo excluye esos datos a propósito. Con una lista de prohibidos, una sección nueva
+  con datos personales entraría sola. Enlaza con el marco legal del
+  Capítulo~\ref{cap:antecedentes} y conviene no perderlo.
+  \item \textbf{También se ha quedado fuera lo que hace peligrosa a la segunda:} una tabla
+  con las columnas cambiadas \emph{no falla}. Se lee sin excepción, cada dato se toma de la
+  columna equivocada, la fila no valida y la titulación entera desaparece del corpus con el
+  rastreo aparentemente correcto. Es la frase que justifica que existan los verificadores
+  sobre la colección completa, y sin ella la enumeración parece una lista de molestias.
   \item \textbf{El hilo que las une, que es lo que hay que poder decir en una frase:} casi
-  ninguna de estas irregularidades produce un error. Una tabla con las columnas cambiadas se
-  lee sin excepción y devuelve datos de la columna equivocada, y una titulación entera
-  desaparece en silencio. De ahí que la colección se compruebe con verificadores propios sobre
-  el conjunto completo y no solo con las pruebas del código.
+  ninguna de estas irregularidades produce un error. De ahí que la colección se compruebe con
+  verificadores propios sobre el conjunto entero y no solo con las pruebas del código, que
+  cubren los casos conocidos.
 \end{borrador}
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
