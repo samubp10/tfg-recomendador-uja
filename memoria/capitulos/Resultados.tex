@@ -146,123 +146,22 @@ La última columna de esta tabla aporta un argumento que dejaba instantáneament
 
 En resumen de este apartado, la configuración es el corte estructural con un tamaño máximo de 900 y mínimo de 200 caracteres. Por encima de 1.200 caracteres el modelo empieza a recortar fragmentos, y de las opciones por debajo de esta cifra, el de 900 es el único en ganar en tres categorías, con la mitad de fragmentos que el de 600. Entre tres opciones con métricas prácticamente iguales, se conserva la que corta por las fronteras de texto, cuya ventaja está más que en la recuperación, en la generación.
 
-
-\begin{borrador}
-  \item \textbf{Objeción de defensa:} «si el modelo de incrustaciones ya estaba elegido y se
-  conocía su ventana, ¿por qué se probaron tamaños máximos que iban a truncar?».
-  \item \textbf{Primero, por qué hacía falta un modelo.} El experimento mide recuperación, y
-  recuperar exige vectores: no hay manera de comparar troceados por su acierto sin un modelo
-  de incrustaciones detrás. Eso crea un bucle ---para fijar el troceado hace falta el modelo, y
-  la comparación de modelos necesitó a su vez un troceado--- que solo se rompe fijando uno de
-  los dos. Aquí se fija el modelo, y se fija el que el sistema usa de verdad, con lo que el
-  troceado queda ajustado al modelo real y no a uno de referencia. El precio de romperlo así
-  está declarado entre las amenazas: el espacio conjunto de las dos decisiones no se ha
-  recorrido.
-  \item \textbf{Y segundo, por qué se probaron tamaños que truncan.} Porque que 900 caracteres
-  quepan en la ventana es un \emph{resultado} del experimento y no un supuesto de partida. La
-  equivalencia entre caracteres y \textit{tokens} no es fija: los números, las abreviaturas,
-  los códigos de asignatura y las palabras poco frecuentes consumen más \textit{tokens} por
-  carácter que la prosa corriente, así que un máximo en caracteres solo se traduce a un máximo
-  en \textit{tokens} midiéndolo sobre el corpus real. Los tamaños grandes son el control que
-  localiza dónde empieza el recorte en lugar de suponerlo.
-\end{borrador}
-
-
-
-
-\begin{borrador}
-  \item \textbf{Falta un aviso que evita una contradicción aparente:} el troceo por
-  longitud de esta tabla \emph{no} es el que descarta la
-  Tabla~\ref{tab:alternativas_chunking}. Allí se descarta uno que recorre la colección entera
-  y puede juntar dos asignaturas en un fragmento; aquí las tres estrategias trabajan ya dentro
-  de una unidad. Sin esa frase, una tabla lo descarta y la otra lo pone arriba.
-\end{borrador}
-
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-16). Aquí van las cifras y su lectura; el diseño de la rejilla
-  ---qué se comparó y con qué instrumento--- se queda en el
-  Capítulo~\ref{cap:materialesymetodos}. Si al releer encuentras aquí una frase que explica
-  \emph{cómo} se midió, es que pertenece allí.
-  \item \textbf{Cuidado con cómo lo cuentas}, que aquí es fácil pasarse de listo: la
-  conclusión no es «la fragmentación semántica es peor». Es que \textbf{no es mejor}, que es
-  distinto y más difícil de rebatir. Se descarta por coste, no por calidad.
-  \item \textbf{Amenaza que hay que enlazar} con la Sección~\ref{secc:amenazas_validez}: las
-  diferencias de una pregunta sobre cincuenta ---0,020--- no son distinguibles de lo que
-  movería otra anotación. La decisión se apoya en la comparación a igualdad de fragmentos y
-  en el recuento de truncados, no en el orden bruto de la tabla.
-  \item \textbf{Respuesta preparada, por si sale:} «mide usted los dos efectos por
-  separado, pero podrían depender el uno del otro». Dependen, y está medido: la distancia
-  entre estrategias vale 0,000 con 600 caracteres y 0,050 con 1.800. Lo que se sostiene es que
-  no dependen por debajo de 1.200, que es donde se decide, y que por encima la decisión ya la
-  ha tomado el truncado. Las quince medias que lo sostienen salen del anexo del ADR-0001.
-  \item \textbf{Lo que no se ha medido:} el efecto sobre la generación, que es donde la
-  fragmentación actúa de verdad. Si un fragmento parte una definición y solo llega la mitad,
-  la recuperación puntúa igual de bien y la respuesta sale peor. Exige métricas de la Fase 2.
-\end{borrador}
-
 \section{Selección del modelo de incrustaciones}
 \label{secc:resultados_embeddings}
 
-\begin{borrador}
-  \item \textbf{LA TABLA DE ESTA SECCIÓN ESTÁ CADUCADA (IT-16).} Sus cifras son de la
-  ejecución del 04/08/2026 sobre 797 fragmentos, con el máximo de fragmento todavía en
-  1.500 caracteres. Al fijar los parámetros de fragmentación el corpus pasó a
-  \textbf{1.334} y la comparativa se repitió el 06/08/2026. Las cifras vigentes están en
-  \texttt{docs/experimentos/it28-embeddings.md}, que escribe el propio guion: cópialas de
-  ahí a \texttt{tablas/TablaComparativaEmbeddings.tex}, no a mano desde aquí.
-  \item \textbf{Y hay que reescribir la conclusión, no solo los números.} El texto de
-  abajo dice que el modelo grande recupera mejor y que se descarta por coste. Con el
-  troceado nuevo la diferencia entre los dos baja de dos preguntas y media de cincuenta a
-  \textbf{media pregunta}, y el MRR se iguala en 0,970. La elección no cambia; el
-  argumento sí, y a mejor: ya no depende de que el sistema acabe usando diez resultados
-  por consulta, que es un parámetro que todavía no está decidido.
-  \item \textbf{Se da la vuelta además el desglose por tipo de pregunta.} En las de
-  metadatos ---donde el modelo pequeño era claramente peor--- pasa a ir por delante
-  (0,697 frente a 0,664). Si dejas la frase anterior sin tocar, estarás defendiendo la
-  decisión con una razón que hoy es falsa.
-  \item \textbf{Lo que no se puede decir:} que el modelo pequeño haya mejorado. El modelo
-  es el mismo y lo que cambió fue la colección. Trocear más fino reparte cada unidad en
-  más fragmentos y le da más oportunidades de entrar entre los primeros resultados, y de
-  eso se beneficia más el modelo que peor las aprovechaba.
-  \item \textbf{Cuidado con la exhaustividad por fragmento, que baja} (0,771 a 0,697) y
-  \emph{no} es una regresión: su techo baja con ella, de 0,905 a 0,789. Medido contra el
-  techo, el hueco se reduce de 0,134 a 0,092. Sin el techo al lado, la cifra dice lo
-  contrario de lo que ocurre.
-\end{borrador}
-
-\begin{borrador}      
-  \item \textbf{Fase: 1 (IT-28, IT-29, IT-100).} Sección nueva, con los resultados del
-  experimento del 04/08/2026. Andamiaje: la prosa la escribes tú. La tabla ya está
-  puesta y sus cifras salen del fichero que genera el propio guion, así que
-  \textbf{no las copies a mano en el texto}: si cambian, cambian ahí.
-  \item Regla del capítulo, para no repetir el error de otras secciones: aquí van
-  \emph{los resultados}, no la justificación del método. El diseño del experimento y
-  el porqué de cada candidato es Capítulo~\ref{cap:materialesymetodos}. Y la
-  interpretación fina («qué significa esto para el sistema») no debería mezclarse con
-  el dato.
-  \item Orden sugerido para redactar: (1) qué se midió y sobre qué; (2) la tabla;
-  (3) el resultado del modelo en español, que es el hallazgo; (4) el desglose por tipo
-  de pregunta; (5) las dos lecturas erróneas que hay que evitar.
-  \item Lo que \textbf{no} se ha medido y hay que decir en algún sitio: la latencia de
-  una consulta, ni con este modelo ni con ningún otro. Los tiempos que se manejan son
-  de incrustar la colección entera, que es una operación por lotes y poco frecuente.
-\end{borrador}
-
-\textcolor{borrador2}{La comparativa se ejecutó sobre la colección completa, con las
-  cincuenta preguntas anotadas del conjunto de evaluación, y sus resultados se recogen en la
+\textcolor{borrador2}{La comparativa se ejecutó sobre la colección completa y las cincuenta
+  preguntas anotadas del conjunto de evaluación, y sus resultados están en la
   Tabla~\ref{tab:comparativa_embeddings}. Los cuatro candidatos admiten al menos quinientos
-  doce \glr{tokens}{token}, de modo que ninguno se queda sin leer parte de los fragmentos:
-  esa condición se comprueba en cada ejecución y no se da por supuesta, porque en las
-  ejecuciones anteriores del experimento dos de los modelos evaluados solo alcanzaban a leer
-  la mitad del texto y sus cifras no eran comparables con las del resto.}
+  doce \glr{tokens}{token}, de modo que ninguno se queda sin leer parte de los fragmentos: esa
+  condición se comprueba en cada ejecución y no se da por supuesta, porque un modelo que
+  recorta el texto en silencio produce cifras que no son comparables con las del resto.}
 
 \input{tablas/TablaComparativaEmbeddings}
 
-\textcolor{borrador2}{El resultado que más información aporta no es cuál de los modelos
-  obtiene la mejor puntuación, sino la distancia a la que queda el único candidato entrenado
+\textcolor{borrador2}{El resultado que más información aporta no es cuál de los cuatro obtiene
+  la mejor puntuación, sino la distancia a la que queda el único candidato entrenado
   específicamente en español. Su exhaustividad por unidad en los tres primeros resultados es
-  de 0,320 frente al 0,945 del modelo multilingüe de tamaño equivalente, y no recupera ninguna
+  de 0,410 frente al 0,985 del modelo multilingüe de tamaño equivalente, y no recupera ninguna
   de las catorce preguntas que piden el listado completo de asignaturas de una titulación. Al
   haber leído exactamente el mismo texto que los demás, la diferencia no puede atribuirse a
   que dispusiera de menos información, sino a la tarea para la que fue entrenado: reconocer si
@@ -272,32 +171,70 @@ En resumen de este apartado, la configuración es el corte estructural con un ta
   pueda existir un modelo en español adecuado para recuperación, sino que el mejor disponible
   en el momento de la comparación no lo es.}
 
-\begin{borrador}      
-  \item \textbf{Dos lecturas erróneas de la tabla que conviene desactivar tú mismo}, porque
-  son las dos preguntas que va a hacer el tribunal.
-  \item \textbf{«Un 0,697 significa que falla una de cada tres veces.»} No. La
-  exhaustividad por fragmento \textbf{no tiene techo 1}: una unidad repartida en más de $K$
-  fragmentos no cabe entera en los $K$ primeros resultados. Sobre esta colección el máximo
-  alcanzable es \textbf{0,789} para K=3, \textbf{0,906} para K=5 y \textbf{0,968} para K=10.
-  Hay que restar del techo, no de la unidad.
-  \item \textbf{«\texttt{bge-m3} recupera mejor que el modelo elegido.»} Solo en una columna,
-  y no es la que decide. Gana en exhaustividad \emph{por fragmento} (0,720 frente a 0,697 con
-  K=3), empata en la \emph{por unidad} con K=3, y con K=10 la pierde: 0,995 frente al
-  \textbf{1,000} del pequeño. Y en MRR queda claramente por detrás ---0,949 frente a
-  0,970---, es decir, coloca el primer acierto más abajo.
-  \item \textbf{Y esa ventaja no está repartida, está concentrada.} En el desglose por tipo,
-  \texttt{bge-m3} gana solo en las preguntas de salidas profesionales (0,917 frente a 0,690);
-  en las de metadatos \textbf{es el peor de los tres} (0,631 frente a 0,697 del pequeño). Una
-  media general que no se desglosa aquí diría lo contrario de lo que ocurre.
-  \item \textbf{Cuidado con explicar por qué.} \texttt{bge-m3} se diferencia del modelo
-  elegido en tamaño, familia, entrenamiento y convención de prefijos \emph{a la vez}, así que
-  este experimento \textbf{no puede atribuir} la diferencia a ninguna de esas causas. El único
-  par que aísla una sola variable es el de los dos modelos de la misma familia. Decirlo así es
-  más fuerte que aventurar una explicación.
-  \item \textbf{Y una tercera, sobre el crecimiento con K.} La exhaustividad es monótona
-  creciente en K, así que que K=10 supere a K=5 es una propiedad de la métrica y no un
-  hallazgo. Lo que decide K es el coste de contexto del generador, y eso se mide en la
-  Fase 2.
+\textcolor{borrador2}{Los dos primeros puestos los ocupa el mismo modelo a dos tamaños, y esa
+  es la única comparación del experimento que aísla una sola variable: comparten familia,
+  entrenamiento, convención de prefijos y ventana, y se diferencian solo en que el mayor tiene
+  casi cinco veces más parámetros. Lo que dice esa comparación es que el tamaño compra menos
+  de lo que parece. \textbf{Los dos empatan en las dos medidas que más pesan}: la exhaustividad
+  por unidad con diez resultados vale 1,000 en ambos ---la asignatura correcta está siempre
+  entre los diez primeros--- y el MRR vale 0,970 en ambos, es decir, colocan el primer acierto
+  igual de arriba. Donde el grande gana, gana poco: 0,995 frente a 0,985 con tres resultados es
+  media pregunta de las cincuenta.}
+
+\textcolor{borrador2}{Lo que de verdad separa a esos dos modelos no aparece en ninguna columna
+  de la tabla, y no es una cuestión de calidad sino de memoria. Los pesos del modelo pequeño
+  ocupan alrededor de 0,5~GB de memoria principal y los del grande unos 2,2~GB, sobre un equipo
+  de 16~GB en el que el recuperador tiene que convivir con el modelo generativo de la fase
+  siguiente. Y no es un cálculo sobre el papel: ejecutar la comparativa con el modelo grande
+  obliga en este equipo a reducir el tamaño del lote y a liberar cada modelo antes de cargar el
+  siguiente. El tiempo de indexación, que es la diferencia más llamativa ---el grande tarda 5,6
+  veces más en incrustar la colección entera---, es en cambio el coste que menos pesa, porque
+  incrustar la colección es una operación por lotes que solo se repite cuando la colección
+  cambia.}
+
+\textcolor{borrador2}{El cuarto candidato no ofrece una tercera vía. Con un tamaño equivalente
+  al del modelo grande, \texttt{bge-m3} gana en exhaustividad por fragmento pero pierde en las
+  dos medidas que acaban de decidir la comparación anterior: 0,995 de exhaustividad por unidad
+  con diez resultados frente al 1,000 de los otros dos, y 0,949 de MRR frente a 0,970. Su
+  ventaja, además, está concentrada y no repartida: gana en las preguntas por salidas
+  profesionales (0,917 frente a 0,690) y es el peor de los tres en las de metadatos (0,631
+  frente a 0,697). Conviene no aventurar la causa, porque el experimento no la sostiene: se
+  diferencia del modelo adoptado en tamaño, familia, entrenamiento y convención de prefijos a
+  la vez, de modo que la diferencia no puede atribuirse a ninguna de las cuatro.}
+
+\textcolor{borrador2}{Se adopta, por tanto, \texttt{multilingual-e5-small}. La decisión no
+  descansa en que sea el mejor de los cuatro, porque no lo es, sino en que \textbf{empata con
+    el mejor justo donde el sistema lo va a usar y ocupa una cuarta parte de la memoria}. El
+  límite de esa conclusión es el mismo que el del resto del experimento: media pregunta de
+  cincuenta está por debajo de lo que un conjunto anotado por una sola persona permite
+  distinguir, así que lo que estos datos sostienen es el empate entre los dos tamaños, no una
+  ventaja del pequeño.}
+
+\begin{borrador}
+  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Fase 1 (IT-28, IT-29,
+  IT-100). El diseño del experimento y el porqué de cada candidato viven en el
+  Capítulo~\ref{cap:materialesymetodos}; aquí van las cifras y su lectura.
+  \item \textbf{Las cifras salen de \texttt{docs/experimentos/it28-embeddings.md}}, que
+  escribe el propio guion. Si vuelves a ejecutarlo, se copian de ahí a
+  \texttt{tablas/TablaComparativaEmbeddings.tex} y no se tocan a mano en el texto.
+  \item \textbf{Respuesta preparada: <<un 0,697 significa que falla una de cada tres
+    veces>>.} No. La exhaustividad por fragmento no tiene techo 1, porque una unidad repartida
+  en más de $K$ fragmentos no cabe entera en los $K$ primeros puestos: sobre esta colección el
+  máximo es 0,789 con $K=3$. Hay que restar del techo, no de la unidad. Está en el pie de la
+  tabla, pero conviene poder decirlo sin leerlo.
+  \item \textbf{Respuesta preparada: <<\texttt{bge-m3} recupera mejor que el modelo
+    elegido>>.} Solo en una columna, y no es la que decide; el párrafo correspondiente lo
+  desarrolla. Si te lo preguntan, el orden es: en qué gana, en qué pierde, y por qué el
+  experimento no puede decir a qué se debe.
+  \item \textbf{Falta por decidir si el desglose por tipo de pregunta merece tabla propia.}
+  Hoy se citan en el texto solo las cuatro cifras que sostienen un argumento, y las quince del
+  desglose completo están en el fichero del experimento. Con tabla se ve de un vistazo que
+  ningún modelo gana en todos los tipos; sin ella, el apartado es más corto.
+  \item \textbf{Lo que no se ha medido y hay que decir en algún sitio:} la latencia de una
+  consulta, con ningún modelo. Los tiempos que se manejan son de incrustar la colección
+  entera, que es otra operación. Tampoco se ha medido el consumo de memoria del sistema
+  completo, porque el modelo generativo todavía no está elegido: las cifras de 0,5 y 2,2~GB
+  son las de los pesos, no las del conjunto.
 \end{borrador}
 
 \section[Base de datos vectorial]{\textcolor{borrador2}{Base de datos vectorial}}
