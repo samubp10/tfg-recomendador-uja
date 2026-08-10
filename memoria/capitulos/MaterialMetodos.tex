@@ -132,12 +132,8 @@ Los otros cinco tipos de tarjetas con sus criterios de finalización son:
   \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
 \end{itemize}
 
-\begin{borrador}                                                                  
-  \item sección viva, si se crea algún otro tipo de tarjeta.
-\end{borrador}
-
-
 \begin{borrador}
+  \item \textbf{Apartado vivo:} si aparece un tipo de tarjeta nuevo, sus criterios van aquí.
   \item \textbf{El símbolo de porcentaje se escribe de cuatro maneras distintas} a lo largo de
   la memoria: \texttt{13,65\textbackslash\%}, \texttt{90\textbackslash,\textbackslash\%},
   \texttt{82~\textbackslash\%} y \texttt{99\textbackslash\%}. La norma es dejar un espacio fino
@@ -357,10 +353,6 @@ en el laboratorio por el que no se ha podido elegir modelos de más prestaciones
 
 \section{Arquitectura del sistema}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Faltan:} Concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
-\end{borrador}
-
 Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las URL rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
 \textcolor{red}{No se comienzan los párrafos con 'Y'}
@@ -437,8 +429,10 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 \end{figure}
 
 \begin{borrador}                                                                                                
-  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no
-    (07/08/2026).} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
+  \item \textbf{Faltan por concretar los bloques de las Fases 1 a 3} ---modelo de
+  incrustaciones, base vectorial, modelo generativo e interfaz--- cuando esas decisiones estén
+  tomadas. Las dos primeras ya lo están y la figura todavía no las recoge.
+  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no.} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
   fragmentos y la flecha del \textit{chunker}, pero el troceado se cuenta ahora en la Fase~1
   (Sección~\ref{subsec:chunking}).
   \item \textbf{Decide qué cuenta la figura antes de tocarla}, porque las dos lecturas son
@@ -860,59 +854,39 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \label{fig:anatomia_guia}
 \end{figure}
 
-\begin{borrador}                                                                                                                  
-  \item \textbf{Esta figura da por hecha la reescritura que pide IT-95}, la del borrador de
-  abajo: describe la extracción \emph{desde PDF}, que es por donde pasa hoy el 100~\% del
-  contenido, mientras que los párrafos de arriba siguen contando el camino HTML. Si
-  reescribes la subsección, la figura ya está; si decides no reescribirla todavía, la figura
-  se adelanta al texto y hay que avisarlo.
-  \item \textbf{Los diecisiete rótulos no son una invención ni una lista teórica:} están
-  escritos a mano en el código contra la plantilla observada, y son los que delimitan las
-  secciones. La figura lista nueve y resume los ocho restantes para no llenarse de ruido.
-  \item Comprueba que el texto explique antes lo que la figura usa ---qué es la lista de
-  permitidos y por qué no es de prohibidos---, porque la norma que te fijaste es que una
-  figura no puede contener nada que el texto no haya explicado.
-\end{borrador}
-
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Cifras del 05/08/2026}, tras incorporar los planes de los dobles grados
-  (IT-101): de las \textbf{528} asignaturas del catálogo, \textbf{442} cuentan con guía y
-  \textbf{86} no, una cobertura del \textbf{83,7~\%}. Las \textbf{288} guías se agrupan en
-  \textbf{210} unidades tras deduplicar, porque una misma guía se imparte en varias
-  titulaciones. Van con su fecha y su curso: la Escuela publica guías durante todo el año y
-  estas cifras van a cambiar otra vez antes de la entrega.
-  \item \textbf{Sustituyen a las del 30/07/2026}, que decían 350 asignaturas, 62 sin guía y
-  una cobertura del 82,3~\%. La diferencia no es que la fuente publicara nada nuevo: son las
-  asignaturas de las cinco titulaciones dobles, que hasta IT-101 no estaban en la colección.
-  \item \textbf{La segunda frase tachada afirma algo que hoy no ocurre nunca.}
-  El mecanismo de respaldo se activa en \textbf{0 de las 288 guías} (campo
-  \texttt{fallback} del conjunto de datos). No es que se active poco: no se
-  ejecuta jamás con el corpus actual, porque pertenece al camino de
-  extracción desde HTML y hoy el 100~\% de las guías llega en PDF.
-  \item Los 5 casos reales son otra cosa completamente distinta, y la diferencia
-  importa: son guías \textbf{publicadas con las secciones de contenido
-    vacías en el origen}. No es un fallo de extracción del sistema, es un hueco
-  de la fuente. Está documentado en el DQA-0004 y desarrollado en el
-  Capítulo~\ref{cap:resultados}.
-  \item Escribir <<se activa un mecanismo de respaldo>> describiendo código que no
-  se ejecuta es el tipo de afirmación que el tribunal puede comprobar en
-  treinta segundos abriendo el conjunto de datos.
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
-    mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
-  extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
-  2026-27, \textbf{las 288 guías del corpus vienen de PDF y ninguna de
-    HTML}. Hay que reescribirla contando los dos caminos y cuál está vivo.
-  \item La comprobación no es una estimación: el camino HTML une sus bloques con
-  doble salto de línea y el limpiador colapsa todo espacio en blanco, así
-  que un texto sacado del HTML no puede contener un salto suelto. No hay ni
-  un doble salto en todo el corpus y sí 564 campos con saltos simples.
-  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de
-  ser un caso particular y es por donde pasa \textbf{el 100 \% del contenido}.
-  Sus 17 rótulos de sección, escritos a mano contra una plantilla observada,
-  sostienen ahora la colección entera.
+  \item \textbf{Fase:} 1 (IT-95, IT-96) --- \emph{esta subsección describe un mecanismo que
+    ya no es el que se usa}. Todo lo de arriba cuenta la extracción desde HTML, y hoy
+  \textbf{las 288 guías del corpus vienen de PDF y ninguna de HTML}. Hay que reescribirla
+  contando los dos caminos y cuál está vivo. La figura de la anatomía de la guía ya da por
+  hecha esa reescritura ---describe la extracción desde PDF---, así que hoy va por delante del
+  texto.
+  \item La comprobación no es una estimación: el camino HTML une sus bloques con doble salto
+  de línea y el limpiador colapsa todo espacio en blanco, así que un texto sacado del HTML no
+  puede contener un salto suelto. No hay ni un doble salto en todo el corpus y sí 564 campos
+  con saltos simples.
+  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de ser un caso
+  particular y es por donde pasa \textbf{el 100~\% del contenido}. Sus 17 rótulos de sección,
+  escritos a mano contra la plantilla observada, sostienen ahora la colección entera. La
+  evidencia, las pruebas que lo cubren y qué hacer si la plantilla cambia están en el
+  DQA-0002.
+  \item \textbf{Cifras vigentes:} de las \textbf{528} asignaturas, \textbf{442} cuentan con
+  guía y \textbf{86} no, una cobertura del \textbf{83,7~\%}; las \textbf{288} guías se agrupan
+  en \textbf{210} unidades tras deduplicar. Van con su curso, porque la Escuela publica guías
+  durante todo el año.
+  \item \textbf{El mecanismo de respaldo se activa en 0 de las 288 guías} (campo
+  \texttt{fallback}). No es que se active poco: no se ejecuta nunca, porque pertenece al
+  camino HTML. Escribir <<se activa un mecanismo de respaldo>> describiendo código que no se
+  ejecuta es de lo que el tribunal comprueba en treinta segundos abriendo el conjunto de
+  datos. Los cinco casos reales son otra cosa: guías \textbf{publicadas con las secciones de
+    contenido vacías en el origen}, que es un hueco de la fuente y no un fallo de extracción
+  (DQA-0004).
+  \item \textbf{La lista de permitidos merece enunciarse una vez como principio}, porque el
+  proyecto la aplica en dos sitios: en las secciones del PDF ---solo pasan resumen y
+  descripción de contenidos--- y en el nombre de la asignatura, que se toma del mismo enlace
+  del que sale la dirección de su guía y no juntando todo el texto de la celda. Cuando la
+  Escuela añadió un segundo enlace al <<Syllabus>>, ese rótulo se pegaba al nombre de 43
+  asignaturas; tomar solo lo que se sabe válido lo dejó fuera por construcción.
   \item \textbf{Cómo contarlo, que es lo delicado:} la memoria describe el
   \emph{estado final} del sistema, no su historia. No se narra la migración
   paso a paso ni las cifras intermedias (esas viven en el DQA-0002 y en el
@@ -937,22 +911,6 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   describe lo que pasa: hoy el respaldo no se activa ninguna vez. Lo que sí
   hay son 5 asignaturas cuya guía se publica con las secciones de contenido
   \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
-  del criterio general del proyecto, así que merece un párrafo aquí.
-  \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
-  del nombre de la asignatura (a un documento <<Syllabus>>). Como el nombre
-  se componía juntando todo el texto de la celda, ese rótulo se pegaba al
-  final y 43 de las 350 asignaturas quedaron con un nombre que no existe.
-  \item El primer arreglo borraba ese rótulo concreto. Se sustituyó por otro que no
-  depende de cómo se llame: \textbf{el nombre es el texto del mismo enlace
-    del que ya salía la dirección de su guía}. Cualquier otro enlace de la
-  celda queda fuera por construcción.
-  \item Es el mismo criterio que se adoptó para las guías en PDF: no una lista de
-  lo que hay que excluir, sino tomar únicamente lo que se sabe que es válido.
-  Conviene enunciarlo una vez como principio y referirlo desde los dos sitios.
 \end{borrador}
 
 \subsection{Extracción de las salidas profesionales}
@@ -1006,26 +964,15 @@ los dos grados por separado.
   \label{fig:estructura_salidas}
 \end{figure}
 
-\begin{borrador}                                                                                                                  
-  \item \textbf{La figura contradice a propósito la última frase del párrafo anterior}, y
-  esto hay que resolverlo antes de cerrar el apartado (está desarrollado en el borrador de
-  más abajo). El recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
-  \emph{sí} publica salidas propias; el párrafo dice que las de un doble grado son la
-  concatenación de las de sus dos grados base. Si eso fuera cierto, no habría ningún bloque
-  propio de un doble grado y serían siete, no ocho. Comprobado el 07/08/2026 en
-  \texttt{data/grados.json}: los ocho son los siete grados simples más el Doble Grado en
-  Ingeniería Eléctrica y Mecánica.
-  \item Cuando decidas cómo redactarlo, ajusta también el recuadro amarillo de la figura,
-  que es donde va la cifra.
-\end{borrador}
-
 \begin{borrador}                                                                                                                                                    
-  \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{OJO, esto hay que resolverlo antes de cerrar el apartado.} \textbf{Cuidado con la frase que acabas de escribir: la evidencia del proyecto
-    dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
+  \item \textbf{Esto hay que resolverlo antes de cerrar el apartado, y la figura ya lo
+    señala:} su recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
+  \emph{sí} publica salidas propias, mientras que el párrafo dice que las de un doble grado
+  son la concatenación de las de sus dos grados base. Si eso fuera cierto no habría ningún
+  bloque propio y serían siete. Comprobado sobre \texttt{data/grados.json}: los ocho son los
+  siete grados simples más el Doble Grado en Ingeniería Eléctrica y Mecánica. Cuando decidas
+  cómo redactarlo, ajusta también el recuadro amarillo de la figura, que es donde va la cifra.
+  \item \textbf{La evidencia del proyecto dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
   con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
   dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones reguladas
   da acceso la doble titulación, y ese párrafo \textbf{no aparece en ninguno de los dos
@@ -1193,25 +1140,9 @@ idénticas solo deja el índice ligeramente más grande.
 \subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
 \label{secc:verificacion_fase0}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
-\end{borrador}
-
 La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
-
-\begin{borrador}                                                                                                
-  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos
-    (07/08/2026).} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
-  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
-  deduplicación, que sí se queda aquí, comprueba la otra mitad.
-  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
-  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
-  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
-  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
-  respetar el reparto de fases es peor remedio que la enfermedad.
-\end{borrador}
 
 \textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
   Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
@@ -1239,9 +1170,18 @@ Las pruebas unitarias se emplean en base a los ficheros reales descargados llama
 La reproducibilidad del sistema no se apoya en una copia versionada de los datos \sout{(no está subida a github)} \textcolor{borrador2}{(no está subida a GitHub)}, sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
-  adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
-  \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
+  \item \textbf{Fase:} 0 (IT-19). Aquí \textbf{no} van cifras de caracterización de la
+  colección ni amenazas a la validez: eso es IT-58 y va al Capítulo~\ref{cap:resultados}.
+  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos.} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
+  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
+  deduplicación, que sí se queda aquí, comprueba la otra mitad.
+  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
+  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
+  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
+  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
+  respetar el reparto de fases es peor remedio que la enfermedad.
+  \item \textbf{Matiz honesto sobre la reproducibilidad, para adelantarse al tribunal}
+  (IT-58): re-rastrear la web \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
   (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
   titulaciones de Geomática con la tabla de asignaturas reestructurada,
   resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
@@ -1314,12 +1254,6 @@ Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla
 
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
 \label{secc:rejilla_fragmentacion}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Este apartado se quedó solo con el diseño el 07/08/2026}, y las cifras se
-  fueron a la Sección~\ref{secc:resultados_fragmentacion}. 
-\end{borrador}
-
 
 La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento
 con la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
