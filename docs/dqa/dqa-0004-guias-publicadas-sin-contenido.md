@@ -7,6 +7,7 @@ DQA-0003 (el cambio de estructura de las tablas)._
 
 - **Estado:** aceptada
 - **Fecha:** 2026-07-29
+- **Anomalía detectada:** 29/07/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 1 — extracción (`guia_pdf.py`, `grados_spider.py`) y
   fragmentación (`chunker.py`)
 
@@ -103,6 +104,44 @@ tal fallo.
   vacías»: añadir su PDF a las fixtures agravaría un problema aparte —las tres
   fixtures actuales versionan 9 correos y 6 teléfonos de profesorado real— que
   se resuelve antes de hacer público el repositorio.
+
+## Pruebas y evidencia
+
+> **Sobre la columna «Detectada».** Es la fecha del commit que incorpora la prueba de
+> regresión de esa anomalía, que es la constancia verificable más próxima al hallazgo:
+> el hallazgo en sí no deja rastro en el repositorio, la prueba sí. Cada fecha se puede
+> comprobar con `git log -S "def <nombre de la prueba>" -- tests/`.
+
+| Anomalía | Detectada | Evidencia | Prueba de regresión |
+|---|---|---|---|
+| La fuente publica la guía con la plantilla completa y las secciones de contenido vacías | 29/07/2026 | los seis PDF descargados el 29/07/2026, con la tabla de caracteres extraídos de este mismo registro | `test_guia_pdf.py::test_una_guia_correcta_no_necesita_motivo`, `::test_un_pdf_ilegible_se_distingue_como_tal` |
+| El aviso del rastreo debe distinguir la causa y no llamar «ilegible» a un PDF que se lee | 29/07/2026 | 15411008, 15712019 | `test_guia_pdf.py::test_un_pdf_ilegible_se_distingue_como_tal` (`motivo_sin_guia`) |
+| La asignatura entra igualmente al corpus con su fragmento informativo | 29/07/2026 | `chunks_muestra_real.json` | `test_chunker.py` (fragmento de asignatura sin guía), `test_check_chunks.py` |
+
+`scripts/check_chunks.py` comprueba sobre la colección completa que toda asignatura sin
+contenido de guía recibe su fragmento informativo, de modo que ninguna desaparece en silencio.
+
+## Cómo se corrige y cómo se detecta si vuelve
+
+Aquí no hay nada que corregir en el código: **el hueco es del origen**. Lo que sí hay que
+sostener es que la colección no afirme algo falso sobre por qué le falta un dato.
+
+1. `motivo_sin_guia` distingue cuatro causas ---PDF corrupto o cifrado, PDF sin capa de texto,
+   rótulos que no encajan con los conocidos, y secciones vacías en el origen---. **Solo la
+   última se ha observado.** Si alguna vez aparece otra, el aviso lo dirá y el tratamiento es
+   distinto en cada caso.
+2. Si el número de estas guías crece, hay que revisar la cifra de cobertura que se publica en
+   la memoria: una guía publicada y vacía **no es cobertura**, y contarla como tal infla el
+   dato justamente en las titulaciones de implantación reciente, que son las que ya arrastran
+   el sesgo.
+3. La comprobación es barata: descargar el PDF de `data/guias_pdf/` y mirar si los rótulos
+   «RESUMEN» y «DESCRIPCIÓN DE CONTENIDOS» aparecen seguidos, sin nada en medio.
+
+**Lo que no hay que hacer:** rellenar el hueco. Ni con el temario del curso anterior, ni con el
+de la misma asignatura en otra titulación, ni con un resumen generado. Un dato ausente se
+refleja, no se imputa, y el fragmento informativo dice exactamente lo que ocurre: que la guía
+está publicada y no recoge ni resumen ni temario.
+
 
 ## Referencias
 
