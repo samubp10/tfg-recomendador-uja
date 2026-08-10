@@ -1,4 +1,4 @@
-\chapter[RESULTADOS Y DISCUSIÓN]{\textcolor{borrador2}{RESULTADOS Y DISCUSIÓN}}
+\chapter[RESULTADOS Y DISCUSIÓN]{RESULTADOS Y DISCUSIÓN}
 \label{cap:resultados}
 
 
@@ -28,76 +28,94 @@
   muestra. El método con el que se obtuvieron ---qué se compara, con qué instrumento y por
   qué--- está en el Capítulo~\ref{cap:materialesymetodos}; aquí están las cifras y su
   lectura.}
-\section[La colección documental construida]{\textcolor{borrador2}{La colección documental construida}}
+\section[La colección documental construida]{La colección documental construida} 
 \label{secc:resultados_coleccion}
 
-\textcolor{borrador2}{La colección documental resultante recoge las \textbf{12 titulaciones}
-  que la Escuela ofrece en el curso 2026-27 ---siete grados y cinco dobles grados--- con sus
-  \textbf{528 asignaturas}, las \textbf{288 guías docentes} publicadas y \textbf{8 bloques} de
-  salidas profesionales. Es el conjunto completo del centro y no una muestra.}
+La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-\textcolor{borrador2}{De esas 528 asignaturas, \textbf{442 disponen de guía docente}, una
-  cobertura del \textbf{83,7~\%}. Las \textbf{86 restantes} no la tienen, y su reparto no es
-  uniforme: se concentran en las titulaciones de implantación reciente, cuyos cursos
-  superiores todavía no han publicado sus guías. Esa concentración condiciona lo que el
-  sistema puede responder y conviene tenerla presente al leer cualquier resultado posterior,
-  porque significa que sabe menos precisamente de las titulaciones más nuevas.}
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo.\sout{,} El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
-\textcolor{borrador2}{Sobre esa colección, el fragmentador produce \textbf{1.334 fragmentos}
-  repartidos en \textbf{322 unidades}, de las cuales \textbf{78 se comparten entre varias
-    titulaciones}. Por origen son 1.193 de guía docente, 86 informativos de asignaturas sin
-  guía publicada, 33 de plan de estudios y 22 de salidas profesionales. Los tamaños van de
-  \textbf{171 a 900} caracteres, con una mediana de 838 y un percentil 90 de 894; los seis
-  fragmentos que quedan por debajo del mínimo de 200 son colas irreducibles y suponen el
-  0,45~\% del total. Ninguno supera la ventana del modelo de incrustaciones.}
+Sobre esta recopilación de información, el fragmentador produce 1.334 fragmentos repartidos en \sout{332} \textcolor{borrador2}{322} unidades, de las cuales 78 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.193 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 33 de plan de estudios y 22 salidas profesionales. Los tamaños de estos fragmentos van desde los 171 a 900 caracteres, con una mediana de 838 y un percentil 90 de 894. Ninguno supera la ventana del modelo de incrustaciones.
+
+
+
+\textcolor{borrador2}{Estas cifras no proceden de una fuente uniforme, y conviene
+  dejar constancia de ello porque condiciona lo que la colección puede llegar a contener. La
+  web de la EPSJ no publica ningún esquema de sus páginas: cada titulación las genera con la
+  plantilla de su plan y esas plantillas no coinciden entre sí. El repositorio recoge cinco
+  registros de anomalías de calidad de datos ---la serie DQA--- con la evidencia de cada
+  una\cite{repo_tfg}, y todas comparten un rasgo: casi ninguna produce un error.}
+
+\textcolor{borrador2}{La primera afecta al formato. Las 288 guías docentes del curso 2026-27
+  se sirven como PDF y no como HTML, detrás de una dirección que sigue acabando en
+  \texttt{.html}, de modo que el formato solo se conoce mirando el tipo de contenido de la
+  respuesta. El PDF incluye además un bloque de profesorado con nombre, categoría, despacho,
+  correo electrónico y teléfono ---entre cuatro y seis correos y entre dos y cuatro teléfonos
+  en los ejemplares analizados--- que la versión en HTML no traía. Como la colección excluye
+  el profesorado a propósito, la extracción admite únicamente las secciones de resumen y de
+  descripción de contenidos y descarta por defecto todo lo demás.}
+
+\textcolor{borrador2}{La segunda afecta a la estructura de las tablas de asignaturas, que no
+  es la misma en todos los planes. El plan de 2025 del Grado en Ingeniería Geomática y
+  Topográfica intercala una columna de curso recomendado en las tablas de mención, que reúnen
+  19 de las 39 asignaturas de la titulación; y los dobles grados rotulan «carácter» la columna
+  que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples escriben «OB».
+  Leída por la posición de la columna, una tabla así no falla: devuelve cada dato de la
+  columna equivocada y la fila se descarta sin excepción y sin traza. Por eso las columnas se
+  localizan por su rótulo.}
+
+\textcolor{borrador2}{La tercera afecta a los dobles grados, que son cinco de las doce
+  titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en
+  mayúsculas y a veces con el acrónimo de la titulación de procedencia, y usan una serie de
+  códigos propia: ninguno de los códigos de sus asignaturas coincide con el de la misma
+  asignatura en el grado base, de manera que la correspondencia entre unas y otras solo puede
+  establecerse por el nombre.}
+
+\textcolor{borrador2}{La cuarta afecta a lo que las guías dicen. De las 288 publicadas, cinco
+  traen la plantilla completa ---sus trece rótulos en su sitio--- y las secciones de resumen y
+  de contenidos vacías desde el origen. No son guías ilegibles ni mal extraídas: están
+  publicadas y no dicen nada, y todas pertenecen a planes en implantación. La colección las
+  distingue de las asignaturas cuya guía no se ha publicado todavía, porque no son lo mismo:
+  una existe y está vacía, la otra no existe.}
+
+\textcolor{borrador2}{Quedan las irregularidades menores, que no cambian las cifras pero sí
+  el código que hace falta para obtenerlas: direcciones que no siguen ningún patrón deducible
+  ---construirlas produce errores 404 reales---, tablas que mezclan asignaturas troncales con
+  optativas agrupadas por mención, el Trabajo Fin de Grado declarado con tipo propio en unos
+  planes y como obligatoria en otros, filas de relleno sin código que no corresponden a
+  ninguna asignatura, espacios duros y caracteres de ancho cero intercalados en el texto,
+  direcciones con la extensión repetida, asteriscos de nota al pie pegados al nombre y la
+  marca de asignatura no ofertada dentro del propio nombre. Cada una se trata con una regla
+  determinista, y ninguna se resuelve inventando el dato: el crédito que la fuente no publica
+  se queda ausente en la colección.}
 
 \begin{borrador}
-  \item \textbf{Los tres párrafos de arriba son el andamiaje de esta sección}, que es la que
-  responde al \textbf{OE1}. Reescríbelos y quítales el color. Las cifras salen de
-  \texttt{check\_dataset.py} y \texttt{check\_chunks.py}: si regeneras la colección, cópialas
-  de su salida y no de aquí.
-  \item \textbf{Lo que falta y tienes que escribir tú}, porque es lo que un tribunal
-  agradece: las anomalías de la fuente que condicionan lo que la colección puede contener.
-  Están registradas en los DQA del repositorio, así que es cuestión de resumirlas.
-  \item \textbf{Un matiz de la cobertura que conviene no ocultar:} entre las guías que cuentan
-  como publicadas hay algunas cuyas secciones de contenido vienen vacías desde el origen. O se
-  separan de la cifra, o se dice expresamente que no se separan.
-  \item \textbf{Aquí NO va} cómo se extrajo ---eso es el Capítulo~\ref{cap:materialesymetodos}---
-  sino qué salió.
+  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Son las anomalías de la
+  fuente que condicionan lo que la colección puede contener, resumidas de los cinco registros
+  DQA del repositorio.
+  \item \textbf{Cada afirmación tiene su registro detrás}, por si te la discuten: el formato
+  en PDF y el bloque de profesorado, el DQA-0002; las tablas con las columnas cambiadas, el
+  DQA-0003; los dobles grados, el DQA-0005; las guías publicadas vacías, el DQA-0004; y las
+  irregularidades menores, el DQA-0001.
+  \item \textbf{Decide si los citas uno a uno o solo el repositorio.} Citarlos por su
+  identificador ayuda a quien quiera comprobarlo, pero obliga a que los cinco estén
+  accesibles en la entrega.
+  \item \textbf{El hilo que las une, que es lo que hay que poder decir en una frase:} casi
+  ninguna de estas irregularidades produce un error. Una tabla con las columnas cambiadas se
+  lee sin excepción y devuelve datos de la columna equivocada, y una titulación entera
+  desaparece en silencio. De ahí que la colección se compruebe con verificadores propios sobre
+  el conjunto completo y no solo con las pruebas del código.
 \end{borrador}
 
-\section[Fragmentación de la colección]{\textcolor{borrador2}{Fragmentación de la colección}}
+\section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
 \label{secc:resultados_fragmentacion}
 
-\textcolor{borrador2}{La rejilla descrita en el Capítulo~\ref{cap:materialesymetodos}
-  produce cuarenta y cinco configuraciones, y la forma cómoda de presentarlas sería
-  ordenarlas por acierto y quedarse con la primera. Esa tabla diría cuál quedó arriba, que no
-  es lo que hay que decidir: entre dos filas cualesquiera cambian a la vez la estrategia de
-  corte y el tamaño máximo, así que la diferencia entre ellas no se puede atribuir ni a lo
-  uno ni a lo otro. Ordenada de ese modo, además, la primera fila no es la configuración
-  adoptada, y el apartado tendría que empezar explicando por qué se descarta la que
-  encabeza.}
 
-\textcolor{borrador2}{Los resultados se presentan, por tanto, separando los dos factores, que
-  es para lo que la rejilla se diseñó simétrica. Primero se pregunta si la estrategia importa,
-  y para responder a eso hay que dejar el tamaño quieto y comparar solo configuraciones que
-  lo compartan; después se pregunta cuánto importa el tamaño, y para eso hay que dejar quieta
-  la estrategia. Son dos preguntas distintas y, sobre todo, tienen respuestas de distinta
-  naturaleza: una se contesta con las métricas y la otra no. Una única ordenación esconde esa
-  asimetría, que es justamente lo que hay que explicar.}
+El experimento de rejilla descrito en el Apartado~\ref{secc:rejilla_fragmentacion} produce cuarenta y cinco configuraciones, todas ellas explicadas en el Registro de Decisiones de Arquitectura \mbox{ADR-0001}\cite{repo_tfg}. 
 
-\textcolor{borrador2}{Leer los dos efectos por separado da por supuesto que no se estorban
-  entre sí ---que una estrategia no pueda ser buena troceando corto y mala troceando largo, o
-  ganar a un tamaño y perder a otro---. Ese supuesto no se da por bueno: se comprueba en la
-  Sección~\ref{secc:rejilla_interaccion}, una vez medido cada efecto por su cuenta.}
+Cada uno de los resultados se presentan separando dos factores, que es por lo que la rejilla se diseñó de manera simétrica. Primero se pregunta si es que la estrategia en sí de corte importa, y para responder eso, hay que elegir un tamaño y dejarlo fijo y comparar solo los diferentes cortes. Después de esto, se pregunta cuánto importa el tamaño, y para ello hay que dejar fija la estrategia y de nuevo ver los diferentes tamaños.
 
-\begin{borrador}
-  \item \textbf{Esta sección responde al \textbf{OE2}}, que promete una estrategia de
-  fragmentación justificada sobre la medición de los textos y el contraste de alternativas.
-  Al releerla, comprueba que se lea así.
-\end{borrador}
-
-\subsection[Efecto de la estrategia de corte]{\textcolor{borrador2}{Efecto de la estrategia de corte}}
+\subsection[Efecto de la estrategia de corte]{Efecto de la estrategia de corte}
 \label{secc:rejilla_estrategia}
 
 La Tabla~\ref{tab:rejilla_fragmentacion} recoge la mejor configuración
@@ -105,176 +123,123 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-\textcolor{borrador2}{La Tabla~\ref{tab:rejilla_fragmentacion} contesta a la primera
-  pregunta, y lo hace en contra de lo que cabía esperar: \textbf{a igualdad de tamaño las
-    tres estrategias son indistinguibles}. Las nueve configuraciones que comparten el máximo
-  de 900 caracteres se reparten entre 0,890 y 0,935 de acierto en el primer resultado, es
-  decir, poco más de dos preguntas de cincuenta de recorrido total, y las cuatro mejores
-  caben en un cuarto de pregunta. Con un conjunto anotado por una sola persona, diferencias
-  de ese orden no se distinguen de lo que movería otra anotación.}
+La tabla de arriba contesta a la duda que estamos abarcando esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
 
-\textcolor{borrador2}{Conviene decir con claridad lo que eso implica, porque es tentador
-  contarlo de otra manera: \textbf{la recuperación no justifica por sí sola la estrategia
-    elegida}. El troceo por longitud sin solape, con el mismo máximo, produce ciento seis
-  fragmentos menos que la estructural y empata con ella en las dos medidas de acierto. Si el
-  único criterio fuera el rendimiento medido, las dos serían igual de defendibles.}
+Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, por lo que si solo nos moviéramos por el rendimiento medido, eligiríamos esta sin dudarlo.
 
-\textcolor{borrador2}{Lo que separa a una de otra no aparece en ninguna columna de la
-  tabla, y ese es exactamente el problema. La estrategia estructural parte el
-  texto por sus propias fronteras ---el final de un párrafo o de una frase---, mientras que la
-  de longitud parte al alcanzar un número de caracteres, con lo que empieza y termina a mitad
-  de frase y a veces a mitad de palabra. Para recuperar da igual, y la tabla lo demuestra:
-  el vector de un fragmento cortado a mitad de frase representa su contenido igual de bien.
-  Pero el fragmento recuperado no se queda en el buscador, sino que se le entrega al modelo
-  generativo para que redacte la respuesta con él delante, y ahí una frase truncada por la
-  mitad sí importa.}
+Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa.
 
-\textcolor{borrador2}{\textbf{Ese argumento no está medido}, y presentarlo como si lo
-  estuviera sería exactamente el tipo de afirmación que este trabajo evita. La rejilla mide
-  recuperación, no calidad de la respuesta generada, que exige las métricas de la Fase 2. La
-  forma honesta de enunciar la decisión es, por tanto, que se conserva la estrategia
-  estructural por una ventaja que el experimento no captura, y no porque gane en las
-  métricas, porque no gana.}
 
-\begin{borrador}                                                                                                                    
-  \item \textbf{Este es el punto que hay que dejar bien atado antes de defender}, y la
-  pregunta que lo destapa es: «si la de longitud empata y es más simple, ¿por qué la
-  estructural?». La respuesta está en los párrafos de arriba y hay que poder darla sin leer:
-  las dos empatan en recuperación, y lo que las separa ---cortar por una frontera del texto o
-  a mitad de frase--- afecta a la generación, que este trabajo no mide. El ADR-0001 lo dice
-  con esas mismas palabras, así que la memoria y el registro no se contradicen.
-  \item \textbf{Ojo con el nombre de la estrategia}, que se presta a confusión: <<tamaño
-  fijo>> es una \emph{estrategia} y <<tamaño máximo>> es un \emph{parámetro} que tienen las
-  tres. Al leer la tabla parece que solo una usa un tamaño. Piensa si te conviene llamarla
-  <<corte por longitud>> en todo el capítulo, incluida la
-  Tabla~\ref{tab:alternativas_chunking}.
+\textcolor{borrador2}{Merece la pena desarrollar ese último punto, porque la objeción
+  inmediata es razonable: si una frase queda partida entre dos fragmentos, bastaría con
+  recuperar los dos y el modelo la recompone. El problema es que nada en el sistema garantiza
+  que eso ocurra. La recuperación no devuelve vecinos, devuelve los $K$ fragmentos más
+  parecidos a la pregunta, y las dos mitades de una frase no se parecen a ella por igual: la
+  que contiene los términos de la consulta puntúa alto y la otra puede quedarse fuera. No hay
+  ninguna regla que diga «si entra este fragmento, entra también el siguiente».}
+
+\textcolor{borrador2}{Y aunque entrasen las dos, llegan ordenadas por parecido y no por el
+  orden que tenían en el texto, sin ninguna marca que indique que una continúa a la otra. El
+  modelo generativo recibe una lista de fragmentos, no un documento: puede recomponer la frase
+  o puede no hacerlo, y mirando la respuesta no hay forma de saber cuál de las dos cosas ha
+  ocurrido.}
+
+\textcolor{borrador2}{Lo que convierte esto en un problema serio no es que el sistema deje de
+  responder, sino justo lo contrario. Con media lista de contenidos delante, el modelo
+  responde con la media lista, y esa respuesta se parece exactamente a una respuesta completa:
+  un temario al que le faltan tres apartados, un requisito sin la condición que lo acota, una
+  competencia a medias. El destinatario del sistema es un estudiante que todavía no conoce la
+  titulación y que, por definición, no puede detectar lo que falta. Un fallo silencioso y
+  verosímil hace más daño que una negativa a responder.}
+
+\textcolor{borrador2}{Hay una salida técnica a esto y conviene reconocerla en lugar de esperar
+  a que la señale otro: se puede recuperar el fragmento y entregar además sus vecinos, o la
+  unidad completa a la que pertenece. Cortar por las fronteras del texto no es, por tanto, la
+  única forma de evitar el problema; es la que lo evita \emph{sin} añadir ese mecanismo y sin
+  gastar en cada consulta el contexto que ese mecanismo consume.}
+
+\textcolor{borrador2}{Queda por decir por qué nada de esto asoma en la tabla, y la razón está
+  en cómo se mide. El conjunto de evaluación anota \emph{unidades} ---la asignatura a la que
+  corresponde cada pregunta--- y no fragmentos, de modo que una configuración acierta en
+  cuanto recupera un fragmento de la asignatura correcta, contenga la respuesta entera o la
+  mitad. El instrumento es ciego, por construcción, justo a la diferencia que separa las dos
+  estrategias: no es que la medición diga que da igual, es que no mide eso.}
+
+\begin{borrador}
+  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.}
+  \item \textbf{Esta es la respuesta a la pregunta que más probablemente te hagan:} «si la de
+  longitud empata y es más simple, ¿por qué la estructural?». Conviene darla en este orden: se
+  concede que las métricas no la eligen, se explica qué falla con media frase, se reconoce que
+  existe otra solución posible y se dice por qué esta sale más barata.
+  \item \textbf{Lo que no se puede decir} es que la estructural recupere mejor, porque no lo
+  hace. La ventaja está en la generación, y esa parte se mide en la Fase 2 con las métricas de
+  fidelidad al contexto.
 \end{borrador}
 
 
-\subsection[Efecto del tamaño del fragmento]{\textcolor{borrador2}{Efecto del tamaño del fragmento}}
+
+\subsection[Efecto del tamaño del fragmento]{Efecto del tamaño del fragmento}
 \label{secc:rejilla_tamano}
 
-Lo que podemos observar viendo los resultados es que un troceo más fino produce más fragmentos, y cuantos más 
-fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos aparezca entre los primeros resultados al recuperar $k$ fragmentos. También se le añade que recuperar un fragmento de 900 caracteres entrega menos texto que un fragmento de 1.500.
+La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia ya fijada, en este caso la estructural, de modo que lo único que varía entre las filas de la Tabla~\ref{tab:tamano_fragmento} sea el máximo. 
 
-
-\textcolor{borrador2}{La segunda pregunta ---cuánto importa el tamaño--- se responde con
-  la estrategia ya fijada, de modo que lo único que varía entre las filas de la
-  Tabla~\ref{tab:tamano_fragmento} sea el máximo. Y aquí sí hay una diferencia grande: el
-  acierto en el primer resultado cae de 0,930 a 0,770 al pasar de 900 a 1.800 caracteres,
-  ocho preguntas de cincuenta, mientras que toda la separación entre estrategias cabía en
-  dos.}
 
 \input{tablas/TablaTamanoFragmento.tex}
 
-\textcolor{borrador2}{El valor adoptado es el único que gana en las tres métricas a la vez, y
-  lo consigue con la mitad de fragmentos que el de 600 caracteres. Esa comparación con el 600
-  es la que zanja la duda que dejaba la tabla anterior: ambos aciertan la unidad en el primer
-  resultado con la misma frecuencia, pero el de 900 la coloca antes ---0,970 de MRR frente a
-  0,960--- y necesita 1.361 fragmentos menos para lograrlo. Un índice con el doble de piezas
-  no es gratis: entrega menos texto por resultado recuperado, de modo que a igual número de
-  resultados el modelo generativo recibe menos contexto.}
+El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. Si se fija en el documento que recoge el experimento (\mbox{ADR-0001}), podríamos ver que hay una cosa que se repite constantemente, y es que a menos fragmentos, mejores métricas ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese \sout{exáctamente} \textcolor{borrador2}{exactamente} son más altas.
 
-\textcolor{borrador2}{La última columna de esa tabla aporta el único argumento del
-  experimento que no depende de ninguna métrica discutible, porque no se estima: se cuenta
-  con el propio analizador léxico del modelo de incrustaciones. Son los fragmentos que
-  superan su ventana de contexto y que el modelo recorta \emph{en silencio}, sin avisar y sin
-  fallar. Con un máximo de 900 caracteres no hay ninguno; a partir de 1.500 empiezan a
-  aparecer y con 1.800 son once. Cualquier configuración que trunque queda descartada sin
-  necesidad de discutir sus métricas, porque sobre esos fragmentos el sistema estaría
-  midiendo un texto que el modelo nunca llegó a leer.}
-
-\begin{borrador}                                                                                                                    
-  \item \textbf{Objeción que conviene adelantarse a responder, porque es la primera que se
-    le ocurre a cualquiera:} si el modelo de incrustaciones ya estaba elegido y se conocía su
-  ventana, ¿por qué se probaron tamaños máximos que iban a truncar?
-  \item \textbf{La respuesta es que la equivalencia entre caracteres y \textit{tokens} no
-    es fija y no se puede deducir.} Depende del texto: los números, las abreviaturas, los
-  códigos de asignatura y las palabras poco frecuentes consumen más \textit{tokens} por
-  carácter que la prosa corriente. Un máximo en caracteres solo se traduce a un máximo en
-  \textit{tokens} midiéndolo sobre el corpus real.
-  \item \textbf{Por eso la rejilla incluye tamaños que truncan}, y conviene decirlo así: no
-  son candidatos, son el control que permite \textbf{localizar dónde empieza el truncado en
-    vez de suponerlo}. Sin medir el 1.500 y el 1.800 no se podría afirmar que el 900 tiene
-  margen; solo suponerlo, que es exactamente lo que este experimento viene a evitar.
-\end{borrador}
-
-\subsection[Interacción y configuración adoptada]{\textcolor{borrador2}{Interacción entre los
-    dos efectos y configuración adoptada}}
-\label{secc:rejilla_interaccion}
-
-\textcolor{borrador2}{Las dos secciones anteriores han medido cada factor con el otro quieto,
-  y esa lectura solo vale si los dos son independientes. Podría no serlo: cabe perfectamente
-  que una estrategia se comporte bien partiendo en trozos cortos y mal partiéndolos largos, o
-  que gane a un tamaño y pierda a otro, en cuyo caso hablar de <<la mejor estrategia>> sin
-  decir a qué tamaño no significaría nada. La rejilla permite comprobarlo precisamente porque
-  dedica el mismo número de configuraciones a cada combinación: promediando las tres de cada
-  casilla se ve qué hace cada estrategia a cada tamaño.}
-
-\input{tablas/TablaInteraccionFragmentacion.tex}
-
-\textcolor{borrador2}{La Tabla~\ref{tab:interaccion_fragmentacion} muestra que los dos
-  factores \textbf{sí se estorban}, y conviene decirlo antes que nada porque se ve a simple
-  vista: la distancia entre la mejor y la peor estrategia crece de forma sostenida con el
-  tamaño ---de 0,000 con 600 caracteres a 0,050 con 1.800--- y el orden llega a invertirse.
-  Con 600 las tres empatan exactamente, con 900 encabeza la estructural y en los tres tamaños
-  grandes pasa a encabezar el corte por longitud. La estrategia, por tanto, no es indiferente
-  en toda la rejilla, y la pregunta que abre esta sección no tiene una respuesta cómoda.}
-
-\textcolor{borrador2}{Lo que sí se sostiene es más estrecho, pero es lo único que hace falta:
-  \textbf{no se estorban en la región donde se decide}. Con 600 y 900 caracteres las tres
-  estrategias no llegan a separarse 0,012, poco más de media pregunta de cincuenta, y la
-  distancia solo empieza a notarse a partir de 1.200. Y ahí ya no queda nada que decidir: la
-  última columna recuerda que con 1.500 truncan siete de las nueve configuraciones y con
-  1.800, ocho. Los tamaños en los que la estrategia empieza a importar son exactamente los
-  que quedan descartados por un recuento que no depende de ninguna métrica ni del conjunto de
-  evaluación.}
-
-\textcolor{borrador2}{Hay una segunda comprobación que apunta en la misma dirección y que es
-  la que convierte el empate en un argumento. Con el máximo en 900, cambiar de estrategia
-  mueve el acierto 0,012, mientras que cambiar el parámetro propio de una sola de ellas lo
-  mueve hasta 0,045: dentro del corte por longitud, las tres cantidades de solape se reparten
-  entre 0,890 y 0,935. \textbf{El factor <<estrategia>> pesa menos que el ajuste interno de
-    cualquiera de las tres}, de modo que a este tamaño no es que las estrategias empaten por
-  poco, sino que el instrumento no las distingue.}
-
-\textcolor{borrador2}{Queda por explicar por qué el corte por longitud remonta con fragmentos
-  grandes, y la explicación desaconseja leerlo como una virtud suya. Es la única de las tres
-  que puede solapar fragmentos, y el solape multiplica las papeletas de cada unidad: con
-  1.800 caracteres, pasar de no solapar a solapar el 20~\% le sube el acierto de 0,790 a
-  0,910 \emph{sin cambiar de estrategia}. Sin solape produce 623 fragmentos y acierta 0,790,
-  que es lo mismo que hace la estructural con 632. Sobre las cuarenta y cinco configuraciones
-  el acierto y el número de fragmentos correlacionan a $r = 0{,}72$, así que buena parte de
-  lo que parece ventaja de una estrategia es el efecto de trocear más fino descrito más
-  arriba.}
+La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones con máximos de 1500 y 1800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
 \textcolor{borrador2}{Con todo lo anterior sobre la mesa, la configuración adoptada es el
   \textbf{corte estructural, con el tamaño máximo y el objetivo en 900 caracteres y el mínimo
-    en 200}. El tamaño lo decide la medición: por encima de 1.200 caracteres el modelo
-  empieza a recortar fragmentos en silencio, y de los tamaños que no truncan el de 900 es el
-  único que gana en las tres métricas a la vez, con la mitad de fragmentos que el de 600. La
-  estrategia no la deciden las métricas, porque a ese tamaño las tres son indistinguibles,
-  sino el criterio que enuncia la Sección~\ref{secc:rejilla_estrategia}: entre tres opciones
-  que empatan se conserva la que corta por las fronteras del texto, cuya ventaja está en la
+    en 200}. El tamaño lo decide la medición: por encima de 1.200 caracteres el modelo empieza
+  a recortar fragmentos en silencio, y de los tamaños que no truncan el de 900 es el único que
+  gana en las tres métricas a la vez, con la mitad de fragmentos que el de 600. La estrategia
+  no la deciden las métricas, porque a ese tamaño las tres son indistinguibles, sino el
+  criterio que enuncia el Apartado~\ref{secc:rejilla_estrategia}: entre tres opciones que
+  empatan se conserva la que corta por las fronteras del texto, cuya ventaja está en la
   generación y no en la recuperación. Es una decisión tomada con las métricas agotadas, no en
   contra de ellas.}
 
-\begin{borrador}
-  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Esta subsección es la que
-  cierra el apartado y contesta a la objeción de fondo, así que conviene que suene tuya.
-  \item \textbf{Las cifras de la tabla salen de las 45 filas del anexo del ADR-0001}, no de
-  una ejecución aparte: cada celda es la media de las tres configuraciones de esa casilla.
-  Si vuelves a lanzar el guion de la rejilla, hay que recalcularlas.
-  \item \textbf{Si la tabla te sobra}, todo lo que sostiene cabe en dos frases: con 600 y 900
-  las tres estrategias se separan como mucho 0,012, y a partir de 1.200 la separación crece
-  hasta 0,050 justo donde el truncado ya descarta las configuraciones. La tabla, eso sí,
-  ahorra tener que pedirle al lector que se crea las quince medias.
-  \item \textbf{Respuesta de defensa}, que es la razón de ser de esta subsección: <<mide
-  usted los dos efectos por separado, pero podrían depender el uno del otro>>. Sí dependen, y
-  está medido y dicho; lo que se sostiene es que no dependen por debajo de 1.200 caracteres,
-  y que por encima la decisión ya está tomada por el truncado, que no es una métrica
-  opinable. Conviene poder decirlo en ese orden: primero se concede, después se acota.
+
+\begin{borrador}                                                                                                                    
+  \item \textbf{Revisa la frase sobre fragmentos y métricas}, porque afirma lo contrario de lo
+  que muestran los datos y su segunda mitad contradice a la primera. La relación va al revés:
+  \textbf{a más fragmentos, mejores métricas por unidad}, porque una unidad partida en más
+  trozos ocupa más huecos entre los $K$ primeros resultados. Sobre las cuarenta y cinco
+  configuraciones, el acierto y el número de fragmentos correlacionan a $r = 0{,}72$.
+  \item \textbf{Y eso no es un mérito del troceo fino, sino un sesgo}, de modo que el 900 se
+  defiende justamente por lo contrario: acierta lo mismo que el 600 con la mitad de fragmentos
+  y además coloca antes el correcto ---0,970 de MRR frente a 0,960---. Un índice con el doble
+  de piezas entrega menos texto por resultado, así que a igual número de resultados el modelo
+  generativo recibe menos contexto.
+  \item \textbf{Matiza «mucha información se perdía»:} con 1.500 caracteres el recorte alcanza
+  a 4 fragmentos de 753 y con 1.800, a 11 de 632. El argumento no es el volumen, que es
+  pequeño, sino que el recorte es \emph{silencioso}: el modelo no avisa ni falla, y sobre esos
+  fragmentos el sistema estaría midiendo un texto que nunca llegó a leer.
 \end{borrador}
+
+\begin{borrador}
+  \item \textbf{Objeción de defensa:} «si el modelo de incrustaciones ya estaba elegido y se
+  conocía su ventana, ¿por qué se probaron tamaños máximos que iban a truncar?».
+  \item \textbf{Primero, por qué hacía falta un modelo.} El experimento mide recuperación, y
+  recuperar exige vectores: no hay manera de comparar troceados por su acierto sin un modelo
+  de incrustaciones detrás. Eso crea un bucle ---para fijar el troceado hace falta el modelo, y
+  la comparación de modelos necesitó a su vez un troceado--- que solo se rompe fijando uno de
+  los dos. Aquí se fija el modelo, y se fija el que el sistema usa de verdad, con lo que el
+  troceado queda ajustado al modelo real y no a uno de referencia. El precio de romperlo así
+  está declarado entre las amenazas: el espacio conjunto de las dos decisiones no se ha
+  recorrido.
+  \item \textbf{Y segundo, por qué se probaron tamaños que truncan.} Porque que 900 caracteres
+  quepan en la ventana es un \emph{resultado} del experimento y no un supuesto de partida. La
+  equivalencia entre caracteres y \textit{tokens} no es fija: los números, las abreviaturas,
+  los códigos de asignatura y las palabras poco frecuentes consumen más \textit{tokens} por
+  carácter que la prosa corriente, así que un máximo en caracteres solo se traduce a un máximo
+  en \textit{tokens} midiéndolo sobre el corpus real. Los tamaños grandes son el control que
+  localiza dónde empieza el recorte en lugar de suponerlo.
+\end{borrador}
+
+
 
 
 \begin{borrador}
@@ -298,6 +263,11 @@ fragmentos tiene una unidad, más posibilidades hay de que alguno de ellos apare
   diferencias de una pregunta sobre cincuenta ---0,020--- no son distinguibles de lo que
   movería otra anotación. La decisión se apoya en la comparación a igualdad de fragmentos y
   en el recuento de truncados, no en el orden bruto de la tabla.
+  \item \textbf{Respuesta preparada, por si sale:} «mide usted los dos efectos por
+  separado, pero podrían depender el uno del otro». Dependen, y está medido: la distancia
+  entre estrategias vale 0,000 con 600 caracteres y 0,050 con 1.800. Lo que se sostiene es que
+  no dependen por debajo de 1.200, que es donde se decide, y que por encima la decisión ya la
+  ha tomado el truncado. Las quince medias que lo sostienen salen del anexo del ADR-0001.
   \item \textbf{Lo que no se ha medido:} el efecto sobre la generación, que es donde la
   fragmentación actúa de verdad. Si un fragmento parte una definición y solo llega la mitad,
   la recuperación puntúa igual de bien y la respuesta sale peor. Exige métricas de la Fase 2.
