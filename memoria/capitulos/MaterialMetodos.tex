@@ -337,27 +337,15 @@ En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de
 Todo el sistema (extracción, fragmentación, indexación, recuperación
 y generación) ha sido probado y ejecutado sobre un único equipo portátil doméstico, cuyas
 características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una restricción de diseño que
-aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado las decisiones tomadas \sout{al no poder contar
-con hardware más potente haciendo que el sistema funcionase de manera más rápida con modelos mejores y más grandes.} \textcolor{borrador2}{al no poder contar con un equipo más potente que hubiera permitido emplear modelos mejores y más grandes.}
+aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado las decisiones tomadas al no poder contar con un equipo más potente que hubiera permitido emplear modelos mejores y más grandes.
 
-\sout{Los datos que más pesan hoy en día en el mundo de inteligencia artificial es sin lugar a dudas la memoria RAM, siendo uno de los mayores limitantes
-en el laboratorio por el que no se ha podido elegir modelos de más prestaciones e inteligencia ya que este aparte de tener que alojar los modelos de incrustaciones, tiene que almacenar el modelo de lenguaje generativo y su contexto, además de la base de datos vectorial con los embeddings de la colección.} \textcolor{borrador2}{El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a dudas, la memoria principal, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.}
+El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a dudas, la memoria principal, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.
 
 \input{tablas/TablaEquipo.tex}
 
 \begin{borrador}                                                                                                                                                    
-  
-  \item \textbf{Qué está medido y qué no, sobre la tarjeta gráfica.} Todo lo que este
-  trabajo ha medido hasta ahora ---el rastreo, el troceado, la comparación de modelos de
-  incrustaciones y la indexación--- se ha ejecutado \textbf{en procesador}, porque la
-  instalación de PyTorch del proyecto es una compilación solo para CPU. Los 6~GB de memoria de
-  vídeo de la tabla no han intervenido en ninguna de las cifras de esta memoria.
-  \item \textbf{Lo que no se puede decir todavía es que no se vaya a usar.} El modelo de
-  lenguaje generativo de la Fase 2 sí podría aprovecharla, y esos 6~GB son precisamente el
-  recurso que decidiría qué modelo cabe. Pero ese modelo aún no está elegido, así que la
-  redacción tiene que distinguir las dos cosas: la memoria principal es la restricción que ya
-  ha condicionado decisiones, y la memoria de vídeo es una capacidad disponible cuyo uso se
-  decide en la Fase 2.
+  \item  El modelo de
+  lenguaje generativo de la Fase 2 podría aprovechar la tarjeta gráfica del equipo.
   \item \textbf{Apartado vivo:} cuando se elija el modelo generativo hay que volver aquí y
   cerrar la frase con lo que se acabe usando.
 \end{borrador}
@@ -789,7 +777,7 @@ pero el servidor de la universidad la sirve realmente en ISO-8859-1. Esto llevab
 Scrapy resuelve el problema sin código adicional porque prioriza la cabecera HTTP \texttt{Content-Type} sobre esa declaración,
 tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.
 
-\sout{El contenido de interés (resumen, requisitos previos y temario)} \textcolor{borrador2}{El contenido de interés (el resumen y la descripción de contenidos)} se localiza por el identificador
+El contenido de interés (el resumen y la descripción de contenidos) se localiza por el identificador
 de su sección dentro del HTML de la guía, y no por su posición en el documento: la posición varía entre titulaciones,
 pero el identificador es estable.
 
@@ -925,7 +913,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-\sout{uno por cada grado simple con contenido propio} \textcolor{borrador2}{uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias}. En el caso de los dobles grados, la lista de salidas es la concatenación de
+uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias. En el caso de los dobles grados, la lista de salidas es la concatenación de
 los dos grados por separado.
 
 \textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
@@ -1049,30 +1037,21 @@ titulaciones en las que se imparte; de ahí que los campos \texttt{grados} y \te
 
 Deduplicar exige decidir cuándo dos guías se consideran la misma. Se plantearon dos claves de agrupación, comparadas
 en la Tabla~\ref{tab:claves_dedup}: agrupar únicamente por el contenido del texto, o exigir además que coincida el nombre de la
-asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real: \sout{el mecanismo de respaldo descrito
-más arriba puede generar un texto idéntico para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
-\textit{Smart Grids. Redes Eléctricas Inteligentes} y \textit{Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica},
-ambas del Grado en Ingeniería Eléctrica, que comparten el cuerpo de guía docente sin ser en absoluto la misma
-materia. Agrupar solo por contenido las habría fusionado en una única unidad, con lo que una consulta sobre redes eléctricas
-inteligentes podría devolver el temario de dibujo técnico.}
-
-\textcolor{borrador2}{la propia fuente publica
+asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real donde la propia fuente publica
   el mismo contenido para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
   \textit{Seguridad en gestión de la información}, del Grado en Inteligencia Artificial y
   Ciberseguridad, y \textit{Seguridad en tecnologías de la información}, del Grado en
   Ingeniería Informática: dos materias distintas, de dos titulaciones distintas, cuyas guías
   docentes traen el mismo cuerpo. Agrupar solo por contenido las habría fusionado en una única
-  unidad, con lo que una consulta sobre una de ellas podría devolver el temario de la otra.}
+  unidad, con lo que una consulta sobre una de ellas podría devolver el temario de la otra.
 
 \input{tablas/TablaClavesDeduplicacion.tex}
 
-Esos tres conjuntos de diferencia entre una clave y otra \sout{(31 frente a 28)} \textcolor{borrador2}{(41 frente a 38)} son exactamente las tres parejas que tienen el
+Esos tres conjuntos de diferencia entre una clave y otra (41 frente a 38) son exactamente las tres parejas que tienen el
 mismo contenido pero distinto nombre, y conviene mirarlas una a una porque no todas son del mismo tipo. Dos son errores de la
 clave elegida, y son dos parejas independientes entre sí, no relacionadas: <<Fundamentos de la programación>> frente a
 <<Fundamentos de programación>>, y <<Fundamentos físicos de la Informática>> frente a <<Fundamentos físicos de la informática>> (solo cambia la inicial de <<informática>>). En ambos casos se trata de la misma asignatura escrita de dos maneras, y exigir que el nombre coincida impide
-agruparlas. \sout{La tercera es la pareja del Grado en Ingeniería Eléctrica
-citada antes, donde no agrupar es lo correcto.} \textcolor{borrador2}{La tercera es la pareja
-  de asignaturas de seguridad citada antes, donde no agrupar es lo correcto.} El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
+agruparlas. La tercera es la pareja de asignaturas de seguridad citada antes, donde no agrupar es lo correcto. El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
 positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: fusionar dos asignaturas distintas corrompe el
 índice y puede hacer que el sistema atribuya un temario a quien no le corresponde, mientras que no fusionar dos copias
 idénticas solo deja el índice ligeramente más grande.
@@ -1185,7 +1164,7 @@ Las pruebas unitarias se emplean en base a los ficheros reales descargados llama
   medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
   dejar implícito.}
 
-La reproducibilidad del sistema no se apoya en una copia versionada de los datos \sout{(no está subida a github)} \textcolor{borrador2}{(no está subida a GitHub)}, sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
+La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a GitHub), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Fase:} 0 (IT-19). Aquí \textbf{no} van cifras de caracterización de la
@@ -1250,7 +1229,7 @@ titulación, como salidas profesionales de un grado.
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
 
-Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir \sout{es} \textcolor{borrador2}{en} este apartado\textcolor{borrador2}{.}
+Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir en este apartado.
 
 \subsubsection[Restricciones del troceado ]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
@@ -1291,13 +1270,13 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 El procedimiento seguido en este experimento en cada una de las cuarenta y cinco configuraciones es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
 
 El modelo de incrustaciones elegido en el ADR-0003, el cual tiene su propio apartado en la Sección~\ref{secc:resultados_embeddings}, se carga una sola vez para toda la
-ejecución, y \sout{de él se cogen dos funciones distintas, la primera para convertir los trozos en vectores y su analizador léxico, que se utiliza} \textcolor{borrador2}{de él se toman dos funciones distintas: la primera convierte los trozos en vectores y la segunda es su analizador léxico, que se utiliza} para saber cuántos fragmentos superan la ventana de contexto. 
+ejecución, y de él se toman dos funciones distintas: la primera convierte los trozos en vectores y la segunda es su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
 
 El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre las incrustaciones de piezas consecutivas del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que este se adapta a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
 
-Con los umbrales ya calculados \sout{de la estategia de referencia} \textcolor{borrador2}{de la estrategia de referencia}, se generan las nueve configuraciones diferentes, tres tamaños objetivo distintos $n$ para la estrategia estructural, tres solapes para la estrategia de longitud y tres percentiles para la semántica. Dentro de cada una se sustituye únicamente la función que decide dónde colocar los cortes dentro de una unidad y se ejecuta el código. 
+Con los umbrales ya calculados de la estrategia de referencia, se generan las nueve configuraciones diferentes, tres tamaños objetivo distintos $n$ para la estrategia estructural, tres solapes para la estrategia de longitud y tres percentiles para la semántica. Dentro de cada una se sustituye únicamente la función que decide dónde colocar los cortes dentro de una unidad y se ejecuta el código. 
 
-De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), el número de fragmentos generados, su tamaño mediano y cuántos de ellos superan la ventana del modelo y por lo que se truncan o cortan. \sout{Recogido todos los valores anteriores} \textcolor{borrador2}{Recogidos todos los valores anteriores}, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
+De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), el número de fragmentos generados, su tamaño mediano y cuántos de ellos superan la ventana del modelo y por lo que se truncan o cortan. Recogidos todos los valores anteriores, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
 
 Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera a repetir una y otra vez sin cambiar nada, daría los mismos resultados.
 
@@ -1407,7 +1386,7 @@ salió cada respuesta.
 \label{secc:fase1_embeddings}
 
 Las cifras resultantes del experimento (los cuatro modelos, sus métricas y el desglose por tipo de pregunta) están en la Sección~\ref{secc:resultados_embeddings} del 
-  \sout{capítulo}\textcolor{borrador2}{Capítulo}~\ref{cap:resultados}. Aquí se describe el diseño experimental y por qué se seleccionaron esos cuatro modelos y no otros.
+  Capítulo~\ref{cap:resultados}. Aquí se describe el diseño experimental y por qué se seleccionaron esos cuatro modelos y no otros.
 
 \subsubsection{Diseño de la comparación}
 
@@ -1415,7 +1394,7 @@ La elección del modelo de incrustaciones o modelo de \textit{embedding} se reso
 
 Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de en cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se delimitan las unidades.
 
-\sout{La elección de los candidatos quise que fuera lo más variada posible, por lo que elegí un modelo que fuera entrenado con español} \textcolor{borrador2}{Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español} dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de gran tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 \sout{para que no tuviéramos que reducir constantemente la longitud de los fragmentos con los que queríamos trabajar} \textcolor{borrador2}{para no tener que reducir la longitud de los fragmentos con los que se trabaja}, también tienen una licencia compatible con la del repositorio y \sout{todos son ejecutable en el equipo} \textcolor{borrador2}{todos son ejecutables en el equipo} donde se realizan los experimentos.
+Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de gran tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
 
 
 \begin{borrador}
@@ -1428,9 +1407,9 @@ Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperad
 \subsubsection{Elección final}
 \label{secc:eleccion_e5small}
 
-De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, \sout{con casi cinco veces más parámetos el modelo mayor} \textcolor{borrador2}{con casi cinco veces más parámetros el modelo mayor}. \sout{La realidad es que si se ve en los resultados en el apartado \ref{secc:resultados_embeddings}, nos podemos fijar que es el modelo más grande} \textcolor{borrador2}{Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande} el que es más eficaz y arroja mejores resultados, \sout{sin embargo la pregunta es otra, ¿Se puede justificar} \textcolor{borrador2}{sin embargo, la pregunta es otra: ¿se puede justificar} la mejoría con el gasto en procesamiento extra que conlleva?
+De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-Al llevar a cabo los experimentos, se pudo apreciar que \sout{el modelo grande tarda unas ocho veces más en incrustar la colección completa} \textcolor{borrador2}{el modelo grande tarda 5,6 veces más en incrustar la colección completa}, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos de incorporación. El coste que sí importa mayormente es el que hay que pagar cuando el modelo está en ejecución, ya que este es cuatro veces mayor, y esto en el caso de este proyecto es grave ya que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos de incorporación. El coste que sí importa mayormente es el que hay que pagar cuando el modelo está en ejecución, ya que este es cuatro veces mayor, y esto en el caso de este proyecto es grave ya que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
 \begin{borrador}
   \item \textbf{<<cuando cambia la colección de datos de incorporación>>:} sobra algo o falta
