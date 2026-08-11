@@ -11,9 +11,6 @@
   \item \textbf{Orden de lectura dentro de cada sección}, que también es convención y ayuda
   al lector: qué se midió y sobre qué colección; la tabla o figura; el resultado principal;
   los desgloses; y las lecturas erróneas que conviene desactivar antes de que las haga otro.
-  \item \sout{falta texto introductorio del capítulo.} \textbf{Debajo lo tienes en
-    turquesa}; reescríbelo y quítale el color. Si cambia el reparto de secciones, el primer
-  párrafo deja de ser cierto, porque anuncia el orden.
 \end{borrador}
 
 \textcolor{borrador2}{Este capítulo recoge lo que el sistema produce y lo que se ha medido
@@ -44,42 +41,16 @@ La primera de las anomalías afecta al formato, ya que las 288 guías docentes r
 La segunda anomalía afecta a la estructura de las tablas de asignaturas, y es que esta no es la misma en todos los planes. Un ejemplo de ello es que los dobles grados rotulan «carácter» la columna
   que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples escriben «OB».
 
-  La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas \sout{coincide} \textcolor{borrador2}{coincida} con el de la misma asignatura en los grados base.
+  La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas coincida con el de la misma asignatura en los grados base.
 
 La cuarta anomalía afecta a las guías docentes, ya que de las 288 publicadas, cinco traen la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
 
 
-La quinta son irregularidades menores, como tablas que mezclan asignaturas troncales con optativas, el Trabajo Fin de Grado declarado con tipo propio en unos planes y como obligatoria en otros, filas de relleno sin código que no corresponden a ninguna asignatura\sout{, etc...}\textcolor{borrador2}{, entre otras}
+La quinta son irregularidades menores, como tablas que mezclan asignaturas troncales con optativas, el Trabajo Fin de Grado declarado con tipo propio en unos planes y como obligatoria en otros, filas de relleno sin código que no corresponden a ninguna asignatura, entre otras.
 
 
 
-\begin{borrador}
-  \item \textbf{Cada anomalía tiene su registro detrás, y ahora los cinco llevan dentro la
-    trazabilidad completa:} la fecha en que se detectó, la página o el documento real que la
-  produjo, la prueba de regresión que la cubre y qué hacer si vuelve a ocurrir. El formato en
-  PDF y el bloque de profesorado están en el DQA-0002; las tablas con las columnas cambiadas,
-  en el DQA-0003; los dobles grados, en el DQA-0005; las guías publicadas vacías, en el
-  DQA-0004; y las irregularidades menores, en el DQA-0001. Si alguien del tribunal quiere
-  comprobar una, ahí encuentra el nombre exacto de la prueba.
-  \item \textbf{Decide si los citas uno a uno o solo el repositorio.} Citarlos por su
-  identificador ayuda a quien quiera comprobarlo, pero obliga a que los cinco estén
-  accesibles en la entrega, y hoy el repositorio es privado.
-  \item \textbf{Se ha quedado fuera el motivo por el que la extracción del PDF funciona por
-    lista de permitidos}, que es la mitad interesante de la primera anomalía: el documento
-  trae un bloque de profesorado con correos y teléfonos que la versión en HTML no publicaba,
-  y el trabajo excluye esos datos a propósito. Con una lista de prohibidos, una sección nueva
-  con datos personales entraría sola. Enlaza con el marco legal del
-  Capítulo~\ref{cap:antecedentes} y conviene no perderlo.
-  \item \textbf{También se ha quedado fuera lo que hace peligrosa a la segunda:} una tabla
-  con las columnas cambiadas \emph{no falla}. Se lee sin excepción, cada dato se toma de la
-  columna equivocada, la fila no valida y la titulación entera desaparece del corpus con el
-  rastreo aparentemente correcto. Es la frase que justifica que existan los verificadores
-  sobre la colección completa, y sin ella la enumeración parece una lista de molestias.
-  \item \textbf{El hilo que las une, que es lo que hay que poder decir en una frase:} casi
-  ninguna de estas irregularidades produce un error. De ahí que la colección se compruebe con
-  verificadores propios sobre el conjunto entero y no solo con las pruebas del código, que
-  cubren los casos conocidos.
-\end{borrador}
+
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
 \label{secc:resultados_fragmentacion}
@@ -87,7 +58,7 @@ La quinta son irregularidades menores, como tablas que mezclan asignaturas tronc
 
 El experimento de rejilla descrito en el Apartado~\ref{secc:rejilla_fragmentacion} produce cuarenta y cinco configuraciones, todas ellas explicadas en el Registro de Decisiones de Arquitectura \mbox{ADR-0001}\cite{repo_tfg}. 
 
-\sout{Cada uno de los resultados se presentan separando dos factores} \textcolor{borrador2}{Cada uno de los resultados se presenta separando dos factores}, que es por lo que la rejilla se diseñó de manera simétrica. Primero se pregunta si es que la estrategia en sí de corte importa, y para responder eso, hay que elegir un tamaño y dejarlo fijo y comparar solo los diferentes cortes. Después de esto, se pregunta cuánto importa el tamaño, y para ello hay que dejar fija la estrategia y de nuevo ver los diferentes tamaños.
+Cada uno de los resultados se presenta separando dos factores, que es por lo que la rejilla se diseñó de manera simétrica. Primero se pregunta si es que la estrategia en sí de corte importa, y para responder eso, hay que elegir un tamaño y dejarlo fijo y comparar solo los diferentes cortes. Después de esto, se pregunta cuánto importa el tamaño, y para ello hay que dejar fija la estrategia y de nuevo ver los diferentes tamaños.
 
 \subsection[Efecto de la estrategia de corte]{Efecto de la estrategia de corte}
 \label{secc:rejilla_estrategia}
@@ -97,11 +68,11 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-La tabla de arriba contesta a \sout{la duda que estamos abarcando esta subsección} \textcolor{borrador2}{la duda que aborda esta subsección}, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
+La tabla de arriba contesta a la duda que aborda esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
 
-Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, \sout{por lo que si solo nos moviéramos por el rendimiento medido, eligiríamos esta sin dudarlo} \textcolor{borrador2}{de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo}.
+Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo.
 
-Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud fija parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa, \sout{puesto que no le estaríamos dando al usuario toda la información} \textcolor{borrador2}{puesto que no se le estaría dando al usuario toda la información} disponible de ese apartado.
+Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud fija parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa, puesto que no se le estaría dando al usuario toda la información disponible de ese apartado.
 
 
 
@@ -116,7 +87,7 @@ La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia y
 
 El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente son más altas.
 
-La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones \sout{con máximos de 1500 y 1800} \textcolor{borrador2}{con máximos de 1.500 y 1.800}, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
+La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones con máximos de 1.500 y 1.800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
 En resumen de este apartado, la configuración es el corte estructural con un tamaño máximo de 900 y mínimo de 200 caracteres. Por encima de 1.200 caracteres el modelo empieza a recortar fragmentos, y de las opciones por debajo de esta cifra, el de 900 es el único en ganar en tres categorías, con la mitad de fragmentos que el de 600. Entre tres opciones con métricas prácticamente iguales, se conserva la que corta por las fronteras de texto, cuya ventaja está más que en la recuperación, en la generación.
 
