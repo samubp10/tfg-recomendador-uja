@@ -1200,7 +1200,7 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
   \item Apartado vivo si se cambia algo
 \end{borrador}
 
-Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraíadas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exigen pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se probarán de manera experimental.
+Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades \sout{extraíadas} \textcolor{borrador2}{extraídas} y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento \sout{exigen pues,} \textcolor{borrador2}{exige, pues,} convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se probarán de manera experimental.
 
 Primero se introducirá el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
 
@@ -1226,7 +1226,7 @@ Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuper
 
 Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir en este apartado.
 
-\subsubsection[Restricciones del troceado ]{Restricciones del troceado}
+\subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
 El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
@@ -1246,17 +1246,9 @@ se miden. Lo que sigue es el diseño de esa comparación, sus cifras, por la est
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
 \label{secc:rejilla_fragmentacion}
 
-La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento tienen la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
-objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la estrategia de corte semántica y el solape en la estrategia del tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
+La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento tienen la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio\sout{,} \textcolor{borrador2}{:} el tamaño objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la \sout{estrategia de corte semántica} \textcolor{borrador2}{semántica} y el solape en la \sout{estrategia del} \textcolor{borrador2}{de} tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
 
 Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos datos de entrada (las guías de cada asignatura y el bloque de salidas de cada titulación), y lo único que hacen es decidir cómo cortar los datos.
-
-\begin{borrador}
-  \item \textbf{La frase que presenta la rejilla se ha quedado sin verbo:} <<Las tres
-  estrategias elegidas para el experimento con la misma escala de tamaños máximos (600,
-  900\dots)>>. Falta decir qué se hace con ellas ---se prueban, se ejecutan, se comparan---,
-  y ahora mismo el punto y seguido llega sin que la oración haya terminado.
-\end{borrador}
 
 \subsubsection[Procedimiento seguido en cada configuración]{Procedimiento seguido en cada configuración}
 \label{secc:rejilla_procedimiento}
@@ -1297,7 +1289,7 @@ La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del 
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las \sout{dos} \textcolor{borrador2}{tres} ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.\textcolor{borrador2}{ La tercera rama no trocea nada, sino que construye: por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 33 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella.}
+El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 33 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
 
 
 \begin{figure}[H]
@@ -1390,70 +1382,22 @@ Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperad
 
 Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de menor tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
 
-\textcolor{borrador2}{Esa variedad tiene una consecuencia sobre lo que el experimento puede
-  concluir, y conviene enunciarla antes de leer sus cifras. Dos de los cuatro candidatos son
-  \textbf{el mismo modelo a dos tamaños}: comparten familia, datos de entrenamiento, convención
-  de prefijos y ventana de contexto, y se diferencian únicamente en el número de parámetros.
-  Ese par es por tanto el único de la comparación que \textbf{aísla el efecto del tamaño}, y
-  cualquier diferencia entre sus dos miembros no puede atribuirse a ninguna otra causa.}
-
-\textcolor{borrador2}{Con el cuarto candidato ocurre lo contrario, y también hay que decirlo:
-  se diferencia del anterior en tamaño, familia, datos de entrenamiento y convención de
-  prefijos \emph{a la vez}, de modo que el experimento \textbf{no puede atribuir} su
-  comportamiento a ninguna de las cuatro cosas por separado. Es una limitación del diseño, no
-  un resultado, y por eso las diferencias que lo afecten se describen sin explicarlas.}
 
 
-\begin{borrador}
-  \item \textbf{El final de la frase de los candidatos no se entiende:} <<y los otros tres
-  multilingües, siendo uno de ellos más grande y de más capacidad que los otros de gran
-  tamaño>>. Se compara el grande consigo mismo. Si lo que quieres decir es que de los tres
-  multilingües dos son de tamaño equivalente y el tercero es mayor, dilo así de directo.
-\end{borrador}
+
+
+
 
 \subsubsection{Elección final}
 \label{secc:eleccion_e5small}
 
 De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos de incorporación, el coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
-
-\begin{borrador}
-  \item \textbf{<<cuando cambia la colección de datos de incorporación>>:} sobra algo o falta
-  algo. Se entiende que la indexación solo se repite cuando cambia la colección, pero
-  <<de incorporación>> no encaja en ninguna lectura.
-\end{borrador}
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de \sout{datos de incorporación, el} \textcolor{borrador2}{datos. El} coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
 Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-e5-small), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
                                  
   
-
-\subsubsection{Las preguntas de agregación y su efecto sobre la colección}
-
-
-
-\begin{borrador}                                                                                                                                                    
-  \item A revisar este apartado
-  \item \textbf{Este apartado está vacío y además no está en su sitio.} Cuelga de
-  <<Selección del modelo de incrustaciones>>, pero lo que cuenta no es una decisión sobre el
-  modelo: es una decisión sobre \emph{la colección}. Su sitio natural es la
-  Sección~\ref{secc:estructura_fragmento}, junto a las otras ramas del fragmentador.
-  \item \textbf{Y lo que tiene que contar no está dicho en ninguna otra parte de la memoria},
-  lo he comprobado: los \textbf{33 fragmentos de plan de estudios} aparecen en las cifras del
-  corpus y en la figura del modelo de datos, pero ningún párrafo explica por qué existen.
-  \item \textbf{El argumento, en una línea:} las preguntas más naturales de un estudiante
-  ---<<¿qué asignaturas tiene el grado en Informática?>>--- no las contesta ningún fragmento,
-  porque cada uno habla de una sola asignatura. Ninguna cantidad de recuperación arregla eso:
-  la respuesta no está partida, es que no existe. La solución fue construirla: un fragmento
-  por titulación y tipo de asignatura con el listado ya agregado.
-  \item \textbf{Y lo que hay que declarar sin esperar a que lo pregunten:} esos fragmentos
-  \emph{no} se extraen de la web, se generan a partir de datos que sí se extrajeron. Es la
-  única parte de la colección que no es una copia de la fuente, y por eso conviene decirlo en
-  lugar de dejar que se descubra.
-  \item \textbf{Comprueba antes de escribirlo} que la Sección~\ref{secc:estructura_fragmento}
-  sigue diciendo que el diagrama recoge <<las dos ramas>> que no siguen el camino principal.
-  Son tres: salidas, asignaturas sin guía y planes de estudio.
-\end{borrador}
 
 \section[Fase 2: base de datos vectorial y \textit{pipeline} RAG]{\textcolor{borrador2}{Fase 2: base de datos vectorial y \textit{pipeline} RAG}}
 \label{secc:fase2}
