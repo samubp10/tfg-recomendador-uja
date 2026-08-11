@@ -85,9 +85,9 @@ La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia y
 
 \input{tablas/TablaTamanoFragmento.tex}
 
-El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente son más altas.
+El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, \sout{la probabilidad de pedir un fragmento y que el recogido sea ese exactamente son más altas} \textcolor{borrador2}{la probabilidad de pedir un fragmento y que el recogido sea ese exactamente es más alta}.
 
-La última columna de esta tabla aporta un argumento que dejaba instantáneamente las configuraciones con máximos de 1.500 y 1.800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
+La última columna de esta tabla aporta \sout{un argumento que dejaba instantáneamente las configuraciones con máximos de 1.500 y 1.800} \textcolor{borrador2}{un argumento que dejaba fuera de inmediato las configuraciones con máximos de 1.500 y 1.800}, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
 En resumen de este apartado, la configuración es el corte estructural con un tamaño máximo de 900 y mínimo de 200 caracteres. Por encima de 1.200 caracteres el modelo empieza a recortar fragmentos, y de las opciones por debajo de esta cifra, el de 900 es el único en ganar en tres categorías, con la mitad de fragmentos que el de 600. Entre tres opciones con métricas prácticamente iguales, se conserva la que corta por las fronteras de texto, cuya ventaja está más que en la recuperación, en la generación.
 
@@ -104,9 +104,9 @@ Una de las cosas que se puede observar y da más curiosidad es el hecho de que e
 
 Los dos primeros puestos del experimento los ocupa el mismo modelo con dos tamaños diferentes. Tienen una misma exhaustividad por unidad con diez resultados (1,000) y el MRR vale 0,970 en ambos. El grande gana en las demás, pero por poco ya que saca un resultado de 0,995 frente a 0,985 con $k=3$, esto es, media pregunta de las cincuenta.
 
-El otro candidato, \texttt{bge-m3}\textcolor{borrador2}{\cite{chen2024m3embedding}}, gana en exhaustividad por fragmento (0,720 frente a 0,697 con tres resultados del \texttt{multilingual-e5-small}\textcolor{borrador2}{\cite{wang2024e5multilingue}}), pero pierde en exhaustividad por unidad con diez resultados (0,995 frente a 1,000) y en MRR (0,949 frente a 0,970).
+El otro candidato, \texttt{bge-m3}\cite{chen2024m3embedding}, gana en exhaustividad por fragmento (0,720 frente a 0,697 con tres resultados del \texttt{multilingual-e5-small}\cite{wang2024e5multilingue}), pero pierde en exhaustividad por unidad con diez resultados (0,995 frente a 1,000) y en MRR (0,949 frente a 0,970).
 
-Los costes medidos separan a los dos modelos de la misma familia \texttt{e5} más que las propias métricas tomadas. Incrustar la colección entera lleva 108 segundos \sout{y} \textcolor{borrador2}{con el pequeño y} 604 segundos con el grande, 5,6 veces más, y sus pesos ocupan en memoria principal alrededor de 0,5~GB frente a \sout{2,2 GB} \textcolor{borrador2}{2,2~GB}. 
+Los costes medidos separan a los dos modelos de la misma familia \texttt{e5} más que las propias métricas tomadas. Incrustar la colección entera lleva 108 segundos con el pequeño y 604 segundos con el grande, 5,6 veces más, y sus pesos ocupan en memoria principal alrededor de 0,5~GB frente a 2,2~GB. 
 
 Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
   razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}.
