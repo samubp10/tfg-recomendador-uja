@@ -1224,40 +1224,13 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 Para la experimentación se ha usado el conjunto de datos extraídos y 50 preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de 
 la aplicación podría querer saber. 
 
-Las preguntas abarcan \sout{cinco tipo} \textcolor{borrador2}{cinco tipos} de cuestiones, desde cuestiones como temario de una asignatura en específico, listado de asignaturas de una
-titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra).\textcolor{borrador2}{ La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.}
+Las preguntas abarcan cinco tipos de cuestiones, desde cuestiones como temario de una asignatura en específico, listado de asignaturas de una
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra). La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
 
 \input{tablas/TablaConjuntoEvaluacion.tex}
 
-Cada pregunta lleva anotada la unidad o unidades que el sistema \sout{debería de} \textcolor{borrador2}{debería} recuperar para poder contestar correctamente a la pregunta.
+Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuperar para poder contestar correctamente a la pregunta.
 
-
-\begin{borrador}
-  \item \textbf{Lo que le falta al apartado para cerrar la IT-69}, que son los cuatro puntos
-  de su Definición de Hecho que el texto todavía no toca. Ninguno es largo.
-  \item \textbf{Cómo se anota, y por qué así.} La unidad se identifica por su origen, su
-  nombre y, si hace falta, su titulación, y \textbf{nunca por el identificador del fragmento},
-  porque los identificadores son posicionales y cambian al volver a trocear. Es lo que permitió
-  usar el mismo conjunto en las cuarenta y cinco configuraciones del experimento sin reanotar
-  ni una pregunta. Está redactado en el campo \texttt{criterio\_relevancia} del propio fichero.
-  \item \textbf{Por qué las preguntas de listado apuntan al plan de estudios} y no a cada
-  asignatura: anotarlas una a una habría dado hasta 118 fragmentos relevantes para una sola
-  pregunta y un techo de exhaustividad en cinco resultados de \textbf{0,042}, no por fallo del
-  recuperador sino porque quien devuelve cinco no puede devolver ciento dieciocho.
-  \item \textbf{Quién anota y con qué criterio.} Las escribiste y anotaste tú; hay que decirlo
-  antes de que lo pregunten. El criterio, si lo recuerdas así, fue redactar como preguntaría un
-  estudiante de bachillerato, sin usar la terminología de las guías para no regalarle al
-  recuperador las palabras que tiene que encontrar.
-  \item \textbf{Los tres límites del instrumento}, que son los que sostienen lo que ya afirma
-  la Sección~\ref{secc:amenazas_validez}: cincuenta preguntas, de las que \textbf{48 tienen una
-    sola unidad relevante}, así que cada una pesa \textbf{0,020} en la media y dos
-  configuraciones que se separen menos que eso no se están distinguiendo; quien anota es quien
-  construye el sistema; y el reparto está sesgado, porque solo dos preguntas interrogan por
-  asignaturas sin guía cuando son 86 de las 528 del catálogo.
-  \item \textbf{Y que el conjunto se verifica:} \texttt{check\_evalset.py} comprueba sobre la
-  colección completa que toda unidad anotada existe y resuelve a fragmentos reales, de modo que
-  una pregunta no puede quedarse apuntando a una asignatura que la fuente ha dejado de publicar.
-\end{borrador}
 
 
 
