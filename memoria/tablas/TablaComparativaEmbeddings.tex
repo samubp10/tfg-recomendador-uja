@@ -7,9 +7,8 @@
   \centering
   \small
   \caption[Comparativa de modelos de incrustaciones]{Comparativa de modelos de
-    incrustaciones sobre la colección completa (1.334 fragmentos) y las 50 preguntas del
-    conjunto de evaluación. Los cuatro candidatos admiten al menos 512 \textit{tokens}, por lo
-    que los cuatro leen la totalidad de cada fragmento. Ejecución del 06/08/2026 en CPU.
+    incrustaciones sobre la colección completa y las 50 preguntas del
+    conjunto de evaluación.
     Fuente: elaboración propia.}
   \label{tab:comparativa_embeddings}
   \begin{tabular}{@{}lrrrrrrr@{}}
@@ -30,17 +29,13 @@
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textbf{Notas:} \textbf{R@K} es la exhaustividad por \emph{fragmento} ---cuántos de los
-    trozos de la unidad correcta aparecen entre los $K$ primeros resultados--- y \textbf{su
-      techo no es 1}: una unidad repartida en más de $K$ fragmentos no cabe entera en los $K$
-    primeros puestos. Sobre esta colección el máximo alcanzable es 0,789 con $K=3$, 0,906 con
-    $K=5$ y 0,968 con $K=10$, de modo que hay que restar del techo y no de la unidad.
-    \textbf{RU@K} es la exhaustividad por \emph{unidad} ---si se ha encontrado la asignatura
-    correcta, sin penalizar que falte alguno de sus trozos--- y su techo sí es 1. \textbf{MRR}
+    \textbf{Notas:} \textbf{R@K} es la exhaustividad por \emph{fragmento} (cuántos de los
+    trozos de la unidad correcta aparecen entre los $K$ primeros resultados).
+    \textbf{RU@K} es la exhaustividad por \emph{unidad} (si se ha encontrado la asignatura
+    correcta, sin penalizar que falte alguno de sus trozos). \textbf{MRR}
     (\textit{Mean Reciprocal Rank}) es la media del inverso de la posición del primer resultado
-    correcto, de modo que premia colocarlo antes. Ambas medidas crecen con $K$ por definición,
-    así que que $K=10$ supere a $K=5$ no es un hallazgo. En negrita, el mejor valor de cada
-    columna; una diferencia de 0,020 en RU@K equivale a una pregunta de las cincuenta. El
+    correcto, de modo que premia colocarlo antes. En negrita, el mejor valor de cada
+    columna. El
     modelo adoptado es \texttt{multilingual-e5-small}.
   \end{minipage}
 \end{table}
