@@ -1196,27 +1196,14 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \label{secc:fase1}
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Debajo tienes el párrafo de apertura en turquesa.} Reescríbelo con tus
-  palabras y quítale el color.
-  \item \textbf{Si vuelve a moverse algo de sitio, ese párrafo hay que rehacerlo:} anuncia el
-  orden de la fase, así que deja de ser cierto en cuanto cambie.
+
+  \item Apartado vivo si se cambia algo
 \end{borrador}
 
-\textcolor{borrador2}{Con la colección ya construida, esta fase resuelve el problema de
-  poder buscar en ella por significado y no por coincidencia de palabras. Eso exige convertir
-  cada texto en un vector, y antes de eso decidir dos cosas que condicionan el resultado: en
-  qué trozos se parte la colección y con qué modelo se convierten esos trozos en vectores.
-  Ninguna de las dos se resuelve razonando, porque la única forma de saber si un troceado o
-  un modelo son mejores que otros es medir cuánto se recupera con cada uno.}
+Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraíadas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exigen pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se probarán de manera experimental.
 
-\textcolor{borrador2}{El orden en que se cuenta responde a esa dependencia. Primero el
-  instrumento con el que se mide, que es el conjunto de preguntas anotadas, porque sin él
-  ninguna de las cifras posteriores significa nada. Después el troceado, con el experimento
-  que fija sus parámetros, porque es lo primero que le ocurre al texto. Y por último el
-  modelo de incrustaciones. Conviene señalar que ese experimento del troceado \emph{utiliza}
-  el modelo, de modo que la dependencia real va en sentido contrario al de la exposición: el
-  troceado se cuenta antes porque es la primera transformación que sufre el texto, no porque
-  se decidiera antes.}
+Primero se introducirá el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
+
 
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
@@ -1259,8 +1246,7 @@ se miden. Lo que sigue es el diseño de esa comparación, sus cifras, por la est
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
 \label{secc:rejilla_fragmentacion}
 
-La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento
-con la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
+La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento tienen la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
 objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la estrategia de corte semántica y el solape en la estrategia del tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
 
 Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos datos de entrada (las guías de cada asignatura y el bloque de salidas de cada titulación), y lo único que hacen es decidir cómo cortar los datos.
@@ -1311,7 +1297,7 @@ La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del 
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las dos ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.
+El diagrama recoge además las \sout{dos} \textcolor{borrador2}{tres} ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.\textcolor{borrador2}{ La tercera rama no trocea nada, sino que construye: por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 33 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella.}
 
 
 \begin{figure}[H]
@@ -1402,7 +1388,20 @@ La elección del modelo de incrustaciones o modelo de \textit{embedding} se reso
 
 Se emplean dos medidas, la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de en cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se delimitan las unidades.
 
-Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de gran tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
+Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de menor tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
+
+\textcolor{borrador2}{Esa variedad tiene una consecuencia sobre lo que el experimento puede
+  concluir, y conviene enunciarla antes de leer sus cifras. Dos de los cuatro candidatos son
+  \textbf{el mismo modelo a dos tamaños}: comparten familia, datos de entrenamiento, convención
+  de prefijos y ventana de contexto, y se diferencian únicamente en el número de parámetros.
+  Ese par es por tanto el único de la comparación que \textbf{aísla el efecto del tamaño}, y
+  cualquier diferencia entre sus dos miembros no puede atribuirse a ninguna otra causa.}
+
+\textcolor{borrador2}{Con el cuarto candidato ocurre lo contrario, y también hay que decirlo:
+  se diferencia del anterior en tamaño, familia, datos de entrenamiento y convención de
+  prefijos \emph{a la vez}, de modo que el experimento \textbf{no puede atribuir} su
+  comportamiento a ninguna de las cuatro cosas por separado. Es una limitación del diseño, no
+  un resultado, y por eso las diferencias que lo afecten se describen sin explicarlas.}
 
 
 \begin{borrador}
@@ -1417,7 +1416,7 @@ Para la elección de los candidatos se buscó la mayor variedad posible, por lo 
 
 De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos de incorporación. El coste que sí importa mayormente es el que hay que pagar cuando el modelo está en ejecución, ya que este es cuatro veces mayor, y esto en el caso de este proyecto es grave ya que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos de incorporación, el coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
 \begin{borrador}
   \item \textbf{<<cuando cambia la colección de datos de incorporación>>:} sobra algo o falta
