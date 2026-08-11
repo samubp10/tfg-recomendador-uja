@@ -94,69 +94,24 @@ En resumen de este apartado, la configuración es el corte estructural con un ta
 \section{Comparativa de modelos de incrustaciones}
 \label{secc:resultados_embeddings}
 
-La comparativa se ejecutó sobre la colección de datos completa y las cincuenta \sout{perguntas} \textcolor{borrador2}{preguntas} anotadas del conjunto de evaluación.\textcolor{borrador2}{ El diseño de la comparación ---qué se compara, con qué instrumento y por qué esos cuatro candidatos--- está en el Apartado~\ref{secc:fase1_embeddings}, y la decisión que se toma con estas cifras queda registrada en el ADR-0003\cite{repo_tfg}.} 
+La comparativa se ejecutó sobre la colección de datos completa y las cincuenta preguntas anotadas del conjunto de evaluación. El diseño de la comparación (qué se compara, con qué instrumento y por qué esos cuatro candidatos) está en el Apartado~\ref{secc:fase1_embeddings}, y la decisión que se toma con estas cifras queda registrada en el ADR-0003\cite{repo_tfg}. 
 
-Una de las cosas que se puede observar y da más curiosidad es el hecho de que el peor modelo de lejos ha sido el que fue entrenado específicamente en español. Su resultado por unidad en los tres primeros resultados es de 0,410 frente al 0,985 del modelo multilingüe de tamaño equivalente. Obviamente este modelo tuvo las mismas condiciones que los demás, pero el problema reside en cómo este modelo fue entrenado. Básicamente este modelo se sometió a la tarea de reconocer si dos frases significan \sout{los mismo} \textcolor{borrador2}{lo mismo}\textcolor{borrador2}{ ---su ficha declara que se entrenó sobre un conjunto de similitud textual semántica con una función de pérdida de similitud del coseno\cite{hiiamsid_sts_es}---}, que no es lo que se le pide normalmente a un sistema de recuperación, donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no se le parece\textcolor{borrador2}{. La documentación de la propia biblioteca separa los dos casos ---búsqueda simétrica, entre textos de longitud parecida, y asimétrica, de una consulta breve a un documento extenso--- y advierte de que elegir el modelo adecuado para cada tarea es crítico\cite{sbert_busqueda_semantica}}.
+Una de las cosas que se puede observar y da más curiosidad es el hecho de que el peor modelo de lejos ha sido el que fue entrenado específicamente en español. Su resultado por unidad en los tres primeros resultados es de 0,410 frente al 0,985 del modelo multilingüe de tamaño equivalente. Obviamente este modelo tuvo las mismas condiciones que los demás, pero el problema reside en cómo este modelo fue entrenado. Básicamente este modelo se sometió a la tarea de reconocer si dos frases significan lo mismo (su ficha declara que se entrenó sobre un conjunto de similitud textual semántica con una función de pérdida de similitud del coseno\cite{hiiamsid_sts_es}), que no es lo que se le pide normalmente a un sistema de recuperación, donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no se le parece. La documentación del modelo separa estos dos casos de uso (búsqueda simétrica y asimétrica) y dice que elegir el modelo adecuado para cada tarea es crítico \cite{sbert_busqueda_semantica}.
+
 
 
 \input{tablas/TablaComparativaEmbeddings}
 
+Los dos primeros puestos del experimento los ocupa el mismo modelo con dos tamaños diferentes. Tienen una misma exhaustividad por unidad con diez resultados (1,000) y el MRR vale 0,970 en ambos. El grande gana en las demás, pero por poco ya que saca un resultado de 0,995 frente a 0,985 con $k=3$, esto es, media pregunta de las cincuenta.
 
-\textcolor{borrador2}{Los dos primeros puestos los ocupa el mismo modelo a dos tamaños.
-  \textbf{Empatan en las dos medidas de mayor peso}: la exhaustividad por unidad con diez
-  resultados vale 1,000 en los dos y el MRR vale 0,970 en los dos. El grande gana en las demás,
-  y gana poco: 0,995 frente a 0,985 con tres resultados, esto es, media pregunta de las
-  cincuenta.}
+El otro candidato, \texttt{bge-m3}\textcolor{borrador2}{\cite{chen2024m3embedding}}, gana en exhaustividad por fragmento (0,720 frente a 0,697 con tres resultados del \texttt{multilingual-e5-small}\textcolor{borrador2}{\cite{wang2024e5multilingue}}), pero pierde en exhaustividad por unidad con diez resultados (0,995 frente a 1,000) y en MRR (0,949 frente a 0,970).
 
-\textcolor{borrador2}{El cuarto candidato, \texttt{bge-m3}, gana en exhaustividad por fragmento
-  ---0,720 frente a 0,697 con tres resultados--- y pierde en las dos anteriores: 0,995 de
-  exhaustividad por unidad con diez resultados frente al 1,000 de los otros dos, y 0,949 de MRR
-  frente a 0,970. El desglose por tipo de pregunta sitúa su ventaja en un solo sitio: acierta
-  0,917 en las de salidas profesionales frente al 0,690 del modelo adoptado, y es el peor de los
-  tres en las de metadatos, con 0,631 frente a 0,697.}
+Los costes medidos separan a los dos modelos de la misma familia \texttt{e5} más que las propias métricas tomadas. Incrustar la colección entera lleva 108 segundos \sout{y} \textcolor{borrador2}{con el pequeño y} 604 segundos con el grande, 5,6 veces más, y sus pesos ocupan en memoria principal alrededor de 0,5~GB frente a \sout{2,2 GB} \textcolor{borrador2}{2,2~GB}. 
 
-\textcolor{borrador2}{Los costes medidos separan a los dos modelos de la familia \texttt{e5}
-  más que las métricas. Incrustar la colección entera lleva 108 segundos con el pequeño y 604
-  con el grande, 5,6 veces más; y sus pesos ocupan en memoria principal alrededor de 0,5~GB
-  frente a 2,2~GB, sobre el equipo de 16~GB descrito en el
-  Apartado~\ref{secc:equipo_ejecucion}. Ejecutar la comparativa con el modelo grande obligó
-  además a reducir el tamaño del lote y a liberar cada modelo antes de cargar el siguiente.}
+Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
+  razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}.
 
-\textcolor{borrador2}{Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
-  razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}. Lo que los datos sostienen es
-  el empate entre los dos tamaños y no una ventaja del pequeño: media pregunta de cincuenta
-  queda por debajo de lo que un conjunto anotado por una sola persona permite distinguir.}
 
-\begin{borrador}
-  \item \textbf{Andamiaje en turquesa: la prosa la escribes tú.} Fase 1 (IT-28, IT-29,
-  IT-100).
-  \item \textbf{Reparto entre capítulos, que es lo que se acaba de aplicar aquí:} este
-  apartado se queda con \emph{los datos} ---qué sale, con qué cifras--- y el porqué se cuenta
-  en el Apartado~\ref{secc:fase1_embeddings} del Capítulo~\ref{cap:materialesymetodos}. Al
-  releer, si una frase de aquí explica \emph{por qué} un modelo se comporta como se comporta,
-  pertenece allí.
-  \item \textbf{Las cifras salen de \texttt{docs/experimentos/it28-embeddings.md}}, que
-  escribe el propio guion. Si vuelves a ejecutarlo, se copian de ahí a
-  \texttt{tablas/TablaComparativaEmbeddings.tex} y no se tocan a mano en el texto.
-  \item \textbf{Respuesta preparada: <<un 0,697 significa que falla una de cada tres
-    veces>>.} No. La exhaustividad por fragmento no tiene techo 1, porque una unidad repartida
-  en más de $K$ fragmentos no cabe entera en los $K$ primeros puestos: sobre esta colección el
-  máximo es 0,789 con $K=3$. Hay que restar del techo, no de la unidad. Está en el pie de la
-  tabla, pero conviene poder decirlo sin leerlo.
-  \item \textbf{Respuesta preparada: <<\texttt{bge-m3} recupera mejor que el modelo
-    elegido>>.} Solo en una columna, y no es la que decide; el párrafo correspondiente lo
-  desarrolla. Si te lo preguntan, el orden es: en qué gana, en qué pierde, y por qué el
-  experimento no puede decir a qué se debe.
-  \item \textbf{Falta por decidir si el desglose por tipo de pregunta merece tabla propia.}
-  Hoy se citan en el texto solo las cuatro cifras que sostienen un argumento, y las quince del
-  desglose completo están en el fichero del experimento. Con tabla se ve de un vistazo que
-  ningún modelo gana en todos los tipos; sin ella, el apartado es más corto.
-  \item \textbf{Lo que no se ha medido y hay que decir en algún sitio:} la latencia de una
-  consulta, con ningún modelo. Los tiempos que se manejan son de incrustar la colección
-  entera, que es otra operación. Tampoco se ha medido el consumo de memoria del sistema
-  completo, porque el modelo generativo todavía no está elegido: las cifras de 0,5 y 2,2~GB
-  son las de los pesos, no las del conjunto.
-\end{borrador}
 
 \section[Base de datos vectorial]{\textcolor{borrador2}{Base de datos vectorial}}
 \label{secc:resultados_vectordb}
