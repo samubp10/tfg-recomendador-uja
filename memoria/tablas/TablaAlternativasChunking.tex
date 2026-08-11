@@ -7,46 +7,21 @@
   \small
   \caption{Estrategias de fragmentación consideradas (ADR-0001). Fuente: elaboración propia.}
   \label{tab:alternativas_chunking}
-  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} X c@{}}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} X@{}}
     \toprule
-    \textbf{Estrategia}              & \textbf{Descripción del método}                                                      & \textbf{\textcolor{borrador2}{Se mide}} \\
+    \textbf{Estrategia}              & \textbf{Descripción del método} \\
     \midrule
     Tamaño fijo con solape           &
-    Corta el texto cada $n$ \sout{tokens} \textcolor{borrador2}{caracteres}, con una ventana de
-    solape entre fragmentos consecutivos. \sout{Simple, pero rompe frases y puede mezclar dos
-      asignaturas en un mismo fragmento.} \textcolor{borrador2}{Es la más simple de las tres,
-      pero empieza y termina a mitad de frase.}                                                & \textcolor{borrador2}{Sí}               \\
+    Corta el texto cada $n$ caracteres, con una ventana de solape entre fragmentos consecutivos. Es la más simple de las tres, pero empieza y termina a mitad de frase. \\
     \addlinespace
     Estructural por unidad semántica &
-    Parte de la unidad docente (guía o bloque de salidas) y solo subdivide si excede el máximo,
-    cortando por fronteras naturales\textcolor{borrador2}{ del texto: primero los párrafos y,
-      si aún no cabe, las frases}. \sout{Respeta los límites entre asignaturas por
-      construcción.}                                                                           & \textcolor{borrador2}{Sí}               \\
+    Parte de la unidad docente (guía o bloque de salidas) y solo subdivide si excede el máximo, cortando por fronteras naturales del texto, primero los párrafos y, si aún no cabe, las frases. \\
     \addlinespace
     Semántica por incrustaciones     &
-    Detecta cambios de tema comparando \emph{embeddings} de frases
-    consecutivas.\textcolor{borrador2}{ El umbral a partir del cual se considera que el tema ha
-      cambiado se fija por percentiles sobre la distribución del propio corpus, y no como una
-      distancia absoluta.}                                                                     & \textcolor{borrador2}{Sí}               \\
+    Detecta cambios de tema comparando \emph{embeddings} de frases consecutivas. El umbral a partir del cual se considera que el tema ha cambiado se fija por percentiles sobre la distribución del propio corpus. \\
     \addlinespace
     Un fragmento por asignatura      &
-    Sin subdivisión\textcolor{borrador2}{: cada guía docente entra en el índice como un único
-      fragmento}. El 50\,\% de las guías supera los \sout{2\,677} \textcolor{borrador2}{2\,653}
-    caracteres (máx.\ \sout{23\,940} \textcolor{borrador2}{24\,047}), por lo que la incrustación
-    truncaría contenido en silencio.                                                           & \textcolor{borrador2}{No}               \\
+    Sin subdivisión: cada guía docente entra en el índice como un único fragmento. El 50\,\% de las guías supera los 2\,653 caracteres (máx.\ 24\,047), por lo que la incrustación truncaría contenido en silencio. \\
     \bottomrule
   \end{tabularx}
-  \begin{minipage}{\textwidth}
-    \vspace{4pt}
-    \tiny
-    \textcolor{borrador2}{\textbf{Notas:} las tres primeras estrategias se comparan
-      experimentalmente y la cuarta se descarta antes de medirla, porque incumple la
-      restricción de tamaño por construcción. \textbf{Las tres que se miden trabajan siempre
-        dentro de una unidad docente}, de modo que ninguna puede mezclar el contenido de dos
-      asignaturas en un mismo fragmento: esa restricción es previa a la comparación y no algo
-      que distinga a unas de otras. Cortar por tamaño fijo recorriendo la colección entera, sin
-      respetar los límites de la unidad, sí lo permitiría, y por eso esa variante no entra en el
-      experimento. Las cifras del tamaño de las guías están medidas sobre la colección del curso
-      2026-27.}
-  \end{minipage}
 \end{table}
