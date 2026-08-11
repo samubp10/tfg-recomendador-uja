@@ -68,7 +68,7 @@ Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la ra
 \label{secc:Integracion_continua}
 El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
 
-Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba \sout{predefinido, estático y reales} \textcolor{borrador2}{predefinidos, estáticos y reales} en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
+Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
@@ -89,7 +89,7 @@ Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no
 \textbf{El tercer tipo es la evaluación del sistema}, la cuál más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
 uno o varios números que solo tienen significado si se comparan con el de otra configuración.
 
-Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra \sout{un conjunto de preguntas etiquedas escritas a mano pensando en lo que el usuario puediera querer saber} \textcolor{borrador2}{un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el usuario pudiera querer saber}.
+Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el usuario pudiera querer saber.
 sobre la generación de la respuesta se medirán la fidelidad de la respuesta al contexto
 recuperado y su pertinencia.
 
@@ -105,7 +105,7 @@ Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 \label{secc:dod}
-Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta. \sout{Siguiendo esta lógico, se ha dividido estos criterios} \textcolor{borrador2}{Siguiendo esta lógica, se han dividido estos criterios} en dos grupos, los que valen para todas las tarjetas, y \sout{los que dependen de qué tipo de tarea va enfocada la tarjeta} \textcolor{borrador2}{los que dependen del tipo de tarea al que va enfocada la tarjeta} (Tabla~\ref{tab:resumen_backlog}).
+Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta. Siguiendo esta lógica, se han dividido estos criterios en dos grupos, los que valen para todas las tarjetas, y los que dependen del tipo de tarea al que va enfocada la tarjeta (Tabla~\ref{tab:resumen_backlog}).
 
 Los tres criterios que valen para todas las tarjetas:
 
@@ -293,7 +293,7 @@ sería la primera candidata a quedar fuera.
 Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
 la incidencia correspondiente en el repositorio, de modo que cualquier línea de código puede rastrearse hasta la necesidad que la originó.
 
-A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la \sout{tabla} \textcolor{borrador2}{Tabla}~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
+A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
 
 Los cinco tipos de historias son los siguientes:
@@ -328,7 +328,7 @@ Los cinco tipos de historias son los siguientes:
 
 Una alternativa sería ajustar los parámetros del modelo con información específica del dominio mediante ajuste fino (\textit{fine-tuning}). Este procedimiento puede resultar adecuado para adaptar el comportamiento, el formato de salida o el desempeño del modelo en una tarea concreta, pero no ofrece por sí solo una referencia explícita a la fuente de cada afirmación. Además, cuando los datos cambian con frecuencia, mantener el conocimiento actualizado exigiría preparar nuevos ejemplos y repetir el proceso de ajuste.
 
-En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de lenguaje de la información oficial de la EPSJ, \sout{haciéndolos ambos módulos independientes lo cuales son intercambiables} \textcolor{borrador2}{haciendo de ambos dos módulos independientes e intercambiables}. Los planes de estudio, las guías docentes y las salidas profesionales pueden actualizarse en la colección sin modificar los parámetros del modelo, a la vez que los fragmentos recuperados proporcionan una base documental para las respuestas. No obstante, la calidad final dependerá de todo el proceso (\textit{pipeline} RAG)\textcolor{borrador2}{:} la cobertura y limpieza de la colección, la estrategia de fragmentación, la capacidad del recuperador para seleccionar información pertinente y las instrucciones proporcionadas al modelo durante la generación.
+En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de lenguaje de la información oficial de la EPSJ, haciendo de ambos dos módulos independientes e intercambiables. Los planes de estudio, las guías docentes y las salidas profesionales pueden actualizarse en la colección sin modificar los parámetros del modelo, a la vez que los fragmentos recuperados proporcionan una base documental para las respuestas. No obstante, la calidad final dependerá de todo el proceso (\textit{pipeline} RAG), la cobertura y limpieza de la colección, la estrategia de fragmentación, la capacidad del recuperador para seleccionar información pertinente y las instrucciones proporcionadas al modelo durante la generación.
 
 
 \subsection{Equipo de ejecución}
@@ -336,19 +336,30 @@ En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de
 
 Todo el sistema (extracción, fragmentación, indexación, recuperación
 y generación) ha sido probado y ejecutado sobre un único equipo portátil doméstico, cuyas
-características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es \sout{una resticción de diseño} \textcolor{borrador2}{una restricción de diseño} que
-aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y \sout{que ha condicionado a las decisiones tomadas} \textcolor{borrador2}{que ha condicionado las decisiones tomadas} al no poder contar
-con hardware más potente haciendo que el sistema funcionase de manera más rápida con modelos mejores y más grandes.
+características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una restricción de diseño que
+aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado las decisiones tomadas \sout{al no poder contar
+con hardware más potente haciendo que el sistema funcionase de manera más rápida con modelos mejores y más grandes.} \textcolor{borrador2}{al no poder contar con un equipo más potente que hubiera permitido emplear modelos mejores y más grandes.}
 
-Los datos que más pesan hoy en día en el mundo de inteligencia artificial es sin lugar a dudas la memoria RAM, siendo uno de los mayores limitantes
-en el laboratorio por el que no se ha podido elegir modelos de más prestaciones e inteligencia ya que este aparte de tener que alojar los modelos de incrustaciones, tiene que almacenar el modelo de lenguaje generativo y su contexto, además de la base de datos vectorial con los embeddings de la colección.
+\sout{Los datos que más pesan hoy en día en el mundo de inteligencia artificial es sin lugar a dudas la memoria RAM, siendo uno de los mayores limitantes
+en el laboratorio por el que no se ha podido elegir modelos de más prestaciones e inteligencia ya que este aparte de tener que alojar los modelos de incrustaciones, tiene que almacenar el modelo de lenguaje generativo y su contexto, además de la base de datos vectorial con los embeddings de la colección.} \textcolor{borrador2}{El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a dudas, la memoria principal, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.}
 
 \input{tablas/TablaEquipo.tex}
 
 \begin{borrador}                                                                                                                                                    
   
-  \item La tarjeta gráfica no se usará para los embedding, pero sí la usará el modelo de lenguaje generativom, por lo que decir que no se usará es un graso error.
-  \item Revisar este apartado, queda vivo y abierto.
+  \item \textbf{Qué está medido y qué no, sobre la tarjeta gráfica.} Todo lo que este
+  trabajo ha medido hasta ahora ---el rastreo, el troceado, la comparación de modelos de
+  incrustaciones y la indexación--- se ha ejecutado \textbf{en procesador}, porque la
+  instalación de PyTorch del proyecto es una compilación solo para CPU. Los 6~GB de memoria de
+  vídeo de la tabla no han intervenido en ninguna de las cifras de esta memoria.
+  \item \textbf{Lo que no se puede decir todavía es que no se vaya a usar.} El modelo de
+  lenguaje generativo de la Fase 2 sí podría aprovecharla, y esos 6~GB son precisamente el
+  recurso que decidiría qué modelo cabe. Pero ese modelo aún no está elegido, así que la
+  redacción tiene que distinguir las dos cosas: la memoria principal es la restricción que ya
+  ha condicionado decisiones, y la memoria de vídeo es una capacidad disponible cuyo uso se
+  decide en la Fase 2.
+  \item \textbf{Apartado vivo:} cuando se elija el modelo generativo hay que volver aquí y
+  cerrar la frase con lo que se acabe usando.
 \end{borrador}
 
 \section{Arquitectura del sistema}
@@ -365,7 +376,7 @@ Con estos trozos de información, se pasa al \textit{embedding} con el que se in
 
 Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
-Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que \sout{volver a rastrear la web es costosa y hace peticiones costosas, por lo que hay que ser respetuoso con el servidor de la universidad, el razonamiento} \textcolor{borrador2}{volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento} completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
+Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
@@ -778,14 +789,12 @@ pero el servidor de la universidad la sirve realmente en ISO-8859-1. Esto llevab
 Scrapy resuelve el problema sin código adicional porque prioriza la cabecera HTTP \texttt{Content-Type} sobre esa declaración,
 tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.
 
-El contenido de interés (resumen, requisitos previos y temario) se localiza por el identificador
+\sout{El contenido de interés (resumen, requisitos previos y temario)} \textcolor{borrador2}{El contenido de interés (el resumen y la descripción de contenidos)} se localiza por el identificador
 de su sección dentro del HTML de la guía, y no por su posición en el documento: la posición varía entre titulaciones,
 pero el identificador es estable.
 
-No todas las asignaturas disponen de guía publicada: \sout{de las 361 asignaturas del catálogo,
-  296 cuentan con guía docente y 65 no la tienen todavía (una cobertura en torno al 82 \%)}
-\textcolor{borrador2}{de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
-  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%}.
+No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
+  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
@@ -916,7 +925,7 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada grado simple con contenido propio. En el caso de los dobles grados, \sout{la lista de salidas son la concatenación} \textcolor{borrador2}{la lista de salidas es la concatenación} de
+\sout{uno por cada grado simple con contenido propio} \textcolor{borrador2}{uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias}. En el caso de los dobles grados, la lista de salidas es la concatenación de
 los dos grados por separado.
 
 \textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
@@ -1040,21 +1049,30 @@ titulaciones en las que se imparte; de ahí que los campos \texttt{grados} y \te
 
 Deduplicar exige decidir cuándo dos guías se consideran la misma. Se plantearon dos claves de agrupación, comparadas
 en la Tabla~\ref{tab:claves_dedup}: agrupar únicamente por el contenido del texto, o exigir además que coincida el nombre de la
-asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real: el mecanismo de respaldo descrito
+asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real: \sout{el mecanismo de respaldo descrito
 más arriba puede generar un texto idéntico para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
 \textit{Smart Grids. Redes Eléctricas Inteligentes} y \textit{Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica},
 ambas del Grado en Ingeniería Eléctrica, que comparten el cuerpo de guía docente sin ser en absoluto la misma
 materia. Agrupar solo por contenido las habría fusionado en una única unidad, con lo que una consulta sobre redes eléctricas
-inteligentes podría devolver el temario de dibujo técnico.
+inteligentes podría devolver el temario de dibujo técnico.}
+
+\textcolor{borrador2}{la propia fuente publica
+  el mismo contenido para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
+  \textit{Seguridad en gestión de la información}, del Grado en Inteligencia Artificial y
+  Ciberseguridad, y \textit{Seguridad en tecnologías de la información}, del Grado en
+  Ingeniería Informática: dos materias distintas, de dos titulaciones distintas, cuyas guías
+  docentes traen el mismo cuerpo. Agrupar solo por contenido las habría fusionado en una única
+  unidad, con lo que una consulta sobre una de ellas podría devolver el temario de la otra.}
 
 \input{tablas/TablaClavesDeduplicacion.tex}
 
-Esos tres conjuntos de diferencia entre una clave y otra (31 frente a 28) son exactamente las tres parejas que tienen el
+Esos tres conjuntos de diferencia entre una clave y otra \sout{(31 frente a 28)} \textcolor{borrador2}{(41 frente a 38)} son exactamente las tres parejas que tienen el
 mismo contenido pero distinto nombre, y conviene mirarlas una a una porque no todas son del mismo tipo. Dos son errores de la
 clave elegida, y son dos parejas independientes entre sí, no relacionadas: <<Fundamentos de la programación>> frente a
 <<Fundamentos de programación>>, y <<Fundamentos físicos de la Informática>> frente a <<Fundamentos físicos de la informática>> (solo cambia la inicial de <<informática>>). En ambos casos se trata de la misma asignatura escrita de dos maneras, y exigir que el nombre coincida impide
-agruparlas. La tercera es la pareja del Grado en Ingeniería Eléctrica
-citada antes, donde no agrupar es lo correcto. El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
+agruparlas. \sout{La tercera es la pareja del Grado en Ingeniería Eléctrica
+citada antes, donde no agrupar es lo correcto.} \textcolor{borrador2}{La tercera es la pareja
+  de asignaturas de seguridad citada antes, donde no agrupar es lo correcto.} El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
 positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: fusionar dos asignaturas distintas corrompe el
 índice y puede hacer que el sistema atribuya un temario a quien no le corresponde, mientras que no fusionar dos copias
 idénticas solo deja el índice ligeramente más grande.
@@ -1247,9 +1265,8 @@ Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-\sout{Las otras tres opciones, no se sabe} \textcolor{borrador2}{Las otras tres opciones no se sabe} solamente leyendo su descripción cuál es mejor que otra, así que
-  se miden. Lo que sigue es el diseño de esa comparación\sout{,}\textcolor{borrador2}{;} sus cifras,
-  por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
+Las otras tres opciones no se sabe solamente leyendo su descripción cuál es mejor que otra, así que
+se miden. Lo que sigue es el diseño de esa comparación, sus cifras, por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
 
 
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
@@ -1274,7 +1291,7 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 El procedimiento seguido en este experimento en cada una de las cuarenta y cinco configuraciones es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
 
 El modelo de incrustaciones elegido en el ADR-0003, el cual tiene su propio apartado en la Sección~\ref{secc:resultados_embeddings}, se carga una sola vez para toda la
-ejecución, y de él se cogen dos funciones distintas, la primera para convertir los trozos en vectores y su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
+ejecución, y \sout{de él se cogen dos funciones distintas, la primera para convertir los trozos en vectores y su analizador léxico, que se utiliza} \textcolor{borrador2}{de él se toman dos funciones distintas: la primera convierte los trozos en vectores y la segunda es su analizador léxico, que se utiliza} para saber cuántos fragmentos superan la ventana de contexto. 
 
 El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre las incrustaciones de piezas consecutivas del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que este se adapta a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
 
