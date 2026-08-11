@@ -7,6 +7,7 @@ colección._
 
 - **Estado:** aceptada
 - **Fecha:** 2026-07-23
+- **Anomalías detectadas entre:** 23/07/2026 y 29/07/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 1 — extracción (`grados_spider.py`,
   `guia_pdf.py`) y verificación del dataset (`scripts/check_dataset.py`)
 
@@ -181,6 +182,58 @@ subirle el peso: esa lista de 17 rótulos, escrita a mano contra la plantilla
 observada, sostiene ahora **el 100 % del contenido de la colección**, no una
 parte. Se recoge como amenaza a la validez de constructo en la memoria y motiva
 la tarjeta IT-95.
+
+## Pruebas y evidencia
+
+La evidencia son **tres PDF reales** descargados de la EPSJ, no documentos construidos para la
+ocasión: un PDF sintético no trae el bloque de profesorado, ni el pie de página, ni la
+tipografía que hace que un tema en mayúsculas se confunda con un rótulo de sección.
+
+> **Sobre la columna «Detectada».** Es la fecha del commit que incorpora la prueba de
+> regresión de esa anomalía, que es la constancia verificable más próxima al hallazgo:
+> el hallazgo en sí no deja rastro en el repositorio, la prueba sí. Cada fecha se puede
+> comprobar con `git log -S "def <nombre de la prueba>" -- tests/`.
+
+| Anomalía o riesgo | Detectada | Evidencia | Prueba de regresión |
+|---|---|---|---|
+| La guía llega en PDF tras una URL acabada en `.html` | 23/07/2026 | `guia_estadistica_iayc.pdf` | `test_guia_pdf.py::test_es_pdf_detecta_por_cabecera_y_por_firma`, `test_grados_spider.py::test_una_guia_en_pdf_se_extrae_sin_binario_ni_fallback` |
+| El PDF trae correos y teléfonos del profesorado | 23/07/2026 | los tres PDF | `test_guia_pdf.py::test_no_incluye_el_bloque_de_profesorado`, `::test_no_filtra_datos_personales` |
+| El temario se cortaba en el primer tema escrito en mayúsculas | 23/07/2026 | `guia_matematica_discreta_informatica.pdf` | `test_guia_pdf.py::test_el_temario_no_se_corta_en_el_primer_tema_en_mayusculas` |
+| El pie de página se colaba en el contenido | 23/07/2026 | `guia_cartografia_geomatica2025.pdf` | `test_guia_pdf.py::test_no_arrastra_el_pie_de_pagina` |
+| Un PDF ilegible no debe emitir guía ni activar el respaldo | 23/07/2026 | — | `test_guia_pdf.py::test_un_pdf_ilegible_devuelve_none`, `test_grados_spider.py::test_una_guia_en_pdf_ilegible_no_emite_item` |
+| El rastreo debe conservar copia del original para poder auditarlo | 29/07/2026 | — | `test_grados_spider.py::test_el_rastreo_guarda_una_copia_del_pdf_para_auditarlo`, `::test_tambien_se_guarda_el_pdf_del_que_no_se_extrae_nada`, `::test_un_fallo_al_guardar_el_pdf_no_tumba_el_rastreo` |
+| Un cambio de la plantilla movería las fronteras de sección | 29/07/2026 | los tres PDF | `test_guia_pdf.py::test_no_le_falta_a_la_guia_ningun_rotulo_de_la_plantilla`, `::test_se_detecta_que_la_fuente_renombre_un_rotulo`, `::test_ni_el_profesorado_ni_la_cabecera_se_confunden_con_un_rotulo`, `::test_los_rotulos_salen_en_orden_de_lectura` |
+| El formato de cada guía debe quedar declarado en el dato | 29/07/2026 | — | `test_grados_spider.py::test_la_guia_declara_de_que_formato_viene` |
+
+Sobre la colección completa lo comprueba `scripts/check_guias_pdf.py`, que audita las 288
+guías contra su PDF original y enumera, sección por sección, qué se conserva y qué se
+descarta. Su salida sobre el corpus vigente: **946 218 caracteres conservados de 5 010 100, un
+18,9 %**, y el resto descartado con nombre ---cláusulas, sistemas de evaluación, metodologías,
+competencias, bibliografía y profesorado---. `check_dataset.py` falla además si cualquier campo
+de texto contiene la firma `%PDF` o una densidad alta de caracteres de control.
+
+## Cómo se corrige y cómo se detecta si vuelve
+
+El riesgo vivo de este registro no es el cambio de formato, que ya está tratado, sino que
+**la plantilla del PDF cambie**: si un rótulo se renombra o desaparece, una sección deja de
+terminar donde debe y o se pierde contenido o se arrastra el bloque de profesorado. No se
+manifiesta como error.
+
+1. Ejecutar `py scripts/check_guias_pdf.py`. Comprueba por **ausencia**: avisa si a alguna
+   guía le falta uno de los rótulos que la plantilla compone siempre. Un rótulo de más no
+   significa nada; uno de menos significa que la plantilla ha cambiado.
+2. Si avisa, abrir el PDF de `data/guias_pdf/` ---el rastreo guarda una copia de cada uno
+   justamente para esto--- y comparar sus rótulos con `_ROTULOS_SECCION` de `guia_pdf.py`.
+3. Añadir el PDF real como fixture y escribir la prueba antes de tocar el código.
+4. Al ampliar la lista de rótulos, **mantener la lista de PERMITIDOS**: solo «Resumen» y
+   «Descripción de contenidos» pasan al corpus. Con una lista de prohibidos, una sección
+   nueva con datos personales entraría sola.
+5. Volver a ejecutar `check_guias_pdf.py` y `check_dataset.py` sobre la colección completa.
+
+**Lo que no hay que hacer:** decidir el formato por la extensión de la URL. Sigue acabando en
+`.html` y devuelve un PDF; la decisión se toma por el tipo de contenido de la respuesta y por
+la firma `%PDF` del cuerpo.
+
 
 ## Referencias
 

@@ -8,6 +8,7 @@ sin contenido)._
 
 - **Estado:** aceptada
 - **Fecha:** 2026-08-05
+- **Anomalías detectadas:** 05/08/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 1 — extracción (`grados_spider.py`, `validators.py`),
   fragmentación (`chunker.py`) y verificación (`check_dataset.py`,
   `check_chunks.py`)
@@ -175,3 +176,53 @@ clave `(nombre, contenido)` del ADR-0001.
    dos corpus distintos—, pero **las cifras absolutas de ese experimento ya no
    corresponden al corpus vigente**, y la comparativa de bases vectoriales
    (IT-31) tiene que correr sobre el corpus nuevo.
+
+## Pruebas y evidencia
+
+Las seis anomalías se descubrieron de una vez, al comprobar por qué cinco de las doce
+titulaciones figuraban en el corpus sin una sola asignatura, y todas entraron con la misma
+tarjeta. Las tres fixtures son páginas reales del Doble Grado en Ingeniería Eléctrica y
+Mecánica, la única titulación doble que publica los tres tipos de página.
+
+> **Sobre la columna «Detectada».** Es la fecha del commit que incorpora la prueba de
+> regresión de esa anomalía, que es la constancia verificable más próxima al hallazgo:
+> el hallazgo en sí no deja rastro en el repositorio, la prueba sí. Cada fecha se puede
+> comprobar con `git log -S "def <nombre de la prueba>" -- tests/`.
+
+| # | Anomalía | Detectada | Evidencia | Prueba de regresión |
+|---|---|---|---|---|
+| 1 | El plan cuelga de `plan-de-estudios` y no de `asignaturas-y-profesorado` | 05/08/2026 | `portada_doble_grado.html` | `test_grados_spider.py::test_la_portada_de_un_doble_grado_encuentra_su_plan_de_estudios` |
+| 2 | La columna se rotula «CARÁCTER» y abrevia «OBL» | 05/08/2026 | `plan_doble_electrica_mecanica.html` | `test_grados_spider.py::test_el_caracter_obl_del_plan_doble_se_normaliza_a_ob`, `::test_el_plan_de_un_doble_grado_da_sus_asignaturas` |
+| 3 | Los códigos son de otra serie y no cruzan con los de los grados base | 05/08/2026 | `plan_doble_electrica_mecanica.html` | `test_grados_spider.py::test_las_asignaturas_del_plan_doble_no_enlazan_guia` |
+| 4 | Los nombres van en mayúsculas y con el acrónimo del grado de origen | 05/08/2026 | `plan_doble_electrica_mecanica.html` | `test_check_dataset.py` (admite ese paréntesis y solo en titulaciones dobles) |
+| 5 | La página de salidas encadena las dos listas sin fusionarlas | 05/08/2026 | `salidas_doble_electrica_mecanica.html` | `test_grados_spider.py::test_un_doble_grado_pide_sus_salidas_profesionales`, `::test_las_salidas_repetidas_de_un_doble_grado_no_se_duplican` |
+| 6 | Error tipográfico en el nombre de una asignatura | 05/08/2026 | plan del Doble Grado en Ingeniería Electrónica Industrial y Mecánica | sin prueba propia: se refleja tal cual, no se corrige |
+| — | Defecto propio: `parse_salidas` descartaba los párrafos del cuerpo | 05/08/2026 | `salidas_informatica.html` | `test_grados_spider.py::test_las_salidas_recogen_los_parrafos_de_presentacion` |
+
+La última fila no es una anomalía de la fuente sino un defecto del rastreador que salió al
+mirar esta, y afecta a las siete titulaciones simples. Se deja aquí porque sin ella el registro
+contaría solo la mitad de lo que se encontró.
+
+## Cómo se corrige y cómo se detecta si vuelve
+
+El cruce por nombre es la parte frágil y **se degrada sin que nada falle**: si la fuente
+cambia la redacción de una asignatura en uno de los dos planes, deja de casar y la asignatura
+recibe un fragmento informativo que dice que no tiene guía.
+
+1. La señal es **el número de fragmentos informativos**, no una excepción. Un salto en esa
+   cifra al regenerar la colección significa que el cruce ha empeorado. Lo comprueba
+   `py scripts/check_chunks.py`.
+2. El cruce normaliza a minúsculas y sin tildes y, si no casa, reintenta sin el acrónimo entre
+   paréntesis. Hoy casan 170 de 178; las 8 que no son los dos TFG propios de cada doble grado,
+   que efectivamente no existen en ningún grado simple.
+3. Si un nombre casa con **varias** guías distintas, la ambigüedad no se resuelve y se avisa
+   por la salida de error. Ocurre hoy con `ESTADÍSTICA`. Esa asignatura recibe un fragmento
+   que afirma que no tiene guía, **lo cual es falso**, y es la limitación conocida de este
+   tratamiento.
+4. El acrónimo entre paréntesis **se conserva en el dato** y solo se ignora al comparar: es lo
+   que escribe la fuente e informa de qué grado procede la asignatura.
+
+**Lo que no hay que hacer:** construir una tabla de equivalencias a mano entre los códigos de
+un doble grado y los de sus grados base. Sería un dato que la fuente no publica, habría que
+mantenerlo a mano en cada rastreo y dejaría de ser reproducible desde el propio pipeline.
+

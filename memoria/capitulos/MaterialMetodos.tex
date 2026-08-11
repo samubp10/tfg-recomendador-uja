@@ -13,6 +13,13 @@ Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
 
+\begin{borrador}
+  \item \textbf{Falta una palabra en el párrafo anterior:} <<los descubrimientos realizados
+  sobre los datos de la \_\_\_ y los cambios del mismo>>. Por el contexto debería decir
+  <<de la fuente>>, pero no lo doy por hecho. Y <<del mismo>> no tiene a qué referirse:
+  el sustantivo más cercano es femenino.
+\end{borrador}
+
 \subsection{Gestión del trabajo y priorización}
 
 El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en unidades de trabajo atómicas o historias de usuario. Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
@@ -61,7 +68,7 @@ Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la ra
 \label{secc:Integracion_continua}
 El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
 
-Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinido, estático y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
+Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
@@ -82,7 +89,7 @@ Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no
 \textbf{El tercer tipo es la evaluación del sistema}, la cuál más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
 uno o varios números que solo tienen significado si se comparan con el de otra configuración.
 
-Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquedas escritas a mano pensando en lo que el usuario puediera querer saber.
+Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el usuario pudiera querer saber.
 sobre la generación de la respuesta se medirán la fidelidad de la respuesta al contexto
 recuperado y su pertinencia.
 
@@ -98,14 +105,14 @@ Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
 
 \subsection{Criterios de finalización (Definición de Hecho)}
 \label{secc:dod}
-Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta. Siguiendo esta lógico, se ha dividido estos criterios en dos grupos, los que valen para todas las tarjetas, y los que dependen de qué tipo de tarea va enfocada la tarjeta (Tabla~\ref{tab:resumen_backlog}).
+Para evitar la ambigüedad sobre el estado de avance del TFG, se ha establecido una estricta \textbf{Definición de Hecho} (\textit{Definition of Done}). Una tarea (cada una de las tarjetas con identificador empezando por IT-XX) solo se considera finalizada y se fusiona en el sistema si cumple las definiciones, dependiendo del tipo que sea la tarjeta. Siguiendo esta lógica, se han dividido estos criterios en dos grupos, los que valen para todas las tarjetas, y los que dependen del tipo de tarea al que va enfocada la tarjeta (Tabla~\ref{tab:resumen_backlog}).
 
 Los tres criterios que valen para todas las tarjetas:
 
 \begin{enumerate}                                                                                  
   \item \textbf{Defendibilidad:} la decisión que hay detrás se puede explicar, con la evidencia delante y diciendo qué alternativas se descartaron.
   \item \textbf{Memoria:} lo que la tarjeta ha producido está volcado en la sección que le corresponde de este documento.
-  \item \item \textbf{Integración:} el trabajo está fusionado en la rama principal y la integración continua está en verde.
+  \item \textbf{Integración:} el trabajo está fusionado en la rama principal y la integración continua está en verde.
 \end{enumerate}
 
 Los otros cinco tipos de tarjetas con sus criterios de finalización son:
@@ -125,10 +132,15 @@ Los otros cinco tipos de tarjetas con sus criterios de finalización son:
   \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
 \end{itemize}
 
-\begin{borrador}                                                                  
-  \item sección viva, si se crea algún otro tipo de tarjeta.
+\begin{borrador}
+  \item \textbf{Apartado vivo:} si aparece un tipo de tarjeta nuevo, sus criterios van aquí.
+  \item \textbf{El símbolo de porcentaje se escribe de cuatro maneras distintas} a lo largo de
+  la memoria: \texttt{13,65\textbackslash\%}, \texttt{90\textbackslash,\textbackslash\%},
+  \texttt{82~\textbackslash\%} y \texttt{99\textbackslash\%}. La norma es dejar un espacio fino
+  entre la cifra y el signo, así que lo coherente es \texttt{\textbackslash,\textbackslash\%}
+  en todas. Es una pasada de búsqueda y sustitución, pero conviene hacerla de una vez y no
+  arrastrarla hasta la entrega.
 \end{borrador}
-
 
 \section{Planificación temporal}
 
@@ -281,7 +293,7 @@ sería la primera candidata a quedar fuera.
 Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
 la incidencia correspondiente en el repositorio, de modo que cualquier línea de código puede rastrearse hasta la necesidad que la originó.
 
-A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la tabla ~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
+A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
 
 Los cinco tipos de historias son los siguientes:
@@ -316,7 +328,7 @@ Los cinco tipos de historias son los siguientes:
 
 Una alternativa sería ajustar los parámetros del modelo con información específica del dominio mediante ajuste fino (\textit{fine-tuning}). Este procedimiento puede resultar adecuado para adaptar el comportamiento, el formato de salida o el desempeño del modelo en una tarea concreta, pero no ofrece por sí solo una referencia explícita a la fuente de cada afirmación. Además, cuando los datos cambian con frecuencia, mantener el conocimiento actualizado exigiría preparar nuevos ejemplos y repetir el proceso de ajuste.
 
-En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de lenguaje de la información oficial de la EPSJ, haciéndolos ambos módulos independientes lo cuales son intercambiables. Los planes de estudio, las guías docentes y las salidas profesionales pueden actualizarse en la colección sin modificar los parámetros del modelo, a la vez que los fragmentos recuperados proporcionan una base documental para las respuestas. No obstante, la calidad final dependerá de todo el proceso (Pipeline RAG) la cobertura y limpieza de la colección, la estrategia de fragmentación, la capacidad del recuperador para seleccionar información pertinente y las instrucciones proporcionadas al modelo durante la generación.
+En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de lenguaje de la información oficial de la EPSJ, haciendo de ambos dos módulos independientes e intercambiables. Los planes de estudio, las guías docentes y las salidas profesionales pueden actualizarse en la colección sin modificar los parámetros del modelo, a la vez que los fragmentos recuperados proporcionan una base documental para las respuestas. No obstante, la calidad final dependerá de todo el proceso (\textit{pipeline} RAG), la cobertura y limpieza de la colección, la estrategia de fragmentación, la capacidad del recuperador para seleccionar información pertinente y las instrucciones proporcionadas al modelo durante la generación.
 
 
 \subsection{Equipo de ejecución}
@@ -324,26 +336,21 @@ En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de
 
 Todo el sistema (extracción, fragmentación, indexación, recuperación
 y generación) ha sido probado y ejecutado sobre un único equipo portátil doméstico, cuyas
-características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una resticción de diseño que
-aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado a las decisiones tomadas al no poder contar
-con hardware más potente haciendo que el sistema funcionase de manera más rápida con modelos mejores y más grandes.
+características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una restricción de diseño que
+aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado las decisiones tomadas al no poder contar con un equipo más potente que hubiera permitido emplear modelos mejores y más grandes.
 
-Los datos que más pesan hoy en día en el mundo de inteligencia artificial es sin lugar a dudas la memoria RAM, siendo uno de los mayores limitantes
-en el laboratorio por el que no se ha podido elegir modelos de más prestaciones e inteligencia ya que este aparte de tener que alojar los modelos de incrustaciones, tiene que almacenar el modelo de lenguaje generativo y su contexto, además de la base de datos vectorial con los embeddings de la colección.
+El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a dudas, la memoria principal, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.
 
 \input{tablas/TablaEquipo.tex}
 
 \begin{borrador}                                                                                                                                                    
-  
-  \item La tarjeta gráfica no se usará para los embedding, pero sí la usará el modelo de lenguaje generativom, por lo que decir que no se usará es un graso error.
-  \item Revisar este apartado, queda vivo y abierto.
+  \item  El modelo de
+  lenguaje generativo de la Fase 2 podría aprovechar la tarjeta gráfica del equipo.
+  \item \textbf{Apartado vivo:} cuando se elija el modelo generativo hay que volver aquí y
+  cerrar la frase con lo que se acabe usando.
 \end{borrador}
 
 \section{Arquitectura del sistema}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Faltan:} Concretar los bloques de las Fases 1 a 3 (modelo de incrustaciones, base vectorial, LLM e interfaz) cuando esas decisiones estén tomadas.
-\end{borrador}
 
 Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las URL rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
@@ -357,7 +364,7 @@ Con estos trozos de información, se pasa al \textit{embedding} con el que se in
 
 Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
-Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costosa y hace peticiones costosas, por lo que hay que ser respetuoso con el servidor de la universidad, el razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
+Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
@@ -421,8 +428,10 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 \end{figure}
 
 \begin{borrador}                                                                                                
-  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no
-    (07/08/2026).} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
+  \item \textbf{Faltan por concretar los bloques de las Fases 1 a 3} ---modelo de
+  incrustaciones, base vectorial, modelo generativo e interfaz--- cuando esas decisiones estén
+  tomadas. Las dos primeras ya lo están y la figura todavía no las recoge.
+  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no.} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
   fragmentos y la flecha del \textit{chunker}, pero el troceado se cuenta ahora en la Fase~1
   (Sección~\ref{subsec:chunking}).
   \item \textbf{Decide qué cuenta la figura antes de tocarla}, porque las dos lecturas son
@@ -768,12 +777,12 @@ pero el servidor de la universidad la sirve realmente en ISO-8859-1. Esto llevab
 Scrapy resuelve el problema sin código adicional porque prioriza la cabecera HTTP \texttt{Content-Type} sobre esa declaración,
 tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.
 
-El contenido de interés (resumen, requisitos previos y temario) se localiza por el identificador
+El contenido de interés (el resumen y la descripción de contenidos) se localiza por el identificador
 de su sección dentro del HTML de la guía, y no por su posición en el documento: la posición varía entre titulaciones,
 pero el identificador es estable.
 
-No todas las asignaturas disponen de guía publicada: \sout{de las 361 asignaturas del catálogo,
-  296 cuentan con guía docente y 65 no la tienen todavía (una cobertura en torno al 82 \%)}.
+No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
+  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
@@ -842,59 +851,39 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \label{fig:anatomia_guia}
 \end{figure}
 
-\begin{borrador}                                                                                                                  
-  \item \textbf{Esta figura da por hecha la reescritura que pide IT-95}, la del borrador de
-  abajo: describe la extracción \emph{desde PDF}, que es por donde pasa hoy el 100~\% del
-  contenido, mientras que los párrafos de arriba siguen contando el camino HTML. Si
-  reescribes la subsección, la figura ya está; si decides no reescribirla todavía, la figura
-  se adelanta al texto y hay que avisarlo.
-  \item \textbf{Los diecisiete rótulos no son una invención ni una lista teórica:} están
-  escritos a mano en el código contra la plantilla observada, y son los que delimitan las
-  secciones. La figura lista nueve y resume los ocho restantes para no llenarse de ruido.
-  \item Comprueba que el texto explique antes lo que la figura usa ---qué es la lista de
-  permitidos y por qué no es de prohibidos---, porque la norma que te fijaste es que una
-  figura no puede contener nada que el texto no haya explicado.
-\end{borrador}
-
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Cifras del 05/08/2026}, tras incorporar los planes de los dobles grados
-  (IT-101): de las \textbf{528} asignaturas del catálogo, \textbf{442} cuentan con guía y
-  \textbf{86} no, una cobertura del \textbf{83,7~\%}. Las \textbf{288} guías se agrupan en
-  \textbf{210} unidades tras deduplicar, porque una misma guía se imparte en varias
-  titulaciones. Van con su fecha y su curso: la Escuela publica guías durante todo el año y
-  estas cifras van a cambiar otra vez antes de la entrega.
-  \item \textbf{Sustituyen a las del 30/07/2026}, que decían 350 asignaturas, 62 sin guía y
-  una cobertura del 82,3~\%. La diferencia no es que la fuente publicara nada nuevo: son las
-  asignaturas de las cinco titulaciones dobles, que hasta IT-101 no estaban en la colección.
-  \item \textbf{La segunda frase tachada afirma algo que hoy no ocurre nunca.}
-  El mecanismo de respaldo se activa en \textbf{0 de las 288 guías} (campo
-  \texttt{fallback} del conjunto de datos). No es que se active poco: no se
-  ejecuta jamás con el corpus actual, porque pertenece al camino de
-  extracción desde HTML y hoy el 100~\% de las guías llega en PDF.
-  \item Los 5 casos reales son otra cosa completamente distinta, y la diferencia
-  importa: son guías \textbf{publicadas con las secciones de contenido
-    vacías en el origen}. No es un fallo de extracción del sistema, es un hueco
-  de la fuente. Está documentado en el DQA-0004 y desarrollado en el
-  Capítulo~\ref{cap:resultados}.
-  \item Escribir <<se activa un mecanismo de respaldo>> describiendo código que no
-  se ejecuta es el tipo de afirmación que el tribunal puede comprobar en
-  treinta segundos abriendo el conjunto de datos.
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-95) --- \emph{esta subsección entera describe un
-    mecanismo que ya no es el que se usa}. Todo lo de arriba cuenta la
-  extracción desde HTML; medido el 29/07/2026 sobre el rastreo del curso
-  2026-27, \textbf{las 288 guías del corpus vienen de PDF y ninguna de
-    HTML}. Hay que reescribirla contando los dos caminos y cuál está vivo.
-  \item La comprobación no es una estimación: el camino HTML une sus bloques con
-  doble salto de línea y el limpiador colapsa todo espacio en blanco, así
-  que un texto sacado del HTML no puede contener un salto suelto. No hay ni
-  un doble salto en todo el corpus y sí 564 campos con saltos simples.
-  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de
-  ser un caso particular y es por donde pasa \textbf{el 100 \% del contenido}.
-  Sus 17 rótulos de sección, escritos a mano contra una plantilla observada,
-  sostienen ahora la colección entera.
+  \item \textbf{Fase:} 1 (IT-95, IT-96) --- \emph{esta subsección describe un mecanismo que
+    ya no es el que se usa}. Todo lo de arriba cuenta la extracción desde HTML, y hoy
+  \textbf{las 288 guías del corpus vienen de PDF y ninguna de HTML}. Hay que reescribirla
+  contando los dos caminos y cuál está vivo. La figura de la anatomía de la guía ya da por
+  hecha esa reescritura ---describe la extracción desde PDF---, así que hoy va por delante del
+  texto.
+  \item La comprobación no es una estimación: el camino HTML une sus bloques con doble salto
+  de línea y el limpiador colapsa todo espacio en blanco, así que un texto sacado del HTML no
+  puede contener un salto suelto. No hay ni un doble salto en todo el corpus y sí 564 campos
+  con saltos simples.
+  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de ser un caso
+  particular y es por donde pasa \textbf{el 100~\% del contenido}. Sus 17 rótulos de sección,
+  escritos a mano contra la plantilla observada, sostienen ahora la colección entera. La
+  evidencia, las pruebas que lo cubren y qué hacer si la plantilla cambia están en el
+  DQA-0002.
+  \item \textbf{Cifras vigentes:} de las \textbf{528} asignaturas, \textbf{442} cuentan con
+  guía y \textbf{86} no, una cobertura del \textbf{83,7~\%}; las \textbf{288} guías se agrupan
+  en \textbf{210} unidades tras deduplicar. Van con su curso, porque la Escuela publica guías
+  durante todo el año.
+  \item \textbf{El mecanismo de respaldo se activa en 0 de las 288 guías} (campo
+  \texttt{fallback}). No es que se active poco: no se ejecuta nunca, porque pertenece al
+  camino HTML. Escribir <<se activa un mecanismo de respaldo>> describiendo código que no se
+  ejecuta es de lo que el tribunal comprueba en treinta segundos abriendo el conjunto de
+  datos. Los cinco casos reales son otra cosa: guías \textbf{publicadas con las secciones de
+    contenido vacías en el origen}, que es un hueco de la fuente y no un fallo de extracción
+  (DQA-0004).
+  \item \textbf{La lista de permitidos merece enunciarse una vez como principio}, porque el
+  proyecto la aplica en dos sitios: en las secciones del PDF ---solo pasan resumen y
+  descripción de contenidos--- y en el nombre de la asignatura, que se toma del mismo enlace
+  del que sale la dirección de su guía y no juntando todo el texto de la celda. Cuando la
+  Escuela añadió un segundo enlace al <<Syllabus>>, ese rótulo se pegaba al nombre de 43
+  asignaturas; tomar solo lo que se sabe válido lo dejó fuera por construcción.
   \item \textbf{Cómo contarlo, que es lo delicado:} la memoria describe el
   \emph{estado final} del sistema, no su historia. No se narra la migración
   paso a paso ni las cifras intermedias (esas viven en el DQA-0002 y en el
@@ -921,26 +910,10 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
   \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
 \end{borrador}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-96) --- decisión pequeña pero que vale como ejemplo
-  del criterio general del proyecto, así que merece un párrafo aquí.
-  \item La Escuela añadió en el curso 2026-27 un segundo enlace dentro de la celda
-  del nombre de la asignatura (a un documento <<Syllabus>>). Como el nombre
-  se componía juntando todo el texto de la celda, ese rótulo se pegaba al
-  final y 43 de las 350 asignaturas quedaron con un nombre que no existe.
-  \item El primer arreglo borraba ese rótulo concreto. Se sustituyó por otro que no
-  depende de cómo se llame: \textbf{el nombre es el texto del mismo enlace
-    del que ya salía la dirección de su guía}. Cualquier otro enlace de la
-  celda queda fuera por construcción.
-  \item Es el mismo criterio que se adoptó para las guías en PDF: no una lista de
-  lo que hay que excluir, sino tomar únicamente lo que se sabe que es válido.
-  Conviene enunciarlo una vez como principio y referirlo desde los dos sitios.
-\end{borrador}
-
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada grado simple con contenido propio. En el caso de los dobles grados, la lista de salidas son la concatenación de
+uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias. En el caso de los dobles grados, la lista de salidas es la concatenación de
 los dos grados por separado.
 
 \textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
@@ -988,26 +961,15 @@ los dos grados por separado.
   \label{fig:estructura_salidas}
 \end{figure}
 
-\begin{borrador}                                                                                                                  
-  \item \textbf{La figura contradice a propósito la última frase del párrafo anterior}, y
-  esto hay que resolverlo antes de cerrar el apartado (está desarrollado en el borrador de
-  más abajo). El recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
-  \emph{sí} publica salidas propias; el párrafo dice que las de un doble grado son la
-  concatenación de las de sus dos grados base. Si eso fuera cierto, no habría ningún bloque
-  propio de un doble grado y serían siete, no ocho. Comprobado el 07/08/2026 en
-  \texttt{data/grados.json}: los ocho son los siete grados simples más el Doble Grado en
-  Ingeniería Eléctrica y Mecánica.
-  \item Cuando decidas cómo redactarlo, ajusta también el recuadro amarillo de la figura,
-  que es donde va la cifra.
-\end{borrador}
-
 \begin{borrador}                                                                                                                                                    
-  \item Añadir un diagrama de estructura de una salida profesional de un grado como ejemplo
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{OJO, esto hay que resolverlo antes de cerrar el apartado.} \textbf{Cuidado con la frase que acabas de escribir: la evidencia del proyecto
-    dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
+  \item \textbf{Esto hay que resolverlo antes de cerrar el apartado, y la figura ya lo
+    señala:} su recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
+  \emph{sí} publica salidas propias, mientras que el párrafo dice que las de un doble grado
+  son la concatenación de las de sus dos grados base. Si eso fuera cierto no habría ningún
+  bloque propio y serían siete. Comprobado sobre \texttt{data/grados.json}: los ocho son los
+  siete grados simples más el Doble Grado en Ingeniería Eléctrica y Mecánica. Cuando decidas
+  cómo redactarlo, ajusta también el recuadro amarillo de la figura, que es donde va la cifra.
+  \item \textbf{La evidencia del proyecto dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
   con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
   dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones reguladas
   da acceso la doble titulación, y ese párrafo \textbf{no aparece en ninguno de los dos
@@ -1075,21 +1037,21 @@ titulaciones en las que se imparte; de ahí que los campos \texttt{grados} y \te
 
 Deduplicar exige decidir cuándo dos guías se consideran la misma. Se plantearon dos claves de agrupación, comparadas
 en la Tabla~\ref{tab:claves_dedup}: agrupar únicamente por el contenido del texto, o exigir además que coincida el nombre de la
-asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real: el mecanismo de respaldo descrito
-más arriba puede generar un texto idéntico para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
-\textit{Smart Grids. Redes Eléctricas Inteligentes} y \textit{Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica},
-ambas del Grado en Ingeniería Eléctrica, que comparten el cuerpo de guía docente sin ser en absoluto la misma
-materia. Agrupar solo por contenido las habría fusionado en una única unidad, con lo que una consulta sobre redes eléctricas
-inteligentes podría devolver el temario de dibujo técnico.
+asignatura. La elegida es la segunda, el par (nombre, contenido), y el motivo es un caso real donde la propia fuente publica
+  el mismo contenido para dos asignaturas que no tienen nada que ver. Es lo que ocurre entre
+  \textit{Seguridad en gestión de la información}, del Grado en Inteligencia Artificial y
+  Ciberseguridad, y \textit{Seguridad en tecnologías de la información}, del Grado en
+  Ingeniería Informática: dos materias distintas, de dos titulaciones distintas, cuyas guías
+  docentes traen el mismo cuerpo. Agrupar solo por contenido las habría fusionado en una única
+  unidad, con lo que una consulta sobre una de ellas podría devolver el temario de la otra.
 
 \input{tablas/TablaClavesDeduplicacion.tex}
 
-Esos tres conjuntos de diferencia entre una clave y otra (31 frente a 28) son exactamente las tres parejas que tienen el
+Esos tres conjuntos de diferencia entre una clave y otra (41 frente a 38) son exactamente las tres parejas que tienen el
 mismo contenido pero distinto nombre, y conviene mirarlas una a una porque no todas son del mismo tipo. Dos son errores de la
 clave elegida, y son dos parejas independientes entre sí, no relacionadas: <<Fundamentos de la programación>> frente a
 <<Fundamentos de programación>>, y <<Fundamentos físicos de la Informática>> frente a <<Fundamentos físicos de la informática>> (solo cambia la inicial de <<informática>>). En ambos casos se trata de la misma asignatura escrita de dos maneras, y exigir que el nombre coincida impide
-agruparlas. La tercera es la pareja del Grado en Ingeniería Eléctrica
-citada antes, donde no agrupar es lo correcto. El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
+agruparlas. La tercera es la pareja de asignaturas de seguridad citada antes, donde no agrupar es lo correcto. El balance, por tanto, es de dos falsos negativos a cambio de evitar un falso
 positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: fusionar dos asignaturas distintas corrompe el
 índice y puede hacer que el sistema atribuya un temario a quien no le corresponde, mientras que no fusionar dos copias
 idénticas solo deja el índice ligeramente más grande.
@@ -1175,25 +1137,9 @@ idénticas solo deja el índice ligeramente más grande.
 \subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
 \label{secc:verificacion_fase0}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 0 (IT-19) --- redactado. Recordatorio al revisar: aquí \textbf{no} van cifras de caracterización de la colección ni amenazas a la validez; eso es IT-58 y va al Capítulo~\ref{cap:resultados} en la Fase 2.
-\end{borrador}
-
 La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
 Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
-
-\begin{borrador}                                                                                                
-  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos
-    (07/08/2026).} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
-  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
-  deduplicación, que sí se queda aquí, comprueba la otra mitad.
-  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
-  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
-  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
-  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
-  respetar el reparto de fases es peor remedio que la enfermedad.
-\end{borrador}
 
 \textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
   Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
@@ -1218,12 +1164,21 @@ Las pruebas unitarias se emplean en base a los ficheros reales descargados llama
   medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
   dejar implícito.}
 
-La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a github), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
+La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a GitHub), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 2 (IT-58) --- matiz honesto sobre esta afirmación, para
-  adelantarse al tribunal. El 24/07/2026 se comprobó que re-rastrear la web
-  \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
+  \item \textbf{Fase:} 0 (IT-19). Aquí \textbf{no} van cifras de caracterización de la
+  colección ni amenazas a la validez: eso es IT-58 y va al Capítulo~\ref{cap:resultados}.
+  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos.} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
+  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
+  deduplicación, que sí se queda aquí, comprueba la otra mitad.
+  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
+  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
+  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
+  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
+  respetar el reparto de fases es peor remedio que la enfermedad.
+  \item \textbf{Matiz honesto sobre la reproducibilidad, para adelantarse al tribunal}
+  (IT-58): re-rastrear la web \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
   (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
   titulaciones de Geomática con la tabla de asignaturas reestructurada,
   resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
@@ -1240,204 +1195,96 @@ La reproducibilidad del sistema no se apoya en una copia versionada de los datos
 \section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
 \label{secc:fase1}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Párrafo de apertura de la fase, por escribir.} Cuatro o cinco líneas
-  diciendo qué problema resuelve la Fase~1 ---convertir la colección en vectores y poder
-  recuperar por significado--- y en qué orden se cuenta: el instrumento con el que se mide,
-  el troceado con el experimento que fija sus parámetros, y el modelo de incrustaciones.
-  \item \textbf{Y una advertencia sobre ese orden, que es la única costura que queda:} la
-  rejilla del troceado \emph{usó} el modelo, que se elige después. Se cuenta antes porque el
-  troceado es lo primero que le ocurre al texto, no porque se decidiera antes. Basta una
-  frase para que el lector no lo tome por una dependencia rota.
-  \item \textbf{Lo que hay que declarar al contarlo}, porque es la grieta del razonamiento:
-  la comparación de modelos se hizo sobre un troceado provisional y la rejilla se hizo con el
-  modelo ya fijado, de manera que \textbf{ninguno de los dos experimentos exploró el espacio
-    conjunto}. Está reconocido en el ADR-0003 y hay que decirlo aquí también, porque este
-  orden lo hace evidente.
-  \item \textbf{La regla que separa capítulos ya está aplicada (07/08/2026):} aquí queda el
-  método y el porqué, y las cifras están en el Capítulo~\ref{cap:resultados}. Al releer,
-  comprueba que no se ha colado ninguna de vuelta: si una frase empieza por «se obtuvo»,
-  está en el capítulo equivocado.
-\end{borrador}
+Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraídas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exige, pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se probarán de manera experimental.
+
+Primero se introducirá el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
+
 
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
 
-Para la experimentación se ha usado el conjunto de datos extraídos y 50 preguntas creadas para abarcar todo tipo de cuestiones que el usario promedio de 
-la aplicación podría querer saber. Las preguntas abarcan desde cuestiones como temario de una asignatura en específico, como listado de asignaturas de una
-titulación, como salidas profesionales de un grado.
+Para la experimentación se ha usado el conjunto de datos extraídos y 50 preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de 
+la aplicación podría querer saber. 
+
+Las preguntas abarcan cinco tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra). La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
+
+\input{tablas/TablaConjuntoEvaluacion.tex}
+
+Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuperar para poder contestar correctamente a la pregunta.
+
+
 
 
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
 
-Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir es este apartado
+Los datos o corpus se tienen que trocear debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir en este apartado.
 
-\subsubsection[Restricciones del troceado ]{Restricciones del troceado}
+\subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-Los modelos de incrustaciones manejan una ventana medida en \glr{tokens}{token}. Esta ventana de contexto no es ilimitada por lo que se explicó en la sección~\ref{subsec:chunking_concepto}, y esto obliga a trocear la colección y sus unidades. El cuerpo de una guía docente ocupa de media 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si las dejáramos tal cuál, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
+El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
 
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
-Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. Esta misma tabla dice el nombre de la estrategia y la descripción de lo que haría el algoritmo. La cuarta estrategia se nombra como una que se pensó en un inicio, pero por los argumentos dados anteriormente, se descarta desde un inicio, las otras tres pasarán por debajo del experimento. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
+Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. Esta misma tabla dice el nombre de la estrategia y la descripción de lo que haría el algoritmo. La cuarta estrategia se nombra como una que se pensó en un inicio, pero por los argumentos dados anteriormente se descarta sin llegar a medirla, las otras tres pasan por el experimento. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
   experimento completo, con sus cuarenta y cinco configuraciones.
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-\textcolor{borrador2}{Cuál de las tres corta mejor no se sabe leyendo su descripción, así que
-  se miden. Lo que sigue es el diseño de esa comparación; sus cifras, por la estructura que
-  exige la memoria, están en el Capítulo~\ref{cap:resultados}.}
+Las otras tres opciones no se sabe solamente leyendo su descripción cuál es mejor que otra, así que
+se miden. Lo que sigue es el diseño de esa comparación; sus cifras, por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
 
-\subsubsection[Cómo se comparan: la rejilla]{\textcolor{borrador2}{Cómo se comparan: la rejilla}}
+
+\subsubsection[Experimento en rejilla]{Experimento en rejilla}
 \label{secc:rejilla_fragmentacion}
-\label{secc:fase1_fragmentacion}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Este apartado se quedó solo con el diseño el 07/08/2026}, y las cifras se
-  fueron a la Sección~\ref{secc:resultados_fragmentacion}. Lo que tiene que seguir aquí, y es
-  lo primero que un tribunal ataca, es \emph{por qué la comparación es justa}: que las tres
-  estrategias reciben el mismo número de configuraciones, que solo se sustituye dónde se
-  colocan los cortes y que el mínimo se mantiene fijo en las cuarenta y cinco.
-  \item \textbf{Lo que no puede perderse al reescribir el turquesa}, porque son las tres
-  cosas que sostienen la conclusión y las que más fácil se caen al condensar: que la
-  comparación se lee a igualdad de número de fragmentos y no por la fila con mejor número;
-  que trocear más fino da a cada unidad más papeletas de aparecer entre los primeros
-  resultados, y eso es un sesgo y no una virtud; y que el recuento de fragmentos truncados es
-  el único dato de todo el experimento que no depende de ninguna métrica opinable.
-  \item \textbf{Cuidado con una frase que ya no se puede escribir:} no hay «ADR-0001
-  original» al que contraponer nada. El registro se reescribió entero y hoy contiene este
-  experimento, así que la memoria y el ADR cuentan lo mismo y en el mismo orden.
-\end{borrador}
-
-
-La comparación de metodologías de troceado se organiza como una \textbf{búsqueda en rejilla}, se
-prueban sistemáticamente todas las combinaciones de unos parámetros. Las tres estrategias elegidas para el experimento
-con la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio,  el tamaño
-objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la estrategia de corte semántica y el solape en la estrategia del tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
+La comparación de metodologías de troceado se organiza como una búsqueda en rejilla, es decir, se probaron sistemáticamente todas las combinaciones de los parámetros de las tres estrategias. Las tres estrategias elegidas para el experimento tienen la misma escala de tamaños máximos (600, 900, 1200, 1500 y 1800 caracteres) y sobre cada tamaño, cada una aporta tres variantes de su parámetro propio: el tamaño objetivo en la estructural (a veces igualado con el máximo), el percentil de corte en la semántica y el solape en la de tamaño fijo. Son cuarenta y cinco configuraciones en total, quince por estrategia.
 
 Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos datos de entrada (las guías de cada asignatura y el bloque de salidas de cada titulación), y lo único que hacen es decidir cómo cortar los datos.
 
-\subsubsection[Procedimiento seguido en cada configuración]{\textcolor{borrador2}{Procedimiento seguido en cada configuración}}
+\subsubsection[Procedimiento seguido en cada configuración]{Procedimiento seguido en cada configuración}
 \label{secc:rejilla_procedimiento}
 
-\textcolor{borrador2}{El procedimiento seguido en cada una de las cuarenta y cinco
-  configuraciones es el mismo, y conviene detallarlo porque de él depende que la comparación
-  signifique algo. Se parte de la colección tal y como la deja el rastreador, y no de los
-  fragmentos ya construidos: cada configuración tiene que trocear la colección entera desde
-  el principio, o estaría midiendo el troceado de otra. Junto a ella se cargan las cincuenta
-  preguntas anotadas del conjunto de evaluación.}
+El procedimiento seguido en este experimento en cada una de las cuarenta y cinco configuraciones es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
 
-\textcolor{borrador2}{El modelo de incrustaciones elegido en el ADR-0003 se carga una sola
-  vez para toda la ejecución, y de él se toman dos cosas distintas: la función que convierte
-  texto en vectores y su analizador léxico, que hace falta para contar cuántos fragmentos
-  superan la ventana y que la interfaz habitual del proyecto no expone. A cada texto se le
-  antepone el prefijo que su papel exige ---el de documento a los fragmentos y el de consulta
-  a las preguntas---, porque el modelo trata los dos papeles de forma distinta.}
+El modelo de incrustaciones elegido en el ADR-0003, el cual tiene su propio apartado en la Sección~\ref{secc:resultados_embeddings}, se carga una sola vez para toda la
+ejecución, y de él se toman dos funciones distintas: la primera convierte los trozos en vectores y la segunda es su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
 
-\textcolor{borrador2}{El recorrido se organiza por tamaño máximo, de menor a mayor. Antes de
-  generar las configuraciones de cada tamaño se trocea una vez la colección con la estrategia
-  de referencia y se mide la distribución de distancias entre las incrustaciones de piezas
-  consecutivas del texto. De esa distribución salen los tres umbrales de la estrategia
-  semántica. Se emplea un percentil y no una distancia absoluta porque el valor absoluto
-  depende del modelo que se esté usando, mientras que el percentil se adapta solo a la
-  distribución que ese modelo produzca; y se recalcula para cada tamaño máximo, porque al
-  cambiar el máximo cambian también las piezas entre las que se mide.}
+El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre las incrustaciones de piezas consecutivas del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que estos se adaptan a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
 
-\textcolor{borrador2}{Con esos umbrales ya calculados se generan las nueve configuraciones
-  de ese tamaño: tres tamaños objetivo para la estrategia estructural, tres solapes para la de
-  longitud y tres percentiles para la semántica. De cada una se sustituye \textbf{únicamente}
-  la función que decide dónde colocar los cortes dentro de una unidad, y a continuación se
-  invoca el fragmentador real del sistema. Todo lo demás ---la construcción de las unidades,
-  la deduplicación de guías compartidas, los encabezados autocontenidos, el tratamiento de las
-  titulaciones dobles, los fragmentos de plan de estudios y la fusión de los residuos
-  cortos--- es idéntico en las cuarenta y cinco. Sin esa precaución, cualquier diferencia
-  medida podría proceder de otra parte del proceso y atribuirse por error a la estrategia.}
+Con los umbrales ya calculados de la estrategia de referencia, se generan las nueve configuraciones diferentes, tres tamaños objetivo distintos $n$ para la estrategia estructural, tres solapes para la estrategia de longitud y tres percentiles para la semántica. Dentro de cada una se sustituye únicamente la función que decide dónde colocar los cortes dentro de una unidad y se ejecuta el código. 
 
-\textcolor{borrador2}{Sobre la colección que resulta se calculan las incrustaciones de todos
-  sus fragmentos y de las cincuenta preguntas, y se ordenan los fragmentos por su similitud
-  con cada pregunta \textbf{de forma exacta}, recorriéndolos todos. La base de datos
-  vectorial no interviene, y es deliberado: un índice aproximado devuelve un orden que
-  depende de sus propios parámetros, de modo que cada medida mezclaría la decisión que aquí
-  se estudia con otra distinta y todavía abierta. Lo que se obtiene es, por tanto, el techo
-  de lo que ese troceado permite recuperar, no lo que dará el índice real.}
+De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), el número de fragmentos generados, su tamaño mediano y cuántos de ellos superan la ventana del modelo y se truncan por ello. Recogidos todos los valores anteriores, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
 
-\textcolor{borrador2}{De cada configuración se registran, además de las métricas para uno,
-  tres, cinco, diez y quince resultados, tres cifras que hacen falta para poder leerlas: el
-  número de fragmentos que ha producido, su tamaño mediano y cuántos de ellos superan la
-  ventana del modelo. Terminada la medición se restaura la función original antes de pasar a
-  la siguiente configuración, incluso si algo falla por el camino, para que ninguna
-  configuración quede contaminada por la anterior.}
-
-\textcolor{borrador2}{Quedan dos elementos congelados durante toda la rejilla, y hay que
-  declararlos porque acotan lo que se puede concluir: el tamaño mínimo de fragmento, que se
-  mantiene en doscientos caracteres en las cuarenta y cinco y por tanto \textbf{no queda
-    validado por este experimento}, y el propio conjunto de evaluación. La ejecución completa
-  tarda alrededor de una hora, porque cada configuración vuelve a trocear y a vectorizar la
-  colección entera, y es determinista: repetirla devuelve las mismas cifras.}
+Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera a repetir una y otra vez sin cambiar nada, daría los mismos resultados.
 
 
 
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
-\textcolor{borrador2}{La estrategia
-  que gana el experimento es la estructural ---el resultado está en la
-  Sección~\ref{secc:resultados_fragmentacion}---, y su
-  algoritmo} parte de la unidad completa y solo la divide cuando hace
+La estrategia elegida como ganadora del experimento es la estructural (el resultado está en la
+  Sección~\ref{secc:resultados_fragmentacion}), y funciona de la siguiente manera. 
+  El algoritmo parte de la unidad completa y solo la divide cuando hace
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
 por último fusiona con sus vecinos los fragmentos residuales que se han quedado demasiado cortos y reequilibra el par resultante.
 A cada fragmento se le antepone un encabezado autocontenido con el nombre de la asignatura, su tipo, sus créditos ECTS y
-la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. 
-\sout{Los parámetros de 900 caracteres (contando el encabezado) y 200 de mínimo.} El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
+la titulación, de forma que conserve el sentido cuando se recupere aislado del resto de la base de datos vectorial. El tamaño máximo es de 900 caracteres, encabezado incluido, y el mínimo de 200. El máximo es una restricción dura, mientras que el mínimo es solo una preferencia,
 ya que una unidad más corta que ese umbral no se puede alargar.
 
-\textcolor{borrador2}{El tamaño máximo y el objetivo son de 900 caracteres, encabezado
-  incluido, y el mínimo de 200. Los dos primeros son el resultado de la rejilla de la
-  Sección~\ref{secc:resultados_fragmentacion}: no se eligieron al escribir el algoritmo, se
-  midieron sobre cinco tamaños distintos. El tercero no entró en esa rejilla, que lo mantuvo
-  fijo en las cuarenta y cinco configuraciones, y es por tanto el único parámetro del
-  fragmentador sin validación experimental propia. Conviene decirlo aquí y no esperar a las
-  amenazas a la validez.}
 
-La unión de fragmentos solo ocurre cuando a la unión resultante caben dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
+La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del máximo establecido, si no, el algoritmo conserva el fragmento corto en lugar de forzar la unión, ya que superar el máximo de la ventana haría que el modelo de incrustaciones cortase el fragmento en silencio y se perdiera contenido sin que nada lo advirtiera.
 
 
-\textcolor{borrador2}{Este apartado ha descrito qué se compara y cómo; las cifras que
-  deciden ---qué estrategia y con qué tamaños--- están en la
-  Sección~\ref{secc:resultados_fragmentacion}, porque la estructura que exige la memoria
-  reserva este capítulo para el método y el siguiente para los resultados. Queda una
-  dependencia que conviene declarar: medir un troceado obliga a convertir sus fragmentos en
-  vectores, de modo que este experimento necesitaba el modelo de incrustaciones que se elige
-  en la Sección~\ref{secc:fase1_embeddings}, más adelante en este mismo capítulo.}
-
-\begin{borrador}
-  \item \textbf{Queda un solo tachado en el apartado}, el de los parámetros. Sustitúyelo por
-  la frase en turquesa de debajo, que dice de dónde sale cada uno de los tres valores, y
-  bórralo.
-  \item \textbf{El orden ya está resuelto (07/08/2026):} el diseño del experimento va ahora
-  antes que el algoritmo, de modo que ningún valor se enuncia antes de la comparación que lo
-  produce. No hacía falta mover nada más: bastó con sacar las cifras al
-  Capítulo~\ref{cap:resultados}.
-  \item \textbf{La Tabla~\ref{tab:alternativas_chunking} sigue con cifras del corpus
-  anterior.} Su última fila dice «la mitad de las guías supera los 2\,677 caracteres y la
-  mayor llega a 23\,940», que son las de 296 guías. Medidas sobre las 288 de hoy son
-  \textbf{mediana 2.653 y máximo 24.047}. Cámbialas ahí, o quita las cifras de la celda y
-  deja que las ponga el texto.
-  \item \textbf{Y la primera fila necesita un matiz.} Dice que el tamaño fijo se descarta
-  porque «sobre la colección completa puede juntar dos asignaturas», y es cierto. Pero el
-  tamaño fijo que compite en la rejilla \emph{no} es ese: allí las tres estrategias trabajan
-  ya dentro de una unidad, así que ninguna puede juntar dos asignaturas. Sin esa aclaración,
-  las dos tablas se contradicen a la vista: una lo descarta y la otra lo pone arriba.
-\end{borrador}
-
-\subsubsection[El proceso completo y la estructura del fragmento]{\textcolor{borrador2}{El proceso completo y la estructura del fragmento}}
+\subsubsection[El proceso completo y la estructura del fragmento]{El proceso completo y la estructura del fragmento}
 \label{secc:estructura_fragmento}
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las dos ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio: cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera.
+El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 33 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
 
 
 \begin{figure}[H]
@@ -1474,9 +1321,7 @@ salió cada respuesta.
       anchor=north west] (cue) {%
       \textbf{Cuerpo} \hfill \textit{texto de la guía docente}\\[3pt]
       Teoría. Tema 1: Introducción. 1.1 ¿Qué es la automática (industrial)?
-      1.2 Sistemas (en automática). 1.3 Aplicabilidad de la automática.
-      1.4 Evolución histórica. Tema 2: Automatización de sistemas de eventos
-      discretos\dots};
+      1.2 Sistemas (en automática).\dots};
     
     % --- Columna derecha: metadatos ---
     \node[bloque, text width=5.6cm, right=9mm of enc.north east,
@@ -1506,7 +1351,7 @@ salió cada respuesta.
     \end{scope}
     \node[font=\footnotesize\bfseries, anchor=south west]
     at ([yshift=1.8mm]marco.north west)
-    {Segundo fragmento de 5 de <<Automática industrial>> --- máximo 1\,500 caracteres, encabezado incluido};
+    {Segundo fragmento de 5 de <<Automática industrial>>};
   \end{tikzpicture}%
   }
   \caption[Estructura de un fragmento (\textit{chunk})]{Estructura de un
@@ -1518,145 +1363,31 @@ salió cada respuesta.
   \label{fig:estructura_chunk}
 \end{figure}
 
-\subsection[Selección del modelo de incrustaciones]{\textcolor{borrador2}{Selección del modelo de incrustaciones}}
+\subsection[Selección del modelo de incrustaciones]{Selección del modelo de incrustaciones}
 \label{secc:fase1_embeddings}
+
+Las cifras resultantes del experimento (los cuatro modelos, sus métricas y el desglose por tipo de pregunta) están en la Sección~\ref{secc:resultados_embeddings} del 
+  Capítulo~\ref{cap:resultados}. Aquí se describe el diseño experimental y por qué se seleccionaron esos cuatro modelos y no otros.
 
 \subsubsection{Diseño de la comparación}
 
-\textcolor{borrador2}{La elección del modelo de incrustaciones se resolvió de forma
-  experimental y no por reputación de los modelos, comparando varios candidatos sobre la
-  colección real del proyecto y sobre un conjunto de preguntas anotadas manualmente. El diseño
-  es de un solo factor: todos los candidatos reciben exactamente los mismos fragmentos y las
-  mismas preguntas, el orden de los resultados se calcula de forma exacta y no aproximada, y lo
-  único que varía entre una ejecución y otra es el modelo. Esta última precisión no es
-  accesoria: si el orden se obtuviera consultando la base de datos vectorial, cada medida
-  mezclaría la calidad de las representaciones con el error que introduce su índice, que es
-  aproximado por naturaleza, y dejaría de poder atribuirse la diferencia al modelo.}
+La elección del modelo de incrustaciones o modelo de \textit{embedding} se resolvió de forma experimental y no únicamente por ficha técnica u opiniones en internet, comparando varios candidatos sobre los mismos fragmentos, los que produce la estrategia fijada en la Sección~\ref{secc:troceado_algoritmo} y sobre el conjunto de preguntas usadas también en el anterior experimento, lo único que varía de iteración a iteración es el modelo.
 
-\textcolor{borrador2}{Se emplean dos medidas complementarias de exhaustividad. La primera
-  cuenta fragmentos recuperados y describe la cobertura del sistema tal como está construido
-  hoy; la segunda cuenta unidades semánticas ---la asignatura completa, con independencia de en
-  cuántos fragmentos se haya dividido--- y describe su capacidad de acertar la materia por la
-  que se pregunta. Se presentan juntas de forma deliberada, porque la distancia entre ambas
-  indica dónde está la limitación: si el sistema encuentra la asignatura correcta pero no todos
-  sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se
-  delimitan las unidades.}
+Se emplean dos medidas: la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de en cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se delimitan las unidades.
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Criterios de selección de los candidatos}, que hay que enunciar porque es
-  lo que un tribunal pregunta («¿y por qué esos cuatro?»). En orden:
-  (1)~ventana de al menos 512 \textit{tokens}, para que ninguno lea menos texto que otro;
-  (2)~cuatro papeles complementarios, no cuatro modelos populares;
-  (3)~licencia compatible con la del repositorio;
-  (4)~ejecutable en la máquina donde se defiende el trabajo;
-  (5)~disponible sin ejecutar código descargado.
-  \item \textbf{Los papeles}, que es lo que convierte la lista en un diseño: un modelo
-  pequeño (el titular), otro de la misma familia y entrenamiento con cinco veces su tamaño
-  ---único par que aísla el efecto del \emph{tamaño}---, un tercero de tamaño similar pero
-  de otra familia ---que aísla el efecto del \emph{entrenamiento}--- y el mejor específico
-  de español ---que aísla \emph{idioma frente a tarea}---.
-  \item \textbf{Los descartes también son método, y hay tres, cada uno por un motivo
-    distinto}: uno por licencia incompatible; otro por exigir la ejecución de código
-  descargado de un repositorio externo; y un tercero \textbf{por medición}, al comprobarse
-  que no era ejecutable en un tiempo razonable en el equipo disponible. Merece la pena
-  contar los tres: demuestra que el criterio se aplicó y no se enunció.
-\end{borrador}
+Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de menor tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
 
-\subsubsection{Elección final: por qué el modelo pequeño}
+
+\subsubsection{Elección final}
 \label{secc:eleccion_e5small}
 
-\textcolor{borrador2}{De los cuatro candidatos, dos pertenecen a la misma familia y difieren
-  solo en el tamaño, con casi cinco veces más parámetros el mayor. Es el único par que permite
-  atribuir una diferencia al tamaño y no a otra cosa, y por eso la elección entre ambos se
-  trata aquí como una decisión propia y no como una consecuencia automática de la tabla de
-  resultados. El modelo mayor recupera mejor: la pregunta es si esa mejora justifica su
-  coste.}
+De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-\textcolor{borrador2}{La respuesta depende de con cuántos fragmentos se vaya a alimentar
-  después al modelo generativo. Con los tres primeros resultados, la ventaja del modelo grande
-  es apreciable; con los diez primeros, los dos localizan la asignatura correcta en la
-  totalidad de las preguntas del conjunto de evaluación, de modo que la diferencia desaparece
-  en la métrica que describe si el sistema acierta la materia por la que se le pregunta. Como
-  la ventana de contexto de un modelo generativo actual admite holgadamente diez fragmentos de
-  esta colección, la configuración prevista es precisamente la que anula esa ventaja.}
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. El coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
-\textcolor{borrador2}{El coste, en cambio, no desaparece. El modelo grande tarda unas ocho
-  veces más en incrustar la colección completa, pero ese coste apenas se paga: la indexación
-  es un proceso por lotes que solo se repite cuando cambia la colección. El coste que sí se
-  paga de forma permanente es la memoria que ocupa el modelo mientras el servicio está en
-  ejecución, más de cuatro veces mayor. Y ese consumo no compite contra un equipo vacío: en la
-  Fase~2 el recuperador tendrá que convivir en la misma máquina con el modelo generativo, que
-  es con diferencia el componente más exigente del sistema. La primera ejecución de la
-  comparativa, de hecho, se interrumpió por falta de memoria al cargar el modelo grande.}
-
-\textcolor{borrador2}{Se elige, por tanto, el modelo pequeño, y el criterio que lo decide no
-  es la calidad de la recuperación sino la viabilidad del sistema completo en el equipo en el
-  que debe ejecutarse. Conviene enunciar en qué condiciones la decisión sería la contraria,
-  porque es lo que la hace revisable y no arbitraria: dispondría de una unidad de procesamiento
-  gráfico utilizable, se desplegaría en un servidor en lugar de en un equipo personal, o se
-  decidiera operar con solo tres resultados por consulta.}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase: 1.} Decisión tomada el 04/08/2026. Andamiaje: las cifras exactas no van
-  aquí sino en el Capítulo~\ref{cap:resultados}; aquí va el criterio.
-  \item \textbf{Cuidado con cómo lo cuentas, que aquí es fácil pasarse de fuerte.} Al pasar a
-  diez resultados los dos modelos empatan en \emph{acertar la asignatura} (1,000 los
-  dos), pero el pequeño sigue algo por detrás en \emph{recuperar todos los fragmentos}
-  de esa asignatura (0,938 frente a 0,985, sobre un máximo alcanzable de 0,998). Decir
-  que «con K=10 alcanza al grande» sin ese matiz es una afirmación que se cae en cuanto
-  alguien mire la tabla. Lo que sí es cierto y basta: empata en lo que determina si la
-  respuesta hablará de la asignatura correcta.
-  \item \textbf{La diferencia son 2,5 preguntas sobre 50}, y el conjunto lo has anotado tú
-  solo. Esa magnitud cabe dentro de lo que movería una anotación distinta, así que no
-  presentes la separación como establecida: es un argumento más a favor de no pagar el
-  coste del grande.
-  \item \textbf{Falta por medir, y hay que decirlo:} la latencia de una consulta con cada
-  modelo, y el consumo de memoria del sistema completo con el modelo generativo dentro.
-  Lo segundo no puede medirse hasta el ADR-0005. Mientras tanto, esto es un argumento de
-  orden de magnitud, no una medición del conjunto.
-  \item \sout{\textbf{Deuda:} el ADR-0003 necesita una adenda con esta ratificación.}
-  \textbf{Hecho:} el ADR-0003 ya recoge la ratificación sobre el corpus de 1.334 fragmentos,
-  con el matiz que la da la vuelta ---en las preguntas de metadatos el modelo pequeño pasa a
-  ir por delante---. Lo que sigue pendiente es la otra mitad: la
-  Tabla~\ref{tab:comparativa_embeddings} del Capítulo~\ref{cap:resultados} todavía lleva las
-  cifras de la ejecución anterior.
-\end{borrador}
-
-\subsubsection{Las preguntas de agregación y su efecto sobre la colección}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase: 1 (IT-100).} Esto es lo más defendible de la tarjeta y conviene que
-  tenga sitio propio, porque es una decisión de diseño de la colección tomada a partir de
-  una medición.
-  \item \textbf{El problema:} las preguntas más naturales de un estudiante ---«dime todas
-  las asignaturas obligatorias de este grado»--- no las puede contestar un sistema que
-  devuelve los K fragmentos más parecidos. La respuesta correcta estaba repartida en hasta
-  \textbf{118 fragmentos}, lo que deja el máximo alcanzable en \textbf{0,042} con K=5.
-  Ningún valor de K lo arregla, porque el problema no es de recuperación sino de
-  agregación.
-  \item \textbf{La solución:} incorporar a la colección el listado ya agregado, uno por
-  cada par (titulación, grupo de asignaturas). Son dieciséis fragmentos sobre casi
-  ochocientos, y el máximo alcanzable de esas preguntas pasa de 0,042 a 1,000.
-  \item \textbf{Lo que hay que declarar sin que lo pregunten:} son fragmentos
-  \emph{sintetizados}, no texto literal de la fuente. No es un caso nuevo ---la colección
-  ya contiene los fragmentos informativos de las asignaturas sin guía--- y el criterio es el
-  mismo: texto derivado de forma determinista de un dato de la fuente, nunca contenido
-  inventado. Pero decirlo antes de que lo pregunten vale mucho más que responderlo después.
-\end{borrador}
-
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Amenazas que quedan vivas} y que hay que enlazar con la
-  Sección~\ref{secc:amenazas_validez}, no repetir aquí:
-  \item La comparación se ejecutó \textbf{sin haber fijado antes los umbrales} de la
-  hipótesis. Que el resultado sea holgado no lo arregla, y fijarlos ahora sería peor. Se
-  declara y ya está; para la comparación de bases vectoriales sí están escritos antes.
-  \item El conjunto de evaluación son \textbf{cincuenta preguntas anotadas por una sola
-    persona}, que es además quien construyó el sistema. La diferencia entre los dos mejores
-  modelos son dos preguntas y media: cabe dentro de lo que movería otra anotación.
-  \item Los tiempos son \textbf{reloj de pared} en un equipo que hace otras cosas. Entre dos
-  ejecuciones seguidas las medidas de calidad salieron idénticas y los tiempos variaron
-  hasta un 25\,\%.
-\end{borrador}
+Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-e5-small), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
+                                 
+  
 
 \section[Fase 2: base de datos vectorial y \textit{pipeline} RAG]{\textcolor{borrador2}{Fase 2: base de datos vectorial y \textit{pipeline} RAG}}
 \label{secc:fase2}

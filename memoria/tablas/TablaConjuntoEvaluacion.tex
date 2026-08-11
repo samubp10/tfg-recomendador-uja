@@ -1,0 +1,31 @@
+% Reparto del conjunto de evaluacion (IT-27, ampliado en IT-100).
+% Cifras y ejemplos literales de eval/preguntas_evaluacion.json, comprobados
+% con `py scripts/check_evalset.py`: 50 preguntas, 11/11 titulaciones cubiertas.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Reparto del conjunto de evaluación por tipo de pregunta. Fuente: elaboración propia.}
+  \label{tab:conjunto_evaluacion}
+  \begin{tabularx}{\textwidth}{@{}l X r@{}}
+    \toprule
+    \textbf{Tipo} & \textbf{Ejemplo}                                                     & \textbf{n} \\
+    \midrule
+    Temario       & ¿Qué temario tiene Estructuras de datos?                              & 20         \\
+    Listado       & ¿Qué materias son obligatorias en el Grado en Ingeniería Mecánica?    & 14         \\
+    Salidas       & ¿Qué trabajos hay para alguien que estudie Ingeniería Mecánica?       & 8          \\
+    Metadatos     & ¿Cuántos ECTS tiene Diseño de software?                               & 6          \\
+    Sin guía      & ¿Hay una asignatura de Criptografía en IA y Ciberseguridad?           & 2          \\
+    \midrule
+    \textbf{Total} &                                                                     & \textbf{50} \\
+    \bottomrule
+  \end{tabularx}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textbf{Notas:} los ejemplos son literales del conjunto. Cada tipo apunta a un origen
+    distinto de la colección: temario y metadatos, a la guía docente de la asignatura;
+    salidas, al bloque de salidas de la titulación; sin guía, al fragmento informativo de una
+    asignatura cuya guía no está publicada; y listado, a la unidad de plan de estudios, que es
+    la que contiene el listado ya agregado.
+  \end{minipage}
+\end{table}

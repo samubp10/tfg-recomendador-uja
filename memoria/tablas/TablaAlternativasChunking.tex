@@ -1,28 +1,27 @@
+% Estrategias de fragmentacion. Las tres primeras entran en la rejilla del ADR-0001;
+% la cuarta se descarta antes de medirla. Cifras del cuerpo de las guias medidas
+% sobre data/grados.json (rastreo del 05/08/2026, curso 2026-27):
+%   mediana 2653 caracteres, maximo 24047.
 \begin{table}[H]
   \centering
   \small
-  \caption{Estrategias de fragmentación consideradas (ADR-0001).}
+  \caption{Estrategias de fragmentación consideradas (ADR-0001). Fuente: elaboración propia.}
   \label{tab:alternativas_chunking}
-  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.5cm} Y c@{}}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} X@{}}
     \toprule
-    \textbf{Estrategia}                                                                                                                                                                                                                                                                                                                                    & \textbf{Descripción del método y motivo de la decisión} & \textbf{Decisión} \\
+    \textbf{Estrategia}              & \textbf{Descripción del método} \\
     \midrule
-    Tamaño fijo con solape                                                                                                                                                                                                                                                                                                                                 & 
-    Es la más simple, pero corta a mitad de frase y, sobre la colección completa, puede juntar dos asignaturas en un mismo fragmento.                                                                                                                                                                                                                      & 
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Tamaño fijo con solape           &
+    Corta el texto cada $n$ caracteres, con una ventana de solape entre fragmentos consecutivos. Es la más simple de las tres, pero empieza y termina a mitad de frase. \\
     \addlinespace
-    Estructural por unidad semántica                                                                                                                                                                                                                                                                                                                       & 
-    Respeta la restricción por construcción, ya que parte de la unidad (la guía de una asignatura o el bloque de salidas de una titulación) y solo la divide si excede el máximo, cortando por fronteras naturales del texto.                                                                                                                              & 
-    \textbf{Elegida}                                                                                                                                                                                                                                                                                                                                                                                                                     \\
+    Estructural por unidad semántica &
+    Parte de la unidad docente (guía o bloque de salidas) y solo subdivide si excede el máximo, cortando por fronteras naturales del texto, primero los párrafos y, si aún no cabe, las frases. \\
     \addlinespace
-    Semántica por incrustaciones                                                                                                                                                                                                                                                                                                                           & 
-    Divide el texto identificando cambios de tema mediante la comparación del significado de frases consecutivas. Descartada tras evaluación en rejilla (Sección~\ref{secc:rejilla_fragmentacion}), su precisión en recuperación no supera a la estructural, obliga a calcular embeddings antes de trocear y triplica la cantidad de fragmentos generados. & 
-    
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Semántica por incrustaciones     &
+    Detecta cambios de tema comparando \emph{embeddings} de frases consecutivas. El umbral a partir del cual se considera que el tema ha cambiado se fija por percentiles sobre la distribución del propio corpus. \\
     \addlinespace
-    Un fragmento por asignatura, sin dividir                                                                                                                                                                                                                                                                                                               & 
-    La mitad de las guías supera los 2\,677 caracteres y la mayor llega a 23\,940: el sobrante se truncaría en silencio al calcular la incrustación, perdiendo contenido sin aviso.                                                                                                                                                                        & 
-    Descartada                                                                                                                                                                                                                                                                                                                                                                                                                           \\
+    Un fragmento por asignatura      &
+    Sin subdivisión: cada guía docente entra en el índice como un único fragmento. El 50\,\% de las guías supera los 2\,653 caracteres (máx.\ 24\,047), por lo que la incrustación truncaría contenido en silencio. \\
     \bottomrule
   \end{tabularx}
 \end{table}

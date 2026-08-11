@@ -41,7 +41,7 @@ El desarrollo del proyecto abarca un flujo completo de ingeniería de datos e in
 
 \textcolor{blue}{[sbp] Sí, es una plantilla creada por un profesor de la universidad llamado Francisco Charte que da clases en ingeniería informática en la facultad de Jaén. No he querido tocar demasiado el formato dado que según sus comentarios en la plantilla, esta sigue todos los formatos impuestos por el universidad.}
 
-A lo largo del documento se emplean términos y acrónimos cuya definición se recoge en el capítulo de Definiciones y abreviaturas (Capítulo~\ref{cap:definiciones})
+A lo largo del documento se emplean términos y acrónimos cuya definición se recoge en el capítulo de Definiciones y abreviaturas (Capítulo~\ref{cap:definiciones}).
 
 \section{Contexto y motivación}
 
@@ -69,14 +69,21 @@ Por lo tanto, se persigue fundamentalmente cumplir con las obligaciones académi
 \subsection{Delimitación del dominio de datos}
 El ámbito de conocimiento del sistema se restringe de forma exclusiva a la oferta académica de la Escuela Politécnica Superior de Jaén (EPSJ). Esto engloba la totalidad de sus grados simples y dobles grados oficiales. El sistema no abarcará la oferta de másteres o títulos propios de la EPSJ, así como de las titulaciones, oficiales o no, del resto de facultades y escuelas de la Universidad de Jaén (UJA), si bien la arquitectura de retroalimentación de datos se ha diseñado de forma modular para ser fácilmente escalable a otros centros en trabajos futuros.
 
-Dentro de esta delimitación, se excluirá además del corpus la modalidad en extinción de una titulación cuando coexista con un plan de estudios vigente que la sustituye, como pasa con la titulación de Ingeniería Geomática y Topográfica, en el que un estudiante preuniversitario no puede matricularse en un plan que ya no admite nuevo alumnado, por lo que incluirlo entre las recomendaciones del sistema induciría a error.
+Dentro de esta delimitación, se excluirá además del corpus la modalidad en extinción de una titulación cuando coexista con un plan de estudios vigente que la sustituye, como pasa con la titulación de Ingeniería Geomática y Topográfica, \sout{en el que un estudiante preuniversitario} \textcolor{borrador2}{en la que un estudiante preuniversitario} no puede matricularse en un plan que ya no admite nuevo alumnado, por lo que incluirlo entre las recomendaciones del sistema induciría a error.
 
 \subsection{Público objetivo y profundidad de la información}
-El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guía docente} se han acotado a:
+El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guía docente} \sout{se han acotado a:} \textcolor{borrador2}{se ha acotado a:}
 \begin{itemize}        
   \item \textbf{Información incluida:} Se priorizan los resúmenes, los requisitos previos, el temario de las asignaturas y las salidas profesionales de cada grado, ya que estos son los datos que mayor valor aportan a un estudiante.
   \item \textbf{Información excluida:} Se omiten deliberadamente metadatos orientados a alumnos ya matriculados previamente, tales como los sistemas de evaluación, la bibliografía específica o el listado del profesorado. Esta decisión técnica no solo optimiza el proceso de extracción y el tamaño de la base de datos vectorial, sino que evita la dispersión semántica del modelo durante la fase de generación de respuestas.
 \end{itemize}
+
+\begin{borrador}
+  \item \textbf{Una frase por revisar en la delimitación del dominio:} <<El sistema no abarcará
+  la oferta de másteres o títulos propios de la EPSJ, así como de las titulaciones\dots>>. Tras
+  una negación, <<así como>> afirma lo contrario de lo que se quiere decir; lo que enlaza dos
+  elementos negados es <<ni>>.
+\end{borrador}
 
 \section{Estructura de la memoria}
 

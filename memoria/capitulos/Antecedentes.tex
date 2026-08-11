@@ -194,16 +194,11 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
 \label{subsec:chunking_concepto}
 
 Los modelos de incrustaciones operan sobre una \gl{ventana de contexto} limitada, por lo que la colección
-no puede indexarse documento a documento tal y como se recoge desde la página web: es necesario dividir cada texto en fragmentos (\textit{chunks}).
+no puede indexarse documento a documento tal y como se recoge desde la página web, es necesario dividir cada texto en fragmentos (\textit{chunks}).
 El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
-\subsection{Métricas de comprobación (a revisar)}
-
-\begin{borrador}                    
-  \item Explicar todas las métricas de comprobación. (RAGEval, qEVAL, Faithfulness, Recall, k, y demás, \textit{Recall@K} y MRR).
-  \item Crear tarjeta para rellenar este apartado, hacer varias, una por cada fase que contenga estos términos.
-\end{borrador}
+\subsection{Métricas de comprobación}
 
 \textcolor{borrador2}{Un sistema de recuperación aumentada por generación puede fallar en
   dos sitios distintos, y por eso no se mide con una sola cifra. Puede fallar al buscar, si
@@ -259,6 +254,10 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 \begin{borrador}
   \item \textbf{Fase:} 2. Andamiaje: la prosa la escribes tú, y aquí más que en ningún sitio,
   porque son las definiciones que te van a preguntar en la defensa.
+  \item \textbf{Queda por decidir si hace falta una tarjeta por fase} para ir completando
+  este apartado a medida que cada fase estrene sus métricas. Hoy están escritas las de
+  recuperación, que son las que el trabajo ya usa, y enunciadas las de generación, que se
+  miden en la Fase 2.
   \item \textbf{Dos nombres de tu lista se han quedado fuera a propósito:} <<RAGEval>> y
   <<qEVAL>>. No los he puesto porque no me consta que existan con ese nombre exacto y aquí
   no se puede citar de oídas. RAGAS sí está comprobado y ya figura en la bibliografía.
@@ -395,6 +394,19 @@ Superior de Jaén (ver sección \ref{secc:alcance}), que responde en lenguaje na
 lo que impone exigencias específicas de legibilidad y fiabilidad.
 
 
+\begin{borrador}
+  \item \textbf{Dos frases de este apartado necesitan que las reescribas tú}, porque no se
+  arreglan cambiando una palabra.
+  \item La que empieza por <<Según el siguiente artículo sobre sistemas de recomendación\dots
+  identifica el filtrado colaborativo>> se queda sin sujeto: <<según>> ya introduce la fuente,
+  así que el verbo se queda colgado. Con <<El artículo\dots identifica>> o con <<Según el
+  artículo\dots, el filtrado colaborativo es uno de los enfoques más habituales>> se resuelve.
+  Y <<el siguiente artículo>> no señala a nada, porque la cita va después.
+  \item La de los <<tres aspectos fundamentales>> del posicionamiento enumera tres cosas que no
+  son del mismo tipo: un dominio acotado, una oración de relativo (<<que responde en lenguaje
+  natural\dots>>) y un público objetivo. Con tres sintagmas paralelos se lee sola.
+\end{borrador}
+
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
@@ -409,7 +421,7 @@ Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga
 
 \subsection{Protección de datos y usuarios menores de edad}
 
-La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018}, fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
 
 La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
 

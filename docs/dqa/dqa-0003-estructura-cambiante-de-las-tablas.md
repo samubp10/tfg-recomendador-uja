@@ -8,6 +8,7 @@ rigor que una decisión de diseño.*
 
 - **Estado:** aceptada
 - **Fecha:** 2026-08-05
+- **Anomalías detectadas:** 03/07/2026 y 27/07/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 0 — rastreo del catálogo de asignaturas
   (`grados_spider.parse_asignaturas`)
 
@@ -130,6 +131,46 @@ sobrevive a que se mueva.
 - «Curso recomendado» **se descarta**, no se almacena. Es un dato que la
   fuente publica y que el corpus no recoge; si en el futuro interesara
   recomendar un itinerario por cursos, habría que volver a rastrear.
+
+## Pruebas y evidencia
+
+> **Sobre la columna «Detectada».** Es la fecha del commit que incorpora la prueba de
+> regresión de esa anomalía, que es la constancia verificable más próxima al hallazgo:
+> el hallazgo en sí no deja rastro en el repositorio, la prueba sí. Cada fecha se puede
+> comprobar con `git log -S "def <nombre de la prueba>" -- tests/`.
+
+| Anomalía | Detectada | Evidencia | Prueba de regresión |
+|---|---|---|---|
+| Columna «Curso recomendado» intercalada en las tablas de mención | 27/07/2026 | `tabla_geomatica_plan2025.html` | `test_grados_spider.py::test_geomatica_no_pierde_las_tablas_con_columna_intercalada`, `::test_geomatica_la_mencion_no_se_lee_de_la_columna_equivocada`, `::test_geomatica_fusiona_la_optativa_repetida_sin_codigo`, `::test_geomatica_conserva_las_troncales_de_la_misma_pagina` |
+| Las columnas deben localizarse por su rótulo y no por su posición | 27/07/2026 | `tabla_geomatica_plan2025.html` | `test_grados_spider.py::test_columnas_de_cabecera_localiza_por_rotulo_no_por_posicion`, `::test_columnas_de_cabecera_ignora_las_columnas_desconocidas` |
+| Cabeceras envueltas en `<strong>` que impedían reconocer la tabla | 03/07/2026 | `tabla_asignaturas_iayc.html` | `test_grados_spider.py::test_extrae_grado_con_cabeceras_envueltas_en_strong` |
+| Cabecera reducida del plan en extinción, sin columna de tipo | 03/07/2026 | **sin fixture**, ver la advertencia de la anomalía 2 | cubierta indirectamente por `test_grados_spider.py::test_no_rastrea_la_titulacion_en_extincion` (27/07/2026), que saca ese plan del corpus antes de leerlo |
+
+La segunda fila de la tabla es la que sostiene el registro entero: la regla general no es
+«añádase la columna de Geomática», sino **localizar cada columna por su rótulo**, comparado en
+minúsculas y sin tildes porque la fuente no es consistente. Sobre la colección completa,
+`scripts/check_dataset.py` comprueba el recuento por titulación, que es donde se vería una
+tabla perdida.
+
+## Cómo se corrige y cómo se detecta si vuelve
+
+Esta anomalía es la más peligrosa de las cinco documentadas, porque **el modo en que falla es
+no fallar**: una tabla con las columnas cambiadas se lee sin excepción, cada dato se toma de la
+columna equivocada, la fila no valida y se descarta con un aviso. La titulación entera puede
+desaparecer del corpus con el rastreo aparentemente correcto.
+
+1. Ejecutar `py scripts/check_dataset.py`. Una titulación que pierde asignaturas se ve en el
+   recuento; es la única señal que hay.
+2. Revisar el registro del rastreo buscando avisos de filas descartadas. Un número alto en una
+   sola titulación apunta a una cabecera nueva.
+3. Descargar la página, guardarla como fixture y comprobar qué rótulos trae su cabecera.
+4. Añadir el rótulo nuevo al mapa de `grados_spider._columnas_de_cabecera`, no un índice.
+   Las columnas que no se reconocen se ignoran a propósito: no forman parte del modelo de
+   datos y no hay razón para incorporarlas.
+
+**Lo que no hay que hacer:** leer ninguna celda por su posición, ni siquiera «temporalmente».
+Es el origen de esta anomalía y de la segunda del DQA-0005, que es la misma en otra titulación.
+
 
 ## Referencias
 
