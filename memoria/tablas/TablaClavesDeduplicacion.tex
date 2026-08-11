@@ -2,15 +2,19 @@
   \centering
   \small
   \caption{Claves de deduplicación consideradas (ADR-0001).}
+  % Cifras medidas sobre data/grados.json, rastreo del 05/08/2026, curso 2026-27.
+  % Conjuntos: grupos con mas de una guia. Copias: guias que la deduplicacion retira
+  % (288 - unidades resultantes). Con la clave elegida quedan 210 unidades; con la
+  % descartada, 207.
   \label{tab:claves_dedup}
   \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.1cm} c c Y@{}}
     \toprule
     \textbf{Clave}      & \textbf{Conjuntos} & \textbf{Copias} & \textbf{Comportamiento observado}                      \\
     \midrule
-    Solo contenido      & 31                 & 71              & 
+    Solo contenido      & 41                 & 81              & 
     Agrupa las tres parejas dudosas, incluida la que no debe agruparse. Descartada.                                     \\
     \addlinespace
-    (nombre, contenido) & 28                 & 68              & 
+    (nombre, contenido) & 38                 & 78              & 
     Evita la fusión errónea a costa de dejar sin agrupar dos parejas que sí eran la misma asignatura. \textbf{Elegida}. \\
     \bottomrule
   \end{tabularx}
