@@ -51,6 +51,28 @@ index = [
     "sentence-transformers>=3.0",
     "numpy>=1.24",     # Similitud coseno del ranking en evaluacion.py (IT-28)
 ]
+# Comparativa de bases de datos vectoriales (IT-31, ADR-0004). Las versiones van
+# FIJADAS con == y no con >=, a diferencia del resto de grupos: el experimento
+# compara el comportamiento por defecto de tres bases, y esos valores por defecto
+# cambian entre versiones. Sin fijarlas, repetir la comparativa dentro de unos
+# meses daría otras cifras sin que nada lo advirtiera, y la comparación dejaría
+# de ser reproducible.
+#
+# El servidor de Qdrant no es una dependencia de Python: va en contenedor, con
+# la imagen fijada a la MISMA versión que su cliente.
+#
+#     docker run -d --name qdrant-tfg -p 6333:6333 -p 6334:6334 \
+#         qdrant/qdrant:v1.19.0
+#
+# Solo hace falta en desarrollo, para ejecutar el experimento; el sistema no
+# depende de Docker en marcha.
+comparativa-vectordb = [
+    "chromadb==1.5.9",
+    "lancedb==0.37.1",
+    "qdrant-client==1.19.0",
+    "numpy==2.5.1",              # línea base de búsqueda exacta por fuerza bruta
+    "sentence-transformers==5.6.0",  # para incrustar las 50 preguntas de evaluación
+]
 
 # ==============================================================================
 # ENLACES DEL PROYECTO (URLs)
