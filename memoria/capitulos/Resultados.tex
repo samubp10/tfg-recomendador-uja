@@ -85,9 +85,9 @@ La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia y
 
 \input{tablas/TablaTamanoFragmento.tex}
 
-El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, \sout{la probabilidad de pedir un fragmento y que el recogido sea ese exactamente son más altas} \textcolor{borrador2}{la probabilidad de pedir un fragmento y que el recogido sea ese exactamente es más alta}.
+El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente es más alta.
 
-La última columna de esta tabla aporta \sout{un argumento que dejaba instantáneamente las configuraciones con máximos de 1.500 y 1.800} \textcolor{borrador2}{un argumento que dejaba fuera de inmediato las configuraciones con máximos de 1.500 y 1.800}, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
+La última columna de esta tabla aporta un argumento que dejaba instantáneamente fuera a las configuraciones con máximos de 1.500 y 1.800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
 En resumen de este apartado, la configuración es el corte estructural con un tamaño máximo de 900 y mínimo de 200 caracteres. Por encima de 1.200 caracteres el modelo empieza a recortar fragmentos, y de las opciones por debajo de esta cifra, el de 900 es el único en ganar en tres categorías, con la mitad de fragmentos que el de 600. Entre tres opciones con métricas prácticamente iguales, se conserva la que corta por las fronteras de texto, cuya ventaja está más que en la recuperación, en la generación.
 
