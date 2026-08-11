@@ -521,3 +521,30 @@
                   en el directorio \texttt{docs/adr/} y los DQA en
                   \texttt{docs/dqa/}}
 }
+
+% Ficha del modelo en espanol evaluado en IT-28. Es la fuente primaria de que
+% se entreno para similitud textual semantica y no para recuperacion.
+@misc{hiiamsid_sts_es,
+  author       = {{hiiamsid}},
+  title        = {\texttt{sentence\_similarity\_spanish\_es}: ficha del modelo},
+  year         = {2026},
+  howpublished = {\url{https://huggingface.co/hiiamsid/sentence_similarity_spanish_es}},
+  note         = {La ficha declara que el modelo se entrenó sobre el conjunto
+                  \texttt{stsb\_multi\_mt} con la función de pérdida
+                  \texttt{CosineSimilarityLoss}, siguiendo el ejemplo de
+                  entrenamiento en similitud textual semántica de Sentence
+                  Transformers. Consultado en agosto de 2026}
+}
+
+@misc{sbert_busqueda_semantica,
+  author       = {{Sentence Transformers developers}},
+  title        = {Semantic Search: symmetric vs. asymmetric semantic search},
+  year         = {2026},
+  howpublished = {\url{https://sbert.net/examples/sentence_transformer/applications/semantic-search/README.html}},
+  note         = {Distingue la búsqueda simétrica ---consulta y documento de
+                  longitud y contenido parecidos--- de la asimétrica ---consulta
+                  breve frente a documento extenso---, recomienda familias de
+                  modelos distintas para cada una y advierte de que
+                  <<es crítico elegir el modelo adecuado para el tipo de
+                  tarea>>. Consultado en agosto de 2026}
+}
