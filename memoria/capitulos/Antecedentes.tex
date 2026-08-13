@@ -114,17 +114,7 @@ Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicament
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
-\textcolor{borrador2}{Conviene no usar <<pesos abiertos>> y <<código abierto>> como sinónimos,
-  porque nombran cosas distintas y solo la primera describe a los modelos que aquí se
-  manejan. Un modelo tiene los \textbf{pesos abiertos} cuando se pueden descargar los
-  parámetros que la red aprendió durante el entrenamiento, que es lo que hace falta para
-  ejecutarlo en un equipo propio. Se habla de \textbf{código abierto} cuando además se
-  publican, con una licencia que permite estudiarlos y modificarlos, el código con el que se
-  entrenó y los datos que se usaron para hacerlo. La diferencia es práctica y no
-  terminológica: con los pesos se puede ejecutar el modelo, pero no reproducir el
-  entrenamiento ni auditar de qué material aprendió. Ninguna de las familias citadas en este
-  apartado cumple lo segundo, y por eso la definición de <<inteligencia artificial de código
-  abierto>> ha necesitado un texto propio que fije el listón\cite{osi_osaid2024}.}
+Conviene no confundir los modelos de pesos abiertos, con aquellos de código abierto, ya que son diferentes. Un modelo de pesos abiertos que son los que nombramos en este apartado, se pueden descargar los parámetros que la red aprendión durante el entrenamiento, que es lo que hace falta para ejecutarlo en un equipo que nosotros decidamos. Se nombra un modelo de código abierto, cuando además de los pesos, se publican con una licencia que permite estudiarlos y modificarlos, con un código con el que se entrenó y los datos y procedencia que se usaron para hacerlo. Ninguna de las familias de modelos citadas en este apartado cumple lo segundo.
 
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
@@ -176,30 +166,14 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
   \label{fig:privativos_vs_abiertos}
 \end{figure}
 
-\subsection[Minería de datos y rastreo web]{\textcolor{borrador2}{Minería de datos y rastreo web}}
+\subsection[Minería de datos y rastreo web]{Minería de datos y rastreo web}
 \label{subsec:mineria_rastreo}
 
-\textcolor{borrador2}{El rastreo web (\textit{web scraping}) es el proceso automatizado de descargar páginas y extraer de ellas datos estructurados a partir de su HTML. A alto nivel, una herramienta de rastreo emite una petición HTTP, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores (CSS o XPath) para, por último, normalizar el resultado. Este proceso rara vez es limpio y uniforme: la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript.}
+El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su HTML. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser incosistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
 
-\begin{borrador}
-  \item \textbf{Fase:} 0 (IT-81). Este párrafo viene del Capítulo~4, donde describía
-  \emph{qué es} rastrear la web justo antes de comparar las tres herramientas. La
-  comparación se queda allí ---es una elección--- y la definición viene aquí, que es donde
-  el capítulo dice \emph{qué existe}.
-  \item Falta encajar aquí la \gl{minería de textos y datos}, que ya tiene entrada de
-  glosario y aparece en el marco legal ---en el apartado sobre extracción automatizada de
-  información de la web--- sin haberse explicado antes. Son dos cosas distintas y conviene separarlas: la minería es el fin
-  ---extraer conocimiento de un conjunto de textos--- y el rastreo es solo el medio de
-  conseguir esos textos.
-  \item Decide si merece una figura. El diagrama de secuencia del rastreo ya está en el
-  Capítulo~4 y repetirlo aquí sería redundante.
-  \item \textbf{El párrafo que enumera el contenido de este capítulo no menciona este
-    apartado.} Dice «qué son la fragmentación de una colección de datos y una base de
-  datos vectorial» y ahora hay un apartado antes que no anuncia. Añádelo tú con tus
-  palabras; una posibilidad es intercalar «en qué consisten la minería de datos y el
-  rastreo web con los que se construye la colección» antes de la fragmentación, que es
-  el orden en el que el dato recorre el sistema.
-\end{borrador}
+ \begin{borrador}
+  \item Falta hacer referencia a este apartado y borrarlo de definiciones si es que queda muy redundante.
+ \end{borrador}
 
 
 \subsection{Fragmentación de la colección documental}
@@ -210,110 +184,45 @@ no puede indexarse documento a documento tal y como se recoge desde la página w
 El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
-\subsection[Incrustaciones de texto]{\textcolor{borrador2}{Incrustaciones de texto}}
+\subsection[Incrustaciones de texto]{Incrustaciones de texto}
 \label{subsec:incrustaciones_concepto}
 
-\textcolor{borrador2}{Una incrustación (\textit{embedding}) es la representación de un texto como
-  un vector de números reales de dimensión fija. La idea que la sostiene es que la posición
-  del vector en ese espacio codifique el significado del texto, de modo que dos textos que
-  hablan de lo mismo caigan cerca aunque no compartan ni una palabra. Es lo que permite que
-  una pregunta escrita con las palabras de un estudiante de bachillerato recupere una guía
-  docente redactada con el vocabulario del profesorado que la escribió.}
+Una incrustación de texto o \textit{embedding} es la representación de un texto dado como un vector de números reales de dimensión fija. La idea es que la posición del vector en ese espacio de dimensiones codifique el significado del texto, de modo que dos textos que hablan de lo mismo caigan cerca aunque no compartan ni una palabra igual (como se haría en una simple búsqueda de palabras). Esto permite que un usuario de la aplicación recupere información de una guía docente redactada con el vocabulario del profesor que la escribió con otros términos y vocabulario.
 
-\textcolor{borrador2}{Los primeros modelos de este tipo asignaban un vector a cada palabra a
-  partir de los contextos en los que aparece\cite{mikolov2013word2vec}. Trasladar la idea a
-  frases y párrafos completos exigió un paso más, porque el significado de un texto no es la
-  suma de las palabras que lo componen: Sentence-BERT\cite{reimers2019sbert} adapta un modelo
-  de tipo \textit{transformer}\cite{vaswani2017attention} para que produzca directamente un
-  vector por texto, comparable con otro mediante una operación aritmética barata.}
+Los primeros modelos que hacían esto, asignaban un vector a cada palabra a partir de los contextos en los que aparece\cite{mikolov2013word2vec}. Pero el problema venía cuando había que asignar esta idea a frases y párrafos completos ya que el significado de un texto no es la suma de las palabras que lo componen. Sentence-BERT\cite{reimers2019sbert} adapta un modelo de tipo \textit{transformer}\cite{vaswani2017attention} para que produzca directamente un vector por texto, solucionando lo anteriormente mencionado.
 
-\textcolor{borrador2}{Cuatro propiedades de un modelo de incrustaciones condicionan su uso en
-  un sistema de recuperación:}
+Existen cuatro propiedades de un modelo de incrustaciones que son importante en un sistema de recuperación:
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{La dimensión del vector}, que fija cuánta memoria ocupa
-        el índice y cuánto cuesta cada comparación.}
-  \item \textcolor{borrador2}{\textbf{La ventana de contexto} que admite, medida en
-        \textit{tokens}. Es la propiedad que más fácilmente pasa inadvertida: el texto que
-        excede la ventana no produce ningún error, simplemente se recorta antes de
-        convertirse en vector, y el sistema indexa un documento que no es el que se le dio.}
-  \item \textcolor{borrador2}{\textbf{Las lenguas con las que se ha entrenado}, ya que un
-        modelo entrenado solo en inglés no sirve para una colección en español.}
-  \item \textcolor{borrador2}{\textbf{La simetría entre la pregunta y el documento}. Buscar no
-        es comparar dos frases equivalentes: una pregunta corta y un párrafo largo cumplen
-        papeles distintos. Familias como E5\cite{wang2024e5multilingue} lo resuelven pidiendo
-        que cada texto se anteponga con una marca que declara su papel, y omitir esa marca
-        degrada la búsqueda sin avisar. Otras, como BGE-M3\cite{chen2024m3embedding},
-        combinan además representaciones densas y dispersas en un mismo modelo.}
+  \item  \textbf{La dimensión del vector: } Fija cuánta memoria ocupa el índice y cuánto cuesta cada comparación.
+  \item  \textbf{La ventana de contexto: } Esta está medida en \textit{tokens}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.ç
+  \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es súmamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas. En el caso de este proyecto se utiliza uno multilingüe.
+  \item  \textbf{La simetría entre la pregunta y el documento}: Los primeros modelos solo funcionaban bien con textos de longitud similar y no obtenían buenos resultados comparando una pregunta con un documento.
 \end{itemize}
 
-\textcolor{borrador2}{La proximidad entre dos vectores se cuantifica normalmente con la
-  similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud, o con
-  el producto escalar, que sí la tiene en cuenta. Conviene saber que cuando un modelo entrega
-  sus vectores ya normalizados a longitud uno ---y varios de los habituales lo hacen--- el
-  coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la
-  métrica configurada deja de distinguirse por lo que devuelve.}
+La poximidad entre dos vectores en el espacio de incrustaciones se calcula normalmente con la similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud. Sin embargo, cuando un modelo entrega sus vectores ya normalizados a longitud uno, el coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la métrica configurada deja de diferenciarse por lo que devuelve.
 
-\begin{borrador}
-  \item \textbf{Fase:} 1 (IT-28, IT-29). Andamiaje: la prosa la escribes tú. Este apartado no
-  existía y es un hueco grande, porque el modelo de incrustaciones es la decisión con más
-  peso experimental del trabajo hasta ahora.
-  \item \textbf{Comprueba las cuatro citas antes de defenderlas.} Las cuatro estaban ya en la
-  bibliografía, pero aquí se usan para afirmaciones concretas: que word2vec asigna vectores a
-  palabras, que Sentence-BERT produce un vector por texto, que E5 usa marcas de papel y que
-  BGE-M3 combina representaciones. Si al leerlas ves que alguna no dice exactamente eso,
-  ajusta la frase, no la cita.
-  \item \textbf{Lo que NO va aquí:} qué modelo usa este trabajo, la comparativa de los cuatro
-  candidatos y el ADR-0003. Eso es Material y Métodos. En cuanto una frase empiece por <<se ha
-  elegido>>, está en el capítulo equivocado.
-  \item \textbf{Falta una entrada en el glosario} del Capítulo~\ref{cap:definiciones}: la
-  similitud del coseno. <<Incrustación>>, <<ventana de contexto>> y <<\emph{token}>> ya están
-  dadas de alta, y las dos primeras las marca con \texttt{\textbackslash gl} el apartado de
-  fragmentación, que va antes; por eso aquí no se vuelven a marcar.
-\end{borrador}
+\begin{equation}
+  \mathrm{Similitud del coseno}(\mathbf{u}, \mathbf{v}) = \mathbf{u} \cdot \mathbf{v} = \sum_{i=1}^{n} u_i v_i
+\end{equation}
 
-\subsection[Búsqueda semántica]{\textcolor{borrador2}{Búsqueda semántica}}
+
+\subsection[Búsqueda semántica]{Búsqueda semántica}
 \label{subsec:busqueda_semantica_concepto}
 
-\textcolor{borrador2}{La búsqueda semántica consiste en recuperar documentos por su
-  significado y no por las palabras que contienen. Es la alternativa a la búsqueda léxica,
-  que puntúa un documento en función de qué términos de la consulta aparecen en él y con qué
-  frecuencia, según fórmulas como BM25\cite{robertson2009bm25}. La búsqueda léxica es rápida,
-  no necesita entrenamiento y explica sus resultados sola, pero falla en cuanto la pregunta y
-  el documento nombran lo mismo de forma distinta: quien pregunta por <<programar>> no
-  encuentra una guía que habla de <<desarrollo de \textit{software}>>.}
+La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que lo contienen. En la alternativa a la búsqueda léxica, que puntúa un documento en función qué términos de la consulta aparecen en él y con qué frecuencia, por ejemplo BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-\textcolor{borrador2}{Con incrustaciones el procedimiento cambia. La colección se convierte
-  una sola vez en vectores y se guarda; al llegar una consulta, se convierte también en un
-  vector con el mismo modelo y se devuelven los $K$ documentos cuyos vectores están más cerca
-  del suyo. Esto traslada el problema a uno de búsqueda del vecino más próximo en un espacio
-  de cientos de dimensiones, que es de lo que se ocupan las bases de datos vectoriales de la
-  sección~\ref{subsec:vectordb_concepto}.}
+Con incrustaciones funcionamiento cambia, la colección se convierte en vectores y se almacena, al llegar la consulta, se convierte también en un vector con el mismo modelo y se devuelven los $k$ documentos cuyos vectores están más cerca del suyo. Esto no está exento de problemas, ya que aparece uno de búsqueda del vecino cuyos vectores están más próximo en el espacio de cientos de dimensiones, y aquí es donde entran las bases de datos vectoriales de la sección~\ref{subsec:vectordb_concepto}.
 
-\textcolor{borrador2}{Sobre ese esquema básico hay tres decisiones que afectan a lo que el
-  usuario acaba viendo:}
+Sobre este método de búsqueda hay tres decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Cuántos resultados se devuelven.} Un $K$ pequeño corre
-        el riesgo de dejar fuera la respuesta; uno grande arrastra ruido hasta el modelo que
-        redacta y consume su ventana de contexto.}
-  \item \textcolor{borrador2}{\textbf{Si se filtra por metadatos.} Una colección en la que
-        cada fragmento sabe a qué titulación pertenece permite restringir la búsqueda antes
-        de calcularla ---filtrado previo--- o descartar después lo que no encaja ---filtrado
-        posterior---. La diferencia no es de eficiencia: filtrar después puede dejar la
-        respuesta vacía cuando ninguno de los $K$ mejores pertenece al subconjunto pedido.}
-  \item \textcolor{borrador2}{\textbf{Si se combinan los dos enfoques.} La búsqueda híbrida
-        mezcla la puntuación léxica y la semántica para cubrir los fallos de cada una: la
-        léxica acierta con los nombres propios, los códigos y las siglas, donde la semántica
-        es débil.}
+  \item \textbf{Cuántos resultados se devuelven: } Un $K$ pequeño corre el riesgo de dejar fuera la respuesta, sin embargo uno grande arrastra información inútil hasta el modelo que redacta y consume su ventana de contexto.
+  \item \textbf{Si se filtra por metadatos: } Una colección en la que cada fragmento pone a qué titulación pertenece permite restringir la búsqueda antes de calcularla (filtrado previo) o descartar después lo que no encaja (filtrado posterior). 
 \end{itemize}
 
+
 \begin{borrador}
-  \item \textbf{Fase:} 1 (IT-31). Andamiaje: la prosa la escribes tú.
-  \item \textbf{La frontera con la sección~\ref{subsec:vectordb_concepto} conviene dejarla
-    clara al redactar}: aquí va \emph{qué} es buscar por significado, y allí \emph{cómo} se
-  almacena y se recorre el índice (búsqueda exacta frente a aproximada, HNSW, IVF, SPANN).
-  Si los dos apartados cuentan lo mismo, sobra uno.
   \item \textbf{El orden de los apartados de esta sección} quedaría más natural con
   <<Métricas de comprobación>> al final, después de <<Bases de datos vectoriales>>: hoy se
   explica cómo medir antes de haber presentado la mitad de lo que se mide. No lo he movido
@@ -325,38 +234,29 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 
 \subsection{Métricas de comprobación}
 
-\textcolor{borrador2}{Un sistema de generación aumentada por recuperación puede fallar en
-  dos sitios distintos, y por eso no se mide con una sola cifra. Puede fallar al buscar, si
-  los fragmentos que recupera no contienen la respuesta, y puede fallar al redactar, si con
-  los fragmentos correctos delante escribe algo que no se sigue de ellos. Una única
-  puntuación global ocultaría cuál de las dos mitades falla, que es precisamente lo que hace
-  falta saber para arreglarla. Las métricas se agrupan, por tanto, en dos familias.}
 
-\textcolor{borrador2}{\textbf{Las métricas de recuperación} proceden del campo clásico de la
-  recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo: un conjunto
-  de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué
-  documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué
-  comparar lo que el sistema devuelve.}
+Un sistema de generación aumentada por recuperación puede fallar en dos sitios distintos, uno es al buscar, si los fragmentos que recupera no contienen
+la respuesta, y puede fallar al redactar la respuesta. En los diferentes experimentos llevados a cabo en este proyecto se han utilizado las siguientes métricas:
 
-\textcolor{borrador2}{La más directa es la \textit{Recall@K}, o exhaustividad entre los $K$
-  primeros: la proporción de preguntas cuyo documento correcto aparece entre los $K$
-  resultados que el sistema devuelve. Responde a si el material necesario ha llegado, no a
-  en qué orden. Su complementaria, la \textit{Precision@K}, mide qué proporción de esos $K$
-  resultados es pertinente; cuando cada pregunta tiene un único documento correcto su valor
-  máximo es $1/K$, de modo que por sí sola informa poco y se lee junto a las demás.}
+\subsubsection{Las métricas de recuperación}
 
-\textcolor{borrador2}{El \textit{Mean Reciprocal Rank} (MRR) añade la posición. Para cada
-  pregunta toma el inverso del puesto en el que aparece el primer resultado correcto ---uno
-  si sale el primero, un medio si sale el segundo, un tercio si sale el tercero--- y
-  promedia ese valor sobre todas las preguntas. Premia por tanto colocar la respuesta
-  arriba, y no solo colocarla. La \textit{Normalized Discounted Cumulative Gain} (nDCG)
-  generaliza la misma idea a los casos en que la pertinencia no es un sí o un no sino una
-  gradación, y descuenta el valor de cada acierto según lo abajo que aparezca.}
+Estas proceden del campo clásico de la recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo, que es un conjunto de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué comparar lo que el sistema devuelve.
 
-\textcolor{borrador2}{La elección de $K$ no es un detalle de la medición. En un sistema de
-  generación aumentada por recuperación, $K$ es el número de fragmentos que se le entregan
-  al modelo que redacta, así que medir con un $K$ distinto del que usa el sistema es medir
-  un sistema distinto del que se va a desplegar.}
+Una de ellas es \textit{Recall@K}, que mide la proporción de preguntas cuyo documento correcto aparece entre los $K$ resultados que el sistema devuelve. Responde a si el material necesario ha llegado, no a en qué orden.
+
+\begin{equation}
+  \text{Recall@K} = \frac{1}{|Q|} \sum_{q \in Q} \frac{|R_q \cap \text{Top}_K(q)|}{|R_q|}
+  \label{eq:recall_at_k}
+\end{equation}
+
+
+El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
+
+\begin{equation}
+  \text{MRR} = \frac{1}{|Q|} \sum_{q \in Q} \frac{1}{\text{rank}(q)}
+  \label{eq:mrr}
+\end{equation}
+
 
 \textcolor{borrador2}{Hay una decisión previa que condiciona a las tres métricas anteriores y
   que suele darse por supuesta: qué se considera <<el documento correcto>>. En una colección
