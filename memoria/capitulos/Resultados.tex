@@ -116,17 +116,67 @@ Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
 \section[Base de datos vectorial]{\textcolor{borrador2}{Base de datos vectorial}}
 \label{secc:resultados_vectordb}
 
+\textcolor{borrador2}{La comparativa enfrenta a las tres candidatas ---ChromaDB, LanceDB y
+  Qdrant--- sobre la colección completa y las 50 preguntas del conjunto de evaluación, con una
+  cuarta condición que no es candidata: la búsqueda exacta por fuerza bruta con NumPy, que
+  sirve a la vez de referencia de fidelidad y de línea base de velocidad. Las cuatro reciben
+  los mismos vectores, incrustados una sola vez, de modo que ninguna pueda salir mejor por
+  haberse incrustado distinto. La decisión que se toma con estas cifras queda registrada en el
+  ADR-0004\cite{repo_tfg}.}
+
+\textcolor{borrador2}{A diferencia de la comparación de modelos de incrustaciones, esta se
+  diseñó con los umbrales escritos y fijados \emph{antes} de ejecutar nada. Es lo que corrige
+  la amenaza principal declarada en el ADR-0003, donde el experimento se ejecutó sin haberlos
+  fijado y el hecho de que el ganador arrasara no lo arreglaba.}
+
+\input{tablas/TablaComparativaVectorDB.tex}
+
 \begin{borrador}
-  \item \textbf{Sección nueva y vacía (07/08/2026).} Completa la otra mitad del \textbf{OE3},
-  que pide elegir con criterios cuantitativos el modelo de incrustaciones \emph{y} la base de
-  datos vectorial. Hoy solo está la primera mitad.
-  \item Pendiente de IT-31 e IT-32. A diferencia de la comparación de modelos, esta se
-  diseñó \textbf{con los umbrales escritos antes de ejecutar nada}, que es justamente lo que
-  corrige la amenaza principal del ADR-0003: conviene decirlo con esas palabras, porque
-  demuestra que la lección se aplicó.
-  \item Y hay que declarar aquí una amenaza que no cabe en otro sitio: con menos de mil
-  quinientos fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}, de modo
-  que la base vectorial no se puede justificar por velocidad sin haberla medido.
+  \item \textbf{Fase:} 2 (IT-31, cerrada; la redacción es IT-32). Andamiaje: la prosa la
+  escribes tú. Todas las cifras que siguen son reales y salen del bloque automático del
+  ADR-0004; no hay ninguna inventada ni redondeada a mano.
+  \item \textbf{Los cuatro resultados que hay que contar}, por orden de importancia para la
+  defensa:
+  \item[] \textbf{(1) La línea base gana en velocidad, y por mucho.} La fuerza bruta responde
+  en 0,20~ms de mediana frente a los 1,43 de ChromaDB, los 5,62 de Qdrant y los 7,35 de
+  LanceDB: entre siete y treinta y seis veces más rápida que cualquiera de las tres. Esto es
+  justo lo que el umbral U8 estaba puesto para detectar, y convierte una sospecha en un
+  resultado medido: \textbf{a esta escala la base vectorial no se justifica por velocidad}, así
+  que la elección se decide por los demás criterios. Con 1.334 vectores de 384 dimensiones el
+  corpus entero ocupa 1,95~MiB y cabe en memoria sin más.
+  \item[] \textbf{(2) ChromaDB no cumple U1.} Su fidelidad es 0,9980 y el umbral pedía 1,0000
+  exacto: pierde un vecino de los 500 que se le piden. Y no es una casualidad de una
+  ejecución: reconstruyendo el índice veinte veces falla en cuatro, siempre perdiendo
+  exactamente uno, mientras que LanceDB y Qdrant no fallan ninguna. Consultar tres veces el
+  mismo índice sí da lo mismo, así que la variabilidad está en la construcción y no en la
+  búsqueda. Es evidencia indirecta de que ChromaDB sí recorre el grafo HNSW a esta escala,
+  que es lo que no se puede comprobar desde el cliente.
+  \item[] \textbf{(3) Las tres prefiltran.} Las tres devuelven los 10 fragmentos pedidos con
+  el filtro puesto, comprobado sobre un caso real del corpus: la pregunta por las salidas de
+  Informática filtrando por el Doble Grado en Electrónica Industrial y Mecánica, que tiene 412
+  fragmentos y ninguno entre los diez primeros de esa consulta sin filtrar. Quien posfiltrara
+  habría devuelto cero. Merece contarse porque posfiltrar es un fallo \emph{silencioso}: el
+  sistema respondería «no tengo información» sobre algo que sí está indexado.
+  \item[] \textbf{(4) Qdrant cuesta seis veces más memoria} (149,10~MiB frente a los 22,71 de
+  LanceDB y los 26,12 de ChromaDB) y es la única que necesita un servidor aparte en un
+  contenedor. Cumple U5 de sobra, pero U7 es un desempate por simplicidad y ahí eso pesa.
+  \item \textbf{Lo que NO se puede concluir, y hay que decirlo aquí:}
+  \item[] Que la fidelidad de LanceDB y Qdrant sea 1,000 \textbf{no demuestra que la métrica
+  configurada se esté usando}: los vectores del modelo salen normalizados, y con norma
+  constante la distancia euclídea y el coseno ordenan igual. Está medido, no supuesto.
+  \item[] Ninguna de las latencias mide un índice aproximado funcionando. LanceDB no llega a
+  construir ninguno (\texttt{list\_indices()} vacío) y Qdrant tampoco
+  (\texttt{indexed\_vectors\_count} = 0 de 1.334, porque el corpus queda por debajo de sus dos
+  umbrales de indexación). De ChromaDB no se puede saber, porque no expone ese contador.
+  \item[] Nada de esto dice cómo se comportarían con cien mil vectores. Cualquier afirmación
+  sobre escalabilidad sería una extrapolación desde 1.334.
+  \item \textbf{Falta el apartado del diseño} en el Capítulo~\ref{cap:materialesymetodos}: qué
+  se compara, con qué instrumento, por qué esas tres candidatas y cuáles son los ocho umbrales.
+  El de incrustaciones tiene el suyo (\texttt{secc:fase1\_embeddings}) y el primer párrafo de
+  aquí debería remitir al equivalente en cuanto exista, igual que hace el
+  Apartado~\ref{secc:resultados_embeddings}.
+  \item \textbf{Y falta el apartado de la elección}, con la candidata adoptada y su porqué. No
+  lo escribo yo: es la decisión, y sale del ADR-0004 cuando lo cierres.
 \end{borrador}
 
 \section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
