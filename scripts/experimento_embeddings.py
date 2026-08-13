@@ -12,8 +12,8 @@ propósito: son cifras que cambian y que el propio informe recoge de la
 ejecución. Este módulo dice cómo se mide, no cuánto salió.
 
 Necesita la dependencia opcional ``[index]`` (arrastra PyTorch) y red para
-descargar los modelos la primera vez; por eso, igual que el resto de
-verificadores del proyecto, se ejecuta SOLO en local y no en CI:
+descargar los modelos la primera vez; por eso, igual que los verificadores del
+dataset, se ejecuta SOLO en local y no en CI:
 
     py scripts/experimento_embeddings.py
 """
@@ -205,9 +205,9 @@ def cargar_datos(
     Args:
         ruta_chunks: Corpus a evaluar. Es parámetro para poder medir el mismo
             conjunto de preguntas sobre un troceado distinto sin tocar el
-            corpus real, que es lo que hará falta cuando se validen
-            experimentalmente los tamaños de fragmento (siguen provisionales
-            según el ADR-0001).
+            corpus real. Sirvió para la rejilla de IT-16, que fijó los tamaños
+            de fragmento en 900/900, y sigue haciendo falta para volver a
+            medirlos si la fuente cambia.
 
     Returns:
         Tupla ``(chunks, preguntas)``.
@@ -282,6 +282,11 @@ def medir_truncado(
         len(modelo.tokenizer.encode(prefijo + t, add_special_tokens=False))
         for t in textos
     ]
+    # Un corpus vacío no es un corpus con truncado 0: es un corpus del que no
+    # hay nada que decir. Sin esta salida, la división de abajo revienta y el
+    # modelo entero se contabilizaría como fallido.
+    if not sum(largos):
+        return ventana, 0, 0.0
     truncados = sum(1 for n in largos if n > ventana)
     leidos = sum(min(ventana, n) for n in largos)
     return ventana, truncados, leidos / sum(largos)
@@ -326,16 +331,26 @@ def formatear_tabla(filas: list[dict[str, Any]]) -> str:
         "|" + "---|" * len(columnas),
     ]
     for fila in filas:
+        # Las tres columnas de contexto pueden faltar: la medida del truncado
+        # se hace aparte de la evaluación, y si falla el modelo sigue teniendo
+        # métricas válidas. Se escribe «sin medir» y no un cero, porque un cero
+        # en la columna de truncados dice «este modelo lee el corpus entero»,
+        # que es justo lo que no se sabe.
+        sin_medir = "sin medir"
+        contexto = [
+            sin_medir if fila["ventana"] is None else str(fila["ventana"]),
+            sin_medir if fila["truncados"] is None else str(fila["truncados"]),
+            (
+                sin_medir
+                if fila["fraccion_leida"] is None
+                else f"{fila['fraccion_leida']:.0%}"
+            ),
+        ]
         valores = (
             [fila["nombre"]]
             + [f"{fila[m]:.3f}" for m in metricas]
-            + [
-                f"{fila['mrr']:.3f}",
-                f"{fila['tiempo_s']:.1f}",
-                str(fila["ventana"]),
-                str(fila["truncados"]),
-                f"{fila['fraccion_leida']:.0%}",
-            ]
+            + [f"{fila['mrr']:.3f}", f"{fila['tiempo_s']:.1f}"]
+            + contexto
         )
         lineas.append("| " + " | ".join(valores) + " |")
     return "\n".join(lineas)
@@ -385,9 +400,13 @@ def main(argumentos: list[str] | None = None) -> int:
         argumentos: Argumentos de línea de comandos. ``None`` toma los reales.
 
     Returns:
-        0 si todos los modelos se evaluaron correctamente; 1 si alguno falló
-        (p. ej. por no poder descargarse), para no ocultar un experimento a
-        medias.
+        0 solo si todos los modelos se evaluaron **y** se caracterizaron; 1 si
+        alguno falló (p. ej. por no poder descargarse) y también si alguno se
+        evaluó sin poder medir cuánto corpus lee. Lo segundo no invalida sus
+        métricas, pero sí la comparación, que es para lo que existe la tabla:
+        sin la columna de truncado no se puede separar «mejor modelo» de
+        «modelo que sí lee el fragmento entero», que es exactamente el hallazgo
+        de IT-29 que obligó a rehacer esta comparativa.
     """
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
@@ -409,9 +428,15 @@ def main(argumentos: list[str] | None = None) -> int:
 
     filas: list[dict[str, Any]] = []
     fallos: list[str] = []
+    #: Modelos que sí se han evaluado pero de los que falta alguna medida de
+    #: contexto. No invalidan su fila, pero sí lo que se puede concluir de ella.
+    avisos: list[str] = []
     for candidato in candidatos:
         print(f"Evaluando {candidato.nombre} ({candidato.descripcion}) ...")
         inicio = time.monotonic()
+        ventana: int | None = None
+        truncados: int | None = None
+        fraccion: float | None = None
         try:
             incrustar_doc, incrustar_consulta, modelo = crear_incrustadores(candidato)
             resultado = evaluar_modelo(
@@ -423,11 +448,28 @@ def main(argumentos: list[str] | None = None) -> int:
             # ejecución del 24/07. Se mide lo mismo que se medía entonces:
             # cargar el modelo, incrustar el corpus y evaluar.
             tiempo = time.monotonic() - inicio
-            ventana, truncados, fraccion = medir_truncado(
-                modelo,
-                [c["texto"] for c in chunks],
-                candidato.prefijo_documento,
-            )
+            # La medida de la ventana va en su propio `try`, y no por prudencia
+            # decorativa: estaba dentro del grande, así que un fallo al
+            # tokenizar ---un modelo que sirve su tokenizador de otra manera---
+            # tiraba a la basura unas métricas que YA se habían calculado bien y
+            # declaraba el modelo como no evaluado. Son dos cosas distintas: no
+            # haber podido evaluar un modelo, y haberlo evaluado sin saber
+            # cuánto corpus llegó a leer. La segunda se dice, no se disfraza de
+            # la primera ni se rellena con un número inventado.
+            try:
+                ventana, truncados, fraccion = medir_truncado(
+                    modelo,
+                    [c["texto"] for c in chunks],
+                    candidato.prefijo_documento,
+                )
+            except Exception as error:  # noqa: BLE001 - la evaluación sí vale
+                print(f"  AVISO: no se ha podido medir la ventana: {error}")
+                avisos.append(
+                    f"{candidato.nombre}: evaluado, pero sin poder medir su "
+                    f"ventana de contexto ni el truncado ({error}). Sus "
+                    f"métricas no se pueden comparar con las de otro modelo "
+                    f"sin saber cuánto corpus ha leído cada uno."
+                )
         except Exception as error:  # noqa: BLE001 - se informa y se sigue con el resto
             print(f"  FALLÓ: {error}")
             fallos.append(f"{candidato.nombre}: {error}")
@@ -546,10 +588,19 @@ def main(argumentos: list[str] | None = None) -> int:
     )
     if fallos:
         pie_md += "\n\n## Fallos\n\n" + "\n".join(f"- {f}" for f in fallos)
+    if avisos:
+        pie_md += (
+            "\n\n## Modelos evaluados sin caracterizar\n\n"
+            + "\n".join(f"- {a}" for a in avisos)
+            + "\n\nSus métricas son válidas, pero **no son comparables** con "
+            "las de los demás mientras no se sepa cuánto corpus lee cada uno.\n"
+        )
     opciones.salida.write_text(cabecera_md + tabla + pie_md + "\n", encoding="utf-8")
     print(f"\nResultados guardados en {opciones.salida}")
+    for aviso in avisos:
+        print(f"AVISO: {aviso}")
 
-    return 1 if fallos else 0
+    return 1 if fallos or avisos else 0
 
 
 if __name__ == "__main__":
