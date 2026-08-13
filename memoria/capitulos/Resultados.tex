@@ -121,8 +121,9 @@ Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
   cuarta condición que no es candidata: la búsqueda exacta por fuerza bruta con NumPy, que
   sirve a la vez de referencia de fidelidad y de línea base de velocidad. Las cuatro reciben
   los mismos vectores, incrustados una sola vez, de modo que ninguna pueda salir mejor por
-  haberse incrustado distinto. La decisión que se toma con estas cifras queda registrada en el
-  ADR-0004\cite{repo_tfg}.}
+  haberse incrustado distinto. El diseño de la comparación ---qué se compara, por qué esas tres
+  candidatas y con qué umbrales--- está en el Apartado~\ref{secc:fase2_vectordb}, y la decisión
+  que se toma con estas cifras queda registrada en el ADR-0004\cite{repo_tfg}.}
 
 \textcolor{borrador2}{A diferencia de la comparación de modelos de incrustaciones, esta se
   diseñó con los umbrales escritos y fijados \emph{antes} de ejecutar nada. Es lo que corrige
