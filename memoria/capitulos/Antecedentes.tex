@@ -114,7 +114,7 @@ Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicament
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
-Conviene no confundir los modelos de pesos abiertos, con aquellos de código abierto, ya que son diferentes. Un modelo de pesos abiertos que son los que nombramos en este apartado, se pueden descargar los parámetros que la red aprendión durante el entrenamiento, que es lo que hace falta para ejecutarlo en un equipo que nosotros decidamos. Se nombra un modelo de código abierto, cuando además de los pesos, se publican con una licencia que permite estudiarlos y modificarlos, con un código con el que se entrenó y los datos y procedencia que se usaron para hacerlo. Ninguna de las familias de modelos citadas en este apartado cumple lo segundo.
+Conviene no confundir los modelos de pesos abiertos con aquellos de código abierto, ya que son diferentes. \textcolor{borrador2}{De un modelo de pesos abiertos, que son los que se citan en este apartado, se pueden descargar los parámetros que la red aprendió durante el entrenamiento, que es lo que hace falta para ejecutarlo en un equipo elegido por quien lo despliega. Un modelo se considera de código abierto cuando, además de los pesos, se publican con una licencia que permite estudiarlos y modificarlos el código con el que se entrenó y los datos y la procedencia que se usaron para hacerlo.} Ninguna de las familias de modelos citadas en este apartado cumple lo segundo.
 
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
@@ -169,7 +169,7 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
 \subsection[Minería de datos y rastreo web]{Minería de datos y rastreo web}
 \label{subsec:mineria_rastreo}
 
-El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su HTML. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser incosistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
+El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su HTML. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
 
  \begin{borrador}
   \item Falta hacer referencia a este apartado y borrarlo de definiciones si es que queda muy redundante.
@@ -191,30 +191,50 @@ Una incrustación de texto o \textit{embedding} es la representación de un text
 
 Los primeros modelos que hacían esto, asignaban un vector a cada palabra a partir de los contextos en los que aparece\cite{mikolov2013word2vec}. Pero el problema venía cuando había que asignar esta idea a frases y párrafos completos ya que el significado de un texto no es la suma de las palabras que lo componen. Sentence-BERT\cite{reimers2019sbert} adapta un modelo de tipo \textit{transformer}\cite{vaswani2017attention} para que produzca directamente un vector por texto, solucionando lo anteriormente mencionado.
 
-Existen cuatro propiedades de un modelo de incrustaciones que son importante en un sistema de recuperación:
+Existen cuatro propiedades de un modelo de incrustaciones que son importantes en un sistema de recuperación:
 
 \begin{itemize}
   \item  \textbf{La dimensión del vector: } Fija cuánta memoria ocupa el índice y cuánto cuesta cada comparación.
-  \item  \textbf{La ventana de contexto: } Esta está medida en \textit{tokens}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.ç
-  \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es súmamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas. En el caso de este proyecto se utiliza uno multilingüe.
-  \item  \textbf{La simetría entre la pregunta y el documento}: Los primeros modelos solo funcionaban bien con textos de longitud similar y no obtenían buenos resultados comparando una pregunta con un documento.
+  \item  \textbf{La ventana de contexto: } Esta está medida en \textit{tokens}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.
+  \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es sumamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas.
+  \item  \textbf{La simetría entre la pregunta y el documento}: \textcolor{borrador2}{una
+        búsqueda es simétrica cuando los dos textos que se comparan desempeñan el mismo papel
+        y tienen una forma parecida, como dos frases de las que se quiere saber si significan
+        lo mismo, y asimétrica cuando no: una pregunta breve frente a un documento extenso
+        que la responde y que no se le parece en nada. Un modelo entrenado para lo primero no
+        sirve necesariamente para lo segundo, y algunas familias lo resuelven pidiendo que
+        cada texto se anteponga con una marca que declare cuál de los dos papeles cumple.}
 \end{itemize}
 
-La poximidad entre dos vectores en el espacio de incrustaciones se calcula normalmente con la similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud. Sin embargo, cuando un modelo entrega sus vectores ya normalizados a longitud uno, el coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la métrica configurada deja de diferenciarse por lo que devuelve.
+La proximidad entre dos vectores en el espacio de incrustaciones se calcula normalmente con la similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud. Sin embargo, cuando un modelo entrega sus vectores ya normalizados a longitud uno, el coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la métrica configurada deja de diferenciarse por lo que devuelve.
 
 \begin{equation}
-  \mathrm{Similitud del coseno}(\mathbf{u}, \mathbf{v}) = \mathbf{u} \cdot \mathbf{v} = \sum_{i=1}^{n} u_i v_i
+  \text{coseno}(\mathbf{u}, \mathbf{v})
+  = \frac{\mathbf{u} \cdot \mathbf{v}}{\lVert \mathbf{u} \rVert \; \lVert \mathbf{v} \rVert}
+  = \frac{\sum_{i=1}^{n} u_i v_i}
+  {\sqrt{\sum_{i=1}^{n} u_i^{2}} \; \sqrt{\sum_{i=1}^{n} v_i^{2}}}
+  \label{eq:coseno}
 \end{equation}
+
+\textcolor{borrador2}{El denominador es lo que convierte el producto escalar en un coseno: al
+  dividir por las dos longitudes, el resultado queda entre $-1$ y $1$ y solo depende del
+  ángulo. De ahí sale lo dicho arriba, porque si ambos vectores ya miden uno el denominador
+  vale uno y la expresión se reduce al producto escalar.}
 
 
 \subsection[Búsqueda semántica]{Búsqueda semántica}
 \label{subsec:busqueda_semantica_concepto}
 
-La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que lo contienen. En la alternativa a la búsqueda léxica, que puntúa un documento en función qué términos de la consulta aparecen en él y con qué frecuencia, por ejemplo BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
+La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. \textcolor{borrador2}{Es la alternativa a la búsqueda léxica, que puntúa un documento en función de qué términos de la consulta aparecen en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}.} Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-Con incrustaciones funcionamiento cambia, la colección se convierte en vectores y se almacena, al llegar la consulta, se convierte también en un vector con el mismo modelo y se devuelven los $k$ documentos cuyos vectores están más cerca del suyo. Esto no está exento de problemas, ya que aparece uno de búsqueda del vecino cuyos vectores están más próximo en el espacio de cientos de dimensiones, y aquí es donde entran las bases de datos vectoriales de la sección~\ref{subsec:vectordb_concepto}.
+\textcolor{borrador2}{Con incrustaciones el funcionamiento cambia: la colección se convierte en
+  vectores una sola vez y se almacena, y al llegar la consulta se convierte también en un
+  vector con el mismo modelo, para devolver los $K$ documentos cuyos vectores están más cerca
+  del suyo. Esto traslada el problema a otro, el de encontrar los vecinos más próximos en un
+  espacio de cientos de dimensiones, y es ahí donde entran las bases de datos vectoriales de
+  la sección~\ref{subsec:vectordb_concepto}.}
 
-Sobre este método de búsqueda hay tres decisiones importantes que afectan a lo que el usuario acaba recibiendo:
+Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
 \begin{itemize}
   \item \textbf{Cuántos resultados se devuelven: } Un $K$ pequeño corre el riesgo de dejar fuera la respuesta, sin embargo uno grande arrastra información inútil hasta el modelo que redacta y consume su ventana de contexto.
@@ -227,28 +247,39 @@ Sobre este método de búsqueda hay tres decisiones importantes que afectan a lo
   <<Métricas de comprobación>> al final, después de <<Bases de datos vectoriales>>: hoy se
   explica cómo medir antes de haber presentado la mitad de lo que se mide. No lo he movido
   porque es tu estructura; decide tú.
-  \item \textbf{La búsqueda híbrida no está implementada en el sistema.} Aquí solo se enuncia
-  como parte del panorama, que es lo que toca en Antecedentes. Si acaba no usándose, tiene
-  su sitio natural en el trabajo futuro del Capítulo~\ref{cap:conclusiones}.
+  \item \textbf{La búsqueda híbrida se ha quedado fuera del apartado} al reescribirlo. Es la
+  que mezcla la puntuación léxica y la semántica para cubrir los fallos de cada una: la
+  léxica acierta con los nombres propios, los códigos y las siglas, donde la semántica es
+  débil. No está implementada en el sistema, así que dejarla fuera es defendible; solo
+  conviene que sea una decisión y no un descuido, porque es la primera pregunta que sale al
+  contar que la búsqueda léxica falla con el vocabulario. Su sitio alternativo es el trabajo
+  futuro del Capítulo~\ref{cap:conclusiones}.
 \end{borrador}
 
 \subsection{Métricas de comprobación}
 
 
 Un sistema de generación aumentada por recuperación puede fallar en dos sitios distintos, uno es al buscar, si los fragmentos que recupera no contienen
-la respuesta, y puede fallar al redactar la respuesta. En los diferentes experimentos llevados a cabo en este proyecto se han utilizado las siguientes métricas:
+la respuesta, y puede fallar al redactar la respuesta. \textcolor{borrador2}{Cada una de esas
+  dos mitades se mide con una familia de métricas distinta, y una única puntuación global
+  ocultaría cuál de las dos falla, que es precisamente lo que hace falta saber para
+  arreglarla.}
 
 \subsubsection{Las métricas de recuperación}
 
 Estas proceden del campo clásico de la recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo, que es un conjunto de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué comparar lo que el sistema devuelve.
 
-Una de ellas es \textit{Recall@K}, que mide la proporción de preguntas cuyo documento correcto aparece entre los $K$ resultados que el sistema devuelve. Responde a si el material necesario ha llegado, no a en qué orden.
+Una de ellas es \textit{Recall@K}, que mide \textcolor{borrador2}{qué proporción de los
+  documentos relevantes de cada pregunta aparece entre los $K$ resultados que el sistema
+  devuelve, promediada sobre todas las preguntas}. Responde a si el material necesario ha llegado, no a en qué orden.
 
 \begin{equation}
   \text{Recall@K} = \frac{1}{|Q|} \sum_{q \in Q} \frac{|R_q \cap \text{Top}_K(q)|}{|R_q|}
   \label{eq:recall_at_k}
 \end{equation}
 
+\textcolor{borrador2}{Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
+  anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.}
 
 El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
 
@@ -256,6 +287,11 @@ El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la pos
   \text{MRR} = \frac{1}{|Q|} \sum_{q \in Q} \frac{1}{\text{rank}(q)}
   \label{eq:mrr}
 \end{equation}
+
+\textcolor{borrador2}{Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
+  la pregunta $q$: uno si sale el primero, dos si sale el segundo, y así sucesivamente. Cuando
+  ningún resultado relevante aparece entre los recuperados, ese sumando se cuenta como cero, y
+  no como el inverso de una posición que no existe.}
 
 
 \textcolor{borrador2}{Hay una decisión previa que condiciona a las tres métricas anteriores y
