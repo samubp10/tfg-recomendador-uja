@@ -114,6 +114,18 @@ Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicament
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
+\textcolor{borrador2}{Conviene no usar <<pesos abiertos>> y <<código abierto>> como sinónimos,
+  porque nombran cosas distintas y solo la primera describe a los modelos que aquí se
+  manejan. Un modelo tiene los \textbf{pesos abiertos} cuando se pueden descargar los
+  parámetros que la red aprendió durante el entrenamiento, que es lo que hace falta para
+  ejecutarlo en un equipo propio. Se habla de \textbf{código abierto} cuando además se
+  publican, con una licencia que permite estudiarlos y modificarlos, el código con el que se
+  entrenó y los datos que se usaron para hacerlo. La diferencia es práctica y no
+  terminológica: con los pesos se puede ejecutar el modelo, pero no reproducir el
+  entrenamiento ni auditar de qué material aprendió. Ninguna de las familias citadas en este
+  apartado cumple lo segundo, y por eso la definición de <<inteligencia artificial de código
+  abierto>> ha necesitado un texto propio que fije el listón\cite{osi_osaid2024}.}
+
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
 La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas familias y sitúa en cada bando las que se citan en este apartado.
@@ -198,6 +210,119 @@ no puede indexarse documento a documento tal y como se recoge desde la página w
 El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
+\subsection[Incrustaciones de texto]{\textcolor{borrador2}{Incrustaciones de texto}}
+\label{subsec:incrustaciones_concepto}
+
+\textcolor{borrador2}{Una incrustación (\textit{embedding}) es la representación de un texto como
+  un vector de números reales de dimensión fija. La idea que la sostiene es que la posición
+  del vector en ese espacio codifique el significado del texto, de modo que dos textos que
+  hablan de lo mismo caigan cerca aunque no compartan ni una palabra. Es lo que permite que
+  una pregunta escrita con las palabras de un estudiante de bachillerato recupere una guía
+  docente redactada con el vocabulario del profesorado que la escribió.}
+
+\textcolor{borrador2}{Los primeros modelos de este tipo asignaban un vector a cada palabra a
+  partir de los contextos en los que aparece\cite{mikolov2013word2vec}. Trasladar la idea a
+  frases y párrafos completos exigió un paso más, porque el significado de un texto no es la
+  suma de las palabras que lo componen: Sentence-BERT\cite{reimers2019sbert} adapta un modelo
+  de tipo \textit{transformer}\cite{vaswani2017attention} para que produzca directamente un
+  vector por texto, comparable con otro mediante una operación aritmética barata.}
+
+\textcolor{borrador2}{Cuatro propiedades de un modelo de incrustaciones condicionan su uso en
+  un sistema de recuperación:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{La dimensión del vector}, que fija cuánta memoria ocupa
+        el índice y cuánto cuesta cada comparación.}
+  \item \textcolor{borrador2}{\textbf{La ventana de contexto} que admite, medida en
+        \textit{tokens}. Es la propiedad que más fácilmente pasa inadvertida: el texto que
+        excede la ventana no produce ningún error, simplemente se recorta antes de
+        convertirse en vector, y el sistema indexa un documento que no es el que se le dio.}
+  \item \textcolor{borrador2}{\textbf{Las lenguas con las que se ha entrenado}, ya que un
+        modelo entrenado solo en inglés no sirve para una colección en español.}
+  \item \textcolor{borrador2}{\textbf{La simetría entre la pregunta y el documento}. Buscar no
+        es comparar dos frases equivalentes: una pregunta corta y un párrafo largo cumplen
+        papeles distintos. Familias como E5\cite{wang2024e5multilingue} lo resuelven pidiendo
+        que cada texto se anteponga con una marca que declara su papel, y omitir esa marca
+        degrada la búsqueda sin avisar. Otras, como BGE-M3\cite{chen2024m3embedding},
+        combinan además representaciones densas y dispersas en un mismo modelo.}
+\end{itemize}
+
+\textcolor{borrador2}{La proximidad entre dos vectores se cuantifica normalmente con la
+  similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud, o con
+  el producto escalar, que sí la tiene en cuenta. Conviene saber que cuando un modelo entrega
+  sus vectores ya normalizados a longitud uno ---y varios de los habituales lo hacen--- el
+  coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la
+  métrica configurada deja de distinguirse por lo que devuelve.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-28, IT-29). Andamiaje: la prosa la escribes tú. Este apartado no
+  existía y es un hueco grande, porque el modelo de incrustaciones es la decisión con más
+  peso experimental del trabajo hasta ahora.
+  \item \textbf{Comprueba las cuatro citas antes de defenderlas.} Las cuatro estaban ya en la
+  bibliografía, pero aquí se usan para afirmaciones concretas: que word2vec asigna vectores a
+  palabras, que Sentence-BERT produce un vector por texto, que E5 usa marcas de papel y que
+  BGE-M3 combina representaciones. Si al leerlas ves que alguna no dice exactamente eso,
+  ajusta la frase, no la cita.
+  \item \textbf{Lo que NO va aquí:} qué modelo usa este trabajo, la comparativa de los cuatro
+  candidatos y el ADR-0003. Eso es Material y Métodos. En cuanto una frase empiece por <<se ha
+  elegido>>, está en el capítulo equivocado.
+  \item \textbf{Falta una entrada en el glosario} del Capítulo~\ref{cap:definiciones}: la
+  similitud del coseno. <<Incrustación>>, <<ventana de contexto>> y <<\emph{token}>> ya están
+  dadas de alta, y las dos primeras las marca con \texttt{\textbackslash gl} el apartado de
+  fragmentación, que va antes; por eso aquí no se vuelven a marcar.
+\end{borrador}
+
+\subsection[Búsqueda semántica]{\textcolor{borrador2}{Búsqueda semántica}}
+\label{subsec:busqueda_semantica_concepto}
+
+\textcolor{borrador2}{La búsqueda semántica consiste en recuperar documentos por su
+  significado y no por las palabras que contienen. Es la alternativa a la búsqueda léxica,
+  que puntúa un documento en función de qué términos de la consulta aparecen en él y con qué
+  frecuencia, según fórmulas como BM25\cite{robertson2009bm25}. La búsqueda léxica es rápida,
+  no necesita entrenamiento y explica sus resultados sola, pero falla en cuanto la pregunta y
+  el documento nombran lo mismo de forma distinta: quien pregunta por <<programar>> no
+  encuentra una guía que habla de <<desarrollo de \textit{software}>>.}
+
+\textcolor{borrador2}{Con incrustaciones el procedimiento cambia. La colección se convierte
+  una sola vez en vectores y se guarda; al llegar una consulta, se convierte también en un
+  vector con el mismo modelo y se devuelven los $K$ documentos cuyos vectores están más cerca
+  del suyo. Esto traslada el problema a uno de búsqueda del vecino más próximo en un espacio
+  de cientos de dimensiones, que es de lo que se ocupan las bases de datos vectoriales de la
+  sección~\ref{subsec:vectordb_concepto}.}
+
+\textcolor{borrador2}{Sobre ese esquema básico hay tres decisiones que afectan a lo que el
+  usuario acaba viendo:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Cuántos resultados se devuelven.} Un $K$ pequeño corre
+        el riesgo de dejar fuera la respuesta; uno grande arrastra ruido hasta el modelo que
+        redacta y consume su ventana de contexto.}
+  \item \textcolor{borrador2}{\textbf{Si se filtra por metadatos.} Una colección en la que
+        cada fragmento sabe a qué titulación pertenece permite restringir la búsqueda antes
+        de calcularla ---filtrado previo--- o descartar después lo que no encaja ---filtrado
+        posterior---. La diferencia no es de eficiencia: filtrar después puede dejar la
+        respuesta vacía cuando ninguno de los $K$ mejores pertenece al subconjunto pedido.}
+  \item \textcolor{borrador2}{\textbf{Si se combinan los dos enfoques.} La búsqueda híbrida
+        mezcla la puntuación léxica y la semántica para cubrir los fallos de cada una: la
+        léxica acierta con los nombres propios, los códigos y las siglas, donde la semántica
+        es débil.}
+\end{itemize}
+
+\begin{borrador}
+  \item \textbf{Fase:} 1 (IT-31). Andamiaje: la prosa la escribes tú.
+  \item \textbf{La frontera con la sección~\ref{subsec:vectordb_concepto} conviene dejarla
+    clara al redactar}: aquí va \emph{qué} es buscar por significado, y allí \emph{cómo} se
+  almacena y se recorre el índice (búsqueda exacta frente a aproximada, HNSW, IVF, SPANN).
+  Si los dos apartados cuentan lo mismo, sobra uno.
+  \item \textbf{El orden de los apartados de esta sección} quedaría más natural con
+  <<Métricas de comprobación>> al final, después de <<Bases de datos vectoriales>>: hoy se
+  explica cómo medir antes de haber presentado la mitad de lo que se mide. No lo he movido
+  porque es tu estructura; decide tú.
+  \item \textbf{La búsqueda híbrida no está implementada en el sistema.} Aquí solo se enuncia
+  como parte del panorama, que es lo que toca en Antecedentes. Si acaba no usándose, tiene
+  su sitio natural en el trabajo futuro del Capítulo~\ref{cap:conclusiones}.
+\end{borrador}
+
 \subsection{Métricas de comprobación}
 
 \textcolor{borrador2}{Un sistema de generación aumentada por recuperación puede fallar en
@@ -232,6 +357,30 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
   generación aumentada por recuperación, $K$ es el número de fragmentos que se le entregan
   al modelo que redacta, así que medir con un $K$ distinto del que usa el sistema es medir
   un sistema distinto del que se va a desplegar.}
+
+\textcolor{borrador2}{Hay una decisión previa que condiciona a las tres métricas anteriores y
+  que suele darse por supuesta: qué se considera <<el documento correcto>>. En una colección
+  fragmentada, lo que se indexa y se recupera son fragmentos, pero lo que el usuario pregunta
+  se refiere a una unidad completa ---una asignatura, el bloque de salidas de una
+  titulación---, y una unidad puede haberse partido en varios fragmentos. La exhaustividad
+  admite entonces dos lecturas:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción
+        de los fragmentos relevantes ha entrado entre los $K$ primeros. Es la lectura estricta,
+        y tiene un techo que no depende del recuperador: si una pregunta tiene doce fragmentos
+        relevantes y $K$ vale cinco, lo máximo alcanzable son cinco de doce por mucho que el
+        orden sea perfecto.}
+  \item \textcolor{borrador2}{\textbf{Por unidad} (\textit{RU@K}): se considera acertada la
+        pregunta en cuanto aparece \emph{alguno} de los fragmentos de la unidad correcta.
+        Responde a si el sistema ha encontrado la asignatura, que es lo que le importa a quien
+        pregunta, y no a si ha recuperado todos sus trozos.}
+\end{itemize}
+
+\textcolor{borrador2}{Las dos son legítimas y miden cosas distintas, así que la única
+  respuesta incorrecta es no decir cuál se está usando: la misma ejecución del mismo sistema
+  produce dos cifras muy distintas según la granularidad elegida, y compararlas entre sí no
+  significa nada.}
 
 \textcolor{borrador2}{\textbf{Las métricas de generación} son más difíciles de definir,
   porque no existe una única respuesta correcta: dos redacciones distintas pueden ser
@@ -272,11 +421,11 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
   \item \textbf{Lo que NO va aquí, aunque tengas la tentación:} qué métricas usa este
   trabajo y con qué $K$. Eso es Material y Métodos. Este apartado dice qué existe; en cuanto
   una frase empiece por <<se ha elegido>>, está en el capítulo equivocado.
-  \item \textbf{Un matiz que sí es tuyo y no de la literatura} y que conviene que cuentes
-  cuando llegues al Capítulo~\ref{cap:materialesymetodos}: contar el acierto por fragmento o
-  por unidad no da lo mismo, porque una asignatura se parte en varios fragmentos. Aquí basta
-  con dejar dicho que la exhaustividad depende de qué se considere <<el documento
-  correcto>>.
+  \item \textbf{La notación \textit{RU@K} es nuestra, no de la literatura.} La distinción sí
+  es estándar ---es la de recuperar documentos frente a recuperar pasajes---, pero el nombre
+  se ha puesto aquí. Convendría decirlo explícitamente al redactar, para que nadie lo busque
+  en la bibliografía. Los techos concretos de este corpus, en cambio, no van aquí sino en el
+  Capítulo~\ref{cap:materialesymetodos}: son un dato de nuestra colección, no del concepto.
 \end{borrador}
 
 \subsection{Bases de datos vectoriales}
@@ -380,11 +529,25 @@ orientación profesional y que por ejemplo, se implementan en sistemas expertos 
 Test de Holland para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
 por reglas codificadas que infieren afinidades entre intereses del estudiante y perfiles profesionales~\cite{huayta2024vocational}.
 
-Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre:
+\sout{Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre:
 todos devuelven una lista cerrada de recomendaciones (titulaciones, ramas profesionales) a partir de un perfil, un cuestionario
 o un historial de decisiones, sin la posibilidad de responder una pregunta abierta y arbitraria sobre el contenido de un plan de estudios.
 Tampoco fundamentan sus respuestas en documentos verificables: la recomendación es el resultado de un modelo o de una regla,
-no la síntesis de una fuente citable. Es precisamente esta capacidad la que distingue el enfoque de este trabajo de las tres familias descritas.
+no la síntesis de una fuente citable. Es precisamente esta capacidad la que distingue el enfoque de este trabajo de las tres familias descritas.}
+
+\textcolor{borrador2}{Los dos enfoques de este apartado ---los sistemas de recomendación y los
+  tests vocacionales--- comparten una misma forma de responder: devuelven una lista cerrada
+  de titulaciones o de ramas profesionales a partir de un perfil, un cuestionario o un
+  historial de decisiones, y no admiten una pregunta abierta sobre el contenido concreto de
+  un plan de estudios. Su respuesta es el resultado de un modelo o de una regla, no la
+  síntesis de un documento que el usuario pueda ir a comprobar.}
+
+\textcolor{borrador2}{Los asistentes conversacionales del apartado anterior sí atienden
+  preguntas en lenguaje natural, pero, en lo que se ha podido observar de ADA y de LUCA,
+  resuelven la consulta redirigiendo a una página en lugar de responderla con el contenido de
+  esa página. Lo que separa a este trabajo de unos y de otros no es una de las dos
+  capacidades por separado, sino tenerlas a la vez: aceptar una pregunta abierta y
+  responderla con el texto de un documento oficial concreto, que además se cita.}
 
 \subsection{Posicionamiento de este trabajo}
 
