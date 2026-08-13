@@ -44,7 +44,13 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[Fragmento (\textit{chunk})] Cada una de las piezas de texto
         resultantes de la fragmentación. Es la unidad mínima que el sistema
         recupera y entrega al modelo de lenguaje como contexto.
-        
+
+  \item[Generación aumentada por recuperación] Arquitectura que, antes
+        de responder, busca en una colección documental los fragmentos relevantes
+        para la pregunta y se los entrega al modelo de lenguaje como contexto, de
+        modo que su respuesta se apoye en documentos reales y verificables. Véase
+        también RAG.
+
   \item[Guía docente] Documento oficial que publica la universidad para cada
         asignatura, con su resumen, sus requisitos previos y su temario.
         
@@ -81,13 +87,7 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[Rastreador web (\textit{spider})] Programa que recorre de forma
         automática las páginas de un sitio web siguiendo sus enlaces, para extraer
         de ellas datos estructurados.
-        
-  \item[Recuperación aumentada por generación] Arquitectura que, antes
-        de responder, busca en una colección documental los fragmentos relevantes
-        para la pregunta y se los entrega al modelo de lenguaje como contexto, de
-        modo que su respuesta se apoye en documentos reales y verificables. Véase
-        también RAG.
-        
+
   \item[Señal semántica] Parte del significado de un
         texto que su incrustación consigue representar. Un fragmento centrado en un
         único asunto produce un vector que apunta con claridad hacia él, uno que
@@ -152,8 +152,7 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[NLP] Procesamiento del lenguaje natural (\textit{Natural Language
           Processing}); véase PLN.
   \item[PLN] Procesamiento del lenguaje natural.
-  \item[RAG] Recuperación aumentada por generación (\textit{Retrieval-Augmented
-          Generation}).
+  \item[RAG] Generación aumentada por recuperación (\textit{Retrieval-Augmented Generation}).
   \item[SFT] Ajuste supervisado de instrucciones (\textit{Supervised
           Fine-Tuning}), fase del postentrenamiento de un LLM.
   \item[TFG] Trabajo Fin de Grado.
