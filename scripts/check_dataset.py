@@ -16,34 +16,17 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-#: Tamaño esperado del corpus. Son las cifras del último rastreo aceptado, no
-#: una verdad del dominio: sirven para que una pérdida silenciosa de datos se
-#: note en la siguiente regeneración en vez de pasar inadvertida.
-#:
-#: **Actualizadas el 28/07/2026, contra el rastreo de ese día (curso 2026-27).**
-#: Antes valían 361/13/296/8/9/1, del snapshot del 09/07/2026 (curso 2025-26);
-#: la diferencia la explican IT-76 (+19 asignaturas de Geomática recuperadas) e
-#: IT-77 (−30 asignaturas y −1 titulación, la que estaba en extinción).
-#:
-#: Al regenerar el dataset hay que revisarlas: si el cambio es legítimo se
-#: anotan las nuevas, y si no lo es, es que el rastreo ha perdido datos. Que
-#: fallen tras un rastreo NO significa por sí solo que algo esté roto, pero
-#: tampoco se actualizan sin mirar de dónde sale la diferencia.
+#: `assert` desaparece al ejecutar con `python -O`, y entonces este guion
+#: recorrería el dataset entero sin comprobar nada y diría «Dataset OK». La
+#: sustituta es común a los cuatro verificadores para que no puedan discrepar.
+from tfg_uja.invariantes import exigir
+
 ESPERADO = {
-    # IT-101: 350 antes de rastrear los planes de los dobles grados. Las 178
-    # nuevas son sus asignaturas; casi todas son las mismas que las de sus
-    # grados base, pero con código propio, así que aquí cuentan aparte.
     "asignaturas": 528,
     "grados": 12,
     "guias": 288,
-    # IT-101: 8, no 7. Los dobles grados sí emiten salidas desde que se
-    # comprobó que su página no es la unión exacta de las de sus grados base:
-    # añade a qué profesiones reguladas da acceso la doble titulación. Solo uno
-    # de los cinco la publica, de ahí que sean 8 y no 12.
     "salidas": 8,
     "no_ofertadas": 10,
-    # Fiel a la fuente: la web no publica los ECTS de una asignatura y no se
-    # imputan (decisión 9 del proyecto).
     "sin_ects": 1,
 }
 
@@ -132,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
     salidas = [d for d in datos if d["tipo"] == "salidas"]
 
     # Procedencia (IT-90): de cuándo y de qué curso es lo que se verifica.
-    procedencia = next((d for d in datos if d["tipo"] == "procedencia"), {})
+    procedencia: dict = next((d for d in datos if d["tipo"] == "procedencia"), {})
     cursos = sorted({g["curso"] for g in guias if g.get("curso")})
     if procedencia:
         print(
@@ -170,11 +153,28 @@ def main(argv: list[str] | None = None) -> int:
     # «asignaturas: 331 (esperado 361)» solo dice que falta algo. Comprobar
     # esto primero convierte ese número en el nombre de lo que hay que mirar.
     vacios = grados_sin_asignaturas(datos)
-    assert not vacios, (
-        f"{len(vacios)} titulación(es) con página de asignaturas pero sin "
-        f"ninguna asignatura extraída: {vacios}. El rastreador no ha sabido "
-        f"leer sus tablas; revisa los avisos del rastreo (IT-78)."
+    exigir(
+        not vacios,
+        lambda: (
+            f"{len(vacios)} titulación(es) con página de asignaturas pero sin "
+            f"ninguna asignatura extraída: {vacios}. El rastreador no ha sabido "
+            f"leer sus tablas; revisa los avisos del rastreo (IT-78)."
+        ),
     )
+
+    # La comprobación de arriba solo ve la pérdida TOTAL de una titulación. La
+    # parcial ---perder las tablas de mención y conservar las troncales--- deja
+    # el recuento global descuadrado y nada más, y «asignaturas: 508 (esperado
+    # 528)» no dice de quién faltan. No se comprueba con un umbral por
+    # titulación porque cualquier cifra que se pusiera sería inventada: se
+    # imprime el reparto para que la comparación con el rastreo anterior la
+    # haga quien sí sabe cuántas asignaturas tiene cada plan.
+    por_titulacion = Counter(a["grado"] for a in asignaturas)
+    print("  Asignaturas por titulación:")
+    for grado in grados:
+        propias = por_titulacion.get(grado["nombre"], 0)
+        sin_pagina = "" if grado.get("url_asignaturas") else "  (sin página propia)"
+        print(f"    {propias:4}  {grado['nombre']}{sin_pagina}")
 
     for etiqueta, real in (
         ("asignaturas", len(asignaturas)),
@@ -183,18 +183,20 @@ def main(argv: list[str] | None = None) -> int:
         ("salidas", len(salidas)),
     ):
         esperado = ESPERADO[etiqueta]
-        assert real == esperado, (
+        exigir(
+            real == esperado,
             f"{etiqueta}: {real} (esperado {esperado}). Si el cambio es "
             f"legítimo porque se ha vuelto a rastrear, actualiza ESPERADO en "
             f"la cabecera de este script; si no lo es, el rastreo ha perdido "
-            f"datos y hay que averiguar por qué antes de tocar nada."
+            f"datos y hay que averiguar por qué antes de tocar nada.",
         )
 
-    assert all("ofertada" in a for a in asignaturas), "falta el campo ofertada"
+    exigir(all("ofertada" in a for a in asignaturas), "falta el campo ofertada")
     no_ofertadas = sum(1 for a in asignaturas if not a["ofertada"])
-    assert (
-        no_ofertadas == ESPERADO["no_ofertadas"]
-    ), f"no ofertadas: {no_ofertadas} (esperado {ESPERADO['no_ofertadas']})"
+    exigir(
+        no_ofertadas == ESPERADO["no_ofertadas"],
+        f"no ofertadas: {no_ofertadas} (esperado {ESPERADO['no_ofertadas']})",
+    )
 
     # Un paréntesis en el nombre delata que se ha colado texto que no forma
     # parte de él. Este invariante lleva vigente desde IT-10 y saltó por
@@ -214,17 +216,27 @@ def main(argv: list[str] | None = None) -> int:
         if "(" in a["nombre"]
         and not (a["grado"] in dobles and acronimo_de_grado.match(a["nombre"]))
     ]
-    assert not sucios, (
-        f"{len(sucios)} nombres con paréntesis, p. ej. {sucios[0]['nombre']!r}. "
-        f"Se ha colado en el nombre algo que no le pertenece."
+    exigir(
+        not sucios,
+        lambda: (
+            f"{len(sucios)} nombres con paréntesis, p. ej. "
+            f"{sucios[0]['nombre']!r}. Se ha colado en el nombre algo que no "
+            f"le pertenece."
+        ),
     )
-    assert not [
-        a for a in asignaturas if any("/" in m for m in a["menciones"])
-    ], "menciones con barra sin separar"
+    # Solo la barra. Se descartó ampliarlo a otros separadores (« y », la coma)
+    # porque sobre las 16 menciones reales del corpus daría 14 falsos
+    # positivos: «Ingeniería y fabricación mecánica» o «Técnicas para la
+    # información y la comunicación» son nombres, no dos menciones pegadas.
+    exigir(
+        not [a for a in asignaturas if any("/" in m for m in a["menciones"])],
+        "menciones con barra sin separar",
+    )
     sin_ects = [a for a in asignaturas if not a["ects"]]
-    assert len(sin_ects) == ESPERADO["sin_ects"], (
+    exigir(
+        len(sin_ects) == ESPERADO["sin_ects"],
         f"sin ECTS: {len(sin_ects)} (esperado {ESPERADO['sin_ects']}, "
-        f"fiel a la fuente)"
+        f"fiel a la fuente)",
     )
 
     # IT-94: una asignatura que anuncia guía pero cuya guía no aparece en el
@@ -257,10 +269,13 @@ def main(argv: list[str] | None = None) -> int:
         for campo in _CAMPOS_TEXTO
         if isinstance(d.get(campo), str) and _parece_binario(d[campo])
     ]
-    assert not binarias, (
-        f"{len(binarias)} items con binario en un campo de texto "
-        f"(p. ej. código {binarias[0].get('codigo')!r}): una guía servida "
-        f"como PDF no se ha extraído bien (IT-67)."
+    exigir(
+        not binarias,
+        lambda: (
+            f"{len(binarias)} items con binario en un campo de texto "
+            f"(p. ej. código {binarias[0].get('codigo')!r}): una guía servida "
+            f"como PDF no se ha extraído bien (IT-67)."
+        ),
     )
 
     print(

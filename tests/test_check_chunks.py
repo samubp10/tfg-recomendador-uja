@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import inspect
 from pathlib import Path
 
 from tfg_uja import chunker
@@ -150,3 +151,58 @@ def test_una_unidad_de_un_solo_chunk_nunca_es_evitable() -> None:
     debajo del mínimo, y no hay nada que reprocharle al fragmentador.
     """
     assert check_chunks.cortos_evitables([_chunk("a" * 20, 0, 1)]) == []
+
+
+# --- Que el verificador no se desincronice del fragmentador (IT-10) --------
+
+
+def test_cortos_evitables_coincide_con_la_direccion_de_la_fusion() -> None:
+    """``cortos_evitables`` reimplementa parte de ``_fusionar_pequenos``.
+
+    El verificador reconstruye por su cuenta si un fragmento corto se podía
+    unir a su vecino, y para eso tiene que mirar al mismo vecino que mira el
+    fragmentador: el anterior salvo en el primero, donde mira al siguiente. Si
+    el fragmentador cambiara de criterio y el verificador no, este daría por
+    legítimo un fragmento corto que sí era fusionable, y lo haría diciendo
+    «OK». Se comprueba sobre el código real para que la divergencia no pueda
+    pasar inadvertida.
+    """
+    fuente = ast.parse(inspect.getsource(chunker._fusionar_pequenos))
+    expresiones = {
+        ast.unparse(n)
+        for n in ast.walk(fuente)
+        if isinstance(n, ast.IfExp) and "i - 1" in ast.unparse(n)
+    }
+
+    assert expresiones, (
+        "`_fusionar_pequenos` ya no elige el vecino con una expresión "
+        "condicional sobre `i - 1`. Revisa si `cortos_evitables` sigue "
+        "reconstruyendo la misma unión que hace el fragmentador."
+    )
+    assert any("i + 1" in e for e in expresiones), (
+        "`_fusionar_pequenos` ha dejado de mirar al vecino siguiente cuando "
+        "el fragmento corto es el primero. `cortos_evitables` sí lo hace, así "
+        "que los dos han dejado de comprobar lo mismo."
+    )
+
+
+def test_no_extraidas_se_calcula_por_correspondencia_no_por_resta() -> None:
+    """Restar dos totales esconde qué falta y se cancela con otros errores.
+
+    Si el aviso se calculara como «asignaturas con guía menos guías», el día
+    que aparezcan a la vez una guía sin contenido y una guía huérfana los dos
+    errores se anulan y el aviso diría 0. Se comprueba que el guion trabaja
+    con conjuntos de claves.
+    """
+    fuente = _RUTA.read_text(encoding="utf-8")
+
+    assert "declaran_guia - guias_reales" in fuente, (
+        "el aviso de guías sin contenido debe salir de una diferencia de "
+        "conjuntos de claves, no de restar dos recuentos"
+    )
+    assert (
+        'sum(1 for a in asignaturas if a["tiene_guia"]) - len(guias)' not in fuente
+    ), (
+        "ha vuelto el cálculo por resta: esconde qué asignaturas son y se "
+        "cancela con una guía huérfana"
+    )
