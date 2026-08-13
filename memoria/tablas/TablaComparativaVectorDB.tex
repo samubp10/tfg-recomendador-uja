@@ -1,0 +1,45 @@
+% Resultados literales de la ejecucion del 13/08/2026.
+% Fuente: docs/adr/adr-0004-base-vectorial.md, bloque escrito por el propio
+% script entre los marcadores de RESULTADOS AUTOMATICOS.
+% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar
+%   py scripts/experimento_vectordb.py
+% y se copian de ahi. Corpus de 1.334 fragmentos de 384 dimensiones (1,95 MiB)
+% y 50 preguntas. K = 10, 5 repeticiones por pregunta para la latencia.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption[Comparativa de bases de datos vectoriales]{\textcolor{borrador2}{Comparativa
+      de bases de datos vectoriales sobre la colección completa y las 50 preguntas del
+      conjunto de evaluación. Fuente: elaboración propia.}}
+  \label{tab:comparativa_vectordb}
+  \begin{tabular}{@{}lrrrrr@{}}
+    \toprule
+    \textbf{Candidata}   & \textbf{Fidelidad} & \textbf{Latencia} & \textbf{p90}
+                         & \textbf{Construcción}                  & \textbf{Memoria}   \\
+                         & \textbf{(U1)}      & \textbf{(U3)}     &
+                         &                                        & \textbf{(U5)}      \\
+    \midrule
+    NumPy (línea base)   & \textbf{1,0000}    & \textbf{0,20}     & \textbf{0,24}
+                         & \textbf{0,00}                          & \textbf{1,95}      \\
+    ChromaDB 1.5.9       & 0,9980             & 1,43              & 1,68
+                         & 1,81                                   & 26,12              \\
+    LanceDB 0.37.1       & \textbf{1,0000}    & 7,35              & 8,41
+                         & 0,30                                   & 22,71              \\
+    Qdrant 1.19.0        & \textbf{1,0000}    & 5,62              & 16,61
+                         & 1,51                                   & 149,10             \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textbf{Notas:} las latencias y la construcción están en milisegundos y segundos
+    respectivamente, y la memoria en MiB. \textbf{Fidelidad} es la proporción de vecinos que
+    cada candidata devuelve y que coinciden con los de la búsqueda exacta, de modo que mide si
+    el índice pierde resultados, no la calidad de la recuperación, que depende del modelo de
+    incrustaciones y del troceado. \textbf{p90} es el percentil 90 de la latencia. NumPy no es
+    una candidata: es la búsqueda exacta por fuerza bruta, que sirve de referencia de fidelidad
+    y de línea base de velocidad. Las cuatro condiciones reciben los mismos vectores,
+    incrustados una sola vez. En negrita, el mejor valor de cada columna.
+    \textcolor{borrador2}{Escribe aquí, cuando cierres el ADR-0004, cuál se adopta.}
+  \end{minipage}
+\end{table}
