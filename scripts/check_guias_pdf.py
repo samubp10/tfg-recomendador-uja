@@ -18,9 +18,6 @@ Acepta rutas alternativas como argumentos::
 
     py scripts/check_guias_pdf.py otra/ruta/grados.json otra/carpeta_pdf
 
-⚠️ Los PDF guardados contienen datos personales del profesorado. Viven en
-``data/``, que no se versiona, y son copia local de trabajo: no salen de la
-máquina y el corpus sigue sin ellos.
 """
 
 from __future__ import annotations
@@ -38,11 +35,30 @@ from tfg_uja.guia_pdf import (  # noqa: E402
     reparto_por_seccion,
     rotulos_ausentes,
 )
+from tfg_uja.invariantes import exigir  # noqa: E402
 
 
-def _pdf_de(carpeta: Path, guia: dict) -> Path:
-    """Ruta del PDF guardado para una guía, por su código."""
-    return carpeta / f"{guia.get('codigo') or 'sin_codigo'}.pdf"
+def _pdf_de(carpeta: Path, guia: dict) -> Path | None:
+    """Ruta del PDF guardado para una guía, o ``None`` si no se puede saber.
+
+    El nombre del fichero es el código de la asignatura, así que una guía sin
+    código no tiene PDF identificable. Antes se le daba el nombre de reserva
+    ``sin_codigo.pdf``, y con eso **todas** las guías sin código habrían
+    apuntado al mismo fichero: cada una se habría auditado contra el PDF de
+    otra, y las que no coincidieran habrían salido como discrepancias sin
+    que el motivo real apareciera por ningún lado. Hoy las 288 guías del
+    corpus traen código y ninguna entra por aquí; el caso se declara
+    inauditable en vez de resolverse con un nombre inventado.
+
+    Args:
+        carpeta: Carpeta donde el rastreo guarda los PDF.
+        guia: Item ``guia`` del dataset.
+
+    Returns:
+        Ruta del PDF, o ``None`` si la guía no declara código.
+    """
+    codigo = guia.get("codigo")
+    return carpeta / f"{codigo}.pdf" if codigo else None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -53,7 +69,12 @@ def main(argv: list[str] | None = None) -> int:
             ``data/grados.json`` y ``data/guias_pdf``.
 
     Returns:
-        Código de salida (0 si la extracción es fiel a los PDF originales).
+        Código de salida: 0 solo si se ha auditado **toda** la colección y la
+        extracción es fiel; 1 si algo ha fallado y también si la auditoría no
+        ha podido hacerse o ha quedado incompleta. Una auditoría que no se
+        ha hecho no es una auditoría superada, y confundir las dos cosas
+        convierte este guion en el quinto verificador del proyecto que dice
+        «OK» sin haber verificado nada.
     """
     # La consola de Windows fuerza cp1252 y los rótulos de la plantilla llevan
     # tildes y comillas angulares: sin esto la salida sale ilegible.
@@ -70,18 +91,24 @@ def main(argv: list[str] | None = None) -> int:
 
     reparto = Counter(g.get("formato") or "sin declarar" for g in guias)
     print(f"Guías: {len(guias)}  {dict(reparto)}")
+
+    # Motivos por los que una parte de la colección se queda sin auditar. La
+    # lista decide el veredicto final: mientras tenga algo, este guion no
+    # puede decir que la extracción es fiel, porque de una parte no lo sabe.
+    sin_auditar: list[str] = []
+
     if sin_formato:
-        print(
-            f"AVISO: {len(sin_formato)} guías sin el campo `formato` (dataset "
-            "anterior a IT-95). Regeneralo para poder auditarlas."
+        sin_auditar.append(
+            f"{len(sin_formato)} guías sin el campo `formato` (dataset "
+            "anterior a IT-95): no entran en la auditoría. Regeneralo."
         )
     if not carpeta.is_dir():
         print(
-            f"AVISO: no existe {carpeta}. El rastreo guarda ahí los PDF desde "
-            "IT-95; sin ellos no hay contra qué comparar y esta auditoría no "
-            "puede hacerse. Regenera el dataset."
+            f"AUDITORÍA IMPOSIBLE: no existe {carpeta}. El rastreo guarda ahí "
+            "los PDF desde IT-95; sin ellos no hay contra qué comparar. "
+            "Regenera el dataset."
         )
-        return 0
+        return 1
 
     # --- La plantilla sigue trayendo todos los rótulos que se esperan ---
     # Es la comprobación que sostiene todo lo demás. Va por AUSENCIA y no por
@@ -90,16 +117,37 @@ def main(argv: list[str] | None = None) -> int:
     # secciones y la segunda línea del nombre en la cabecera).
     faltantes: dict[str, list[str]] = {}
     ausentes: list[str] = []
+    sin_codigo: list[str] = []
     discrepancias: list[str] = []
+    auditadas = 0
     total_pdf = 0
     total_conservado = 0
     descartado_por_rotulo: Counter[str] = Counter()
 
+    # El nombre del PDF es el código, así que dos guías con el mismo código se
+    # auditarían contra el mismo fichero y una de las dos daría discrepancia
+    # sin motivo visible. Hoy los 288 códigos son distintos; se comprueba para
+    # que la identidad del fichero siga siendo una identidad.
+    veces = Counter(g.get("codigo") for g in en_pdf)
+    repetidos = [codigo for codigo, n in veces.items() if n > 1]
+    exigir(
+        not repetidos,
+        lambda: (
+            f"{len(repetidos)} código(s) de guía repetidos (p. ej. "
+            f"{repetidos[0]!r}). El PDF se localiza por el código, así que "
+            f"esas guías se auditarían contra el mismo fichero."
+        ),
+    )
+
     for guia in en_pdf:
         pdf = _pdf_de(carpeta, guia)
+        if pdf is None:
+            sin_codigo.append(str(guia.get("nombre")))
+            continue
         if not pdf.is_file():
             ausentes.append(str(guia.get("codigo")))
             continue
+        auditadas += 1
         crudo = pdf.read_bytes()
         codigo = str(guia.get("codigo"))
 
@@ -121,27 +169,84 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 descartado_por_rotulo[rotulo] += largo
 
-    assert not faltantes, (
-        f"{len(faltantes)} guía(s) a las que les falta algún rótulo de la "
-        f"plantilla, p. ej. {list(faltantes)[0]}: "
-        f"{faltantes[list(faltantes)[0]]}. La plantilla de la UJA ha cambiado: "
-        f"la sección que ese rótulo delimitaba deja de terminar donde debe, "
-        f"así que o se pierde su contenido o la anterior se traga la siguiente."
+    exigir(
+        not faltantes,
+        lambda: (
+            f"{len(faltantes)} guía(s) a las que les falta algún rótulo de la "
+            f"plantilla, p. ej. {list(faltantes)[0]}: "
+            f"{faltantes[list(faltantes)[0]]}. La plantilla de la UJA ha "
+            f"cambiado: la sección que ese rótulo delimitaba deja de terminar "
+            f"donde debe, así que o se pierde su contenido o la anterior se "
+            f"traga la siguiente."
+        ),
     )
-    assert not discrepancias, (
-        f"{len(discrepancias)} guía(s) donde re-extraer el PDF no reproduce lo "
-        f"que hay en el dataset (p. ej. {discrepancias[0]}). El dataset y el "
-        f"código no están sincronizados: regenera el dataset."
+    exigir(
+        not discrepancias,
+        lambda: (
+            f"{len(discrepancias)} guía(s) donde re-extraer el PDF no "
+            f"reproduce lo que hay en el dataset (p. ej. {discrepancias[0]}). "
+            f"El dataset y el código no están sincronizados: regenera el "
+            f"dataset."
+        ),
     )
 
     if ausentes:
-        print(
-            f"AVISO: faltan {len(ausentes)} PDF de {len(en_pdf)} en {carpeta} "
-            f"(p. ej. {ausentes[0]}); esas guías no se han podido auditar."
+        sin_auditar.append(
+            f"faltan {len(ausentes)} PDF de {len(en_pdf)} en {carpeta} "
+            f"(p. ej. {ausentes[0]}): esas guías no se han podido auditar."
+        )
+    if sin_codigo:
+        sin_auditar.append(
+            f"{len(sin_codigo)} guías sin código (p. ej. {sin_codigo[0]!r}): "
+            f"su PDF no se puede localizar, porque el fichero se nombra por "
+            f"el código."
+        )
+    if not auditadas:
+        sin_auditar.append(
+            f"no se ha auditado ni una sola guía de las {len(guias)} del "
+            f"dataset: no hay ninguna evidencia detrás de este informe."
         )
 
     # --- Qué se descarta, con nombre y apellidos ---
-    print(f"\nAuditadas {len(en_pdf) - len(ausentes)} guías en PDF.")
+    print(f"\nAuditadas {auditadas} guías en PDF de las {len(guias)} del dataset.")
+
+    # Un PDF descargado que no ha llegado a ser una guía tiene una única
+    # explicación legítima, y es la anomalía DQA-0004: la asignatura enlaza su
+    # guía, el rastreo se la baja, y sus secciones de contenido están vacías en
+    # el origen, así que no se emite ningún item `guia`. Sobre el corpus del
+    # 05/08/2026 los cinco huérfanos son exactamente esas cinco asignaturas.
+    #
+    # Uno que NO encaje ahí es otra cosa: o el PDF se descargó y su extracción
+    # se perdió por el camino, o es un resto de un rastreo anterior que ya no
+    # corresponde a este dataset. En ambos casos la carpeta y el dataset dicen
+    # cosas distintas, y esta auditoría compara justamente esas dos.
+    asignaturas = [d for d in dataset if d["tipo"] == "asignatura"]
+    claves_guia = {(g["grado"], g.get("codigo") or g["nombre"]) for g in guias}
+    vacias_en_origen = {
+        str(a["codigo"])
+        for a in asignaturas
+        if a["tiene_guia"]
+        and (a["grado"], a["codigo"] or a["nombre"]) not in claves_guia
+    }
+    huerfanos = {p.stem for p in carpeta.glob("*.pdf")} - {
+        str(g.get("codigo")) for g in en_pdf
+    }
+    explicados = huerfanos & vacias_en_origen
+    inesperados = huerfanos - vacias_en_origen
+    if explicados:
+        print(
+            f"  {len(explicados)} PDF sin guía en el dataset, y con motivo: "
+            f"son asignaturas que enlazan su guía y la publican sin contenido "
+            f"(DQA-0004). El PDF existe; lo que no trae es qué contar."
+        )
+    if inesperados:
+        sin_auditar.append(
+            f"{len(inesperados)} PDF en la carpeta que este dataset no "
+            f"referencia y que tampoco son guías vacías (p. ej. "
+            f"{sorted(inesperados)[0]}): o su extracción se ha perdido, o son "
+            f"restos de otro rastreo. La carpeta y el dataset no se "
+            f"corresponden."
+        )
     if total_pdf:
         print(
             f"Texto de secciones: {total_pdf} caracteres, de los que se "
@@ -150,6 +255,16 @@ def main(argv: list[str] | None = None) -> int:
     print("Descartado a propósito, por sección:")
     for rotulo, largo in descartado_por_rotulo.most_common():
         print(f"  {largo:9} {rotulo}")
+
+    if sin_auditar:
+        print("\nAUDITORÍA INCOMPLETA. Lo comprobado sale bien, pero:")
+        for motivo in sin_auditar:
+            print(f"  - {motivo}")
+        print(
+            "  No se puede concluir que la extracción sea fiel: de esa parte "
+            "no se sabe nada."
+        )
+        return 1
 
     print("\nGuías PDF OK: la plantilla es la conocida y la extracción es fiel.")
     return 0
