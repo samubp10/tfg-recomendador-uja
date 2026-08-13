@@ -1,26 +1,5 @@
 """Rejilla completa de estrategias de fragmentación sobre la colección (IT-16).
 
-El ADR-0001 eligió el troceado **estructural por unidad semántica** frente a
-tres alternativas, y descartó el **semántico por incrustaciones** por un motivo
-de secuencia: exigía tener elegido el modelo de incrustaciones, que entonces
-era una decisión pendiente. Ese motivo caducó al cerrarse el ADR-0003, así que
-la alternativa se mide en vez de darse por descartada.
-
-Por qué es una rejilla y no una comparación simple
---------------------------------------------------
-Una primera versión de este guion barría el umbral de la estrategia semántica
-y **congelaba** los parámetros de las otras dos en los valores que el proyecto
-ya usaba. Eso le daba a la semántica once intentos y a las demás uno, de modo
-que quedarse con su mejor resultado la favorecía aunque no hubiera diferencia
-real: el máximo de once tiradas gana al de una por puro muestreo.
-
-Aquí las tres compiten en igualdad: el **mismo eje de tamaño máximo** y el
-**mismo número de configuraciones** cada una. Cada estrategia se presenta con
-su mejor configuración, no con la que le tocaba por defecto.
-
-Lo que sigue congelado, y hay que declararlo: el **mínimo** de fragmento, que
-es una preferencia y no una restricción, y el conjunto de evaluación.
-
 Diseño
 ------
 La única variable que cambia entre estrategias es **dónde se proponen las
@@ -29,6 +8,10 @@ encabezados, dobles grados, planes de estudio y fusión de residuos--- lo aporta
 el fragmentador real: el guion sustituye ``chunker._chunks_de_unidad`` y deja
 que ``trocear_dataset`` haga el resto. Sin eso, cualquier diferencia medida
 podría venir de otra parte del proceso.
+
+**Las tres pasan por la misma fusión de residuos** (:data:`MINIMO`), que es lo
+que hace cierta esa frase: si una estrategia se la saltara, competiría con otro
+pipeline y las diferencias medidas no serían solo de dónde corta.
 
 - ``estructural``: la del ADR-0001. Corta por párrafos y, si hace falta, por
   frases. Su parámetro propio es el tamaño objetivo, como fracción del máximo.
@@ -39,25 +22,33 @@ podría venir de otra parte del proceso.
   es el solape. Se mide también con solape **cero**, porque un solape duplica
   contenido y le regala oportunidades de ser recuperado.
 
-Métricas
---------
-La métrica principal es la **exhaustividad por unidad**: el conjunto de
-evaluación anota unidades semánticas, no fragmentos. Aun así, tampoco es
-inmune al troceo ---una unidad partida en más fragmentos ocupa más huecos del
-top-K---, de modo que el informe recoge el número de fragmentos junto a cada
-resultado para que la comparación no se lea sin ese dato delante.
+Qué NO mide
+-----------
+Conviene tenerlo delante al leer el informe, porque son cosas que la tabla
+podría sugerir y no sostiene:
 
-La exhaustividad **por fragmento** se recoge junto a su techo, porque al
-cambiar el troceo cambian el denominador de esa métrica y su máximo
-alcanzable.
+- **No mide el coste de construir la fragmentación.** El campo
+  ``segundos_evaluacion`` cronometra la evaluación y la tokenización, no el
+  troceo ni las incrustaciones que la estrategia semántica necesita para
+  decidir sus cortes. Esa estrategia es bastante más cara de construir que las
+  otras dos, y ese coste no aparece en ninguna columna.
+- **No mide la calidad del fragmento**, solo si se recupera. El ADR-0001 elige
+  la estructural sobre la de longitud por un argumento de calidad que esta
+  rejilla no puede sostener, y allí queda declarado.
+- **El eje de la rejilla son caracteres y el límite del modelo son tokens.**
+  La correspondencia depende del idioma y del texto, así que 1.500 caracteres
+  no son un número fijo de tokens. Por eso el truncado se cuenta con el
+  analizador léxico del modelo en vez de estimarse.
 
 Uso
 ---
 Requiere ``pip install -e ".[index]"`` y red la primera vez. Tarda del orden de
-una hora: son 45 configuraciones y cada una reindexa la colección entera. Desde
-la raíz del repositorio::
+una hora: son 45 configuraciones y cada una reindexa la colección entera.
+Ejecutar desde la raíz del repositorio y **con el entorno virtual activado**
+---el ``py`` del sistema no tiene las dependencias---::
 
-    py -u scripts/experimento_fragmentacion.py
+    source .venv/Scripts/activate
+    python -u scripts/experimento_fragmentacion.py
 
 Reescribe ``docs/experimentos/it16-fragmentacion.md``.
 """
@@ -111,10 +102,14 @@ KS: Final[tuple[int, ...]] = (1, 3, 5, 10, 15)
 #: tres estrategias: es lo que hace que compitan en igualdad.
 #:
 #: El extremo superior está elegido a propósito por encima de lo que el modelo
-#: puede leer. Con ventana de 510 *tokens*, 1.500 caracteres de español rondan
-#: los 469 y caben; 1.800 no. Esa configuración debería degradarse por truncado
-#: silencioso, y el informe cuenta los fragmentos truncados de cada una para
-#: comprobar si ocurre en vez de darlo por supuesto.
+#: puede leer. La ventana de `e5-small` son **512 tokens contando los dos
+#: especiales** que añade el analizador léxico, así que el contenido dispone de
+#: 510; 1.500 caracteres de español rondan los 469 y caben, 1.800 no. Esa
+#: configuración debería degradarse por truncado silencioso, y el informe
+#: cuenta los fragmentos truncados de cada una para comprobar si ocurre en vez
+#: de darlo por supuesto. El recuento compara contra los 512 porque es el
+#: límite que aplica ``encode``, y lo que cuenta el analizador incluye ya los
+#: especiales.
 MAXIMOS: Final[tuple[int, ...]] = (600, 900, 1200, 1500, 1800)
 
 #: Tamaño objetivo de la estrategia estructural, como fracción del máximo.
@@ -136,6 +131,12 @@ MINIMO: Final[int] = 200
 
 #: Incrustaciones de las piezas, cacheadas por texto. La misma pieza reaparece
 #: en casi todas las configuraciones del barrido.
+#:
+#: La clave es solo el texto, lo que da por supuesto que **el modelo y el
+#: prefijo no cambian dentro de una ejecución**. Es cierto hoy: el guion carga
+#: un modelo y usa siempre el prefijo de documento. Si algún día se barriera
+#: también el modelo, la clave tendría que incluirlo o la caché devolvería
+#: vectores de otro modelo sin que nada fallara.
 _CACHE: dict[str, np.ndarray] = {}
 
 Incrustador = Callable[[list[str]], list[list[float]]]
@@ -155,7 +156,10 @@ def _incrustar_piezas(piezas: list[str], incrustar: Incrustador) -> np.ndarray:
     faltan = [p for p in piezas if p not in _CACHE]
     if faltan:
         vectores = np.asarray(incrustar(faltan), dtype=np.float32)
-        for texto, vector in zip(faltan, vectores):
+        # strict=True: si el incrustador devolviera menos vectores que textos,
+        # un zip normal truncaría en silencio y las piezas sobrantes se
+        # quedarían fuera de la caché sin que nada fallara.
+        for texto, vector in zip(faltan, vectores, strict=True):
             _CACHE[texto] = vector
     return np.stack([_CACHE[p] for p in piezas])
 
@@ -208,6 +212,20 @@ def _construir_chunks(
 def hacer_semantico(umbral: float, incrustar: Incrustador) -> Trozador:
     """Sustituto de ``_chunks_de_unidad`` que corta por salto semántico.
 
+    Dos precisiones sobre qué es exactamente esta estrategia, porque el nombre
+    sugiere algo más ambicioso de lo que hace:
+
+    - **La distancia se mide entre las piezas intermedias** que produce
+      :func:`_dividir_en_piezas` (párrafos, y frases cuando un párrafo no
+      cabe), no entre los fragmentos finales. Primero se parte en piezas, luego
+      se miden los saltos entre piezas consecutivas, después se agrupan y por
+      último se fusionan los residuos. La decisión de corte, por tanto, se toma
+      sobre las piezas y no sobre lo que acaba indexándose.
+    - **El umbral es global**, uno por cada tamaño máximo, y sale del percentil
+      de la distribución de saltos de todo el corpus. No es adaptativo por
+      titulación ni por asignatura. Lo que la rejilla compara es esa política
+      concreta, no «el corte semántico» en abstracto.
+
     Args:
         umbral: Distancia coseno a partir de la cual se abre un fragmento.
         incrustar: Función de incrustación del lado documento.
@@ -258,6 +276,12 @@ def hacer_fijo(ratio_solape: float) -> Trozador:
     respetando la unidad, de modo que la comparación no le atribuya además el
     defecto de mezclar asignaturas, que el ADR-0001 documenta aparte.
 
+    **Sí pasa por la fusión de residuos**, igual que las otras dos: la ventana
+    fija deja casi siempre una cola corta al final de cada unidad, y no
+    fusionarla sería medir esta estrategia con un pipeline distinto del de sus
+    competidoras. Lo que se compara es dónde se ponen las fronteras, no quién
+    limpia sus residuos.
+
     Args:
         ratio_solape: Solape como fracción de la ventana.
 
@@ -272,7 +296,7 @@ def hacer_fijo(ratio_solape: float) -> Trozador:
         origen: str,
         tamanos: tuple[int, int, int],
     ) -> list[dict[str, Any]]:
-        _, tam_maximo, _ = tamanos
+        _, tam_maximo, tam_minimo = tamanos
         ventana = max(tam_maximo - len(encabezado) - 1, 1)
         paso = max(ventana - int(ventana * ratio_solape), 1)
         cuerpos = [
@@ -280,6 +304,8 @@ def hacer_fijo(ratio_solape: float) -> Trozador:
             for inicio in range(0, max(len(texto), 1), paso)
         ]
         cuerpos = [c for c in cuerpos if c]
+        if cuerpos:
+            cuerpos = _fusionar_pequenos(cuerpos, min(tam_minimo, ventana), ventana)
         return _construir_chunks(encabezado, cuerpos or [texto], base, origen)
 
     return _fijo
@@ -384,10 +410,15 @@ def _evaluar(
     tokens = tokenizar([c["texto"] for c in chunks])
     return {
         "fragmentos": len(chunks),
-        "mediana": int(np.median(largos)),
-        "maximo_real": max(largos),
+        "mediana": int(np.median(largos)) if largos else 0,
+        "maximo_real": max(largos, default=0),
         "truncados": sum(1 for t in tokens if t > ventana),
-        "segundos": time.perf_counter() - arranque,
+        # El nombre lleva «evaluacion» a propósito: NO es el coste de la
+        # estrategia. Deja fuera el troceo y, en la semántica, las
+        # incrustaciones que necesita para decidir dónde cortar, que son lo más
+        # caro de las tres. Llamarlo «segundos» invitaría a leer la columna
+        # como si comparase el coste de las estrategias, y no lo hace.
+        "segundos_evaluacion": time.perf_counter() - arranque,
         **{f"ru@{k}": agregados[f"recall_unidad@{k}"] for k in KS},
         **{f"r@{k}": agregados[f"recall@{k}"] for k in KS},
         **{f"techo@{k}": techo_por_fragmento(chunks, preguntas, k) for k in KS},
@@ -558,6 +589,24 @@ def _escribir_informe(
         "que `encode` recorta **en silencio**, sin avisar ni fallar. Es la "
         "comprobación directa de por qué el máximo de fragmento no puede "
         "subirse sin mirar.",
+        "",
+        "## Qué NO dice esta tabla",
+        "",
+        "- **No compara el coste de las estrategias.** Lo que se cronometra es "
+        "la evaluación, no el troceo: construir la fragmentación semántica "
+        "exige incrustar todas las piezas del corpus y es mucho más caro que "
+        "las otras dos, y ese coste no aparece en ninguna columna.",
+        "- **No mide la calidad del fragmento**, solo si se recupera. Un "
+        "fragmento cortado a mitad de frase puede recuperarse igual de bien y "
+        "servir peor como contexto para el modelo que redacta.",
+        "- **El eje son caracteres; el límite del modelo son tokens.** La "
+        "correspondencia depende del texto, así que las columnas de máximo no "
+        "son una ventana fija en tokens. Por eso el truncado se cuenta con el "
+        "analizador léxico del modelo y no se estima.",
+        "- **El orden de la tabla no es neutral:** prioriza RU@1 y desempata "
+        "por MRR. Se elige así porque es donde las configuraciones se "
+        "distinguen, pero elegir una configuración por salir primera exige "
+        "justificar que RU@1 es la prioridad correcta para el sistema final.",
         "",
     ]
     RUTA_SALIDA.parent.mkdir(parents=True, exist_ok=True)

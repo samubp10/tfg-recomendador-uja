@@ -36,6 +36,11 @@ from pathlib import Path
 #: algo distinto de lo que cree medir, y nadie se entera porque dice «OK».
 from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 
+#: Por el mismo motivo que los umbrales de arriba: los cuatro verificadores
+#: comprueban invariantes y los cuatro tienen que hacerlo igual. Una copia por
+#: guion es una copia que puede quedarse atrás sin que nadie lo note.
+from tfg_uja.invariantes import InvarianteRoto, exigir  # noqa: F401
+
 
 def _clave_item(item: dict) -> tuple:
     """Identifica la unidad de un item del dataset (grado y código singulares).
@@ -192,7 +197,7 @@ def main(argv: list[str] | None = None) -> int:
     # El item de procedencia (IT-90) encabeza el fichero pero no es contenido:
     # se separa por tipo, nunca por posición.
     chunks = [i for i in items if i.get("tipo") == "chunk"]
-    procedencia = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    procedencia: dict = next((i for i in items if i.get("tipo") == "procedencia"), {})
     dataset = json.loads(ruta_dataset.read_text(encoding="utf-8"))
     asignaturas = [d for d in dataset if d["tipo"] == "asignatura"]
     guias = [d for d in dataset if d["tipo"] == "guia"]
@@ -201,18 +206,22 @@ def main(argv: list[str] | None = None) -> int:
     _imprimir_procedencia(procedencia, len(guias))
 
     # --- Invariantes de forma ---
-    assert chunks, "no hay chunks"
-    assert all(c["texto"].strip() for c in chunks), "hay chunks vacíos"
-    assert all(
-        len(c["texto"]) <= TAMANO_MAXIMO for c in chunks
-    ), "hay chunks por encima del máximo (encabezado incluido)"
-    assert all(
-        isinstance(c["grados"], list)
-        and isinstance(c["codigos"], list)
-        and len(c["grados"]) == len(c["codigos"])
-        and c["grados"]
-        for c in chunks
-    ), "grados/codigos deben ser listas paralelas no vacías"
+    exigir(chunks, "no hay chunks")
+    exigir(all(c["texto"].strip() for c in chunks), "hay chunks vacíos")
+    exigir(
+        all(len(c["texto"]) <= TAMANO_MAXIMO for c in chunks),
+        "hay chunks por encima del máximo (encabezado incluido)",
+    )
+    exigir(
+        all(
+            isinstance(c["grados"], list)
+            and isinstance(c["codigos"], list)
+            and len(c["grados"]) == len(c["codigos"])
+            and c["grados"]
+            for c in chunks
+        ),
+        "grados/codigos deben ser listas paralelas no vacías",
+    )
 
     # --- El encabezado de cada chunk es el de SU unidad (IT-91) ---
     # El encabezado va dentro de `texto`, que es el único campo que se
@@ -236,10 +245,13 @@ def main(argv: list[str] | None = None) -> int:
         for c in chunks
         if c["origen"] == "plan_de_estudios" and not c["texto"].startswith(c["nombre"])
     ]
-    assert not descuadres, (
-        f"{len(descuadres)} chunks con el encabezado de otra unidad "
-        f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
-        f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
+    exigir(
+        not descuadres,
+        lambda: (
+            f"{len(descuadres)} chunks con el encabezado de otra unidad "
+            f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
+            f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
+        ),
     )
 
     # IT-100: el listado debe decir cuántas asignaturas contiene, y esa cifra
@@ -251,7 +263,11 @@ def main(argv: list[str] | None = None) -> int:
         if c["chunk_index"] != 0:
             continue
         declarado = re.search(r"En total son (\d+):", c["texto"])
-        assert declarado, f"el plan {c['nombre']!r} no declara cuántas son"
+        # `if ... raise` explícito en vez de `exigir`: aquí hace falta que el
+        # verificador de tipos sepa que a partir de esta línea `declarado` no
+        # es None. `assert` lo estrechaba solo, una llamada a función no.
+        if declarado is None:
+            raise InvarianteRoto(f"el plan {c['nombre']!r} no declara cuántas son")
         cuerpo = "\n".join(
             x["texto"].split("\n", 1)[1]
             for x in sorted(
@@ -260,9 +276,12 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         listadas = len([t for t in cuerpo.split("\n") if t.strip()])
-        assert listadas == int(declarado.group(1)), (
-            f"{c['nombre']!r} dice tener {declarado.group(1)} asignaturas "
-            f"pero el listado trae {listadas}"
+        exigir(
+            listadas == int(declarado.group(1)),
+            (
+                f"{c['nombre']!r} dice tener {declarado.group(1)} asignaturas "
+                f"pero el listado trae {listadas}"
+            ),
         )
 
     # --- Numeración consistente dentro de cada unidad ---
@@ -274,16 +293,20 @@ def main(argv: list[str] | None = None) -> int:
     for unidad, lista in por_unidad.items():
         lista.sort(key=lambda c: c["chunk_index"])
         indices = [c["chunk_index"] for c in lista]
-        assert indices == list(range(len(lista))), f"índices rotos en {unidad}"
-        assert all(
-            c["total_chunks"] == len(lista) for c in lista
-        ), f"total_chunks inconsistente en {unidad}"
+        exigir(indices == list(range(len(lista))), f"índices rotos en {unidad}")
+        exigir(
+            all(c["total_chunks"] == len(lista) for c in lista),
+            f"total_chunks inconsistente en {unidad}",
+        )
         evitables = cortos_evitables(lista)
-        assert not evitables, (
-            f"{len(evitables)} chunk(s) por debajo del mínimo en {unidad} que "
-            f"sí se podían fusionar (el más corto, {min(evitables)} caracteres). "
-            f"`_fusionar_pequenos` los tenía que haber unido con su vecino: si "
-            f"aparecen aquí es que la fusión ha dejado de funcionar."
+        exigir(
+            not evitables,
+            lambda: (
+                f"{len(evitables)} chunk(s) por debajo del mínimo en {unidad} que "
+                f"sí se podían fusionar (el más corto, {min(evitables)} caracteres). "
+                f"`_fusionar_pequenos` los tenía que haber unido con su vecino: si "
+                f"aparecen aquí es que la fusión ha dejado de funcionar."
+            ),
         )
         cortos += sum(
             1 for c in lista if len(lista) > 1 and len(c["texto"]) < TAMANO_MINIMO
@@ -308,12 +331,16 @@ def main(argv: list[str] | None = None) -> int:
     faltan = con_guia - unidades_guia
     sobran = unidades_guia - con_guia
     ajenos = {par for par in sobran if par[0] not in dobles}
-    assert (
-        not faltan
-    ), f"descuadre guía<->chunk: faltan {len(faltan)}: {sorted(faltan)[:5]}"
-    assert not ajenos, (
-        f"{len(ajenos)} pares de fragmento de guía sin item `guia` y sin ser de "
-        f"un doble grado: {sorted(ajenos)[:5]}"
+    exigir(
+        (not faltan),
+        f"descuadre guía<->chunk: faltan {len(faltan)}: {sorted(faltan)[:5]}",
+    )
+    exigir(
+        not ajenos,
+        (
+            f"{len(ajenos)} pares de fragmento de guía sin item `guia` y sin ser de "
+            f"un doble grado: {sorted(ajenos)[:5]}"
+        ),
     )
 
     informativos = set()
@@ -331,17 +358,20 @@ def main(argv: list[str] | None = None) -> int:
     todas = {_clave_item(a) for a in asignaturas}
     representadas = unidades_guia | informativos
     perdidas = todas - representadas
-    assert not perdidas, (
-        f"{len(perdidas)} asignaturas del dataset no aparecen en ningún "
-        f"fragmento (p. ej. {sorted(perdidas)[0]}): ni con guía ni como "
-        f"asignatura sin guía. Se han perdido del corpus (IT-94)."
+    exigir(
+        not perdidas,
+        lambda: (
+            f"{len(perdidas)} asignaturas del dataset no aparecen en ningún "
+            f"fragmento (p. ej. {sorted(perdidas)[0]}): ni con guía ni como "
+            f"asignatura sin guía. Se han perdido del corpus (IT-94)."
+        ),
     )
 
     grados_salidas = {s["grado"] for s in salidas}
     grados_chunk_salidas = {
         g for c in chunks if c["origen"] == "salidas" for g in c["grados"]
     }
-    assert grados_salidas == grados_chunk_salidas, "salidas sin trocear"
+    exigir(grados_salidas == grados_chunk_salidas, "salidas sin trocear")
 
     # --- Estadísticas ---
     origenes = Counter(c["origen"] for c in chunks)
@@ -362,13 +392,35 @@ def main(argv: list[str] | None = None) -> int:
     # casos son la contraria: el PDF se lee entero y sus secciones de
     # contenido están vacías en el origen (DQA-0004). Tercer y último sitio
     # donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
-    no_extraidas = sum(1 for a in asignaturas if a["tiene_guia"]) - len(guias)
-    if no_extraidas:
+    #
+    # Se calcula por correspondencia de claves y no restando dos totales. La
+    # resta da la cifra correcta solo mientras no haya nada más descuadrado: el
+    # día que aparezca a la vez una guía nueva sin asignatura que la declare,
+    # los dos errores se cancelan y el aviso dice «0». Además, restar no puede
+    # decir CUÁLES son, y son justamente los casos del DQA-0004.
+    declaran_guia = {_clave_item(a) for a in asignaturas if a["tiene_guia"]}
+    guias_reales = {_clave_item(g) for g in guias}
+    sin_contenido = declaran_guia - guias_reales
+    huerfanas = guias_reales - declaran_guia
+    if sin_contenido:
         print(
-            f"  AVISO: {no_extraidas} asignaturas enlazan una guía que no "
+            f"  AVISO: {len(sin_contenido)} asignaturas enlazan una guía que no "
             "aporta ni resumen ni temario; aparecen solo con sus datos "
             "básicos. `check_guias_pdf.py` dice de cada una por qué."
         )
+        for clave in sorted(sin_contenido):
+            print(f"    - {clave[0]} / {clave[1]}")
+    # Una guía sin asignatura que la declare es otra cosa, y hasta ahora la
+    # resta la habría escondido: significa que el dataset trae una guía de una
+    # asignatura que no existe o que dice no tenerla.
+    exigir(
+        not huerfanas,
+        lambda: (
+            f"{len(huerfanas)} guías sin asignatura que las declare "
+            f"(p. ej. {sorted(huerfanas)[0]}). O sobra la guía o la "
+            f"asignatura tiene `tiene_guia` a False."
+        ),
+    )
     print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
     tamanos = sorted(len(c["texto"]) for c in chunks)
