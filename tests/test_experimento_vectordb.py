@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib.util
 import sys
 from pathlib import Path
@@ -498,3 +499,47 @@ def test_escribir_resultados_crea_el_esqueleto_si_no_existe(
     assert "# ADR-0004: Base de datos vectorial" in resultado
     assert "resultados" in resultado
     assert "IT-32" in resultado
+
+
+# --- Que estas pruebas se puedan recoger en CI (IT-31) ---------------------
+
+
+def test_el_experimento_no_exige_las_dependencias_opcionales_al_importarse() -> None:
+    """Importar el guion no puede requerir el grupo `[comparativa-vectordb]`.
+
+    Regresión de un fallo real de la integración continua: `psutil` estaba
+    importado en la cabecera del módulo, y como CI instala solo `[dev]`, la
+    recogida de este fichero moría con `ModuleNotFoundError` y las 32 pruebas
+    no llegaban a ejecutarse. Ninguna de ellas mide memoria ni habla con una
+    base de datos: comprueban la aritmética que hace válida la comparación, y
+    eso no necesita nada instalado.
+
+    Las dependencias pesadas se importan dentro de la función que las usa.
+    Se analiza el árbol sintáctico porque lo que importa es dónde está el
+    `import`, no si el módulo está instalado en la máquina que ejecuta esto.
+    """
+    ruta = RAIZ / "scripts" / "experimento_vectordb.py"
+    arbol = ast.parse(ruta.read_text(encoding="utf-8"))
+
+    de_cabecera: set[str] = set()
+    for nodo in arbol.body:
+        if isinstance(nodo, ast.Import):
+            de_cabecera |= {a.name.split(".")[0] for a in nodo.names}
+        elif isinstance(nodo, ast.ImportFrom) and nodo.module:
+            de_cabecera.add(nodo.module.split(".")[0])
+
+    opcionales = {
+        "psutil",
+        "chromadb",
+        "lancedb",
+        "qdrant_client",
+        "sentence_transformers",
+    }
+    intrusos = sorted(de_cabecera & opcionales)
+
+    assert not intrusos, (
+        f"{intrusos} se importan en la cabecera de experimento_vectordb.py. "
+        f"Están en grupos opcionales que CI no instala, así que este fichero "
+        f"de pruebas dejaría de poder recogerse. Muévelos dentro de la función "
+        f"que los usa."
+    )
