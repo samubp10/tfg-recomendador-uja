@@ -18,6 +18,7 @@
 % largas entre páginas, propio de columnas X justificadas en tablas paginadas.
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
+\usepackage{amsmath}    % Comandos matemáticos adicionales como \text{}
 \usepackage{hyperref}
 \usepackage{xcolor}
 % ulem con [normalem]: sin esa opcion, ulem redefine \emph como subrayado en
@@ -69,6 +70,10 @@
 \newcommand{\gl}[1]{\textit{#1}\glnota{#1}}
 % \glr{término mostrado}{clave}: cuando el texto mostrado varía (plural, género)
 \newcommand{\glr}[2]{\textit{#1}\glnota{#2}}
+% \sig{SIGLA}: igual que \gl pero SIN cursiva, porque los acronimos no se
+% escriben en cursiva. Comparte el guardado de \glnota, asi que la nota al pie
+% que remite a la lista de abreviaturas sale una sola vez en todo el documento.
+\newcommand{\sig}[1]{#1\glnota{#1}}
 \setlength{\headheight}{14.5pt}
 
 
