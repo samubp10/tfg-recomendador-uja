@@ -772,14 +772,23 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 \subsection{Extracción de las guías docentes}
 
 La extracción de las guías docentes es la etapa donde se concentran las anomalías en el contenido aportado por el servidor.
-El primer obstáculo es de codificación: cada guía declara en su etiqueta \texttt{<meta>} estar codificada en UTF-8,
+\sout{El primer obstáculo es de codificación: cada guía declara en su etiqueta \texttt{<meta>} estar codificada en UTF-8,
 pero el servidor de la universidad la sirve realmente en ISO-8859-1. Esto llevaba a múltiples fallos, dado que corrompía las eñes y tildes del idioma español.
 Scrapy resuelve el problema sin código adicional porque prioriza la cabecera HTTP \texttt{Content-Type} sobre esa declaración,
-tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.
+tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.}
 
-El contenido de interés (el resumen y la descripción de contenidos) se localiza por el identificador
+\sout{El contenido de interés (el resumen y la descripción de contenidos) se localiza por el identificador
 de su sección dentro del HTML de la guía, y no por su posición en el documento: la posición varía entre titulaciones,
-pero el identificador es estable.
+pero el identificador es estable.}
+
+\textcolor{borrador2}{En el curso 2026-27 la Escuela sirve las 288 guías docentes del catálogo
+  en PDF, sin excepción. La lectura del HTML de una guía, que era el único camino en cursos
+  anteriores, ya no la recorre ninguna, de modo que el resto de este apartado describe la
+  metodología sobre el PDF: es la que produce la colección que se evalúa. La trampa de
+  codificación ---un documento que se declara en UTF-8 y se sirve en ISO-8859-1--- sigue
+  siendo pertinente para las páginas HTML que sí se rastrean, el catálogo de titulaciones y
+  las tablas de asignaturas, y se justifica al elegir la herramienta en la
+  sección~\ref{sec:eleccion_herramientas}.}
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
   contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
@@ -913,8 +922,19 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias. En el caso de los dobles grados, la lista de salidas es la concatenación de
-los dos grados por separado.
+uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias. \sout{En el caso de los dobles grados, la lista de salidas es la concatenación de
+los dos grados por separado.}
+
+\textcolor{borrador2}{De las cinco titulaciones dobles, solo el Doble Grado en Ingeniería
+  Eléctrica y Mecánica publica un texto propio, y ese texto no es la concatenación de los de
+  sus dos grados base. La coincidencia se da en la enumeración de funciones ---doce de sus
+  catorce líneas aparecen literalmente en uno de los dos grados---, pero el bloque se abre
+  con dos párrafos que no figuran en ninguno de ellos: el primero enuncia a qué profesiones
+  reguladas da acceso la doble titulación, y el segundo describe su ámbito laboral hablando
+  de los titulados en ambos grados a la vez. Esa es la razón por la que la página se rastrea
+  en lugar de sintetizarse uniendo las de los grados base: unirlas dejaría fuera lo único que
+  la doble titulación dice de sí misma, y escribirlo por nuestra cuenta sería inventar
+  contenido que la fuente sí publica.}
 
 \textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
   esos bloques sobre un caso real. Es el más simple de los cuatro tipos de ítem de la
@@ -962,28 +982,11 @@ los dos grados por separado.
 \end{figure}
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Esto hay que resolverlo antes de cerrar el apartado, y la figura ya lo
-    señala:} su recuadro dice que hay ocho bloques porque uno de los cinco dobles grados
-  \emph{sí} publica salidas propias, mientras que el párrafo dice que las de un doble grado
-  son la concatenación de las de sus dos grados base. Si eso fuera cierto no habría ningún
-  bloque propio y serían siete. Comprobado sobre \texttt{data/grados.json}: los ocho son los
-  siete grados simples más el Doble Grado en Ingeniería Eléctrica y Mecánica. Cuando decidas
-  cómo redactarlo, ajusta también el recuadro amarillo de la figura, que es donde va la cifra.
-  \item \textbf{La evidencia del proyecto dice que la concatenación NO es exacta}, y es justo la afirmación que IT-101 corrigió
-  con la página real delante. La lista de ámbitos profesionales sí es la unión de las de los
-  dos grados, pero el texto se abre con un párrafo que enuncia a qué profesiones reguladas
-  da acceso la doble titulación, y ese párrafo \textbf{no aparece en ninguno de los dos
-    grados base}. Por eso la página se rastrea en lugar de sintetizarse: reconstruir esa
-  frase uniendo los dos textos habría obligado a escribirla, es decir, a inventar contenido
-  que la fuente sí publica.
-  \item Y por eso los bloques son \textbf{ocho y no doce}: de las cinco titulaciones dobles
-  solo una publica ese texto. Tal y como está redactado ahora, el <<8>> del párrafo se queda
-  sin explicación, porque si las salidas de un doble grado fueran una concatenación no
-  harían falta bloques propios para ellas.
-  \item Está registrado en el DQA-0005 y en el cuerpo de las confirmaciones de IT-101, así
-  que es comprobable: si alguien del tribunal abre la página de un doble grado, ve el
-  párrafo. \textbf{Decide tú cómo redactarlo}, pero la versión corta que hay ahora afirma
-  algo que el propio trabajo demostró falso.
+  \item El párrafo en turquesa está comprobado sobre \texttt{data/grados.json} (rastreo del
+  05/08/2026): de las catorce líneas del bloque del Doble Grado en Ingeniería Eléctrica y
+  Mecánica, doce aparecen literalmente en Eléctrica o en Mecánica y dos no están en ninguno
+  de los dos. Queda registrado en el DQA-0005, así que es comprobable: si alguien del
+  tribunal abre la página de la doble titulación, ve esos dos párrafos.
   \item Se perdió también, al reescribir, el hallazgo de que la extracción recogía solo los
   elementos de la lista y descartaba los párrafos del cuerpo, con lo que ese texto se venía
   perdiendo en las siete titulaciones. Es el quinto caso de la serie <<un dato desaparece
