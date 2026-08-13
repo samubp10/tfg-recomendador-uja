@@ -53,7 +53,7 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \section{Estado del arte}
 \label{secc:estado_arte}
 
-Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la recuperación aumentada por generación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
+Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la generación aumentada por recuperación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
 
 \begin{borrador}                        
   \item \textbf{La frase puente al Capítulo~\ref{cap:materialesymetodos}:} «las decisiones
@@ -96,14 +96,14 @@ Esto podría conllevar una inaceptable mala orientación a futuros estudiantes u
   \label{fig:alucinacion_deepseek}
 \end{figure}
 
-Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de recuperación aumentada por generación (RAG) que se describe en el apartado siguiente: no elimina por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales.
+Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de generación aumentada por recuperación (RAG) que se describe en el apartado siguiente: no elimina por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales.
 
-\subsection{Recuperación aumentada por generación (RAG)}
+\subsection[Generación aumentada por recuperación (RAG)]{Generación aumentada por recuperación (RAG)}
 \label{subsec:rag_concepto}
 
 Los modelos de lenguaje almacenan en sus parámetros parte del conocimiento adquirido durante el entrenamiento. Una vez finalizado este proceso, dicho conocimiento permanece condicionado por los datos utilizados y por la fecha en la que fueron recopilados. Por tanto, el modelo no incorpora automáticamente los cambios que se produzcan con posterioridad (si estos cambiaron) y sus respuestas tampoco incluyen necesariamente una indicación verificable del origen y fecha de la información empleada. Estas limitaciones resultan especialmente relevantes en dominios sujetos a actualizaciones periódicas, como la oferta académica de la universidad, en este caso, la UJA.
 
-La recuperación aumentada por generación fue propuesta por Lewis et al.~\cite{lewis2020rag} como una arquitectura que combina la memoria paramétrica de un modelo de lenguaje con una memoria externa formada por una colección de documentos. Ante una consulta, el sistema recupera primero los textos que considera más relevantes y los proporciona al modelo como contexto para generar la respuesta. De esta forma, el conocimiento almacenado en los parámetros no constituye la única fuente disponible durante la generación.
+La generación aumentada por recuperación fue propuesta por Lewis et al.~\cite{lewis2020rag} como una arquitectura que combina la memoria paramétrica de un modelo de lenguaje con una memoria externa formada por una colección de documentos. Ante una consulta, el sistema recupera primero los textos que considera más relevantes y los proporciona al modelo como contexto para generar la respuesta. De esta forma, el conocimiento almacenado en los parámetros no constituye la única fuente disponible durante la generación.
 
 Este enfoque presenta dos ventajas principales. En primer lugar, permite actualizar la información disponible modificando la colección documental, sin necesidad de volver a entrenar el modelo completo. En segundo lugar, posibilita relacionar las respuestas con los documentos recuperados, lo que mejora su trazabilidad y facilita comprobar si están respaldadas por una fuente. Esta capacidad resulta útil para reducir el problema de las alucinaciones descrito más arriba, aunque no lo elimina por completo: el sistema todavía puede recuperar información poco pertinente, interpretar incorrectamente el contexto o generar afirmaciones que no estén contenidas en él.
 
@@ -200,7 +200,7 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 
 \subsection{Métricas de comprobación}
 
-\textcolor{borrador2}{Un sistema de recuperación aumentada por generación puede fallar en
+\textcolor{borrador2}{Un sistema de generación aumentada por recuperación puede fallar en
   dos sitios distintos, y por eso no se mide con una sola cifra. Puede fallar al buscar, si
   los fragmentos que recupera no contienen la respuesta, y puede fallar al redactar, si con
   los fragmentos correctos delante escribe algo que no se sigue de ellos. Una única
@@ -229,7 +229,7 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
   gradación, y descuenta el valor de cada acierto según lo abajo que aparezca.}
 
 \textcolor{borrador2}{La elección de $K$ no es un detalle de la medición. En un sistema de
-  recuperación aumentada por generación, $K$ es el número de fragmentos que se le entregan
+  generación aumentada por recuperación, $K$ es el número de fragmentos que se le entregan
   al modelo que redacta, así que medir con un $K$ distinto del que usa el sistema es medir
   un sistema distinto del que se va a desplegar.}
 
