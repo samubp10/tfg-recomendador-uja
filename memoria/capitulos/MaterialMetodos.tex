@@ -1435,3 +1435,93 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
   fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}, de modo que la
   base vectorial no se puede justificar por velocidad sin haberla medido.
 \end{borrador}
+
+\subsection[Selección de la base de datos vectorial]{\textcolor{borrador2}{Selección de la base de datos vectorial}}
+\label{secc:fase2_vectordb}
+
+\textcolor{borrador2}{Las cifras resultantes de esta comparación están en la
+  Sección~\ref{secc:resultados_vectordb} del Capítulo~\ref{cap:resultados}. Aquí se describe el
+  diseño experimental: qué se compara, con qué instrumento, por qué esas tres candidatas y con
+  qué umbrales se juzgan.}
+
+\subsubsection[Diseño de la comparación]{\textcolor{borrador2}{Diseño de la comparación}}
+
+\textcolor{borrador2}{Se comparan tres bases de datos vectoriales sobre la colección completa y
+  las mismas 50 preguntas del conjunto de evaluación que se usaron para elegir el modelo de
+  incrustaciones. A las tres se añade una cuarta condición que no es candidata: la búsqueda
+  exacta por fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de
+  vectores. Sirve para dos cosas a la vez, ser la referencia con la que se comprueba si una
+  base pierde vecinos y ser la línea base de velocidad contra la que se mide si la base
+  vectorial aporta algo.}
+
+\textcolor{borrador2}{Lo que hace comparables a las cuatro condiciones es que reciben
+  \emph{los mismos vectores}, incrustados una sola vez antes de empezar y servidos después a
+  cada candidata en el mismo orden. Sin esa precaución se estarían comparando cuatro
+  incrustaciones y no cuatro bases de datos, y una diferencia de fidelidad podría venir del
+  modelo y no del índice. El procedimiento de medida descarta además las primeras consultas de
+  cada candidata, porque la primera paga la carga del índice en memoria y contaminaría la
+  mediana, y repite cada consulta varias veces para quedarse con la mediana y el percentil 90
+  en lugar de con un único cronometraje.}
+
+\subsubsection[Las candidatas y por qué esas]{\textcolor{borrador2}{Las candidatas y por qué esas}}
+
+\textcolor{borrador2}{Las tres candidatas tienen licencia permisiva y cubren tres formas
+  distintas de resolver el mismo problema, que es lo que hace que la comparación distinga algo:
+  una embebida en el propio proceso, otra embebida pero apoyada en un formato columnar sobre
+  disco, y otra como servidor independiente en un contenedor. Se descartan sin medir, y con su
+  motivo escrito, las que no cumplen alguna condición de entrada: una biblioteca de índices que
+  no es una base de datos y carece de filtrado por metadatos y de persistencia propia, una
+  todavía en estado alfa según sus propios autores, y dos pensadas para escala distribuida y
+  sobredimensionadas para un corpus de mil trescientos vectores.}
+
+\textcolor{borrador2}{Las tres parten de cero. Que una de ellas fuera la que ya tenía el índice
+  montado no cuenta como argumento a su favor: el pipeline de indexación se desacopló
+  precisamente para que cambiar de base cueste escribir un adaptador y nada más.}
+
+\subsubsection[Los umbrales, fijados antes de medir]{\textcolor{borrador2}{Los umbrales, fijados antes de medir}}
+
+\textcolor{borrador2}{La diferencia de método con la comparación de modelos de incrustaciones
+  está aquí: los ocho umbrales se escribieron y se cerraron \emph{antes} de la primera
+  ejecución, y no se han tocado después de ver las cifras. Es lo que corrige la amenaza
+  principal declarada en el ADR-0003, donde el experimento se ejecutó sin haberlos fijado y el
+  hecho de que el ganador arrasara no lo arreglaba.}
+
+\textcolor{borrador2}{Se agrupan en tres clases. Los \textbf{eliminatorios} son condiciones que
+  hay que cumplir: fidelidad exacta respecto a la búsqueda por fuerza bruta, filtrado por
+  metadatos sin ningún falso positivo, una cota superior de latencia y otra de memoria
+  residente. Los \textbf{comparativos} llevan banda de indiferencia, es decir, un margen por
+  debajo del cual dos candidatas se declaran equivalentes en lugar de ordenarlas por un ruido
+  de medición; y a ellos se suma la exigencia de que dos ejecuciones seguidas den las mismas
+  cifras de calidad. Y hay un \textbf{desempate} por simplicidad, que se resuelve en hechos
+  verificables ---si hace falta levantar un servicio aparte, si hay que declarar un esquema,
+  cuántos índices de apoyo hay que crear--- y no en impresiones sobre lo cómoda que resulta
+  cada una.}
+
+\textcolor{borrador2}{El octavo umbral no descarta una opción sino un argumento: si ninguna de
+  las tres le gana a la fuerza bruta por más de la banda de indiferencia, se declara que a esta
+  escala la base vectorial no se justifica por velocidad y la decisión se toma por los demás
+  criterios.}
+
+\subsubsection[Qué no puede responder este experimento]{\textcolor{borrador2}{Qué no puede responder este experimento}}
+
+\textcolor{borrador2}{No mide calidad de recuperación. Esa la fijan el modelo de incrustaciones
+  y la estrategia de troceado, y si la fidelidad es exacta no puede cambiar entre candidatas.
+  Tampoco dice nada sobre escalabilidad: mil trescientos vectores no predicen el comportamiento
+  con cien mil, y cualquier conclusión sobre crecimiento sería una extrapolación.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 2 (IT-31). Andamiaje: la prosa la escribes tú. Este apartado describe
+  el \emph{diseño}; las cifras van en el Capítulo~\ref{cap:resultados} y la decisión, en el
+  ADR-0004, que se cierra en IT-32.
+  \item \textbf{Los umbrales están descritos por su naturaleza, no por su número.} Es
+  deliberado: si escribes aquí <<500~ms>>, <<0,5~GB>> o <<50~ms>>, tienes dos sitios que
+  mantener sincronizados y una cifra que envejece en silencio. Si prefieres darlos explícitos,
+  cópialos de la tarjeta IT-31 y de la tabla del Capítulo~\ref{cap:resultados}, que son la
+  única fuente.
+  \item \textbf{Falta decir cuáles son las tres candidatas por su nombre.} No las he puesto
+  para que las escribas tú junto con la frase que las presenta; están en la tabla del
+  Capítulo~\ref{cap:resultados} y en la tarjeta.
+  \item \textbf{Una figura ayudaría aquí} y no la hay: el esquema de las cuatro condiciones
+  recibiendo el mismo juego de vectores. Es el argumento de validez del experimento y entra
+  por los ojos mucho mejor que en prosa. Decide tú si compensa el tiempo.
+\end{borrador}
