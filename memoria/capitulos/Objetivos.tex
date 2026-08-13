@@ -1,7 +1,7 @@
 \chapter{OBJETIVOS}
 \label{cap:objetivos}
 
-La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de generación aumentada por recuperación (RAG) sobre un modelo de lenguaje de código abierto (o pesos abiertos) ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
+La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de generación aumentada por recuperación (RAG) sobre un modelo de lenguaje de \sout{código abierto (o pesos abiertos)} \textcolor{borrador2}{pesos abiertos} ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
 
 \section{Objetivo general}
 
@@ -9,7 +9,7 @@ Diseñar, implementar y evaluar un sistema conversacional capaz de responder, a
 partir de información oficial y actualizada, preguntas de estudiantes
 preuniversitarios sobre las titulaciones de la Escuela Politécnica Superior de
 Jaén, empleando una arquitectura de generación aumentada por recuperación (RAG)
-sobre un modelo de lenguaje de código abierto ejecutado en local.
+sobre un modelo de lenguaje de \sout{código abierto} \textcolor{borrador2}{pesos abiertos} ejecutado en local.
 
 \section{Objetivos específicos}
 
@@ -26,7 +26,8 @@ sobre un modelo de lenguaje de código abierto ejecutado en local.
         incrustaciones (\textit{embeddings}) y la base de datos vectorial del
         sistema.
   \item \textbf{OE4.} Implementar el \textit{pipeline} RAG completo sobre un
-        modelo de lenguaje de código abierto desplegado en local.
+        modelo de lenguaje de \sout{código abierto} \textcolor{borrador2}{pesos abiertos}
+        desplegado en local.
   \item \textbf{OE5.} Evaluar el sistema con métricas objetivas de
         recuperación y de generación.
   \item \textbf{OE6.} Ofrecer el sistema a través de una aplicación web de
