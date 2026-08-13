@@ -383,10 +383,10 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
       % Fase 1
       % Actualizado el 30/07/2026: el modelo de incrustaciones dejo de ser una
       % caja generica cuando el ADR-0003 lo fijo, asi que la figura lo nombra.
-      % La base de datos sigue sin nombre a proposito: ChromaDB es todavia un
-      % valor de trabajo y su eleccion se decide en el ADR-0004 (IT-31).
+      % Actualizado el 13/08/2026: la base de datos deja de ser una caja generica
+      % por el mismo motivo que el modelo, ahora que el ADR-0004 la fija.
       \node[nodoDiag, right=3.4cm of web] (emb) {Modelo de\\\textit{embeddings}\\{\scriptsize multilingual-e5-small}};
-      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15, below=of emb] (bd) {Base de datos\\vectorial};
+      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15, below=of emb] (bd) {Base de datos\\vectorial\\{\scriptsize LanceDB}};
       % Fase 2
       \node[nodoDiag, right=3cm of emb] (preg) {Pregunta\\del usuario};
       \node[nodoDiag, below=of preg] (rec) {Recuperación\\de fragmentos};
@@ -1427,13 +1427,13 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
   Esto último no es un detalle: el modelo nuevo y el anterior producen vectores de la misma
   dimensión, así que consultar un índice con el modelo equivocado \textbf{no da ningún
     error}, solo respuestas peores.
-  \item Qué queda pendiente: la elección de la base vectorial (ADR-0004). El material está
-  preparado y ---a diferencia de la comparación de modelos--- \textbf{con los umbrales
-    escritos antes de ejecutar nada}, que es lo que corrige la amenaza principal del
-  ADR-0003. Conviene decirlo con esas palabras, porque demuestra que la lección se aplicó.
+  \item La elección de la base vectorial ya está cerrada (ADR-0004): es LanceDB, y su
+  justificación está en el Apartado~\ref{secc:eleccion_lancedb}. Lo que esta subsección
+  tiene que contar es la \emph{indexación}, no la elección; basta con remitir allí.
   \item Amenaza que hay que declarar aquí y no en otro sitio: con menos de mil quinientos
-  fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}, de modo que la
-  base vectorial no se puede justificar por velocidad sin haberla medido.
+  fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}. Ya no es una
+  sospecha ---está medida, y la fuerza bruta gana a las tres candidatas---, de modo que la
+  base vectorial se sostiene sobre los otros servicios que presta y no sobre la velocidad.
 \end{borrador}
 
 \subsection[Selección de la base de datos vectorial]{\textcolor{borrador2}{Selección de la base de datos vectorial}}
@@ -1509,18 +1509,68 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
   Tampoco dice nada sobre escalabilidad: mil trescientos vectores no predicen el comportamiento
   con cien mil, y cualquier conclusión sobre crecimiento sería una extrapolación.}
 
+\subsubsection[Elección final]{\textcolor{borrador2}{Elección final}}
+\label{secc:eleccion_lancedb}
+
+\textcolor{borrador2}{De las tres candidatas, una queda fuera por incumplir un umbral
+  eliminatorio. ChromaDB no alcanza la fidelidad exacta que exige el primer umbral: pierde uno
+  de los quinientos vecinos que se le piden, y no en una ejecución aislada sino en cuatro de
+  cada veinte reconstrucciones del índice. La pérdida es pequeña y podría objetarse que a
+  efectos prácticos no se nota; lo que la convierte en eliminatoria es que ese umbral se fijó
+  en el valor exacto \emph{antes} de medir, y con un motivo escrito entonces: a esta escala un
+  índice que pierde algo está cobrando un precio sin dar nada a cambio. Relajarlo después de
+  ver quién lo incumple sería construir la hipótesis a la medida del resultado, que es
+  justamente lo que este experimento se diseñó para evitar.}
+
+\textcolor{borrador2}{Entre las dos que quedan no decide el rendimiento, y conviene decirlo
+  así en vez de dejar que lo parezca. Qdrant responde algo más rápido que LanceDB en las dos
+  ejecuciones, pero la diferencia es de milisegundos y la banda de indiferencia se fijó ---
+  también antes de medir--- en un margen mucho mayor, precisamente para no ordenar dos
+  candidatas por un ruido de medición. Reivindicar ahora esa ventaja sería usar un criterio
+  que se había declarado inaplicable. Las dos cumplen además todos los umbrales eliminatorios
+  y las dos aplican el filtro antes de la búsqueda y no después.}
+
+\textcolor{borrador2}{Lo que decide, por tanto, es el desempate por simplicidad, y este trabajo
+  tiene que declarar lo que ese criterio es: un juicio de ingeniería apoyado en hechos
+  verificables, no una medición. El hecho que pesa es que Qdrant necesita un servicio aparte
+  en un contenedor y las otras dos se ejecutan dentro del propio proceso. No es una molestia de
+  grado sino un cambio de naturaleza: la aplicación web pasaría de arrancar sola a depender de
+  que alguien levante un contenedor, y el requisito de que el sistema pueda ejecutarse en el
+  ordenador de quien lo evalúe se volvería mucho más frágil. La memoria residente apunta en la
+  misma dirección ---LanceDB es la que menos ocupa de las tres--- y es un argumento de apoyo,
+  no el principal, porque las tres cumplen ese umbral con holgura y las cifras no se miden
+  igual en una biblioteca que en un contenedor.}
+
+\textcolor{borrador2}{Se adopta por tanto \textbf{LanceDB}. Y queda una conclusión que no se
+  puede omitir sin faltar a la verdad: ninguna de las tres candidatas le gana a la búsqueda
+  exacta por fuerza bruta, que responde entre siete y treinta y seis veces más rápido que
+  cualquiera de ellas. El octavo umbral estaba puesto exactamente para este caso, así que
+  \textbf{a esta escala la base de datos vectorial no se justifica por velocidad}. Se justifica
+  por lo que la fuerza bruta no da y habría que escribir a mano: persistencia en disco, filtrado
+  declarativo por metadatos, gestión de colecciones, y la posibilidad de crecer sin rehacer la
+  capa de recuperación el día que la colección deje de ser la de un centro. Este último
+  argumento se enuncia con cuidado: que el diseño admita ese crecimiento es una decisión
+  justificada; que el sistema escale a una colección mucho mayor es una afirmación que este
+  trabajo no ha medido.}
+
 \begin{borrador}
-  \item \textbf{Fase:} 2 (IT-31). Andamiaje: la prosa la escribes tú. Este apartado describe
-  el \emph{diseño}; las cifras van en el Capítulo~\ref{cap:resultados} y la decisión, en el
-  ADR-0004, que se cierra en IT-32.
-  \item \textbf{Los umbrales están descritos por su naturaleza, no por su número.} Es
+  \item \textbf{Fase: 2 (IT-31 el diseño, IT-32 la elección).} Andamiaje: la prosa la escribes
+  tú. Este apartado describe el \emph{diseño} y cierra con la elección; las cifras van en el
+  Capítulo~\ref{cap:resultados} y la decisión completa, con sus consecuencias y sus amenazas,
+  en el ADR-0004.
+  \item \textbf{El apartado de la elección sigue el mismo patrón que el de
+    \texttt{secc:eleccion\_e5small}}: descarte, desempate y adopción, cerrando con lo que el
+  resultado \emph{no} permite afirmar. Si allí cambias el orden o el tono, cámbialo también
+  aquí para que los dos se lean igual.
+  \item \textbf{Los umbrales están descritos por su naturaleza, no por su número}, tanto en el
+  diseño como en la elección (<<la banda de indiferencia>>, <<el primer umbral>>). Es
   deliberado: si escribes aquí <<500~ms>>, <<0,5~GB>> o <<50~ms>>, tienes dos sitios que
   mantener sincronizados y una cifra que envejece en silencio. Si prefieres darlos explícitos,
   cópialos de la tarjeta IT-31 y de la tabla del Capítulo~\ref{cap:resultados}, que son la
-  única fuente.
-  \item \textbf{Falta decir cuáles son las tres candidatas por su nombre.} No las he puesto
-  para que las escribas tú junto con la frase que las presenta; están en la tabla del
-  Capítulo~\ref{cap:resultados} y en la tarjeta.
+  única fuente, y hazlo en los dos sitios a la vez.
+  \item \textbf{Las tres candidatas se nombran en la elección, pero no en el diseño.} Las he
+  dejado sin nombre en los tres apartados anteriores para que seas tú quien escriba la frase
+  que las presenta; están en la tabla del Capítulo~\ref{cap:resultados} y en la tarjeta.
   \item \textbf{Una figura ayudaría aquí} y no la hay: el esquema de las cuatro condiciones
   recibiendo el mismo juego de vectores. Es el argumento de validez del experimento y entra
   por los ojos mucho mejor que en prosa. Decide tú si compensa el tiempo.

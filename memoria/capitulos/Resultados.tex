@@ -132,6 +132,12 @@ Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
 
 \input{tablas/TablaComparativaVectorDB.tex}
 
+\textcolor{borrador2}{Con estas cifras se adopta LanceDB, por las razones que desarrolla el
+  Apartado~\ref{secc:eleccion_lancedb}. Conviene retener de la tabla un resultado que va más
+  allá de cuál se elige: la búsqueda exacta por fuerza bruta es más rápida que las tres
+  candidatas, de modo que a esta escala la base de datos vectorial no se sostiene sobre la
+  velocidad sino sobre los demás servicios que presta.}
+
 \begin{borrador}
   \item \textbf{Fase:} 2 (IT-31, cerrada; la redacción es IT-32). Andamiaje: la prosa la
   escribes tú. Todas las cifras que siguen son reales y salen del bloque automático del
@@ -171,13 +177,12 @@ Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
   umbrales de indexación). De ChromaDB no se puede saber, porque no expone ese contador.
   \item[] Nada de esto dice cómo se comportarían con cien mil vectores. Cualquier afirmación
   sobre escalabilidad sería una extrapolación desde 1.334.
-  \item \textbf{Falta el apartado del diseño} en el Capítulo~\ref{cap:materialesymetodos}: qué
-  se compara, con qué instrumento, por qué esas tres candidatas y cuáles son los ocho umbrales.
-  El de incrustaciones tiene el suyo (\texttt{secc:fase1\_embeddings}) y el primer párrafo de
-  aquí debería remitir al equivalente en cuanto exista, igual que hace el
-  Apartado~\ref{secc:resultados_embeddings}.
-  \item \textbf{Y falta el apartado de la elección}, con la candidata adoptada y su porqué. No
-  lo escribo yo: es la decisión, y sale del ADR-0004 cuando lo cierres.
+  \item \textbf{El apartado del diseño y el de la elección ya existen} en el
+  Capítulo~\ref{cap:materialesymetodos} (Apartados~\ref{secc:fase2_vectordb}
+  y~\ref{secc:eleccion_lancedb}), y los párrafos de aquí remiten a ellos igual que hace el
+  Apartado~\ref{secc:resultados_embeddings}. Lo que queda por decidir es el reparto: hoy este
+  apartado cuenta las cifras y aquel el porqué, que es el mismo reparto que usaste con los
+  modelos de incrustaciones.
 \end{borrador}
 
 \section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
