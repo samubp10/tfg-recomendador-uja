@@ -19,7 +19,6 @@ import json
 import re
 import sys
 from collections import Counter
-from collections.abc import Callable
 from pathlib import Path
 
 #: Se importan del fragmentador en vez de copiarse. Antes estaban duplicados
@@ -37,43 +36,10 @@ from pathlib import Path
 #: algo distinto de lo que cree medir, y nadie se entera porque dice «OK».
 from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 
-
-class InvarianteRoto(AssertionError):
-    """Un invariante del troceo no se cumple."""
-
-
-def exigir(condicion: object, mensaje: str | Callable[[], str]) -> None:
-    """Comprueba un invariante y aborta si no se cumple.
-
-    Sustituye a ``assert``, que **el intérprete elimina al ejecutar con
-    ``-O``**: con esa bandera el guion recorrería el corpus sin comprobar
-    nada y terminaría imprimiendo «Chunks OK: invariantes verificados».
-    Sería el mismo fallo que este fichero documenta cuatro veces en sus
-    comentarios ---el verificador que dice «OK» sin verificar--- solo que
-    servido por el propio lenguaje.
-
-    El mensaje admite una función sin argumentos, y esa no es una comodidad:
-    ``assert`` solo construye su mensaje **cuando la condición falla**, y una
-    llamada normal lo evalúa siempre. Varios mensajes de aquí muestran el
-    primer elemento del conjunto que ha fallado ---``descuadres[0]``,
-    ``min(evitables)``---, de modo que al pasar de ``assert`` a función
-    reventaban con ``IndexError`` justo en el caso bueno, cuando esa colección
-    está vacía. Con una lambda el mensaje vuelve a ser perezoso.
-
-    Args:
-        condicion: Lo que tiene que ser cierto. Se admite cualquier objeto y
-            se evalúa su valor de verdad, como hacía ``assert``: media
-            comprobación de aquí pasa una lista o un conjunto que debe estar
-            vacío.
-        mensaje: Qué se ha roto, con las cifras que lo demuestran. Si mirar
-            esas cifras solo tiene sentido cuando el invariante falla, se pasa
-            como función.
-
-    Raises:
-        InvarianteRoto: Si ``condicion`` es falsa.
-    """
-    if not condicion:
-        raise InvarianteRoto(mensaje() if callable(mensaje) else mensaje)
+#: Por el mismo motivo que los umbrales de arriba: los cuatro verificadores
+#: comprueban invariantes y los cuatro tienen que hacerlo igual. Una copia por
+#: guion es una copia que puede quedarse atrás sin que nadie lo note.
+from tfg_uja.invariantes import InvarianteRoto, exigir  # noqa: F401
 
 
 def _clave_item(item: dict) -> tuple:
