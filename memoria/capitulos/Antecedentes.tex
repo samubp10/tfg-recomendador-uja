@@ -367,13 +367,61 @@ El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la pos
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-\begin{borrador}                                        
-  \item \textbf{Fase:} 1 (IT-31). Panorama de bases de datos vectoriales: qué son,
-  búsqueda exacta frente a aproximada y qué familias de índice existen
-  (HNSW, IVF, SPANN). El material ya está redactado en las notas de teoría
-  de la Fase 1; falta volcarlo aquí.
-  \item Este apartado describe \emph{qué existe}. La comparativa experimental
-  entre candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos}.
+\textcolor{borrador2}{Una base de datos vectorial es un sistema de almacenamiento
+  especializado en guardar incrustaciones junto a sus metadatos y en responder a una pregunta
+  concreta: dado un vector de consulta, cuáles de los almacenados son los más próximos. Es la
+  pieza que hace practicable la búsqueda semántica del apartado anterior, porque comparar la
+  consulta con toda la colección deja de ser viable en cuanto la colección crece.}
+
+\textcolor{borrador2}{La distinción que ordena todo lo demás es la de \textbf{búsqueda exacta}
+  frente a \textbf{búsqueda aproximada}. La exacta, o por fuerza bruta, compara la consulta con
+  todos los vectores y devuelve los verdaderos más próximos; su coste crece linealmente con el
+  tamaño de la colección, pero no se equivoca nunca. La aproximada renuncia a esa garantía a
+  cambio de velocidad: recorre solo una parte del espacio y puede dejarse algún vecino por el
+  camino. Ese intercambio es la razón de ser de la familia, y también su trampa, porque una
+  búsqueda aproximada que pierde resultados no falla de forma visible.}
+
+\textcolor{borrador2}{Para no recorrerlo todo, las bases vectoriales construyen un índice.
+  Las tres familias más extendidas son:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Grafos de proximidad}, como HNSW\cite{malkov2020hnsw},
+        que enlazan cada vector con sus vecinos en varias capas de granularidad y navegan
+        saltando de uno a otro hacia la consulta. Son los más usados hoy y los que mejor
+        equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que
+        ocupa el grafo.}
+  \item \textcolor{borrador2}{\textbf{Particionado del espacio}, como IVF, que agrupa los
+        vectores en celdas y solo examina las celdas más prometedoras. Necesita una fase previa
+        de entrenamiento sobre los datos.}
+  \item \textcolor{borrador2}{\textbf{Índices sobre disco}, como SPANN, pensados para
+        colecciones que no caben en memoria principal.}
+\end{itemize}
+
+\textcolor{borrador2}{Hay dos rasgos más que separan unas de otras en la práctica. El primero
+  es \textbf{cómo se despliegan}: unas se ejecutan empotradas dentro del propio proceso de la
+  aplicación, sin ningún servicio que levantar, y otras son servidores a los que se habla por
+  red. El segundo es \textbf{qué saben hacer con los metadatos}, que es lo que decide si el
+  filtrado del apartado anterior ocurre antes o después de la búsqueda.}
+
+\textcolor{borrador2}{Conviene cerrar el apartado con lo que la literatura da por supuesto y no
+  siempre se cumple: por debajo de unos pocos miles de vectores, la búsqueda exacta es
+  competitiva, y varias de estas bases ni siquiera llegan a construir su índice aproximado
+  porque sus propios umbrales por defecto no se alcanzan. A esa escala, elegir una base
+  vectorial no es una decisión de velocidad.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 2 (IT-31). Andamiaje: la prosa la escribes tú.
+  \item \textbf{Las tres familias de índice están sin citar salvo HNSW}, que sí tiene su
+  referencia en la bibliografía. Antes de defender el párrafo, busca una cita para IVF y otra
+  para SPANN, o quítalos y deja solo HNSW, que es el único que aparece de verdad en las tres
+  candidatas del experimento. Citar de oídas aquí sería peor que no citar.
+  \item \textbf{Este apartado describe qué existe.} La comparativa experimental entre las tres
+  candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos} y en el
+  Apartado~\ref{secc:resultados_vectordb}. En cuanto una frase empiece por «se ha elegido»,
+  está en el capítulo equivocado.
+  \item \textbf{La última frase no es un adorno:} es la que prepara al lector para el resultado
+  del Capítulo~\ref{cap:resultados}, donde la línea base de fuerza bruta gana en velocidad a
+  las tres candidatas. Sin ella, ese resultado parece un fallo del experimento y no lo que es.
 \end{borrador}
 
 \subsection{Asistentes conversacionales en el ámbito universitario}
