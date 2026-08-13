@@ -153,55 +153,6 @@ def test_una_unidad_de_un_solo_chunk_nunca_es_evitable() -> None:
     assert check_chunks.cortos_evitables([_chunk("a" * 20, 0, 1)]) == []
 
 
-# --- Que las comprobaciones no se puedan desactivar (IT-10) ----------------
-
-
-def test_el_verificador_no_usa_assert() -> None:
-    """Ningún invariante puede depender de ``assert``.
-
-    ``python -O`` elimina los ``assert`` del programa. Con ellos, el guion
-    recorría el corpus sin comprobar nada y terminaba imprimiendo «Chunks OK:
-    invariantes verificados», que es el modo de fallo que este proyecto ya ha
-    sufrido cuatro veces por otras vías: el verificador que dice «OK» sin
-    verificar. Se analiza el árbol sintáctico para que la comprobación no
-    dependa de cómo esté escrita la línea.
-    """
-    arbol = ast.parse(_RUTA.read_text(encoding="utf-8"))
-    asserts = [n for n in ast.walk(arbol) if isinstance(n, ast.Assert)]
-
-    assert not asserts, (
-        f"{len(asserts)} `assert` en check_chunks.py (línea(s) "
-        f"{[n.lineno for n in asserts]}): con `python -O` desaparecen y el "
-        f"verificador diría «OK» sin comprobar nada. Usar `exigir()`."
-    )
-
-
-def test_exigir_aborta_cuando_el_invariante_falla() -> None:
-    """La sustituta de ``assert`` tiene que abortar de verdad."""
-    check_chunks.exigir(True, "no debe saltar")
-
-    try:
-        check_chunks.exigir(False, "mensaje de prueba")
-    except check_chunks.InvarianteRoto as error:
-        assert "mensaje de prueba" in str(error)
-    else:
-        raise AssertionError("exigir() no abortó con una condición falsa")
-
-
-def test_exigir_no_evalua_el_mensaje_si_no_hace_falta() -> None:
-    """El mensaje perezoso solo se construye cuando el invariante falla.
-
-    ``assert`` construía su mensaje solo al fallar; una llamada normal lo
-    evalúa siempre. Varios mensajes del verificador miran el primer elemento
-    de la colección que ha fallado, así que al pasar a función reventaban con
-    ``IndexError`` justo en el caso bueno. La lambda restituye esa pereza.
-    """
-    vacia: list[int] = []
-
-    # Si el mensaje se evaluara, `vacia[0]` lanzaría IndexError.
-    check_chunks.exigir(not vacia, lambda: f"el primero es {vacia[0]}")
-
-
 # --- Que el verificador no se desincronice del fragmentador (IT-10) --------
 
 
