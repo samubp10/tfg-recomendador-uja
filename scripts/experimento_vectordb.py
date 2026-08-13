@@ -41,7 +41,6 @@ from pathlib import Path
 from typing import Any, Final
 
 import numpy as np
-import psutil
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
@@ -436,7 +435,17 @@ def comprobar_prefiltrado(
 
 
 def rss_actual_mb() -> float:
-    """RSS del proceso actual, en MiB."""
+    """RSS del proceso actual, en MiB.
+
+    ``psutil`` se importa aquí y no en la cabecera porque solo hace falta para
+    medir, y está en el grupo opcional ``[comparativa-vectordb]``. Con el
+    import arriba, cargar este módulo lo exigía, y las pruebas ---que no miden
+    memoria, sino que comprueban la aritmética de la comparación--- dejaban de
+    poder recogerse en un entorno que solo instala ``[dev]``, que es
+    exactamente lo que pasa en la integración continua.
+    """
+    import psutil
+
     return psutil.Process().memory_info().rss / (1024**2)
 
 
