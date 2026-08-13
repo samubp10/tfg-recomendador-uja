@@ -2,21 +2,189 @@
 
 *Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
 
-- **Estado:** propuesta
-- **Fecha:** 2026-08-12
+- **Estado:** **Aceptada** (2026-08-13)
+- **Fecha:** 2026-08-12 (experimento) · 2026-08-13 (decisión)
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 2 (pipeline RAG y base vectorial) del Recomendador UJA
 
 ## Contexto
 
-_(IT-32, pendiente de redactar. Restricciones y candidatas verificadas en
-`Notas_TFG/Teoría/Fase2_bases_vectoriales/`.)_
+Una vez fijado el modelo de incrustaciones (ADR-0003) y la estrategia de
+fragmentación (ADR-0001), el corpus es una matriz de **1.334 vectores de 384
+dimensiones**. Responder a una pregunta consiste en incrustarla en ese mismo
+espacio y devolver los K fragmentos más próximos. Falta decidir **qué componente
+guarda esos vectores y resuelve esa consulta**, que es lo que fija este ADR.
+
+`indexer.py` viene usando ChromaDB desde IT-30, pero **como valor de trabajo y no
+como decisión**: se eligió para poder seguir avanzando, sin comparar nada. Este
+ADR existe para que la elección definitiva no sea esa inercia.
+
+Restricciones que condicionan la decisión:
+
+- **Tamaño del corpus.** 1.334 × 384 × 4 B = **2.049.024 bytes, 1,95 MB**. Cabe
+  entero en memoria y, de hecho, en la caché de la máquina. **A esta escala la
+  búsqueda exacta por fuerza bruta no es el plan B: es competitiva**, y no
+  introduce ningún error. Elegir un índice aproximado «porque es lo que se usa»
+  sería exactamente el tipo de decisión sin justificar que este proyecto no
+  admite.
+- **Hardware.** 16 GB de RAM y PyTorch compilado **solo para CPU**: los 6 GB de
+  la GPU no se usan. En la Fase 2 la base vectorial tendrá que convivir en esa
+  misma memoria con un modelo generativo que aún no se ha elegido y que es el
+  componente grande. Cada gigabyte que se lleve la base es uno que le falta al
+  generador.
+- **Filtrado por metadatos.** El 48 % de los fragmentos pertenece a más de una
+  titulación, así que `grados` y `codigos` son **listas**. Las preguntas reales
+  del estudiante son del tipo «obligatorias de Informática», que exige combinar
+  una consulta vectorial con una condición sobre un campo de tipo lista.
+- **Reproducibilidad.** El sistema tiene que poder ejecutarse en el ordenador de
+  un tribunal: sin servicio de pago, sin clave de API y sin red en tiempo de
+  consulta.
+- **Persistencia.** El índice se reconstruye completo en cada ejecución del
+  indexador, pero la aplicación web de la Fase 3 no puede recalcularlo en cada
+  arranque.
+
+**Alcance.** Este ADR decide para **este corpus**. La generalización a la oferta
+completa de la Universidad de Jaén queda fuera del alcance del trabajo, pero es
+la continuación natural, y decidir hoy condiciona si esa continuación es viable
+o hay que rehacer la capa de recuperación entera.
 
 ## Alternativas consideradas
 
-_(IT-32, pendiente. Ver `02_los_3_candidatos.md` para ChromaDB, LanceDB y
-Qdrant, con licencia, arquitectura e índice de cada una, y las descartadas con
-su motivo.)_
+Los criterios de admisión se fijaron antes de mirar candidatas: licencia abierta,
+ejecutable en un portátil sin servicio de pago, persistencia en disco, filtrado
+por campos de tipo lista y madurez declarada por el propio proyecto. Las tres que
+quedaron cubren **tres puntos distintos del espacio de diseño**, no tres
+variantes de lo mismo.
+
+### Opción A — ChromaDB
+
+La que el proyecto ya usaba. Es la que había que batir y la única que partía con
+el código escrito a su favor.
+
+- **URL:** [https://www.trychroma.com/](https://www.trychroma.com/) · versión medida **1.5.9**
+- Licencia Apache-2.0. En proceso, `PersistentClient(path=...)`. Persiste en un
+  SQLite más una carpeta binaria por colección. Índice HNSW.
+- **Pros:** cero configuración —no hay esquema que declarar ni índices de apoyo
+  que crear—; es la más rápida de las tres (1,17–1,43 ms de mediana); y el código
+  del proyecto ya estaba escrito para ella.
+- **Contras:** 🔴 **no cumple U1.** Pierde vecinos respecto de la búsqueda exacta
+  en **4 de cada 20 reconstrucciones**, y por tanto tampoco cumple U6. Además es
+  la única de las tres cuyo **modo de respuesta no se ha podido determinar**: no
+  expone ningún contador de vectores indexados, así que no hay forma, desde el
+  cliente, de saber si recorre el grafo o el conjunto completo.
+- **Descartada:** por incumplir un umbral eliminatorio fijado antes de medir.
+
+### Opción B — LanceDB (elegida)
+
+La apuesta por la simplicidad: biblioteca embebida sobre el formato columnar
+Lance, con búsqueda exacta por defecto a esta escala.
+
+- **URL:** [https://lancedb.com/](https://lancedb.com/) · versión medida **0.37.1**
+- Licencia Apache-2.0. En proceso, `lancedb.connect(ruta)`. Esquema Arrow
+  explícito. Índice vectorial **opcional**: su documentación recomienda «*at
+  least a few thousand rows*» antes de que entrenarlo tenga sentido, de modo que
+  con 1.334 filas no construye ninguno y responde por escaneo completo, es decir,
+  de forma **exacta**.
+- **Pros:** cumple U1 a U5 y prefiltra. Es la de **menor memoria residente**
+  (~22 MiB). No necesita servidor ni Docker: el sistema de la Fase 3 no adquiere
+  ninguna dependencia de infraestructura. El esquema Arrow declarado obliga a
+  decir el tipo de cada metadato, incluido el vector como `list_(float32, 384)`
+  de tamaño fijo, lo que convierte en error ruidoso lo que en otras sería un dato
+  mal guardado en silencio.
+- **Contras:** su distancia por defecto es `l2` y hay que declarar el coseno **en
+  cada consulta**, no una vez al crear la tabla. El prefiltrado viene de fábrica
+  pero es desactivable. Y es la más lenta de las tres, aunque por un margen que
+  U4 declara empate.
+
+### Opción C — Qdrant
+
+La apuesta por el filtrado: la única de las tres pensada desde el principio para
+consultas vectoriales con condiciones sobre el payload, con **HNSW filtrable**
+—añade aristas entre puntos que comparten valor en un campo indexado, para que el
+subgrafo de cada valor siga siendo navegable—.
+
+- **URL:** [https://qdrant.tech/](https://qdrant.tech/) · cliente **1.19.0**, imagen `qdrant/qdrant:v1.19.0`
+- Licencia Apache-2.0. Servidor en contenedor, expone REST y gRPC.
+- **Pros:** cumple U1 a U5 y prefiltra. Es la más rápida de las dos finalistas
+  (5,62 ms frente a 7,35 ms de mediana). Su filtrado por listas es nativo y sin
+  sintaxis especial. Es la que mejor crecería si el corpus se multiplicara.
+- **Contras:** **exige un servidor aparte y Docker**, que es un salto cualitativo
+  respecto de las otras dos y no una molestia de grado. ~150 MiB de memoria
+  frente a ~22 MiB, aunque la comparación no es homogénea (ver «Amenazas»).
+  Requiere crear dos índices de payload **antes** de insertar los datos, porque
+  son los que generan las aristas del HNSW filtrable.
+- **Descartada:** no por rendimiento —empata con la elegida dentro de U4— sino
+  por U7. Ver la decisión.
+
+### Línea base — NumPy, fuerza bruta exacta
+
+**No es candidata: es el cero de la comparación.** Una matriz de 1.334 × 384 en
+`float32` y un producto matriz-vector, exactamente lo que ya hace
+`evaluacion.py`. Su fidelidad es 1,000 por construcción, no por suerte. No aporta
+persistencia, gestión de colecciones ni filtrado declarativo: habría que
+escribirlos.
+
+Sin ella la comparativa solo podría concluir «gana esta»; con ella puede concluir
+«no hacía falta ninguna».
+
+### Descartadas antes de medir, con su motivo
+
+Se dejan por escrito porque «no la miré» es peor respuesta que «la miré y la
+descarté por esto»:
+
+| Descartada | Motivo | Verificado el 11/08/2026 |
+|---|---|---|
+| **`sqlite-vec`** | Demasiado joven para apostar el TFG | Su README dice «*`sqlite-vec` is a pre-v1, so expect breaking changes!*» |
+| **FAISS** | Es una **biblioteca de índices**, no una base de datos: no gestiona metadatos ni persistencia. Obligaría a escribir a mano justo lo que el criterio de filtrado exige que resuelva la herramienta | Argumento de categoría, no de versión |
+| **pgvector** | Exige levantar y administrar un PostgreSQL completo para 1,95 MB de vectores | Argumento de categoría |
+| **Milvus, Weaviate** | Pensadas para escala distribuida. Sobredimensionadas para 1.334 vectores | Argumento de categoría |
+| **Qdrant Edge** | En beta declarada y con licencia sin verificar: los dos motivos por los que se descartó `sqlite-vec`. Aplicar el criterio a una y no a la otra sería incoherente | «*Qdrant Edge is in beta*», documentación oficial |
+
+⚠️ Las cuatro últimas se descartan **por argumento de diseño, no por medición**.
+Es una exclusión legítima —no se puede medir todo— pero se presenta como lo que
+es: si en la defensa se pregunta «¿y cuánto tardaba Milvus?», la respuesta honesta
+es «no se midió, y este es el motivo por el que no entró».
+
+## Los umbrales, fijados ANTES de ejecutar
+
+Esto es lo que corrige la amenaza principal que el ADR-0003 tuvo que declarar de
+sí mismo. Los umbrales se escribieron y fecharon en la tarjeta **antes de la
+primera ejecución**, no después de ver los resultados:
+
+| | Criterio | Umbral |
+|---|---|---|
+| **U1** | Fidelidad frente a la búsqueda exacta | **1,000**. A esta escala no hay motivo para aceptar ninguna pérdida |
+| **U2** | Filtrado por metadatos | Precisión y exhaustividad **1,000**, y **0 falsos positivos** en el caso trampa |
+| **U3** | Latencia de consulta | **> 500 ms descalifica** |
+| **U4** | Banda de indiferencia | Diferencias de **≤ 50 ms** se consideran empate |
+| **U5** | Memoria residente | **≤ 0,5 GB**; por encima de **1 GB**, descarte. En Qdrant se mide el contenedor |
+| **U6** | Reproducibilidad | Los resultados se repiten **a tres decimales** |
+| **U7** | Simplicidad | Desempate cuando lo demás empata |
+| **U8** | Conclusión | Si ninguna gana a la fuerza bruta por más de la banda, **la base vectorial no se justifica por velocidad** |
+
+Tres cosas de este cuadro que no son obvias y que conviene tener delante al leer
+los resultados:
+
+- **U3 y U4 están puestos para NO discriminar por velocidad.** 500 ms es un
+  listón bajísimo para este corpus y 50 ms de banda es enorme frente a las
+  latencias esperables. Es deliberado: la hipótesis era que la velocidad no
+  decide, y los umbrales se pusieron de forma que solo la contradijera un
+  resultado escandaloso.
+- **U1 exige el 1,000 exacto**, no «pérdida ≤ 0,02», por el motivo escrito
+  entonces: a 1.334 vectores, un índice que pierda algo está cobrando un precio
+  sin dar nada a cambio.
+- **U8 es el que hace que el experimento pueda fallar.** Sin él la comparativa
+  solo podría concluir «gana esta»; con él puede concluir «no hacía falta
+  ninguna».
+
+**Hipótesis contrastada:** sustituir la búsqueda exacta por un índice aproximado
+no degrada de forma apreciable la recuperación en un corpus de este tamaño, y la
+elección debe decidirse por criterios de ingeniería y no por Recall.
+
+🔴 **Las tres partieron de cero.** Que ChromaDB tuviera el índice montado no contó
+como argumento a su favor. Es la única forma de que este ADR no sea una
+racionalización de lo que ya había — y el resultado, que descarta precisamente a
+la que el proyecto usaba, es la mejor evidencia de que no lo es.
 
 ## Resultados del experimento (IT-31)
 
@@ -122,19 +290,324 @@ U7 es un desempate y no una cifra, así que se registra en **hechos verificables
 
 <!-- FIN RESULTADOS AUTOMÁTICOS -->
 
+## U6: las 20 reconstrucciones, y el resultado que decide el ADR
+
+El informe automático de arriba es **un solo pase**, y él mismo advierte de que U6
+exige una segunda ejecución. Se hicieron **20 ciclos completos**
+(`scripts/repeticiones_vectordb.py`, 12/08/2026), reconstruyendo los tres índices
+desde cero en cada uno y con los mismos vectores:
+
+| Candidata | Modo (medido) | Fidelidad (U1) | Ciclos que fallan U1 | Latencia mediana | ¿Cumple U6? |
+|---|---|---|---:|---:|---|
+| NumPy (línea base) | Exacto por construcción | 1,0000 | — | **0,17 ms** | ✅ |
+| **ChromaDB** | ⚠️ No verificable desde el cliente | 0,9980 / 1,0000 | 🔴 **4 de 20 (20 %)** | 1,17 ms | ❌ **No** |
+| **LanceDB** | Escaneo completo (`list_indices() = []`) | **1,0000 siempre** | **0 de 20** | 5,66 ms | ✅ Sí |
+| **Qdrant** | Escaneo completo (`indexed_vectors_count = 0`) | **1,0000 siempre** | **0 de 20** | 4,67 ms | ✅ Sí |
+
+Tres lecturas, y la segunda es la que decide:
+
+1. **La variabilidad está en la construcción, no en la consulta.** Consultar el
+   *mismo* índice varias veces da idéntico resultado. Cuando ChromaDB falla,
+   pierde **exactamente un vecino de 500**.
+2. 🔴 **ChromaDB no cumple U1 ni U6.** Un solo pase no lo habría visto: en el
+   informe automático aparece como 0,9980, un único valor que podría haberse leído
+   como ruido. Son las repeticiones las que muestran que es intermitente.
+3. **Es evidencia indirecta del modo de ChromaDB**, que no se pudo determinar por
+   la vía del contador: un recorrido completo es exacto por construcción y no
+   puede perder vecinos. Las otras dos son deterministas justamente porque
+   respondieron por escaneo completo.
+
+⚠️ **No se ha investigado la causa dentro de ChromaDB.** Lo que este ADR afirma es
+el comportamiento observable, no un diagnóstico de su implementación.
+
+⚠️ **Un artefacto de medición que apareció aquí**, y que hay que tener presente
+antes de reutilizar estas cifras: el delta de RSS **solo es válido en la primera
+construcción de un proceso**. A lo largo de los 20 ciclos la memoria medida se
+desploma (ChromaDB de 27,2 a ~7,7 MiB; LanceDB de 22,8 a ~0,2 MiB) porque el
+intérprete ya pidió esa memoria al sistema operativo y no la devuelve. Las cifras
+válidas de U5 son las de **una ejecución única en proceso limpio**, que son las
+del informe automático.
+
 ## Decisión
 
-_(IT-32, pendiente: a partir de los resultados de arriba.)_
+**Se adopta LanceDB 0.37.1 como base de datos vectorial del sistema**, con la
+distancia coseno declarada explícitamente en cada consulta y el prefiltrado
+activo.
+
+La decisión se toma en dos pasos, porque los umbrales operan en dos niveles
+distintos y mezclarlos sería contar mal el argumento.
+
+### Paso 1 — ChromaDB queda descartada por U1
+
+Es el único descarte por incumplimiento de un umbral eliminatorio. Pierde vecinos
+respecto de la búsqueda exacta en el 20 % de las reconstrucciones.
+
+Hay que decir con precisión **cuánto es esa pérdida, porque es pequeña**: un
+vecino de 500, en 4 de 20 ciclos. Alguien puede objetar razonablemente que a
+efectos prácticos eso no se nota. La respuesta no es que la pérdida sea grave,
+sino que **U1 se fijó en el 1,000 exacto antes de medir, y por un motivo escrito
+entonces**: a 1.334 vectores un índice que pierde algo está cobrando un precio sin
+dar nada a cambio. Relajar el umbral ahora, después de ver quién lo incumple,
+sería exactamente la hipótesis *post hoc* que el ADR-0003 tuvo que declarar como
+su amenaza principal y que este experimento se diseñó para evitar. **Un umbral que
+se afloja cuando molesta no es un umbral.**
+
+Y hay un segundo motivo, independiente del primero: ChromaDB es la única de las
+tres cuyo **modo de respuesta no se ha podido verificar**. No poder saber si un
+componente recorre un grafo o el conjunto completo es, en un trabajo que tiene que
+defender lo que mide, un problema por sí mismo.
+
+### Paso 2 — entre LanceDB y Qdrant deciden U4 y U7, no el rendimiento
+
+Las dos cumplen U1, U2, U3, U5 y U6, y las dos prefiltran. La comparación queda
+así:
+
+| | LanceDB | Qdrant | ¿Separa? |
+|---|---:|---:|---|
+| Fidelidad (U1) | 1,000 | 1,000 | no |
+| Filtrado (U2) | 58/58 · 417/417 | 58/58 · 417/417 | no |
+| Latencia mediana, pase único (U3) | 7,35 ms | 5,62 ms | **no**: 1,73 ms está dentro de la banda de 50 ms de U4 |
+| Latencia mediana, 20 ciclos | 5,66 ms | 4,67 ms | **no**: 0,99 ms, misma banda |
+| Memoria (U5) | ~22 MiB | ~150 MiB | sí, pero la medición no es homogénea |
+| Servidor y Docker | no | **sí** | **sí** |
+
+**Qdrant es más rápida en las dos ejecuciones, y esa ventaja es irrelevante por
+decisión previa.** U4 fijó la banda de indiferencia en 50 ms antes de medir nada,
+y la diferencia real es de 1 a 2 ms. Reivindicarla ahora sería usar un criterio
+que se había declarado inaplicable justamente para no caer en él.
+
+Lo que queda, por tanto, es **U7**, y este ADR tiene que decir con todas las
+letras lo que U7 es: **un juicio de ingeniería, no una medición**. Se resuelve
+sobre los hechos verificables de la tabla de esfuerzo de configuración, y el que
+pesa es que Qdrant **exige un servicio aparte y Docker** y las otras dos no. Eso
+no es una molestia de grado sino un cambio de naturaleza: la aplicación web de la
+Fase 3 pasaría de arrancar sola a depender de que alguien levante un contenedor,
+y el requisito de que el sistema se ejecute en el ordenador de un tribunal se
+volvería mucho más frágil.
+
+La memoria apunta en la misma dirección (~22 frente a ~150 MiB) y es un argumento
+real en una máquina donde la Fase 2 tiene que meter además un modelo generativo,
+pero **es un argumento de apoyo y no el principal**, porque las dos cifras no se
+midieron igual (proceso frente a contenedor completo) y las dos cumplen U5 con
+holgura.
+
+### Paso 3 — U8 se activa, y hay que decirlo, no esquivarlo
+
+🔴 **Ninguna de las tres candidatas gana a la fuerza bruta.** NumPy responde en
+**0,17 ms**, entre 7 y 33 veces más rápido que todas ellas. U8 estaba escrito
+antes de medir precisamente para este caso, y dice lo que hay que concluir: **la
+base de datos vectorial no se justifica por velocidad en este corpus.**
+
+La decisión de usar una, en consecuencia, **no se apoya en el rendimiento**, y
+presentarla como si lo hiciera sería falso. Se apoya en cuatro servicios que la
+fuerza bruta no da y que habría que escribir a mano:
+
+1. **Persistencia** en disco, para que la aplicación de la Fase 3 no reconstruya
+   el índice en cada arranque.
+2. **Filtrado declarativo** sobre campos de tipo lista, prefiltrado y verificado,
+   que es lo que hace posibles las preguntas del tipo «obligatorias de
+   Informática».
+3. **Gestión de colecciones**, versionado del índice y esquema tipado.
+4. **El camino de crecimiento.** El alcance de este trabajo es la EPSJ, pero el
+   sistema es una prueba de concepto de algo que podría cubrir la oferta completa
+   de la UJA. La fuerza bruta es correcta y competitiva hoy y deja de serlo
+   cuando el corpus crece, porque su coste es lineal. Elegir una base vectorial
+   es no tener que reescribir la capa de recuperación ese día.
+
+⚠️ **Cómo enunciar el punto 4 sin pasarse**, que es donde es fácil afirmar de más:
+que el diseño *admita* ese crecimiento es una decisión de ingeniería justificada;
+que el sistema *escale* a la universidad entera es una afirmación que este trabajo
+**no ha medido y no puede sostener**.
+
+Y lo que este argumento **no** es: no vale decir «para no reimplementar lo que ya
+existe». Una búsqueda exacta sobre 1,95 MB son unas líneas de NumPy, y si hiciera
+falta se escribirían. El ahorro de trabajo no justifica una dependencia; el camino
+de crecimiento sí.
 
 ## Consecuencias
 
-_(IT-32, pendiente.)_
+### Positivas
+
+- **La recuperación pasa a ser exacta.** A esta escala LanceDB no construye
+  índice y responde por escaneo completo, con fidelidad 1,000 en las 20
+  reconstrucciones. Eso tiene una consecuencia práctica que ahorra trabajo:
+  **las cifras de recuperación del ADR-0003 se trasladan sin recalcular**, porque
+  la base devuelve exactamente lo mismo que la fuerza bruta con la que se
+  midieron. Solo habría que volver a medirlas si la fidelidad bajara de 1,000.
+- **Se elimina una fuente de no determinismo del sistema.** Con ChromaDB, dos
+  reconstrucciones del índice podían dar resultados distintos sin que nada
+  fallara; una tarjeta de evaluación de la Fase 2 podría haber medido esa
+  diferencia y atribuirla al *prompt* o al modelo.
+- **El sistema no adquiere ninguna dependencia de infraestructura.** Sin
+  servidor, sin Docker, sin puerto. La Fase 3 despliega una aplicación, no un
+  sistema distribuido.
+- **Menor memoria residente de las tres** (~22 MiB frente a ~26 y ~150), en una
+  máquina donde el modelo generativo de la Fase 2 competirá por ella.
+- **El esquema Arrow obliga a declarar el tipo de cada metadato**, incluido el
+  vector como `list_(float32, 384)` de tamaño fijo. Es más ceremonia que en
+  ChromaDB, y a cambio convierte en error ruidoso lo que en otra sería un dato
+  mal guardado en silencio — que es el patrón de fallo que este proyecto ya ha
+  sufrido varias veces.
+
+### Negativas
+
+- **Hay que migrar el indexador.** `src/tfg_uja/indexer.py` está escrito contra
+  ChromaDB (3 referencias) y `tests/test_indexer.py` monta una colección en
+  memoria (6 referencias). Las dos cosas hay que rehacerlas, y `chromadb` sale de
+  las dependencias de ejecución mientras entra `lancedb`.
+- 🔴 **La distancia coseno hay que declararla en CADA consulta**, no una vez al
+  crear la tabla: el valor por defecto de LanceDB es `l2`. Es un invariante del
+  mismo tipo que los prefijos `"query: "` y `"passage: "` del ADR-0003 —se olvida sin
+  que falle nada visible— con el agravante de que hoy **no cambiaría ni un
+  resultado**, porque `e5-small` entrega los vectores normalizados y las dos
+  métricas ordenan idéntico. Se rompería en silencio el día que se cambie de
+  modelo. **Debe protegerse con una prueba, no con un comentario.**
+- 🔴 **El prefiltrado es el valor por defecto, pero es desactivable**
+  (`prefilter=False`, `.postfilter()`). Posfiltrar es un fallo silencioso: el
+  sistema respondería «no tengo información» sobre algo que sí está indexado.
+  Mismo tratamiento: prueba de regresión con el caso real del experimento.
+- **Se adopta la candidata que no construye índice**, así que el sistema **no
+  tiene hoy ninguna experiencia con la búsqueda aproximada**. El día que el
+  corpus crezca lo bastante para necesitar un índice IVF, habrá que medirlo
+  entonces: este ADR no aporta ninguna evidencia sobre cómo se comporta LanceDB
+  con índice.
+- **La comparación se hizo sin forzar HNSW en ninguna candidata**, así que el
+  coste real en fidelidad de un índice aproximado a esta escala **sigue sin
+  medirse**. Estaba avisado en el método antes de ejecutar y no se hizo.
+- **Es la más lenta de las tres**, aunque la diferencia esté dentro de la banda de
+  U4 y todas estén dos órdenes de magnitud por debajo de U3.
+- **La reproducibilidad depende de una versión concreta** (0.37.1). Los valores
+  por defecto que sostienen parte del argumento —la métrica `l2`, el prefiltrado,
+  el umbral de «few thousand rows»— pueden cambiar entre versiones. Se fija la
+  versión y se declara.
 
 ## Amenazas a la validez
 
-_(IT-32, pendiente. Ver `04_como_se_mide_una_base_vectorial.md` §4.7 para la
-lista ya identificada antes de ejecutar nada.)_
+### De construcción — ¿se está midiendo lo que se cree medir?
+
+- **C1.** 🔴 **No se ha medido ningún índice aproximado.** Dos de las tres
+  candidatas respondieron por escaneo completo (medido en el servidor, no
+  deducido) y de la tercera no se pudo determinar el modo. Donde la tabla dice
+  fidelidad 1,000 significa «no perdió nada respecto de la fuerza bruta», **no**
+  «su índice es fiel»: no llegó a usar índice. Este ADR, por tanto, **no dice
+  nada sobre la calidad de HNSW ni de IVF**; dice cuál conviene a este corpus.
+- **C2.** 🔴 **La métrica de distancia no es distinguible con este modelo.**
+  `e5-small` entrega los vectores normalizados (norma 1,000000), y para norma 1
+  la euclídea y el coseno ordenan idéntico. Una fidelidad de 1,000 **no demuestra
+  que una candidata use la métrica que se le pidió**.
+- **C3. U2 mide la base y el esquema de metadatos a la vez.** Si una candidata
+  hubiera suspendido, la pregunta obligatoria habría sido si falló el motor o la
+  forma en que este proyecto le entregó los metadatos. Se mitigó fijando **el
+  mismo esquema para las tres** —listas nativas, `metadatos_de_chunk()`
+  compartida—, de modo que deja de ser una variable; pero la ambigüedad
+  existiría el día que una falle.
+- **C4. Las memorias no son homogéneas.** En ChromaDB y LanceDB es el delta de
+  RSS del proceso; en Qdrant, el contenedor completo con su sistema base.
+  Comparar los dos números es legítimo —es el coste real de cada solución en este
+  proyecto— pero **no es «la memoria del algoritmo»**, y el argumento de memoria
+  se usa aquí como apoyo y no como criterio principal precisamente por eso.
+- **C5. U7 no es una medición.** Es un juicio de ingeniería, declarado como tal
+  desde antes de ejecutar, y es el criterio que resuelve el desempate final.
+  Está apoyado en hechos verificables (¿servidor?, ¿Docker?, ¿esquema?,
+  ¿índices previos?) en vez de en impresiones, pero sigue siendo un juicio.
+
+### Interna — ¿el diseño es correcto, hay sesgos?
+
+- **I1. El experimento se diseñó dentro de un proyecto que ya usaba una de las
+  tres candidatas**, con el código escrito para ella. Ese sesgo no se elimina: se
+  declara. Lo que sí se puede decir es que **el resultado fue contra la
+  incumbente**, que es lo contrario de lo que produciría una racionalización.
+- **I2. Tres desviaciones del protocolo escrito**, declaradas: se midió solo
+  K = 10 —el más exigente para el índice— y no también K = 3 y 5; no se
+  descartaron consultas de calentamiento, lo que afecta al p90 y no a la mediana;
+  y **no se alternó el orden de medición** entre candidatas, de modo que un
+  proceso pesado de fondo habría penalizado siempre a la misma.
+- **I3. Las latencias son de una máquina concreta** (Ryzen 7 5800H, 16 GB,
+  PyTorch solo-CPU) que estaba haciendo otras cosas. Valen para comparar las
+  candidatas entre sí; no como cifras absolutas del sistema.
+- **I4. El resultado de las 20 reconstrucciones, que es el que descarta a
+  ChromaDB, no deja artefacto versionado**: `scripts/repeticiones_vectordb.py`
+  imprime por pantalla. La tabla de la sección U6 está transcrita de esa
+  ejecución. Es una debilidad de trazabilidad frente al informe automático del
+  experimento principal, que sí se escribe solo dentro de este fichero.
+
+### Externa — ¿generaliza?
+
+- **E1. Las conclusiones valen para 1.334 vectores de 384 dimensiones.** No
+  generalizan a un corpus de un millón, donde el orden de las candidatas podría
+  invertirse: Qdrant, que aquí se descarta por complejidad operativa, es la mejor
+  preparada de las tres para esa escala. El trabajo no mide qué base vectorial es
+  mejor, mide **cuál conviene a este corpus**.
+- **E2.** 🔴 **El argumento del camino de crecimiento no está medido.** Es la
+  justificación principal para usar una base vectorial (paso 3 de la decisión) y
+  descansa en que LanceDB permitirá crecer sin rehacer la capa de recuperación.
+  Eso es una expectativa razonable apoyada en que su índice IVF existe y está
+  documentado, **no un resultado**: no se ha ejecutado LanceDB con índice ni a
+  esta escala ni a ninguna otra.
+- **E3. La fuente sigue viva.** El corpus ha cambiado tres veces este verano.
+  Estas cifras van fechadas (05/08/2026 el rastreo, 06/08/2026 el troceado, curso
+  2026-27) y con su corpus, igual que las del ADR-0003.
+
+### De conclusión — ¿se siguen las conclusiones de los datos?
+
+- **N1. 50 preguntas son pocas** y no hay intervalos de confianza. Esa es una de
+  las razones por las que U4 fija una banda de indiferencia tan ancha y por las
+  que U1 se exige exacto en vez de «casi»: son formas de no leer ruido como
+  señal.
+- **N2. Los 20 ciclos permiten afirmar que ChromaDB falla de forma intermitente,
+  no estimar con qué frecuencia.** «4 de 20» es lo observado; presentarlo como
+  una tasa del 20 % con precisión sería atribuir a la muestra una exactitud que
+  no tiene.
 
 ## Referencias
 
-_(IT-32, pendiente.)_
+**Candidatas** (documentación consultada el 11/08/2026, versiones medidas el 12/08/2026)
+
+- ChromaDB — [docs.trychroma.com](https://docs.trychroma.com/): filtrado por
+  metadatos, arrays y operadores `$contains`/`$not_contains`; parámetros HNSW por
+  defecto y `l2` como distancia por defecto; SPANN limitado a Chroma Cloud y
+  distribuido. Licencia Apache-2.0 en
+  [github.com/chroma-core/chroma](https://github.com/chroma-core/chroma).
+- LanceDB — [docs.lancedb.com](https://docs.lancedb.com/): índice vectorial
+  opcional, escaneo exhaustivo sin índice, `bypass_vector_index()` y la
+  recomendación de «*at least a few thousand rows*»; DataFusion como motor SQL,
+  `array_has_any`/`array_has_all`, índice `LABEL_LIST` y prefiltrado por defecto.
+  Licencia Apache-2.0 en
+  [github.com/lancedb/lancedb](https://github.com/lancedb/lancedb).
+- Qdrant — [qdrant.tech/documentation](https://qdrant.tech/documentation/):
+  filtrado sobre campos con varios valores, índice de payload y HNSW filtrable.
+  [`config/config.yaml`](https://raw.githubusercontent.com/qdrant/qdrant/master/config/config.yaml)
+  para `indexing_threshold_kb: 10000`, `full_scan_threshold_kb: 10000`, `m: 16`,
+  `ef_construct: 100` y la nota «1Kb = 1 vector of size 256». Licencia Apache-2.0
+  en [github.com/qdrant/qdrant](https://github.com/qdrant/qdrant).
+- `sqlite-vec` — [github.com/asg017/sqlite-vec](https://github.com/asg017/sqlite-vec):
+  «*`sqlite-vec` is a pre-v1, so expect breaking changes!*».
+
+**Método y fundamento**
+
+- Y. A. Malkov, D. A. Yashunin, "Efficient and Robust Approximate Nearest
+  Neighbor Search Using Hierarchical Navigable Small World Graphs", *IEEE TPAMI*,
+  2020. arXiv:1603.09320
+  ([https://arxiv.org/abs/1603.09320](https://arxiv.org/abs/1603.09320)) — el
+  índice HNSW que usan ChromaDB y Qdrant.
+- M. Aumüller, E. Bernhardsson, A. Faithfull, "ANN-Benchmarks: A Benchmarking
+  Tool for Approximate Nearest Neighbor Algorithms", 2018. arXiv:1807.05614
+  ([https://arxiv.org/abs/1807.05614](https://arxiv.org/abs/1807.05614)) —
+  referencia canónica de la métrica de fidelidad del índice (U1) y de su
+  distinción respecto del Recall@K del sistema.
+
+**Del propio proyecto**
+
+- `scripts/experimento_vectordb.py` — el experimento de IT-31 que genera el
+  informe incrustado en este ADR.
+- `scripts/repeticiones_vectordb.py` — las 20 reconstrucciones con las que se
+  comprueba U6.
+- ADR-0003 (modelo de incrustaciones) — fija la dimensión de los vectores, el
+  techo de recuperación y la normalización que hace indistinguibles las dos
+  métricas de distancia.
+- ADR-0001 (estrategia de fragmentación) — fija los 1.334 fragmentos sobre los
+  que se mide.
+- `eval/preguntas_evaluacion.json` (IT-27) — las 50 preguntas usadas como
+  consultas.
+- M. Nygard, "Documenting Architecture Decisions", cognitect.com
+  ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
