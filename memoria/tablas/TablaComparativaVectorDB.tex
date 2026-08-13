@@ -23,7 +23,7 @@
                          & \textbf{0,00}                          & \textbf{1,95}      \\
     ChromaDB 1.5.9       & 0,9980             & 1,43              & 1,68
                          & 1,81                                   & 26,12              \\
-    LanceDB 0.37.1       & \textbf{1,0000}    & 7,35              & 8,41
+    LanceDB 0.37.1$^{\dagger}$ & \textbf{1,0000} & 7,35            & 8,41
                          & 0,30                                   & 22,71              \\
     Qdrant 1.19.0        & \textbf{1,0000}    & 5,62              & 16,61
                          & 1,51                                   & 149,10             \\
@@ -40,6 +40,9 @@
     una candidata: es la búsqueda exacta por fuerza bruta, que sirve de referencia de fidelidad
     y de línea base de velocidad. Las cuatro condiciones reciben los mismos vectores,
     incrustados una sola vez. En negrita, el mejor valor de cada columna.
-    \textcolor{borrador2}{Escribe aquí, cuando cierres el ADR-0004, cuál se adopta.}
+    \textcolor{borrador2}{$^{\dagger}$~Candidata adoptada; el porqué, en el
+      Apartado~\ref{secc:eleccion_lancedb}. Nótese que la elección no recae sobre la más rápida:
+      la diferencia de latencia entre las dos que superan todos los umbrales queda dentro de la
+      banda de indiferencia fijada antes de medir, y decide el desempate por simplicidad.}
   \end{minipage}
 \end{table}
