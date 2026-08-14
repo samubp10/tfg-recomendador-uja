@@ -1460,6 +1460,13 @@ Se barajaron otras opciones pero se descartaron por estar en un estado de desarr
 
 
 
+\textcolor{borrador2}{Los ocho umbrales se escribieron y se cerraron \emph{antes} de la
+  primera ejecución, y no se han tocado después de ver las cifras. Se dice de forma explícita
+  porque es la diferencia de método con la comparación de modelos de incrustaciones, que se
+  ejecutó sin haberlos fijado: allí el ganador arrasó, pero eso no arregla haber decidido el
+  listón conociendo el resultado. Fijarlos por adelantado es lo que permite descartar una
+  candidata sin que la decisión parezca hecha a medida de lo que salió.}
+
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
 
 \begin{itemize}
@@ -1467,6 +1474,13 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
     \item \textbf{Comparativos : } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
     \item \textbf{Desempate : } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
 \end{itemize}
+
+\textcolor{borrador2}{El octavo no descarta una candidata sino un argumento, y conviene
+  contarlo aparte de los tres grupos anteriores: si ninguna de las tres le gana a la búsqueda
+  por fuerza bruta por más de la banda de indiferencia, se declara que a esta escala la base
+  de datos vectorial no se justifica por velocidad y la decisión se toma por los demás
+  criterios. Es el umbral que permite que el experimento concluya <<no hacía falta ninguna>>,
+  que es un resultado tan válido como el contrario.}
 
 
 
@@ -1480,6 +1494,15 @@ Entre las otras dos opciones que quedan de pie, no se decide únicamente por ren
 Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. También ayuda que LanceDB es la opción que menos pesa de las tres.
 
 La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque que vemos este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
+
+\textcolor{borrador2}{Queda por decir qué \emph{no} puede responder esta comparación, porque
+  es lo que acota hasta dónde llega la conclusión anterior. No mide calidad de recuperación:
+  esa la fijan el modelo de incrustaciones y la estrategia de troceado, y con fidelidad exacta
+  no puede cambiar entre candidatas. Y no dice nada sobre el comportamiento con una colección
+  mucho mayor: mil trescientos vectores no predicen lo que pasa con cien mil. Que el diseño
+  admita crecer sin rehacer la capa de recuperación es una decisión de ingeniería justificada;
+  que el sistema escale a la oferta completa de la universidad es una afirmación que este
+  trabajo no ha medido y no sostiene.}
 
 \begin{borrador}
   \item \textbf{Una figura ayudaría aquí} y no la hay: el esquema de las cuatro condiciones
