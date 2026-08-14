@@ -117,7 +117,7 @@ py -m tfg_uja.chunker data/grados.json data/chunks.json
 # 3. Index into the vector database (requires the [index] extra).
 #    The default model is the one chosen in ADR-0003; another one can be
 #    passed as a third argument to repeat the experiment without touching code.
-py -m tfg_uja.indexer data/chunks.json data/indice_chroma
+py -m tfg_uja.indexer data/chunks.json data/indice_lance
 ```
 
 ### Dataset checkers (local only)
