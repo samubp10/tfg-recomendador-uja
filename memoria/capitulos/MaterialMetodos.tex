@@ -1392,31 +1392,31 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
                                  
   
 
-\section[Fase 2: base de datos vectorial y \textit{pipeline} RAG]{Fase 2: base de datos vectorial y \textit{pipeline} RAG}
+\section[Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM]{Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM}
 \label{secc:fase2}
 
-\begin{borrador}                                                                                            
-  \item \textbf{Párrafo de apertura por escribir.} Qué problema resuelve esta fase ---guardar
-  los vectores de forma que se pueda buscar por significado, y montar encima el
-  \textit{pipeline} que recupera y redacta--- y qué la separa de la anterior: la Fase~1
-  decide cómo se representa el texto, esta decide cómo se busca y qué se hace con lo
-  encontrado.
-  \item \textbf{El nombre de la fase es una propuesta.} El Gantt la llama <<Pipeline RAG y
-  LLM>> y no menciona la base vectorial, porque en la planificación la base vectorial estaba
-  en la Fase~1. Ponle el nombre que decidas y ajusta el punto del Gantt.
+\textcolor{borrador2}{La fase anterior termina con la colección convertida en vectores. Lo que
+  falta para que el sistema responda son tres piezas, y esta fase las resuelve en ese orden.
+  La primera es \textbf{dónde se guardan esos vectores y con qué se consultan}, que es lo que
+  decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es
+  \textbf{qué modelo redacta la respuesta}, una vez recuperados los fragmentos pertinentes.
+  Y la tercera es \textbf{el \textit{pipeline} que une las dos}: recibir la pregunta,
+  recuperar con ella los fragmentos más próximos y entregárselos al modelo generativo junto
+  con las instrucciones de cómo debe usarlos.}
 
+\textcolor{borrador2}{La diferencia con la Fase~1 es de responsabilidad: allí se decidía
+  \emph{cómo se representa} el texto ---en qué trozos se parte y con qué modelo se convierte
+  en vectores---, y aquí se decide \emph{cómo se busca} y \emph{qué se hace con lo
+  encontrado}. Ninguna decisión de esta fase puede recuperar un fragmento que la anterior no
+  supiera representar, de modo que lo hecho hasta ahora fija el techo de lo que sigue.}
+
+\begin{borrador}
+  \item \textbf{Andamiaje: la prosa la escribes tú.} El párrafo enumera las tres piezas en el
+  orden en que aparecen los apartados; si acabas cambiando ese orden, cámbialo también aquí.
+  \item \textbf{Las dos últimas piezas todavía no existen} (elección del modelo generativo y
+  \textit{pipeline} RAG). Cuando estén, comprueba que esta entrada las nombra como se llaman
+  de verdad en sus apartados.
 \end{borrador}
-
-\textcolor{borrador2}{Construir el índice consiste en recorrer los fragmentos, convertir el
-  texto de cada uno en su vector con el modelo del apartado anterior y guardarlo junto a sus
-  metadatos, que no intervienen en la búsqueda pero permiten filtrar y saber de dónde salió
-  cada respuesta. Del recorrido conviene retener dos decisiones. La primera es que el índice
-  \textbf{se reconstruye entero en cada ejecución}: es un artefacto derivado y regenerable, y
-  la fuente de verdad es la cadena que lo produce, de modo que vale el mismo argumento que
-  separa el rastreador del fragmentador. La segunda es que el índice \textbf{graba con qué
-  modelo se construyó}, porque dos modelos distintos pueden producir vectores de la misma
-  dimensión y consultar un índice con el equivocado \textbf{no da ningún error}, sólo
-  respuestas peores.}
 
 \subsection[Selección de la base de datos vectorial]{Selección de la base de datos vectorial}
 \label{secc:fase2_vectordb}
@@ -1429,13 +1429,6 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con nuestros datos, es la opción más rápida.
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
-
-\textcolor{borrador2}{Las tres se indexan además con el mismo código. El recorrido que
-  construye el índice ---leer los fragmentos, incrustarlos y componer sus metadatos--- está
-  separado de dónde se guardan, que entra por una única operación de escritura, de modo que
-  cada candidata sólo aporta esa pieza. Sin esa separación se estarían comparando tres
-  programas escritos para tres bases distintas y no las bases entre sí, y cualquier
-  diferencia podría venir de lo bien o mal escrito que estuviera cada adaptador.}
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
@@ -1479,10 +1472,10 @@ La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir qu
       % Es el argumento de validez del experimento, asi que el diagrama lo pone
       % en el centro: un unico juego de vectores del que salen las cuatro ramas.
       \node[nodoDiag] (chunks) {Colección\\de fragmentos};
-      \node[nodoDiag, below=1.4cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
+      \node[nodoDiag, below=0.8cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
       \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\textit{embeddings}};
       \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15,
-            right=1.6cm of emb, yshift=-1.1cm] (vec)
+            right=1.1cm of emb] (vec)
         {Vectores\\{\scriptsize incrustados}\\{\scriptsize una sola vez}};
 
       % Las tres candidatas y la linea base reciben exactamente los mismos vectores.
@@ -1496,7 +1489,8 @@ La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir qu
 
       \draw[flechaDiag] (chunks) -- (emb);
       \draw[flechaDiag] (preg.east) -- ++(0.5,0) |- (emb.west);
-      \draw[flechaDiag] (emb.east) -- ++(0.4,0) |- (vec.north);
+      %\draw[flechaDiag] (emb.east) -- ++(0.3,0) |- (vec.north);
+       \draw[flechaDiag] (emb.east) -- (vec.west);
       \draw[flechaDiag] (vec.east) -- (a.west);
       \draw[flechaDiag] (vec.east) -- (b.west);
       \draw[flechaDiag] (vec.east) -- (c.west);
@@ -1507,17 +1501,13 @@ La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir qu
       \draw[flechaDiag, dashed] (n.east) -- (fid.south);
 
       \begin{scope}[on background layer]
-        \node[grupoDiag, fit=(a)(b)(c), inner sep=12pt,
+        \node[grupoDiag, fit=(a)(b)(c), inner sep=16pt,
               label={[tituloGrupo]north:Candidatas}] {};
         \node[grupoDiag, fit=(n), inner sep=12pt,
               label={[tituloGrupo, anchor=north]south:Línea base, no es candidata}] {};
       \end{scope}
     \end{tikzpicture}%
   }
-  \caption[Diseño de la comparativa de bases de datos vectoriales]{\textcolor{borrador2}{Las
-      cuatro condiciones reciben el mismo juego de vectores, incrustado una sola vez, de modo
-      que lo único que varía entre ellas es dónde se guardan y cómo se consultan. La búsqueda
-      exacta no compite: produce los vecinos verdaderos contra los que se mide la fidelidad de
-      las otras tres. Fuente: elaboración propia.}}
+  \caption[Diseño de la comparativa de bases de datos vectoriales]{Diagrama que muestra el proceso experimental realizado para evaluar las bases de datos vectoriales. Fuente: elaboración propia.}
   \label{fig:comparativa_vectordb}
 \end{figure}
