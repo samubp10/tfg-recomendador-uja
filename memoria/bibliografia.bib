@@ -223,7 +223,7 @@
 
 @misc{rd1112_2018,
   author       = {{Ministerio de la Presidencia, Relaciones con las Cortes e
-                   Igualdad}},
+                  Igualdad}},
   title        = {{Real Decreto 1112/2018, de 7 de septiembre, sobre
                   accesibilidad de los sitios web y aplicaciones para
                   dispositivos móviles del sector público}},
@@ -237,14 +237,14 @@
 }
 
 @misc{uja_avisolegal,
-  author       = {{Universidad de Jaén}},
-  title        = {Aviso legal},
-  year         = {2026},
-  url          = {https://www.ujaen.es/aviso-legal},
-  note         = {Consultado el 4 de agosto de 2026. Su apartado 6, sobre
-                  propiedad intelectual, prohíbe con carácter general extraer
-                  el contenido del sitio, pero no formula reserva expresa
-                  alguna frente a la minería de textos y datos}
+  author = {{Universidad de Jaén}},
+  title  = {Aviso legal},
+  year   = {2026},
+  url    = {https://www.ujaen.es/aviso-legal},
+  note   = {Consultado el 4 de agosto de 2026. Su apartado 6, sobre
+            propiedad intelectual, prohíbe con carácter general extraer
+            el contenido del sitio, pero no formula reserva expresa
+            alguna frente a la minería de textos y datos}
 }
 
 @misc{gpl3,
@@ -336,16 +336,16 @@
 % borrador el 12 de enero de 2025, ultima revision mayor el 6 de enero
 % de 2026.
 @misc{jurafsky2026slp3,
-  author  = {Jurafsky, Daniel and Martin, James H.},
-  title   = {Speech and Language Processing: An Introduction to Natural
-             Language Processing, Computational Linguistics, and Speech
-             Recognition, with Language Models},
-  edition = {3rd},
-  year    = {2026},
+  author       = {Jurafsky, Daniel and Martin, James H.},
+  title        = {Speech and Language Processing: An Introduction to Natural
+                  Language Processing, Computational Linguistics, and Speech
+                  Recognition, with Language Models},
+  edition      = {3rd},
+  year         = {2026},
   howpublished = {\url{https://web.stanford.edu/~jurafsky/slp3/}},
-  note    = {Manuscrito en línea, publicado el 12 de enero de 2025;
-             última revisión importante el 6 de enero de 2026.
-             Consultado en julio de 2026}
+  note         = {Manuscrito en línea, publicado el 12 de enero de 2025;
+                  última revisión importante el 6 de enero de 2026.
+                  Consultado en julio de 2026}
 }
 
 % Referencia fundacional de la era de reglas y gramáticas formales
@@ -467,6 +467,47 @@
   year    = {2020}
 }
 
+% Definicion general de base de datos vectorial, y los otros dos tipos de
+% indice citados junto a HNSW en el Apartado de Antecedentes. Verificadas
+% contra arXiv/VLDB Journal y NeurIPS, no de memoria.
+@article{pan2024vectordb,
+  author  = {Pan, James Jie and Wang, Jianguo and Li, Guoliang},
+  title   = {Survey of Vector Database Management Systems},
+  journal = {The VLDB Journal},
+  volume  = {33},
+  pages   = {1591--1615},
+  year    = {2024},
+  note    = {\url{https://arxiv.org/abs/2310.14021}. Tambi{\'e}n disponible
+             como arXiv:2310.14021}
+}
+
+@article{jegou2011ivfpq,
+  author  = {J{\'e}gou, Herv{\'e} and Douze, Matthijs and Schmid, Cordelia},
+  title   = {Product Quantization for Nearest Neighbor Search},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {33},
+  number  = {1},
+  pages   = {117--128},
+  year    = {2011},
+  note    = {Introduce el {\'\i}ndice invertido (IVF) de dos niveles
+             --k-means m{\'a}s cuantizaci{\'o}n de producto-- que este
+             trabajo cita como ejemplo de particionado del espacio}
+}
+
+@inproceedings{chen2021spann,
+  author    = {Chen, Qi and Zhao, Bing and Wang, Haidong and Li, Mingqin and
+               Liu, Chuanjie and Li, Zengzhong and Yang, Mao and Wang, Jingdong},
+  title     = {{SPANN}: Highly-efficient Billion-scale Approximate Nearest
+               Neighbor Search},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {34},
+  year      = {2021},
+  note      = {\url{https://arxiv.org/abs/2111.08566}. {\'I}ndice
+               h{\'\i}brido memoria-disco citado como ejemplo de {\'\i}ndice
+               sobre disco para colecciones que no caben en memoria
+               principal}
+}
+
 @inproceedings{es2023ragas,
   author    = {Es, Shahul and James, Jithin and Espinosa-Anke, Luis and
                Schockaert, Steven},
@@ -574,3 +615,30 @@
              como \texttt{BAAI/bge-m3}, con ventana de 8192 \textit{tokens} y
              vectores de 1024 dimensiones}
 }
+
+% ---------- Bases de datos vectoriales ----------
+
+@misc{chromadb,
+  author       = {{Chroma developers}},
+  title        = {Chroma: The AI-Native Open-Source Embedding Database},
+  year         = {2026},
+  howpublished = {\url{https://www.trychroma.com/}},
+  note         = {Consultado en agosto de 2026}
+}
+
+@misc{lancedb,
+  author       = {{LanceDB developers}},
+  title        = {LanceDB: Developer-Friendly, Serverless Vector Database for Multimodal AI},
+  year         = {2026},
+  howpublished = {\url{https://lancedb.com/}},
+  note         = {Consultado en agosto de 2026}
+}
+
+@misc{qdrant,
+  author       = {{Qdrant Solutions GmbH}},
+  title        = {Qdrant: Open-Source Vector Database and Vector Search Engine},
+  year         = {2026},
+  howpublished = {\url{https://qdrant.tech/}},
+  note         = {Consultado en agosto de 2026}
+}
+
