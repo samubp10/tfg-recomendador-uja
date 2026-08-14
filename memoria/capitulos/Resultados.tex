@@ -126,34 +126,9 @@ Con las cifras arrojadas por el experimento, se elige LanceDB, por las razones q
 Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta que se pedía en el umbral número 1 (U1), mientras que las otras dos opciones no fallan ninguna. 
 
 
-
-\textcolor{borrador2}{Dos cosas que estas cifras \emph{no} demuestran, y que conviene dejar
-  dichas antes de que las lea otro. Que la fidelidad de LanceDB y Qdrant valga 1,000 no
-  demuestra que estén usando la métrica de distancia que se les pidió: el modelo entrega los
-  vectores normalizados, y con norma constante la distancia euclídea y la similitud coseno
-  ordenan igual, así que las dos son indistinguibles por sus resultados. Y ninguna de las
-  latencias mide un índice aproximado en funcionamiento, porque a esta escala ni LanceDB ni
-  Qdrant llegan a construirlo y de ChromaDB no se puede saber, ya que no expone ningún
-  contador de vectores indexados.}
-
-
-\begin{borrador}
-  \item \textbf{El apartado del diseño y el de la elección ya existen} en el
-  Capítulo~\ref{cap:materialesymetodos} (Apartados~\ref{secc:fase2_vectordb}
-  y~\ref{secc:eleccion_lancedb}), y los párrafos de aquí remiten a ellos igual que hace el
-  Apartado~\ref{secc:resultados_embeddings}. Lo que queda por decidir es el reparto: hoy este
-  apartado cuenta las cifras y aquel el porqué, que es el mismo reparto que usaste con los
-  modelos de incrustaciones.
-\end{borrador}
-
 \section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
 \label{secc:resultados_rag}
 
-\begin{borrador}
-  \item \textbf{Renombrada el 07/08/2026:} se llamaba <<Evaluación de sistemas RAG>>, que
-  suena a repaso del estado del arte y no a resultado propio. Aquí van las métricas de
-  \emph{este} sistema, que es lo que responde al \textbf{OE5}.
-\end{borrador}
 
 \section{Validación con usuarios}
 
@@ -179,9 +154,9 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   el lector no encuentra.
   \item \textbf{Y aquí es donde toca contar lo incómodo}, que es lo que distingue una
   discusión de un resumen: que la recuperación no separa las tres estrategias de
-  fragmentación, que la elección se apoya en un efecto sobre la generación que este trabajo
-  no ha medido, y que ni la rejilla ni la comparación de modelos exploran el espacio conjunto
-  de las dos decisiones.
+  fragmentación, que la elección de la estrategia se apoya en un efecto sobre la generación
+  que este trabajo todavía no ha medido, y que la base de datos vectorial no gana en
+  velocidad a la búsqueda exacta a esta escala.
 \end{borrador}
 
 \section{Amenazas a la validez}
@@ -282,8 +257,9 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   los cuatro tipos de validez porque es como los va a buscar el tribunal y como los enuncia el
   propio método de trabajo. Si prefieres otro orden, el que funciona igual de bien es por
   fases.
-  \item \textbf{Cada afirmación tiene su registro detrás}, por si te piden la evidencia: las
-  amenazas de los dos experimentos están en el ADR-0001 y el ADR-0003; las de los dobles grados
+  \item \textbf{Cada afirmación tiene su registro detrás}, por si te piden la evidencia: los
+  límites de los dos experimentos están en las consecuencias negativas del ADR-0001 y el
+  ADR-0003 ---los ADR ya no llevan sección propia de amenazas---; las de los dobles grados
   ---el cruce por nombre, el nombre ambiguo y la titulación que no publica nada---, en el
   DQA-0005; las guías publicadas vacías, en el DQA-0004; y las cifras del filtrado de las guías
   las escribe \texttt{check\_guias\_pdf.py} al ejecutarlo sobre la colección completa.
