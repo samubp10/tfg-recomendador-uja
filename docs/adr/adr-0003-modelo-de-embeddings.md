@@ -1,80 +1,52 @@
 # ADR-0003: Modelo de incrustaciones (embeddings)
 
-*Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
+_Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions_
 
-- **Estado:** **Aceptada** (ratificada el 2026-08-05 y reforzada el 2026-08-06, ver las adendas finales)
-- **Fecha:** 2026-07-29
+- **Estado:** Aceptada
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 1 (indexación y recuperación) del Recomendador UJA
 
 ## Contexto
 
-El sistema convierte cada fragmento del corpus y cada pregunta del usuario en
-un vector, y recupera comparando esos vectores. El modelo que hace esa
-conversión fija el techo de todo lo que viene después: **ningún prompt puede
-recuperar un fragmento que la recuperación no ha traído.** Si el modelo no
-distingue «Aprendizaje automático» de «Aprendizaje profundo», el generador
-responderá con seguridad sobre la asignatura equivocada, y lo hará sin ninguna
-señal de que algo va mal.
+El sistema convierte cada fragmento del corpus y cada pregunta del usuario en un
+vector, y recupera comparando esos vectores. El modelo que hace esa conversión
+**fija el techo de todo lo que viene después**: ningún _prompt_ puede usar un
+fragmento que la recuperación no ha traído. Si el modelo no distingue
+«Aprendizaje automático» de «Aprendizaje profundo», el generador responderá con
+seguridad sobre la asignatura equivocada y sin ninguna señal de que algo va mal.
 
 Restricciones que condicionan la elección:
 
-- **Idioma.** El corpus y las preguntas están en español. Un modelo
-  monolingüe inglés queda descartado de entrada, sin necesidad de medirlo.
-- **Hardware.** El entorno del proyecto tiene PyTorch compilado **solo para
-  CPU**. El tamaño del modelo se paga en tiempo de indexación y, sobre todo,
-  en latencia por consulta cuando llegue la aplicación web de la Fase 3.
-- **Tamaño del corpus.** 781 fragmentos, unos 190.000 tokens. Indexar es
-  barato y se rehace completo en cada ejecución, así que el coste de
-  indexación **no** es un criterio de peso. La latencia de consulta sí.
+- **Idioma.** El corpus y las preguntas están en español, así que un modelo
+  monolingüe inglés queda descartado sin necesidad de medirlo.
+- **Memoria principal.** La máquina tiene 16 GB y PyTorch compilado **solo para
+  CPU**: la GPU no es utilizable. El modelo de incrustaciones tendrá que
+  convivir en esa memoria con el modelo generativo de la Fase 2, que es el
+  componente grande. Es la restricción que más aprieta.
 - **Reproducibilidad.** Los pesos se descargan una vez y quedan en caché; a
-  partir de ahí el experimento corre sin red. Depender de un servicio de
+  partir de ahí el sistema funciona sin red. Depender de un servicio de
   incrustaciones por API habría atado la reproducibilidad a un tercero y a una
   clave de pago.
-- **Longitud de los fragmentos.** El máximo de fragmento son 1.500 caracteres,
-  que en español llegan a **469 tokens**. Esta restricción resultó ser mucho
-  más determinante de lo previsto: ver el apartado del truncado.
+- **Coste de indexación.** El índice se reconstruye entero, pero solo cuando
+  cambia la colección. No es un criterio de peso.
 
-La comparación se hace contra el conjunto etiquetado de IT-27
-(`eval/preguntas_evaluacion.json`, 36 preguntas), con Recall@3, Recall@5 y MRR
-implementados en `tfg_uja/evaluacion.py`, mediante
-`scripts/experimento_embeddings.py`.
+**Criterio de admisión: ventana de al menos 512 _tokens_.** No es un detalle de
+configuración. `sentence-transformers` sirve algunos modelos con
+`max_seq_length = 128` aunque el transformador que llevan dentro admita 512, y
+`encode` recorta lo que sobra **en silencio**: no avisa, no falla y devuelve un
+vector de aspecto normal. Un modelo que no lee el fragmento entero no sirve
+aquí, y su diferencia de rendimiento frente a otro que sí lo lee no se podría
+atribuir a la calidad de las representaciones. Por eso la ventana se comprueba
+en cada ejecución y se informa junto a las métricas.
+
+La comparación se hace sobre la colección completa (**1.334 fragmentos**, curso
+2026-27) y las **50 preguntas** etiquetadas de `eval/preguntas_evaluacion.json`,
+mediante `scripts/experimento_embeddings.py`. Los cuatro candidatos reciben el
+mismo corpus y las mismas preguntas.
 
 ## Alternativas consideradas
 
-### Opción A — paraphrase-multilingual-MiniLM-L12-v2
-
-Modelo multilingüe destilado de la familia *paraphrase* de sentence-transformers.
-Es el que `indexer.py` monta de forma provisional desde IT-30, y funciona aquí
-como **línea base**: sin él, cualquier mejora sería una cifra sin referencia.
-
-- **URL:** [https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)
-- 118 M parámetros · 384 dimensiones · **ventana de 128 tokens**
-- **Pros:** el más rápido de los cuatro; vectores pequeños, índice ligero; sin
-  convención de llamada especial.
-- **Contras:** entrenado para *similitud entre paráfrasis*, no para
-  recuperación asimétrica pregunta→documento, que es el problema real aquí. Y
-  su ventana de 128 tokens **no le deja leer los fragmentos de este corpus**.
-- **Descartada:** peor en las tres métricas, en dos corpus distintos.
-
-### Opción B — paraphrase-multilingual-mpnet-base-v2
-
-La misma familia y el mismo entrenamiento que la línea base, pero con una
-arquitectura mayor. Está en la comparación para responder a una pregunta
-concreta: **¿basta con un modelo más grande?**
-
-- **URL:** [https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-mpnet-base-v2)
-- 278 M parámetros · 768 dimensiones · **ventana de 128 tokens**
-- **Pros:** mejora claramente a la línea base (Recall@3 0,420 → 0,584) sin
-  cambiar nada más que el tamaño.
-- **Contras:** más del doble de parámetros, el doble de dimensiones (índice
-  el doble de grande) y el doble de tiempo, y aun así se queda por debajo de la
-  opción C, que es del tamaño de la línea base. Arrastra la misma ventana de
-  128 tokens.
-- **Descartada:** paga el doble en memoria y en tiempo para quedar por detrás.
-  La respuesta a «¿basta con más tamaño?» es **no**.
-
-### Opción C — intfloat/multilingual-e5-small (elegida)
+### Opción A — intfloat/multilingual-e5-small (elegida)
 
 Modelo multilingüe entrenado específicamente para **recuperación**, con un
 esquema contrastivo débilmente supervisado. Su ficha exige prefijar los textos:
@@ -82,126 +54,131 @@ esquema contrastivo débilmente supervisado. Su ficha exige prefijar los textos:
 modelo aprendió a tratar los dos papeles de forma distinta.
 
 - **URL:** [https://huggingface.co/intfloat/multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small)
-- 118 M parámetros · 384 dimensiones · **ventana de 512 tokens**
-- **Pros:** el mejor en las tres métricas y en los dos corpus; **exactamente
-  el mismo tamaño y la misma dimensión que la línea base**, así que la mejora
-  no cuesta ni un byte más de índice; es el único de los cuatro que lee los
-  fragmentos completos.
-- **Contras:** los prefijos son obligatorios y asimétricos, así que son un
-  invariante que hay que proteger con una prueba (olvidarlo en la consulta
-  degrada la recuperación sin error visible). Y 512 tokens siguen siendo un
-  techo: el fragmento más largo del corpus gasta 473 de los 510 útiles, así que
-  **no queda margen** si el máximo de fragmento subiera.
+- 384 dimensiones · ventana de 512 _tokens_ · **~0,5 GB** de memoria residente
+- **Pros:** el de menor huella de los cuatro, con diferencia. Vectores pequeños,
+  así que el índice es ligero. Alcanza `RU@10 = 1,000`: la unidad correcta
+  siempre está entre los diez primeros resultados.
+- **Contras:** no es el mejor en las métricas —lo es la opción B—. Los prefijos
+  son obligatorios y asimétricos, de modo que constituyen un invariante frágil.
+
+### Opción B — intfloat/multilingual-e5-large
+
+El mismo entrenamiento y la misma convención de llamada que la opción A, con una
+arquitectura mayor. Responde a la pregunta de si compensa pagar por el modelo
+grande de la misma familia.
+
+- **URL:** [https://huggingface.co/intfloat/multilingual-e5-large](https://huggingface.co/intfloat/multilingual-e5-large)
+- Ventana de 512 _tokens_ · **~2,2 GB** de memoria residente
+- **Pros:** el mejor de los cuatro en todas las métricas de recuperación.
+- **Contras:** más de cuatro veces la memoria de la opción A, en una máquina
+  donde tendrá que convivir con un modelo generativo. Vectores de mayor
+  dimensión, así que el índice crece. Y su ventaja sobre la opción A es de
+  **media pregunta de cincuenta**.
+- **Descartada:** por memoria, no por calidad. Ver la decisión.
+
+### Opción C — BAAI/bge-m3
+
+Modelo multilingüe de recuperación de otra familia. Está para comprobar que la
+elección no depende de quedarse dentro de una sola familia de modelos.
+
+- **URL:** [https://huggingface.co/BAAI/bge-m3](https://huggingface.co/BAAI/bge-m3)
+- 1.024 dimensiones · ventana de 8.192 _tokens_
+- **Pros:** exhaustividad por fragmento por encima de la opción A.
+- **Contras:** queda por detrás de las dos opciones E5 en exhaustividad por
+  unidad y en MRR, con vectores casi tres veces más grandes que los de la opción
+  A. Su ventana de 8.192 _tokens_ no aporta nada aquí: el fragmento más largo del
+  corpus ocupa 335.
+- **Descartada:** paga índice y memoria por una capacidad que este corpus no usa.
 
 ### Opción D — hiiamsid/sentence_similarity_spanish_es
 
 Modelo **específico de español**, no multilingüe. Está en la comparación como
-contraste: la hipótesis razonable era que un modelo dedicado al idioma del
-corpus batiese a los multilingües.
+contraste deliberado: la hipótesis razonable era que un modelo dedicado al idioma
+del corpus batiese a los multilingües.
 
 - **URL:** [https://huggingface.co/hiiamsid/sentence_similarity_spanish_es](https://huggingface.co/hiiamsid/sentence_similarity_spanish_es)
-- 110 M parámetros · 768 dimensiones · ventana de 512 tokens
-- **Pros:** entrenado en español; ventana suficiente para el corpus (solo
-  trunca 1 fragmento de 781).
-- **Contras:** el peor de los cuatro por un margen enorme (Recall@3 de 0,233
-  frente a 0,705) y el más lento, unas cuatro veces la línea base.
-- **Descartada:** la hipótesis del modelo específico de idioma **no se
-  sostiene**, y conviene decirlo así en la memoria en vez de omitir el
-  resultado. Está entrenado para *similitud semántica entre frases*, una tarea
-  simétrica; aquí se le pide recuperación asimétrica sobre documentos largos.
-  Es la evidencia más limpia de que **la tarea de entrenamiento pesa más que el
-  idioma**.
+- Ventana de 512 _tokens_
+- **Contras:** el peor de los cuatro por un margen enorme, y **0,000 en las
+  preguntas de listado**, que no acierta ninguna.
+- **Descartada:** la hipótesis del modelo específico de idioma **no se sostiene**.
+  Está entrenado para _similitud semántica entre frases_, una tarea simétrica;
+  aquí se le pide recuperación asimétrica pregunta→documento. Es la evidencia más
+  limpia de que **la tarea de entrenamiento pesa más que el idioma**, y conviene
+  conservar el resultado negativo en vez de omitirlo. Lo que no demuestra es que
+  no pueda existir un modelo español bueno para recuperación, sino que el único
+  con uso real hoy no lo es.
+
+### Excluidos por el criterio de admisión
+
+Los dos modelos de la familia _paraphrase_ de `sentence-transformers`
+—`paraphrase-multilingual-MiniLM-L12-v2` y
+`paraphrase-multilingual-mpnet-base-v2`— quedan fuera porque la biblioteca los
+sirve con ventana de 128 _tokens_. Sus cifras están en
+`docs/experimentos/it28-embeddings-historico.md`.
 
 ## Decisión
 
-**`intfloat/multilingual-e5-small`, con los prefijos `"query: "` y `"passage: "`
-que exige su ficha.**
+**`intfloat/multilingual-e5-small`, con los prefijos `"query: "` y `"passage: "`**
+que exige su ficha.
 
-Se apoya en el experimento de IT-28, ejecutado dos veces sobre **dos corpus
-distintos** (24/07 con 892 fragmentos del curso 2025-26; 29/07 con 781 del
-curso 2026-27, tras el re-rastreo de IT-80). Las cifras del 29/07:
+Resultados sobre la colección completa, en `docs/experimentos/it28-embeddings.md`:
 
-| Modelo | Recall@3 | Recall@5 | MRR | Tiempo (s) | Ventana | Truncados | Corpus leído |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| A — MiniLM-L12 (línea base) | 0,420 | 0,570 | 0,619 | 63,9 | 126 | 685 | 50 % |
-| B — mpnet-base | 0,584 | 0,668 | 0,730 | 125,1 | 126 | 685 | 50 % |
-| **C — multilingual-e5-small** | **0,705** | **0,787** | **0,856** | 108,5 | 510 | **0** | **100 %** |
-| D — sentence\_similarity\_spanish\_es | 0,233 | 0,302 | 0,381 | 281,1 | 510 | 1 | 100 % |
+| Modelo                             |   R@3 |   R@5 |  R@10 |      RU@3 |      RU@5 |     RU@10 |       MRR | Tiempo (s) |
+| ---------------------------------- | ----: | ----: | ----: | --------: | --------: | --------: | --------: | ---------: |
+| **A — multilingual-e5-small**      | 0,697 | 0,803 | 0,911 |     0,985 |     0,990 | **1,000** | **0,970** |  **108,0** |
+| B — multilingual-e5-large          | 0,740 | 0,852 | 0,938 | **0,995** | **1,000** | **1,000** | **0,970** |      604,3 |
+| C — BAAI/bge-m3                    | 0,720 | 0,836 | 0,917 |     0,985 |     0,995 |     0,995 |     0,949 |      650,3 |
+| D — sentence_similarity_spanish_es | 0,152 | 0,194 | 0,307 |     0,410 |     0,505 |     0,610 |     0,342 |      220,6 |
 
-**El orden de los cuatro modelos es idéntico en las dos ejecuciones**, con el
-mismo ganador y un margen parecido. Eso es lo que permite fijar la decisión: la
-conclusión no dependía de un corpus concreto, que era la duda razonable al
-haber medido sobre un corpus que después cambió.
+**El techo de R@K no es 1.** Una unidad repartida en más de K fragmentos no cabe
+entera en un top-K: sobre esta colección el máximo alcanzable es **0,789** para
+R@3, **0,906** para R@5 y **0,968** para R@10. Lo que falta se mide contra ese
+techo, no contra 1.
 
-Sobre los 781 fragmentos hubo además **dos ejecuciones el mismo día**, la
-segunda tras añadir las columnas de ventana y truncado. **Las doce cifras de
-Recall y MRR salieron idénticas hasta el tercer decimal**, lo que confirma que
-el experimento es determinista y que la tabla no depende del orden ni del azar.
-Los **tiempos, en cambio, subieron entre un 25 % y un 60 %** por carga de la
-máquina, sin que cambiara nada del código medido: valen para ordenar los cuatro
-modelos entre sí —y ese orden sí se mantuvo—, pero **no como cifras absolutas**.
-Se recogen los de la segunda ejecución, que es la que queda registrada en
-`docs/experimentos/it28-embeddings.md`.
+**El criterio que decide no es la calidad de la recuperación sino la viabilidad
+del sistema completo**, y este ADR tiene que decirlo con esas palabras en lugar
+de dar a entender que el modelo elegido gana en las métricas, porque no gana:
 
-### El truncado silencioso, que es la mitad de la explicación
+1. **La opción B es mejor en todas las métricas de recuperación.** No se elige
+   porque **ocupa ~2,2 GB frente a ~0,5 GB**, y en la Fase 2 el recuperador
+   tendrá que compartir 16 GB con un modelo generativo. No es un argumento
+   teórico: la primera ejecución de esta misma comparativa **murió por falta de
+   memoria** cargando la opción B.
+2. **La distancia entre las dos es de media pregunta sobre cincuenta**
+   (RU@3 de 0,985 frente a 0,995) y el MRR es idéntico. El conjunto de evaluación
+   lo ha etiquetado una sola persona, así que una diferencia de esa magnitud cabe
+   dentro de lo que movería otra anotación: **no se presenta como una separación
+   establecida**.
+3. **Lo que la opción A pierde está localizado y es atacable por otra vía.** Su
+   desventaja vive en las preguntas de salidas profesionales (0,690 frente a
+   0,889) y de temario (0,723 frente a 0,776); en cambio va por delante en las de
+   metadatos (0,697 frente a 0,664), y las dos aciertan por igual las de listado.
+   Filtrar por metadatos en el índice ataca ese hueco sin cambiar de modelo.
 
-Al preparar este ADR se midió algo que el experimento original no miraba: la
-**ventana de contexto** de cada modelo. Las dos opciones de la familia
-*paraphrase* las sirve sentence-transformers con `max_seq_length = 128`, no con
-los 512 del transformador que llevan dentro.
+El factor de tiempo —108 s frente a 604 s al indexar— es lo que más llama la
+atención y lo que **menos** pesa, porque solo se paga al reconstruir el índice.
 
-Consecuencia sobre este corpus, medida y no estimada:
+### En qué condiciones se revisaría
 
-- La mediana de fragmento son **264 tokens**; el máximo, **469**.
-- **685 de los 781 fragmentos (88 %) se truncan** con la línea base.
-- El modelo llega a leer **94.023 de los 189.929 tokens del corpus: se
-  descarta el 50,5 %.** De media ve el 56 % de cada fragmento, y en el peor
-  caso el 27 %.
+Lo que hace esta decisión revisable y no arbitraria es que su premisa es
+identificable: **si desapareciera la restricción de memoria, la elección sería la
+opción B.** En concreto, si hubiera una GPU utilizable o si el sistema se
+desplegara en un servidor en lugar de en un equipo personal.
 
-Y `encode` **no avisa de nada**: recorta, devuelve un vector de aspecto normal
-y sigue. Se comprobó de forma directa, no leyendo la configuración: se incrustó
-un fragmento completo, y después ese mismo fragmento con su cola sustituida por
-texto basura. Con la línea base los dos vectores son **idénticos**
-(coseno 1,0000): el modelo nunca vio esa parte. Con la opción C el vector sí
-cambia (coseno 0,9673).
-
-Esto obliga a matizar la lectura del resultado, y hay que hacerlo en voz alta
-porque la lectura fácil es la equivocada:
-
-- ✅ **La comparación sigue siendo válida.** Cada modelo se usó como prescribe
-  su propia ficha, y la ventana **es parte de lo que se elige**: un modelo que
-  no puede leer los documentos del sistema no sirve para el sistema, y eso no
-  es un defecto del experimento sino un resultado suyo.
-- ⚠️ **Pero la explicación del margen no es «la arquitectura orientada a
-  recuperación».** Al menos una parte grande de la diferencia entre A y C es que
-  A lee la mitad del texto y C lo lee todo. Presentar 0,420 → 0,705 como una
-  mejora de calidad de las representaciones sería atribuir a una causa lo que
-  produce otra. Las dos son razones para elegir C; no son la misma razón.
-- ⚠️ **El experimento no separa las dos causas.** Para separarlas habría que
-  re-fragmentar el corpus a ≤ 126 tokens y volver a medir los cuatro modelos en
-  igualdad de ventana. Queda como amenaza declarada y como el siguiente
-  experimento natural, que además se solapa con la validación pendiente de los
-  parámetros de fragmentación (ADR-0001).
-
-Esto contradice además una afirmación del **ADR-0001**, que daba por hecho que
-«los modelos de embeddings multilingües habituales admiten ~512 tokens» y
-listaba entre sus consecuencias positivas que ningún fragmento «supera la
-ventana de embeddings». Con el modelo que el sistema montaba de verdad, esa
-afirmación era falsa para el 88 % del corpus. El ADR-0001 lo recoge ya en su
-adenda; **es la clase de premisa que hay que medir en vez de suponer.**
+También habría que reabrirla si el máximo de fragmento del ADR-0001 subiera lo
+suficiente como para agotar la ventana de 512 _tokens_.
 
 ## Consecuencias
 
 ### Positivas
 
-- **+0,285 en Recall@3 y +0,237 en MRR** sobre la línea base, medido en dos
-  corpus.
-- **La mejora es gratis en espacio:** misma dimensión (384) y mismo número de
-  parámetros (118 M) que la línea base, así que el índice no crece.
-- **Por primera vez se indexa el corpus entero.** Los 781 fragmentos entran
-  completos, sin recorte.
-- Más rápido que la opción B **en las dos ejecuciones** —y además mejor que
-  ella—, aunque los tiempos absolutos no son estables (ver arriba).
+- **El corpus se indexa entero.** Ningún fragmento se trunca: el más largo ocupa
+  **335 de los 510 _tokens_ útiles**, con 175 de margen.
+- **El índice es el más ligero de los cuatro candidatos:** 384 dimensiones frente
+  a las 1.024 de las opciones B y C.
+- **La unidad correcta siempre entra en el top-10** (`RU@10 = 1,000`), de modo
+  que el recuperador de la Fase 2 no necesita más de diez resultados para tener
+  delante la asignatura por la que se pregunta.
 - El resultado negativo de la opción D es aprovechable en la memoria: aporta
   evidencia de que la tarea de entrenamiento pesa más que el idioma, que es una
   conclusión más interesante que «gana el mejor».
@@ -209,389 +186,49 @@ adenda; **es la clase de premisa que hay que medir en vez de suponer.**
 ### Negativas
 
 - **Los prefijos son un invariante frágil.** `"query: "` y `"passage: "` no son
-  decorativos: el modelo trata los dos papeles de forma distinta. Olvidar el
-  prefijo en la consulta degrada la recuperación **sin ningún error visible**,
-  que es justo el patrón de fallo que este proyecto ya ha sufrido tres veces.
-  Debe protegerse con una prueba, no con un comentario.
-- **Techo de 512 tokens sin margen.** El fragmento más largo gasta 473 de los
-  510 útiles. Si el experimento de fragmentación de la Fase 1 recomendase
-  fragmentos mayores, este modelo dejaría de servir y habría que revisar este
-  ADR.
+  decorativos: el modelo trata los dos papeles de forma distinta, y olvidar el
+  prefijo en la consulta degrada la recuperación **sin ningún error visible**. Se
+  protege con una prueba, y el modelo vive en un único módulo
+  (`incrustaciones.py`) del que tiran tanto el indexador como el recuperador,
+  para que no puedan discrepar entre sí.
+- **Se renuncia a la mejor recuperación disponible** para caber en la máquina. Es
+  un compromiso consciente, no un empate.
 - Ata el código a una familia de modelos con una convención de llamada poco
   obvia, que cualquiera que retome el proyecto puede romper sin darse cuenta.
 - La reproducibilidad depende de que Hugging Face siga sirviendo esos pesos.
   Mitigación: quedan en caché local tras la primera descarga.
-- ~~`indexer.py` **sigue montando la línea base**. Mientras no se cambie, el
-  índice del sistema se construye con el modelo que este ADR descarta, y
-  truncando la mitad del corpus.~~ **Saldada en IT-98** (2026-08-04): el modelo
-  vive en `incrustaciones.py` y tanto el indexador como el recuperador lo
-  toman de ahí, de modo que no pueden discrepar entre sí.
-
-## Amenazas a la validez
-
-1. 🔴 **Los umbrales de la hipótesis se fijaron después de medir.** El
-   experimento de IT-28 se lanzó sin declarar antes qué mejora se consideraría
-   suficiente. Que el ganador arrase **no lo arregla**: es la definición de
-   hipótesis *post hoc*. Repetir el experimento sobre el corpus nuevo tampoco lo
-   arregla, porque el resultado ya se conocía.
-2. **Ventana y calidad no están separadas** (arriba). Es la amenaza a la
-   validez de construcción más seria de este ADR: se cree estar midiendo
-   «calidad de las representaciones» y se está midiendo también «cuánto texto
-   ha leído el modelo».
-3. **36 preguntas son pocas y no hay intervalos de confianza.** Una diferencia
-   de 0,285 en Recall@3 son unas 10 preguntas: es un margen grande, pero no está
-   respaldado por ninguna prueba inferencial. No se debe presentar como
-   significativo en sentido estadístico.
-4. **Un solo anotador.** El conjunto de evaluación lo escribió el propio autor,
-   sin acuerdo entre anotadores. Los juicios de relevancia pueden favorecer sin
-   querer la forma en que el corpus está redactado.
-5. **La categoría `sin guía` del conjunto solo tiene 2 preguntas** (bajó de 5
-   al publicar la fuente tres guías nuevas). Es precisamente el punto ciego del
-   corpus —62 asignaturas sin contenido, concentradas en las dos titulaciones
-   más nuevas— y es donde peor se está midiendo.
-6. **Los tiempos son de CPU** en una máquina concreta. Valen para comparar
-   entre sí los cuatro modelos, no como afirmación de rendimiento del sistema.
-7. **El Recall@3 de este ADR no puede llegar a 1: su techo es 0,868.** Añadida
-   el 01/08/2026 y desarrollada en el apartado siguiente. Es la que más cambia
-   cómo se leen las cifras de la tabla. *(Ese 0,868 es el del corpus de 781
-   fragmentos y 36 preguntas. Sobre los 797 fragmentos y 50 preguntas de la
-   adenda del 04/08 el techo es **0,905**, y sobre el corpus vigente de 884
-   habría que recalcularlo: ver la adenda del 05/08.)*
-
-## Adenda de 2026-08-01 — de dónde sale K, y su techo
-
-Dos cosas que este ADR usaba sin decirlas. Ninguna cambia la decisión; las dos
-cambian cómo hay que leer los números.
-
-### Por qué K vale 3 y 5
-
-Vienen de la Definición de Hecho de IT-28 («al menos K=3 y K=5»), y hasta hoy no
-estaban justificados en ninguna parte: ni aquí, ni en el cuerpo del commit que
-los introdujo, ni en la memoria. La razón es el **presupuesto de contexto** del
-LLM local. Con la mediana real de **264 tokens por fragmento**:
-
-| K | Contexto que consume |
-|---:|---:|
-| 3 | ~790 tokens |
-| 5 | ~1.320 |
-| 10 | ~2.640 |
-| 20 | ~5.280 |
-
-No es un techo del modelo —los candidatos de pesos abiertos admiten de 32k
-tokens en adelante— sino una elección de coste: cada fragmento de más es tiempo
-de proceso del *prompt* en CPU y un distractor más para el generador. **K podrá
-subir** si la evaluación de la Fase 2 muestra que hace falta; lo que decidirá no
-es la recuperación sino la fidelidad de la respuesta.
-
-⚠️ **Son dos K distintos y hoy coinciden por casualidad:** el de la métrica (este)
-y el del sistema, es decir, cuántos fragmentos entran de verdad en el *prompt*,
-que no está decidido y es parámetro del estudio de ablación (IT-49). Si el
-segundo cambia, este debe seguirlo, o se estará midiendo una configuración que el
-sistema no usa.
-
-### El techo de Recall@3 es 0,868, no 1
-
-Medido el 01/08/2026 sobre el conjunto de evaluación:
-
-| Fragmentos relevantes por pregunta | 1 | 2 | 3 | 4 | 5 | 6 | 9 | 11 |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Nº de preguntas | 9 | 11 | 4 | 5 | 4 | 1 | 1 | 1 |
-
-**12 de las 36 preguntas apuntan a más de 3 fragmentos**, así que es
-matemáticamente imposible recuperarlos todos en un top-3. Una pregunta con 11
-fragmentos relevantes tiene un Recall@3 máximo de 0,27 aunque el sistema acierte
-perfectamente. Promediando el máximo alcanzable de cada una sale **0,868**.
-
-Consecuencia para la lectura de la tabla de este ADR:
-
-| | |
-|---|---:|
-| Recall@3 del modelo elegido | 0,705 |
-| Techo alcanzable con este etiquetado | **0,868** |
-| Hueco real | **0,163**, no 0,295 |
-
-No invalida la comparación —los cuatro modelos comparten el mismo techo, así que
-el orden no se mueve— pero **presentar el 0,705 sin el techo hace que el sistema
-parezca bastante peor de lo que es**.
-
-El origen no es un defecto del recuperador sino la definición de relevancia:
-`evaluacion.py` documenta que Recall@K aquí mide **cobertura** y no acierto
-binario, y esa elección era deliberada. Lo que no se había calculado es su
-consecuencia numérica. Dónde está el orden real de lo recuperado:
-
-- **35 de 36 preguntas** ya tienen al menos un fragmento relevante en el top-3.
-- La posición mediana del primer relevante es **1**; la peor de las 36, la 6.
-
-Es decir: lo que falta para llegar al techo **no son documentos mal ordenados,
-son los demás fragmentos de la misma unidad**. Revisar el criterio de relevancia
-corresponde a IT-69, y la posible expansión por unidad al recuperar es una
-decisión del recuperador de la Fase 2.
-
-## Adenda de 2026-08-04 — la comparativa rehecha en igualdad de condiciones
-
-El cuerpo de este ADR se apoya en la ejecución del 29/07, que tenía un defecto de
-diseño reconocido en «Amenazas a la validez»: **dos de los cuatro candidatos no
-podían leer los fragmentos enteros**. Esa amenaza queda saldada, con evidencia, y
-la decisión hay que revisarla a la luz de lo siguiente. **El cuerpo original no se
-toca**; esta adenda dice qué sigue en pie y qué no.
-
-### Qué se hizo distinto
-
-Se rehízo el experimento (IT-100) con **cuatro candidatos de ventana ≥ 512 tokens**,
-de modo que los cuatro leen el corpus completo. La igualdad de condiciones ya no es
-una promesa del texto: la columna «Corpus leído» del informe la comprueba en cada
-ejecución. Corpus de 797 fragmentos (rastreo del 01/08/2026) y 50 preguntas.
-
-Los dos modelos *paraphrase* de ventana 128 salen de la comparativa. Sus cifras y el
-hallazgo del truncado quedan en `docs/experimentos/it28-embeddings-historico.md`.
-
-Resultados literales en `docs/experimentos/it28-embeddings.md`:
-
-| Modelo | RU@3 | RU@5 | RU@10 | R@3 | MRR | Truncados |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| intfloat/multilingual-e5-small | 0,945 | 0,970 | **1,000** | 0,771 | 0,881 | 0 |
-| **intfloat/multilingual-e5-large** | **0,995** | **1,000** | **1,000** | **0,831** | 0,948 | 0 |
-| BAAI/bge-m3 | 0,950 | 0,990 | 0,995 | 0,808 | **0,955** | 0 |
-| hiiamsid/sentence_similarity_spanish_es | 0,320 | 0,400 | 0,480 | 0,168 | 0,278 | 1 |
-
-### Lo que confirma
-
-**La conclusión sobre el modelo específico de español sale reforzada, y ahora sí
-demostrada.** En el cuerpo de este ADR se argumentaba que la tarea de entrenamiento
-pesa más que el idioma, pero se podía objetar que las cifras estaban contaminadas
-por el truncado. Ya no: `hiiamsid` lee el corpus entero —trunca 1 fragmento de 797—
-y aun así saca **0,320 de RU@3 frente a 0,945**, y **0,000** en las preguntas de
-listado. La explicación que queda es que está entrenado para similitud semántica y
-no para recuperación.
-
-Limitación que hay que mantener declarada: esto no demuestra que no pueda existir un
-modelo español bueno para recuperación, sino que **el mejor disponible hoy no lo es**.
-Comprobado el 04/08/2026: es el único específico de español con uso real.
-
-### Lo que obliga a revisar
-
-🔴 **`multilingual-e5-large` recupera mejor que el modelo elegido, en todas las
-métricas.** RU@3 de 0,995 frente a 0,945, y RU@5 de 1,000. Sobre 50 preguntas son
-**dos preguntas y media** de diferencia.
-
-Mantener `multilingual-e5-small` sigue siendo defendible, pero **por coste y no por
-calidad**, y el ADR tiene que decirlo con esas palabras:
-
-- El grande ocupa **~2,2 GB de RAM frente a ~0,5 GB**, en una máquina de 16 GB donde
-  en la Fase 2 tendrá que convivir con un LLM. No es un argumento de velocidad: la
-  primera ejecución de la comparativa **murió por falta de memoria** cargándolo.
-- El pequeño alcanza **RU@10 = 1,000**: la unidad correcta siempre está entre las
-  diez primeras.
-- Lo que el pequeño pierde está **localizado** —preguntas de metadatos (0,602 frente
-  a 0,870) y de salidas—, y es atacable filtrando por metadatos en el índice, para lo
-  que ya existe `tipo_asignatura` desde IT-100, en vez de cambiando de modelo.
-
-El análisis completo de ese compromiso, con las frecuencias de cada coste, está en
-`docs/experimentos/modelo-grande-frente-a-pequeno.md`.
-
-### Ratificación (2026-08-05)
-
-**Se ratifica `intfloat/multilingual-e5-small`.** El criterio que decide **no es la
-calidad de la recuperación sino la viabilidad del sistema completo** en el equipo en
-el que se va a defender, y este ADR tiene que decirlo con esas palabras y no dar a
-entender que gana en las métricas, porque no gana.
-
-Los tres apoyos, con las cifras de `docs/experimentos/it28-embeddings.md`:
-
-1. **Con diez resultados por consulta los dos empatan en lo que importa.** RU@10 vale
-   **1,000 en ambos**: la unidad correcta siempre está entre las diez primeras. La
-   ventaja del grande vive en K=3 (0,945 frente a 0,995), y K=10 son unos 2.640
-   tokens de contexto, holgados para cualquier LLM de pesos abiertos.
-   ⚠️ **El matiz que no se puede omitir:** empatan en exhaustividad *por unidad*, no
-   *por fragmento*. En R@10 el pequeño saca **0,938 frente a 0,985**, sobre un techo
-   alcanzable de 0,998. Decir «con K=10 alcanza al grande» sin acotar a qué métrica es
-   una afirmación que se cae en cuanto alguien mira la tabla.
-2. **El coste que se paga siempre es la memoria residente**, ~0,5 GB frente a ~2,2 GB,
-   y en la Fase 2 el recuperador tendrá que convivir con el modelo generativo en una
-   máquina de 16 GB. El factor 8× de tiempo de indexación, que es lo que más llama la
-   atención, es justo lo que **menos** importa: solo se paga al reindexar. La primera
-   ejecución de la comparativa **murió por falta de memoria** cargando el grande.
-3. **La diferencia total son 2,5 preguntas sobre 50**, y el conjunto lo ha anotado una
-   sola persona. Esa magnitud cabe dentro de lo que movería otra anotación, así que la
-   separación no se presenta como establecida.
-
-**En qué condiciones la decisión sería la contraria**, que es lo que la hace revisable
-y no arbitraria: si hubiera una GPU utilizable, si el sistema se desplegara en un
-servidor en lugar de en un equipo personal, o si se decidiera operar con K=3.
-
-🔴 **Una dependencia que hay que declarar, porque es circular si no se dice.** El
-apoyo principal de esta ratificación es que el sistema usará K=10, y **K=10 no está
-decidido**: es parámetro del estudio de ablación (IT-49), como advierte este mismo ADR
-unas líneas más arriba. Si la Fase 2 acabara operando con K=3 por coste de contexto,
-esta ratificación se quedaría sin su argumento principal y habría que reabrirla.
-
-**Lo que no se ha medido**, y por tanto no se afirma: la latencia de una consulta con
-cada modelo, y el consumo de memoria del sistema completo con el generativo dentro. Lo
-segundo no puede medirse hasta el ADR-0005. Mientras tanto, el punto 2 es un argumento
-de orden de magnitud, no una medición del conjunto.
-
-### Lo que NO arregla esta adenda
-
-La amenaza principal declarada en el cuerpo —**el experimento se ejecutó sin fijar
-antes los umbrales de la hipótesis**— sigue en pie. Fijarlos ahora, conociendo los
-resultados, sería peor que no fijarlos. Se mantiene declarada, y se corrige de cara
-al ADR-0004 (base vectorial), cuyos umbrales están escritos antes de ejecutar nada.
-
-Y los tiempos de las tres ejecuciones **no son comparables entre sí**: cambiaron el
-corpus, el conjunto de preguntas, el tamaño de lote (de 32 a 8, por memoria) y los
-modelos. La columna de tiempo solo separa órdenes de magnitud.
-
-## Adenda de 2026-08-05 — el corpus ya no es el que se midió
-
-IT-101 incorporó al corpus los planes de estudio de las cinco titulaciones dobles, que
-hasta entonces estaban sin una sola asignatura. **El corpus pasó de 797 a 884
-fragmentos** (+11 %), y el conjunto de asignaturas de 350 a 528.
-
-Consecuencia para este ADR, que hay que tener presente al citarlo:
-
-- **Las cifras absolutas de sus tablas corresponden a un corpus que ya no existe.** No
-  se recalculan aquí: el experimento se ejecutó sobre 797 fragmentos y así queda
-  registrado, con su fecha.
-- **El orden entre los modelos no debería moverse.** Ya se comprobó estable sobre dos
-  corpus distintos (892 y 781 fragmentos), que es justamente lo que permitió fijar la
-  decisión. Pero eso es una expectativa razonable, **no una medición sobre el corpus
-  nuevo**, y como tal se declara.
-- **El techo de exhaustividad por fragmento cambia con el corpus.** Sobre los 797
-  fragmentos y las 50 preguntas valía 0,905 para K=3, 0,977 para K=5 y 0,998 para
-  K=10. Los 0,868 que cita la adenda del 01/08/2026 son de un corpus y un conjunto de
-  preguntas anteriores (781 fragmentos, 36 preguntas) y no deben mezclarse con las
-  tablas de la adenda del 04/08.
-- **IT-31 debe ejecutarse sobre los 884 fragmentos**, no sobre los 797.
-
-## Adenda de 2026-08-06 — el troceado cambia la distancia entre los dos candidatos
-
-La adenda anterior avisaba de que las cifras correspondían a un corpus que ya no existía y
-de que el orden entre los modelos era **una expectativa razonable y no una medición**. Se ha
-medido. IT-16 fijó experimentalmente los parámetros de fragmentación y bajó el máximo de
-fragmento de 1.500 a 900 caracteres, con lo que el corpus pasó de 884 a **1.334 fragmentos**.
-La comparativa se repitió el 06/08/2026 sobre ese corpus, con las mismas 50 preguntas y los
-mismos cuatro candidatos.
-
-### Resultados
-
-| Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| **intfloat/multilingual-e5-small** | 0,697 | 0,803 | 0,911 | **0,985** | 0,990 | **1,000** | **0,970** | 108,0 |
-| intfloat/multilingual-e5-large | 0,740 | 0,852 | 0,938 | **0,995** | 1,000 | 1,000 | **0,970** | 604,3 |
-| BAAI/bge-m3 | 0,720 | 0,836 | 0,917 | 0,985 | 0,995 | 0,995 | 0,949 | 650,3 |
-| hiiamsid/sentence\_similarity\_spanish\_es | 0,152 | 0,194 | 0,307 | 0,410 | 0,505 | 0,610 | 0,342 | 220,6 |
-
-Techos de exhaustividad por fragmento sobre este corpus: **0,789** (K=3), **0,906** (K=5) y
-**0,968** (K=10). Bajan respecto a los del corpus anterior (0,905 / 0,977 / 0,998) porque
-cada unidad se reparte ahora en más fragmentos y caben peor enteras en un top-K.
-
-### Lo que confirma
-
-**El orden de los cuatro modelos se mantiene, y ya van cuatro corpus distintos** (892, 781,
-797 y 1.334 fragmentos, con dos troceados y dos conjuntos de preguntas). Esa es la
-comprobación que la adenda anterior dejaba pendiente de forma explícita, y sale a favor.
-
-**La conclusión sobre el modelo específico de español se sostiene por tercera vez.**
-`hiiamsid` mejora con el troceado fino —RU@3 de 0,320 a 0,410— y sigue estando **más de dos
-veces por debajo** del peor de los multilingües, con **0,000 en las preguntas de listado**.
-
-### Lo que cambia, y afecta al argumento de la ratificación
-
-🔴 **La distancia entre el modelo pequeño y el grande se reduce a la décima parte.**
-
-| | Corpus de 797 (máx. 1.500) | Corpus de 1.334 (máx. 900) |
-|---|---:|---:|
-| RU@3 del pequeño | 0,945 | **0,985** |
-| RU@3 del grande | 0,995 | 0,995 |
-| Diferencia | 0,050 | **0,010** |
-| Traducido a preguntas de 50 | 2,5 | **0,5** |
-| MRR del pequeño / del grande | 0,881 / 0,948 | **0,970 / 0,970** |
-
-Y hay una inversión que conviene mirar dos veces, porque contradice el análisis anterior:
-
-| Recall@5 por tipo | Pequeño (797) | Grande (797) | Pequeño (1.334) | Grande (1.334) |
-|---|---:|---:|---:|---:|
-| metadatos | 0,602 | **0,870** | **0,697** | 0,664 |
-| salidas | 0,812 | **1,000** | 0,690 | **0,889** |
-| temario | 0,782 | **0,878** | 0,723 | **0,776** |
-
-En **metadatos**, que era «donde está el grueso» de la ventaja del grande según el análisis
-de `docs/experimentos/modelo-grande-frente-a-pequeno.md`, el pequeño pasa a ir por delante.
-Esa nota queda por tanto **desactualizada en su apartado 2** y hay que leerla con esta adenda
-al lado.
-
-**Consecuencia sobre la ratificación del 05/08.** Aquella ratificación se declaró a sí misma
-frágil por una razón concreta: su apoyo principal era que el sistema operaría con diez
-resultados por consulta, y **K=10 no está decidido**. Ese riesgo desaparece. Con el troceado
-vigente los dos modelos se separan por media pregunta de cincuenta ya en K=3, de modo que la
-decisión **deja de depender de un parámetro que aún no se ha fijado**. La ratificación sale
-reforzada, y por un motivo mejor que el que tenía.
-
-De la lista de condiciones que darían la vuelta a la decisión, **«si se decidiera operar con
-K=3» deja de valer**. Siguen en pie las otras dos: una GPU utilizable, o un despliegue en
-servidor en lugar de en un equipo personal.
-
-### Lo que NO se puede leer aquí
-
-⚠️ **Esto no dice que el modelo pequeño haya mejorado.** El modelo es el mismo; lo que ha
-cambiado es la colección. Un troceado más fino reparte cada unidad en más fragmentos y le da
-más oportunidades de aparecer en el top-K, y de eso se beneficia más el modelo que peor las
-aprovechaba. El propio ADR-0001 declara que la exhaustividad por unidad **no es inmune al
-troceo**, y esta tabla es un ejemplo de ello.
-
-⚠️ **La exhaustividad por fragmento baja (0,771 → 0,697 en el modelo elegido) y no es una
-regresión.** El techo baja con ella, de 0,905 a 0,789. Medido contra su techo, el hueco pasa
-de 0,134 a 0,092: el sistema cubre *mejor* cada unidad, no peor. Presentar el 0,697 sin el
-techo diría lo contrario de lo que ocurre.
-
-🔴 **Nadie ha explorado el espacio conjunto de las dos decisiones.** La rejilla de
-fragmentación se midió con el modelo ya fijado (`e5-small`), y esta comparativa de modelos se
-mide con el troceado ya fijado (900). Cada experimento mantiene constante la decisión del
-otro, que es lo que los hace interpretables por separado, pero **no se ha comprobado que la
-pareja elegida sea la mejor pareja**. Que el mejor troceado para el modelo pequeño lo sea
-también para el grande es una suposición, no un resultado. Es la amenaza a la validez que
-esta adenda añade, y no se resuelve con las dos ejecuciones que hay.
-
-**La amenaza principal del cuerpo sigue en pie**: el experimento se ejecutó sin fijar antes
-los umbrales de la hipótesis. Repetirlo por cuarta vez no lo arregla.
-
-Y los tiempos siguen sin ser comparables entre ejecuciones: cambiaron el corpus, el troceado
-y la carga de la máquina. El pequeño tarda 108 s frente a los 604 s del grande, que es el
-mismo orden de magnitud de diferencia de siempre y el argumento que menos pesa, porque solo
-se paga al reindexar.
-
-### Consecuencia práctica
-
-**IT-31 (ADR-0004) debe ejecutarse sobre los 1.334 fragmentos**, no sobre los 884 que decía
-la adenda anterior ni sobre los 797 de la comparativa del 04/08. Y el índice vectorial de
-`data/indice_chroma/` está construido con 781 vectores: hay que reconstruirlo antes de medir
-nada contra él.
+- **No se ha explorado el espacio conjunto de esta decisión y la del ADR-0001.**
+  La rejilla de fragmentación se midió con el modelo ya fijado, y esta
+  comparativa con el troceado ya fijado. Cada una es interpretable por separado,
+  pero que la pareja elegida sea la mejor pareja es una suposición y no un
+  resultado.
 
 ## Referencias
 
 - Fichas de los cuatro modelos evaluados, enlazadas en cada alternativa.
-- Resultados literales de las dos ejecuciones:
-  `docs/experimentos/it28-embeddings.md` (29/07) y
-  `docs/experimentos/it28-embeddings-historico.md` (24/07).
-- Documentación de sentence-transformers, sobre `max_seq_length` y el recorte
+- Resultados literales: `docs/experimentos/it28-embeddings.md`. Los de los
+  modelos excluidos por ventana, en
+  `docs/experimentos/it28-embeddings-historico.md`.
+- Documentación de `sentence-transformers`, sobre `max_seq_length` y el recorte
   automático: [https://www.sbert.net/](https://www.sbert.net/)
-- L. Wang, N. Yang, X. Huang, L. Yang, R. Majumder, F. Wei, "Multilingual E5
-  Text Embeddings: A Technical Report", 2024. arXiv:2402.05672
+- L. Wang, N. Yang, X. Huang, L. Yang, R. Majumder, F. Wei, "Multilingual E5 Text
+  Embeddings: A Technical Report", 2024. arXiv:2402.05672
   ([https://arxiv.org/abs/2402.05672](https://arxiv.org/abs/2402.05672)) —
   familia E5 multilingüe y el uso de los prefijos de papel.
 - L. Wang, N. Yang, X. Huang, B. Jiao, L. Yang, D. Jiang, R. Majumder, F. Wei,
   "Text Embeddings by Weakly-Supervised Contrastive Pre-training", 2022.
   arXiv:2212.03533
-  ([https://arxiv.org/abs/2212.03533](https://arxiv.org/abs/2212.03533)) —
-  el entrenamiento contrastivo del que sale la familia E5.
-- N. Reimers, I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese
-  BERT-Networks", EMNLP 2019. arXiv:1908.10084
-  ([https://arxiv.org/abs/1908.10084](https://arxiv.org/abs/1908.10084)) —
-  base de la familia *paraphrase* (opciones A y B).
+  ([https://arxiv.org/abs/2212.03533](https://arxiv.org/abs/2212.03533)) — el
+  entrenamiento contrastivo del que sale la familia E5.
+- J. Chen, S. Xiao, P. Zhang, K. Luo, D. Lian, Z. Liu, "M3-Embedding:
+  Multi-Linguality, Multi-Functionality, Multi-Granularity Text Embeddings
+  Through Self-Knowledge Distillation", 2024. arXiv:2402.03216
+  ([https://arxiv.org/abs/2402.03216](https://arxiv.org/abs/2402.03216)) — el
+  modelo distribuido como `BAAI/bge-m3`.
 - N. Muennighoff, N. Tazi, L. Magne, N. Reimers, "MTEB: Massive Text Embedding
   Benchmark", 2022. arXiv:2210.07316
   ([https://arxiv.org/abs/2210.07316](https://arxiv.org/abs/2210.07316)) —
-  contexto sobre por qué un modelo entrenado para recuperación rinde distinto
-  que uno entrenado para similitud.
+  contexto sobre por qué un modelo entrenado para recuperación rinde distinto que
+  uno entrenado para similitud.
 - M. Nygard, "Documenting Architecture Decisions", cognitect.com
   ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
