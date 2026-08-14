@@ -37,6 +37,26 @@ a lo largo de la memoria, ordenados alfabéticamente.
         un modelo de lenguaje. En este trabajo, el término se usa también para la
         colección documental extraída de la web de la EPSJ.
         
+  \item[Exhaustividad (\textit{Recall@K})] \textcolor{borrador2}{Métrica de
+        recuperación que mide qué proporción de los fragmentos que hacían falta
+        para responder aparecen entre los $K$ primeros resultados. No juzga la
+        respuesta, sino el material con el que el modelo va a contar para
+        redactarla. Su definición formal es la Ecuación~\ref{eq:recall_at_k}.}
+
+  \item[Fidelidad del índice] \textcolor{borrador2}{Grado en que una base de
+        datos vectorial devuelve exactamente los mismos vecinos que la búsqueda
+        exacta sobre los mismos vectores. Es una propiedad de la herramienta de
+        almacenamiento, y se comprueba comparándola con una búsqueda por fuerza
+        bruta que sirve de referencia.}
+
+  \item[Fidelidad de la respuesta (\textit{faithfulness})]
+        \textcolor{borrador2}{Grado en que lo que afirma una respuesta generada
+        está respaldado por los fragmentos que se le entregaron como contexto.
+        Es una propiedad del modelo de lenguaje, no del almacenamiento, y es lo
+        que se mide para detectar alucinaciones. Conviene no confundirla con la
+        fidelidad del índice: son medidas distintas, sobre piezas distintas del
+        sistema y en momentos distintos.}
+
   \item[Fragmentación (\textit{chunking})] Proceso de dividir cada documento
         de la colección en fragmentos de un tamaño manejable para el modelo de
         incrustaciones, procurando que cada uno conserve sentido por sí solo.
@@ -84,6 +104,12 @@ a lo largo de la memoria, ordenados alfabéticamente.
         partir del contexto anterior, capacidad de la que emergen la generación y
         la comprensión de lenguaje natural que exhiben estos modelos.
         
+  \item[Rango recíproco medio (\textit{Mean Reciprocal Rank}, MRR)]
+        \textcolor{borrador2}{Métrica de recuperación que premia colocar el
+        primer resultado correcto lo más arriba posible, y no solo colocarlo:
+        toma el inverso de la posición en que aparece y lo promedia sobre todas
+        las preguntas. Su definición formal es la Ecuación~\ref{eq:mrr}.}
+
   \item[Rastreador web (\textit{spider})] Programa que recorre de forma
         automática las páginas de un sitio web siguiendo sus enlaces, para extraer
         de ellas datos estructurados.
@@ -147,6 +173,8 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[LLM] Modelo de lenguaje grande (\textit{Large Language Model}).
   \item[MoSCoW] Técnica de priorización que clasifica las tareas en
         \textit{Must}, \textit{Should}, \textit{Could} y \textit{Won't}.
+  \item[MRR] \textcolor{borrador2}{Rango recíproco medio (\textit{Mean
+          Reciprocal Rank}).}
   \item[NLG] Generación de lenguaje natural (\textit{Natural Language
           Generation}), la vertiente del PLN dedicada a producir texto.
   \item[NLP] Procesamiento del lenguaje natural (\textit{Natural Language
