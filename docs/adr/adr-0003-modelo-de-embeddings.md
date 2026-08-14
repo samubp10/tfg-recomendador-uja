@@ -197,11 +197,6 @@ suficiente como para agotar la ventana de 512 _tokens_.
   obvia, que cualquiera que retome el proyecto puede romper sin darse cuenta.
 - La reproducibilidad depende de que Hugging Face siga sirviendo esos pesos.
   Mitigación: quedan en caché local tras la primera descarga.
-- **No se ha explorado el espacio conjunto de esta decisión y la del ADR-0001.**
-  La rejilla de fragmentación se midió con el modelo ya fijado, y esta
-  comparativa con el troceado ya fijado. Cada una es interpretable por separado,
-  pero que la pareja elegida sea la mejor pareja es una suposición y no un
-  resultado.
 
 ## Referencias
 

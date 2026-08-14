@@ -20,6 +20,7 @@ from __future__ import annotations
 import importlib.util
 import statistics
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -48,6 +49,10 @@ _spec.loader.exec_module(exp)
 #: aparece varias veces y deja de poder atribuirse al azar de una ejecución.
 CICLOS: Final[int] = 20
 
+#: Informe que escribe el guion. Se versiona, igual que el del resto de
+#: experimentos, para que la tabla de U6 no dependa de una transcripción.
+SALIDA: Final[Path] = RAIZ / "docs" / "experimentos" / "it31-reproducibilidad.md"
+
 
 def resumir(nombre: str, fidelidades: list[float], latencias: list[float]) -> None:
     """Imprime el resumen de una candidata sobre todos los ciclos.
@@ -72,6 +77,54 @@ def resumir(nombre: str, fidelidades: list[float], latencias: list[float]) -> No
         f"  U3 latencia  : min={min(latencias):.2f} "
         f"mediana={statistics.median(latencias):.2f} max={max(latencias):.2f} ms"
     )
+
+
+def informe(registro: dict[str, dict[str, list[float]]], ciclos: int) -> str:
+    """Compone el informe en Markdown de una tanda de repeticiones.
+
+    Existe porque este guion solo imprimía por pantalla, de modo que la tabla
+    que descarta a una candidata por U1 acababa transcrita a mano en el
+    ADR-0004 y no era reproducible desde ningún fichero versionado. Es la misma
+    convención que ya siguen los otros experimentos del proyecto: los escribe
+    el guion, no una persona.
+
+    Args:
+        registro: Fidelidades y latencias de cada candidata, por ciclo.
+        ciclos: Número de ciclos ejecutados.
+
+    Returns:
+        El informe completo, listo para escribirse en disco.
+    """
+    lineas = [
+        "# IT-31 — Reproducibilidad de la comparativa de bases vectoriales (U6)",
+        "",
+        f"Generado el {datetime.now():%d/%m/%Y} por "
+        "`scripts/repeticiones_vectordb.py`, sobre "
+        f"**{ciclos} reconstrucciones completas** de cada índice con los mismos "
+        "vectores. U6 pide que los resultados se repitan a tres decimales, y una "
+        "sola pasada no puede comprobarlo.",
+        "",
+        "| Candidata | Fidelidad (valores distintos) | Ciclos que fallan U1 | "
+        "Latencia mediana (ms) | ¿Cumple U6? |",
+        "|---|---|---:|---:|---|",
+    ]
+    for nombre, datos in registro.items():
+        fid = datos["fidelidad"]
+        lat = datos["latencia"]
+        fallos = sum(1 for f in fid if f < 1.0)
+        distintos = " / ".join(sorted({f"{f:.4f}" for f in fid}))
+        lineas.append(
+            f"| {nombre} | {distintos} | {fallos} de {len(fid)} | "
+            f"{statistics.median(lat):.2f} | {'no' if fallos else 'sí'} |"
+        )
+    lineas += [
+        "",
+        "La variabilidad está en la **construcción** del índice, no en la "
+        "consulta: consultar varias veces el mismo índice da siempre el mismo "
+        "resultado.",
+        "",
+    ]
+    return "\n".join(lineas)
 
 
 def main(argumentos: list[str]) -> None:
@@ -130,6 +183,10 @@ def main(argumentos: list[str]) -> None:
     print(f"\n{'=' * 70}\nRESUMEN DE {ciclos} CICLOS\n{'=' * 70}")
     for nombre, datos in registro.items():
         resumir(nombre, datos["fidelidad"], datos["latencia"])
+
+    SALIDA.parent.mkdir(parents=True, exist_ok=True)
+    SALIDA.write_text(informe(registro, ciclos), encoding="utf-8")
+    print(f"\nInforme escrito en {SALIDA.relative_to(RAIZ)}")
 
 
 if __name__ == "__main__":

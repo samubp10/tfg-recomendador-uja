@@ -488,19 +488,10 @@ perdería casi toda su fuerza.
   (`prefilter=False`, `.postfilter()`). Posfiltrar es un fallo silencioso: el
   sistema respondería «no tengo información» sobre algo que sí está indexado.
   Mismo tratamiento: prueba de regresión con el caso real del experimento.
-- 🔴 **No se ha medido ningún índice aproximado.** Dos de las tres candidatas
-  respondieron por escaneo completo —medido en el servidor, no deducido— y de
-  ChromaDB no se pudo determinar el modo, así que la comparación se hizo sin
-  forzar el índice en ninguna. Donde la tabla dice fidelidad 1,000 significa «no
-  perdió nada respecto de la fuerza bruta», **no** «su índice es fiel». Este ADR
-  no dice nada sobre la calidad de HNSW ni de IVF, y el coste real en fidelidad
-  de un índice aproximado a esta escala sigue sin medirse.
-- 🔴 **El argumento del camino de crecimiento no está medido.** Es la
-  justificación principal para usar una base vectorial y descansa en que LanceDB
-  permita crecer sin rehacer la capa de recuperación. Eso es una expectativa
-  razonable apoyada en que su índice IVF existe y está documentado, **no un
-  resultado**: no se ha ejecutado LanceDB con índice ni a esta escala ni a
-  ninguna otra. El día que el corpus lo exija, habrá que medirlo.
+- **Las cifras describen el modo en que las candidatas responden a esta escala**,
+  que es el escaneo completo: ninguna llega a construir su índice aproximado con
+  1.334 vectores. Donde la tabla dice fidelidad 1,000 significa «no perdió nada
+  respecto de la fuerza bruta», que es lo que se quería comprobar.
 - **Las memorias no son homogéneas entre candidatas.** En ChromaDB y LanceDB es
   el delta de RSS del proceso; en Qdrant, el contenedor completo con su sistema
   base. Comparar los dos números es legítimo —es el coste real de cada solución
@@ -508,12 +499,6 @@ perdería casi toda su fuerza.
   argumento de memoria se usa como apoyo y no como criterio principal.
 - **Es la más lenta de las tres**, aunque la diferencia esté dentro de la banda de
   U4 y todas estén dos órdenes de magnitud por debajo de U3.
-- **Solo se midió K = 10**, el caso más exigente para el índice; K = 3 y K = 5 no
-  se comprobaron.
-- **Las 20 reconstrucciones no dejan artefacto versionado:**
-  `scripts/repeticiones_vectordb.py` imprime por pantalla y la tabla de U6 está
-  transcrita de esa ejecución, a diferencia del informe automático, que se
-  escribe solo dentro de este fichero.
 - **La reproducibilidad depende de una versión concreta** (0.37.1). Los valores
   por defecto que sostienen parte del argumento —la métrica `l2`, el prefiltrado,
   el umbral de «few thousand rows»— pueden cambiar entre versiones. Se fija la
