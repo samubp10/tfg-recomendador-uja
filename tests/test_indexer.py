@@ -9,6 +9,11 @@ profesionales (``codigos=[None]``) y una asignatura sin guía.
 El incrustador es falso e inyectado: determinista y sin red, porque estas
 pruebas verifican el pipeline de indexación, no el modelo de embeddings
 (cuya elección es objeto del experimento IT-28).
+
+La base es LanceDB (ADR-0004), que **no ofrece cliente en memoria**: persiste
+siempre en disco. Las pruebas usan por tanto la carpeta temporal que pytest
+crea por prueba, no un directorio compartido, para que ninguna herede el
+índice que dejó otra.
 """
 
 from __future__ import annotations
@@ -17,21 +22,23 @@ import json
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
-import chromadb
+import lancedb
+import pyarrow as pa
 import pytest
 
 from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
 from tfg_uja.indexer import (
     COLECCION,
-    AlmacenChroma,
+    DISTANCIA,
+    AlmacenLance,
     AlmacenVectorial,
     Metadatos,
     cargar_chunks,
-    crear_almacen_chroma,
+    crear_almacen_lance,
     indexar_chunks,
     metadatos_de_chunk,
+    metadatos_de_indice,
     procedencia_de_indice,
     reconstruir_indice,
 )
@@ -49,6 +56,22 @@ def incrustador_falso(textos: list[str]) -> list[list[float]]:
     return [[float(len(texto) % 97)] + [0.0] * (DIMENSION - 1) for texto in textos]
 
 
+def filas(almacen: AlmacenLance) -> list[dict[str, Any]]:
+    """Devuelve el contenido de la tabla tal como quedó almacenado."""
+    return list(almacen.tabla.to_arrow().to_pylist())
+
+
+def filtrar(almacen: AlmacenLance, expresion: str) -> list[str]:
+    """Nombres de los fragmentos que casan con un filtro de metadatos.
+
+    Es un escaneo con filtro, no una búsqueda vectorial: aquí se comprueba que
+    el dato quedó almacenado de forma que se pueda filtrar por él, que es un
+    invariante de la escritura. La recuperación es cosa de IT-37.
+    """
+    encontradas = almacen.tabla.search().where(expresion, prefilter=True).to_list()
+    return [f["nombre"] for f in encontradas]
+
+
 @pytest.fixture()
 def chunks_reales() -> list[dict[str, Any]]:
     """Chunks reales del dataset, con sus anomalías conocidas."""
@@ -57,44 +80,48 @@ def chunks_reales() -> list[dict[str, Any]]:
 
 
 @pytest.fixture()
-def coleccion() -> chromadb.Collection:
-    """Colección efímera de ChromaDB (en memoria, sin persistencia).
-
-    El nombre lleva un sufijo único porque el cliente efímero de ChromaDB
-    comparte estado dentro del proceso: un nombre fijo colisionaría entre
-    tests.
-    """
-    cliente = chromadb.EphemeralClient()
-    return cliente.create_collection(
-        f"prueba_chunks_{uuid4().hex}", metadata={"hnsw:space": "cosine"}
-    )
+def almacen(tmp_path) -> AlmacenLance:
+    """El almacén que fija el ADR-0004: una tabla de LanceDB en disco."""
+    base = lancedb.connect(str(tmp_path / "indice"))
+    return AlmacenLance(base, {"modelo": MODELO, "distancia": DISTANCIA})
 
 
-@pytest.fixture()
-def almacen(coleccion) -> AlmacenVectorial:
-    """El almacén de hoy: ChromaDB en memoria."""
-    return AlmacenChroma(coleccion)
-
-
-def test_indexa_todos_los_chunks(chunks_reales, almacen, coleccion):
+def test_indexa_todos_los_chunks(chunks_reales, almacen):
     """El nº de vectores indexados coincide con el nº de chunks (DoD IT-30)."""
     total = indexar_chunks(chunks_reales, almacen, incrustador_falso)
     assert total == len(chunks_reales)
-    assert coleccion.count() == len(chunks_reales)
+    assert almacen.tabla.count_rows() == len(chunks_reales)
 
 
-def test_metadatos_sin_perdida(chunks_reales, almacen, coleccion):
+def test_metadatos_sin_perdida(chunks_reales, almacen):
     """Grados, códigos, nombre y numeración sobreviven al viaje de ida y vuelta."""
     indexar_chunks(chunks_reales, almacen, incrustador_falso)
-    guardado = coleccion.get(ids=["chunk-0000"], include=["metadatas", "documents"])
+    guardado = next(f for f in filas(almacen) if f["id"] == "chunk-0000")
     original = chunks_reales[0]
-    metadatos = guardado["metadatas"][0]
-    assert metadatos["nombre"] == original["nombre"]
-    assert metadatos["origen"] == original["origen"]
-    assert list(metadatos["grados"]) == original["grados"]
-    assert metadatos["chunk_index"] == original["chunk_index"]
-    assert metadatos["total_chunks"] == original["total_chunks"]
-    assert guardado["documents"][0] == original["texto"]
+    assert guardado["nombre"] == original["nombre"]
+    assert guardado["origen"] == original["origen"]
+    assert list(guardado["grados"]) == original["grados"]
+    assert guardado["chunk_index"] == original["chunk_index"]
+    assert guardado["total_chunks"] == original["total_chunks"]
+    assert guardado["texto"] == original["texto"]
+
+
+def test_el_esquema_declara_el_vector_y_las_listas(chunks_reales, almacen):
+    """El esquema no se infiere del primer lote: se declara entero.
+
+    El vector va como lista de tamaño fijo ---es lo que permite a la base
+    tratarlo como vector--- y las dos listas paralelas como listas nativas de
+    cadenas. Si alguna de las tres se almacenara como otra cosa, nada fallaría
+    al indexar: el defecto aparecería al recuperar.
+    """
+    indexar_chunks(chunks_reales, almacen, incrustador_falso)
+    esquema = almacen.tabla.schema
+    # Los tipos esperados se escriben aquí en vez de pedírselos a
+    # `esquema_lance`: comparar el esquema con el que produce la propia
+    # función que se está probando daría verde con cualquier tipo.
+    assert esquema.field("vector").type == pa.list_(pa.float32(), DIMENSION)
+    assert esquema.field("grados").type == pa.list_(pa.string())
+    assert esquema.field("codigos").type == pa.list_(pa.string())
 
 
 def test_guia_compartida_conserva_las_listas_paralelas(chunks_reales):
@@ -115,30 +142,34 @@ def test_codigo_ausente_se_refleja_como_vacio(chunks_reales):
     assert metadatos["codigos"] == [""]
 
 
-def test_un_codigo_ausente_no_impide_almacenar(chunks_reales, almacen, coleccion):
-    """ChromaDB rechaza una lista de metadatos con None: hay que traducirlo.
+def test_un_codigo_ausente_no_impide_almacenar(chunks_reales, almacen):
+    """Regresión: 55 fragmentos del corpus llegan con ``codigos=[None]``.
 
-    Regresión: 55 fragmentos del corpus llegan con ``codigos=[None]`` porque
-    hablan de la titulación entera. Guardar la lista en crudo lanzaría
-    ``ValueError`` y la indexación entera se caería.
+    Son las salidas profesionales y los planes de estudio, que hablan de la
+    titulación entera y no de una asignatura. La base admitiría el nulo tal
+    cual, así que aquí no se comprueba que no reviente, sino que el ausente
+    llega almacenado como el mismo valor explícito para todos: una columna que
+    mezclara nulos y cadenas trataría distinto a dos fragmentos que
+    representan lo mismo.
     """
     salidas = [c for c in chunks_reales if c["origen"] == "salidas"]
     assert salidas, "la fixture debe incluir un bloque de salidas"
     indexar_chunks(salidas, almacen, incrustador_falso)
-    assert coleccion.count() == len(salidas)
+    assert almacen.tabla.count_rows() == len(salidas)
+    assert all(fila["codigos"] == [""] for fila in filas(almacen))
 
 
 # --- IT-31: filtrar por una titulación no puede arrastrar al doble grado ---
 
 
-def test_filtrar_por_una_titulacion_no_arrastra_el_doble_grado(coleccion):
+def test_filtrar_por_una_titulacion_no_arrastra_el_doble_grado(almacen):
     """El caso real que decide guardar listas en vez de una cadena unida.
 
     Cuatro nombres de titulación del corpus son subcadena de otro: «Grado en
     Ingeniería Eléctrica» lo es de «Doble Grado en Ingeniería Eléctrica y
     Mecánica». Con las listas serializadas en una cadena, filtrar por el grado
     simple devolvía también los fragmentos que solo pertenecen al doble.
-    Guardándolas como listas, ``$contains`` casa por elemento exacto.
+    Guardándolas como listas, ``array_has_any`` casa por elemento exacto.
     """
     simple = "Grado en Ingeniería Eléctrica"
     doble = "Doble Grado en Ingeniería Eléctrica y Mecánica"
@@ -166,14 +197,13 @@ def test_filtrar_por_una_titulacion_no_arrastra_el_doble_grado(coleccion):
             "total_chunks": 1,
         },
     ]
-    indexar_chunks(chunks, AlmacenChroma(coleccion), incrustador_falso)
+    indexar_chunks(chunks, almacen, incrustador_falso)
 
-    recuperado = coleccion.get(where={"grados": {"$contains": simple}})
-    nombres = {m["nombre"] for m in recuperado["metadatas"]}
+    nombres = set(filtrar(almacen, f"array_has_any(grados, ['{simple}'])"))
     assert nombres == {"Compartida"}, "el del doble grado es un falso positivo"
 
 
-def test_filtrar_por_titulacion_y_tipo_a_la_vez(coleccion):
+def test_filtrar_por_titulacion_y_tipo_a_la_vez(almacen):
     """La consulta que motiva el metadato de tipo: «obligatorias de este grado»."""
     grado = "Grado en Ingeniería Informática"
     chunks = [
@@ -200,20 +230,16 @@ def test_filtrar_por_titulacion_y_tipo_a_la_vez(coleccion):
             "total_chunks": 1,
         },
     ]
-    indexar_chunks(chunks, AlmacenChroma(coleccion), incrustador_falso)
+    indexar_chunks(chunks, almacen, incrustador_falso)
 
-    recuperado = coleccion.get(
-        where={
-            "$and": [
-                {"grados": {"$contains": grado}},
-                {"tipo_asignatura": {"$eq": "OB"}},
-            ]
-        }
+    encontrados = filtrar(
+        almacen,
+        f"array_has_any(grados, ['{grado}']) AND tipo_asignatura = 'OB'",
     )
-    assert [m["nombre"] for m in recuperado["metadatas"]] == ["Obligatoria"]
+    assert encontrados == ["Obligatoria"]
 
 
-# --- IT-31: el pipeline no depende de ChromaDB ---
+# --- IT-31: el pipeline no depende de una base concreta ---
 
 
 def test_el_pipeline_escribe_en_cualquier_almacen(chunks_reales):
@@ -270,6 +296,7 @@ def test_reconstruir_admite_otro_almacen(tmp_path, chunks_reales):
     # El creador recibe con qué se construyó el índice, sea cual sea la base.
     assert recibidos["modelo"] == MODELO
     assert recibidos["prefijo_documento"] == PREFIJO_DOCUMENTO
+    assert recibidos["distancia"] == DISTANCIA
 
 
 def test_reconstruir_no_duplica(tmp_path, chunks_reales):
@@ -282,16 +309,28 @@ def test_reconstruir_no_duplica(tmp_path, chunks_reales):
     reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso)
     total = reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso)
     assert total == len(chunks_reales)
-    cliente = chromadb.PersistentClient(path=str(ruta_indice))
-    assert cliente.get_collection(COLECCION).count() == len(chunks_reales)
+    tabla = lancedb.connect(str(ruta_indice)).open_table(COLECCION)
+    assert tabla.count_rows() == len(chunks_reales)
 
 
-def test_el_almacen_de_chroma_parte_vacio(tmp_path):
-    """El creador borra el índice anterior: es un artefacto regenerable."""
+def test_el_creador_descarta_el_indice_anterior(tmp_path, chunks_reales):
+    """El creador borra el índice previo aunque después no se escriba nada.
+
+    La tabla se crea al llegar el primer lote, porque su esquema necesita la
+    dimensión del vector. Si el borrado del índice anterior viajara con esa
+    creación, reconstruir a partir de un corpus vacío dejaría en pie el índice
+    de la ejecución anterior y lo haría pasar por recién construido.
+    """
     ruta = tmp_path / "indice"
-    crear_almacen_chroma(ruta, {"modelo": MODELO})
-    cliente = chromadb.PersistentClient(path=str(ruta))
-    assert cliente.get_collection(COLECCION).count() == 0
+    indexar_chunks(
+        chunks_reales, crear_almacen_lance(ruta, {"modelo": MODELO}), incrustador_falso
+    )
+    assert lancedb.connect(str(ruta)).open_table(COLECCION).count_rows() == len(
+        chunks_reales
+    )
+
+    crear_almacen_lance(ruta, {"modelo": MODELO})
+    assert COLECCION not in lancedb.connect(str(ruta)).list_tables()
 
 
 # --- IT-90: el item de procedencia no se indexa ---
@@ -366,7 +405,43 @@ def test_el_indice_registra_el_modelo_y_el_prefijo(tmp_path, chunks_reales):
     ruta_indice = tmp_path / "indice"
     reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
 
-    cliente = chromadb.PersistentClient(path=str(ruta_indice))
-    metadatos = cliente.get_collection(COLECCION).metadata
+    metadatos = metadatos_de_indice(ruta_indice)
     assert metadatos["modelo"] == MODELO
     assert metadatos["prefijo_documento"] == PREFIJO_DOCUMENTO
+
+
+# --- IT-103: el índice dice también con qué distancia hay que consultarlo ---
+
+
+def test_el_indice_registra_la_distancia(tmp_path, chunks_reales):
+    # La métrica no se declara al crear la tabla, sino en cada consulta, y por
+    # defecto es `l2`. Una consulta que la omita no falla: ordena por otra cosa.
+    # Con los vectores normalizados del ADR-0003 el orden coincide, así que el
+    # defecto sería invisible hasta que se cambiara de modelo. Grabarla en el
+    # índice es lo que permitirá al recuperador (IT-37) declararla sin suponer.
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(
+        json.dumps(chunks_reales, ensure_ascii=False), encoding="utf-8"
+    )
+    ruta_indice = tmp_path / "indice"
+    reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
+
+    assert metadatos_de_indice(ruta_indice)["distancia"] == DISTANCIA
+
+
+def test_los_metadatos_del_indice_vuelven_como_texto(tmp_path, chunks_reales):
+    # Arrow los devuelve en bytes. Comparar b"..." con "..." no da error: da
+    # False, así que cualquier comprobación del modelo pasaría a fallar en
+    # silencio. Por eso se leen con `metadatos_de_indice` y no a mano.
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(
+        json.dumps(chunks_reales, ensure_ascii=False), encoding="utf-8"
+    )
+    ruta_indice = tmp_path / "indice"
+    reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
+
+    metadatos = metadatos_de_indice(ruta_indice)
+    assert all(
+        isinstance(clave, str) and isinstance(valor, str)
+        for clave, valor in metadatos.items()
+    )
