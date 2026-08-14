@@ -29,10 +29,11 @@ University of Jaén, academic year 2025/2026.
 | Phase | Contents | Status |
 | ----- | -------- | ------ |
 | 0 | Web scraping, cleaning, validation and chunking | ✅ Complete |
-| 1 | Vector indexing, evaluation set and embeddings comparison | 🚧 In progress |
-| 2 | Full RAG pipeline with a local LLM, and its evaluation | Pending |
+| 1 | Chunking strategy and embeddings comparison | ✅ Complete |
+| 2 | Vector database, local LLM and full RAG pipeline | 🚧 In progress |
 | 3 | Web chat application | Pending |
-| 4 | User validation | Pending |
+| 4 | User validation and ablation study | Pending |
+| 5 | Wrap-up and defence | Pending |
 
 ## Architecture
 
@@ -53,15 +54,19 @@ throughout the year, so they change on every crawl. Both `grados.json` and
 
 | Metric | Value |
 |---|---:|
-| Crawled on | 2026-07-30 (academic year 2026-27) |
+| Crawled on | 2026-08-05 (academic year 2026-27) |
+| Chunked on | 2026-08-06 |
 | Degrees (5 of them double degrees) | 12 |
-| Degrees with subjects of their own | 7 |
-| Subjects | 350 |
+| Degrees with subjects of their own | 11 |
+| Subjects | 528 |
 | Syllabuses (all served as PDF) | 288 |
-| Syllabus coverage | 82.3 % |
-| Subjects with no syllabus content | 62 |
-| Career-prospects blocks | 7 |
-| **Chunks after deduplication** | **781** |
+| Syllabus coverage | 83.7 % |
+| Subjects with no syllabus content | 86 |
+| Career-prospects blocks | 8 |
+| **Chunks after deduplication** | **1,334** |
+
+The twelfth degree is a double degree run jointly with a German university and
+publishes no curriculum of its own, so it contributes no chunks.
 
 Two crawls a day apart (2026-07-29 and 2026-07-30) produced a **byte-identical
 corpus**, chunk by chunk.
@@ -145,7 +150,7 @@ Real results of every run are kept in `docs/experimentos/`.
 ## Tests
 
 ```console
-pytest                                          # 184 tests, with real HTML/PDF/JSON fixtures
+pytest                                          # 278 tests, with real HTML/PDF/JSON fixtures
 mypy src/tfg_uja/ --ignore-missing-imports      # clean static typing
 black src/ tests/ scripts/                      # formatting
 flake8 src/ tests/ scripts/                     # style (configured in .flake8)
@@ -195,6 +200,7 @@ considered and the evidence that settled it:
 | [ADR-0001](docs/adr/adr-0001-estrategia-chunking.md) | Chunking strategy and deduplication |
 | [ADR-0002](docs/adr/adr-0002-alternativas-extraccion-datos.md) | Scrapy as the extraction framework |
 | [ADR-0003](docs/adr/adr-0003-modelo-de-embeddings.md) | Embeddings model |
+| [ADR-0004](docs/adr/adr-0004-base-vectorial.md) | Vector database |
 
 ## Scope
 

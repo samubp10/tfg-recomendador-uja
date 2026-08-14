@@ -27,15 +27,16 @@ Ingeniería Informática de la Universidad de Jaén, curso 2025/2026.
 | Fase | Contenido | Estado |
 | ---- | --------- | ------ |
 | 0 | Extracción web, limpieza, validación y fragmentación (*chunking*) | ✅ Completa |
-| 1 | Indexación vectorial, conjunto de evaluación y comparativa de *embeddings* | 🚧 En curso |
-| 2 | *Pipeline* RAG completo con LLM local y evaluación | Pendiente |
+| 1 | Estrategia de troceado y comparativa de *embeddings* | ✅ Completa |
+| 2 | Base de datos vectorial, LLM local y *pipeline* RAG | 🚧 En curso |
 | 3 | Aplicación web de chat | Pendiente |
-| 4 | Validación con usuarios | Pendiente |
+| 4 | Validación y estudio de ablación | Pendiente |
+| 5 | Cierre y defensa | Pendiente |
 
 ## Arquitectura
 
 ```text
-Web EPSJ ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ índice vectorial ──▶ [RAG + LLM] ──▶ [web de chat]
+Web EPSJ ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ índice LanceDB ──▶ [RAG + LLM] ──▶ [web de chat]
 ```
 
 Cada etapa está desacoplada de la siguiente y produce un artefacto
@@ -126,7 +127,7 @@ Los resultados reales de cada ejecución quedan en `docs/experimentos/`.
 ## Calidad
 
 ```console
-pytest                                          # 184 pruebas, con fixtures HTML/PDF/JSON reales
+pytest                                          # 278 pruebas, con fixtures HTML/PDF/JSON reales
 mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
 black src/ tests/ scripts/                      # formato
 flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)
@@ -140,7 +141,7 @@ encontrado entra como test de regresión con su caso real.
 
 ```text
 src/tfg_uja/        # código fuente (spider, guías en PDF, limpieza, validación,
-                    #   chunker, indexer y métricas de recuperación)
+                    #   chunker, incrustaciones, indexer y métricas de recuperación)
 tests/              # pruebas con fixtures reales (HTML y PDF de la EPSJ, chunks del dataset)
 scripts/            # verificadores del dataset y experimentos
 eval/               # conjunto de evaluación del retrieval (manual, versionado)
@@ -159,7 +160,8 @@ data/               # artefactos generados (NO versionados)
   obligatorio que explica el *porqué* de cada decisión.
 - Ramas efímeras desde `main` (código) o `doc` (memoria); fusión siempre con
   *merge commit*, nunca *squash*.
-- Decisiones de diseño registradas como **ADR** en `docs/adr/`.
+- Decisiones de diseño registradas como **ADR** en `docs/adr/`; anomalías de la
+  fuente de datos como **DQA** en `docs/dqa/`.
 - CI en GitHub Actions: `pytest` + `mypy` en cada *push* y *pull request*.
 
 ## Alcance
