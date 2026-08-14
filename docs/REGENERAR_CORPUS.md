@@ -141,7 +141,7 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
   entero, que es barato y es la política del proyecto:
 
   ```bash
-  py -m tfg_uja.indexer data/chunks.json data/indice_chroma
+  py -m tfg_uja.indexer data/chunks.json data/indice_lance
   ```
 
   Desde IT-98 el índice **graba en sus metadatos el modelo y el prefijo de documento** con

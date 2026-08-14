@@ -634,6 +634,66 @@ def medir_numpy(
     return medida, exactos
 
 
+class AlmacenChroma:
+    """Adaptador de una colección de ChromaDB a ``AlmacenVectorial``.
+
+    Vive aquí y no en ``indexer.py`` porque ChromaDB es la candidata que el
+    ADR-0004 descarta: el sistema no la monta, pero este experimento tiene que
+    poder seguir midiéndola, que es de donde sale la evidencia que la descarta.
+    """
+
+    def __init__(self, coleccion: Any) -> None:
+        self.coleccion = coleccion
+
+    def anadir(
+        self,
+        ids: list[str],
+        vectores: list[Sequence[float]],
+        textos: list[str],
+        metadatos: list[dict[str, Any]],
+    ) -> None:
+        """Almacena un lote en la colección."""
+        embeddings: list[Sequence[float] | Sequence[int]] = list(vectores)
+        self.coleccion.add(
+            ids=ids,
+            embeddings=embeddings,
+            documents=textos,
+            metadatas=[dict(m) for m in metadatos],
+        )
+
+
+def crear_almacen_chroma(
+    ruta_indice: Path, metadatos_coleccion: dict[str, str]
+) -> AlmacenChroma:
+    """Crea un índice persistente de ChromaDB vacío, borrando el anterior.
+
+    Args:
+        ruta_indice: Carpeta donde persiste el índice.
+        metadatos_coleccion: Metadatos que describen el índice.
+
+    Returns:
+        Almacén listo para recibir vectores.
+    """
+    import chromadb
+
+    from tfg_uja.indexer import COLECCION
+
+    cliente = chromadb.PersistentClient(path=str(ruta_indice))
+    try:
+        cliente.delete_collection(COLECCION)
+    except Exception:
+        # La colección no existía todavía: primera ejecución.
+        pass
+    # Distancia coseno declarada explícitamente: la de ChromaDB por defecto es
+    # `l2`. Se declara aquí al crear la colección porque es donde la recibe
+    # esta base, a diferencia de LanceDB, que la toma en cada consulta.
+    return AlmacenChroma(
+        cliente.create_collection(
+            COLECCION, metadata={"hnsw:space": "cosine", **metadatos_coleccion}
+        )
+    )
+
+
 def medir_chroma(
     chunks: list[dict[str, Any]],
     vectores: np.ndarray,
@@ -644,7 +704,7 @@ def medir_chroma(
 ) -> Medida:
     """Construye y mide ChromaDB, reutilizando el pipeline de ``indexer.py``."""
     from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
-    from tfg_uja.indexer import AlmacenChroma, crear_almacen_chroma, indexar_chunks
+    from tfg_uja.indexer import indexar_chunks
 
     coleccion_holder: dict[str, Any] = {}
 
@@ -652,16 +712,6 @@ def medir_chroma(
         almacen = crear_almacen_chroma(
             ruta_indice, {"modelo": MODELO, "prefijo_documento": PREFIJO_DOCUMENTO}
         )
-        # Estrecha el tipo para poder llegar a `almacen.coleccion`, que no está
-        # en el protocolo. Con `assert` desaparecería al ejecutar con `-O`, que
-        # es el mismo defecto que IT-10 acaba de quitar de los verificadores.
-        if not isinstance(almacen, AlmacenChroma):
-            raise TypeError(
-                f"crear_almacen_chroma ha devuelto un "
-                f"{type(almacen).__name__}, y esta medición necesita la "
-                f"colección de ChromaDB para poder declarar en qué modo "
-                f"responde el índice."
-            )
         indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
         coleccion_holder["coleccion"] = almacen.coleccion
 
