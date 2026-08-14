@@ -1392,30 +1392,15 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
                                  
   
 
-\section[Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM]{Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM}
+\section[Fase 2: base de datos vectorial, LLM y \textit{pipeline} RAG]{Fase 2: base de datos vectorial, LLM y \textit{pipeline} RAG}
 \label{secc:fase2}
 
-\textcolor{borrador2}{La fase anterior termina con la colección convertida en vectores. Lo que
-  falta para que el sistema responda son tres piezas, y esta fase las resuelve en ese orden.
-  La primera es \textbf{dónde se guardan esos vectores y con qué se consultan}, que es lo que
-  decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es
-  \textbf{qué modelo redacta la respuesta}, una vez recuperados los fragmentos pertinentes.
-  Y la tercera es \textbf{el \textit{pipeline} que une las dos}: recibir la pregunta,
-  recuperar con ella los fragmentos más próximos y entregárselos al modelo generativo junto
-  con las instrucciones de cómo debe usarlos.}
 
-\textcolor{borrador2}{La diferencia con la Fase~1 es de responsabilidad: allí se decidía
-  \emph{cómo se representa} el texto ---en qué trozos se parte y con qué modelo se convierte
-  en vectores---, y aquí se decide \emph{cómo se busca} y \emph{qué se hace con lo
-  encontrado}. Ninguna decisión de esta fase puede recuperar un fragmento que la anterior no
-  supiera representar, de modo que lo hecho hasta ahora fija el techo de lo que sigue.}
+La fase 1 termina con la colección convertida en vectores. Lo que falta para que el sistema funcione correctamente son tres piezas, y esta fase las resuelve. La primera es dónde se guardan los vectores y con qué se consultan, que es lo que decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es qué modelo redacta la respuesta una vez recuperados los fragmentos que hacen falta y la última pieza es el \textit{pipeline} RAG que une las dos anteriores.
+
 
 \begin{borrador}
-  \item \textbf{Andamiaje: la prosa la escribes tú.} El párrafo enumera las tres piezas en el
-  orden en que aparecen los apartados; si acabas cambiando ese orden, cámbialo también aquí.
-  \item \textbf{Las dos últimas piezas todavía no existen} (elección del modelo generativo y
-  \textit{pipeline} RAG). Cuando estén, comprueba que esta entrada las nombra como se llaman
-  de verdad en sus apartados.
+  \item Apartado vivo hasta que se termine la Fase.
 \end{borrador}
 
 \subsection[Selección de la base de datos vectorial]{Selección de la base de datos vectorial}
@@ -1429,6 +1414,13 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con nuestros datos, es la opción más rápida.
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
+
+\textcolor{borrador2}{\sout{Las tres se indexan además con el mismo código. El recorrido que
+  construye el índice ---leer los fragmentos, incrustarlos y componer sus metadatos--- está
+  separado de dónde se guardan, que entra por una única operación de escritura, de modo que
+  cada candidata sólo aporta esa pieza. Sin esa separación se estarían comparando tres
+  programas escritos para tres bases distintas y no las bases entre sí, y cualquier
+  diferencia podría venir de lo bien o mal escrito que estuviera cada adaptador.}}
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
