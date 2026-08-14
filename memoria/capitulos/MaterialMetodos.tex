@@ -1415,13 +1415,6 @@ Se comparan tres bases de datos vectoriales sobre el corpus completo y las pregu
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
-\textcolor{borrador2}{\sout{Las tres se indexan además con el mismo código. El recorrido que
-  construye el índice ---leer los fragmentos, incrustarlos y componer sus metadatos--- está
-  separado de dónde se guardan, que entra por una única operación de escritura, de modo que
-  cada candidata sólo aporta esa pieza. Sin esa separación se estarían comparando tres
-  programas escritos para tres bases distintas y no las bases entre sí, y cualquier
-  diferencia podría venir de lo bien o mal escrito que estuviera cada adaptador.}}
-
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
 Las tres candidatas tienen una licencia que casa con la de este proyecto y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
