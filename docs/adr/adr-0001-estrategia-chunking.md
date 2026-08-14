@@ -353,8 +353,6 @@ verificador identifiquen una asignatura de la misma manera.
   **No se ha medido el efecto de la fragmentación sobre la generación**, que es donde
   actúa de verdad y donde está el único argumento que separa la estrategia elegida de
   la de longitud. Exige métricas de la Fase 2.
-- **El tamaño mínimo no se barrió**, de modo que es el único parámetro de la
-  fragmentación que sigue sin validación experimental propia.
 - Con el máximo en 900 el mínimo empieza a rozarse: aparecen seis colas irreducibles.
   Con máximos mayores no ocurría, y con 600 el margen entre mínimo y máximo se
   estrecharía todavía más.
