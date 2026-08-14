@@ -3,7 +3,6 @@
 *Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
 
 - **Estado:** Aceptada
-- **Fecha:** 2026-07-05
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 0 (scraping + chunking) del Recomendador UJA
 
@@ -16,11 +15,13 @@ de Jaén, que sirva de base documental para el chatbot RAG. El dataset debe cont
 La web de la EPSJ está construida sobre Drupal y sirve HTML estático (no
 requiere renderizado de JavaScript). Se detectaron dos particularidades determinantes:
 
-1. **Encoding inconsistente:** las 296 guías docentes declaran UTF-8 en la
-   etiqueta `<meta>` del HTML pero el servidor las sirve como ISO-8859-1 en
-   la cabecera HTTP `Content-Type`. Un extractor que priorice la cabecera
-   HTTP decodifica correctamente; uno que priorice el `<meta>` corrompe
-   tildes y eñes.
+1. **Encoding inconsistente:** las guías docentes servidas en HTML declaraban
+   UTF-8 en la etiqueta `<meta>` pero el servidor las entregaba como
+   ISO-8859-1 en la cabecera HTTP `Content-Type`. Un extractor que priorice la
+   cabecera HTTP decodifica correctamente; uno que priorice el `<meta>`
+   corrompe tildes y eñes. La contradicción no es exclusiva de las guías: la
+   sirve el mismo servidor para el resto de páginas del centro, así que
+   condiciona la extracción completa.
 2. **Slugs (parte final de la URL) inconsistentes:** las URLs de asignaturas y guías no siguen un
    patrón predecible, por lo que la extracción debe seguir los `href`
    reales del DOM en vez de construir URLs por plantilla.
