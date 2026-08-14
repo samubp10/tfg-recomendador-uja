@@ -123,25 +123,9 @@ La comparativa enfrenta tres bases de datos vectoriales distintas, ChromaDB\cite
 
 Con las cifras arrojadas por el experimento, se elige LanceDB, por las razones que se dejan escritas en el Apartado~\ref{secc:eleccion_lancedb}. Conviene recalcar que la tabla arroja un resultado claro y es que la búsqueda por fuerza bruta es mucho más rápida que las tres candidatas, pero la elección de tener una base de datos vectorial en este caso no se basa en la velocidad, sino en el resto de servicios que ofrece.
 
-\textcolor{borrador2}{Hay tres resultados más que la tabla no recoge y conviene contar aquí.
-  El primero es que \textbf{ChromaDB no alcanza la fidelidad exacta}: devuelve 0,9980 frente
-  al 1,0000 que pedía el umbral, y reconstruyendo el índice veinte veces falla en cuatro,
-  perdiendo siempre exactamente un vecino de los quinientos que se le piden, mientras que las
-  otras dos no fallan ninguna. Consultar varias veces el mismo índice sí da el mismo
-  resultado, de modo que la variabilidad está en la construcción y no en la búsqueda.}
+Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta que se pedía en el umbral número 1 (U1), mientras que las otras dos opciones no fallan ninguna. 
 
-\textcolor{borrador2}{El segundo es que \textbf{las tres aplican el filtro antes de buscar y
-  no después}, comprobado sobre un caso real de la colección: la pregunta por las salidas de
-  Informática filtrando por el Doble Grado en Ingeniería Electrónica Industrial y Mecánica,
-  que tiene 412 fragmentos y ninguno entre los diez primeros de esa consulta sin filtrar. Las
-  tres devuelven los diez pedidos; quien filtrara después habría devuelto cero. Merece
-  contarse porque filtrar después es un fallo \emph{silencioso}: el sistema respondería que no
-  tiene información sobre algo que sí está indexado.}
 
-\textcolor{borrador2}{Y el tercero es el coste de operar cada una: \textbf{Qdrant ocupa unas
-  seis veces más memoria} que las otras dos ---149,10~MiB frente a 22,71 y 26,12--- y es la
-  única que necesita un servidor aparte en un contenedor. Cumple el umbral de memoria de
-  sobra, pero es el hecho que decide el desempate por simplicidad.}
 
 \textcolor{borrador2}{Dos cosas que estas cifras \emph{no} demuestran, y que conviene dejar
   dichas antes de que las lea otro. Que la fidelidad de LanceDB y Qdrant valga 1,000 no
