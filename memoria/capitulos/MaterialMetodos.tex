@@ -1503,3 +1503,59 @@ La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir qu
   \caption[Diseño de la comparativa de bases de datos vectoriales]{Diagrama que muestra el proceso experimental realizado para evaluar las bases de datos vectoriales. Fuente: elaboración propia.}
   \label{fig:comparativa_vectordb}
 \end{figure}
+
+\subsection[Construcción del índice]{\textcolor{borrador2}{Construcción del índice}}
+\label{secc:fase2_construccion_indice}
+
+\textcolor{borrador2}{El índice se construye a partir del fichero de fragmentos que produce la fase
+  anterior. El proceso recorre los fragmentos, descarta el registro de procedencia que encabeza
+  el fichero porque describe de cuándo es el corpus y no es contenido que se pueda recuperar, y
+  calcula las incrustaciones en lotes de sesenta y cuatro fragmentos, lo que acota la memoria
+  que ocupa el modelo sin penalizar el tiempo total. Cada fragmento se almacena junto a su
+  texto y a los metadatos que lo describen, que son los que después permiten acotar una
+  búsqueda a una titulación concreta.}
+
+\textcolor{borrador2}{El índice se reconstruye entero en cada ejecución en lugar de
+  actualizarse de forma incremental. El argumento es el mismo que separa el rastreo del
+  troceado: reconstruirlo cuesta minutos y garantiza que lo que hay dentro del índice se
+  corresponde exactamente con el fichero de fragmentos del que salió, mientras que mantener
+  actualizaciones parciales obligaría a llevar la cuenta de qué fragmentos han cambiado y
+  abriría la puerta a que el índice y el corpus dejaran de coincidir sin que nada lo
+  advirtiera. El índice es un producto derivado y regenerable, nunca la fuente de verdad.}
+
+\textcolor{borrador2}{La estructura de la tabla se declara por completo antes de escribir nada,
+  en lugar de dejar que la base la deduzca del primer lote de fragmentos. Deducirla ataría el
+  tipo de cada columna a los valores que tuviera ese lote concreto, de modo que bastaría con
+  que el primer fragmento llegara sin códigos de asignatura para que la columna naciera con el
+  tipo equivocado. El vector se declara como una lista de tamaño fijo de trescientas ochenta y
+  cuatro posiciones, que es la dimensión que produce el modelo elegido en el apartado anterior
+  y lo que permite a la base tratar esa columna como un vector y no como una lista cualquiera.}
+
+\textcolor{borrador2}{Las dos listas paralelas que identifican a qué titulaciones y a qué
+  asignaturas pertenece cada fragmento se guardan como listas propiamente dichas y no unidas en
+  una sola cadena de texto. La diferencia no es de estilo, sino que decide la corrección del
+  filtrado: cuatro nombres de titulación del catálogo están contenidos dentro de otro más
+  largo, como ocurre con el Grado en Ingeniería Eléctrica y el Doble Grado en Ingeniería
+  Eléctrica y Mecánica, así que un filtro que buscara la titulación dentro de una cadena
+  arrastraría fragmentos que pertenecen únicamente al doble grado. Sobre el corpus completo,
+  filtrar por pertenencia exacta devuelve cuatrocientos diecisiete fragmentos para esa
+  titulación, frente a los quinientos ochenta y cuatro que devolvería la coincidencia por
+  subcadena; los ciento sesenta y siete restantes serían contexto de otra titulación entregado
+  al modelo generativo como si fuera de la que pregunta el estudiante.}
+
+\textcolor{borrador2}{El índice guarda además tres datos sobre sí mismo: con qué modelo se
+  calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos al incrustarlos y
+  con qué métrica de distancia hay que consultarlo. Los tres comparten una propiedad
+  incómoda, y es que equivocarse en ellos no produce ningún error. Dos modelos distintos pueden
+  generar vectores de la misma dimensión, de forma que consultar el índice con un modelo que no
+  es el suyo devuelve resultados peores pero nunca un fallo; y la métrica de distancia se
+  indica en cada consulta, con lo que omitirla no interrumpe nada, simplemente ordena los
+  resultados por otro criterio. Dejar los tres escritos dentro del propio índice es lo que
+  permite que la recuperación los compruebe en vez de darlos por supuestos.}
+
+\textcolor{borrador2}{Este proceso escribe el índice pero no lo consulta. La operación que
+  necesita de la base es únicamente la de almacenar un lote de vectores, y es esa
+  separación la que hizo posible la comparativa del apartado anterior, en la que cada candidata
+  aportaba solo esa pieza mientras el resto del recorrido permanecía invariable. La otra mitad,
+  la de recuperar los fragmentos pertinentes para una pregunta, se describe junto al
+  \textit{pipeline} de recuperación aumentada.}
