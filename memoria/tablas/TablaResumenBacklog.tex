@@ -1,11 +1,13 @@
 % Resumen del backlog por fase y naturaleza del trabajo. Sustituye a la antigua
 % TablaBacklog.tex, que listaba las historias una a una (tutoría del 04/08/2026:
 % demasiado específica para un lector que no conoce el proyecto por dentro).
-% Cifras contadas con `gh issue list` sobre el repositorio el 13/08/2026, tras
-% reequilibrar el reparto por fases: la Fase 2 acumulaba veinte tarjetas abiertas
-% frente a las veinte del resto de fases juntas, y se llevaron a fases
+% Cifras contadas con `gh issue list` sobre el repositorio el 14/08/2026. El
+% 13/08 se reequilibro el reparto por fases: la Fase 2 acumulaba veinte tarjetas
+% abiertas frente a las veinte del resto de fases juntas, y se llevaron a fases
 % posteriores seis que no dependen del pipeline RAG (IT-59 a la Fase 3; IT-73 e
-% IT-86 a la Fase 4; IT-72, IT-82 e IT-89 a la Fase 5).
+% IT-86 a la Fase 4; IT-72, IT-82 e IT-89 a la Fase 5). El 14/08 la Fase 2 gana
+% dos tarjetas nuevas (IT-103, migracion del indexador a la base elegida; IT-104,
+% cierre de la introduccion de la fase), de ahi que el total suba de 100 a 102.
 %
 % En ese mismo recuento se alinearon las etiquetas `fase:N` con los hitos: ocho
 % tarjetas conservaban la etiqueta de su fase anterior después de mudanzas
@@ -26,12 +28,12 @@
     \midrule
     Fase 0         & 11              & 15               & ---                  & 3                 & 4                & 33             \\
     Fase 1         & 15              & 5                & 2                    & 2                 & 1                & 25             \\
-    Fase 2         & 4               & 6                & 4                    & 2                 & ---              & 16             \\
+    Fase 2         & 5               & 7                & 4                    & 2                 & ---              & 18             \\
     Fase 3         & 3               & 9                & ---                  & ---               & ---              & 12             \\
     Fase 4         & 1               & 2                & 4                    & ---               & ---              & 7              \\
     Fase 5         & ---             & 6                & ---                  & ---               & 1                & 7              \\
     \midrule
-    \textbf{Total} & \textbf{34}     & \textbf{43}      & \textbf{10}          & \textbf{7}        & \textbf{6}       & \textbf{100}   \\
+    \textbf{Total} & \textbf{35}     & \textbf{44}      & \textbf{10}          & \textbf{7}        & \textbf{6}       & \textbf{102}   \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
@@ -43,6 +45,6 @@
     una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA);
     \textbf{Gestión}: infraestructura del propio proyecto. Un guion indica que esa fase no
     tiene ninguna historia de esa naturaleza. \textcolor{borrador2}{Cifras contadas sobre el
-      repositorio el 13/08/2026; cambian cada vez que se abre o se reasigna una tarjeta.}
+      repositorio el 14/08/2026; cambian cada vez que se abre o se reasigna una tarjeta.}
   \end{minipage}
 \end{table}
