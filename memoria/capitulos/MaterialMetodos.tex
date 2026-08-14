@@ -677,7 +677,7 @@ Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la imp
 Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad.
 
 
-\subsection[Elección de la herramienta de extracción]{\textcolor{borrador2}{Elección de la herramienta de extracción}}
+\subsection[Elección de la herramienta de extracción]{Elección de la herramienta de extracción}
 \label{sec:eleccion_herramientas}
 
 Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado tres claras opciones, las cuales se comentan en los apartados siguientes.
@@ -1392,48 +1392,30 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
                                  
   
 
-\section[Fase 2: base de datos vectorial y \textit{pipeline} RAG]{\textcolor{borrador2}{Fase 2: base de datos vectorial y \textit{pipeline} RAG}}
+\section[Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM]{Fase 2: base de datos vectorial, \textit{pipeline} RAG y LLM}
 \label{secc:fase2}
 
-\begin{borrador}                                                                                            
-  \item \textbf{Fase creada el 07/08/2026 al repartir el capítulo.} La Fase~1 se estaba
-  quedando con cinco apartados y el peso de los dos experimentos, así que la indexación y la
-  base vectorial se traen aquí, donde además tienen compañía natural: la recuperación y la
-  generación, que es lo que se construye encima del índice.
-  \item \textbf{Párrafo de apertura por escribir.} Qué problema resuelve esta fase ---guardar
-  los vectores de forma que se pueda buscar por significado, y montar encima el
-  \textit{pipeline} que recupera y redacta--- y qué la separa de la anterior: la Fase~1
-  decide cómo se representa el texto, esta decide cómo se busca y qué se hace con lo
-  encontrado.
-  \item \textbf{El nombre de la fase es una propuesta.} El Gantt la llama <<Pipeline RAG y
-  LLM>> y no menciona la base vectorial, porque en la planificación la base vectorial estaba
-  en la Fase~1. Ponle el nombre que decidas y ajusta el punto del Gantt.
-  \item \textbf{El tablero ya está alineado con esto (07/08/2026):} el hito se llama
-  <<Fase 2 · Pipeline RAG y Vector DB>> y las cuatro tarjetas de indexación y base vectorial
-  ---IT-30, IT-31, IT-32 e IT-68--- cuelgan de él. Las cifras de la
-  Tabla~\ref{tab:resumen_backlog} están recontadas después de esa mudanza.
-\end{borrador}
+\textcolor{borrador2}{La fase anterior termina con la colección convertida en vectores. Lo que
+  falta para que el sistema responda son tres piezas, y esta fase las resuelve en ese orden.
+  La primera es \textbf{dónde se guardan esos vectores y con qué se consultan}, que es lo que
+  decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es
+  \textbf{qué modelo redacta la respuesta}, una vez recuperados los fragmentos pertinentes.
+  Y la tercera es \textbf{el \textit{pipeline} que une las dos}: recibir la pregunta,
+  recuperar con ella los fragmentos más próximos y entregárselos al modelo generativo junto
+  con las instrucciones de cómo debe usarlos.}
 
-\subsection[Indexación y base de datos vectorial]{\textcolor{borrador2}{Indexación y base de datos vectorial}}
-\label{secc:fase2_indexacion}
+\textcolor{borrador2}{La diferencia con la Fase~1 es de responsabilidad: allí se decidía
+  \emph{cómo se representa} el texto ---en qué trozos se parte y con qué modelo se convierte
+  en vectores---, y aquí se decide \emph{cómo se busca} y \emph{qué se hace con lo
+  encontrado}. Ninguna decisión de esta fase puede recuperar un fragmento que la anterior no
+  supiera representar, de modo que lo hecho hasta ahora fija el techo de lo que sigue.}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase: 1 (IT-30, deuda declarada en IT-68; IT-31 e IT-32 para el ADR-0004).}
-  Subsección por escribir. Es la única parte de la Fase~1 que todavía no tiene ni
-  experimento ni decisión cerrada.
-  \item Qué tiene que dejar dicho de lo que YA existe: que el índice se reconstruye entero
-  en cada ejecución ---mismo argumento que separa el rastreador del fragmentador---, y que
-  desde IT-98 el índice \textbf{graba con qué modelo y con qué prefijo se construyó}.
-  Esto último no es un detalle: el modelo nuevo y el anterior producen vectores de la misma
-  dimensión, así que consultar un índice con el modelo equivocado \textbf{no da ningún
-    error}, solo respuestas peores.
-  \item La elección de la base vectorial ya está cerrada (ADR-0004): es LanceDB, y su
-  justificación está en el Apartado~\ref{secc:eleccion_lancedb}. Lo que esta subsección
-  tiene que contar es la \emph{indexación}, no la elección; basta con remitir allí.
-  \item Amenaza que hay que declarar aquí y no en otro sitio: con menos de mil quinientos
-  fragmentos, \textbf{la búsqueda exacta por fuerza bruta es competitiva}. Ya no es una
-  sospecha ---está medida, y la fuerza bruta gana a las tres candidatas---, de modo que la
-  base vectorial se sostiene sobre los otros servicios que presta y no sobre la velocidad.
+\begin{borrador}
+  \item \textbf{Andamiaje: la prosa la escribes tú.} El párrafo enumera las tres piezas en el
+  orden en que aparecen los apartados; si acabas cambiando ese orden, cámbialo también aquí.
+  \item \textbf{Las dos últimas piezas todavía no existen} (elección del modelo generativo y
+  \textit{pipeline} RAG). Cuando estén, comprueba que esta entrada las nombra como se llaman
+  de verdad en sus apartados.
 \end{borrador}
 
 \subsection[Selección de la base de datos vectorial]{Selección de la base de datos vectorial}
@@ -1460,12 +1442,6 @@ Se barajaron otras opciones pero se descartaron por estar en un estado de desarr
 
 
 
-\textcolor{borrador2}{Los ocho umbrales se escribieron y se cerraron \emph{antes} de la
-  primera ejecución, y no se han tocado después de ver las cifras. Se dice de forma explícita
-  porque es la diferencia de método con la comparación de modelos de incrustaciones, que se
-  ejecutó sin haberlos fijado: allí el ganador arrasó, pero eso no arregla haber decidido el
-  listón conociendo el resultado. Fijarlos por adelantado es lo que permite descartar una
-  candidata sin que la decisión parezca hecha a medida de lo que salió.}
 
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
 
@@ -1474,14 +1450,6 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
     \item \textbf{Comparativos : } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
     \item \textbf{Desempate : } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
 \end{itemize}
-
-\textcolor{borrador2}{El octavo no descarta una candidata sino un argumento, y conviene
-  contarlo aparte de los tres grupos anteriores: si ninguna de las tres le gana a la búsqueda
-  por fuerza bruta por más de la banda de indiferencia, se declara que a esta escala la base
-  de datos vectorial no se justifica por velocidad y la decisión se toma por los demás
-  criterios. Es el umbral que permite que el experimento concluya <<no hacía falta ninguna>>,
-  que es un resultado tan válido como el contrario.}
-
 
 
 \subsubsection[Elección final]{Elección final}
@@ -1495,17 +1463,51 @@ Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant nece
 
 La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque que vemos este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
-\textcolor{borrador2}{Queda por decir qué \emph{no} puede responder esta comparación, porque
-  es lo que acota hasta dónde llega la conclusión anterior. No mide calidad de recuperación:
-  esa la fijan el modelo de incrustaciones y la estrategia de troceado, y con fidelidad exacta
-  no puede cambiar entre candidatas. Y no dice nada sobre el comportamiento con una colección
-  mucho mayor: mil trescientos vectores no predicen lo que pasa con cien mil. Que el diseño
-  admita crecer sin rehacer la capa de recuperación es una decisión de ingeniería justificada;
-  que el sistema escale a la oferta completa de la universidad es una afirmación que este
-  trabajo no ha medido y no sostiene.}
 
-\begin{borrador}
-  \item \textbf{Una figura ayudaría aquí} y no la hay: el esquema de las cuatro condiciones
-  recibiendo el mismo juego de vectores. Es el argumento de validez del experimento y entra
-  por los ojos mucho mejor que en prosa. Decide tú si compensa el tiempo.
-\end{borrador}
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\textwidth}{!}{%
+    \begin{tikzpicture}[node distance=0.7cm and 1.5cm]
+      % Entrada comun: la coleccion y las preguntas se incrustan una sola vez.
+      % Es el argumento de validez del experimento, asi que el diagrama lo pone
+      % en el centro: un unico juego de vectores del que salen las cuatro ramas.
+      \node[nodoDiag] (chunks) {Colección\\de fragmentos};
+      \node[nodoDiag, below=0.8cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
+      \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\textit{embeddings}};
+      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15,
+            right=1.1cm of emb] (vec)
+        {Vectores\\{\scriptsize incrustados}\\{\scriptsize una sola vez}};
+
+      % Las tres candidatas y la linea base reciben exactamente los mismos vectores.
+      \node[nodoDiag, right=2.6cm of vec, yshift=2.5cm]  (a) {ChromaDB};
+      \node[nodoDiag, right=2.6cm of vec, yshift=0.9cm]  (b) {LanceDB};
+      \node[nodoDiag, right=2.6cm of vec, yshift=-0.7cm] (c) {Qdrant};
+      \node[nodoDiag, right=2.6cm of vec, yshift=-3.9cm] (n) {NumPy\\{\scriptsize fuerza bruta}};
+
+      \node[nodoDiag, right=2.4cm of b, yshift=-0.8cm] (fid)
+        {Fidelidad frente\\a la búsqueda exacta};
+
+      \draw[flechaDiag] (chunks) -- (emb);
+      \draw[flechaDiag] (preg.east) -- ++(0.5,0) |- (emb.west);
+      %\draw[flechaDiag] (emb.east) -- ++(0.3,0) |- (vec.north);
+       \draw[flechaDiag] (emb.east) -- (vec.west);
+      \draw[flechaDiag] (vec.east) -- (a.west);
+      \draw[flechaDiag] (vec.east) -- (b.west);
+      \draw[flechaDiag] (vec.east) -- (c.west);
+      \draw[flechaDiag] (vec.east) -- (n.west);
+      \draw[flechaDiag] (a.east) -- (fid.west);
+      \draw[flechaDiag] (b.east) -- (fid.west);
+      \draw[flechaDiag] (c.east) -- (fid.west);
+      \draw[flechaDiag, dashed] (n.east) -- (fid.south);
+
+      \begin{scope}[on background layer]
+        \node[grupoDiag, fit=(a)(b)(c), inner sep=16pt,
+              label={[tituloGrupo]north:Candidatas}] {};
+        \node[grupoDiag, fit=(n), inner sep=12pt,
+              label={[tituloGrupo, anchor=north]south:Línea base, no es candidata}] {};
+      \end{scope}
+    \end{tikzpicture}%
+  }
+  \caption[Diseño de la comparativa de bases de datos vectoriales]{Diagrama que muestra el proceso experimental realizado para evaluar las bases de datos vectoriales. Fuente: elaboración propia.}
+  \label{fig:comparativa_vectordb}
+\end{figure}
