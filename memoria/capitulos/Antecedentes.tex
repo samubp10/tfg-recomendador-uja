@@ -197,13 +197,7 @@ Existen cuatro propiedades de un modelo de incrustaciones que son importantes en
   \item  \textbf{La dimensión del vector: } Fija cuánta memoria ocupa el índice y cuánto cuesta cada comparación.
   \item  \textbf{La ventana de contexto: } Esta está medida en \textit{tokens}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.
   \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es sumamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas.
-  \item  \textbf{La simetría entre la pregunta y el documento}: \textcolor{borrador2}{una
-        búsqueda es simétrica cuando los dos textos que se comparan desempeñan el mismo papel
-        y tienen una forma parecida, como dos frases de las que se quiere saber si significan
-        lo mismo, y asimétrica cuando no: una pregunta breve frente a un documento extenso
-        que la responde y que no se le parece en nada. Un modelo entrenado para lo primero no
-        sirve necesariamente para lo segundo, y algunas familias lo resuelven pidiendo que
-        cada texto se anteponga con una marca que declare cuál de los dos papeles cumple.}
+  \item  \textbf{La simetría entre la pregunta y el documento}: Una búsqueda simétrica es cuando los dos textos que se comparan tienen un papel y forma parecidas, como dos frases que se comparan para saber si significan lo mismo, y una búsqueda es asimétrica cuando por ejemplo se compara una pregunta breve frente a un documento extenso que la responde y que no se le parece en nada. Los modelos a menudo son entrenados para ambas cosas, y algunas familias de modelos resulven lo anterior poniéndole una etiqueta que devlare cuál de los dos papeles cumple.
 \end{itemize}
 
 La proximidad entre dos vectores en el espacio de incrustaciones se calcula normalmente con la similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud. Sin embargo, cuando un modelo entrega sus vectores ya normalizados a longitud uno, el coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la métrica configurada deja de diferenciarse por lo que devuelve.
@@ -216,23 +210,14 @@ La proximidad entre dos vectores en el espacio de incrustaciones se calcula norm
   \label{eq:coseno}
 \end{equation}
 
-\textcolor{borrador2}{El denominador es lo que convierte el producto escalar en un coseno: al
-  dividir por las dos longitudes, el resultado queda entre $-1$ y $1$ y solo depende del
-  ángulo. De ahí sale lo dicho arriba, porque si ambos vectores ya miden uno el denominador
-  vale uno y la expresión se reduce al producto escalar.}
-
+El denominador en esta división es lo que convierte el producto escalar en un coseno, al dividir por las dos longitudes, el resultado queda entre $-1$ y $1$ y solo depende del ángulo resultante entre ambos vectores. Si ambos vectores ya midieran uno, la expresión se reduce al producto escalar.
 
 \subsection[Búsqueda semántica]{Búsqueda semántica}
 \label{subsec:busqueda_semantica_concepto}
 
-La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. \textcolor{borrador2}{Es la alternativa a la búsqueda léxica, que puntúa un documento en función de qué términos de la consulta aparecen en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}.} Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
+La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. Esta, es la alternativa a la búsqueda léxica, que puntúa un documento en función si las palabras a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-\textcolor{borrador2}{Con incrustaciones el funcionamiento cambia: la colección se convierte en
-  vectores una sola vez y se almacena, y al llegar la consulta se convierte también en un
-  vector con el mismo modelo, para devolver los $K$ documentos cuyos vectores están más cerca
-  del suyo. Esto traslada el problema a otro, el de encontrar los vecinos más próximos en un
-  espacio de cientos de dimensiones, y es ahí donde entran las bases de datos vectoriales de
-  la sección~\ref{subsec:vectordb_concepto}.}
+Con incrustaciones este funcionamiento cambia. Como explicamos en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo del espacio de dimensiones. Esto genera otro problema y es que ahora tenemos que encontrar los vecinos más próximosen un espacio de cientos de dimensiones, y este problema lo abarcará las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
 
 Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
@@ -247,39 +232,30 @@ Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo 
   <<Métricas de comprobación>> al final, después de <<Bases de datos vectoriales>>: hoy se
   explica cómo medir antes de haber presentado la mitad de lo que se mide. No lo he movido
   porque es tu estructura; decide tú.
-  \item \textbf{La búsqueda híbrida se ha quedado fuera del apartado} al reescribirlo. Es la
-  que mezcla la puntuación léxica y la semántica para cubrir los fallos de cada una: la
-  léxica acierta con los nombres propios, los códigos y las siglas, donde la semántica es
-  débil. No está implementada en el sistema, así que dejarla fuera es defendible; solo
-  conviene que sea una decisión y no un descuido, porque es la primera pregunta que sale al
-  contar que la búsqueda léxica falla con el vocabulario. Su sitio alternativo es el trabajo
-  futuro del Capítulo~\ref{cap:conclusiones}.
+  \item No se va a escribir sobre la búsqueda híbrida.
 \end{borrador}
 
 \subsection{Métricas de comprobación}
 
 
 Un sistema de generación aumentada por recuperación puede fallar en dos sitios distintos, uno es al buscar, si los fragmentos que recupera no contienen
-la respuesta, y puede fallar al redactar la respuesta. \textcolor{borrador2}{Cada una de esas
-  dos mitades se mide con una familia de métricas distinta, y una única puntuación global
-  ocultaría cuál de las dos falla, que es precisamente lo que hace falta saber para
-  arreglarla.}
+la respuesta, y puede fallar al redactar la respuesta.
 
 \subsubsection{Las métricas de recuperación}
 
 Estas proceden del campo clásico de la recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo, que es un conjunto de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué comparar lo que el sistema devuelve.
 
-Una de ellas es \textit{Recall@K}, que mide \textcolor{borrador2}{qué proporción de los
+Una de ellas es \textit{Recall@K}, que mide qué proporción de los
   documentos relevantes de cada pregunta aparece entre los $K$ resultados que el sistema
-  devuelve, promediada sobre todas las preguntas}. Responde a si el material necesario ha llegado, no a en qué orden.
+  devuelve, promediada sobre todas las preguntas. Responde a si el material necesario ha llegado, no a en qué orden.
 
 \begin{equation}
   \text{Recall@K} = \frac{1}{|Q|} \sum_{q \in Q} \frac{|R_q \cap \text{Top}_K(q)|}{|R_q|}
   \label{eq:recall_at_k}
 \end{equation}
 
-\textcolor{borrador2}{Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
-  anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.}
+Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
+  anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.
 
 El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
 
@@ -288,141 +264,57 @@ El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la pos
   \label{eq:mrr}
 \end{equation}
 
-\textcolor{borrador2}{Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
-  la pregunta $q$: uno si sale el primero, dos si sale el segundo, y así sucesivamente. Cuando
+Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
+  la pregunta $q$, es decir, uno si sale el primero, dos si sale el segundo, y así sucesivamente. Cuando
   ningún resultado relevante aparece entre los recuperados, ese sumando se cuenta como cero, y
-  no como el inverso de una posición que no existe.}
+  no como el inverso de una posición que no existe.
 
-
-\textcolor{borrador2}{Hay una decisión previa que condiciona a las tres métricas anteriores y
-  que suele darse por supuesta: qué se considera <<el documento correcto>>. En una colección
-  fragmentada, lo que se indexa y se recupera son fragmentos, pero lo que el usuario pregunta
-  se refiere a una unidad completa ---una asignatura, el bloque de salidas de una
-  titulación---, y una unidad puede haberse partido en varios fragmentos. La exhaustividad
-  admite entonces dos lecturas:}
-
+  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc... y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad podemos verla de dos maneras diferentes:
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción
-        de los fragmentos relevantes ha entrado entre los $K$ primeros. Es la lectura estricta,
-        y tiene un techo que no depende del recuperador: si una pregunta tiene doce fragmentos
-        relevantes y $K$ vale cinco, lo máximo alcanzable son cinco de doce por mucho que el
-        orden sea perfecto.}
-  \item \textcolor{borrador2}{\textbf{Por unidad} (\textit{RU@K}): se considera acertada la
-        pregunta en cuanto aparece \emph{alguno} de los fragmentos de la unidad correcta.
-        Responde a si el sistema ha encontrado la asignatura, que es lo que le importa a quien
-        pregunta, y no a si ha recuperado todos sus trozos.}
+  \item \textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción de los fragmentos relevantes ha entrado entre los $K$ primeros. 
+  \item \textbf{Por unidad} (\textit{RU@K}): se considera aceptada la pregunta si es que aparece alguno de los fragmentos de la unidad preguntada.
 \end{itemize}
 
-\textcolor{borrador2}{Las dos son legítimas y miden cosas distintas, así que la única
-  respuesta incorrecta es no decir cuál se está usando: la misma ejecución del mismo sistema
-  produce dos cifras muy distintas según la granularidad elegida, y compararlas entre sí no
-  significa nada.}
 
-\textcolor{borrador2}{\textbf{Las métricas de generación} son más difíciles de definir,
-  porque no existe una única respuesta correcta: dos redacciones distintas pueden ser
-  igual de válidas. Por eso no se comparan contra una respuesta modelo, sino que se
-  comprueban propiedades de la respuesta producida. La \textbf{fidelidad}
-  (\textit{faithfulness}) mide si cada afirmación de la respuesta está respaldada por el
-  contexto recuperado, y es la que persigue directamente la alucinación. La
-  \textbf{pertinencia} mide si la respuesta contesta a lo que se preguntó, porque un texto
-  puede ser fiel al contexto y no venir a cuento. Y la \textbf{precisión} y la
-  \textbf{cobertura del contexto} miran el contexto en lugar de la respuesta: si lo
-  recuperado contiene lo que hacía falta, y si contiene además mucho ruido.}
+\subsubsection{Las métricas de generación}
 
-\textcolor{borrador2}{Herramientas como RAGAS\cite{es2023ragas} empaquetan estas métricas y
-  las calculan de forma automática, y conviene saber cómo lo hacen: encargan el juicio a
-  otro modelo de lenguaje, que lee la pregunta, el contexto y la respuesta y dictamina. Eso
-  las hace baratas y aplicables a gran escala, pero traslada al evaluador los mismos
-  defectos que se están midiendo, y su veredicto no es determinista. Es una limitación que
-  hay que declarar cuando se usan, no un detalle de implementación.}
+
+
+
 
 \begin{borrador}
-  \item \textbf{Fase:} 2. Andamiaje: la prosa la escribes tú, y aquí más que en ningún sitio,
-  porque son las definiciones que te van a preguntar en la defensa.
-  \item \textbf{Queda por decidir si hace falta una tarjeta por fase} para ir completando
-  este apartado a medida que cada fase estrene sus métricas. Hoy están escritas las de
-  recuperación, que son las que el trabajo ya usa, y enunciadas las de generación, que se
-  miden en la Fase 2.
+  \item Por redacta las métricas de generación cuando se llege a su parte.
+ 
   \item \textbf{Dos nombres de tu lista se han quedado fuera a propósito:} <<RAGEval>> y
   <<qEVAL>>. No los he puesto porque no me consta que existan con ese nombre exacto y aquí
   no se puede citar de oídas. RAGAS sí está comprobado y ya figura en la bibliografía.
   Compruébalos tú antes de añadirlos, y si no aparecen, quítalos de la lista sin más.
-  \item \textbf{La cita de las métricas clásicas es al manual entero.} Antes de defenderla,
-  localiza el capítulo concreto de recuperación de información y ajústala, o el tribunal
-  puede pedirte la página.
   \item \textbf{Faltan entradas en el glosario} del Capítulo~\ref{cap:definiciones}: no
   están \textit{Recall@K}, MRR, nDCG ni fidelidad, y las abreviaturas MRR y nDCG tampoco
   aparecen en la lista de abreviaturas. Si las marcas con la macro del glosario sin darlas
   de alta, la nota al pie remite a una definición que no existe.
-  \item \textbf{Lo que NO va aquí, aunque tengas la tentación:} qué métricas usa este
-  trabajo y con qué $K$. Eso es Material y Métodos. Este apartado dice qué existe; en cuanto
-  una frase empiece por <<se ha elegido>>, está en el capítulo equivocado.
-  \item \textbf{La notación \textit{RU@K} es nuestra, no de la literatura.} La distinción sí
-  es estándar ---es la de recuperar documentos frente a recuperar pasajes---, pero el nombre
-  se ha puesto aquí. Convendría decirlo explícitamente al redactar, para que nadie lo busque
-  en la bibliografía. Los techos concretos de este corpus, en cambio, no van aquí sino en el
-  Capítulo~\ref{cap:materialesymetodos}: son un dato de nuestra colección, no del concepto.
 \end{borrador}
 
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-\textcolor{borrador2}{Una base de datos vectorial es un sistema de almacenamiento
-  especializado en guardar incrustaciones junto a sus metadatos y en responder a una pregunta
-  concreta: dado un vector de consulta, cuáles de los almacenados son los más próximos. Es la
-  pieza que hace practicable la búsqueda semántica del apartado anterior, porque comparar la
-  consulta con toda la colección deja de ser viable en cuanto la colección crece.}
+Una base de datos vectorial\cite{pan2024vectordb} es un sistema de almacenamiento especializado en guardar incrustaciones junto a sus metadatos y resolver que dada una consulta, cuáles de llas incrustaciones almacenadas son las más próximas. Es la tecnología que hace viable la búsqueda semántica ya que comparar la consulta con toda la colección deja de ser factible cuando tenemos una colección grande.
 
-\textcolor{borrador2}{La distinción que ordena todo lo demás es la de \textbf{búsqueda exacta}
-  frente a \textbf{búsqueda aproximada}. La exacta, o por fuerza bruta, compara la consulta con
-  todos los vectores y devuelve los verdaderos más próximos; su coste crece linealmente con el
-  tamaño de la colección, pero no se equivoca nunca. La aproximada renuncia a esa garantía a
-  cambio de velocidad: recorre solo una parte del espacio y puede dejarse algún vecino por el
-  camino. Ese intercambio es la razón de ser de la familia, y también su trampa, porque una
-  búsqueda aproximada que pierde resultados no falla de forma visible.}
+Una distición que debemos de hacer es la de búsqueda exacta y búsqueda aproximada, esta primera, también llamada por fuerza bruta, compara la consulta con todos los vectores y devuelve los más próximos, su coste crece linealmente con el tamaño de los datos, pero no se equivoca nunca. La búsqueda aproximada no tiene esa garantía a cambio de una mayor velocidad ya que solo recorre parte del espacio y no por completo.
 
-\textcolor{borrador2}{Para no recorrerlo todo, las bases vectoriales construyen un índice.
-  Las tres familias más extendidas son:}
+Para que la búsqueda aproximada no recorra todo el espacio, las bases vectoriales construyen un índice, del cuál los más populares son:
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Grafos de proximidad}, como HNSW\cite{malkov2020hnsw},
-        que enlazan cada vector con sus vecinos en varias capas de granularidad y navegan
-        saltando de uno a otro hacia la consulta. Son los más usados hoy y los que mejor
-        equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que
-        ocupa el grafo.}
-  \item \textcolor{borrador2}{\textbf{Particionado del espacio}, como IVF, que agrupa los
-        vectores en celdas y solo examina las celdas más prometedoras. Necesita una fase previa
-        de entrenamiento sobre los datos.}
-  \item \textcolor{borrador2}{\textbf{Índices sobre disco}, como SPANN, pensados para
-        colecciones que no caben en memoria principal.}
+  \item \textbf{Grafos de proximidad}: como HNSW\cite{malkov2020hnsw}, que enlazan cada vector con sus vecinos en varias capas y navegan saltando de uno a otro hacia la consulta. Son los más usados hoy y lo que mejor equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que abarca el grafo.
+  \item \textbf{Particionado del espacio}: como IVF\cite{jegou2011ivfpq}, que agrupa los vectores en celdas y solo examina las celdas más prometedoras. Necesita una fase previa de entrenamiento sobre los datos.
+  \item \textbf{Índices sobre disco}: como SPANN\cite{chen2021spann}, pensados para colecciones gigantescas que no caben en memoria principal.
 \end{itemize}
 
-\textcolor{borrador2}{Hay dos rasgos más que separan unas de otras en la práctica. El primero
-  es \textbf{cómo se despliegan}: unas se ejecutan empotradas dentro del propio proceso de la
-  aplicación, sin ningún servicio que levantar, y otras son servidores a los que se habla por
-  red. El segundo es \textbf{qué saben hacer con los metadatos}, que es lo que decide si el
-  filtrado del apartado anterior ocurre antes o después de la búsqueda.}
+Hay dos características que separan unas bases de otras. La primera es cómo se despliegan, ya que unas se ejecutan dentro del propio proceso de la aplicación, sin ningún servicio extra que levantar, y otras son servidores a lo que se les hace peticiones por la red. La segunda es qué saben hacer con los metadatos, que es lo que decide si el filtrado del apartado anterior ocurre antes o después de la búsqueda.
 
-\textcolor{borrador2}{Conviene cerrar el apartado con lo que la literatura da por supuesto y no
-  siempre se cumple: por debajo de unos pocos miles de vectores, la búsqueda exacta es
-  competitiva, y varias de estas bases ni siquiera llegan a construir su índice aproximado
-  porque sus propios umbrales por defecto no se alcanzan. A esa escala, elegir una base
-  vectorial no es una decisión de velocidad.}
 
-\begin{borrador}
-  \item \textbf{Fase:} 2 (IT-31). Andamiaje: la prosa la escribes tú.
-  \item \textbf{Las tres familias de índice están sin citar salvo HNSW}, que sí tiene su
-  referencia en la bibliografía. Antes de defender el párrafo, busca una cita para IVF y otra
-  para SPANN, o quítalos y deja solo HNSW, que es el único que aparece de verdad en las tres
-  candidatas del experimento. Citar de oídas aquí sería peor que no citar.
-  \item \textbf{Este apartado describe qué existe.} La comparativa experimental entre las tres
-  candidatas y el ADR-0004 van en el Capítulo~\ref{cap:materialesymetodos} y en el
-  Apartado~\ref{secc:resultados_vectordb}. En cuanto una frase empiece por «se ha elegido»,
-  está en el capítulo equivocado.
-  \item \textbf{La última frase no es un adorno:} es la que prepara al lector para el resultado
-  del Capítulo~\ref{cap:resultados}, donde la línea base de fuerza bruta gana en velocidad a
-  las tres candidatas. Sin ella, ese resultado parece un fallo del experimento y no lo que es.
-\end{borrador}
+
+
 
 \subsection{Asistentes conversacionales en el ámbito universitario}
 
@@ -513,25 +405,13 @@ orientación profesional y que por ejemplo, se implementan en sistemas expertos 
 Test de Holland para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
 por reglas codificadas que infieren afinidades entre intereses del estudiante y perfiles profesionales~\cite{huayta2024vocational}.
 
-\sout{Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre:
+Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre, sino que 
 todos devuelven una lista cerrada de recomendaciones (titulaciones, ramas profesionales) a partir de un perfil, un cuestionario
 o un historial de decisiones, sin la posibilidad de responder una pregunta abierta y arbitraria sobre el contenido de un plan de estudios.
 Tampoco fundamentan sus respuestas en documentos verificables: la recomendación es el resultado de un modelo o de una regla,
-no la síntesis de una fuente citable. Es precisamente esta capacidad la que distingue el enfoque de este trabajo de las tres familias descritas.}
+no la síntesis de una fuente citable. Es precisamente esta capacidad la que distingue el enfoque de este trabajo de las tres familias descritas.
 
-\textcolor{borrador2}{Los dos enfoques de este apartado ---los sistemas de recomendación y los
-  tests vocacionales--- comparten una misma forma de responder: devuelven una lista cerrada
-  de titulaciones o de ramas profesionales a partir de un perfil, un cuestionario o un
-  historial de decisiones, y no admiten una pregunta abierta sobre el contenido concreto de
-  un plan de estudios. Su respuesta es el resultado de un modelo o de una regla, no la
-  síntesis de un documento que el usuario pueda ir a comprobar.}
 
-\textcolor{borrador2}{Los asistentes conversacionales del apartado anterior sí atienden
-  preguntas en lenguaje natural, pero, en lo que se ha podido observar de ADA y de LUCA,
-  resuelven la consulta redirigiendo a una página en lugar de responderla con el contenido de
-  esa página. Lo que separa a este trabajo de unos y de otros no es una de las dos
-  capacidades por separado, sino tenerlas a la vez: aceptar una pregunta abierta y
-  responderla con el texto de un documento oficial concreto, que además se cita.}
 
 \subsection{Posicionamiento de este trabajo}
 
