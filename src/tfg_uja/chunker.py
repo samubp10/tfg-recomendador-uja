@@ -86,6 +86,18 @@ _GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
     "optativas": frozenset({"OP"}),
 }
 
+#: Ordinales de curso, en el orden en que se estudian. Se usan para ordenar
+#: los listados por curso: un rótulo disyuntivo como «Tercer o cuarto curso»
+#: ordena por el primero que nombra, que es lo antes que puede cursarse.
+_ORDEN_CURSOS: Final[tuple[str, ...]] = (
+    "primer",
+    "segundo",
+    "tercer",
+    "cuarto",
+    "quinto",
+    "sexto",
+)
+
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
 
@@ -309,9 +321,41 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
     encabezado = " ".join(partes)
     if len(grados) == 1 and asignatura.get("menciones"):
         encabezado += f" (mención: {', '.join(asignatura['menciones'])})"
+    # IT-105: el curso va DENTRO del texto y no solo como metadato. Un dato que
+    # no aparece en el fragmento el modelo generativo no lo ve, y sin verlo se
+    # lo inventa: preguntado por el primer año, respondió con el listado entero
+    # del grado y atribuyó cursos y cuatrimestres que nadie le había dado.
+    situacion = _situacion_en_el_plan(asignatura)
+    if situacion:
+        encabezado += f". Se imparte en {situacion}"
     if not asignatura.get("ofertada", True):
         encabezado += ". No ofertada en el curso rastreado"
     return encabezado + "."
+
+
+def _situacion_en_el_plan(asignatura: dict[str, Any]) -> str:
+    """Redacta en qué curso y cuatrimestre se imparte una asignatura.
+
+    Lo que no consta no se rellena (decisión 9). Las optativas de los grados
+    simples no llevan curso publicado, y los dobles grados lo publican de forma
+    disyuntiva ---«Tercer o cuarto curso»--- porque a partir de tercero el
+    estudiante elige por qué especialidad empieza.
+
+    Args:
+        asignatura: Item de tipo ``asignatura`` del dataset.
+
+    Returns:
+        La situación en el plan, o cadena vacía si la fuente no la publica.
+    """
+    curso = (asignatura.get("curso") or "").strip()
+    cuatrimestre = (asignatura.get("cuatrimestre") or "").strip()
+    if curso and cuatrimestre:
+        return f"el {cuatrimestre.lower()} de {curso.lower()}"
+    if curso:
+        return f"el {curso.lower()}"
+    if cuatrimestre:
+        return f"el {cuatrimestre.lower()}"
+    return ""
 
 
 def _encabezado_sin_metadatos(nombre: str, grados: list[str]) -> str:
@@ -446,38 +490,81 @@ def _chunks_de_plan_de_estudios(
             asignaturas = [a for a in por_grado[grado] if a["tipo_asignatura"] in tipos]
             if not asignaturas:
                 continue
-            # Orden alfabético y no el de la fuente: el de la fuente depende
-            # del orden de las filas de la tabla, que ya ha cambiado una vez
-            # (IT-76). Alfabético es estable y además se lee mejor.
-            lineas = []
-            for a in sorted(asignaturas, key=lambda x: x["nombre"]):
-                # El ECTS ausente se refleja, no se imputa (decisión 9).
-                ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
-                lineas.append(f"{a['nombre']}{ects}.")
-            encabezado = (
-                f"Asignaturas {grupo} del {grado}. " f"En total son {len(asignaturas)}:"
-            )
-            base = {
-                "grados": [grado],
-                "codigos": [None],
-                "nombre": f"Asignaturas {grupo} del {grado}",
-                "tipo_asignatura": "",
-            }
-            chunks.extend(
-                _chunks_de_unidad(
-                    # Cada asignatura es su propio párrafo, no una frase de una
-                    # lista corrida. Así el troceo corta siempre entre
-                    # asignaturas y nunca a mitad de una, y el formato es el
-                    # mismo tanto si el listado cabe en un fragmento como si
-                    # necesita dos.
-                    encabezado,
-                    "\n\n".join(lineas),
-                    base,
-                    "plan_de_estudios",
-                    tamanos,
+            for curso, del_curso in _por_curso(asignaturas):
+                # Orden alfabético y no el de la fuente: el de la fuente depende
+                # del orden de las filas de la tabla, que ya ha cambiado una vez
+                # (IT-76). Alfabético es estable y además se lee mejor.
+                lineas = []
+                for a in sorted(del_curso, key=lambda x: x["nombre"]):
+                    # El ECTS ausente se refleja, no se imputa (decisión 9).
+                    ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
+                    lineas.append(f"{a['nombre']}{ects}.")
+                titulo = f"Asignaturas {grupo} de {curso.lower()} del {grado}"
+                if not curso:
+                    titulo = f"Asignaturas {grupo} del {grado}"
+                encabezado = f"{titulo}. En total son {len(del_curso)}:"
+                base = {
+                    "grados": [grado],
+                    "codigos": [None],
+                    "nombre": titulo,
+                    "tipo_asignatura": "",
+                }
+                chunks.extend(
+                    _chunks_de_unidad(
+                        # Cada asignatura es su propio párrafo, no una frase de
+                        # una lista corrida. Así el troceo corta siempre entre
+                        # asignaturas y nunca a mitad de una, y el formato es el
+                        # mismo tanto si el listado cabe en un fragmento como si
+                        # necesita dos.
+                        encabezado,
+                        "\n\n".join(lineas),
+                        base,
+                        "plan_de_estudios",
+                        tamanos,
+                    )
                 )
-            )
     return chunks
+
+
+def _por_curso(
+    asignaturas: list[dict[str, Any]],
+) -> list[tuple[str, list[dict[str, Any]]]]:
+    """Agrupa un listado por el curso en que se imparte (IT-105).
+
+    Antes el listado se troceaba por tamaño, y salían tercios alfabéticos: las
+    cincuenta obligatorias de Informática se partían en tres fragmentos que
+    repetían el mismo encabezado «En total son 50» y ninguno decía cuál era.
+    Medido el 16/08/2026, el modelo recibió los tres y aun así se dejó diez
+    asignaturas sin nombrar, las del tercero.
+
+    Por curso, cada fragmento es una unidad que significa algo por sí sola
+    ---«las obligatorias de primer curso»---, cabe entera y además contesta
+    directamente la pregunta que un preuniversitario hace de verdad.
+
+    Los grupos salen ordenados por el primer curso que nombra el rótulo, de
+    modo que «Tercer o cuarto curso» va donde va tercero. Lo que no lleva curso
+    ---las optativas--- va al final, en un grupo propio.
+
+    Args:
+        asignaturas: Asignaturas de una misma titulación y un mismo grupo.
+
+    Returns:
+        Pares ``(curso, asignaturas)``. El curso es cadena vacía cuando la
+        fuente no lo publica.
+    """
+    grupos: dict[str, list[dict[str, Any]]] = {}
+    for a in asignaturas:
+        grupos.setdefault((a.get("curso") or "").strip(), []).append(a)
+
+    def orden(curso: str) -> tuple[int, str]:
+        if not curso:
+            return (99, "")
+        for posicion, ordinal in enumerate(_ORDEN_CURSOS, start=1):
+            if curso.lower().startswith(ordinal):
+                return (posicion, curso)
+        return (98, curso)
+
+    return [(curso, grupos[curso]) for curso in sorted(grupos, key=orden)]
 
 
 def trocear_dataset(
