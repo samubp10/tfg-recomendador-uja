@@ -1,0 +1,284 @@
+"""Generación de la respuesta a partir del contexto recuperado (IT-37).
+
+Cierra el recorrido: la pregunta llega, :mod:`tfg_uja.recuperador` trae los
+fragmentos pertinentes y aquí se arma el texto que lee el modelo y se le pide
+la respuesta.
+
+El **diseño fino del prompt es IT-34**, y el **guardarraíl de dominio, IT-87**.
+Lo que hay aquí es lo que el recorrido necesita para funcionar de extremo a
+extremo, con dos decisiones que no son de redacción sino de arquitectura:
+
+* **El contexto va identificado.** Cada fragmento entra con el nombre de su
+  unidad y su titulación, no como un montón de texto anónimo, para que la
+  respuesta pueda decir de dónde sale cada dato y para que el modelo no mezcle
+  asignaturas.
+* **El contexto va ordenado por unidad, no por distancia.** El recuperador
+  entrega los fragmentos de más a menos próximo, y una unidad partida en varios
+  llega intercalada con otras. Preguntado por las asignaturas de Informática,
+  el listado del plan llegaba en el orden 3, optativas, 2, 1, y la respuesta
+  reproducía ese orden: empezaba por la mitad de la lista y volvía al principio
+  más abajo. Aquí se vuelven a juntar las partes de cada unidad y se ponen en
+  su orden.
+* **Cada parte dice cuál es.** Las tres partes del listado de obligatorias de
+  Informática repiten el mismo encabezado, «En total son 50», y ninguna dice de
+  cuál se trata. Si llega una sola, el modelo lee que son cincuenta, ve once y
+  presenta once como si fueran las cincuenta, sin ninguna señal de que le falta
+  contexto.
+* **La ventana se declara.** El valor por defecto del servidor es de cientos de
+  miles de *tokens*, y con él el modelo no cabe entero en una tarjeta de 6 GB:
+  se reparte con la CPU y rinde a un tercio. Medido, no supuesto.
+"""
+
+from __future__ import annotations
+
+import json
+import urllib.request
+from typing import Final
+
+from tfg_uja.chunker import ORDEN_CURSOS
+from tfg_uja.recuperador import Fragmento
+
+#: Servidor de inferencia local. No se consulta ningún servicio externo: el
+#: sistema tiene que poder ejecutarse entero en el equipo del autor.
+SERVIDOR: Final[str] = "http://127.0.0.1:11434"
+
+#: Ventana de contexto, en *tokens*. Dimensionada para lo que arma el sistema
+#: ---diez fragmentos de 900 caracteres, más las instrucciones y la respuesta---
+#: y no para el máximo que admita el modelo: con la ventana por defecto el
+#: caché no cabe en la tarjeta y expulsa parte del modelo a la CPU.
+VENTANA: Final[int] = 8192
+
+#: Tope de la respuesta. Acota lo que puede tardar y evita que un modelo
+#: locuaz convierta una consulta de chat en un minuto de espera.
+#:
+#: Dimensionado sobre la respuesta más larga que el corpus puede exigir: las 67
+#: asignaturas de Ingeniería Informática, con sus créditos, ocupan 2.819
+#: caracteres, que a razón de unos 3,6 caracteres por *token* en español son
+#: unos 783. Con el tope anterior, de 400, esa respuesta se cortaba a mitad de
+#: palabra, y el corte no era del modelo sino nuestro.
+#:
+#: Se deja en 1.200 y no en los 783 justos porque una respuesta útil no es el
+#: listado pelado: lleva una frase de entrada, separa obligatorias de optativas
+#: y cierra con algo. Ese margen es el que evita que se corte la última línea,
+#: que es justo donde se notaba.
+TOPE_RESPUESTA: Final[int] = 1200
+
+#: Instrucciones del sistema. La regla que las ordena es que el sistema
+#: prefiere callar a inventar: un estudiante va a decidir su carrera con esto.
+INSTRUCCIONES: Final[str] = (
+    "Eres un asistente que informa sobre las titulaciones de la Escuela "
+    "Politécnica Superior de Jaén, de la Universidad de Jaén.\n"
+    "Respondes a estudiantes que están decidiendo qué carrera estudiar, así "
+    "que escribes claro y sin tecnicismos innecesarios.\n\n"
+    "Reglas:\n"
+    "- Usa ÚNICAMENTE la información del CONTEXTO. No añadas datos que no "
+    "estén ahí, aunque los conozcas.\n"
+    "- Si el contexto no contiene la respuesta, dilo con claridad en lugar de "
+    "suponerla.\n"
+    "- Si una asignatura aparece sin contenido de guía, di que su guía no está "
+    "publicada; no es lo mismo que no exista la asignatura.\n"
+    "- Al enumerar asignaturas, agrúpalas por curso y termina siempre con las "
+    "optativas, que no tienen curso asignado. No te dejes ningún grupo.\n"
+    "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
+    "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
+    "anteriores.\n"
+    "- Cita la asignatura o la titulación de la que sale cada dato."
+)
+
+#: Cuánto se conserva de cada respuesta anterior al recordarla, en caracteres.
+#: Entera no cabe: tres respuestas de listado ocuparían más ventana que el
+#: propio contexto. Lo que hace falta del turno anterior es de qué se hablaba,
+#: no su contenido, que además puede arrastrar errores de esa respuesta.
+RESUMEN_TURNO: Final[int] = 300
+
+
+def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
+    """Reagrupa las partes de cada unidad y las pone en su orden.
+
+    El recuperador ordena por distancia, que es lo correcto para decidir **qué**
+    entra en el contexto pero no para decidir **en qué orden** se lee. Una
+    unidad partida en tres llega con sus partes separadas por fragmentos de
+    otras unidades, y el modelo redacta siguiendo el orden en que lo recibe.
+
+    Cada unidad conserva el sitio que le da su fragmento más próximo, de modo
+    que la relevancia sigue mandando entre unidades; lo único que cambia es que
+    los trozos de una misma unidad viajan juntos y en orden.
+
+    Args:
+        fragmentos: Fragmentos recuperados, en cualquier orden.
+
+    Returns:
+        Los mismos fragmentos, agrupados por unidad y ordenados dentro de ella.
+    """
+    mejor: dict[tuple[str, str], float] = {}
+    for f in fragmentos:
+        clave = (f.nombre, f.origen)
+        mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
+
+    # Los listados del plan se leen en el orden en que se cursan, no por
+    # proximidad. Medido: con el orden por distancia, las optativas caían entre
+    # los cursos segundo y primero, y el modelo enumeró los cuatro cursos y se
+    # dejó las diecisiete optativas fuera aunque las tenía delante.
+    listados = [f for f in fragmentos if f.origen == "plan_de_estudios"]
+    ancla = min((mejor[(f.nombre, f.origen)] for f in listados), default=0.0)
+
+    def orden(f: Fragmento) -> tuple[float, int, str, int]:
+        if f.origen == "plan_de_estudios":
+            return (ancla, _curso_del_listado(f.nombre), f.nombre, f.chunk_index)
+        return (mejor[(f.nombre, f.origen)], 0, f.nombre, f.chunk_index)
+
+    return sorted(fragmentos, key=orden)
+
+
+def _curso_del_listado(nombre: str) -> int:
+    """Sitúa un listado del plan en el curso que enuncia su propio nombre.
+
+    El fragmentador los llama «Asignaturas obligatorias de primer curso del…»,
+    así que el curso está en el nombre y no hace falta una columna nueva en el
+    índice para ordenarlos. Los que no nombran ninguno ---las optativas, que no
+    tienen curso publicado--- van al final.
+
+    Args:
+        nombre: Nombre de la unidad, tal como lo compone el fragmentador.
+
+    Returns:
+        Posición del curso, o un valor mayor que cualquiera si no lo nombra.
+    """
+    bajo = nombre.lower()
+    for posicion, ordinal in enumerate(ORDEN_CURSOS, start=1):
+        if f"de {ordinal}" in bajo:
+            return posicion
+    return len(ORDEN_CURSOS) + 1
+
+
+def _etiqueta(indice: int, fragmento: Fragmento) -> str:
+    """Compone la línea que encabeza un fragmento dentro del contexto.
+
+    **No lleva el número de parte, y se quitó a la vista de dos medidas.** Se
+    puso para que el modelo supiera cuándo le faltaba un trozo de una lista, y
+    no lo consiguió: aun con una regla explícita prohibiéndolo, se lo contó al
+    usuario dos veces, la segunda inventándose una asignatura llamada «Sistemas
+    inteligentes de información (parte 3 de 4)» y afirmando que su guía no
+    estaba publicada. Es el mismo patrón que las titulaciones inventadas: una
+    instrucción no basta para impedir un comportamiento.
+
+    Además, lo que motivó la marca ---un listado de cincuenta asignaturas
+    partido en tres tercios alfabéticos--- lo resolvió IT-105 de raíz, partiendo
+    los listados por curso. El aviso costaba más de lo que evitaba.
+
+    Args:
+        indice: Número con el que se cita el fragmento, desde 1.
+        fragmento: Fragmento que se va a encabezar.
+
+    Returns:
+        La línea de encabezado, sin el texto del fragmento.
+    """
+    return f"[{indice}] {fragmento.nombre} — {', '.join(fragmento.grados)}"
+
+
+def _conversacion(historial: list[tuple[str, str]]) -> str:
+    """Rehace los turnos anteriores, con las respuestas recortadas.
+
+    Args:
+        historial: Pares ``(pregunta, respuesta)``, del más antiguo al último.
+
+    Returns:
+        El bloque de conversación previa, o cadena vacía si no hay ninguna.
+    """
+    if not historial:
+        return ""
+    turnos = []
+    for pregunta, respuesta in historial:
+        recorte = respuesta[:RESUMEN_TURNO]
+        if len(respuesta) > RESUMEN_TURNO:
+            recorte += " [...]"
+        turnos.append(f"Estudiante: {pregunta}\nAsistente: {recorte}")
+    return "CONVERSACIÓN PREVIA:\n" + "\n\n".join(turnos) + "\n\n"
+
+
+def construir_prompt(
+    pregunta: str,
+    fragmentos: list[Fragmento],
+    historial: list[tuple[str, str]] | None = None,
+) -> str:
+    """Arma el texto que lee el modelo.
+
+    Cada fragmento entra encabezado por su unidad y su titulación: sin esa
+    etiqueta, el modelo recibe varios textos seguidos sin saber a qué
+    asignatura pertenece cada uno, y atribuir el temario de una a otra es
+    justo el defecto que la fragmentación evita desde la Fase 1.
+
+    El historial entra **separado del contexto y anunciado como tal**. Sin esa
+    separación, las respuestas anteriores del propio modelo quedarían al mismo
+    nivel que los fragmentos del corpus, y cualquier dato inventado en un turno
+    se convertiría en fuente para el siguiente.
+
+    Args:
+        pregunta: Pregunta del usuario, tal cual la escribe.
+        fragmentos: Fragmentos recuperados, de más a menos próximo.
+        historial: Turnos anteriores de la conversación, si los hay.
+
+    Returns:
+        Prompt completo, listo para enviar al modelo.
+    """
+    if not fragmentos:
+        contexto = "(no se ha recuperado ningún fragmento)"
+    else:
+        contexto = "\n\n".join(
+            f"{_etiqueta(i, f)}\n{f.texto}"
+            for i, f in enumerate(ordenar_contexto(fragmentos), start=1)
+        )
+    return (
+        f"{INSTRUCCIONES}\n\n"
+        f"{_conversacion(historial or [])}"
+        f"CONTEXTO:\n{contexto}\n\n"
+        f"PREGUNTA: {pregunta}\n\n"
+        f"RESPUESTA:"
+    )
+
+
+def generar(
+    prompt: str,
+    modelo: str,
+    servidor: str = SERVIDOR,
+    ventana: int = VENTANA,
+    tope: int = TOPE_RESPUESTA,
+    semilla: int = 42,
+) -> str:
+    """Pide la respuesta al modelo local.
+
+    La temperatura va a cero y la semilla fijada: con muestreo libre, dos
+    ejecuciones de la misma pregunta dan respuestas distintas y ninguna
+    medición sobre ellas sería reproducible.
+
+    Args:
+        prompt: Texto que devuelve :func:`construir_prompt`.
+        modelo: Nombre del modelo en el servidor local.
+        servidor: Dirección del servidor de inferencia.
+        ventana: Ventana de contexto en *tokens*.
+        tope: Máximo de *tokens* de la respuesta.
+        semilla: Semilla del muestreo.
+
+    Returns:
+        La respuesta del modelo, sin espacios sobrantes.
+    """
+    cuerpo = {
+        "model": modelo,
+        "prompt": prompt,
+        "stream": False,
+        "think": False,
+        "options": {
+            "num_ctx": ventana,
+            "temperature": 0,
+            "seed": semilla,
+            "num_predict": tope,
+        },
+    }
+    peticion = urllib.request.Request(
+        f"{servidor}/api/generate",
+        data=json.dumps(cuerpo).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(peticion, timeout=600) as respuesta:
+        datos = json.loads(respuesta.read())
+    return str(datos.get("response", "")).strip()
