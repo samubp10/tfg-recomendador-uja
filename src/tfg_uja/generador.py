@@ -83,8 +83,17 @@ INSTRUCCIONES: Final[str] = (
     "que una asignatura tiene partes, porque no las tiene.\n"
     "- Al enumerar asignaturas, pon primero las obligatorias y después las "
     "optativas, y no mezcles unas con otras.\n"
+    "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
+    "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
+    "anteriores.\n"
     "- Cita la asignatura o la titulación de la que sale cada dato."
 )
+
+#: Cuánto se conserva de cada respuesta anterior al recordarla, en caracteres.
+#: Entera no cabe: tres respuestas de listado ocuparían más ventana que el
+#: propio contexto. Lo que hace falta del turno anterior es de qué se hablaba,
+#: no su contenido, que además puede arrastrar errores de esa respuesta.
+RESUMEN_TURNO: Final[int] = 300
 
 
 def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
@@ -136,7 +145,31 @@ def _etiqueta(indice: int, fragmento: Fragmento) -> str:
     return f"[{indice}] {fragmento.nombre}{parte} — {', '.join(fragmento.grados)}"
 
 
-def construir_prompt(pregunta: str, fragmentos: list[Fragmento]) -> str:
+def _conversacion(historial: list[tuple[str, str]]) -> str:
+    """Rehace los turnos anteriores, con las respuestas recortadas.
+
+    Args:
+        historial: Pares ``(pregunta, respuesta)``, del más antiguo al último.
+
+    Returns:
+        El bloque de conversación previa, o cadena vacía si no hay ninguna.
+    """
+    if not historial:
+        return ""
+    turnos = []
+    for pregunta, respuesta in historial:
+        recorte = respuesta[:RESUMEN_TURNO]
+        if len(respuesta) > RESUMEN_TURNO:
+            recorte += " [...]"
+        turnos.append(f"Estudiante: {pregunta}\nAsistente: {recorte}")
+    return "CONVERSACIÓN PREVIA:\n" + "\n\n".join(turnos) + "\n\n"
+
+
+def construir_prompt(
+    pregunta: str,
+    fragmentos: list[Fragmento],
+    historial: list[tuple[str, str]] | None = None,
+) -> str:
     """Arma el texto que lee el modelo.
 
     Cada fragmento entra encabezado por su unidad y su titulación: sin esa
@@ -144,9 +177,15 @@ def construir_prompt(pregunta: str, fragmentos: list[Fragmento]) -> str:
     asignatura pertenece cada uno, y atribuir el temario de una a otra es
     justo el defecto que la fragmentación evita desde la Fase 1.
 
+    El historial entra **separado del contexto y anunciado como tal**. Sin esa
+    separación, las respuestas anteriores del propio modelo quedarían al mismo
+    nivel que los fragmentos del corpus, y cualquier dato inventado en un turno
+    se convertiría en fuente para el siguiente.
+
     Args:
         pregunta: Pregunta del usuario, tal cual la escribe.
         fragmentos: Fragmentos recuperados, de más a menos próximo.
+        historial: Turnos anteriores de la conversación, si los hay.
 
     Returns:
         Prompt completo, listo para enviar al modelo.
@@ -160,6 +199,7 @@ def construir_prompt(pregunta: str, fragmentos: list[Fragmento]) -> str:
         )
     return (
         f"{INSTRUCCIONES}\n\n"
+        f"{_conversacion(historial or [])}"
         f"CONTEXTO:\n{contexto}\n\n"
         f"PREGUNTA: {pregunta}\n\n"
         f"RESPUESTA:"
