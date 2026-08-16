@@ -145,6 +145,17 @@ def test_las_instrucciones_avisan_de_los_listados_incompletos():
     assert "parte N de M" in INSTRUCCIONES
 
 
+def test_las_instrucciones_prohiben_mostrar_la_marca_de_parte():
+    """Regresión real: la marca se coló en una respuesta a un estudiante.
+
+    El sistema contestó que «Desarrollo de aplicaciones web (Parte 1, 2, 3, 4,
+    5 y 6)», presentando nuestro troceado como si la asignatura tuviera seis
+    partes. La marca existe para que el modelo sepa que le falta contexto, no
+    para que la lea quien pregunta.
+    """
+    assert "de uso interno" in INSTRUCCIONES
+
+
 def test_las_instrucciones_fijan_el_orden_de_la_enumeracion():
     """Lo pidió el autor: obligatorias arriba, y sin mezclarlas con optativas."""
     assert "primero las obligatorias" in INSTRUCCIONES
