@@ -89,7 +89,12 @@ _GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
 #: Ordinales de curso, en el orden en que se estudian. Se usan para ordenar
 #: los listados por curso: un rótulo disyuntivo como «Tercer o cuarto curso»
 #: ordena por el primero que nombra, que es lo antes que puede cursarse.
-_ORDEN_CURSOS: Final[tuple[str, ...]] = (
+#:
+#: Es público porque el generador ordena con él los listados que llegan al
+#: contexto. Si cada módulo tuviera el suyo podrían discrepar en silencio, que
+#: es el mismo motivo por el que la convención de prefijos vive en un solo
+#: sitio desde el ADR-0003.
+ORDEN_CURSOS: Final[tuple[str, ...]] = (
     "primer",
     "segundo",
     "tercer",
@@ -559,7 +564,7 @@ def _por_curso(
     def orden(curso: str) -> tuple[int, str]:
         if not curso:
             return (99, "")
-        for posicion, ordinal in enumerate(_ORDEN_CURSOS, start=1):
+        for posicion, ordinal in enumerate(ORDEN_CURSOS, start=1):
             if curso.lower().startswith(ordinal):
                 return (posicion, curso)
         return (98, curso)
