@@ -79,6 +79,8 @@ INSTRUCCIONES: Final[str] = (
     "- Un fragmento marcado como «parte N de M» es un trozo de una lista más "
     "larga. Si no están todas las partes, avisa de que la lista está "
     "incompleta en lugar de presentarla como si estuviera entera.\n"
+    "- Esas marcas son de uso interno: no las nombres en la respuesta ni digas "
+    "que una asignatura tiene partes, porque no las tiene.\n"
     "- Al enumerar asignaturas, pon primero las obligatorias y después las "
     "optativas, y no mezcles unas con otras.\n"
     "- Cita la asignatura o la titulación de la que sale cada dato."
