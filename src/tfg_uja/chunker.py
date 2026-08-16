@@ -517,6 +517,7 @@ def _chunks_de_plan_de_estudios(
                     "codigos": [None],
                     "nombre": titulo,
                     "tipo_asignatura": "",
+                    "curso": curso,
                 }
                 chunks.extend(
                     _chunks_de_unidad(
@@ -720,6 +721,11 @@ def trocear_dataset(
             "codigos": codigos,
             "nombre": nombre,
             "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
+            # IT-105. Se toma de la asignatura del grupo con el mismo criterio
+            # que el tipo. Ojo: una guía compartida entre titulaciones puede
+            # impartirse en cursos distintos en cada una, así que este valor es
+            # el de la primera y no vale para afirmar nada de las demás.
+            "curso": (asignatura.get("curso", "") if asignatura else ""),
         }
         chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
 
@@ -732,8 +738,9 @@ def trocear_dataset(
                 "nombre": item["grado"],
                 # Las salidas no son una asignatura: el campo queda vacío en
                 # lugar de inventarle un tipo, con el mismo criterio que se
-                # aplica al ECTS ausente.
+                # aplica al ECTS ausente. Lo mismo con el curso.
                 "tipo_asignatura": "",
+                "curso": "",
             }
             chunks.extend(
                 _chunks_de_unidad(encabezado, item["texto"], base, "salidas", tamanos)
@@ -797,6 +804,7 @@ def trocear_dataset(
             "codigos": [asignatura["codigo"]],
             "nombre": asignatura["nombre"],
             "tipo_asignatura": asignatura["tipo_asignatura"],
+            "curso": asignatura.get("curso", ""),
         }
         chunks.append(
             {
