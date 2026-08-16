@@ -63,6 +63,11 @@ COLECCION: Final[str] = "chunks_epsj"
 #: modelo y no de la base, así que dejarla implícita haría que un cambio de
 #: modelo rompiera el ranking en silencio. Se graba en el índice para que la
 #: recuperación la lea en vez de suponerla.
+#: Clave con la que el índice guarda el catálogo de titulaciones que contiene.
+#: Se graba al construirlo para que el recuperador pueda resolver contra él lo
+#: que escriba el usuario, en vez de interpolar texto libre en el filtro.
+CATALOGO: Final[str] = "titulaciones"
+
 DISTANCIA: Final[str] = "cosine"
 
 #: Chunks que se incrustan y almacenan por lote. Limita la memoria usada por
@@ -110,6 +115,22 @@ class AlmacenVectorial(Protocol):
 #: Función que prepara un almacén vacío donde escribir. Recibe la carpeta de
 #: destino y los metadatos que describen con qué se construyó el índice.
 CreadorDeAlmacen = Callable[[Path, dict[str, str]], AlmacenVectorial]
+
+
+def catalogo_de(chunks: list[dict[str, Any]]) -> list[str]:
+    """Titulaciones distintas que aparecen en los fragmentos, ordenadas.
+
+    Se saca del propio corpus y no de una lista escrita a mano porque una lista
+    aparte se queda vieja en silencio: el día que la EPSJ abra una titulación,
+    el filtro seguiría sin conocerla y nadie se enteraría.
+
+    Args:
+        chunks: Fragmentos que se van a indexar.
+
+    Returns:
+        Nombres de titulación, sin repetir y en orden alfabético.
+    """
+    return sorted({g for c in chunks for g in c.get("grados", []) if g})
 
 
 def esquema_lance(dimension: int, metadatos_coleccion: dict[str, str]) -> pa.Schema:
@@ -394,6 +415,11 @@ def reconstruir_indice(
             "modelo": modelo,
             "prefijo_documento": PREFIJO_DOCUMENTO,
             "distancia": DISTANCIA,
+            # El catálogo viaja dentro del índice por el mismo motivo que el
+            # modelo y la métrica: quien consulta no tiene por qué saberlo de
+            # antemano, y una lista escrita aparte se queda vieja en silencio
+            # el día que la EPSJ abra una titulación.
+            CATALOGO: json.dumps(catalogo_de(chunks), ensure_ascii=False),
         },
     )
     return indexar_chunks(chunks, almacen, incrustar)
