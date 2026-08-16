@@ -50,6 +50,8 @@ class Fragmento:
         grados: Titulaciones en las que aparece esa unidad.
         origen: De dónde salió el fragmento (``guia``, ``salidas``, ...).
         distancia: Distancia al vector de la consulta; menor es más próximo.
+        chunk_index: Posición de este fragmento dentro de su unidad, desde 0.
+        total_chunks: En cuántos fragmentos se partió la unidad entera.
     """
 
     texto: str
@@ -57,6 +59,8 @@ class Fragmento:
     grados: list[str]
     origen: str
     distancia: float
+    chunk_index: int
+    total_chunks: int
 
 
 class ModeloDiscrepante(RuntimeError):
@@ -189,6 +193,8 @@ def recuperar(
             grados=list(fila["grados"]),
             origen=fila["origen"],
             distancia=float(fila["_distance"]),
+            chunk_index=int(fila["chunk_index"]),
+            total_chunks=int(fila["total_chunks"]),
         )
         for fila in consulta.to_list()
     ]
