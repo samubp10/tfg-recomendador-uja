@@ -36,6 +36,36 @@ from tfg_uja.indexer import COLECCION, DISTANCIA, metadatos_de_indice
 #: IT-49, que lo barrerá con el conjunto de evaluación.
 K_POR_DEFECTO: Final[int] = 10
 
+#: Cuántas preguntas anteriores se arrastran para incrustar la actual.
+#: Dos son las que hacen falta para que una pregunta como «¿y en primer año?»
+#: siga sabiendo de qué titulación se hablaba; con más, el vector se diluye
+#: entre temas que ya se abandonaron.
+PREGUNTAS_DE_CONTEXTO: Final[int] = 2
+
+
+def consulta_con_historial(pregunta: str, anteriores: list[str]) -> str:
+    """Compone el texto que se incrusta, arrastrando las preguntas previas.
+
+    Una pregunta de seguimiento no se sostiene sola. «¿Qué se da en primer y
+    segundo año?» no menciona ninguna titulación, así que incrustada tal cual
+    recupera fragmentos de las doce; con la pregunta anterior delante, el
+    vector vuelve a caer sobre la titulación de la que se venía hablando.
+
+    Es deliberadamente lo más simple que funciona. Reformular la pregunta con
+    el propio modelo daría mejores resultados a costa de una llamada más por
+    consulta, y esa comparación es de la Fase 3, no de aquí.
+
+    Args:
+        pregunta: Pregunta actual, tal cual la escribe el usuario.
+        anteriores: Preguntas previas de la conversación, de más antigua a más
+            reciente.
+
+    Returns:
+        El texto a incrustar.
+    """
+    arrastre = anteriores[-PREGUNTAS_DE_CONTEXTO:]
+    return " ".join([*arrastre, pregunta]) if arrastre else pregunta
+
 
 @dataclass(frozen=True)
 class Fragmento:
