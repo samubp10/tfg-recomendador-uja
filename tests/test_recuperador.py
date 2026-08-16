@@ -24,10 +24,14 @@ from tfg_uja.recuperador import (
     PREGUNTAS_DE_CONTEXTO,
     Fragmento,
     ModeloDiscrepante,
+    TitulacionDesconocida,
     abrir_indice,
+    acotar_por_distancia,
+    catalogo_del_indice,
     consulta_con_historial,
     distancia_del_indice,
     recuperar,
+    resolver_titulacion,
 )
 
 DIMENSION = 8
@@ -35,6 +39,10 @@ DIMENSION = 8
 SIMPLE = "Grado en Ingeniería Eléctrica"
 DOBLE = "Doble Grado en Ingeniería Eléctrica y Mecánica"
 INFORMATICA = "Grado en Ingeniería Informática"
+
+#: Catálogo que el índice graba de sí mismo. El filtro ya no interpola texto
+#: del usuario: resuelve contra esto.
+CATALOGO_PRUEBA = [SIMPLE, DOBLE, INFORMATICA]
 
 
 def incrustador_falso(textos: list[str]) -> list[list[float]]:
@@ -148,7 +156,9 @@ def test_el_filtro_se_aplica_antes_de_buscar():
     está indexado, que es un fallo invisible desde el código.
     """
     tabla = TablaEspia()
-    recuperar("una pregunta", tabla, incrustador_falso, grado=SIMPLE)
+    recuperar(
+        "una pregunta", tabla, incrustador_falso, grado=SIMPLE, catalogo=CATALOGO_PRUEBA
+    )
     assert tabla.registro["prefilter"] is True
     assert "array_has_any" in tabla.registro["where"]
 
@@ -161,7 +171,14 @@ def test_filtrar_por_una_titulacion_no_arrastra_el_doble_grado(indice):
     positivos.
     """
     tabla = abrir_indice(indice, MODELO)
-    fragmentos = recuperar("asignaturas", tabla, incrustador_falso, k=10, grado=SIMPLE)
+    fragmentos = recuperar(
+        "asignaturas",
+        tabla,
+        incrustador_falso,
+        k=10,
+        grado=SIMPLE,
+        catalogo=CATALOGO_PRUEBA,
+    )
     assert {f.nombre for f in fragmentos} == {"Compartida"}
 
 
@@ -176,7 +193,12 @@ def test_el_prefiltrado_rescata_lo_que_el_top_k_no_alcanza(indice):
     assert "De informática" not in {f.nombre for f in sin_filtro}
 
     con_filtro = recuperar(
-        "asignaturas", tabla, incrustador_falso, k=1, grado=INFORMATICA
+        "asignaturas",
+        tabla,
+        incrustador_falso,
+        k=1,
+        grado=INFORMATICA,
+        catalogo=CATALOGO_PRUEBA,
     )
     assert [f.nombre for f in con_filtro] == ["De informática"]
 
@@ -191,6 +213,7 @@ def test_filtrar_por_titulacion_y_tipo_a_la_vez(indice):
         k=10,
         grado=DOBLE,
         tipo_asignatura="OP",
+        catalogo=CATALOGO_PRUEBA,
     )
     assert [f.nombre for f in fragmentos] == ["Optativa del doble"]
 
@@ -306,3 +329,95 @@ def test_k_por_defecto_es_el_del_modulo():
     tabla = TablaEspia()
     recuperar("una pregunta", tabla, incrustador_falso)
     assert tabla.registro["k"] == K_POR_DEFECTO
+
+
+# --- El filtro se resuelve contra el catálogo del índice ---
+
+
+def test_el_indice_declara_las_titulaciones_que_contiene(indice):
+    """Se leen del corpus, no de una lista escrita a mano que envejece sola."""
+    assert set(catalogo_del_indice(indice)) == {SIMPLE, DOBLE, INFORMATICA}
+
+
+def test_el_nombre_parcial_ya_no_devuelve_cero_fragmentos():
+    """Antes exigía el nombre exacto y «informática» no casaba con nada.
+
+    Y cuando el filtro no casa, devuelve cero fragmentos: el sistema responde
+    que no tiene información sobre algo que sí está indexado, con toda la
+    pinta de ser una respuesta legítima.
+    """
+    assert resolver_titulacion("informática", CATALOGO_PRUEBA) == [INFORMATICA]
+    assert resolver_titulacion("INFORMATICA", CATALOGO_PRUEBA) == [INFORMATICA]
+
+
+def test_el_nombre_exacto_no_arrastra_los_dobles():
+    """«Grado en Ingeniería Eléctrica» es subcadena del doble grado.
+
+    Escrito entero, gana la coincidencia exacta y devuelve solo esa.
+    """
+    assert resolver_titulacion(SIMPLE, CATALOGO_PRUEBA) == [SIMPLE]
+
+
+def test_el_nombre_parcial_si_trae_la_familia():
+    """A quien pregunta por eléctrica le interesan también sus dobles."""
+    assert set(resolver_titulacion("eléctrica", CATALOGO_PRUEBA)) == {SIMPLE, DOBLE}
+
+
+def test_una_titulacion_inventada_falla_de_forma_ruidosa():
+    """Filtrar por algo inexistente devolvería cero fragmentos en silencio."""
+    with pytest.raises(TitulacionDesconocida) as error:
+        resolver_titulacion("Grado en Ingeniería de Energía", CATALOGO_PRUEBA)
+    assert "Energía" in str(error.value)
+
+
+def test_lo_que_se_interpola_sale_del_catalogo_y_no_del_usuario():
+    """La comilla simple es lo único que separaba la consulta de una inyección.
+
+    Ahora el valor no llega a componerse: no casa con ninguna titulación.
+    """
+    with pytest.raises(TitulacionDesconocida):
+        resolver_titulacion("x'] OR 1=1 --", CATALOGO_PRUEBA)
+
+
+# --- K deja de ser fijo ---
+
+
+def _frag(distancia: float) -> Fragmento:
+    return Fragmento(
+        texto="t",
+        nombre="n",
+        grados=[INFORMATICA],
+        origen="guia",
+        distancia=distancia,
+        chunk_index=0,
+        total_chunks=1,
+    )
+
+
+def test_el_corte_deja_fuera_lo_que_esta_mucho_mas_lejos():
+    """Caso real: 0,080 · 0,081 · 0,082 pertinentes, y luego 0,104 de ruido."""
+    fragmentos = [_frag(d) for d in (0.080, 0.081, 0.082, 0.104, 0.109, 0.110)]
+    assert len(acotar_por_distancia(fragmentos, minimo=1, maximo=20)) == 3
+
+
+def test_el_corte_es_relativo_y_no_absoluto():
+    """Medido: el mejor de una pregunta estaba a 0,076 y el de otra a 0,107.
+
+    Un umbral fijo en 0,10 habría dejado la segunda pregunta sin contexto.
+    """
+    lejanos = [_frag(d) for d in (0.107, 0.108, 0.110, 0.180)]
+    assert len(acotar_por_distancia(lejanos, minimo=1, maximo=20)) == 3
+
+
+def test_el_minimo_protege_de_un_corte_demasiado_agresivo():
+    fragmentos = [_frag(d) for d in (0.01, 0.90, 0.91, 0.92)]
+    assert len(acotar_por_distancia(fragmentos, minimo=3, maximo=20)) == 3
+
+
+def test_el_maximo_sigue_siendo_un_tope():
+    fragmentos = [_frag(0.10) for _ in range(30)]
+    assert len(acotar_por_distancia(fragmentos, minimo=3, maximo=20)) == 20
+
+
+def test_sin_fragmentos_no_falla():
+    assert acotar_por_distancia([]) == []

@@ -631,6 +631,26 @@ def test_sin_curso_publicado_el_fragmento_no_se_lo_inventa():
     assert "Se imparte en" not in chunks[0]["texto"]
 
 
+def test_el_hueco_del_curso_se_dice_en_vez_de_callarse():
+    # Medido el 16/08/2026: con el encabezado diciendo solo «Se imparte en el
+    # segundo cuatrimestre», el modelo respondió que la asignatura era
+    # «optativa en 2º curso», convirtiendo el cuatrimestre en un curso que la
+    # fuente no publica. Un hueco callado se rellena solo.
+    chunks = _de_origen(
+        trocear_dataset(
+            [
+                _asignatura(
+                    "Programación hardware",
+                    tipo="OP",
+                    cuatrimestre="Segundo cuatrimestre",
+                )
+            ]
+        ),
+        "asignatura_sin_guia",
+    )
+    assert "sin curso asignado en el plan" in chunks[0]["texto"]
+
+
 def test_el_listado_del_plan_se_parte_por_curso_y_no_por_tamano():
     # Antes salían tercios alfabéticos: las tres partes repetían «En total son
     # 50» y ninguna decía cuál era. El modelo recibió las tres y aun así dejó
