@@ -226,6 +226,41 @@ def test_los_fragmentos_vienen_ordenados_por_proximidad(indice):
     assert distancias == sorted(distancias)
 
 
+@pytest.fixture()
+def indice_partido(tmp_path) -> Path:
+    """Índice aparte con una sola unidad partida en tres.
+
+    Va separado del otro para que añadir esta unidad no altere qué fragmento
+    queda más próximo en las pruebas de filtrado, que dependen de las
+    longitudes del corpus de prueba.
+    """
+    chunks = [
+        {
+            **chunk("Listado", f"parte número {i}", [INFORMATICA]),
+            "chunk_index": i,
+            "total_chunks": 3,
+        }
+        for i in range(3)
+    ]
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(json.dumps(chunks, ensure_ascii=False), encoding="utf-8")
+    ruta_indice = tmp_path / "indice_partido"
+    reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
+    return ruta_indice
+
+
+def test_el_fragmento_sabe_de_que_parte_de_su_unidad_viene(indice_partido):
+    """Sin esto el generador no puede reagrupar un listado partido.
+
+    Los tres campos están en el índice desde IT-30, pero el recuperador no los
+    leía: el generador recibía las partes sueltas y sin forma de ordenarlas.
+    """
+    tabla = abrir_indice(indice_partido, MODELO)
+    fragmentos = recuperar("listado", tabla, incrustador_falso, k=3)
+    assert {f.chunk_index for f in fragmentos} == {0, 1, 2}
+    assert {f.total_chunks for f in fragmentos} == {3}
+
+
 def test_el_fragmento_trae_lo_necesario_para_citarlo(indice):
     """El generador tiene que poder decir de qué asignatura sale cada dato."""
     tabla = abrir_indice(indice, MODELO)
