@@ -79,6 +79,9 @@ INSTRUCCIONES: Final[str] = (
     "publicada; no es lo mismo que no exista la asignatura.\n"
     "- Al enumerar asignaturas, agrúpalas por curso y termina siempre con las "
     "optativas, que no tienen curso asignado. No te dejes ningún grupo.\n"
+    "- Si hay un ÁMBITO declarado, responde sobre esa titulación. Varias "
+    "asignaturas se imparten en más de una, y el contexto las nombra todas; "
+    "menciónalo si viene al caso, pero no cambies de titulación.\n"
     "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
     "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
     "anteriores.\n"
@@ -200,6 +203,7 @@ def construir_prompt(
     pregunta: str,
     fragmentos: list[Fragmento],
     historial: list[tuple[str, str]] | None = None,
+    ambito: str | None = None,
 ) -> str:
     """Arma el texto que lee el modelo.
 
@@ -217,6 +221,7 @@ def construir_prompt(
         pregunta: Pregunta del usuario, tal cual la escribe.
         fragmentos: Fragmentos recuperados, de más a menos próximo.
         historial: Turnos anteriores de la conversación, si los hay.
+        ambito: Titulación a la que está acotada la búsqueda, si lo está.
 
     Returns:
         Prompt completo, listo para enviar al modelo.
@@ -228,8 +233,15 @@ def construir_prompt(
             f"{_etiqueta(i, f)}\n{f.texto}"
             for i, f in enumerate(ordenar_contexto(fragmentos), start=1)
         )
+    # El ámbito se **declara como dato**, no como prohibición. 78 guías del
+    # corpus se imparten en varias titulaciones y su encabezado las nombra
+    # todas, así que acotar la búsqueda a una no impide que el modelo hable de
+    # las otras: medido, con el filtro puesto en Informática respondió con un
+    # apartado entero sobre Inteligencia Artificial y Ciberseguridad.
+    encabezado = f"ÁMBITO: la consulta es sobre el {ambito}.\n\n" if ambito else ""
     return (
         f"{INSTRUCCIONES}\n\n"
+        f"{encabezado}"
         f"{_conversacion(historial or [])}"
         f"CONTEXTO:\n{contexto}\n\n"
         f"PREGUNTA: {pregunta}\n\n"
