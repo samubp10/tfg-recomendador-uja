@@ -22,6 +22,8 @@ Las tres se comprueban aquí, y las tres tienen prueba de regresión.
 
 from __future__ import annotations
 
+import json
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
@@ -29,7 +31,7 @@ from typing import Any, Final
 import lancedb
 
 from tfg_uja.incrustaciones import Incrustador
-from tfg_uja.indexer import COLECCION, DISTANCIA, metadatos_de_indice
+from tfg_uja.indexer import CATALOGO, COLECCION, DISTANCIA, metadatos_de_indice
 
 #: Fragmentos que se recuperan por consulta cuando no se dice otra cosa.
 #: Es un valor de partida, no una decisión cerrada: fijarlo es objeto de
@@ -141,6 +143,128 @@ def distancia_del_indice(ruta_indice: Path) -> str:
     return metadatos_de_indice(ruta_indice).get("distancia", DISTANCIA)
 
 
+#: Banda del número de fragmentos. Traer siempre los mismos es lo que metía
+#: treinta fragmentos de doce titulaciones para una pregunta que se contestaba
+#: con cuatro. El mínimo evita el desastre contrario: quedarse sin contexto
+#: porque el corte fue agresivo.
+K_MINIMO: Final[int] = 3
+K_MAXIMO: Final[int] = 20
+
+#: Cuánto más lejos que el mejor puede estar un fragmento y seguir entrando.
+#: 🔴 **Provisional.** Sale de mirar tres preguntas, no de un barrido: en ellas
+#: el salto entre lo pertinente y el ruido estaba en 1,22 y 1,25. Fijarlo en
+#: serio es IT-49, con las 50 preguntas del conjunto de evaluación.
+FACTOR_CORTE: Final[float] = 1.20
+
+
+class TitulacionDesconocida(ValueError):
+    """El nombre de titulación no está en el catálogo del índice."""
+
+
+def _normalizar(texto: str) -> str:
+    """Minúsculas y sin tildes, para comparar nombres con seguridad.
+
+    Args:
+        texto: Texto a normalizar.
+
+    Returns:
+        El texto en minúsculas, sin marcas diacríticas y sin espacios de sobra.
+    """
+    descompuesto = unicodedata.normalize("NFD", texto.lower())
+    limpio = "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
+    return " ".join(limpio.split())
+
+
+def catalogo_del_indice(ruta_indice: Path) -> list[str]:
+    """Titulaciones que el índice declara contener.
+
+    Args:
+        ruta_indice: Carpeta donde persiste el índice.
+
+    Returns:
+        Nombres de titulación, o lista vacía si el índice no los grabó.
+    """
+    crudo = metadatos_de_indice(ruta_indice).get(CATALOGO)
+    return list(json.loads(crudo)) if crudo else []
+
+
+def resolver_titulacion(texto: str, catalogo: list[str]) -> list[str]:
+    """Traduce lo que escribe el usuario a nombres reales del catálogo.
+
+    Resuelve tres cosas de golpe. La primera es que el filtro **exigía el
+    nombre exacto**: escribir «informática» devolvía cero fragmentos, y el
+    sistema respondía que no tenía información sobre algo que sí está
+    indexado, que es un fallo con toda la pinta de respuesta legítima.
+
+    La segunda es de seguridad. El filtro se compone interpolando texto en una
+    expresión SQL, porque LanceDB no expone consultas parametrizadas; escapar
+    las comillas es una defensa artesanal que hoy funciona solo porque ningún
+    nombre de la EPSJ lleva una. Resolviendo contra el catálogo, **lo que se
+    interpola ya no es texto del usuario** sino un nombre del propio índice.
+
+    Y la tercera es de alcance: un nombre parcial como «eléctrica» devuelve la
+    titulación simple **y sus dobles grados**, que es lo que le interesa a
+    quien pregunta. El nombre completo y exacto devuelve solo esa.
+
+    Args:
+        texto: Lo que escribe el usuario.
+        catalogo: Titulaciones que declara el índice.
+
+    Returns:
+        Nombres del catálogo con los que filtrar.
+
+    Raises:
+        TitulacionDesconocida: Si no casa ninguna. Se falla de forma ruidosa
+            a propósito: filtrar por algo que no existe devolvería cero
+            fragmentos, y no filtrar devolvería los de otra titulación.
+    """
+    buscado = _normalizar(texto)
+    exacto = [t for t in catalogo if _normalizar(t) == buscado]
+    if exacto:
+        return exacto
+    parciales = [t for t in catalogo if buscado in _normalizar(t)]
+    if parciales:
+        return parciales
+    raise TitulacionDesconocida(
+        f"«{texto}» no es ninguna de las {len(catalogo)} titulaciones del índice"
+    )
+
+
+def acotar_por_distancia(
+    fragmentos: list[Fragmento],
+    minimo: int = K_MINIMO,
+    maximo: int = K_MAXIMO,
+    factor: float = FACTOR_CORTE,
+) -> list[Fragmento]:
+    """Recorta la lista donde deja de haber fragmentos pertinentes.
+
+    Un K fijo trae siempre los mismos, pertinentes o no: para «qué asignaturas
+    se dan en primer año» bastaban cuatro fragmentos y entraban treinta, de las
+    doce titulaciones, y el modelo mezcló asignaturas de unas y otras.
+
+    El corte es **relativo al mejor de cada consulta**, no un umbral absoluto.
+    Medido: el fragmento más próximo de una pregunta estaba a 0,076 y el de
+    otra a 0,107, así que un umbral fijo habría dejado la segunda sin nada.
+
+    La banda protege los dos extremos: nunca menos del mínimo, para que un
+    corte agresivo no deje al modelo sin contexto, y nunca más del máximo.
+
+    Args:
+        fragmentos: Fragmentos recuperados, de más a menos próximo.
+        minimo: Cuántos se conservan aunque el corte diga menos.
+        maximo: Tope, aunque el corte diga más.
+        factor: Distancia máxima admitida, como múltiplo de la mejor.
+
+    Returns:
+        Los fragmentos que quedan dentro del corte.
+    """
+    if not fragmentos:
+        return []
+    umbral = fragmentos[0].distancia * factor
+    dentro = [f for f in fragmentos if f.distancia <= umbral]
+    return fragmentos[: max(minimo, min(len(dentro), maximo))]
+
+
 def _escapar(valor: str) -> str:
     """Escapa un literal para la expresión SQL del filtro.
 
@@ -158,7 +282,7 @@ def _escapar(valor: str) -> str:
     return valor.replace("'", "''")
 
 
-def _filtro(grado: str | None, tipo_asignatura: str | None) -> str | None:
+def _filtro(titulaciones: list[str] | None, tipo_asignatura: str | None) -> str | None:
     """Compone la expresión de filtrado por metadatos.
 
     ``array_has_any`` casa por elemento exacto sobre la lista de titulaciones.
@@ -167,16 +291,22 @@ def _filtro(grado: str | None, tipo_asignatura: str | None) -> str | None:
     «Grado en Ingeniería Eléctrica» devuelve 417 fragmentos por pertenencia
     exacta frente a 584 por subcadena.
 
+    Los nombres que llegan aquí **ya vienen del catálogo del índice**, no del
+    usuario: los resuelve :func:`resolver_titulacion`. El escapado se conserva
+    como red de seguridad, pero deja de ser lo único que separa una consulta de
+    una inyección.
+
     Args:
-        grado: Titulación a la que acotar, o ``None``.
+        titulaciones: Titulaciones a las que acotar, o ``None``.
         tipo_asignatura: Tipo al que acotar, o ``None``.
 
     Returns:
         Expresión SQL, o ``None`` si no hay nada que filtrar.
     """
     condiciones = []
-    if grado is not None:
-        condiciones.append(f"array_has_any(grados, ['{_escapar(grado)}'])")
+    if titulaciones:
+        lista = ", ".join(f"'{_escapar(t)}'" for t in titulaciones)
+        condiciones.append(f"array_has_any(grados, [{lista}])")
     if tipo_asignatura is not None:
         condiciones.append(f"tipo_asignatura = '{_escapar(tipo_asignatura)}'")
     return " AND ".join(condiciones) if condiciones else None
@@ -190,6 +320,7 @@ def recuperar(
     k: int = K_POR_DEFECTO,
     grado: str | None = None,
     tipo_asignatura: str | None = None,
+    catalogo: list[str] | None = None,
 ) -> list[Fragmento]:
     """Devuelve los ``k`` fragmentos más próximos a la pregunta.
 
@@ -205,15 +336,25 @@ def recuperar(
         incrustar: Incrustador de consultas, que aplica el prefijo del modelo.
         distancia: Métrica, la que devuelve :func:`distancia_del_indice`.
         k: Cuántos fragmentos recuperar.
-        grado: Titulación a la que acotar la búsqueda, si procede.
+        grado: Titulación a la que acotar la búsqueda. Admite el nombre
+            parcial: se resuelve contra el catálogo del índice.
         tipo_asignatura: Tipo de asignatura al que acotarla, si procede.
+        catalogo: Titulaciones que declara el índice, de
+            :func:`catalogo_del_indice`. Hace falta para poder resolver
+            ``grado``.
 
     Returns:
         Fragmentos ordenados de más a menos próximo.
+
+    Raises:
+        TitulacionDesconocida: Si ``grado`` no casa con ninguna del catálogo.
     """
+    titulaciones = (
+        resolver_titulacion(grado, catalogo or []) if grado is not None else None
+    )
     vector = incrustar([pregunta])[0]
     consulta = tabla.search(list(vector)).distance_type(distancia).limit(k)
-    expresion = _filtro(grado, tipo_asignatura)
+    expresion = _filtro(titulaciones, tipo_asignatura)
     if expresion is not None:
         consulta = consulta.where(expresion, prefilter=True)
     return [
