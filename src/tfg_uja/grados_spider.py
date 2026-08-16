@@ -81,6 +81,23 @@ def _normalizar(texto: str) -> str:
 #: un dato deducido de la fuente no se queda obsoleto sin que nadie se entere.
 _CURSO_EN_URL: Final[re.Pattern[str]] = re.compile(r"/(\d{4}-\d{2})/")
 
+#: Ordinales con los que la EPSJ rotula los cursos. Se admiten las dos formas
+#: («primer» y «primero») porque la fuente usa las dos.
+_ORDINALES: Final[str] = "primer[o]?|segundo|tercer[o]?|cuarto|quinto|sexto"
+
+#: Curso dentro del rótulo de una sección. Admite la forma disyuntiva «Tercer o
+#: Cuarto Curso» que usan los dobles grados: a partir de tercero el estudiante
+#: elige por qué especialidad empieza, así que la fuente no fija uno solo y
+#: nosotros tampoco lo fijamos (decisión 9: no se imputa lo que no consta).
+_CURSO_EN_ROTULO: Final[re.Pattern[str]] = re.compile(
+    rf"\b((?:{_ORDINALES})(?:\s+o\s+(?:{_ORDINALES}))?)\s+curso\b"
+)
+
+#: Cuatrimestre dentro del rótulo de una sección.
+_CUATRIMESTRE_EN_ROTULO: Final[re.Pattern[str]] = re.compile(
+    r"\b(primer|segundo)\s+cuatrimestre\b"
+)
+
 
 def curso_de_url(url: str | None) -> str | None:
     """Deduce el curso académico al que pertenece una guía a partir de su URL.
@@ -315,6 +332,9 @@ class GradosSpider(scrapy.Spider):
                     cabeceras,
                 )
                 continue
+            # IT-105: el curso es de la tabla entera, no de cada fila, porque
+            # la fuente lo publica en el rótulo de la sección que la agrupa.
+            curso, cuatrimestre = self._curso_y_cuatrimestre(tabla)
             for fila in filas:
                 celdas = fila.css("td")
                 # La fila debe llegar hasta la última columna que interesa; las
@@ -370,6 +390,8 @@ class GradosSpider(scrapy.Spider):
                     "tipo_asignatura": tipo_asig,
                     "menciones": menciones,
                     "ects": ects,
+                    "curso": curso,
+                    "cuatrimestre": cuatrimestre,
                     "ofertada": ofertada,
                     "url_guia": url_guia,
                     "tiene_guia": tiene_guia,
@@ -380,6 +402,13 @@ class GradosSpider(scrapy.Spider):
                     for nueva in menciones:
                         if nueva not in existentes:
                             existentes.append(nueva)
+                    # Una optativa figura en varias tablas de mención, y solo
+                    # algunas de esas tablas están bajo un rótulo con curso.
+                    # Se rellena si la primera aparición vino sin él, pero no
+                    # se pisa: la primera manda, igual que en las menciones.
+                    for campo in ("curso", "cuatrimestre"):
+                        if not por_clave[clave][campo] and item[campo]:
+                            por_clave[clave][campo] = item[campo]
                 else:
                     por_clave[clave] = item
                     orden.append(clave)
@@ -396,6 +425,56 @@ class GradosSpider(scrapy.Spider):
                         "grado": item["grado"],
                     },
                 )
+
+    @staticmethod
+    def _curso_y_cuatrimestre(tabla: Selector) -> tuple[str, str]:
+        """Sitúa una tabla en su curso y cuatrimestre a partir de los rótulos.
+
+        La EPSJ **no publica el curso como columna** salvo en el plan 2025 de
+        Geomática: lo publica agrupando las tablas bajo encabezados de sección.
+        Y no vale el ``<caption>``, que sería el sitio natural, porque está
+        vacío en Informática, Eléctrica y Mecánica.
+
+        Se recorren los rótulos hacia atrás desde la tabla y se para en el
+        primero que la sitúa. El bloque de optativas ---rotulado «Optativas»,
+        «Optatividad» o «Listado de Optativas» según la titulación--- corta la
+        búsqueda: sus asignaturas no tienen curso publicado, y seguir hacia
+        atrás les asignaría el del último curso, que es el que quedó justo
+        encima.
+
+        Se miran encabezados **y negritas** porque los planes de los dobles
+        grados no rotulan igual: el curso va en un ``<h3>`` pero el
+        cuatrimestre en un ``<li><strong>`` suelto entre el encabezado y la
+        tabla. Que un rótulo cuente o no lo decide la expresión regular, no la
+        etiqueta que lo envuelve.
+
+        Args:
+            tabla (Selector): Tabla de asignaturas dentro de la página.
+
+        Returns:
+            tuple[str, str]: Curso y cuatrimestre tal como los rotula la
+                fuente, o cadena vacía cuando no consta.
+        """
+        curso = ""
+        cuatrimestre = ""
+        previos = tabla.xpath(
+            "preceding::*[self::h2 or self::h3 or self::h4 or self::strong"
+            " or self::caption]"
+        )
+        for nodo in reversed(list(previos)):
+            rotulo = _normalizar(limpiar_texto(" ".join(nodo.css("::text").getall())))
+            if not cuatrimestre:
+                encontrado = _CUATRIMESTRE_EN_ROTULO.search(rotulo)
+                if encontrado:
+                    cuatrimestre = encontrado.group(0).capitalize()
+                    continue
+            if "optativ" in rotulo:
+                break
+            encontrado = _CURSO_EN_ROTULO.search(rotulo)
+            if encontrado:
+                curso = f"{encontrado.group(1)} curso".capitalize()
+                break
+        return curso, cuatrimestre
 
     @staticmethod
     def _columnas_de_cabecera(cabeceras: list[str]) -> dict[str, int]:
