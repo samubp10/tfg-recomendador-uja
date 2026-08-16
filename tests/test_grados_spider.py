@@ -230,6 +230,28 @@ def test_el_curso_se_lee_pese_al_rotulo_distinto(fixture, url, grado, rotulo):
     assert all(i["curso"] == "" for i in items if i["tipo_asignatura"] == "OP")
 
 
+def test_geomatica_2025_no_confunde_su_columna_de_curso_con_el_rotulo():
+    """Es la única titulación con columna «Curso recomendado» en la tabla.
+
+    Esa columna es de las optativas y no la leemos: el curso sale del rótulo de
+    la sección, igual que en las demás. La prueba fija que la columna no se
+    cuela ni deja a las troncales sin curso.
+    """
+    resp = _respuesta(
+        "tabla_geomatica_plan2025.html",
+        url="https://eps.ujaen.es/grados/grado-en-ingenieria-geomatica-y-topografica/asignaturas-y-profesorado",  # noqa: E501
+        meta={"nombre": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"},
+    )
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    assert {i["curso"] for i in items if i["curso"]} == {
+        "Primer curso",
+        "Segundo curso",
+        "Tercer curso",
+        "Cuarto curso",
+    }
+    assert all(i["curso"] == "" for i in items if i["tipo_asignatura"] == "OP")
+
+
 def test_el_doble_grado_conserva_el_curso_ambiguo_de_la_fuente():
     """En los dobles el curso NO es un número, y no lo resolvemos nosotros.
 
