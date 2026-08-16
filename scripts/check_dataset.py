@@ -263,6 +263,32 @@ def main(argv: list[str] | None = None) -> int:
             f"datos básicos. `check_guias_pdf.py` dice de cada una por qué."
         )
 
+    # IT-105: el curso no es un campo obligatorio, así que no se puede exigir
+    # que esté en todas. Lo que sí se exige es que las que no lo tienen sean
+    # exactamente las optativas: la EPSJ publica el curso agrupando las tablas
+    # de asignaturas troncales, y su bloque de optativas no lleva ninguno. Si
+    # apareciera una troncal sin curso, sería que el rótulo de su sección ha
+    # cambiado y la hemos perdido en silencio.
+    sin_curso = [a for a in asignaturas if not a.get("curso")]
+    troncales_sin_curso = [a for a in sin_curso if a["tipo_asignatura"] != "OP"]
+    exigir(
+        not troncales_sin_curso,
+        lambda: (
+            f"{len(troncales_sin_curso)} asignaturas no optativas sin curso "
+            f"(p. ej. {troncales_sin_curso[0]['nombre']!r} de "
+            f"{troncales_sin_curso[0]['grado']!r}): el rótulo de su sección "
+            f"habrá cambiado y el curso se ha perdido sin avisar (IT-105)."
+        ),
+    )
+    con_curso = len(asignaturas) - len(sin_curso)
+    print(
+        f"  Curso: {con_curso}/{len(asignaturas)} asignaturas lo declaran "
+        f"({con_curso / len(asignaturas):.1%}); las {len(sin_curso)} restantes "
+        f"son optativas, que la fuente publica sin curso."
+    )
+    reparto = Counter(a["curso"] for a in asignaturas if a.get("curso"))
+    print(f"    reparto: {dict(sorted(reparto.items()))}")
+
     binarias = [
         d
         for d in datos
