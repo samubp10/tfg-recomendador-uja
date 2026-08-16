@@ -21,9 +21,11 @@ from tfg_uja.incrustaciones import MODELO
 from tfg_uja.indexer import reconstruir_indice
 from tfg_uja.recuperador import (
     K_POR_DEFECTO,
+    PREGUNTAS_DE_CONTEXTO,
     Fragmento,
     ModeloDiscrepante,
     abrir_indice,
+    consulta_con_historial,
     distancia_del_indice,
     recuperar,
 )
@@ -270,6 +272,34 @@ def test_el_fragmento_trae_lo_necesario_para_citarlo(indice):
     assert fragmento.grados
     assert fragmento.origen == "guia"
     assert fragmento.texto
+
+
+# --- La consulta de seguimiento ---
+
+
+def test_una_pregunta_suelta_se_incrusta_tal_cual():
+    assert consulta_con_historial("¿qué es Álgebra?", []) == "¿qué es Álgebra?"
+
+
+def test_una_pregunta_de_seguimiento_arrastra_las_anteriores():
+    """El caso real: «¿y en primer año?» no nombra ninguna titulación.
+
+    Incrustada sola recupera fragmentos de las doce titulaciones; con la
+    pregunta anterior delante vuelve a caer sobre la que se estaba hablando.
+    """
+    consulta = consulta_con_historial(
+        "¿y en primer año?", ["háblame del Grado en Ingeniería Informática"]
+    )
+    assert "Informática" in consulta
+    assert consulta.endswith("¿y en primer año?")
+
+
+def test_solo_se_arrastran_las_ultimas_preguntas():
+    """Con toda la conversación dentro, el vector se diluye entre temas viejos."""
+    anteriores = [f"pregunta {i}" for i in range(6)]
+    consulta = consulta_con_historial("la actual", anteriores)
+    assert "pregunta 0" not in consulta
+    assert consulta.count("pregunta") == PREGUNTAS_DE_CONTEXTO
 
 
 def test_k_por_defecto_es_el_del_modulo():
