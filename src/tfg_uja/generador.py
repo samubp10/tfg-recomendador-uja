@@ -35,6 +35,7 @@ import json
 import urllib.request
 from typing import Final
 
+from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
@@ -76,13 +77,8 @@ INSTRUCCIONES: Final[str] = (
     "suponerla.\n"
     "- Si una asignatura aparece sin contenido de guía, di que su guía no está "
     "publicada; no es lo mismo que no exista la asignatura.\n"
-    "- Un fragmento marcado como «parte N de M» es un trozo de una lista más "
-    "larga. Si no están todas las partes, avisa de que la lista está "
-    "incompleta en lugar de presentarla como si estuviera entera.\n"
-    "- Esas marcas son de uso interno: no las nombres en la respuesta ni digas "
-    "que una asignatura tiene partes, porque no las tiene.\n"
-    "- Al enumerar asignaturas, pon primero las obligatorias y después las "
-    "optativas, y no mezcles unas con otras.\n"
+    "- Al enumerar asignaturas, agrúpalas por curso y termina siempre con las "
+    "optativas, que no tienen curso asignado. No te dejes ningún grupo.\n"
     "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
     "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
     "anteriores.\n"
@@ -118,19 +114,57 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
     for f in fragmentos:
         clave = (f.nombre, f.origen)
         mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
-    return sorted(
-        fragmentos,
-        key=lambda f: (mejor[(f.nombre, f.origen)], f.chunk_index),
-    )
+
+    # Los listados del plan se leen en el orden en que se cursan, no por
+    # proximidad. Medido: con el orden por distancia, las optativas caían entre
+    # los cursos segundo y primero, y el modelo enumeró los cuatro cursos y se
+    # dejó las diecisiete optativas fuera aunque las tenía delante.
+    listados = [f for f in fragmentos if f.origen == "plan_de_estudios"]
+    ancla = min((mejor[(f.nombre, f.origen)] for f in listados), default=0.0)
+
+    def orden(f: Fragmento) -> tuple[float, int, str, int]:
+        if f.origen == "plan_de_estudios":
+            return (ancla, _curso_del_listado(f.nombre), f.nombre, f.chunk_index)
+        return (mejor[(f.nombre, f.origen)], 0, f.nombre, f.chunk_index)
+
+    return sorted(fragmentos, key=orden)
+
+
+def _curso_del_listado(nombre: str) -> int:
+    """Sitúa un listado del plan en el curso que enuncia su propio nombre.
+
+    El fragmentador los llama «Asignaturas obligatorias de primer curso del…»,
+    así que el curso está en el nombre y no hace falta una columna nueva en el
+    índice para ordenarlos. Los que no nombran ninguno ---las optativas, que no
+    tienen curso publicado--- van al final.
+
+    Args:
+        nombre: Nombre de la unidad, tal como lo compone el fragmentador.
+
+    Returns:
+        Posición del curso, o un valor mayor que cualquiera si no lo nombra.
+    """
+    bajo = nombre.lower()
+    for posicion, ordinal in enumerate(ORDEN_CURSOS, start=1):
+        if f"de {ordinal}" in bajo:
+            return posicion
+    return len(ORDEN_CURSOS) + 1
 
 
 def _etiqueta(indice: int, fragmento: Fragmento) -> str:
     """Compone la línea que encabeza un fragmento dentro del contexto.
 
-    La parte solo se anota cuando la unidad está partida. Escribir «parte 1 de
-    1» en las unidades enteras ---que son la mayoría del corpus--- añadiría
-    ruido a todos los fragmentos para avisar de algo que solo ocurre en unos
-    pocos.
+    **No lleva el número de parte, y se quitó a la vista de dos medidas.** Se
+    puso para que el modelo supiera cuándo le faltaba un trozo de una lista, y
+    no lo consiguió: aun con una regla explícita prohibiéndolo, se lo contó al
+    usuario dos veces, la segunda inventándose una asignatura llamada «Sistemas
+    inteligentes de información (parte 3 de 4)» y afirmando que su guía no
+    estaba publicada. Es el mismo patrón que las titulaciones inventadas: una
+    instrucción no basta para impedir un comportamiento.
+
+    Además, lo que motivó la marca ---un listado de cincuenta asignaturas
+    partido en tres tercios alfabéticos--- lo resolvió IT-105 de raíz, partiendo
+    los listados por curso. El aviso costaba más de lo que evitaba.
 
     Args:
         indice: Número con el que se cita el fragmento, desde 1.
@@ -139,10 +173,7 @@ def _etiqueta(indice: int, fragmento: Fragmento) -> str:
     Returns:
         La línea de encabezado, sin el texto del fragmento.
     """
-    parte = ""
-    if fragmento.total_chunks > 1:
-        parte = f" (parte {fragmento.chunk_index + 1} de {fragmento.total_chunks})"
-    return f"[{indice}] {fragmento.nombre}{parte} — {', '.join(fragmento.grados)}"
+    return f"[{indice}] {fragmento.nombre} — {', '.join(fragmento.grados)}"
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
