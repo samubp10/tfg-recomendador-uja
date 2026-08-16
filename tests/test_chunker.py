@@ -583,3 +583,100 @@ def test_si_la_guia_si_llega_no_se_duplica_la_asignatura():
     }
     chunks = trocear_dataset([_CRIPTOGRAFIA, guia])
     assert "asignatura_sin_guia" not in {c["origen"] for c in chunks}
+
+
+# --- IT-105: el curso llega al fragmento ---
+
+
+def _asignatura(nombre, tipo="OB", curso="", cuatrimestre=""):
+    """Asignatura mínima con la forma que emite el spider desde IT-105."""
+    return {
+        "tipo": "asignatura",
+        "grado": "Grado en Ingeniería Informática",
+        "codigo": None,
+        "nombre": nombre,
+        "tipo_asignatura": tipo,
+        "ects": "6",
+        "menciones": [],
+        "curso": curso,
+        "cuatrimestre": cuatrimestre,
+        "ofertada": True,
+        "tiene_guia": False,
+    }
+
+
+def test_el_curso_se_escribe_dentro_del_texto_del_fragmento():
+    # Un metadato que no aparece en el texto el modelo generativo no lo ve, y
+    # sin verlo se lo inventa: preguntado por el primer año respondió con el
+    # listado entero del grado, atribuyendo cursos que nadie le había dado.
+    chunks = _de_origen(
+        trocear_dataset(
+            [
+                _asignatura(
+                    "Álgebra", curso="Primer curso", cuatrimestre="Segundo cuatrimestre"
+                )
+            ]
+        ),
+        "asignatura_sin_guia",
+    )
+    assert "el segundo cuatrimestre de primer curso" in chunks[0]["texto"]
+
+
+def test_sin_curso_publicado_el_fragmento_no_se_lo_inventa():
+    # Decisión 9: lo que no consta se refleja ausente, no se rellena.
+    chunks = _de_origen(
+        trocear_dataset([_asignatura("Minería web", tipo="OP")]),
+        "asignatura_sin_guia",
+    )
+    assert "Se imparte en" not in chunks[0]["texto"]
+
+
+def test_el_listado_del_plan_se_parte_por_curso_y_no_por_tamano():
+    # Antes salían tercios alfabéticos: las tres partes repetían «En total son
+    # 50» y ninguna decía cuál era. El modelo recibió las tres y aun así dejó
+    # diez asignaturas sin nombrar.
+    items = [_asignatura(f"Asignatura {i}", curso="Primer curso") for i in range(5)] + [
+        _asignatura(f"Materia {i}", curso="Segundo curso") for i in range(5)
+    ]
+    listados = _de_origen(trocear_dataset(items), "plan_de_estudios")
+    nombres = {c["nombre"] for c in listados}
+    assert nombres == {
+        "Asignaturas obligatorias de primer curso del Grado en Ingeniería Informática",
+        "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Informática",
+    }
+    # Y cada uno cabe entero: es la razón de agrupar así.
+    assert all(c["total_chunks"] == 1 for c in listados)
+
+
+def test_los_listados_salen_ordenados_por_curso():
+    items = [_asignatura("Tardía", curso="Cuarto curso")] + [
+        _asignatura("Temprana", curso="Primer curso")
+    ]
+    listados = _de_origen(trocear_dataset(items), "plan_de_estudios")
+    assert "primer curso" in listados[0]["nombre"]
+    assert "cuarto curso" in listados[1]["nombre"]
+
+
+def test_el_curso_disyuntivo_del_doble_ordena_por_el_primero_que_nombra():
+    # «Tercer o cuarto curso» va donde va tercero, que es lo antes que puede
+    # cursarse. No se elige uno de los dos: el rótulo se conserva entero.
+    items = [
+        _asignatura("De quinto", curso="Quinto curso"),
+        _asignatura("Ambigua", curso="Tercer o cuarto curso"),
+    ]
+    listados = _de_origen(trocear_dataset(items), "plan_de_estudios")
+    assert "tercer o cuarto curso" in listados[0]["nombre"]
+    assert "quinto curso" in listados[1]["nombre"]
+
+
+def test_las_optativas_sin_curso_van_en_su_propio_listado_al_final():
+    items = [
+        _asignatura("Optativa", tipo="OP"),
+        _asignatura("Obligatoria", curso="Primer curso"),
+    ]
+    listados = _de_origen(trocear_dataset(items), "plan_de_estudios")
+    nombres = [c["nombre"] for c in listados]
+    assert nombres == [
+        "Asignaturas obligatorias de primer curso del Grado en Ingeniería Informática",
+        "Asignaturas optativas del Grado en Ingeniería Informática",
+    ]
