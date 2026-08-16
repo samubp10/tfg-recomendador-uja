@@ -25,13 +25,22 @@ from tfg_uja.generador import (
 from tfg_uja.recuperador import Fragmento
 
 
-def fragmento(nombre: str, texto: str, grados: list[str] | None = None) -> Fragmento:
+def fragmento(
+    nombre: str,
+    texto: str,
+    grados: list[str] | None = None,
+    distancia: float = 0.1,
+    parte: int = 0,
+    total: int = 1,
+) -> Fragmento:
     return Fragmento(
         texto=texto,
         nombre=nombre,
         grados=grados or ["Grado en Ingeniería Informática"],
         origen="guia",
-        distancia=0.1,
+        distancia=distancia,
+        chunk_index=parte,
+        total_chunks=total,
     )
 
 
@@ -78,6 +87,76 @@ def test_sin_fragmentos_el_prompt_lo_dice_explicitamente():
     """
     prompt = construir_prompt("¿qué se ve en Álgebra?", [])
     assert "no se ha recuperado ningún fragmento" in prompt
+
+
+# --- El orden y la integridad del contexto ---
+
+
+def test_las_partes_de_una_unidad_viajan_juntas_y_en_orden():
+    """Regresión del caso real: el listado del plan llegaba 3, optativas, 2, 1.
+
+    La respuesta reproducía ese orden ---empezaba por la mitad de la lista y
+    volvía al principio más abajo--- porque el modelo redacta siguiendo el
+    orden en que recibe el contexto.
+    """
+    recuperados = [
+        fragmento("Obligatorias", "TEXTO-C", distancia=0.105, parte=2, total=3),
+        fragmento("Optativas", "TEXTO-D", distancia=0.107),
+        fragmento("Obligatorias", "TEXTO-B", distancia=0.109, parte=1, total=3),
+        fragmento("Obligatorias", "TEXTO-A", distancia=0.111, parte=0, total=3),
+    ]
+    # Marcas que no puedan aparecer en las instrucciones: comprobar el orden
+    # buscando palabras del dominio casaba con el texto de las reglas y daba
+    # por malo un contexto que estaba bien colocado.
+    prompt = construir_prompt("qué asignaturas hay", recuperados)
+    posiciones = [prompt.index(t) for t in ("TEXTO-A", "TEXTO-B", "TEXTO-C", "TEXTO-D")]
+    assert posiciones == sorted(posiciones)
+
+
+def test_la_unidad_mas_proxima_sigue_yendo_primero():
+    """Agrupar no puede tirar por tierra la relevancia: solo reordena dentro."""
+    recuperados = [
+        fragmento("Lejana", "texto lejano", distancia=0.5),
+        fragmento("Cercana", "texto cercano", distancia=0.1),
+    ]
+    prompt = construir_prompt("una pregunta", recuperados)
+    assert prompt.index("texto cercano") < prompt.index("texto lejano")
+
+
+def test_un_fragmento_partido_declara_que_parte_es():
+    """Las tres partes del listado repiten «En total son 50» y ninguna se sitúa.
+
+    Si llega una sola, el modelo lee que son cincuenta, ve once y presenta once
+    como si fueran las cincuenta.
+    """
+    prompt = construir_prompt(
+        "una pregunta", [fragmento("Obligatorias", "once nombres", parte=2, total=3)]
+    )
+    assert "(parte 3 de 3)" in prompt
+
+
+def test_una_unidad_entera_no_se_anota_como_parte():
+    """La mayoría del corpus cabe en un fragmento: anotarlas todas sería ruido."""
+    prompt = construir_prompt("una pregunta", [fragmento("Álgebra", "temario")])
+    assert "parte" not in prompt.split("CONTEXTO:")[1].split("\n")[1]
+
+
+def test_las_instrucciones_avisan_de_los_listados_incompletos():
+    assert "parte N de M" in INSTRUCCIONES
+
+
+def test_las_instrucciones_fijan_el_orden_de_la_enumeracion():
+    """Lo pidió el autor: obligatorias arriba, y sin mezclarlas con optativas."""
+    assert "primero las obligatorias" in INSTRUCCIONES
+
+
+def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
+    """Las 67 asignaturas de Informática son ~783 tokens; con 400 se cortaban.
+
+    El número no es redondo por gusto: sale de medir el listado completo con
+    sus créditos sobre el corpus real.
+    """
+    assert TOPE_RESPUESTA >= 800
 
 
 def test_las_instrucciones_prohiben_salirse_del_contexto():
