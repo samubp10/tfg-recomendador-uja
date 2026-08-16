@@ -421,3 +421,95 @@ def test_el_maximo_sigue_siendo_un_tope():
 
 def test_sin_fragmentos_no_falla():
     assert acotar_por_distancia([]) == []
+
+
+# --- IT-105: el curso también como columna del índice ---
+
+
+@pytest.fixture()
+def indice_con_curso(tmp_path) -> Path:
+    chunks = [
+        {
+            **chunk("De primero", "Asignatura de primer curso.", [INFORMATICA]),
+            "curso": "Primer curso",
+        },
+        {
+            **chunk("De tercero", "Asignatura de tercer curso.", [INFORMATICA]),
+            "curso": "Tercer curso",
+        },
+        {
+            **chunk("Optativa", "Optativa sin curso.", [INFORMATICA], tipo="OP"),
+            "curso": "",
+        },
+    ]
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(json.dumps(chunks, ensure_ascii=False), encoding="utf-8")
+    ruta_indice = tmp_path / "indice_curso"
+    reconstruir_indice(ruta_chunks, ruta_indice, incrustador_falso, MODELO)
+    return ruta_indice
+
+
+def test_el_curso_llega_al_fragmento_recuperado(indice_con_curso):
+    tabla = abrir_indice(indice_con_curso, MODELO)
+    frs = recuperar("asignatura", tabla, incrustador_falso, k=10)
+    assert {f.nombre: f.curso for f in frs}["De primero"] == "Primer curso"
+
+
+def test_se_puede_acotar_la_busqueda_a_un_curso(indice_con_curso):
+    """La consulta que la similitud vectorial no sabe hacer sola.
+
+    «Qué se da en primer año» se contesta filtrando, no pareciéndose: sin
+    filtro, el listado de segundo está tan cerca como el de primero.
+    """
+    tabla = abrir_indice(indice_con_curso, MODELO)
+    frs = recuperar("asignatura", tabla, incrustador_falso, k=10, curso="primer")
+    assert [f.nombre for f in frs] == ["De primero"]
+
+
+def test_acotar_por_curso_no_arrastra_las_optativas(indice_con_curso):
+    """No tienen curso publicado: no pueden salir en ningún curso concreto."""
+    tabla = abrir_indice(indice_con_curso, MODELO)
+    frs = recuperar("asignatura", tabla, incrustador_falso, k=10, curso="tercer")
+    assert "Optativa" not in {f.nombre for f in frs}
+
+
+def test_el_curso_y_la_titulacion_se_combinan(indice_con_curso):
+    tabla = abrir_indice(indice_con_curso, MODELO)
+    frs = recuperar(
+        "asignatura",
+        tabla,
+        incrustador_falso,
+        k=10,
+        grado=INFORMATICA,
+        catalogo=CATALOGO_PRUEBA,
+        curso="primer",
+    )
+    assert [f.nombre for f in frs] == ["De primero"]
+
+
+# --- Cuando NADA es pertinente ---
+
+
+def test_un_saludo_no_arrastra_medio_plan_de_estudios():
+    """Caso real: «hola buenas tardes» trajo diez fragmentos y un volcado.
+
+    Las diez distancias iban de 0,170 a 0,182: lejísimos, pero tan juntas
+    entre sí que el corte relativo no recortaba nada.
+    """
+    lejanos = [_frag(d) for d in (0.170, 0.172, 0.174, 0.176, 0.182)]
+    assert acotar_por_distancia(lejanos) == []
+
+
+def test_el_minimo_no_rescata_fragmentos_irrelevantes():
+    """Forzar tres irrelevantes es peor que no dar ninguno.
+
+    El modelo responde igual y con la misma seguridad; con la lista vacía, el
+    prompt dice que no se recuperó nada y esa rama ya está cubierta.
+    """
+    assert acotar_por_distancia([_frag(0.30)], minimo=3) == []
+
+
+def test_una_pregunta_real_sigue_pasando_el_suelo():
+    """Las cinco medidas tenían su mejor entre 0,076 y 0,112."""
+    reales = [_frag(d) for d in (0.112, 0.113, 0.115)]
+    assert len(acotar_por_distancia(reales)) == 3

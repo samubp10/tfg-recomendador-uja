@@ -335,3 +335,27 @@ def test_no_se_llama_a_ningun_servicio_externo(espia):
     """El sistema se ejecuta entero en local: es requisito del trabajo."""
     generar("un prompt", "un-modelo")
     assert espia["url"].startswith("http://127.0.0.1")
+
+
+# --- El ámbito de la consulta ---
+
+
+def test_el_ambito_se_declara_como_dato_en_el_prompt():
+    """78 guías se imparten en varias titulaciones y el encabezado las nombra.
+
+    Medido: con la búsqueda acotada a Informática, el sistema respondió con un
+    apartado entero sobre Inteligencia Artificial y Ciberseguridad. Acotar la
+    búsqueda no le dice al modelo de qué tiene que hablar.
+    """
+    prompt = construir_prompt(
+        "qué asignaturas hay",
+        [fragmento("Álgebra", "temario")],
+        ambito="Grado en Ingeniería Informática",
+    )
+    assert "ÁMBITO: la consulta es sobre el Grado en Ingeniería Informática" in prompt
+    assert prompt.index("ÁMBITO") < prompt.index("CONTEXTO:")
+
+
+def test_sin_ambito_el_prompt_no_lo_menciona():
+    prompt = construir_prompt("una pregunta", [fragmento("A", "t")])
+    assert "ÁMBITO:" not in prompt

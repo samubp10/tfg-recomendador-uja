@@ -162,6 +162,9 @@ def main(argumentos: list[str]) -> None:
     analizador.add_argument("--k", type=int, default=K_MAXIMO)
     analizador.add_argument("--grado", default=None)
     analizador.add_argument(
+        "--curso", default=None, help='acota a un curso, p. ej. "primer"'
+    )
+    analizador.add_argument(
         "--k-fijo",
         action="store_true",
         help="trae siempre K fragmentos, sin recortar por distancia",
@@ -194,6 +197,7 @@ def main(argumentos: list[str]) -> None:
     modelo = opciones.modelo
     k = opciones.k
     grado = opciones.grado
+    curso = opciones.curso
     ultimos: list[Fragmento] = []
     historial: list[tuple[str, str]] = []
     # Contador propio: el historial se recorta a los últimos turnos, así que su
@@ -246,6 +250,9 @@ def main(argumentos: list[str]) -> None:
             elif orden == "/fuentes":
                 print(formatear_fuentes(ultimos) if ultimos else "  (aún no hay)")
                 print()
+            elif orden == "/curso" and resto:
+                curso = None if resto == "." else resto
+                print(f"  curso → {curso or 'sin acotar'}\n")
             elif orden == "/olvida":
                 historial.clear()
                 print("  conversación olvidada\n")
@@ -264,6 +271,7 @@ def main(argumentos: list[str]) -> None:
                 k=k,
                 grado=grado,
                 catalogo=catalogo,
+                curso=curso,
             )
         except TitulacionDesconocida as error:
             print(f"\n  {error}. Las que hay:")
@@ -275,7 +283,9 @@ def main(argumentos: list[str]) -> None:
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        respuesta = generar(construir_prompt(entrada, ultimos, historial), modelo)
+        respuesta = generar(
+            construir_prompt(entrada, ultimos, historial, ambito=grado), modelo
+        )
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))
