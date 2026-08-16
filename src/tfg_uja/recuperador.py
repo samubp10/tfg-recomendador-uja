@@ -84,6 +84,8 @@ class Fragmento:
         distancia: Distancia al vector de la consulta; menor es más próximo.
         chunk_index: Posición de este fragmento dentro de su unidad, desde 0.
         total_chunks: En cuántos fragmentos se partió la unidad entera.
+        curso: Curso en que se imparte, tal como lo publica la fuente. Vacío
+            en las optativas, que la EPSJ publica sin curso.
     """
 
     texto: str
@@ -93,6 +95,7 @@ class Fragmento:
     distancia: float
     chunk_index: int
     total_chunks: int
+    curso: str = ""
 
 
 class ModeloDiscrepante(RuntimeError):
@@ -155,6 +158,18 @@ K_MAXIMO: Final[int] = 20
 #: el salto entre lo pertinente y el ruido estaba en 1,22 y 1,25. Fijarlo en
 #: serio es IT-49, con las 50 preguntas del conjunto de evaluación.
 FACTOR_CORTE: Final[float] = 1.20
+
+#: Distancia por encima de la cual se considera que **nada** es pertinente.
+#: El corte relativo quita la cola cuando arriba hay algo bueno, pero no
+#: detecta que no haya nada: a «hola buenas tardes» le llegaron diez fragmentos
+#: entre 0,170 y 0,182 ---lejísimos pero muy juntos entre sí--- y el sistema
+#: contestó con un volcado del plan de estudios.
+#:
+#: 🔴 **Provisional, igual que el factor.** Las cinco preguntas reales medidas
+#: tenían su mejor fragmento entre 0,076 y 0,112, así que 0,15 las deja pasar
+#: todas y descarta el saludo; pero cinco preguntas no son un barrido y el
+#: valor lo fija IT-49. El rechazo por dominio es IT-87, que es otra cosa.
+SUELO_PERTINENCIA: Final[float] = 0.15
 
 
 class TitulacionDesconocida(ValueError):
@@ -235,6 +250,7 @@ def acotar_por_distancia(
     minimo: int = K_MINIMO,
     maximo: int = K_MAXIMO,
     factor: float = FACTOR_CORTE,
+    suelo: float = SUELO_PERTINENCIA,
 ) -> list[Fragmento]:
     """Recorta la lista donde deja de haber fragmentos pertinentes.
 
@@ -254,11 +270,19 @@ def acotar_por_distancia(
         minimo: Cuántos se conservan aunque el corte diga menos.
         maximo: Tope, aunque el corte diga más.
         factor: Distancia máxima admitida, como múltiplo de la mejor.
+        suelo: Si ni el mejor baja de aquí, no se devuelve ninguno.
 
     Returns:
-        Los fragmentos que quedan dentro del corte.
+        Los fragmentos que quedan dentro del corte, o lista vacía si ninguno
+        es pertinente.
     """
     if not fragmentos:
+        return []
+    # El mínimo no se aplica cuando NADA es pertinente: forzar tres fragmentos
+    # irrelevantes es peor que no dar ninguno, porque el modelo responde igual
+    # y con la misma seguridad. Con la lista vacía, el prompt dice que no se
+    # recuperó nada y esa rama ya está cubierta.
+    if fragmentos[0].distancia > suelo:
         return []
     umbral = fragmentos[0].distancia * factor
     dentro = [f for f in fragmentos if f.distancia <= umbral]
@@ -282,7 +306,11 @@ def _escapar(valor: str) -> str:
     return valor.replace("'", "''")
 
 
-def _filtro(titulaciones: list[str] | None, tipo_asignatura: str | None) -> str | None:
+def _filtro(
+    titulaciones: list[str] | None,
+    tipo_asignatura: str | None,
+    curso: str | None = None,
+) -> str | None:
     """Compone la expresión de filtrado por metadatos.
 
     ``array_has_any`` casa por elemento exacto sobre la lista de titulaciones.
@@ -299,6 +327,10 @@ def _filtro(titulaciones: list[str] | None, tipo_asignatura: str | None) -> str 
     Args:
         titulaciones: Titulaciones a las que acotar, o ``None``.
         tipo_asignatura: Tipo al que acotar, o ``None``.
+        curso: Curso al que acotar, o ``None``. Casa por prefijo para que
+            «primer» encuentre «Primer curso», y también «Primer curso (común
+            para todos los grados de la Rama Industrial)» si la fuente lo
+            rotulara así algún día.
 
     Returns:
         Expresión SQL, o ``None`` si no hay nada que filtrar.
@@ -307,6 +339,8 @@ def _filtro(titulaciones: list[str] | None, tipo_asignatura: str | None) -> str 
     if titulaciones:
         lista = ", ".join(f"'{_escapar(t)}'" for t in titulaciones)
         condiciones.append(f"array_has_any(grados, [{lista}])")
+    if curso:
+        condiciones.append(f"starts_with(lower(curso), '{_escapar(curso.lower())}')")
     if tipo_asignatura is not None:
         condiciones.append(f"tipo_asignatura = '{_escapar(tipo_asignatura)}'")
     return " AND ".join(condiciones) if condiciones else None
@@ -321,6 +355,7 @@ def recuperar(
     grado: str | None = None,
     tipo_asignatura: str | None = None,
     catalogo: list[str] | None = None,
+    curso: str | None = None,
 ) -> list[Fragmento]:
     """Devuelve los ``k`` fragmentos más próximos a la pregunta.
 
@@ -354,7 +389,7 @@ def recuperar(
     )
     vector = incrustar([pregunta])[0]
     consulta = tabla.search(list(vector)).distance_type(distancia).limit(k)
-    expresion = _filtro(titulaciones, tipo_asignatura)
+    expresion = _filtro(titulaciones, tipo_asignatura, curso)
     if expresion is not None:
         consulta = consulta.where(expresion, prefilter=True)
     return [
@@ -366,6 +401,7 @@ def recuperar(
             distancia=float(fila["_distance"]),
             chunk_index=int(fila["chunk_index"]),
             total_chunks=int(fila["total_chunks"]),
+            curso=str(fila.get("curso") or ""),
         )
         for fila in consulta.to_list()
     ]
