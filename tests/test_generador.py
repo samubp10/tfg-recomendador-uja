@@ -33,12 +33,13 @@ def fragmento(
     distancia: float = 0.1,
     parte: int = 0,
     total: int = 1,
+    origen: str = "guia",
 ) -> Fragmento:
     return Fragmento(
         texto=texto,
         nombre=nombre,
         grados=grados or ["Grado en Ingeniería Informática"],
-        origen="guia",
+        origen=origen,
         distancia=distancia,
         chunk_index=parte,
         total_chunks=total,
@@ -175,42 +176,69 @@ def test_la_unidad_mas_proxima_sigue_yendo_primero():
     assert prompt.index("texto cercano") < prompt.index("texto lejano")
 
 
-def test_un_fragmento_partido_declara_que_parte_es():
-    """Las tres partes del listado repiten «En total son 50» y ninguna se sitúa.
+def test_la_marca_de_parte_no_aparece_en_el_contexto():
+    """Regresión de dos fallos reales, y de un arreglo que no funcionó.
 
-    Si llega una sola, el modelo lee que son cincuenta, ve once y presenta once
-    como si fueran las cincuenta.
+    Con la marca en el encabezado, el sistema contestó a un estudiante que
+    «Desarrollo de aplicaciones web (Parte 1, 2, 3, 4, 5 y 6)». Se añadió una
+    regla prohibiéndolo y **volvió a colarse**: la segunda vez se inventó una
+    asignatura llamada «Sistemas inteligentes de información (parte 3 de 4)» y
+    afirmó que su guía no estaba publicada. Lo que no está en el prompt no se
+    puede filtrar.
     """
     prompt = construir_prompt(
         "una pregunta", [fragmento("Obligatorias", "once nombres", parte=2, total=3)]
     )
-    assert "(parte 3 de 3)" in prompt
-
-
-def test_una_unidad_entera_no_se_anota_como_parte():
-    """La mayoría del corpus cabe en un fragmento: anotarlas todas sería ruido."""
-    prompt = construir_prompt("una pregunta", [fragmento("Álgebra", "temario")])
-    assert "parte" not in prompt.split("CONTEXTO:")[1].split("\n")[1]
-
-
-def test_las_instrucciones_avisan_de_los_listados_incompletos():
-    assert "parte N de M" in INSTRUCCIONES
-
-
-def test_las_instrucciones_prohiben_mostrar_la_marca_de_parte():
-    """Regresión real: la marca se coló en una respuesta a un estudiante.
-
-    El sistema contestó que «Desarrollo de aplicaciones web (Parte 1, 2, 3, 4,
-    5 y 6)», presentando nuestro troceado como si la asignatura tuviera seis
-    partes. La marca existe para que el modelo sepa que le falta contexto, no
-    para que la lea quien pregunta.
-    """
-    assert "de uso interno" in INSTRUCCIONES
+    assert "parte 3 de 3" not in prompt
+    assert "de 3)" not in prompt
 
 
 def test_las_instrucciones_fijan_el_orden_de_la_enumeracion():
-    """Lo pidió el autor: obligatorias arriba, y sin mezclarlas con optativas."""
-    assert "primero las obligatorias" in INSTRUCCIONES
+    """Lo pidió el autor: agrupado por curso y las optativas al final."""
+    assert "agrúpalas por curso" in INSTRUCCIONES
+    assert "optativas" in INSTRUCCIONES
+
+
+def test_los_listados_del_plan_se_leen_en_el_orden_en_que_se_cursan():
+    """Medido: por distancia, las optativas caían entre segundo y primero.
+
+    El modelo enumeró los cuatro cursos y dejó fuera las diecisiete optativas
+    aunque las tenía delante, en la segunda posición del contexto.
+    """
+    plan = "plan_de_estudios"
+    recuperados = [
+        fragmento(
+            "Asignaturas obligatorias de segundo curso del X",
+            "SEGUNDO",
+            distancia=0.080,
+            origen=plan,
+        ),
+        fragmento(
+            "Asignaturas optativas del X", "OPTATIVAS", distancia=0.081, origen=plan
+        ),
+        fragmento(
+            "Asignaturas obligatorias de primer curso del X",
+            "PRIMERO",
+            distancia=0.082,
+            origen=plan,
+        ),
+    ]
+    prompt = construir_prompt("qué asignaturas hay", recuperados)
+    posiciones = [prompt.index(t) for t in ("PRIMERO", "SEGUNDO", "OPTATIVAS")]
+    assert posiciones == sorted(posiciones)
+
+
+def test_un_listado_no_desplaza_a_lo_que_estaba_mas_cerca():
+    """Reordenar los listados entre sí no puede colarlos por delante de todo."""
+    guia = fragmento("Álgebra", "GUIA-CERCANA", distancia=0.01)
+    listado = fragmento(
+        "Asignaturas obligatorias de primer curso del X",
+        "LISTADO",
+        distancia=0.5,
+        origen="plan_de_estudios",
+    )
+    prompt = construir_prompt("una pregunta", [guia, listado])
+    assert prompt.index("GUIA-CERCANA") < prompt.index("LISTADO")
 
 
 def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
