@@ -359,7 +359,11 @@ def _situacion_en_el_plan(asignatura: dict[str, Any]) -> str:
     if curso:
         return f"el {curso.lower()}"
     if cuatrimestre:
-        return f"el {cuatrimestre.lower()}"
+        # El hueco se dice, no se deja en blanco. Medido el 16/08/2026: con el
+        # encabezado diciendo solo «Se imparte en el segundo cuatrimestre», el
+        # modelo respondió que la asignatura era «optativa en 2º curso»,
+        # convirtiendo el cuatrimestre en un curso que la fuente no publica.
+        return f"el {cuatrimestre.lower()}, sin curso asignado en el plan"
     return ""
 
 
