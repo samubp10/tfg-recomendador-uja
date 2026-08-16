@@ -45,10 +45,13 @@ sys.path.insert(0, str(RAIZ / "src"))
 from tfg_uja.generador import construir_prompt, generar  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
-    K_POR_DEFECTO,
+    K_MAXIMO,
     Fragmento,
     ModeloDiscrepante,
+    TitulacionDesconocida,
     abrir_indice,
+    acotar_por_distancia,
+    catalogo_del_indice,
     consulta_con_historial,
     distancia_del_indice,
     recuperar,
@@ -156,8 +159,13 @@ def main(argumentos: list[str]) -> None:
     analizador = argparse.ArgumentParser(description=__doc__)
     analizador.add_argument("--indice", default=str(RAIZ / "data" / "indice_lance"))
     analizador.add_argument("--modelo", default="gemma3:latest")
-    analizador.add_argument("--k", type=int, default=K_POR_DEFECTO)
+    analizador.add_argument("--k", type=int, default=K_MAXIMO)
     analizador.add_argument("--grado", default=None)
+    analizador.add_argument(
+        "--k-fijo",
+        action="store_true",
+        help="trae siempre K fragmentos, sin recortar por distancia",
+    )
     analizador.add_argument("--registro", default=str(CARPETA_REGISTRO))
     analizador.add_argument("--sin-registro", action="store_true")
     opciones = analizador.parse_args(argumentos)
@@ -176,6 +184,12 @@ def main(argumentos: list[str]) -> None:
     except ModeloDiscrepante as error:
         sys.exit(f"El índice no casa con el modelo: {error}")
     distancia = distancia_del_indice(ruta_indice)
+    catalogo = catalogo_del_indice(ruta_indice)
+    if not catalogo:
+        sys.exit(
+            "El índice no declara su catálogo de titulaciones. Reconstrúyelo:\n"
+            f"  py -m tfg_uja.indexer data/chunks.json {ruta_indice}"
+        )
 
     modelo = opciones.modelo
     k = opciones.k
@@ -198,6 +212,11 @@ def main(argumentos: list[str]) -> None:
         + (f"   ·   acotado a «{grado}»" if grado else "")
     )
     print(f"Memoria: {TURNOS_RECORDADOS} turnos")
+    print(
+        "Fragmentos: "
+        + (f"K fijo = {k}" if opciones.k_fijo else f"dinámicos, hasta {k}")
+        + f"   ·   {len(catalogo)} titulaciones en el índice"
+    )
     print(f"Registro: {registro}" if registro else "Registro: desactivado")
     print("Escribe tu pregunta, o /salir para terminar.\n")
 
@@ -236,9 +255,23 @@ def main(argumentos: list[str]) -> None:
 
         t0 = time.perf_counter()
         consulta = consulta_con_historial(entrada, [p for p, _ in historial])
-        ultimos = recuperar(
-            consulta, tabla, incrustar, distancia=distancia, k=k, grado=grado
-        )
+        try:
+            traidos = recuperar(
+                consulta,
+                tabla,
+                incrustar,
+                distancia=distancia,
+                k=k,
+                grado=grado,
+                catalogo=catalogo,
+            )
+        except TitulacionDesconocida as error:
+            print(f"\n  {error}. Las que hay:")
+            for t in catalogo:
+                print(f"    - {t}")
+            print()
+            continue
+        ultimos = traidos if opciones.k_fijo else acotar_por_distancia(traidos)
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
