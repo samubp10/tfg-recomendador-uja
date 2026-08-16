@@ -17,6 +17,7 @@ import pytest
 from tfg_uja import generador
 from tfg_uja.generador import (
     INSTRUCCIONES,
+    RESUMEN_TURNO,
     TOPE_RESPUESTA,
     VENTANA,
     construir_prompt,
@@ -87,6 +88,57 @@ def test_sin_fragmentos_el_prompt_lo_dice_explicitamente():
     """
     prompt = construir_prompt("¿qué se ve en Álgebra?", [])
     assert "no se ha recuperado ningún fragmento" in prompt
+
+
+# --- La conversación previa ---
+
+
+def test_los_turnos_anteriores_entran_en_el_prompt():
+    """Sin ellos, «¿y en primer año?» no sabe de qué titulación se hablaba."""
+    prompt = construir_prompt(
+        "¿y en primer año?",
+        [fragmento("Álgebra", "temario")],
+        [("háblame de Informática", "es una carrera de cuatro años")],
+    )
+    assert "háblame de Informática" in prompt
+    assert "es una carrera de cuatro años" in prompt
+
+
+def test_la_conversacion_va_separada_del_contexto():
+    """Regresión de diseño: una respuesta inventada no puede volverse fuente.
+
+    Si el turno anterior entrara mezclado con los fragmentos del corpus, lo que
+    el modelo se inventó en una respuesta sería contexto para la siguiente, y
+    el error se consolidaría en vez de corregirse.
+    """
+    prompt = construir_prompt(
+        "otra pregunta",
+        [fragmento("Álgebra", "temario real")],
+        [("antes", "algo que dijo el modelo")],
+    )
+    assert prompt.index("CONVERSACIÓN PREVIA") < prompt.index("CONTEXTO:")
+    assert "nunca de tus respuestas anteriores" in prompt
+
+
+def test_una_respuesta_larga_se_recorta_al_recordarla():
+    """Tres respuestas de listado enteras ocuparían más que el propio contexto."""
+    larga = "x" * (RESUMEN_TURNO + 500)
+    prompt = construir_prompt("otra", [fragmento("A", "t")], [("antes", larga)])
+    assert larga not in prompt
+    assert "[...]" in prompt
+
+
+def test_sin_historial_el_prompt_no_cambia():
+    """Lo habitual sigue siendo una pregunta suelta: no puede llevar peaje.
+
+    Se busca el rótulo con sus dos puntos, que solo aparece encabezando el
+    bloque; sin ellos casaría también con la regla de las instrucciones que
+    habla de la conversación previa, y la prueba pasaría por el motivo malo.
+    """
+    sin = construir_prompt("una pregunta", [fragmento("A", "t")])
+    vacio = construir_prompt("una pregunta", [fragmento("A", "t")], [])
+    assert sin == vacio
+    assert "CONVERSACIÓN PREVIA:" not in sin
 
 
 # --- El orden y la integridad del contexto ---
