@@ -1,8 +1,10 @@
 """Pruebas del spider de grados (IT-03, IT-04 e IT-05)."""
 
+from collections import Counter
 from datetime import date
 from pathlib import Path
 
+import pytest
 import scrapy
 from scrapy.http import HtmlResponse, Request
 
@@ -150,6 +152,116 @@ def _por_nombre(items, nombre):
 def test_extrae_todas_las_asignaturas_de_la_pagina_real():
     # 67 asignaturas únicas tras validar, limpiar y fusionar el duplicado real.
     assert len(_asignaturas()) == 67
+
+
+# --- IT-105: en qué curso se imparte cada asignatura ---
+#
+# La EPSJ no publica el curso como columna: agrupa las tablas bajo encabezados
+# de sección. El <caption>, que sería el sitio natural, está vacío en
+# Informática, Eléctrica y Mecánica, así que no sirve de ancla.
+
+
+def test_las_obligatorias_se_reparten_en_los_cuatro_cursos():
+    """Las 50 obligatorias de Informática, diez por curso salvo tercero."""
+    items = _asignaturas()
+    reparto = Counter(i["curso"] for i in items if i["curso"])
+    assert reparto == Counter(
+        {
+            "Primer curso": 10,
+            "Segundo curso": 10,
+            "Tercer curso": 20,
+            "Cuarto curso": 10,
+        }
+    )
+
+
+def test_una_asignatura_concreta_cae_en_su_curso_y_cuatrimestre():
+    asignatura = _por_nombre(_asignaturas(), "Matemática discreta")
+    assert asignatura["curso"] == "Primer curso"
+    assert asignatura["cuatrimestre"] == "Primer cuatrimestre"
+
+
+def test_las_optativas_se_quedan_sin_curso_en_vez_de_heredar_el_anterior():
+    """Su bloque va después del cuarto curso y no lleva rótulo de curso.
+
+    Sin cortar la búsqueda en el rótulo «Optativas», las diecisiete heredarían
+    «Cuarto curso», que es el encabezado que les queda justo encima. Ese sería
+    un dato inventado, no ausente.
+    """
+    items = _asignaturas()
+    optativas = [i for i in items if i["tipo_asignatura"] == "OP"]
+    assert len(optativas) == 17
+    assert all(i["curso"] == "" for i in optativas)
+
+
+@pytest.mark.parametrize(
+    "fixture, url, grado, rotulo",
+    [
+        (
+            "tabla_electrica.html",
+            "https://eps.ujaen.es/grados/grado-en-ingenieria-electrica/asignaturas-y-profesorado",  # noqa: E501
+            "Grado en Ingeniería Eléctrica",
+            "Listado de Optativas",
+        ),
+        (
+            "tabla_asignaturas_iayc.html",
+            "https://eps.ujaen.es/grados/grado-en-inteligencia-artificial-y-ciberseguridad/asignaturas-y-profesorado",  # noqa: E501
+            "Grado en Inteligencia Artificial y Ciberseguridad",
+            "Optatividad",
+        ),
+    ],
+)
+def test_el_curso_se_lee_pese_al_rotulo_distinto(fixture, url, grado, rotulo):
+    """Cada titulación rotula a su manera y el paréntesis de rama estorba.
+
+    Eléctrica y Mecánica escriben «Primer curso (común para todos los grados de
+    la Rama Industrial)», y el bloque de optativas se llama «Optativas»,
+    «Optatividad» o «Listado de Optativas» según dónde se mire. Comparar el
+    rótulo entero fallaría en unas titulaciones y no en otras.
+    """
+    resp = _respuesta(fixture, url=url, meta={"nombre": grado})
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    assert {i["curso"] for i in items if i["curso"]} == {
+        "Primer curso",
+        "Segundo curso",
+        "Tercer curso",
+        "Cuarto curso",
+    }
+    assert all(i["curso"] == "" for i in items if i["tipo_asignatura"] == "OP")
+
+
+def test_el_doble_grado_conserva_el_curso_ambiguo_de_la_fuente():
+    """En los dobles el curso NO es un número, y no lo resolvemos nosotros.
+
+    Desde tercero el estudiante elige por qué especialidad empieza, así que la
+    fuente rotula «Tercer o Cuarto Curso» y «Cuarto o Tercer Curso». Convertir
+    eso en un entero obligaría a escoger uno, que es inventarse el dato.
+    """
+    resp = _respuesta(
+        "plan_doble_electrica_mecanica.html",
+        url="https://eps.ujaen.es/grados/doble-grado-en-ingenieria-electrica-y-mecanica/plan-de-estudios",  # noqa: E501
+        meta={"nombre": "Doble Grado en Ingeniería Eléctrica y Mecánica"},
+    )
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    cursos = {i["curso"] for i in items}
+    assert "Tercer o cuarto curso" in cursos
+    assert "Cuarto o tercer curso" in cursos
+    assert "Quinto curso" in cursos
+
+
+def test_el_doble_grado_tambien_trae_cuatrimestre():
+    """Lo publica en un <li><strong>, no en un encabezado como los simples.
+
+    Mirando solo encabezados, las 44 asignaturas del doble se quedaban sin
+    cuatrimestre aunque la página lo dijera.
+    """
+    resp = _respuesta(
+        "plan_doble_electrica_mecanica.html",
+        url="https://eps.ujaen.es/grados/doble-grado-en-ingenieria-electrica-y-mecanica/plan-de-estudios",  # noqa: E501
+        meta={"nombre": "Doble Grado en Ingeniería Eléctrica y Mecánica"},
+    )
+    items = [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+    assert all(i["cuatrimestre"] for i in items)
 
 
 def test_no_pierde_las_optativas_de_mencion():
