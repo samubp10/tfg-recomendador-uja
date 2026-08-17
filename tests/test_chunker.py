@@ -700,3 +700,166 @@ def test_las_optativas_sin_curso_van_en_su_propio_listado_al_final():
         "Asignaturas obligatorias de primer curso del Grado en Ingeniería Informática",
         "Asignaturas optativas del Grado en Ingeniería Informática",
     ]
+
+
+# --- IT-107: fragmentos derivados que contestan las preguntas de agregación ---
+
+
+def _titulacion(nombre, doble=False):
+    return {"tipo": "grado", "nombre": nombre, "url": "", "es_doble_grado": doble}
+
+
+def _asig_it107(grado, codigo, nombre, tipo, ects, curso="", menciones=None):
+    return {
+        "tipo": "asignatura",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": nombre,
+        "tipo_asignatura": tipo,
+        "ects": ects,
+        "curso": curso,
+        "menciones": menciones or [],
+        "ofertada": True,
+        "tiene_guia": False,
+    }
+
+
+_SIMPLE = "Grado en Ingeniería Informática"
+_DOBLE = "Doble Grado en Ingeniería Eléctrica y Mecánica"
+
+
+@pytest.fixture(scope="module")
+def derivados():
+    """Dos titulaciones, una de ellas sin plan publicado."""
+    items = [
+        _titulacion(_SIMPLE),
+        _titulacion(_DOBLE, doble=True),
+        _titulacion("Grado sin plan publicado"),
+        _asig_it107(_SIMPLE, "A1", "Álgebra", "FB", "6", "Primer curso"),
+        _asig_it107(_SIMPLE, "A2", "Cálculo", "FB", "6", "Primer curso"),
+        _asig_it107(_SIMPLE, "A3", "Redes", "OB", "6", "Segundo curso"),
+        _asig_it107(
+            _SIMPLE, "A4", "Metaheurísticas", "OP", "6", "", ["Sistemas gráficos"]
+        ),
+        _asig_it107(_SIMPLE, "A5", "Visión", "OP", "6", "", ["Sistemas gráficos"]),
+        _asig_it107(_DOBLE, "B1", "CIRCUITOS", "OB", "6", "Primer curso"),
+        _asig_it107(_DOBLE, "B2", "PROYECTOS", "OB", "6", "Quinto curso"),
+    ]
+    return trocear_dataset(items)
+
+
+def test_el_catalogo_enumera_toda_la_oferta(derivados):
+    """«¿Qué se puede estudiar en la EPSJ?» no la contestaba ningún fragmento."""
+    general = [
+        c
+        for c in _de_origen(derivados, "catalogo")
+        if c["nombre"].startswith("Titulaciones que")
+    ]
+    assert len(general) == 1
+    texto = general[0]["texto"]
+    assert "En total son 3: 2 grados y 1 dobles grados" in texto
+    for nombre in (_SIMPLE, _DOBLE, "Grado sin plan publicado"):
+        assert nombre in texto
+
+
+def test_cada_familia_tiene_su_propio_fragmento(derivados):
+    """Medido sobre el índice completo: «¿qué dobles grados hay?» no recuperaba
+    el catálogo sino veinte fichas de titulaciones sueltas, porque un nombre
+    propio se parece más a la pregunta que un encabezado que habla de las doce.
+    """
+    porfamilia = {
+        c["nombre"]: c["texto"]
+        for c in _de_origen(derivados, "catalogo")
+        if not c["nombre"].startswith("Titulaciones que")
+    }
+    assert len(porfamilia) == 2
+    dobles = next(t for n, t in porfamilia.items() if n.startswith("Dobles"))
+    assert "En total son 1:" in dobles
+    assert _DOBLE in dobles
+    assert _SIMPLE not in dobles
+
+
+def test_la_ficha_dice_cuantas_asignaturas_hay(derivados):
+    """Regresión del peor fallo del 17/08/2026.
+
+    Preguntado por cuántas asignaturas tiene Ingeniería Informática, el modelo
+    contestó que **una**. La cifra no estaba en el corpus como texto: había que
+    contar los fragmentos, y la recuperación devuelve los K mejores, no todos.
+    """
+    ficha = [
+        c for c in _de_origen(derivados, "ficha_titulacion") if _SIMPLE in c["nombre"]
+    ]
+    assert len(ficha) == 1
+    assert (
+        "En total tiene 5 asignaturas: 3 obligatorias y 2 optativas"
+        in ficha[0]["texto"]
+    )
+
+
+def test_la_ficha_deduce_la_duracion_de_los_rotulos(derivados):
+    """Un doble dura cinco cursos y un grado cuatro: sale del dato, no de una regla."""
+    fichas = {
+        c["grados"][0]: c["texto"] for c in _de_origen(derivados, "ficha_titulacion")
+    }
+    assert "se organiza en 2 cursos" in fichas[_SIMPLE]
+    assert "se organiza en 5 cursos" in fichas[_DOBLE]
+
+
+def test_la_ficha_no_declara_creditos_totales(derivados):
+    """Sumar lo que se oferta no son los créditos de la carrera.
+
+    En Informática la suma da 408 y el grado son 240: la diferencia son las
+    optativas, de las que solo se cursa una parte, y el corpus no publica
+    cuántas. Un número que se lee como «los créditos de la carrera» y no lo es
+    es peor que no darlo.
+    """
+    for ficha in _de_origen(derivados, "ficha_titulacion"):
+        assert "ECTS" not in ficha["texto"]
+
+
+def test_una_titulacion_sin_plan_publicado_lo_dice(derivados):
+    """No se queda fuera: un hueco silencioso se lee como que no existe.
+
+    Es el caso real del doble grado internacional con Schmalkalden, que el
+    corpus lista como titulación pero del que la EPSJ no publica asignaturas.
+    """
+    ficha = [
+        c
+        for c in _de_origen(derivados, "ficha_titulacion")
+        if c["grados"] == ["Grado sin plan publicado"]
+    ]
+    assert len(ficha) == 1
+    assert "no publica el plan de estudios" in ficha[0]["texto"]
+    assert "En total tiene" not in ficha[0]["texto"]
+
+
+def test_el_doble_grado_declara_que_no_tiene_optativas(derivados):
+    ficha = [
+        c for c in _de_origen(derivados, "ficha_titulacion") if c["grados"] == [_DOBLE]
+    ]
+    assert "no publica optativas" in ficha[0]["texto"]
+
+
+def test_la_mencion_reune_sus_asignaturas(derivados):
+    """Estaban en el corpus, repartidas: ninguna unidad las juntaba."""
+    menciones = _de_origen(derivados, "mencion")
+    assert len(menciones) == 1
+    texto = menciones[0]["texto"]
+    assert texto.startswith("Asignaturas de la mención «Sistemas gráficos»")
+    assert "En total son 2:" in texto
+    assert "Metaheurísticas" in texto and "Visión" in texto
+
+
+def test_los_derivados_no_inventan_titulaciones(derivados):
+    """Todo lo que nombran sale del dataset: es reorganización, no información nueva."""
+    reales = {_SIMPLE, _DOBLE, "Grado sin plan publicado"}
+    for c in derivados:
+        if c["origen"] in ("catalogo", "ficha_titulacion", "mencion"):
+            assert set(c["grados"]) <= reales
+
+
+def test_los_derivados_llevan_listas_paralelas_no_vacias(derivados):
+    """El invariante que exige el verificador: sin esto, el índice los rechaza."""
+    for c in derivados:
+        if c["origen"] in ("catalogo", "ficha_titulacion", "mencion"):
+            assert c["grados"] and len(c["grados"]) == len(c["codigos"])
