@@ -842,12 +842,34 @@ def test_el_doble_grado_declara_que_no_tiene_optativas(derivados):
 
 def test_la_mencion_reune_sus_asignaturas(derivados):
     """Estaban en el corpus, repartidas: ninguna unidad las juntaba."""
-    menciones = _de_origen(derivados, "mencion")
-    assert len(menciones) == 1
-    texto = menciones[0]["texto"]
+    suyo = [
+        c
+        for c in _de_origen(derivados, "mencion")
+        if c["nombre"].startswith("Asignaturas de la mención")
+    ]
+    assert len(suyo) == 1
+    texto = suyo[0]["texto"]
     assert texto.startswith("Asignaturas de la mención «Sistemas gráficos»")
     assert "En total son 2:" in texto
     assert "Metaheurísticas" in texto and "Visión" in texto
+
+
+def test_hay_un_fragmento_que_dice_cuales_son_las_menciones(derivados):
+    """Regresión del turno 12 del 17/08/2026: dijo «dos menciones» y son tres.
+
+    La respuesta estaba repartida en una unidad por mención y ninguna decía
+    cuántas hay. Se probó a meter la lista en la ficha de la titulación y la
+    recuperación no la traía: su encabezado, «Datos generales del…», no se
+    parece a la pregunta. Con encabezado propio entra la primera.
+    """
+    listado = [
+        c
+        for c in _de_origen(derivados, "mencion")
+        if c["nombre"].startswith("Menciones")
+    ]
+    assert len(listado) == 1
+    assert "En total son 1:" in listado[0]["texto"]
+    assert "Sistemas gráficos" in listado[0]["texto"]
 
 
 def test_los_derivados_no_inventan_titulaciones(derivados):
@@ -863,3 +885,24 @@ def test_los_derivados_llevan_listas_paralelas_no_vacias(derivados):
     for c in derivados:
         if c["origen"] in ("catalogo", "ficha_titulacion", "mencion"):
             assert c["grados"] and len(c["grados"]) == len(c["codigos"])
+
+
+def test_lo_comun_a_todas_las_menciones_no_se_presenta_como_una_mencion():
+    """Regresión del 17/08/2026: «Mecánica tiene dos menciones» y una era esto.
+
+    La fuente marca con ese rótulo las optativas que no pertenecen a ninguna
+    mención concreta, y viaja en el mismo campo que ellas. Llamarlo mención en
+    el encabezado hacía que el sistema lo contase como una más.
+    """
+    items = [
+        _titulacion(_SIMPLE),
+        _asig_it107(
+            _SIMPLE, "A1", "Álgebra", "OP", "6", "", ["Común a todas las menciones"]
+        ),
+        _asig_it107(_SIMPLE, "A2", "Visión", "OP", "6", "", ["Sistemas gráficos"]),
+    ]
+    titulos = {c["nombre"] for c in _de_origen(trocear_dataset(items), "mencion")}
+    assert (
+        f"Asignaturas optativas comunes a todas las menciones del {_SIMPLE}" in titulos
+    )
+    assert not any("mención «Común" in t for t in titulos)
