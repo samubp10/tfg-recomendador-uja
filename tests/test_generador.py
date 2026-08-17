@@ -480,3 +480,52 @@ def test_el_saludo_se_atiende_aunque_no_haya_contexto(espia):
     """Va antes que el cortocircuito, y sin llamar al modelo."""
     assert generador.responder("hola", [], "un-modelo") == RESPUESTA_SALUDO
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+# --- IT-34: el prompt declara la oferta real de la Escuela ---
+
+
+def test_el_prompt_enumera_las_titulaciones_que_existen():
+    """Regresión del peor fallo del 16/08/2026.
+
+    A un estudiante interesado en electricidad le recomendó seis titulaciones y
+    **dos no existen** en la EPSJ: «Grado en Ingeniería de Energía» y «Grado en
+    Ingeniería Ambiental». Ninguna estaba en el contexto recuperado. Las
+    instrucciones ya prohibían inventar, así que prohibirlo otra vez no habría
+    servido; lo que se puede hacer desde el prompt es poner delante la lista
+    verdadera. Comprobar la respuesta contra ella es IT-87.
+    """
+    catalogo = ["Grado en Ingeniería Informática", "Grado en Ingeniería Eléctrica"]
+    prompt = construir_prompt(
+        "recomiéndame algo de electricidad",
+        [fragmento("A", "texto")],
+        catalogo=catalogo,
+    )
+    assert "TITULACIONES DE LA ESCUELA" in prompt
+    for titulacion in catalogo:
+        assert f"- {titulacion}" in prompt
+
+
+def test_el_catalogo_va_antes_del_contexto():
+    """Si fuera después, se leería como un fragmento recuperado más."""
+    prompt = construir_prompt(
+        "una pregunta",
+        [fragmento("A", "texto")],
+        catalogo=["Grado en Ingeniería Informática"],
+    )
+    assert prompt.index("TITULACIONES DE LA ESCUELA") < prompt.index("CONTEXTO:")
+
+
+def test_sin_catalogo_el_prompt_no_lo_menciona():
+    prompt = construir_prompt("una pregunta", [fragmento("A", "texto")])
+    assert "TITULACIONES DE LA ESCUELA" not in prompt
+
+
+def test_el_catalogo_llega_a_traves_de_responder(espia):
+    generador.responder(
+        "otra",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=["Grado en Ingeniería Informática"],
+    )
+    assert "TITULACIONES DE LA ESCUELA" in espia["cuerpo"]["prompt"]
