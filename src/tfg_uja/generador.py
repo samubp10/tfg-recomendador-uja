@@ -315,6 +315,7 @@ def responder(
     modelo: str,
     historial: list[tuple[str, str]] | None = None,
     ambito: str | None = None,
+    catalogo: list[str] | None = None,
 ) -> str:
     """Devuelve la respuesta del sistema a una pregunta.
 
@@ -345,6 +346,8 @@ def responder(
         modelo: Nombre del modelo en el servidor local.
         historial: Turnos anteriores de la conversación, si los hay.
         ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        catalogo: Titulaciones que declara el índice, para que el prompt las
+            enumere.
 
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
@@ -354,7 +357,9 @@ def responder(
         return fija
     if not fragmentos:
         return RESPUESTA_SIN_CONTEXTO
-    return generar(construir_prompt(pregunta, fragmentos, historial, ambito), modelo)
+    return generar(
+        construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
+    )
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
@@ -382,6 +387,7 @@ def construir_prompt(
     fragmentos: list[Fragmento],
     historial: list[tuple[str, str]] | None = None,
     ambito: str | None = None,
+    catalogo: list[str] | None = None,
 ) -> str:
     """Arma el texto que lee el modelo.
 
@@ -395,11 +401,24 @@ def construir_prompt(
     nivel que los fragmentos del corpus, y cualquier dato inventado en un turno
     se convertiría en fuente para el siguiente.
 
+    **El catálogo se declara siempre, y es un dato, no una prohibición.** El
+    fallo más grave que se le ha visto al sistema es recomendar titulaciones
+    que no existen: el 16/08/2026 recomendó seis a un estudiante interesado en
+    electricidad y **dos no existen** en la EPSJ. Las instrucciones ya decían
+    «usa ÚNICAMENTE la información del CONTEXTO», así que prohibirlo otra vez
+    no habría cambiado nada. Lo que sí se puede hacer desde el prompt es que la
+    lista verdadera esté delante en todas las consultas, cueste lo que cueste
+    ---son unas 150 fichas de las 8.192 de la ventana---, en vez de esperar a
+    que la recuperación la traiga. Comprobar la respuesta contra ese catálogo,
+    que es lo único que no depende de que el modelo obedezca, es IT-87.
+
     Args:
         pregunta: Pregunta del usuario, tal cual la escribe.
         fragmentos: Fragmentos recuperados, de más a menos próximo.
         historial: Turnos anteriores de la conversación, si los hay.
         ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        catalogo: Titulaciones que declara el índice. Si no se pasa, el prompt
+            no las enumera y el modelo solo cuenta con el contexto.
 
     Returns:
         Prompt completo, listo para enviar al modelo.
@@ -410,6 +429,13 @@ def construir_prompt(
         contexto = "\n\n".join(
             f"{_etiqueta(f)}\n{f.texto}" for f in ordenar_contexto(fragmentos)
         )
+    oferta = (
+        "TITULACIONES DE LA ESCUELA. Son estas y no hay ninguna más:\n"
+        + "\n".join(f"- {t}" for t in catalogo)
+        + "\n\n"
+        if catalogo
+        else ""
+    )
     # El ámbito se **declara como dato**, no como prohibición. 78 guías del
     # corpus se imparten en varias titulaciones y su encabezado las nombra
     # todas, así que acotar la búsqueda a una no impide que el modelo hable de
@@ -418,6 +444,7 @@ def construir_prompt(
     encabezado = f"ÁMBITO: la consulta es sobre el {ambito}.\n\n" if ambito else ""
     return (
         f"{INSTRUCCIONES}\n\n"
+        f"{oferta}"
         f"{encabezado}"
         f"{_conversacion(historial or [])}"
         f"CONTEXTO:\n{contexto}\n\n"
