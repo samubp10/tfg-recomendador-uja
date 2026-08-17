@@ -617,3 +617,42 @@ def test_una_pregunta_real_sigue_pasando_el_suelo():
     """Las cinco medidas tenían su mejor entre 0,076 y 0,112."""
     reales = [_frag(d) for d in (0.112, 0.113, 0.115)]
     assert len(acotar_por_distancia(reales)) == 3
+
+
+def test_solo_se_arrastra_la_pregunta_que_daba_el_sujeto():
+    """Regresión del turno 8 del 17/08/2026, el peor de la sesión.
+
+    A «¿Y en el segundo?» se le antepusieron las dos anteriores literalmente, y
+    una de ellas era «¿y cuántas de esas son optativas?». La consulta acabó
+    siendo «...optativas... primer curso... y en el segundo», el listado de
+    segundo curso no entró en el contexto y el modelo rellenó con conocimiento
+    propio **seis asignaturas que no existen** en la EPSJ.
+
+    Lo que la pregunta de seguimiento necesita es el sujeto del que se hablaba,
+    no el texto de lo que se preguntó antes.
+    """
+    consulta = consulta_con_historial(
+        "¿Y en el segundo?",
+        [
+            "¿Y cuántas de esas son optativas?",
+            "¿Qué asignaturas se dan en primer curso de Informática?",
+        ],
+        CATALOGO_PRUEBA,
+    )
+    assert "optativas" not in consulta
+    assert "Informática" in consulta
+    assert consulta.endswith("¿Y en el segundo?")
+
+
+def test_si_ninguna_anterior_nombra_titulacion_no_se_arrastra_nada():
+    """Arrastrar preguntas que tampoco tienen sujeto solo mete ruido."""
+    consulta = consulta_con_historial(
+        "¿y en el segundo?", ["¿y las optativas?", "¿cuántas son?"], CATALOGO_PRUEBA
+    )
+    assert consulta == "¿y en el segundo?"
+
+
+def test_sin_catalogo_se_arrastra_como_antes():
+    """El comportamiento previo se conserva cuando no hay con qué decidir."""
+    consulta = consulta_con_historial("la actual", ["una", "dos", "tres"])
+    assert consulta == "dos tres la actual"
