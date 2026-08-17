@@ -105,6 +105,14 @@ ORDEN_CURSOS: Final[tuple[str, ...]] = (
 
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
+#: Rótulo con el que la fuente marca las optativas que no pertenecen a ninguna
+#: mención concreta. **No es una mención**, aunque viaje en el mismo campo que
+#: ellas, y presentarlo como tal induce a error: medido el 17/08/2026, el
+#: sistema contestó que Ingeniería Mecánica «tiene dos menciones» y una de las
+#: dos era este rótulo. Se compara normalizado porque la fuente no es
+#: consistente con mayúsculas ni tildes.
+_COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
+
 
 #: Acrónimo del grado de procedencia que los planes de los dobles grados
 #: añaden al final del nombre de una asignatura, entre paréntesis: «CIRCUITOS
@@ -719,6 +727,21 @@ def _chunks_de_ficha(
             frases.append(
                 "La web de la EPSJ no publica optativas para esta titulación."
             )
+        # Cuáles son las menciones, no solo qué asignaturas tiene cada una.
+        # Medido el 17/08/2026: a «¿qué menciones tiene Ingeniería Mecánica?» el
+        # sistema contestó «dos» y son tres, porque el corpus tenía el listado
+        # de cada mención pero ninguna unidad decía cuántas hay ni cómo se
+        # llaman. Misma carencia de agregación que resolvió el resto de IT-107.
+        menciones = sorted(
+            {
+                m
+                for a in suyas
+                for m in (a.get("menciones") or [])
+                if _normalizar(m) != _COMUN_A_TODAS
+            }
+        )
+        if menciones:
+            frases.append(f"Tiene {len(menciones)} menciones: {', '.join(menciones)}.")
         reparto = [
             f"{curso}: {len(del_curso)} asignaturas."
             for curso, del_curso in _por_curso(obligatorias)
@@ -771,9 +794,42 @@ def _chunks_de_mencion(
             por_mencion.setdefault((item["grado"], mencion), []).append(item)
 
     chunks: list[dict[str, Any]] = []
+
+    # Cuáles son, antes de qué tiene cada una. Medido el 17/08/2026: a «¿qué
+    # menciones tiene Ingeniería Mecánica?» el sistema contestó «dos» y son
+    # tres. La respuesta estaba repartida en cuatro unidades y ninguna decía
+    # cuántas hay. Se probó a meter la lista en la ficha de la titulación y la
+    # recuperación no la traía: su encabezado, «Datos generales del…», no se
+    # parece a la pregunta. Con encabezado propio sí.
+    por_grado: dict[str, list[str]] = {}
+    for grado, mencion in por_mencion:
+        if _normalizar(mencion) != _COMUN_A_TODAS:
+            por_grado.setdefault(grado, []).append(mencion)
+    for grado in sorted(por_grado):
+        nombres = sorted(por_grado[grado])
+        titulo = f"Menciones del {grado}"
+        chunks.extend(
+            _chunks_de_unidad(
+                f"{titulo}. En total son {len(nombres)}:",
+                "\n\n".join(f"{n}." for n in nombres),
+                {
+                    "grados": [grado],
+                    "codigos": [None],
+                    "nombre": titulo,
+                    "tipo_asignatura": "",
+                    "curso": "",
+                },
+                "mencion",
+                tamanos,
+            )
+        )
+
     for grado, mencion in sorted(por_mencion):
         asignaturas = sorted(por_mencion[(grado, mencion)], key=lambda a: a["nombre"])
-        titulo = f"Asignaturas de la mención «{mencion}» del {grado}"
+        if _normalizar(mencion) == _COMUN_A_TODAS:
+            titulo = f"Asignaturas optativas comunes a todas las menciones del {grado}"
+        else:
+            titulo = f"Asignaturas de la mención «{mencion}» del {grado}"
         lineas = []
         for a in asignaturas:
             ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
