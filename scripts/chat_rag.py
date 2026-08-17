@@ -44,7 +44,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.generador import responder  # noqa: E402
+from tfg_uja.generador import cortesia, responder  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -263,6 +263,24 @@ def main(argumentos: list[str]) -> None:
             continue
 
         t0 = time.perf_counter()
+        # La cortesía se resuelve antes de buscar. No es solo ahorro: el
+        # registro anotaba los veinte fragmentos que la búsqueda traía para un
+        # «gracias» como si hubieran formado el contexto de la respuesta, y no
+        # se usa ninguno. Una sesión que documenta un contexto que no existió
+        # no sirve para auditar nada.
+        fija = cortesia(entrada)
+        if fija is not None:
+            print(f"\n{fija}\n")
+            historial.append((entrada, fija))
+            del historial[:-TURNOS_RECORDADOS]
+            turno += 1
+            ultimos = []
+            if registro is not None:
+                anotar_turno(
+                    registro, turno, entrada, fija, [], modelo, grado, (0.0, 0.0)
+                )
+            continue
+
         consulta = consulta_con_historial(entrada, [p for p, _ in historial], catalogo)
         try:
             traidos = recuperar(
