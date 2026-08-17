@@ -179,6 +179,57 @@ def _etiqueta(indice: int, fragmento: Fragmento) -> str:
     return f"[{indice}] {fragmento.nombre} — {', '.join(fragmento.grados)}"
 
 
+#: Lo que se responde cuando la recuperación no ha traído nada pertinente.
+#: Es texto fijo y no una respuesta del modelo, a propósito: ver
+#: :func:`responder`.
+RESPUESTA_SIN_CONTEXTO: Final[str] = (
+    "No he encontrado información sobre eso en la web de la Escuela "
+    "Politécnica Superior de Jaén. Puedo ayudarte con las titulaciones que "
+    "se imparten allí: sus asignaturas, qué se estudia en cada una y qué "
+    "salidas profesionales tienen. ¿Sobre cuál te gustaría saber?"
+)
+
+
+def responder(
+    pregunta: str,
+    fragmentos: list[Fragmento],
+    modelo: str,
+    historial: list[tuple[str, str]] | None = None,
+    ambito: str | None = None,
+) -> str:
+    """Devuelve la respuesta del sistema a una pregunta.
+
+    **Sin fragmentos no se llama al modelo.** No es una optimización: es la
+    única forma que hemos encontrado de evitar el peor fallo del sistema.
+
+    Medido el 17/08/2026 con un modelo de 7B: el recuperador rechazó
+    correctamente un saludo y no devolvió ningún fragmento, el prompt decía
+    «no se ha recuperado ningún fragmento» y las instrucciones ya mandaban
+    decirlo en vez de suponer. El modelo respondió inventándose un plan de
+    estudios completo de Ingeniería Informática, con asignaturas repartidas
+    por cursos. De los catorce nombres que dio, **trece no existen** en la
+    EPSJ.
+
+    El contexto vacío es el estado más peligroso de un sistema RAG, porque el
+    modelo responde con la misma seguridad que cuando ha leído algo. Y ya
+    sabemos, de tres intentos, que una instrucción no lo impide. Cortocircuitar
+    sí, porque no depende de que el modelo obedezca.
+
+    Args:
+        pregunta: Pregunta del usuario, tal cual la escribe.
+        fragmentos: Fragmentos recuperados, ya acotados.
+        modelo: Nombre del modelo en el servidor local.
+        historial: Turnos anteriores de la conversación, si los hay.
+        ambito: Titulación a la que está acotada la búsqueda, si lo está.
+
+    Returns:
+        La respuesta, del modelo o la fija de :data:`RESPUESTA_SIN_CONTEXTO`.
+    """
+    if not fragmentos:
+        return RESPUESTA_SIN_CONTEXTO
+    return generar(construir_prompt(pregunta, fragmentos, historial, ambito), modelo)
+
+
 def _conversacion(historial: list[tuple[str, str]]) -> str:
     """Rehace los turnos anteriores, con las respuestas recortadas.
 
