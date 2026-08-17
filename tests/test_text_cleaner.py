@@ -126,3 +126,44 @@ def test_separar_oferta_con_vacio_o_none():
 # añadido a la celda queda fuera por construcción, se llame como se llame. Las
 # pruebas de esa regresión viven ahora en test_grados_spider.py, que es donde
 # está la decisión.
+
+
+# --- normalizar y palabras (IT-37) ---
+
+
+def test_normalizar_quita_tildes_y_mayusculas():
+    from tfg_uja.text_cleaner import normalizar
+
+    assert normalizar("Ingeniería Informática") == "ingenieria informatica"
+
+
+def test_normalizar_colapsa_los_espacios():
+    from tfg_uja.text_cleaner import normalizar
+
+    assert normalizar("  Grado   en\nMecánica ") == "grado en mecanica"
+
+
+def test_palabras_descarta_los_signos():
+    """Lo que escribe un usuario lleva interrogaciones y comas, no solo letras."""
+    from tfg_uja.text_cleaner import palabras
+
+    assert palabras("¿Informática?, ¡sí!") == {"informatica", "si"}
+
+
+def test_palabras_no_repite():
+    from tfg_uja.text_cleaner import palabras
+
+    assert palabras("grado grado GRADO") == {"grado"}
+
+
+def test_palabras_de_un_texto_vacio():
+    from tfg_uja.text_cleaner import palabras
+
+    assert palabras("") == set()
+
+
+def test_palabras_descarta_lo_que_es_solo_signos():
+    """«—» y «...» no son palabras y colarían como cadenas vacías."""
+    from tfg_uja.text_cleaner import palabras
+
+    assert palabras("hola — ...") == {"hola"}
