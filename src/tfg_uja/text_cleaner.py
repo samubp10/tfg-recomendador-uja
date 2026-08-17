@@ -8,10 +8,54 @@ con el sufijo ".html" duplicado por un error de generación del propio sitio.
 from __future__ import annotations
 
 import re
+import unicodedata
 from typing import Final
 
 _ESPACIO_DURO = "\xa0"
 _ANCHO_CERO: Final[str] = "\u200b"
+
+
+def normalizar(texto: str) -> str:
+    """Deja un texto en minúsculas y sin tildes, para poder compararlo.
+
+    Nada de lo que se compara en este proyecto viene escrito de forma
+    consistente: los rótulos de la fuente mezclan mayúsculas y minúsculas,
+    y lo que escribe un usuario en el chat rara vez lleva las tildes.
+    Comparar por igualdad literal falla en los dos casos.
+
+    Args:
+        texto (str): Texto a normalizar.
+
+    Returns:
+        str: El texto en minúsculas, sin marcas diacríticas y con los
+            espacios colapsados.
+    """
+    descompuesto = unicodedata.normalize("NFD", texto.lower())
+    limpio = "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
+    return " ".join(limpio.split())
+
+
+def palabras(texto: str) -> set[str]:
+    """Descompone un texto en el conjunto de sus palabras comparables.
+
+    Se separa de :func:`normalizar` porque comparar frases enteras y comparar
+    palabra a palabra son dos operaciones distintas: la primera sirve para
+    reconocer un nombre completo y la segunda para reconocerlo dentro de una
+    pregunta escrita a mano. Los signos se descartan, de modo que
+    «¿informática?» y «Informática» dan la misma palabra.
+
+    Args:
+        texto (str): Texto a descomponer.
+
+    Returns:
+        set[str]: Palabras normalizadas y sin signos, sin repetir. Las que se
+            quedan vacías al quitarles los signos no entran.
+    """
+    return {
+        limpia
+        for palabra in normalizar(texto).split()
+        if (limpia := "".join(c for c in palabra if c.isalnum()))
+    }
 
 
 def limpiar_texto(texto: str | None) -> str:
