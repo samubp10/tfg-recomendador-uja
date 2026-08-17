@@ -23,7 +23,7 @@ Las tres se comprueban aquí, y las tres tienen prueba de regresión.
 from __future__ import annotations
 
 import json
-import unicodedata
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Final
@@ -32,6 +32,7 @@ import lancedb
 
 from tfg_uja.incrustaciones import Incrustador
 from tfg_uja.indexer import CATALOGO, COLECCION, DISTANCIA, metadatos_de_indice
+from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Fragmentos que se recuperan por consulta cuando no se dice otra cosa.
 #: Es un valor de partida, no una decisión cerrada: fijarlo es objeto de
@@ -45,7 +46,50 @@ K_POR_DEFECTO: Final[int] = 10
 PREGUNTAS_DE_CONTEXTO: Final[int] = 2
 
 
-def consulta_con_historial(pregunta: str, anteriores: list[str]) -> str:
+#: Longitud a partir de la cual una palabra del catálogo sirve para reconocer
+#: una titulación. Por debajo quedan las partículas ---«y», «de», «en»--- que
+#: aparecen en cualquier frase y reconocerían una titulación en todas.
+LARGO_DISTINTIVO: Final[int] = 4
+
+
+def palabras_distintivas(catalogo: list[str]) -> set[str]:
+    """Palabras que identifican a una titulación concreta y no a todas.
+
+    Se calculan del propio catálogo en vez de escribirse a mano, para que una
+    titulación nueva no obligue a tocar esta lista. Una palabra es distintiva
+    si aparece en menos de la mitad de los nombres: «ingeniería» está en once
+    de los doce y no distingue nada; «informática», en uno.
+
+    Args:
+        catalogo: Titulaciones que declara el índice.
+
+    Returns:
+        Palabras que, apareciendo en una pregunta, la sitúan en alguna
+        titulación.
+    """
+    conteo = Counter(p for titulacion in catalogo for p in palabras(titulacion))
+    tope = len(catalogo) / 2
+    return {
+        p for p, veces in conteo.items() if veces < tope and len(p) >= LARGO_DISTINTIVO
+    }
+
+
+def nombra_titulacion(pregunta: str, catalogo: list[str]) -> bool:
+    """Dice si la pregunta se sostiene sola porque nombra una titulación.
+
+    Args:
+        pregunta: Pregunta actual, tal cual la escribe el usuario.
+        catalogo: Titulaciones que declara el índice.
+
+    Returns:
+        ``True`` si alguna palabra distintiva del catálogo aparece en ella.
+    """
+    return bool(palabras(pregunta) & palabras_distintivas(catalogo))
+
+
+def consulta_con_historial(
+    pregunta: str, anteriores: list[str], catalogo: list[str] | None = None
+) -> str:
     """Compone el texto que se incrusta, arrastrando las preguntas previas.
 
     Una pregunta de seguimiento no se sostiene sola. «¿Qué se da en primer y
@@ -53,18 +97,31 @@ def consulta_con_historial(pregunta: str, anteriores: list[str]) -> str:
     recupera fragmentos de las doce; con la pregunta anterior delante, el
     vector vuelve a caer sobre la titulación de la que se venía hablando.
 
-    Es deliberadamente lo más simple que funciona. Reformular la pregunta con
-    el propio modelo daría mejores resultados a costa de una llamada más por
-    consulta, y esa comparación es de la Fase 3, no de aquí.
+    **Pero arrastrarlas siempre estropea las que sí se sostienen solas.** Medido
+    el 17/08/2026 sobre una conversación real: a «¿cuántas asignaturas tiene el
+    Grado en Ingeniería Informática?» se le antepuso la pregunta anterior, que
+    era sobre una asignatura suelta, y el vector quedó dominado por ella. La
+    recuperación devolvió cuatro fragmentos, los cuatro de esa asignatura, y el
+    sistema contestó que la titulación entera «cuenta con una sola asignatura».
+    En el mismo diálogo, una pregunta por las salidas de Mecánica recuperó las
+    de Informática por el mismo motivo.
+
+    La cura es no arrastrar nada cuando la pregunta ya nombra una titulación:
+    si se sostiene sola, la muleta solo puede desviarla. La condición se decide
+    contra el catálogo del propio índice, no contra una lista escrita a mano.
 
     Args:
         pregunta: Pregunta actual, tal cual la escribe el usuario.
         anteriores: Preguntas previas de la conversación, de más antigua a más
             reciente.
+        catalogo: Titulaciones que declara el índice. Sin él no se puede saber
+            si la pregunta se sostiene sola, y se arrastra como antes.
 
     Returns:
         El texto a incrustar.
     """
+    if catalogo and nombra_titulacion(pregunta, catalogo):
+        return pregunta
     arrastre = anteriores[-PREGUNTAS_DE_CONTEXTO:]
     return " ".join([*arrastre, pregunta]) if arrastre else pregunta
 
@@ -176,20 +233,6 @@ class TitulacionDesconocida(ValueError):
     """El nombre de titulación no está en el catálogo del índice."""
 
 
-def _normalizar(texto: str) -> str:
-    """Minúsculas y sin tildes, para comparar nombres con seguridad.
-
-    Args:
-        texto: Texto a normalizar.
-
-    Returns:
-        El texto en minúsculas, sin marcas diacríticas y sin espacios de sobra.
-    """
-    descompuesto = unicodedata.normalize("NFD", texto.lower())
-    limpio = "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
-    return " ".join(limpio.split())
-
-
 def catalogo_del_indice(ruta_indice: Path) -> list[str]:
     """Titulaciones que el índice declara contener.
 
@@ -233,11 +276,11 @@ def resolver_titulacion(texto: str, catalogo: list[str]) -> list[str]:
             a propósito: filtrar por algo que no existe devolvería cero
             fragmentos, y no filtrar devolvería los de otra titulación.
     """
-    buscado = _normalizar(texto)
-    exacto = [t for t in catalogo if _normalizar(t) == buscado]
+    buscado = normalizar(texto)
+    exacto = [t for t in catalogo if normalizar(t) == buscado]
     if exacto:
         return exacto
-    parciales = [t for t in catalogo if buscado in _normalizar(t)]
+    parciales = [t for t in catalogo if buscado in normalizar(t)]
     if parciales:
         return parciales
     raise TitulacionDesconocida(
