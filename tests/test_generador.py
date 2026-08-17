@@ -17,10 +17,13 @@ import pytest
 from tfg_uja import generador
 from tfg_uja.generador import (
     INSTRUCCIONES,
+    RESPUESTA_DESPEDIDA,
+    RESPUESTA_SALUDO,
     RESUMEN_TURNO,
     TOPE_RESPUESTA,
     VENTANA,
     construir_prompt,
+    cortesia,
     generar,
 )
 from tfg_uja.recuperador import Fragmento
@@ -64,12 +67,30 @@ def test_el_contexto_identifica_cada_fragmento():
     assert "Matrices y determinantes." in prompt
 
 
-def test_los_fragmentos_van_numerados_y_en_orden():
+def test_los_fragmentos_conservan_su_orden_en_el_contexto():
     prompt = construir_prompt(
         "una pregunta",
         [fragmento("Primera", "texto uno"), fragmento("Segunda", "texto dos")],
     )
-    assert prompt.index("[1] Primera") < prompt.index("[2] Segunda")
+    assert prompt.index("Primera") < prompt.index("Segunda")
+
+
+def test_el_contexto_no_numera_los_fragmentos():
+    """Regresión: el número de fragmento se escapó a la respuesta.
+
+    El encabezado llevaba «[1]», «[2]»... para que el modelo pudiera citar. No
+    citó fragmentos ---las instrucciones le piden citar la asignatura--- y en
+    cambio le soltó a un estudiante «...según el contexto ([20])», que es una
+    referencia interna y no significa nada para quien la lee. Tercera vez que
+    un dato puesto en el encabezado acaba en la pantalla del usuario, así que
+    se quita de raíz: lo que no está en el prompt no se puede filtrar.
+    """
+    prompt = construir_prompt(
+        "una pregunta",
+        [fragmento(f"Unidad {i}", "texto") for i in range(1, 4)],
+    )
+    for numero in range(1, 4):
+        assert f"[{numero}]" not in prompt
 
 
 def test_una_guia_compartida_declara_sus_titulaciones():
@@ -373,7 +394,7 @@ def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
     entero de Ingeniería Informática; de los catorce nombres que dio, **trece
     no existen** en la EPSJ.
     """
-    respuesta = generador.responder("hola buenas", [], "un-modelo")
+    respuesta = generador.responder("¿cuánto cuesta la matrícula?", [], "un-modelo")
     assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
 
@@ -403,3 +424,59 @@ def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
     prompt = espia["cuerpo"]["prompt"]
     assert "ÁMBITO" in prompt
     assert "antes" in prompt
+
+
+# --- La cortesía ---
+
+
+@pytest.mark.parametrize(
+    "saludo",
+    ["hola", "Hola!", "buenas", "Buenos días", "hola buenas tardes", "¿qué tal?, hola"],
+)
+def test_un_saludo_se_contesta_como_un_saludo(saludo):
+    """Regresión del caso real: a un «hola», «no he encontrado información».
+
+    El saludo no recupera nada, porque no se parece a ningún fragmento, y el
+    suelo de pertinencia lo rechaza como debe. Pero caer en la respuesta de
+    contexto vacío deja al estudiante creyendo que ha preguntado mal en su
+    primera frase.
+    """
+    assert cortesia(saludo) == RESPUESTA_SALUDO
+
+
+@pytest.mark.parametrize(
+    "despedida", ["gracias", "Muchas gracias!", "adiós", "vale, gracias"]
+)
+def test_una_despedida_se_contesta_como_una_despedida(despedida):
+    assert cortesia(despedida) == RESPUESTA_DESPEDIDA
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "hola, ¿qué asignaturas tiene Informática?",
+        "buenas, quiero saber de Mecánica",
+        "¿qué salidas tiene Geomática?",
+        "",
+    ],
+)
+def test_una_pregunta_con_saludo_delante_sigue_su_camino(pregunta):
+    """Reconocer «hola» dentro del texto se habría comido media pregunta.
+
+    Por eso se exige que **todo** el mensaje quepa en el vocabulario cerrado,
+    y no que contenga un saludo.
+    """
+    assert cortesia(pregunta) is None
+
+
+def test_el_saludo_dice_de_que_sabe_el_sistema():
+    """Es la primera frase que lee casi cualquiera: se aprovecha para orientar."""
+    assert "Politécnica Superior de Jaén" in RESPUESTA_SALUDO
+    for tema in ("asignaturas", "curso", "grados"):
+        assert tema in RESPUESTA_SALUDO
+
+
+def test_el_saludo_se_atiende_aunque_no_haya_contexto(espia):
+    """Va antes que el cortocircuito, y sin llamar al modelo."""
+    assert generador.responder("hola", [], "un-modelo") == RESPUESTA_SALUDO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
