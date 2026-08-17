@@ -7,8 +7,10 @@ para poder comparar candidatos con la misma pregunta.
 
 Arrastra los últimos turnos, y hace falta que los arrastre: una pregunta como
 «¿y en primer año?» no menciona la titulación, así que incrustada sola recupera
-fragmentos de las doce. Es lo mínimo para poder encadenar tres preguntas; el
-manejo serio de la conversación es de la Fase 3.
+fragmentos de las doce. Pero solo cuando la pregunta lo necesita: si ya nombra
+una titulación, se incrusta sola, porque arrastrarla llegó a desviar la
+recuperación entera hacia el tema anterior. Es lo mínimo para poder encadenar
+tres preguntas; el manejo serio de la conversación es de la Fase 3.
 
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
 poder releer después qué se preguntó y qué se respondió sin que las pruebas
@@ -261,7 +263,7 @@ def main(argumentos: list[str]) -> None:
             continue
 
         t0 = time.perf_counter()
-        consulta = consulta_con_historial(entrada, [p for p, _ in historial])
+        consulta = consulta_con_historial(entrada, [p for p, _ in historial], catalogo)
         try:
             traidos = recuperar(
                 consulta,
