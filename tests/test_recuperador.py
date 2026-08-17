@@ -30,6 +30,8 @@ from tfg_uja.recuperador import (
     catalogo_del_indice,
     consulta_con_historial,
     distancia_del_indice,
+    nombra_titulacion,
+    palabras_distintivas,
     recuperar,
     resolver_titulacion,
 )
@@ -323,6 +325,108 @@ def test_solo_se_arrastran_las_ultimas_preguntas():
     consulta = consulta_con_historial("la actual", anteriores)
     assert "pregunta 0" not in consulta
     assert consulta.count("pregunta") == PREGUNTAS_DE_CONTEXTO
+
+
+# --- Cuándo NO hay que arrastrar la conversación ---
+
+
+def test_una_pregunta_que_nombra_su_titulacion_no_arrastra_nada():
+    """Regresión del peor fallo de la sesión del 17/08/2026.
+
+    A «¿cuántas asignaturas tiene el Grado en Ingeniería Informática?» se le
+    antepuso la pregunta anterior, que era sobre una asignatura suelta. El
+    vector quedó dominado por ella, la recuperación devolvió cuatro fragmentos
+    ---los cuatro de esa asignatura--- y el sistema contestó que la titulación
+    entera «cuenta con una sola asignatura llamada Metaheurísticas».
+    """
+    consulta = consulta_con_historial(
+        "¿cuántas asignaturas tiene el Grado en Ingeniería Informática?",
+        ["¿qué se estudia en Metaheurísticas?"],
+        CATALOGO_PRUEBA,
+    )
+    assert "Metaheurísticas" not in consulta
+    assert consulta == "¿cuántas asignaturas tiene el Grado en Ingeniería Informática?"
+
+
+def test_el_nombre_corto_de_la_titulacion_tambien_la_sostiene():
+    """Nadie escribe el nombre oficial completo: escribe «informática»."""
+    consulta = consulta_con_historial(
+        "¿qué salidas tiene informática?", ["háblame de eléctrica"], CATALOGO_PRUEBA
+    )
+    assert consulta == "¿qué salidas tiene informática?"
+
+
+def test_una_pregunta_de_seguimiento_sigue_arrastrando_con_catalogo():
+    """El arreglo no puede llevarse por delante lo que sí necesita la muleta."""
+    consulta = consulta_con_historial(
+        "¿y en primer año?", ["háblame de informática"], CATALOGO_PRUEBA
+    )
+    assert "informática" in consulta
+    assert consulta.endswith("¿y en primer año?")
+
+
+def test_las_palabras_comunes_del_catalogo_no_sirven_para_reconocer():
+    """«Grado» e «ingeniería» están en casi todos los nombres."""
+    distintivas = palabras_distintivas(CATALOGO_PRUEBA)
+    assert "informatica" in distintivas
+    for comun in ("grado", "en", "ingenieria"):
+        assert comun not in distintivas
+
+
+def test_una_pregunta_sin_titulacion_no_se_sostiene_sola():
+    assert not nombra_titulacion("¿y en primer año?", CATALOGO_PRUEBA)
+    assert nombra_titulacion("¿y en Mecánica?", CATALOGO_PRUEBA)
+
+
+#: El catálogo real que graba el índice del proyecto, copiado del corpus del
+#: 17/08/2026. Con tres nombres inventados la regla se comporta de otro modo:
+#: «eléctrica» aparece en dos de tres y deja de ser distintiva, mientras que en
+#: las doce reales está en tres y sí lo es. Un umbral relativo hay que probarlo
+#: contra el reparto de verdad.
+CATALOGO_REAL = [
+    "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+    "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+    "Doble Grado en Ingeniería Eléctrica y Mecánica",
+    "Doble Grado en Ingeniería Mecánica (Internacional - University of Applied "
+    "Sciences Schmalkalden, Alemania)",
+    "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+    "Grado en Ingeniería Electrónica Industrial",
+    "Grado en Ingeniería Eléctrica",
+    "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+    "Grado en Ingeniería Informática",
+    "Grado en Ingeniería Mecánica",
+    "Grado en Ingeniería de Organización Industrial",
+    "Grado en Inteligencia Artificial y Ciberseguridad",
+]
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "¿qué asignaturas tiene informática?",
+        "cuéntame de eléctrica",
+        "¿y electrónica industrial?",
+        "quiero saber de mecánica",
+        "háblame de geomática",
+        "¿qué es inteligencia artificial y ciberseguridad?",
+        "organización industrial, ¿qué salidas tiene?",
+    ],
+)
+def test_las_doce_titulaciones_reales_se_reconocen_por_su_nombre_corto(pregunta):
+    assert nombra_titulacion(pregunta, CATALOGO_REAL)
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "¿y en primer año?",
+        "¿cuáles son las obligatorias?",
+        "¿qué se ve en esa asignatura?",
+        "¿y las optativas?",
+    ],
+)
+def test_las_preguntas_de_seguimiento_reales_siguen_necesitando_la_muleta(pregunta):
+    assert not nombra_titulacion(pregunta, CATALOGO_REAL)
 
 
 def test_k_por_defecto_es_el_del_modulo():
