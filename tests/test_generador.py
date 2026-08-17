@@ -359,3 +359,47 @@ def test_el_ambito_se_declara_como_dato_en_el_prompt():
 def test_sin_ambito_el_prompt_no_lo_menciona():
     prompt = construir_prompt("una pregunta", [fragmento("A", "t")])
     assert "ÁMBITO:" not in prompt
+
+
+# --- Sin contexto no se llama al modelo ---
+
+
+def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
+    """El peor fallo del sistema, y el único que no depende del modelo.
+
+    Medido el 17/08/2026 con un 7B: el recuperador rechazó correctamente un
+    saludo, el prompt decía «no se ha recuperado ningún fragmento» y las
+    instrucciones ya mandaban decirlo. El modelo se inventó un plan de estudios
+    entero de Ingeniería Informática; de los catorce nombres que dio, **trece
+    no existen** en la EPSJ.
+    """
+    respuesta = generador.responder("hola buenas", [], "un-modelo")
+    assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_con_fragmentos_si_se_consulta_al_modelo(espia):
+    respuesta = generador.responder(
+        "¿qué se ve en Álgebra?", [fragmento("Álgebra", "Matrices.")], "un-modelo"
+    )
+    assert respuesta == "una respuesta"
+    assert "Matrices." in espia["cuerpo"]["prompt"]
+
+
+def test_la_respuesta_sin_contexto_ofrece_una_salida():
+    """Un «no lo sé» a secas deja al estudiante sin saber qué preguntar."""
+    assert "Politécnica Superior de Jaén" in generador.RESPUESTA_SIN_CONTEXTO
+    assert "?" in generador.RESPUESTA_SIN_CONTEXTO
+
+
+def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
+    generador.responder(
+        "otra",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        [("antes", "dijo algo")],
+        ambito="Grado en Ingeniería Informática",
+    )
+    prompt = espia["cuerpo"]["prompt"]
+    assert "ÁMBITO" in prompt
+    assert "antes" in prompt
