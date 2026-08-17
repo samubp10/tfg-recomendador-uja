@@ -110,20 +110,36 @@ def consulta_con_historial(
     si se sostiene sola, la muleta solo puede desviarla. La condición se decide
     contra el catálogo del propio índice, no contra una lista escrita a mano.
 
+    **Y cuando sí hace falta arrastrar, se arrastra una sola pregunta: la
+    última que nombró titulación.** Traer las dos anteriores literalmente mete
+    en el vector las palabras de temas ya cerrados. Medido el 17/08/2026:
+    «¿Y en el segundo?», con «¿y cuántas de esas son optativas?» dos turnos
+    atrás, se incrustó como «...optativas... primer curso... y en el segundo»,
+    el listado de segundo curso no entró en el contexto y el modelo rellenó con
+    conocimiento propio **seis asignaturas que no existen**. Lo que la pregunta
+    de seguimiento necesita es el sujeto del que se hablaba, no el texto de lo
+    que se preguntó antes.
+
     Args:
         pregunta: Pregunta actual, tal cual la escribe el usuario.
         anteriores: Preguntas previas de la conversación, de más antigua a más
             reciente.
         catalogo: Titulaciones que declara el índice. Sin él no se puede saber
-            si la pregunta se sostiene sola, y se arrastra como antes.
+            si la pregunta se sostiene sola ni cuál de las anteriores da el
+            sujeto, y se arrastran las últimas como antes.
 
     Returns:
         El texto a incrustar.
     """
-    if catalogo and nombra_titulacion(pregunta, catalogo):
+    if not catalogo:
+        arrastre = anteriores[-PREGUNTAS_DE_CONTEXTO:]
+        return " ".join([*arrastre, pregunta]) if arrastre else pregunta
+    if nombra_titulacion(pregunta, catalogo):
         return pregunta
-    arrastre = anteriores[-PREGUNTAS_DE_CONTEXTO:]
-    return " ".join([*arrastre, pregunta]) if arrastre else pregunta
+    sujeto = next(
+        (p for p in reversed(anteriores) if nombra_titulacion(p, catalogo)), None
+    )
+    return f"{sujeto} {pregunta}" if sujeto else pregunta
 
 
 @dataclass(frozen=True)
