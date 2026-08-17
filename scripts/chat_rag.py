@@ -285,7 +285,9 @@ def main(argumentos: list[str]) -> None:
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        respuesta = responder(entrada, ultimos, modelo, historial, ambito=grado)
+        respuesta = responder(
+            entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
+        )
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))
