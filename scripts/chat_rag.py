@@ -42,7 +42,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.generador import construir_prompt, generar  # noqa: E402
+from tfg_uja.generador import responder  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -283,9 +283,7 @@ def main(argumentos: list[str]) -> None:
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        respuesta = generar(
-            construir_prompt(entrada, ultimos, historial, ambito=grado), modelo
-        )
+        respuesta = responder(entrada, ultimos, modelo, historial, ambito=grado)
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))
