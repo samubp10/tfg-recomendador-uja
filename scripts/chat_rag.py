@@ -44,6 +44,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+from tfg_uja.conversacion import Conversacion  # noqa: E402
 from tfg_uja.generador import (  # noqa: E402
     ErrorDelModelo,
     cortesia,
@@ -58,7 +59,6 @@ from tfg_uja.recuperador import (  # noqa: E402
     abrir_indice,
     acotar_por_distancia,
     catalogo_del_indice,
-    consulta_con_historial,
     distancia_del_indice,
     recuperar,
 )
@@ -71,6 +71,23 @@ TURNOS_RECORDADOS = 3
 #: pruebas manuales, no material versionable, y algunas contienen respuestas
 #: equivocadas que no deben confundirse con el corpus.
 CARPETA_REGISTRO = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+
+
+def _uno_solo(ambito: list[str]) -> str | None:
+    """El ámbito para el prompt, solo si no hay ambigüedad.
+
+    El prompt declara una titulación, no varias: decirle «responde sobre estas
+    tres» no acota nada. Cuando la conversación no ha podido reducirlo a una
+    ---«electrónica» sitúa en tres titulaciones--- el prompt no declara ámbito
+    y quien acota es el filtro, que sí admite la lista entera.
+
+    Args:
+        ambito: Titulaciones deducidas de la conversación.
+
+    Returns:
+        La única titulación, o ``None`` si hay cero o más de una.
+    """
+    return ambito[0] if len(ambito) == 1 else None
 
 
 def formatear_fuentes(fragmentos: list[Fragmento]) -> str:
@@ -205,7 +222,7 @@ def main(argumentos: list[str]) -> None:
     grado = opciones.grado
     curso = opciones.curso
     ultimos: list[Fragmento] = []
-    historial: list[tuple[str, str]] = []
+    conversacion = Conversacion(catalogo, turnos_recordados=TURNOS_RECORDADOS)
     # Contador propio: el historial se recorta a los últimos turnos, así que su
     # longitud deja de servir para numerarlos en cuanto se pasa del tercero.
     turno = 0
@@ -260,10 +277,17 @@ def main(argumentos: list[str]) -> None:
                 curso = None if resto == "." else resto
                 print(f"  curso → {curso or 'sin acotar'}\n")
             elif orden == "/olvida":
-                historial.clear()
+                conversacion.olvidar()
                 print("  conversación olvidada\n")
+            elif orden == "/ambito":
+                vigente = conversacion.ambito
+                dice = ", ".join(vigente) if vigente else "todavía nada"
+                print(f"  de lo que se habla ahora: {dice}\n")
             else:
-                print("  órdenes: /modelo /k /grado /fuentes /olvida /salir\n")
+                print(
+                    "  órdenes: /modelo /k /grado /curso /fuentes /ambito "
+                    "/olvida /salir\n"
+                )
             continue
 
         t0 = time.perf_counter()
@@ -275,8 +299,7 @@ def main(argumentos: list[str]) -> None:
         fija = cortesia(entrada)
         if fija is not None:
             print(f"\n{fija}\n")
-            historial.append((entrada, fija))
-            del historial[:-TURNOS_RECORDADOS]
+            conversacion.anotar(entrada, fija)
             turno += 1
             ultimos = []
             if registro is not None:
@@ -285,10 +308,10 @@ def main(argumentos: list[str]) -> None:
                 )
             continue
 
-        consulta = consulta_con_historial(entrada, [p for p, _ in historial], catalogo)
+        consulta = conversacion.preparar(entrada)
         try:
             traidos = recuperar(
-                consulta,
+                consulta.texto,
                 tabla,
                 incrustar,
                 distancia=distancia,
@@ -296,6 +319,7 @@ def main(argumentos: list[str]) -> None:
                 grado=grado,
                 catalogo=catalogo,
                 curso=curso,
+                ambito=consulta.ambito,
             )
         except TitulacionDesconocida as error:
             print(f"\n  {error}. Las que hay:")
@@ -309,7 +333,12 @@ def main(argumentos: list[str]) -> None:
         t1 = time.perf_counter()
         try:
             respuesta = responder(
-                entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
+                entrada,
+                ultimos,
+                modelo,
+                [(p, "") for p in conversacion.preguntas()],
+                ambito=grado or _uno_solo(consulta.ambito),
+                catalogo=catalogo,
             )
         except ErrorDelModelo as error:
             # Se avisa y se sigue. Un fallo pasajero del servidor no puede
@@ -323,8 +352,7 @@ def main(argumentos: list[str]) -> None:
             continue
         t_generar = time.perf_counter() - t1
 
-        historial.append((entrada, respuesta))
-        del historial[:-TURNOS_RECORDADOS]
+        conversacion.anotar(entrada, respuesta)
         turno += 1
 
         print(f"\n{respuesta}\n")
