@@ -17,7 +17,7 @@ import pytest
 from tfg_uja.conversacion import (
     Conversacion,
     contenido,
-    es_continuacion,
+    recorta_lo_anterior,
     titulaciones_de_la_pregunta,
     titulaciones_de_la_respuesta,
 )
@@ -194,11 +194,17 @@ def test_un_ordinal_solo_no_dice_que_se_pregunta():
     assert consulta.ambito == [INFORMATICA]
 
 
-def test_una_continuacion_no_se_convierte_en_el_predicado():
-    """Heredar de una continuación arrastra el recorte que ella misma hacía."""
-    assert es_continuacion("¿Y cuántas de esas son optativas?")
-    assert es_continuacion("Y en el grado de electrónica?")
-    assert not es_continuacion("¿Qué asignaturas tiene primero?")
+def test_solo_recorta_la_que_se_refiere_a_lo_anterior():
+    """Empezar por «y» no basta para descartarla como predicado.
+
+    Medido el 18/08/2026 sobre la conversación real: «¿Y qué asignaturas tiene
+    en primero?» empieza por «y» pero sí plantea tema, y descartarla dejaba a
+    la siguiente heredando de «soy de bachillerato y me gustan los
+    videojuegos», que no dice nada del plan de estudios.
+    """
+    assert recorta_lo_anterior("¿Y cuántas de esas son optativas?")
+    assert not recorta_lo_anterior("¿Y qué asignaturas tiene en primero?")
+    assert not recorta_lo_anterior("Y en el grado de electrónica?")
 
 
 def test_una_pregunta_que_solo_lleva_ordinal_hereda_el_predicado_original():
@@ -210,6 +216,32 @@ def test_una_pregunta_que_solo_lleva_ordinal_hereda_el_predicado_original():
     consulta = c.preparar("¿Y en el tercero?")
     assert "optativas" not in consulta.texto.lower()
     assert "asignaturas" in consulta.texto
+
+
+def test_el_ordinal_heredado_lo_sustituye_el_de_la_pregunta():
+    """Si la pregunta trae su curso, el del predicado heredado sobra.
+
+    Medido el 18/08/2026 con la conversación real: heredando «¿y qué
+    asignaturas tiene en primero?» entera, a «¿y en segundo?» le seguían
+    llegando los listados de *primer* curso.
+    """
+    c = Conversacion(CATALOGO)
+    c.anotar("¿Y qué asignaturas tiene en primero del Grado en Informática?", "...")
+    consulta = c.preparar("¿Y en segundo?")
+    assert "primero" not in consulta.texto.lower()
+    assert "asignaturas" in consulta.texto
+
+
+def test_si_la_pregunta_no_trae_curso_se_conserva_el_heredado():
+    """El caso contrario: quitarlo siempre perdía el curso del que se hablaba.
+
+    «¿Y en el grado de electrónica?» no dice curso, así que sigue preguntando
+    por el mismo del que se venía hablando.
+    """
+    c = Conversacion(CATALOGO)
+    c.anotar("¿Y qué asignaturas tiene en primero del Grado en Informática?", "...")
+    consulta = c.preparar("¿Y en el grado de electrónica?")
+    assert "primero" in consulta.texto.lower()
 
 
 # --- El ámbito ---
