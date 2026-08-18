@@ -41,6 +41,14 @@ from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 #: guion es una copia que puede quedarse atrás sin que nadie lo note.
 from tfg_uja.invariantes import InvarianteRoto, exigir  # noqa: F401
 
+#: Orígenes cuyo encabezado nombra una asignatura y va entre comillas
+#: angulares.
+_ORIGENES_DE_ASIGNATURA = ("guia", "asignatura_sin_guia")
+
+#: Orígenes cuyo encabezado es el nombre a secas, porque no nombran una
+#: asignatura sino un listado o una ficha (IT-100, IT-107).
+_ORIGENES_DERIVADOS = ("plan_de_estudios", "catalogo", "ficha_titulacion", "mencion")
+
 
 def _clave_item(item: dict) -> tuple:
     """Identifica la unidad de un item del dataset (grado y código singulares).
@@ -76,6 +84,24 @@ def _claves_chunk(chunk: dict) -> set[tuple]:
         (grado, codigo or chunk["nombre"])
         for grado, codigo in zip(chunk["grados"], chunk["codigos"])
     }
+
+
+def _claves_de_origen(chunks: list[dict], origen: str) -> set[tuple]:
+    """Une las claves de unidad de todos los chunks de un origen dado.
+
+    Args:
+        chunks: Chunks del corpus completo.
+        origen: Valor del campo ``origen`` que se quiere recoger.
+
+    Returns:
+        Conjunto de pares ``(grado, codigo_o_nombre)`` representados por ese
+        origen.
+    """
+    claves: set[tuple] = set()
+    for chunk in chunks:
+        if chunk["origen"] == origen:
+            claves |= _claves_chunk(chunk)
+    return claves
 
 
 def cortos_evitables(lista: list[dict]) -> list[int]:
@@ -178,34 +204,16 @@ def _imprimir_procedencia(procedencia: dict, total_guias: int) -> None:
         )
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Ejecuta las comprobaciones y reporta las estadísticas del troceo.
+def _exigir_forma(chunks: list[dict]) -> None:
+    """Comprueba la forma mínima de todo chunk: no vacío, dentro del máximo
+    y con ``grados``/``codigos`` como listas paralelas.
+
+    El máximo es la única restricción dura de tamaño; el mínimo es una
+    preferencia y se trata aparte, en ``cortos_evitables``.
 
     Args:
-        argv: Rutas del fichero de chunks y del dataset; por defecto,
-            ``data/chunks.json`` y ``data/grados.json``.
-
-    Returns:
-        Código de salida (0 si todos los invariantes se cumplen).
+        chunks: Chunks del corpus completo.
     """
-    argumentos = argv if argv is not None else sys.argv[1:]
-    datos = Path(__file__).resolve().parent.parent / "data"
-    ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else datos / "chunks.json"
-    ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else datos / "grados.json"
-
-    items = json.loads(ruta_chunks.read_text(encoding="utf-8"))
-    # El item de procedencia (IT-90) encabeza el fichero pero no es contenido:
-    # se separa por tipo, nunca por posición.
-    chunks = [i for i in items if i.get("tipo") == "chunk"]
-    procedencia: dict = next((i for i in items if i.get("tipo") == "procedencia"), {})
-    dataset = json.loads(ruta_dataset.read_text(encoding="utf-8"))
-    asignaturas = [d for d in dataset if d["tipo"] == "asignatura"]
-    guias = [d for d in dataset if d["tipo"] == "guia"]
-    salidas = [d for d in dataset if d["tipo"] == "salidas"]
-
-    _imprimir_procedencia(procedencia, len(guias))
-
-    # --- Invariantes de forma ---
     exigir(chunks, "no hay chunks")
     exigir(all(c["texto"].strip() for c in chunks), "hay chunks vacíos")
     exigir(
@@ -223,32 +231,38 @@ def main(argv: list[str] | None = None) -> int:
         "grados/codigos deben ser listas paralelas no vacías",
     )
 
-    # --- El encabezado de cada chunk es el de SU unidad (IT-91) ---
-    # El encabezado va dentro de `texto`, que es el único campo que se
-    # vectoriza: si nombra a otra asignatura, el índice afirma algo falso
-    # aunque los metadatos del chunk sean correctos. Comprobarlo aquí es lo
-    # que faltaba para que el defecto de IT-91 no pudiera pasar inadvertido:
-    # el descuadre de cobertura de más abajo compara claves, no encabezados,
-    # y por eso daba «OK» con los encabezados cruzados.
+
+def _exigir_encabezados(chunks: list[dict]) -> None:
+    """El encabezado de cada chunk es el de SU unidad (IT-91).
+
+    El encabezado va dentro de `texto`, que es el único campo que se
+    vectoriza: si nombra a otra asignatura, el índice afirma algo falso
+    aunque los metadatos del chunk sean correctos. Comprobarlo aquí es lo
+    que faltaba para que el defecto de IT-91 no pudiera pasar inadvertido:
+    el descuadre de cobertura de más abajo compara claves, no encabezados,
+    y por eso daba «OK» con los encabezados cruzados.
+
+    IT-100: los fragmentos de plan de estudios llevan su nombre sin comillas
+    angulares, porque no nombran una asignatura sino un listado. Se comprueban
+    igual: dejarlos fuera habría metido 16 fragmentos que ningún verificador
+    mira, que es exactamente el patrón de fallo que este proyecto arrastra.
+    IT-107: los derivados llevan su nombre igual, y por el mismo motivo. Si
+    se dejaran fuera, 32 fragmentos de recuento quedarían sin verificar, que
+    es cómo empezó siempre este defecto en las tres veces anteriores.
+
+    Args:
+        chunks: Chunks del corpus completo.
+    """
     descuadres = [
         c
         for c in chunks
-        if c["origen"] in ("guia", "asignatura_sin_guia")
+        if c["origen"] in _ORIGENES_DE_ASIGNATURA
         and not c["texto"].startswith(f"«{c['nombre']}»")
     ]
-    # IT-100: los fragmentos de plan de estudios llevan su nombre sin comillas
-    # angulares, porque no nombran una asignatura sino un listado. Se comprueban
-    # igual: dejarlos fuera habría metido 16 fragmentos que ningún verificador
-    # mira, que es exactamente el patrón de fallo que este proyecto arrastra.
-    # IT-107: los derivados llevan su nombre igual, y por el mismo motivo. Si
-    # se dejaran fuera, 32 fragmentos de recuento quedarían sin verificar, que
-    # es cómo empezó siempre este defecto en las tres veces anteriores.
     descuadres += [
         c
         for c in chunks
-        if c["origen"]
-        in ("plan_de_estudios", "catalogo", "ficha_titulacion", "mencion")
-        and not c["texto"].startswith(c["nombre"])
+        if c["origen"] in _ORIGENES_DERIVADOS and not c["texto"].startswith(c["nombre"])
     ]
     exigir(
         not descuadres,
@@ -259,12 +273,20 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
-    # IT-100: el listado debe decir cuántas asignaturas contiene, y esa cifra
-    # tiene que cuadrar con el dataset. Es la única forma de detectar que el
-    # listado se ha quedado corto: un fragmento con 40 asignaturas de las 50
-    # que tiene la titulación se lee igual de bien y es igual de falso.
-    # IT-107 los añade a la misma comprobación: los listados de mención tienen
-    # exactamente la misma forma y el mismo modo de fallar.
+
+def _exigir_listados_completos(chunks: list[dict]) -> None:
+    """La cifra que declara cada listado cuadra con lo que lista.
+
+    IT-100: el listado debe decir cuántas asignaturas contiene, y esa cifra
+    tiene que cuadrar con el dataset. Es la única forma de detectar que el
+    listado se ha quedado corto: un fragmento con 40 asignaturas de las 50
+    que tiene la titulación se lee igual de bien y es igual de falso.
+    IT-107 los añade a la misma comprobación: los listados de mención tienen
+    exactamente la misma forma y el mismo modo de fallar.
+
+    Args:
+        chunks: Chunks del corpus completo.
+    """
     planes = [c for c in chunks if c["origen"] in ("plan_de_estudios", "mencion")]
     for c in planes:
         if c["chunk_index"] != 0:
@@ -291,12 +313,19 @@ def main(argv: list[str] | None = None) -> int:
             ),
         )
 
-    # --- IT-107: las cifras de los derivados cuadran con el dataset ---
-    # Un fragmento derivado no se puede leer contra la fuente como se lee una
-    # guía: su contenido es un número, y un número equivocado se lee igual de
-    # bien que el correcto. Por eso se recalcula aquí desde `grados.json` en vez
-    # de confiar en que el fragmentador contó bien.
-    titulaciones = [d for d in dataset if d["tipo"] == "grado"]
+
+def _exigir_catalogo(chunks: list[dict], titulaciones: list[dict]) -> None:
+    """Las cifras del catálogo se recalculan contra el dataset (IT-107).
+
+    Un fragmento derivado no se puede leer contra la fuente como se lee una
+    guía: su contenido es un número, y un número equivocado se lee igual de
+    bien que el correcto. Por eso se recalcula aquí desde `grados.json` en vez
+    de confiar en que el fragmentador contó bien.
+
+    Args:
+        chunks: Chunks del corpus completo.
+        titulaciones: Items ``grado`` del dataset.
+    """
     simples = sum(1 for g in titulaciones if not g.get("es_doble_grado"))
     catalogos = [c for c in chunks if c["origen"] == "catalogo"]
     generales = [c for c in catalogos if c["nombre"].startswith("Titulaciones que")]
@@ -337,6 +366,17 @@ def main(argv: list[str] | None = None) -> int:
             ),
         )
 
+
+def _exigir_fichas(
+    chunks: list[dict], asignaturas: list[dict], titulaciones: list[dict]
+) -> None:
+    """Cada titulación tiene ficha y sus cifras cuadran con el dataset (IT-107).
+
+    Args:
+        chunks: Chunks del corpus completo.
+        asignaturas: Items ``asignatura`` del dataset.
+        titulaciones: Items ``grado`` del dataset.
+    """
     fichas = [c for c in chunks if c["origen"] == "ficha_titulacion"]
     exigir(
         len({f["nombre"] for f in fichas}) == len(titulaciones),
@@ -363,11 +403,36 @@ def main(argv: list[str] | None = None) -> int:
             ),
         )
 
-    # --- Numeración consistente dentro de cada unidad ---
+
+def _agrupar_por_unidad(chunks: list[dict]) -> dict[tuple, list]:
+    """Agrupa los chunks por la unidad semántica de la que salen.
+
+    Args:
+        chunks: Chunks del corpus completo.
+
+    Returns:
+        Para cada ``(nombre, grados, origen)``, sus chunks sin ordenar.
+    """
     por_unidad: dict[tuple, list] = {}
     for c in chunks:
         clave = (c["nombre"], tuple(c["grados"]), c["origen"])
         por_unidad.setdefault(clave, []).append(c)
+    return por_unidad
+
+
+def _exigir_numeracion(por_unidad: dict[tuple, list]) -> int:
+    """Numeración consistente dentro de cada unidad y fusión bien hecha.
+
+    Ordena de paso cada lista por ``chunk_index``, que es como
+    ``cortos_evitables`` espera recibirlas.
+
+    Args:
+        por_unidad: Chunks agrupados por unidad semántica.
+
+    Returns:
+        Cuántos fragmentos quedan por debajo del mínimo siendo legítimos, para
+        poder informar de la cifra al final.
+    """
     cortos = 0
     for unidad, lista in por_unidad.items():
         lista.sort(key=lambda c: c["chunk_index"])
@@ -390,20 +455,26 @@ def main(argv: list[str] | None = None) -> int:
         cortos += sum(
             1 for c in lista if len(lista) > 1 and len(c["texto"]) < TAMANO_MINIMO
         )
+    return cortos
 
-    # --- Cobertura: cada item del dataset queda representado ---
-    # Se expanden los chunks a pares (grado, código) por la deduplicación.
-    con_guia = {_clave_item(g) for g in guias}
-    unidades_guia = set()
-    for c in chunks:
-        if c["origen"] == "guia":
-            unidades_guia |= _claves_chunk(c)
-    # IT-101: un fragmento de guía puede citar además la titulación doble en la
-    # que esa misma asignatura se imparte, y esos pares NO tienen item `guia`
-    # propio porque el doble grado no publica guías. Son legítimos, pero solo
-    # ellos: la comprobación sigue exigiendo que no falte ninguna guía y que
-    # todo par sobrante pertenezca a un doble grado. Aflojarla sin esa segunda
-    # condición dejaría pasar justo lo que este verificador existe para pillar.
+
+def _exigir_cobertura_de_guias(
+    con_guia: set[tuple], unidades_guia: set[tuple], dataset: list[dict]
+) -> None:
+    """Ninguna guía del dataset se queda sin fragmentos, y no sobran pares.
+
+    IT-101: un fragmento de guía puede citar además la titulación doble en la
+    que esa misma asignatura se imparte, y esos pares NO tienen item `guia`
+    propio porque el doble grado no publica guías. Son legítimos, pero solo
+    ellos: la comprobación sigue exigiendo que no falte ninguna guía y que
+    todo par sobrante pertenezca a un doble grado. Aflojarla sin esa segunda
+    condición dejaría pasar justo lo que este verificador existe para pillar.
+
+    Args:
+        con_guia: Claves de los items ``guia`` del dataset.
+        unidades_guia: Claves que representan los chunks de origen ``guia``.
+        dataset: Items del dataset completo, para saber cuáles son dobles.
+    """
     dobles = {
         g["nombre"] for g in dataset if g["tipo"] == "grado" and g.get("es_doble_grado")
     }
@@ -422,18 +493,23 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
-    informativos = set()
-    for c in chunks:
-        if c["origen"] == "asignatura_sin_guia":
-            informativos |= _claves_chunk(c)
 
-    # IT-94: toda asignatura del dataset tiene que quedar representada en algún
-    # fragmento, sea por su guía o por su chunk informativo. Antes se
-    # comprobaba solo que las de `tiene_guia=False` tuvieran informativo y que
-    # las guías tuvieran sus fragmentos, y entre ambas comprobaciones quedaba
-    # un hueco: una asignatura con `tiene_guia=True` cuya guía no llegó a
-    # emitirse (PDF ilegible, IT-67) no entraba en ninguna de las dos y
-    # desaparecía del corpus mientras el verificador respondía «OK».
+def _exigir_toda_asignatura_representada(
+    asignaturas: list[dict], unidades_guia: set[tuple], informativos: set[tuple]
+) -> None:
+    """Toda asignatura del dataset aparece en algún fragmento (IT-94).
+
+    Antes se comprobaba solo que las de `tiene_guia=False` tuvieran
+    informativo y que las guías tuvieran sus fragmentos, y entre ambas
+    comprobaciones quedaba un hueco: una asignatura con `tiene_guia=True` cuya
+    guía no llegó a emitirse (PDF ilegible, IT-67) no entraba en ninguna de
+    las dos y desaparecía del corpus mientras el verificador respondía «OK».
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+        unidades_guia: Claves representadas por los chunks de guía.
+        informativos: Claves representadas por los chunks sin guía.
+    """
     todas = {_clave_item(a) for a in asignaturas}
     representadas = unidades_guia | informativos
     perdidas = todas - representadas
@@ -446,37 +522,30 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
-    grados_salidas = {s["grado"] for s in salidas}
-    grados_chunk_salidas = {
-        g for c in chunks if c["origen"] == "salidas" for g in c["grados"]
-    }
-    exigir(grados_salidas == grados_chunk_salidas, "salidas sin trocear")
 
-    # --- Estadísticas ---
-    origenes = Counter(c["origen"] for c in chunks)
-    compartidas = sum(
-        1 for c in chunks if len(c["grados"]) > 1 and c["chunk_index"] == 0
-    )
-    print(f"Chunks totales: {len(chunks)}  {dict(origenes)}")
-    print(
-        f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
-        f"sin guía {len(informativos)}, salidas {len(grados_salidas)})"
-    )
-    # IT-94: las que la fuente publica pero que no aportan contenido se
-    # cuentan aparte, porque no son lo mismo que una guía inexistente y su
-    # número mide directamente cuánto contenido se está perdiendo.
-    #
-    # IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
-    # apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
-    # casos son la contraria: el PDF se lee entero y sus secciones de
-    # contenido están vacías en el origen (DQA-0004). Tercer y último sitio
-    # donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
-    #
-    # Se calcula por correspondencia de claves y no restando dos totales. La
-    # resta da la cifra correcta solo mientras no haya nada más descuadrado: el
-    # día que aparezca a la vez una guía nueva sin asignatura que la declare,
-    # los dos errores se cancelan y el aviso dice «0». Además, restar no puede
-    # decir CUÁLES son, y son justamente los casos del DQA-0004.
+def _informar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) -> None:
+    """Lista las guías que la fuente publica vacías y exige que no haya huérfanas.
+
+    IT-94: las que la fuente publica pero que no aportan contenido se
+    cuentan aparte, porque no son lo mismo que una guía inexistente y su
+    número mide directamente cuánto contenido se está perdiendo.
+
+    IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
+    apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
+    casos son la contraria: el PDF se lee entero y sus secciones de
+    contenido están vacías en el origen (DQA-0004). Tercer y último sitio
+    donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
+
+    Se calcula por correspondencia de claves y no restando dos totales. La
+    resta da la cifra correcta solo mientras no haya nada más descuadrado: el
+    día que aparezca a la vez una guía nueva sin asignatura que la declare,
+    los dos errores se cancelan y el aviso dice «0». Además, restar no puede
+    decir CUÁLES son, y son justamente los casos del DQA-0004.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+        guias: Items ``guia`` del dataset.
+    """
     declaran_guia = {_clave_item(a) for a in asignaturas if a["tiene_guia"]}
     guias_reales = {_clave_item(g) for g in guias}
     sin_contenido = declaran_guia - guias_reales
@@ -500,23 +569,99 @@ def main(argv: list[str] | None = None) -> int:
             f"asignatura tiene `tiene_guia` a False."
         ),
     )
-    print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
 
+
+def _informar_tamanos(chunks: list[dict], cortos: int) -> None:
+    """Imprime el reparto de tamaños y cuántas colas cortas quedan.
+
+    Lo de las colas se informa, no se falla: son colas irreducibles y su
+    número mide cuánto cuesta la preferencia incumplida. Que suba mucho sí es
+    señal de que el máximo se ha quedado corto para este corpus, y eso solo se
+    ve mirándolo.
+
+    Args:
+        chunks: Chunks del corpus completo.
+        cortos: Fragmentos legítimos por debajo del mínimo.
+    """
     tamanos = sorted(len(c["texto"]) for c in chunks)
     n = len(tamanos)
     print(
         f"Tamaño (chars): min={tamanos[0]} mediana={tamanos[n // 2]} "
         f"p90={tamanos[int(n * 0.9)]} max={tamanos[-1]}"
     )
-    # Se informa, no se falla: son colas irreducibles y su número mide cuánto
-    # cuesta la preferencia incumplida. Que suba mucho sí es señal de que el
-    # máximo se ha quedado corto para este corpus, y eso solo se ve mirándolo.
     if cortos:
         print(
             f"  {cortos} fragmentos por debajo del mínimo ({TAMANO_MINIMO}), "
             f"todos colas que no cabían junto a su vecino sin pasarse del "
             f"máximo. El mínimo es una preferencia, no una restricción dura."
         )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Ejecuta las comprobaciones y reporta las estadísticas del troceo.
+
+    Args:
+        argv: Rutas del fichero de chunks y del dataset; por defecto,
+            ``data/chunks.json`` y ``data/grados.json``.
+
+    Returns:
+        Código de salida (0 si todos los invariantes se cumplen).
+    """
+    argumentos = argv if argv is not None else sys.argv[1:]
+    datos = Path(__file__).resolve().parent.parent / "data"
+    ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else datos / "chunks.json"
+    ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else datos / "grados.json"
+
+    items = json.loads(ruta_chunks.read_text(encoding="utf-8"))
+    # El item de procedencia (IT-90) encabeza el fichero pero no es contenido:
+    # se separa por tipo, nunca por posición.
+    chunks = [i for i in items if i.get("tipo") == "chunk"]
+    procedencia: dict = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    dataset = json.loads(ruta_dataset.read_text(encoding="utf-8"))
+    asignaturas = [d for d in dataset if d["tipo"] == "asignatura"]
+    guias = [d for d in dataset if d["tipo"] == "guia"]
+    salidas = [d for d in dataset if d["tipo"] == "salidas"]
+    titulaciones = [d for d in dataset if d["tipo"] == "grado"]
+
+    _imprimir_procedencia(procedencia, len(guias))
+
+    _exigir_forma(chunks)
+    _exigir_encabezados(chunks)
+    _exigir_listados_completos(chunks)
+    _exigir_catalogo(chunks, titulaciones)
+    _exigir_fichas(chunks, asignaturas, titulaciones)
+
+    por_unidad = _agrupar_por_unidad(chunks)
+    cortos = _exigir_numeracion(por_unidad)
+
+    # --- Cobertura: cada item del dataset queda representado ---
+    # Se expanden los chunks a pares (grado, código) por la deduplicación.
+    con_guia = {_clave_item(g) for g in guias}
+    unidades_guia = _claves_de_origen(chunks, "guia")
+    _exigir_cobertura_de_guias(con_guia, unidades_guia, dataset)
+
+    informativos = _claves_de_origen(chunks, "asignatura_sin_guia")
+    _exigir_toda_asignatura_representada(asignaturas, unidades_guia, informativos)
+
+    grados_salidas = {s["grado"] for s in salidas}
+    grados_chunk_salidas = {
+        g for c in chunks if c["origen"] == "salidas" for g in c["grados"]
+    }
+    exigir(grados_salidas == grados_chunk_salidas, "salidas sin trocear")
+
+    # --- Estadísticas ---
+    origenes = Counter(c["origen"] for c in chunks)
+    compartidas = sum(
+        1 for c in chunks if len(c["grados"]) > 1 and c["chunk_index"] == 0
+    )
+    print(f"Chunks totales: {len(chunks)}  {dict(origenes)}")
+    print(
+        f"Unidades: {len(por_unidad)} (guías {len(con_guia)}, "
+        f"sin guía {len(informativos)}, salidas {len(grados_salidas)})"
+    )
+    _informar_guias_sin_contenido(asignaturas, guias)
+    print(f"Unidades de guía compartidas entre titulaciones: {compartidas}")
+    _informar_tamanos(chunks, cortos)
 
     print("Chunks OK: invariantes verificados.")
     return 0
