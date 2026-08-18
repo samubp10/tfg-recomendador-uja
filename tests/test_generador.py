@@ -335,6 +335,23 @@ def test_el_muestreo_va_fijado(espia):
     assert opciones["seed"] == 42
 
 
+def test_el_mensaje_de_sistema_va_siempre_en_la_peticion(espia):
+    """Regresión: sin mandarlo, cada modelo respondía bajo el suyo de fábrica.
+
+    Medido el 18/08/2026 preguntando «¿quién eres?»: ministral-3 se presentaba
+    como «un modelo creado por Mistral AI» y gemma3 como «entrenado por
+    Google». Comparar candidatos así mide, además del modelo, el texto que cada
+    uno lleva escondido en su plantilla.
+    """
+    generar("un prompt", "un-modelo")
+    assert espia["cuerpo"]["system"] == generador.SISTEMA
+
+
+def test_el_mensaje_de_sistema_no_puede_ir_vacio():
+    """Ollama trata el `system` vacío como ausente y repone el de fábrica."""
+    assert generador.SISTEMA.strip()
+
+
 def test_la_ventana_se_declara_en_la_peticion(espia):
     """Regresión: con la ventana por defecto el modelo no cabe en la tarjeta.
 
