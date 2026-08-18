@@ -33,6 +33,9 @@ RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 #: y a inflar el número de relevantes de esa pregunta sin que nadie lo note.
 _CLAVES_SELECTOR = frozenset({"origen", "nombre", "grado"})
 
+#: Claves sin las que un selector no señala ninguna unidad.
+_CLAVES_SELECTOR_OBLIGATORIAS = frozenset({"origen", "nombre"})
+
 #: Campos que toda pregunta debe traer. Sin esta comprobación, un fichero mal
 #: editado a mano revienta con un ``KeyError`` a medio recorrido y deja el
 #: informe sin escribir, en vez de decir qué pregunta está mal.
@@ -64,6 +67,41 @@ def chunks_de_unidad(
         and chunk["nombre"] == selector["nombre"]
         and ("grado" not in selector or selector["grado"] in chunk["grados"])
     ]
+
+
+def _errores_de_selectores(etiqueta: str, relevantes: list[dict]) -> list[str]:
+    """Comprueba la forma de los selectores de una sola pregunta.
+
+    Args:
+        etiqueta: Identificador de la pregunta, para poder nombrarla.
+        relevantes: Selectores de unidad anotados en esa pregunta.
+
+    Returns:
+        Un mensaje por cada problema de forma; vacío si están todos bien.
+    """
+    errores: list[str] = []
+    vistos: list[tuple] = []
+    for selector in relevantes:
+        faltan = sorted(_CLAVES_SELECTOR_OBLIGATORIAS - set(selector))
+        if faltan:
+            errores.append(f"{etiqueta}: un selector no trae {faltan}")
+            continue
+        desconocidas = sorted(set(selector) - _CLAVES_SELECTOR)
+        if desconocidas:
+            errores.append(
+                f"{etiqueta}: el selector {selector['nombre']!r} trae la(s) "
+                f"clave(s) {desconocidas}, que este verificador no mira. Si "
+                f"era `grado` mal escrito, el selector no está filtrando "
+                f"por titulación y resuelve a todas"
+            )
+        clave = tuple(sorted(selector.items()))
+        if clave in vistos:
+            errores.append(
+                f"{etiqueta}: el selector {selector['nombre']!r} está "
+                f"repetido; sus chunks contarían dos veces"
+            )
+        vistos.append(clave)
+    return errores
 
 
 def errores_de_esquema(preguntas: list[dict[str, Any]]) -> list[str]:
@@ -101,27 +139,7 @@ def errores_de_esquema(preguntas: list[dict[str, Any]]) -> list[str]:
             )
             continue
 
-        vistos: list[tuple] = []
-        for selector in relevantes:
-            faltan = sorted({"origen", "nombre"} - set(selector))
-            if faltan:
-                errores.append(f"{etiqueta}: un selector no trae {faltan}")
-                continue
-            desconocidas = sorted(set(selector) - _CLAVES_SELECTOR)
-            if desconocidas:
-                errores.append(
-                    f"{etiqueta}: el selector {selector['nombre']!r} trae la(s) "
-                    f"clave(s) {desconocidas}, que este verificador no mira. Si "
-                    f"era `grado` mal escrito, el selector no está filtrando "
-                    f"por titulación y resuelve a todas"
-                )
-            clave = tuple(sorted(selector.items()))
-            if clave in vistos:
-                errores.append(
-                    f"{etiqueta}: el selector {selector['nombre']!r} está "
-                    f"repetido; sus chunks contarían dos veces"
-                )
-            vistos.append(clave)
+        errores += _errores_de_selectores(etiqueta, relevantes)
     return errores
 
 
@@ -150,30 +168,13 @@ def unidades_por_nombre(
     return unidades
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Valida el conjunto de evaluación y muestra sus estadísticas.
+def _informar_procedencia(procedencia: dict) -> None:
+    """Muestra de qué extracción y de qué curso es el corpus consultado.
 
     Args:
-        argv: Ruta del conjunto de evaluación y del corpus de fragmentos; por
-            defecto ``eval/preguntas_evaluacion.json`` y ``data/chunks.json``.
-            Los otros tres verificadores ya admitían rutas alternativas: sin
-            ellas, este solo se podía ejercitar contra el corpus real, que no
-            está versionado y no existe en CI.
-
-    Returns:
-        0 si todas las comprobaciones pasan; 1 en caso contrario.
+        procedencia: Item ``procedencia`` del ``chunks.json``, o vacío si el
+            fichero se generó antes de IT-90.
     """
-    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-    argumentos = argv if argv is not None else sys.argv[1:]
-    ruta_eval = Path(argumentos[0]) if len(argumentos) > 0 else RUTA_EVAL
-    ruta_chunks = Path(argumentos[1]) if len(argumentos) > 1 else RUTA_CHUNKS
-
-    evalset = json.loads(ruta_eval.read_text(encoding="utf-8"))
-    items = json.loads(ruta_chunks.read_text(encoding="utf-8"))
-    # El item de procedencia (IT-90) no es contenido recuperable: se separa
-    # por tipo, nunca por posición.
-    chunks = [i for i in items if i.get("tipo") == "chunk"]
-    procedencia: dict = next((i for i in items if i.get("tipo") == "procedencia"), {})
     if procedencia.get("fecha_extraccion"):
         cursos = ", ".join(procedencia.get("cursos") or []) or "sin determinar"
         print(
@@ -182,29 +183,23 @@ def main(argv: list[str] | None = None) -> int:
         )
     else:
         print("Procedencia del corpus: sin determinar (dataset anterior a IT-90).")
-    preguntas = evalset["preguntas"]
 
-    # El esquema va antes que todo lo demás: si una pregunta está mal formada,
-    # resolver sus selectores aborta con KeyError y no se llega a informar de
-    # nada. Con errores de forma no se sigue adelante, porque las cifras que
-    # saldrían estarían calculadas sobre un fichero que ya se sabe roto.
-    errores: list[str] = errores_de_esquema(preguntas)
-    if errores:
-        print("\nERRORES DE FORMA (no se comprueba nada más hasta arreglarlos):")
-        for error in errores:
-            print(f"  - {error}")
-        return 1
 
-    if len(preguntas) < _MINIMO_PREGUNTAS:
-        errores.append(
-            f"solo hay {len(preguntas)} preguntas (mínimo {_MINIMO_PREGUNTAS})"
-        )
+def _resolver_selectores(
+    preguntas: list[dict[str, Any]], chunks: list[dict[str, Any]]
+) -> tuple[list[str], set[str], set[str]]:
+    """Resuelve cada selector contra el corpus y anota lo que alcanza.
 
-    ids = [p["id"] for p in preguntas]
-    if len(ids) != len(set(ids)):
-        errores.append("hay ids de pregunta duplicados")
+    Args:
+        preguntas: Preguntas ya validadas de forma.
+        chunks: Fragmentos del corpus completo.
 
+    Returns:
+        Los errores encontrados, las titulaciones alcanzadas al resolver y las
+        titulaciones que algún selector nombra explícitamente.
+    """
     unidades = unidades_por_nombre(chunks)
+    errores: list[str] = []
     alcanzados: set[str] = set()
     nombrados: set[str] = set()
     for pregunta in preguntas:
@@ -233,7 +228,30 @@ def main(argv: list[str] | None = None) -> int:
                 )
             for chunk in encontrados:
                 alcanzados.update(chunk["grados"])
+    return errores, alcanzados, nombrados
 
+
+def _informar_cobertura(
+    preguntas: list[dict[str, Any]],
+    chunks: list[dict[str, Any]],
+    alcanzados: set[str],
+    nombrados: set[str],
+) -> None:
+    """Imprime cuántas preguntas hay de cada tipo y qué titulaciones cubren.
+
+    Se dan dos cifras de titulaciones y no una. «Grados cubiertos» decía 11/11
+    contando también las titulaciones a las que ninguna pregunta apunta y que
+    solo aparecen porque comparten una guía con otra: sobre el corpus del
+    05/08/2026, las cuatro dobles entran así. Que una asignatura suya salga
+    recuperada al preguntar por Mecánica no acredita que el conjunto pruebe esa
+    titulación.
+
+    Args:
+        preguntas: Preguntas del conjunto de evaluación.
+        chunks: Fragmentos del corpus completo.
+        alcanzados: Titulaciones alcanzadas al resolver los selectores.
+        nombrados: Titulaciones que algún selector nombra explícitamente.
+    """
     grados_corpus = {g for c in chunks for g in c["grados"]}
     por_tipo: dict[str, int] = {}
     for pregunta in preguntas:
@@ -241,12 +259,6 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"Preguntas: {len(preguntas)}")
     print(f"Por tipo: {por_tipo}")
-
-    # Dos cifras y no una. «Grados cubiertos» decía 11/11 contando también las
-    # titulaciones a las que ninguna pregunta apunta y que solo aparecen porque
-    # comparten una guía con otra: sobre el corpus del 05/08/2026, las cuatro
-    # dobles entran así. Que una asignatura suya salga recuperada al preguntar
-    # por Mecánica no acredita que el conjunto pruebe esa titulación.
     print(
         f"Titulaciones del corpus: {len(grados_corpus)} | "
         f"nombradas en algún selector: {len(nombrados)} | "
@@ -256,6 +268,60 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  SIN CUBRIR: {grado}")
     for grado in sorted(alcanzados - nombrados):
         print(f"  SOLO POR ARRASTRE (ninguna pregunta la nombra): {grado}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Valida el conjunto de evaluación y muestra sus estadísticas.
+
+    Args:
+        argv: Ruta del conjunto de evaluación y del corpus de fragmentos; por
+            defecto ``eval/preguntas_evaluacion.json`` y ``data/chunks.json``.
+            Los otros tres verificadores ya admitían rutas alternativas: sin
+            ellas, este solo se podía ejercitar contra el corpus real, que no
+            está versionado y no existe en CI.
+
+    Returns:
+        0 si todas las comprobaciones pasan; 1 en caso contrario.
+    """
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+    argumentos = argv if argv is not None else sys.argv[1:]
+    ruta_eval = Path(argumentos[0]) if len(argumentos) > 0 else RUTA_EVAL
+    ruta_chunks = Path(argumentos[1]) if len(argumentos) > 1 else RUTA_CHUNKS
+
+    evalset = json.loads(ruta_eval.read_text(encoding="utf-8"))
+    items = json.loads(ruta_chunks.read_text(encoding="utf-8"))
+    # El item de procedencia (IT-90) no es contenido recuperable: se separa
+    # por tipo, nunca por posición.
+    chunks = [i for i in items if i.get("tipo") == "chunk"]
+    procedencia: dict = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    _informar_procedencia(procedencia)
+    preguntas = evalset["preguntas"]
+
+    # El esquema va antes que todo lo demás: si una pregunta está mal formada,
+    # resolver sus selectores aborta con KeyError y no se llega a informar de
+    # nada. Con errores de forma no se sigue adelante, porque las cifras que
+    # saldrían estarían calculadas sobre un fichero que ya se sabe roto.
+    errores_forma = errores_de_esquema(preguntas)
+    if errores_forma:
+        print("\nERRORES DE FORMA (no se comprueba nada más hasta arreglarlos):")
+        for error in errores_forma:
+            print(f"  - {error}")
+        return 1
+
+    errores: list[str] = []
+    if len(preguntas) < _MINIMO_PREGUNTAS:
+        errores.append(
+            f"solo hay {len(preguntas)} preguntas (mínimo {_MINIMO_PREGUNTAS})"
+        )
+
+    ids = [p["id"] for p in preguntas]
+    if len(ids) != len(set(ids)):
+        errores.append("hay ids de pregunta duplicados")
+
+    errores_resolucion, alcanzados, nombrados = _resolver_selectores(preguntas, chunks)
+    errores += errores_resolucion
+
+    _informar_cobertura(preguntas, chunks, alcanzados, nombrados)
 
     if errores:
         print("\nERRORES:")
