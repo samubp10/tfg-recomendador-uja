@@ -328,3 +328,41 @@ def test_el_informe_se_escribe_entero(tmp_path):
     assert "Cribado de modelos generativos" in texto
     assert "Grado en Ingeniería Biomédica" in texto
     assert "fecha: 2026-08-16" in texto
+
+
+# --- La versión del servidor de inferencia ---
+
+
+def test_el_informe_avisa_si_se_mezclaron_dos_servidores(tmp_path):
+    """Regresión del 19/08/2026.
+
+    El servidor de inferencia se actualizó solo de la 0.23.2 a la 0.32.14 en
+    mitad del cribado. Una diferencia entre candidatos medidos con versiones
+    distintas puede venir del tiempo de ejecución y no del modelo, así que la
+    tabla no compara nada y el informe tiene que decirlo.
+    """
+    mezcladas = [
+        {**_FILAS[0], "modelo": "a", "servidor": "0.23.2"},
+        {**_FILAS[0], "modelo": "b", "servidor": "0.32.14"},
+    ]
+    destino = tmp_path / "informe.md"
+    experimento.informe(mezcladas, {}, destino)
+    texto = destino.read_text(encoding="utf-8")
+    assert "0.23.2 · 0.32.14" in texto
+    assert "NO se midieron todas con el mismo servidor" in texto
+
+
+def test_un_solo_servidor_no_dispara_el_aviso(tmp_path):
+    iguales = [{**f, "servidor": "0.32.14"} for f in _FILAS]
+    destino = tmp_path / "informe.md"
+    experimento.informe(iguales, {}, destino)
+    texto = destino.read_text(encoding="utf-8")
+    assert "Servidor de inferencia: 0.32.14" in texto
+    assert "NO se midieron todas" not in texto
+
+
+def test_las_respuestas_viejas_sin_version_se_marcan_como_tales(tmp_path):
+    """Las 240 primeras se midieron antes de anotar la versión."""
+    destino = tmp_path / "informe.md"
+    experimento.informe(_FILAS, {}, destino)
+    assert "sin anotar" in destino.read_text(encoding="utf-8")
