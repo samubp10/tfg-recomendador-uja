@@ -94,28 +94,14 @@ def grados_sin_asignaturas(datos: list[dict]) -> list[str]:
     ]
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Ejecuta las comprobaciones del dataset del spider.
+def _informar_procedencia(procedencia: dict, guias: list[dict]) -> None:
+    """Muestra de cuándo y de qué curso es el dataset que se verifica.
 
     Args:
-        argv: Ruta del dataset; por defecto ``data/grados.json`` en la raíz
-            del repositorio (el script vive en ``scripts/``).
-
-    Returns:
-        Código de salida (0 si todos los invariantes se cumplen).
+        procedencia: Item ``procedencia`` del dataset (IT-90), o vacío si el
+            fichero se generó antes.
+        guias: Items ``guia``, de donde salen los cursos observados.
     """
-    argumentos = argv if argv is not None else sys.argv[1:]
-    por_defecto = Path(__file__).resolve().parent.parent / "data" / "grados.json"
-    ruta = Path(argumentos[0]) if argumentos else por_defecto
-
-    datos = json.loads(ruta.read_text(encoding="utf-8"))
-    asignaturas = [d for d in datos if d["tipo"] == "asignatura"]
-    grados = [d for d in datos if d["tipo"] == "grado"]
-    guias = [d for d in datos if d["tipo"] == "guia"]
-    salidas = [d for d in datos if d["tipo"] == "salidas"]
-
-    # Procedencia (IT-90): de cuándo y de qué curso es lo que se verifica.
-    procedencia: dict = next((d for d in datos if d["tipo"] == "procedencia"), {})
     cursos = sorted({g["curso"] for g in guias if g.get("curso")})
     if procedencia:
         print(
@@ -127,19 +113,26 @@ def main(argv: list[str] | None = None) -> int:
             "AVISO: este grados.json no lleva procedencia (anterior a IT-90). "
             "Regeneralo para saber de cuando y de que curso es."
         )
-    sin_curso = [g for g in guias if not g.get("curso")]
-    if procedencia and sin_curso:
+    guias_sin_curso = [g for g in guias if not g.get("curso")]
+    if procedencia and guias_sin_curso:
         print(
-            f"  AVISO: {len(sin_curso)} de {len(guias)} guias sin curso en su "
+            f"  AVISO: {len(guias_sin_curso)} de {len(guias)} guias sin curso en su "
             "URL; el formato de la fuente puede haber cambiado."
         )
 
-    # De que camino viene cada guia (IT-95). Se informa, no se comprueba: que
-    # el reparto cambie no es un error, es la fuente migrando de formato. Lo
-    # que no puede pasar es que migre sin que nadie se entere, que es lo que
-    # ocurrio entre el 23 y el 28 de julio de 2026: el corpus paso de 62 de
-    # 296 guias en PDF a las 288 de 288, y solo se supo mucho despues,
-    # deduciendolo de los saltos de linea del texto extraido.
+
+def _informar_formatos(guias: list[dict]) -> None:
+    """Muestra de qué camino viene cada guía (IT-95).
+
+    Se informa, no se comprueba: que el reparto cambie no es un error, es la
+    fuente migrando de formato. Lo que no puede pasar es que migre sin que
+    nadie se entere, que es lo que ocurrio entre el 23 y el 28 de julio de
+    2026: el corpus paso de 62 de 296 guias en PDF a las 288 de 288, y solo se
+    supo mucho despues, deduciendolo de los saltos de linea del texto extraido.
+
+    Args:
+        guias: Items ``guia`` del dataset.
+    """
     formatos = Counter(g.get("formato") or "sin declarar" for g in guias)
     print(f"  Formato de las guias: {dict(formatos)}")
     if formatos.get("sin declarar"):
@@ -148,10 +141,18 @@ def main(argv: list[str] | None = None) -> int:
             "IT-95). Regeneralo para poder auditar su extraccion."
         )
 
-    # Va antes que las cifras esperadas a propósito: si una titulación se ha
-    # quedado sin asignaturas, el recuento total también falla, pero un
-    # «asignaturas: 331 (esperado 361)» solo dice que falta algo. Comprobar
-    # esto primero convierte ese número en el nombre de lo que hay que mirar.
+
+def _exigir_ninguna_titulacion_vacia(datos: list[dict]) -> None:
+    """Falla si alguna titulación se ha quedado sin ninguna asignatura.
+
+    Se llama antes que las cifras esperadas a propósito: si una titulación se
+    ha quedado sin asignaturas, el recuento total también falla, pero un
+    «asignaturas: 331 (esperado 361)» solo dice que falta algo. Comprobar esto
+    primero convierte ese número en el nombre de lo que hay que mirar.
+
+    Args:
+        datos: Items del dataset completo.
+    """
     vacios = grados_sin_asignaturas(datos)
     exigir(
         not vacios,
@@ -162,13 +163,24 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
-    # La comprobación de arriba solo ve la pérdida TOTAL de una titulación. La
-    # parcial ---perder las tablas de mención y conservar las troncales--- deja
-    # el recuento global descuadrado y nada más, y «asignaturas: 508 (esperado
-    # 528)» no dice de quién faltan. No se comprueba con un umbral por
-    # titulación porque cualquier cifra que se pusiera sería inventada: se
-    # imprime el reparto para que la comparación con el rastreo anterior la
-    # haga quien sí sabe cuántas asignaturas tiene cada plan.
+
+def _informar_asignaturas_por_titulacion(
+    grados: list[dict], asignaturas: list[dict]
+) -> None:
+    """Imprime cuántas asignaturas aporta cada titulación.
+
+    La comprobación de titulaciones vacías solo ve la pérdida TOTAL de una
+    titulación. La parcial ---perder las tablas de mención y conservar las
+    troncales--- deja el recuento global descuadrado y nada más, y
+    «asignaturas: 508 (esperado 528)» no dice de quién faltan. No se comprueba
+    con un umbral por titulación porque cualquier cifra que se pusiera sería
+    inventada: se imprime el reparto para que la comparación con el rastreo
+    anterior la haga quien sí sabe cuántas asignaturas tiene cada plan.
+
+    Args:
+        grados: Items ``grado`` del dataset.
+        asignaturas: Items ``asignatura`` del dataset.
+    """
     por_titulacion = Counter(a["grado"] for a in asignaturas)
     print("  Asignaturas por titulación:")
     for grado in grados:
@@ -176,12 +188,15 @@ def main(argv: list[str] | None = None) -> int:
         sin_pagina = "" if grado.get("url_asignaturas") else "  (sin página propia)"
         print(f"    {propias:4}  {grado['nombre']}{sin_pagina}")
 
-    for etiqueta, real in (
-        ("asignaturas", len(asignaturas)),
-        ("grados", len(grados)),
-        ("guias", len(guias)),
-        ("salidas", len(salidas)),
-    ):
+
+def _exigir_recuentos_esperados(recuentos: tuple[tuple[str, int], ...]) -> None:
+    """Compara los totales del dataset con las cifras fijadas a mano.
+
+    Args:
+        recuentos: Pares ``(etiqueta, cantidad real)``; la etiqueta indexa
+            ``ESPERADO``.
+    """
+    for etiqueta, real in recuentos:
         esperado = ESPERADO[etiqueta]
         exigir(
             real == esperado,
@@ -191,23 +206,43 @@ def main(argv: list[str] | None = None) -> int:
             f"datos y hay que averiguar por qué antes de tocar nada.",
         )
 
+
+def _exigir_oferta(asignaturas: list[dict]) -> int:
+    """Comprueba el campo ``ofertada`` y cuenta las que no se ofertan.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+
+    Returns:
+        Número de asignaturas no ofertadas.
+    """
     exigir(all("ofertada" in a for a in asignaturas), "falta el campo ofertada")
     no_ofertadas = sum(1 for a in asignaturas if not a["ofertada"])
     exigir(
         no_ofertadas == ESPERADO["no_ofertadas"],
         f"no ofertadas: {no_ofertadas} (esperado {ESPERADO['no_ofertadas']})",
     )
+    return no_ofertadas
 
-    # Un paréntesis en el nombre delata que se ha colado texto que no forma
-    # parte de él. Este invariante lleva vigente desde IT-10 y saltó por
-    # primera vez el 28/07/2026: la fuente había empezado a incrustar un
-    # enlace «( Syllabus )» dentro de la celda del nombre (IT-93).
-    #
-    # IT-101 añade la única excepción legítima: los planes de los dobles grados
-    # anotan entre paréntesis el acrónimo del grado del que procede cada
-    # asignatura («GESTIÓN FINANCIERA (GIOI)»). Eso lo escribe la fuente y no es
-    # basura arrastrada, así que se admite —y solo eso: cualquier otro
-    # paréntesis, y cualquiera en una titulación simple, sigue fallando.
+
+def _exigir_nombres_limpios(asignaturas: list[dict], grados: list[dict]) -> None:
+    """Falla si en el nombre de una asignatura se ha colado texto ajeno.
+
+    Un paréntesis en el nombre delata que se ha colado texto que no forma
+    parte de él. Este invariante lleva vigente desde IT-10 y saltó por primera
+    vez el 28/07/2026: la fuente había empezado a incrustar un enlace
+    «( Syllabus )» dentro de la celda del nombre (IT-93).
+
+    IT-101 añade la única excepción legítima: los planes de los dobles grados
+    anotan entre paréntesis el acrónimo del grado del que procede cada
+    asignatura («GESTIÓN FINANCIERA (GIOI)»). Eso lo escribe la fuente y no es
+    basura arrastrada, así que se admite —y solo eso: cualquier otro
+    paréntesis, y cualquiera en una titulación simple, sigue fallando.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+        grados: Items ``grado``, para saber cuáles son dobles.
+    """
     dobles = {g["nombre"] for g in grados if g.get("es_doble_grado")}
     acronimo_de_grado = re.compile(r"^[^()]+ \([A-Z]{2,8}\)$")
     sucios = [
@@ -224,30 +259,60 @@ def main(argv: list[str] | None = None) -> int:
             f"le pertenece."
         ),
     )
-    # Solo la barra. Se descartó ampliarlo a otros separadores (« y », la coma)
-    # porque sobre las 16 menciones reales del corpus daría 14 falsos
-    # positivos: «Ingeniería y fabricación mecánica» o «Técnicas para la
-    # información y la comunicación» son nombres, no dos menciones pegadas.
+
+
+def _exigir_menciones_separadas(asignaturas: list[dict]) -> None:
+    """Falla si una mención trae dos nombres pegados por una barra.
+
+    Solo la barra. Se descartó ampliarlo a otros separadores (« y », la coma)
+    porque sobre las 16 menciones reales del corpus daría 14 falsos positivos:
+    «Ingeniería y fabricación mecánica» o «Técnicas para la información y la
+    comunicación» son nombres, no dos menciones pegadas.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+    """
     exigir(
         not [a for a in asignaturas if any("/" in m for m in a["menciones"])],
         "menciones con barra sin separar",
     )
+
+
+def _exigir_ects(asignaturas: list[dict]) -> int:
+    """Comprueba cuántas asignaturas se quedan sin ECTS en la fuente.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+
+    Returns:
+        Número de asignaturas sin ECTS.
+    """
     sin_ects = [a for a in asignaturas if not a["ects"]]
     exigir(
         len(sin_ects) == ESPERADO["sin_ects"],
         f"sin ECTS: {len(sin_ects)} (esperado {ESPERADO['sin_ects']}, "
         f"fiel a la fuente)",
     )
+    return len(sin_ects)
 
-    # IT-94: una asignatura que anuncia guía pero cuya guía no aparece en el
-    # dataset se pierde del corpus si nadie lo mira. Es un hecho de la fuente y
-    # no un error del rastreo, así que se avisa en vez de fallar; el
-    # fragmentador ya les da su fragmento informativo.
-    #
-    # IT-97 corrige la redacción de este aviso. Decía «no se ha podido
-    # extraer», que insinúa un fallo propio, y sobre las 293 guías del rastreo
-    # del 29/07/2026 los cinco casos son la misma cosa y no es esa: la guía se
-    # lee perfectamente y sus secciones de contenido están vacías en el origen.
+
+def _avisar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) -> None:
+    """Avisa de las asignaturas que enlazan una guía que no aporta contenido.
+
+    IT-94: una asignatura que anuncia guía pero cuya guía no aparece en el
+    dataset se pierde del corpus si nadie lo mira. Es un hecho de la fuente y
+    no un error del rastreo, así que se avisa en vez de fallar; el
+    fragmentador ya les da su fragmento informativo.
+
+    IT-97 corrige la redacción de este aviso. Decía «no se ha podido
+    extraer», que insinúa un fallo propio, y sobre las 293 guías del rastreo
+    del 29/07/2026 los cinco casos son la misma cosa y no es esa: la guía se
+    lee perfectamente y sus secciones de contenido están vacías en el origen.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+        guias: Items ``guia`` del dataset.
+    """
     claves_guia = {(g["grado"], g.get("codigo") or g["nombre"]) for g in guias}
     sin_extraer = [
         a
@@ -263,12 +328,20 @@ def main(argv: list[str] | None = None) -> int:
             f"datos básicos. `check_guias_pdf.py` dice de cada una por qué."
         )
 
-    # IT-105: el curso no es un campo obligatorio, así que no se puede exigir
-    # que esté en todas. Lo que sí se exige es que las que no lo tienen sean
-    # exactamente las optativas: la EPSJ publica el curso agrupando las tablas
-    # de asignaturas troncales, y su bloque de optativas no lleva ninguno. Si
-    # apareciera una troncal sin curso, sería que el rótulo de su sección ha
-    # cambiado y la hemos perdido en silencio.
+
+def _comprobar_curso(asignaturas: list[dict]) -> None:
+    """Exige que las únicas asignaturas sin curso sean las optativas.
+
+    IT-105: el curso no es un campo obligatorio, así que no se puede exigir
+    que esté en todas. Lo que sí se exige es que las que no lo tienen sean
+    exactamente las optativas: la EPSJ publica el curso agrupando las tablas
+    de asignaturas troncales, y su bloque de optativas no lleva ninguno. Si
+    apareciera una troncal sin curso, sería que el rótulo de su sección ha
+    cambiado y la hemos perdido en silencio.
+
+    Args:
+        asignaturas: Items ``asignatura`` del dataset.
+    """
     sin_curso = [a for a in asignaturas if not a.get("curso")]
     troncales_sin_curso = [a for a in sin_curso if a["tipo_asignatura"] != "OP"]
     exigir(
@@ -289,6 +362,13 @@ def main(argv: list[str] | None = None) -> int:
     reparto = Counter(a["curso"] for a in asignaturas if a.get("curso"))
     print(f"    reparto: {dict(sorted(reparto.items()))}")
 
+
+def _exigir_texto_sin_binario(datos: list[dict]) -> None:
+    """Falla si algún campo de texto guarda el binario de un PDF.
+
+    Args:
+        datos: Items del dataset completo.
+    """
     binarias = [
         d
         for d in datos
@@ -304,10 +384,56 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
 
+
+def main(argv: list[str] | None = None) -> int:
+    """Ejecuta las comprobaciones del dataset del spider.
+
+    Args:
+        argv: Ruta del dataset; por defecto ``data/grados.json`` en la raíz
+            del repositorio (el script vive en ``scripts/``).
+
+    Returns:
+        Código de salida (0 si todos los invariantes se cumplen).
+    """
+    argumentos = argv if argv is not None else sys.argv[1:]
+    por_defecto = Path(__file__).resolve().parent.parent / "data" / "grados.json"
+    ruta = Path(argumentos[0]) if argumentos else por_defecto
+
+    datos = json.loads(ruta.read_text(encoding="utf-8"))
+    asignaturas = [d for d in datos if d["tipo"] == "asignatura"]
+    grados = [d for d in datos if d["tipo"] == "grado"]
+    guias = [d for d in datos if d["tipo"] == "guia"]
+    salidas = [d for d in datos if d["tipo"] == "salidas"]
+    # Procedencia (IT-90): de cuándo y de qué curso es lo que se verifica.
+    procedencia: dict = next((d for d in datos if d["tipo"] == "procedencia"), {})
+
+    _informar_procedencia(procedencia, guias)
+    _informar_formatos(guias)
+
+    _exigir_ninguna_titulacion_vacia(datos)
+    _informar_asignaturas_por_titulacion(grados, asignaturas)
+
+    _exigir_recuentos_esperados(
+        (
+            ("asignaturas", len(asignaturas)),
+            ("grados", len(grados)),
+            ("guias", len(guias)),
+            ("salidas", len(salidas)),
+        )
+    )
+    no_ofertadas = _exigir_oferta(asignaturas)
+    _exigir_nombres_limpios(asignaturas, grados)
+    _exigir_menciones_separadas(asignaturas)
+    total_sin_ects = _exigir_ects(asignaturas)
+
+    _avisar_guias_sin_contenido(asignaturas, guias)
+    _comprobar_curso(asignaturas)
+    _exigir_texto_sin_binario(datos)
+
     print(
         f"Dataset OK: {len(asignaturas)} asignaturas, {len(guias)} guías, "
         f"{len(salidas)} salidas, {no_ofertadas} no ofertadas, "
-        f"{len(sin_ects)} sin ECTS (fiel a la fuente)."
+        f"{total_sin_ects} sin ECTS (fiel a la fuente)."
     )
     return 0
 
