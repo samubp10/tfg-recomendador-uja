@@ -4,7 +4,7 @@ Descarga (o reutiliza de caché) cada modelo candidato, incrusta el
 ``data/chunks.json`` real y el conjunto de evaluación de IT-27
 (``eval/preguntas_evaluacion.json``), y calcula Recall@K por fragmento y por
 unidad, más el MRR, sobre todas las preguntas anotadas. Imprime las tablas de
-resultados y las deja también en ``docs/experimentos/it28-embeddings.md`` para
+resultados y los deja también en el anexo del ADR-0003 para
 no perder el resultado real de la ejecución.
 
 El número de modelos, de preguntas y de fragmentos NO se escribe aquí a
@@ -33,7 +33,39 @@ from typing import Any, Final
 RAIZ = Path(__file__).resolve().parent.parent
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
-RUTA_RESULTADOS = RAIZ / "docs" / "experimentos" / "it28-embeddings.md"
+RUTA_RESULTADOS = RAIZ / "docs" / "adr" / "adr-0003-modelo-de-embeddings.md"
+
+#: Marcas entre las que vive el bloque que escribe este guion. Los resultados
+#: viven **dentro del ADR** y no en un fichero aparte: tenerlos separados fue lo
+#: que permitió que las cifras del cuerpo de un ADR se quedaran atrás respecto a
+#: las de su propio anexo.
+MARCA_INICIO = (
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->"
+)
+MARCA_FIN = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+
+
+def escribir_en_el_adr(destino: Path, bloque: str) -> None:
+    """Sustituye el bloque de resultados del ADR por el recién calculado.
+
+    Args:
+        destino: Fichero del ADR.
+        bloque: Texto que va entre las marcas, sin ellas.
+
+    Raises:
+        SystemExit: Si el destino no tiene las dos marcas. Es preferible fallar
+            a dejar el resultado donde nadie lo va a leer.
+    """
+    contenido = destino.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(f"{destino.name} no tiene las marcas de resultados.")
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    destino.write_text(
+        antes + MARCA_INICIO + "\n" + bloque.strip() + "\n\n" + MARCA_FIN + despues,
+        encoding="utf-8",
+    )
+
 
 #: Puntos de corte del ranking para Recall@K.
 #:
@@ -127,7 +159,7 @@ TAMANO_LOTE: Final[int] = 8
 #:
 #: RETIRADOS de la comparativa: los dos modelos *paraphrase* de ventana 128.
 #: No desaparecen del trabajo —sus cifras y el hallazgo del truncado están en
-#: `docs/experimentos/it28-embeddings-historico.md` y en el ADR-0003—, pero
+#: el ADR-0003—, pero
 #: mantenerlos aquí obligaba a comparar en la misma tabla modelos que leen la
 #: mitad del corpus con modelos que lo leen entero, que es justo lo que esta
 #: selección viene a evitar.
@@ -394,7 +426,7 @@ def main(argumentos: list[str] | None = None) -> int:
 
         py scripts/experimento_embeddings.py
         py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
-            --salida docs/experimentos/otro-informe.md
+            --salida docs/adr/adr-0003-modelo-de-embeddings.md
 
     Args:
         argumentos: Argumentos de línea de comandos. ``None`` toma los reales.
@@ -540,19 +572,18 @@ def main(argumentos: list[str] | None = None) -> int:
     except ValueError:
         corpus = opciones.chunks.name
     cabecera_md = (
-        "# IT-28 — Resultados del experimento comparativo de embeddings\n\n"
         f"Generado el {date.today():%d/%m/%Y} ejecutando "
         f"`py scripts/experimento_embeddings.py` contra `{corpus}` "
         f"({len(chunks)} fragmentos, {len(preguntas)} preguntas de "
         f"`eval/preguntas_evaluacion.json`), en **{_dispositivo()}**.\n\n"
     )
     pie_md = (
-        "\n\n## Recall@5 por tipo de pregunta\n\n" + por_tipo + "\n\n"
+        "\n\n### Recall@5 por tipo de pregunta\n\n" + por_tipo + "\n\n"
         "La media general no se puede leer sin este desglose. Las preguntas de "
         "tipo `listado` piden **todas** las asignaturas de un grupo, así que su "
         "techo depende de cuántas unidades relevantes tengan y no de lo bien "
         "que recupere el modelo.\n"
-        "\n## Cómo leer las columnas\n\n"
+        "\n### Cómo leer las columnas\n\n"
         "- **R@K** es Recall@K por **fragmento**: cuántos de los trozos de la "
         "unidad correcta se han recuperado. Mide cobertura. **Su techo no es "
         "1**, porque una unidad repartida en más de K fragmentos no cabe "
@@ -583,20 +614,20 @@ def main(argumentos: list[str] | None = None) -> int:
         "la métrica, no un hallazgo. Lo que decide K es el coste de contexto y "
         "la distracción del generador, y eso se mide en la Fase 2.\n"
     )
-    pie_md += "\n## Modelos evaluados\n\n" + "\n".join(
+    pie_md += "\n### Modelos evaluados\n\n" + "\n".join(
         f"- `{c.nombre}`: {c.descripcion}" for c in candidatos
     )
     if fallos:
-        pie_md += "\n\n## Fallos\n\n" + "\n".join(f"- {f}" for f in fallos)
+        pie_md += "\n\n### Fallos\n\n" + "\n".join(f"- {f}" for f in fallos)
     if avisos:
         pie_md += (
-            "\n\n## Modelos evaluados sin caracterizar\n\n"
+            "\n\n### Modelos evaluados sin caracterizar\n\n"
             + "\n".join(f"- {a}" for a in avisos)
             + "\n\nSus métricas son válidas, pero **no son comparables** con "
             "las de los demás mientras no se sepa cuánto corpus lee cada uno.\n"
         )
-    opciones.salida.write_text(cabecera_md + tabla + pie_md + "\n", encoding="utf-8")
-    print(f"\nResultados guardados en {opciones.salida}")
+    escribir_en_el_adr(opciones.salida, cabecera_md + tabla + pie_md)
+    print(f"\nAnexo de {opciones.salida.name} reescrito.")
     for aviso in avisos:
         print(f"AVISO: {aviso}")
 
