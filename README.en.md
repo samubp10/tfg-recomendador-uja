@@ -145,7 +145,7 @@ py scripts/check_guias_pdf.py   # PDF extraction, audited against the stored PDF
 py scripts/experimento_embeddings.py
 ```
 
-Real results of every run are kept in `docs/experimentos/`.
+Real results of every run are kept in the annex of the matching ADR, written by the script itself.
 
 ## Tests
 
@@ -170,7 +170,6 @@ scripts/            # dataset checkers and experiments
 eval/               # retrieval evaluation set (manual, versioned)
 docs/adr/           # Architecture Decision Records (ADR)
 docs/dqa/           # Data Quality Assessment records (DQA)
-docs/experimentos/  # real results of the experiments
 memoria/            # the thesis itself, in LaTeX (EPSJ template)
 data/               # generated artefacts (NOT versioned)
 ```

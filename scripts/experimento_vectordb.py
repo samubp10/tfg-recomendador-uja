@@ -49,7 +49,7 @@ RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 
 #: Dónde viven los resultados brutos. Un ADR, no un fichero de
-#: ``docs/experimentos/``: ver la nota del docstring del módulo.
+#: el anexo de su ADR: ver la nota del docstring del módulo.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0004-base-vectorial.md"
 
 #: Marcas entre las que este guion escribe. Permiten volver a ejecutarlo sin

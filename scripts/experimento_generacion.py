@@ -41,11 +41,16 @@ Uso::
     py scripts/experimento_generacion.py --modelos ministral-8b:latest gemma3:12b
     py scripts/experimento_generacion.py --limite 10          # prueba corta
     py scripts/experimento_generacion.py --solo-informe       # solo reescribe el .md
+    py scripts/experimento_generacion.py --recalcular         # repuntúa lo guardado
 
-Las respuestas se van guardando en ``docs/experimentos/it35-generacion.jsonl``
-según se producen, y una ejecución nueva **no repite** lo ya medido. Con
-modelos que tardan minutos por pregunta, perder dos horas por un corte del
-servidor no es aceptable.
+Las respuestas se van guardando según se producen y una ejecución nueva **no
+repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
+horas por un corte del servidor no es aceptable.
+
+Escribe **fuera del repositorio**, en ``Notas_TFG/pruebas_chat/``. Un cribado no
+es una decisión de arquitectura: cuando IT-36 elija el modelo, sus cifras irán
+al ADR-0005, que es donde este proyecto guarda los resultados de experimentos.
+Mientras tanto son notas de trabajo y no tienen por qué versionarse.
 """
 
 from __future__ import annotations
@@ -62,6 +67,10 @@ from typing import Any, Final
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 RAIZ = Path(__file__).resolve().parent.parent
+
+#: Dónde se dejan las notas de trabajo, fuera del repositorio.
+NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+
 sys.path.insert(0, str(RAIZ / "src"))
 
 from tfg_uja.conversacion import Conversacion  # noqa: E402
@@ -618,12 +627,9 @@ def main(argumentos: list[str] | None = None) -> None:
     analizador.add_argument("--indice", default=str(RAIZ / "data" / "indice_lance"))
     analizador.add_argument("--datos", default=str(RAIZ / "data" / "grados.json"))
     analizador.add_argument(
-        "--registro",
-        default=str(RAIZ / "docs" / "experimentos" / "it35-generacion.jsonl"),
+        "--registro", default=str(NOTAS / "cribado_generacion.jsonl")
     )
-    analizador.add_argument(
-        "--salida", default=str(RAIZ / "docs" / "experimentos" / "it35-generacion.md")
-    )
+    analizador.add_argument("--salida", default=str(NOTAS / "cribado_generacion.md"))
     analizador.add_argument("--limite", type=int, default=0)
     analizador.add_argument("--solo-informe", action="store_true")
     analizador.add_argument(
