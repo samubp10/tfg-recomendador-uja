@@ -37,6 +37,9 @@ from typing import Any
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 RAIZ = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(RAIZ / "src"))
+
+from tfg_uja.text_cleaner import normalizar  # noqa: E402
 
 #: Tipos que un estudiante entiende como «hay que aprobarlas sí o sí». No se
 #: llaman «obligatorias» en la pregunta a propósito: en el plan oficial `FB` es
@@ -132,8 +135,7 @@ def preguntas_de_curso(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "id": f"G-CUR-{numero:03d}",
                 "familia": "plan_por_curso",
                 "pregunta": (
-                    f"¿Qué asignaturas se cursan en {curso.lower()} "
-                    f"del {grado}?"
+                    f"¿Qué asignaturas se cursan en {curso.lower()} " f"del {grado}?"
                 ),
                 "respuesta": "conjunto",
                 "esperado": sorted(nombres),
@@ -263,11 +265,22 @@ def preguntas_de_ubicacion(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
     Solo se generan para las que se imparten en más de una: en las demás la
     respuesta es trivial y no distingue a un modelo de otro.
     """
+    # Se agrupa por el nombre normalizado, no por el literal. La fuente publica
+    # la misma asignatura en mayúsculas en los dobles grados y en caja normal
+    # en los simples ---«ESTADÍSTICA» y «Estadística»---, y agrupar por el
+    # literal las parte en dos: la respuesta correcta a «¿dónde se imparte
+    # Estadística?» pasaba de las diez titulaciones reales a solo seis.
+    # Son 22 los nombres a los que les pasa.
     donde: dict[str, set[str]] = collections.defaultdict(set)
+    como_se_llama: dict[str, str] = {}
     for a in _asignaturas(datos):
-        donde[a["nombre"]].add(a["grado"])
+        clave = normalizar(a["nombre"])
+        donde[clave].add(a["grado"])
+        # Entre las variantes se muestra la que no grita, si existe.
+        if clave not in como_se_llama or not a["nombre"].isupper():
+            como_se_llama[clave] = a["nombre"]
 
-    compartidas = {n: g for n, g in donde.items() if len(g) > 1}
+    compartidas = {como_se_llama[c]: g for c, g in donde.items() if len(g) > 1}
     return [
         {
             "id": f"G-UBI-{numero:03d}",
