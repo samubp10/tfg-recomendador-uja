@@ -99,6 +99,11 @@ _ECTS: Final[re.Pattern[str]] = re.compile(
 )
 
 
+#: Rótulo con el que la fuente marca las optativas que no pertenecen a ninguna
+#: mención. No es una mención, y el banco tampoco lo genera como tal.
+NO_ES_MENCION: Final[str] = "Común a todas las menciones"
+
+
 def asignaturas_del_corpus(datos: list[dict[str, Any]]) -> set[str]:
     """Todos los nombres de asignatura que publica la fuente.
 
@@ -113,6 +118,59 @@ def asignaturas_del_corpus(datos: list[dict[str, Any]]) -> set[str]:
         for d in datos
         if d.get("tipo") == "asignatura" and d.get("nombre")
     }
+
+
+def menciones_del_corpus(datos: list[dict[str, Any]]) -> set[str]:
+    """Todos los nombres de mención que publica la fuente.
+
+    Args:
+        datos: Contenido de ``data/grados.json``.
+
+    Returns:
+        Los nombres, sin el rótulo que no designa ninguna mención.
+    """
+    return {
+        str(m)
+        for d in datos
+        if d.get("tipo") == "asignatura"
+        for m in d.get("menciones", [])
+        if m and m != NO_ES_MENCION
+    }
+
+
+def universo(
+    pregunta: dict[str, Any],
+    catalogo: list[str],
+    asignaturas: set[str],
+    menciones: set[str],
+) -> set[str]:
+    """Contra qué conjunto de nombres se comprueba lo que enumera la respuesta.
+
+    No es el mismo para todas las preguntas, y equivocarlo falsea la precisión
+    sin que nada avise. Medido el 18/08/2026: comprobando las trece preguntas
+    de mención contra los nombres de asignatura, los **tres** candidatos daban
+    precisión 0,59-0,62 por enumerar bien las menciones que se les pedían.
+    Que los tres coincidan en una cifra tan baja era la señal de que fallaba el
+    instrumento y no los modelos.
+
+    La familia ``menciones`` lleva dos preguntas distintas dentro, y se
+    distinguen por su ámbito: si trae ``mencion``, se pregunta por las
+    asignaturas de esa mención; si no, por las menciones de la titulación.
+
+    Args:
+        pregunta: Registro del banco.
+        catalogo: Titulaciones que declara el índice.
+        asignaturas: Nombres de asignatura del corpus.
+        menciones: Nombres de mención del corpus.
+
+    Returns:
+        Los nombres válidos para esa pregunta.
+    """
+    if pregunta["familia"] == "catalogo":
+        return set(catalogo)
+    if pregunta["familia"] == "menciones" and "mencion" not in pregunta["ambito"]:
+        return menciones
+    return asignaturas
 
 
 def acierto_escalar(respuesta: str, esperado: str, familia: str) -> tuple[bool, str]:
@@ -150,6 +208,7 @@ def medir(
     pregunta: dict[str, Any],
     catalogo: list[str],
     asignaturas: set[str],
+    menciones: set[str],
 ) -> dict[str, Any]:
     """Aplica a una respuesta las comprobaciones que correspondan a su familia.
 
@@ -158,6 +217,7 @@ def medir(
         pregunta: Registro del banco, con su ``esperado`` y su ``familia``.
         catalogo: Titulaciones que declara el índice.
         asignaturas: Nombres de asignatura del corpus.
+        menciones: Nombres de mención del corpus.
 
     Returns:
         Las cifras de esa respuesta, listas para agregar.
@@ -171,10 +231,10 @@ def medir(
         salida["acierto"] = acierta
         salida["dicho"] = dicho
         return salida
-    # Las del catálogo enumeran titulaciones; el resto, asignaturas.
-    universo = set(catalogo) if pregunta["familia"] == "catalogo" else asignaturas
     precision, cobertura, inventadas, omitidas = cotejar_listado(
-        respuesta, set(esperado), universo
+        respuesta,
+        set(esperado),
+        universo(pregunta, catalogo, asignaturas, menciones),
     )
     salida["precision"] = precision
     salida["cobertura"] = cobertura
@@ -260,6 +320,7 @@ def ejecutar(
     distancia: str,
     catalogo: list[str],
     asignaturas: set[str],
+    menciones: set[str],
     registro: Path,
 ) -> None:
     """Recorre cada modelo y cada pregunta, y va escribiendo el registro.
@@ -276,6 +337,7 @@ def ejecutar(
         distancia: Métrica del índice.
         catalogo: Titulaciones que declara el índice.
         asignaturas: Nombres de asignatura del corpus.
+        menciones: Nombres de mención del corpus.
         registro: Fichero JSONL al que se añade cada respuesta.
     """
     hechas = ya_medido(registro)
@@ -299,7 +361,7 @@ def ejecutar(
                 "fragmentos": n,
                 "segundos_recuperar": round(t_rec, 3),
                 "segundos_generar": round(t_gen, 3),
-                **medir(texto, pregunta, catalogo, asignaturas),
+                **medir(texto, pregunta, catalogo, asignaturas, menciones),
             }
             with registro.open("a", encoding="utf-8") as fichero:
                 fichero.write(json.dumps(fila, ensure_ascii=False) + "\n")
@@ -308,6 +370,60 @@ def ejecutar(
                 f"  [{i}/{len(pendientes)}]{marca}{pregunta['id']} "
                 f"{t_gen:6.1f} s · {n:2d} frag · {pregunta['familia']}"
             )
+
+
+def recalcular(
+    filas: list[dict[str, Any]],
+    banco: dict[str, dict[str, Any]],
+    catalogo: list[str],
+    asignaturas: set[str],
+    menciones: set[str],
+) -> list[dict[str, Any]]:
+    """Vuelve a puntuar respuestas ya guardadas, sin llamar a ningún modelo.
+
+    Existe porque el instrumento ha fallado dos veces en dos días y las dos se
+    corrigió después de medir. Sin esto, cada arreglo obligaría a repetir horas
+    de inferencia, y esa factura empuja a dar por buena una métrica dudosa.
+    Las respuestas son el dato caro; puntuarlas es gratis y se rehace.
+
+    Args:
+        filas: Respuestas ya medidas, tal como están en el JSONL.
+        banco: Preguntas indexadas por identificador.
+        catalogo: Titulaciones que declara el índice.
+        asignaturas: Nombres de asignatura del corpus.
+        menciones: Nombres de mención del corpus.
+
+    Returns:
+        Las mismas filas con las cifras recalculadas.
+    """
+    nuevas = []
+    for fila in filas:
+        cifras = {
+            k: v
+            for k, v in fila.items()
+            if k
+            not in {
+                "titulaciones_inventadas",
+                "acierto",
+                "dicho",
+                "precision",
+                "cobertura",
+                "inventadas",
+                "omitidas",
+                "esperadas",
+            }
+        }
+        cifras.update(
+            medir(
+                fila["respuesta"],
+                banco[fila["id"]],
+                catalogo,
+                asignaturas,
+                menciones,
+            )
+        )
+        nuevas.append(cifras)
+    return nuevas
 
 
 def _media(valores: list[float]) -> float:
@@ -510,6 +626,11 @@ def main(argumentos: list[str] | None = None) -> None:
     )
     analizador.add_argument("--limite", type=int, default=0)
     analizador.add_argument("--solo-informe", action="store_true")
+    analizador.add_argument(
+        "--recalcular",
+        action="store_true",
+        help="repuntúa las respuestas guardadas sin llamar a ningún modelo",
+    )
     opciones = analizador.parse_args(argumentos)
 
     banco = json.loads(Path(opciones.banco).read_text(encoding="utf-8"))
@@ -519,20 +640,22 @@ def main(argumentos: list[str] | None = None) -> None:
     registro = Path(opciones.registro)
     registro.parent.mkdir(parents=True, exist_ok=True)
 
-    if not opciones.solo_informe:
-        datos = json.loads(Path(opciones.datos).read_text(encoding="utf-8"))
-        asignaturas = asignaturas_del_corpus(datos)
+    datos = json.loads(Path(opciones.datos).read_text(encoding="utf-8"))
+    asignaturas = asignaturas_del_corpus(datos)
+    menciones = menciones_del_corpus(datos)
+    catalogo = catalogo_del_indice(Path(opciones.indice))
+
+    if not (opciones.solo_informe or opciones.recalcular):
         print("Cargando el modelo de incrustaciones...")
-        incrustar = incrustador_de_consultas(MODELO)
-        tabla = abrir_indice(Path(opciones.indice), MODELO)
         ejecutar(
             opciones.modelos,
             preguntas,
-            tabla,
-            incrustar,
+            abrir_indice(Path(opciones.indice), MODELO),
+            incrustador_de_consultas(MODELO),
             distancia_del_indice(Path(opciones.indice)),
-            catalogo_del_indice(Path(opciones.indice)),
+            catalogo,
             asignaturas,
+            menciones,
             registro,
         )
 
@@ -541,6 +664,19 @@ def main(argumentos: list[str] | None = None) -> None:
         for linea in registro.read_text(encoding="utf-8").splitlines()
         if linea.strip()
     ]
+    if opciones.recalcular:
+        filas = recalcular(
+            filas,
+            {p["id"]: p for p in banco["preguntas"]},
+            catalogo,
+            asignaturas,
+            menciones,
+        )
+        registro.write_text(
+            "".join(json.dumps(f, ensure_ascii=False) + "\n" for f in filas),
+            encoding="utf-8",
+        )
+        print(f"Repuntuadas {len(filas)} respuestas sin llamar a ningún modelo.")
     informe(filas, banco, Path(opciones.salida))
 
 
