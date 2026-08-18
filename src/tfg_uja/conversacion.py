@@ -55,11 +55,16 @@ PALABRAS_VACIAS: Final[frozenset[str]] = frozenset("""
     unas uno unos y ya
     """.split())
 
-#: Cuántas palabras con contenido tiene que aportar una pregunta para
-#: sostenerse sola. Con una basta: «¿y las optativas?» ya dice qué se pregunta.
-#: Por debajo ---«¿y en el grado de electrónica?»--- solo cambia el sujeto y
-#: hay que recuperar el predicado de la pregunta anterior.
-CONTENIDO_MINIMO: Final[int] = 1
+#: Posiciones dentro del plan de estudios. **No dicen qué se pregunta, solo
+#: cuál**, así que una pregunta que no aporte nada más que un ordinal sigue
+#: siendo de seguimiento. Medido con las conversaciones derivadas del dataset:
+#: tratando «¿y en segundo?» como pregunta que se sostiene sola, la unidad
+#: buscada aparecía en el 48 % de los casos; heredando el predicado de la
+#: pregunta anterior, en el 100 %.
+ORDINALES: Final[frozenset[str]] = frozenset("""
+    primer primero primera segundo segunda tercer tercero tercera cuarto
+    cuarta quinto quinta ultimo ultima
+    """.split())
 
 
 def titulaciones_de_la_pregunta(pregunta: str, catalogo: list[str]) -> list[str]:
@@ -104,6 +109,29 @@ def titulaciones_de_la_respuesta(respuesta: str, catalogo: list[str]) -> list[st
     return [t for t in catalogo if normalizar(t) in dicho]
 
 
+def es_continuacion(pregunta: str) -> bool:
+    """Dice si la pregunta se apoya en la anterior en vez de abrir tema.
+
+    En castellano una pregunta que empieza por «y» continúa la anterior: «¿y
+    cuántas son optativas?», «¿y en segundo?». Sirve para decidir **qué se
+    hereda**: una continuación nunca pasa a ser el predicado de referencia,
+    porque heredarla arrastra el recorte que ella misma hacía.
+
+    Medido el 17/08/2026: «¿Y en el segundo?» heredó de «¿y cuántas de esas son
+    optativas?», la consulta quedó dominada por «optativas», el listado de
+    segundo curso no entró en el contexto y el modelo rellenó el hueco con
+    **seis asignaturas que no existen**.
+
+    Args:
+        pregunta: Pregunta tal cual la escribe el usuario.
+
+    Returns:
+        ``True`` si arranca con la conjunción.
+    """
+    primeras = normalizar(pregunta).split()
+    return bool(primeras) and "".join(c for c in primeras[0] if c.isalnum()) == "y"
+
+
 def contenido(pregunta: str, catalogo: list[str]) -> set[str]:
     """Palabras de la pregunta que dicen **qué** se pregunta.
 
@@ -123,7 +151,7 @@ def contenido(pregunta: str, catalogo: list[str]) -> set[str]:
     # ninguna titulación, pero tampoco dice qué se pregunta. Dejarla dentro
     # hacía que «¿y en el grado de electrónica?» pareciera sostenerse sola.
     del_catalogo = {p for t in catalogo for p in palabras(t)}
-    return palabras(pregunta) - PALABRAS_VACIAS - del_catalogo
+    return palabras(pregunta) - PALABRAS_VACIAS - ORDINALES - del_catalogo
 
 
 @dataclass(frozen=True)
@@ -209,7 +237,7 @@ class Conversacion:
         self._preguntas.append(pregunta)
         del self._preguntas[: -self.turnos_recordados]
 
-        if contenido(pregunta, self.catalogo):
+        if contenido(pregunta, self.catalogo) and not es_continuacion(pregunta):
             self._predicado = pregunta
 
         nuevo = titulaciones_de_la_pregunta(
