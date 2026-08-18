@@ -190,6 +190,29 @@ def test_las_optativas_no_se_mezclan_con_las_de_curso():
     assert "Sistemas Digitales" not in listados
 
 
+def test_la_misma_asignatura_en_dos_cajas_es_una_sola():
+    """Regresión: «ESTADÍSTICA» y «Estadística» son la misma asignatura.
+
+    La fuente escribe en mayúsculas las de los dobles grados. Agrupando por el
+    nombre literal, la respuesta correcta a «¿dónde se imparte Estadística?»
+    salía con seis titulaciones en vez de las diez reales. Le pasa a 22 nombres.
+    """
+    mayus = dict(_NORMAL, nombre="FUNDAMENTOS DE LA PROGRAMACIÓN", grado="Otro Grado")
+    ubicacion = generar_banco.preguntas_de_ubicacion([*_DATOS, mayus])
+    pregunta = next(p for p in ubicacion if "programación" in p["pregunta"].lower())
+    assert set(pregunta["esperado"]) == {
+        "Grado en Ingeniería Informática",
+        "Otro Grado",
+    }
+
+
+def test_la_variante_que_no_grita_es_la_que_se_muestra():
+    mayus = dict(_NORMAL, nombre="FUNDAMENTOS DE LA PROGRAMACIÓN", grado="Otro Grado")
+    ubicacion = generar_banco.preguntas_de_ubicacion([*_DATOS, mayus])
+    pregunta = next(p for p in ubicacion if "programación" in p["pregunta"].lower())
+    assert "Fundamentos de la programación" in pregunta["pregunta"]
+
+
 def test_los_identificadores_no_se_repiten():
     banco = generar_banco.construir(_DATOS)
     assert len({p["id"] for p in banco}) == len(banco)
