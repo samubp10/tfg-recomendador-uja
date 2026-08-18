@@ -321,6 +321,13 @@ def main(argumentos: list[str]) -> None:
                 f"      La pregunta no se ha respondido; puedes repetirla.\n"
             )
             continue
+        except KeyboardInterrupt:
+            # Ctrl+C durante la generacion cancela la pregunta, no la sesion.
+            # Los modelos grandes tardan minutos y el tope de espera es de
+            # diez; sin esto, cortar una respuesta lenta obligaba a rearrancar
+            # y a recargar el indice, y se perdian los turnos ya anotados.
+            print("\n  [!] pregunta cancelada. Sigue preguntando o /salir.\n")
+            continue
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))
