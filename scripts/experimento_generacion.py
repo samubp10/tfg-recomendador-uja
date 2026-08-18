@@ -22,8 +22,9 @@ asignatura de la EPSJ. De ahí salen cuatro cifras, todas sin juez:
 * **Acierto escalar.** En las preguntas de créditos y de curso la respuesta es
   un único valor, así que se compara con el del dataset.
 
-Y el tiempo, que aquí es una restricción real: el sistema tiene que responderle
-a alguien que está esperando delante de la pantalla.
+Y el tiempo, que se informa pero **no descarta**: eliminar por tiempo exige una
+máquina en condiciones controladas, y esta responde mientras hace otras cosas.
+Se activa con ``--presupuesto`` cuando se pueda medir en reposo.
 
 Lo que NO se mide
 -----------------
@@ -91,19 +92,30 @@ from tfg_uja.text_cleaner import normalizar  # noqa: E402
 from tfg_uja.verificacion import cotejar_listado  # noqa: E402
 from tfg_uja.verificacion import titulaciones_inventadas  # noqa: E402
 
-#: Candidatos que se criban si no se dice otra cosa. Son los que quedaron vivos
-#: tras las sesiones a mano del 18/08/2026.
+#: Candidatos que se criban si no se dice otra cosa: **todos los instalados**.
+#: La criba final se hace con los siete a la vez, no por tandas, para que
+#: ninguno se compare contra una medición tomada en otras condiciones.
 MODELOS: Final[tuple[str, ...]] = (
+    "granite4.1:8b",
+    "command-r7b",
     "ministral-8b:latest",
+    "salamandra-7b",
+    "mistral-nemo:12b",
     "gemma3:12b",
     "qwen2.5:14b",
 )
 
-#: Tope de tiempo por respuesta, en segundos. No sale de ninguna métrica: es
-#: cuánto se considera que un estudiante espera delante de la pantalla antes de
-#: cerrar la pestaña. Se fijó antes de medir, que es lo que impide acomodarlo
-#: luego al candidato que convenga.
-PRESUPUESTO: Final[float] = 60.0
+#: Tope de tiempo por respuesta, en segundos. **Cero significa sin tope**, que
+#: es lo normal en este proyecto.
+#:
+#: El tope existe porque un estudiante espera delante de la pantalla, pero
+#: **descartar por tiempo exige una máquina en condiciones controladas** y esta
+#: no lo está: las respuestas se miden mientras el equipo hace otras cosas, y el
+#: 18/08/2026 una respuesta de 581 caracteres marcó 16.677 s porque el sistema
+#: estaba paginando a disco. Con esa varianza, el tiempo describe la máquina y
+#: no al candidato, así que se informa pero no elimina. Se activa a propósito,
+#: con ``--presupuesto``, cuando se pueda medir en reposo.
+PRESUPUESTO: Final[float] = 0.0
 
 #: Cómo se escribe una cantidad de créditos en una respuesta libre.
 _ECTS: Final[re.Pattern[str]] = re.compile(
@@ -477,11 +489,14 @@ def _media(valores: list[float]) -> float:
     return statistics.fmean(valores) if valores else 0.0
 
 
-def resumir(filas: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def resumir(
+    filas: list[dict[str, Any]], presupuesto: float = PRESUPUESTO
+) -> dict[str, dict[str, Any]]:
     """Agrega el registro por modelo.
 
     Args:
         filas: Respuestas medidas, tal como están en el JSONL.
+        presupuesto: Tope de tiempo por respuesta, o 0 para no aplicarlo.
 
     Returns:
         Un resumen por modelo, con las cifras que deciden y las que describen.
@@ -515,7 +530,9 @@ def resumir(filas: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
                 else 0.0
             ),
             "max_s": max(tiempos) if tiempos else 0.0,
-            "fuera_de_presupuesto": sum(1 for t in tiempos if t > PRESUPUESTO),
+            "fuera_de_presupuesto": (
+                sum(1 for t in tiempos if t > presupuesto) if presupuesto else 0
+            ),
         }
     return resumen
 
@@ -548,7 +565,12 @@ def por_familia(filas: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return salida
 
 
-def informe(filas: list[dict[str, Any]], banco: dict[str, Any], destino: Path) -> None:
+def informe(
+    filas: list[dict[str, Any]],
+    banco: dict[str, Any],
+    destino: Path,
+    presupuesto: float = PRESUPUESTO,
+) -> None:
     """Escribe el resultado en Markdown.
 
     Lo escribe el guion y no una persona: así las cifras del informe no pueden
@@ -559,8 +581,9 @@ def informe(filas: list[dict[str, Any]], banco: dict[str, Any], destino: Path) -
         filas: Respuestas medidas.
         banco: Banco de preguntas, del que se toma la procedencia del dataset.
         destino: Fichero Markdown que se reescribe entero.
+        presupuesto: Tope de tiempo por respuesta, o 0 para no aplicarlo.
     """
-    resumen = resumir(filas)
+    resumen = resumir(filas, presupuesto)
     familias = por_familia(filas)
     lineas: list[str] = []
     escribir = lineas.append
@@ -570,7 +593,14 @@ def informe(filas: list[dict[str, Any]], banco: dict[str, Any], destino: Path) -
     escribir("")
     escribir(f"- Preguntas del banco usadas: **{len({f['id'] for f in filas})}**")
     escribir(f"- Respuestas medidas: **{len(filas)}**")
-    escribir(f"- Presupuesto de tiempo por respuesta: **{PRESUPUESTO:.0f} s**")
+    if presupuesto:
+        escribir(f"- Presupuesto de tiempo por respuesta: **{presupuesto:.0f} s**")
+    else:
+        escribir(
+            "- Presupuesto de tiempo: **sin tope**. El equipo no está en "
+            "condiciones controladas mientras se mide, así que el tiempo se "
+            "informa pero **no descarta a ningún candidato**."
+        )
     for clave, valor in banco.get("procedencia_del_dataset", {}).items():
         escribir(f"- {clave}: {valor}")
     servidores = sorted({str(f.get("servidor", "sin anotar")) for f in filas})
@@ -586,19 +616,24 @@ def informe(filas: list[dict[str, Any]], banco: dict[str, Any], destino: Path) -
     escribir("")
     escribir("## Resumen por modelo")
     escribir("")
+    cola = " Fuera de presupuesto |" if presupuesto else ""
+    guion = " ---: |" if presupuesto else ""
     escribir(
-        "| Modelo | Titul. inventadas | Precisión | Cobertura | Acierto escalar "
-        "| Mediana (s) | p90 (s) | Máx (s) | Fuera de presupuesto |"
+        "| Modelo | n | Titul. inventadas | Precisión | Cobertura "
+        "| Acierto escalar | Mediana (s) | p90 (s) | Máx (s) |" + cola
     )
-    escribir("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
+    escribir("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |" + guion)
     for modelo, cifras in resumen.items():
-        escribir(
-            f"| `{modelo}` | {cifras['titulaciones_inventadas']} "
+        fila = (
+            f"| `{modelo}` | {cifras['respuestas']} "
+            f"| {cifras['titulaciones_inventadas']} "
             f"| {cifras['precision']:.3f} | {cifras['cobertura']:.3f} "
             f"| {cifras['acierto_escalar']:.3f} | {cifras['mediana_s']:.1f} "
-            f"| {cifras['p90_s']:.1f} | {cifras['max_s']:.1f} "
-            f"| {cifras['fuera_de_presupuesto']}/{cifras['respuestas']} |"
+            f"| {cifras['p90_s']:.1f} | {cifras['max_s']:.1f} |"
         )
+        if presupuesto:
+            fila += f" {cifras['fuera_de_presupuesto']}/{cifras['respuestas']} |"
+        escribir(fila)
     escribir("")
     escribir(
         "Precisión y cobertura se promedian sobre las preguntas de listado; el "
@@ -671,6 +706,12 @@ def main(argumentos: list[str] | None = None) -> None:
     )
     analizador.add_argument("--salida", default=str(NOTAS / "cribado_generacion.md"))
     analizador.add_argument("--limite", type=int, default=0)
+    analizador.add_argument(
+        "--presupuesto",
+        type=float,
+        default=PRESUPUESTO,
+        help="tope de segundos por respuesta; 0 para no descartar por tiempo",
+    )
     analizador.add_argument("--solo-informe", action="store_true")
     analizador.add_argument(
         "--recalcular",
@@ -723,7 +764,7 @@ def main(argumentos: list[str] | None = None) -> None:
             encoding="utf-8",
         )
         print(f"Repuntuadas {len(filas)} respuestas sin llamar a ningún modelo.")
-    informe(filas, banco, Path(opciones.salida))
+    informe(filas, banco, Path(opciones.salida), opciones.presupuesto)
 
 
 if __name__ == "__main__":
