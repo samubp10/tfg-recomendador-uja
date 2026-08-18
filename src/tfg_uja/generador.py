@@ -65,6 +65,26 @@ VENTANA: Final[int] = 8192
 #: que es justo donde se notaba.
 TOPE_RESPUESTA: Final[int] = 1200
 
+#: Mensaje de sistema que se manda con cada petición. **Su función no es dar
+#: instrucciones ---esas van en :data:`INSTRUCCIONES`--- sino tapar el que trae
+#: cada modelo de fábrica.**
+#:
+#: Medido el 18/08/2026: al no mandar ninguno, Ollama aplica el de la plantilla
+#: del modelo, y cada candidato trae el suyo. Preguntados «¿quién eres?»,
+#: ministral-3 contestó «un modelo creado por Mistral AI» y gemma3 «entrenado
+#: por Google», sin que el proyecto hubiera escrito eso en ninguna parte. El de
+#: ministral-3 ocupa más de mil palabras, le hace creer que es «Le Chat», le
+#: manda usar herramientas y le dice que pida aclaraciones cuando la pregunta
+#: sea ambigua ---lo contrario de lo que pide este sistema.
+#:
+#: Comparar modelos así no mide los modelos: mide además el texto que cada uno
+#: lleva escondido. Un `system` vacío no sirve, porque Ollama lo trata como
+#: ausente y vuelve a poner el de la plantilla; hace falta uno con contenido.
+SISTEMA: Final[str] = (
+    "Eres un asistente que responde en español siguiendo las instrucciones "
+    "del mensaje que recibes. No tienes herramientas ni acceso a internet."
+)
+
 #: Instrucciones del sistema. La regla que las ordena es que el sistema
 #: prefiere callar a inventar: un estudiante va a decidir su carrera con esto.
 INSTRUCCIONES: Final[str] = (
@@ -509,6 +529,7 @@ def generar(
     ventana: int = VENTANA,
     tope: int = TOPE_RESPUESTA,
     semilla: int = 42,
+    sistema: str = SISTEMA,
 ) -> str:
     """Pide la respuesta al modelo local.
 
@@ -523,6 +544,8 @@ def generar(
         ventana: Ventana de contexto en *tokens*.
         tope: Máximo de *tokens* de la respuesta.
         semilla: Semilla del muestreo.
+        sistema: Mensaje de sistema. Se manda siempre, e igual para todos los
+            modelos, para que ninguno responda bajo el suyo de fábrica.
 
     Returns:
         La respuesta del modelo, sin espacios sobrantes.
@@ -530,6 +553,7 @@ def generar(
     cuerpo = {
         "model": modelo,
         "prompt": prompt,
+        "system": sistema,
         "stream": False,
         "think": False,
         "options": {
