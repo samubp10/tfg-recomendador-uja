@@ -461,14 +461,15 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
             fill=white, inner sep=1.5pt},
         mult/.style={font=\scriptsize, inner sep=1pt}
       ]
-      % Entidades y campos comprobados el 07/08/2026 contra los ficheros reales
-      % data/grados.json (837 items) y data/chunks.json (1.335). Respecto a la
-      % version del 30/07: Asignatura.ects es una cadena y no un decimal (la
-      % fuente publica "6", y una asignatura lo trae vacio), Chunk incorpora
-      % tipo_asignatura, y aparece el item de procedencia que encabeza cada
-      % fichero. Las cuatro flechas que llegan a Chunk son los cuatro valores
-      % reales del campo origen: guia (1.193), asignatura_sin_guia (86),
-      % plan_de_estudios (33) y salidas (22). El trazado es ortogonal a
+      % Entidades y campos comprobados el 16/08/2026 contra los ficheros reales
+      % data/grados.json (837 items) y data/chunks.json (1.460 fragmentos).
+      % Respecto a la version del 07/08: Asignatura incorpora curso y
+      % cuatrimestre, y Chunk incorpora curso (IT-105). Asignatura.ects es una
+      % cadena y no un decimal (la fuente publica "6", y una asignatura lo trae
+      % vacio), Chunk lleva tipo_asignatura, y el item de procedencia encabeza
+      % cada fichero. Las cuatro flechas que llegan a Chunk son los cuatro
+      % valores reales del campo origen: guia (1.296), asignatura_sin_guia (86),
+      % plan_de_estudios (56) y salidas (22). El trazado es ortogonal a
       % proposito: con lineas rectas y angulos rectos ninguna flecha cruza a
       % otra ni pasa por encima de una caja.
       \node[clase] (grado) at (0,0) {\textbf{Grado}
@@ -490,6 +491,8 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         nombre: \texttt{str}\\
         tipo\_asignatura: \texttt{str}\\
         ects: \textcolor{borrador2}{\texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
+        \textcolor{borrador2}{cuatrimestre: \texttt{str}}\\
         ofertada: \texttt{bool}\\
         tiene\_guia: \texttt{bool}\\
         menciones: \texttt{list}\\
@@ -513,6 +516,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         codigos: \texttt{list}\\
         nombre: \texttt{str}\\
         \textcolor{borrador2}{tipo\_asignatura: \texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
         texto: \texttt{str}\\
         chunk\_index: \texttt{int}\\
         total\_chunks: \texttt{int}};
@@ -561,14 +565,23 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
   \label{fig:modelo_datos}
 \end{figure}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Diagrama vuelto a comprobar el 07/08/2026} contra los ficheros reales
-  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json}, 1.335). En turquesa,
-  lo que ha cambiado respecto a la versión del 30/07, que es lo que tienes que explicar en
-  el texto o dejar dicho en el pie:
+\begin{borrador}
+  \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
+  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
+  \sout{1.335} 1.460 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
+  explicar en el texto o dejar dicho en el pie:
+  \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
+  \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
+  Lo que hay que explicar es \emph{por qué es una cadena y no un número}: la EPSJ publica
+  el curso agrupando las tablas bajo un rótulo de sección, y en los dobles grados ese
+  rótulo dice «Tercer o Cuarto Curso», porque a partir de tercero el estudiante elige por
+  qué especialidad empieza. Guardarlo como entero obligaría a escoger uno de los dos, que
+  es inventarse el dato. De las 528 asignaturas, 420 lo declaran; las 108 restantes son
+  exactamente las optativas, que la fuente publica sin curso.
   \item \textbf{(1) Faltaban dos de las cuatro procedencias de un fragmento.} El campo
-  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia} (1.193 fragmentos),
-  \texttt{asignatura\_sin\_guia} (86), \texttt{plan\_de\_estudios} (33) y \texttt{salidas}
+  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia}
+  (\sout{1.193} 1.296 fragmentos), \texttt{asignatura\_sin\_guia} (86),
+  \texttt{plan\_de\_estudios} (\sout{33} 56) y \texttt{salidas}
   (22)--- y el diagrama solo dibujaba dos flechas hacia \texttt{Chunk}. Tal como estaba,
   daba a entender que una asignatura sin guía no llega al índice, y sí llega.
   \item \textbf{(2) \texttt{Chunk} tiene un campo más:} \texttt{tipo\_asignatura}, que no
