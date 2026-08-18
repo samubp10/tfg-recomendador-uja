@@ -50,7 +50,7 @@ Ejecutar desde la raíz del repositorio y **con el entorno virtual activado**
     source .venv/Scripts/activate
     python -u scripts/experimento_fragmentacion.py
 
-Reescribe ``docs/experimentos/it16-fragmentacion.md``.
+Reescribe el anexo del ADR-0001, entre sus marcas de resultados automáticos.
 """
 
 from __future__ import annotations
@@ -84,7 +84,40 @@ from tfg_uja.incrustaciones import (  # noqa: E402
 RAIZ: Final[Path] = Path(__file__).resolve().parent.parent
 RUTA_DATASET: Final[Path] = RAIZ / "data" / "grados.json"
 RUTA_PREGUNTAS: Final[Path] = RAIZ / "eval" / "preguntas_evaluacion.json"
-RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "experimentos" / "it16-fragmentacion.md"
+RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "adr" / "adr-0001-estrategia-chunking.md"
+
+#: Marcas entre las que vive el bloque que escribe este guion. El resultado del
+#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos hizo
+#: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
+#: propio anexo, porque una se refrescó y la otra no.
+MARCA_INICIO: Final[str] = (
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->"
+)
+MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+
+
+def escribir_en_el_adr(bloque: str) -> None:
+    """Sustituye el bloque de resultados del ADR por el recién calculado.
+
+    Args:
+        bloque: Texto que va entre las marcas, sin ellas.
+
+    Raises:
+        SystemExit: Si el ADR no tiene las dos marcas. Es preferible fallar a
+            escribir el resultado en un sitio que nadie va a leer.
+    """
+    contenido = RUTA_SALIDA.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(
+            f"{RUTA_SALIDA.name} no tiene las marcas de resultados automáticos."
+        )
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    RUTA_SALIDA.write_text(
+        f"{antes}{MARCA_INICIO}\n{bloque.strip()}\n\n{MARCA_FIN}{despues}",
+        encoding="utf-8",
+    )
+
 
 #: Valores de K sobre los que se informa. Conviene distinguir dos cosas que se
 #: llaman igual: la K con la que se **mide** y la K con la que el sistema
@@ -529,7 +562,7 @@ def main() -> int:
             )
 
     _escribir_informe(filas, len(preguntas), ventana)
-    print(f"\nInforme escrito en {RUTA_SALIDA.relative_to(RAIZ)}")
+    print(f"\nAnexo de {RUTA_SALIDA.name} reescrito.")
     return 0
 
 
@@ -609,8 +642,9 @@ def _escribir_informe(
         "justificar que RU@1 es la prioridad correcta para el sistema final.",
         "",
     ]
-    RUTA_SALIDA.parent.mkdir(parents=True, exist_ok=True)
-    RUTA_SALIDA.write_text("\n".join(lineas), encoding="utf-8")
+    # El título del informe no entra: dentro del ADR ya lo encabeza su propio
+    # apartado, y repetirlo dejaría dos encabezados seguidos.
+    escribir_en_el_adr("\n".join(lineas[1:]))
 
 
 if __name__ == "__main__":
