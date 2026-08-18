@@ -21,6 +21,7 @@ from tfg_uja.incrustaciones import MODELO
 from tfg_uja.indexer import reconstruir_indice
 from tfg_uja.recuperador import (
     K_POR_DEFECTO,
+    SUELO_PERTINENCIA,
     Fragmento,
     ModeloDiscrepante,
     TitulacionDesconocida,
@@ -517,3 +518,35 @@ def test_una_pregunta_real_sigue_pasando_el_suelo():
     """Las cinco medidas tenían su mejor entre 0,076 y 0,112."""
     reales = [_frag(d) for d in (0.112, 0.113, 0.115)]
     assert len(acotar_por_distancia(reales)) == 3
+
+
+# --- El suelo de pertinencia, con las cifras que lo fijan -------------------
+
+
+def test_el_suelo_deja_pasar_la_pregunta_legitima_mas_lejana():
+    """Medido el 18/08/2026 sobre las 50 preguntas de IT-27.
+
+    La más lejana ---«¿Qué temario tiene Ampliación de matemáticas?»--- tiene
+    su mejor fragmento a 0,137. Un suelo por debajo de eso haría que el sistema
+    dijera «no lo sé» sobre algo que sí tiene indexado.
+    """
+    fragmentos = [_frag(0.137)]
+    assert acotar_por_distancia(fragmentos) == fragmentos
+
+
+def test_el_suelo_rechaza_la_pregunta_ajena_mas_proxima():
+    """Y la intrusa más próxima de las siete medidas está a 0,147.
+
+    Regresión del caso real: con el suelo anterior en 0,15, «me gustan la
+    biología y la salud» recibió contexto ---su mejor fragmento estaba a
+    0,148--- y un modelo de 7B respondió recomendando tres titulaciones que no
+    existen en la EPSJ. El suelo se puso entonces en el punto medio de la
+    separación medida.
+    """
+    assert acotar_por_distancia([_frag(0.147)]) == []
+    assert acotar_por_distancia([_frag(0.148)]) == []
+
+
+def test_el_suelo_esta_dentro_de_la_separacion_medida():
+    """Si alguien lo mueve fuera de la banda, que falle aquí y no en producción."""
+    assert 0.137 < SUELO_PERTINENCIA < 0.147
