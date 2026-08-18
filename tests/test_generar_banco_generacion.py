@@ -190,27 +190,19 @@ def test_las_optativas_no_se_mezclan_con_las_de_curso():
     assert "Sistemas Digitales" not in listados
 
 
-def test_la_misma_asignatura_en_dos_cajas_es_una_sola():
-    """Regresión: «ESTADÍSTICA» y «Estadística» son la misma asignatura.
+def test_no_se_pregunta_por_lo_que_el_corpus_no_puede_responder():
+    """La familia de ubicación se retiró: su respuesta no está en ningún sitio.
 
-    La fuente escribe en mayúsculas las de los dobles grados. Agrupando por el
-    nombre literal, la respuesta correcta a «¿dónde se imparte Estadística?»
-    salía con seis titulaciones en vez de las diez reales. Le pasa a 22 nombres.
+    Se computa sin problema del dataset ---en qué titulaciones se imparte una
+    asignatura compartida---, pero los fragmentos se componen por titulación y
+    curso y nadie los cruza. Medido el 18/08/2026, los dos modelos contestaron
+    2 y 6 titulaciones donde el dataset dice 10, habiendo leído bien lo que se
+    les dio. Eran 86 preguntas que habrían suspendido a todos los candidatos
+    por un hueco del corpus.
     """
-    mayus = dict(_NORMAL, nombre="FUNDAMENTOS DE LA PROGRAMACIÓN", grado="Otro Grado")
-    ubicacion = generar_banco.preguntas_de_ubicacion([*_DATOS, mayus])
-    pregunta = next(p for p in ubicacion if "programación" in p["pregunta"].lower())
-    assert set(pregunta["esperado"]) == {
-        "Grado en Ingeniería Informática",
-        "Otro Grado",
-    }
-
-
-def test_la_variante_que_no_grita_es_la_que_se_muestra():
-    mayus = dict(_NORMAL, nombre="FUNDAMENTOS DE LA PROGRAMACIÓN", grado="Otro Grado")
-    ubicacion = generar_banco.preguntas_de_ubicacion([*_DATOS, mayus])
-    pregunta = next(p for p in ubicacion if "programación" in p["pregunta"].lower())
-    assert "Fundamentos de la programación" in pregunta["pregunta"]
+    familias = {p["familia"] for p in generar_banco.construir(_DATOS)}
+    assert "ubicacion" not in familias
+    assert not hasattr(generar_banco, "preguntas_de_ubicacion")
 
 
 def test_los_identificadores_no_se_repiten():
