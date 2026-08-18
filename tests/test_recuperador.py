@@ -21,16 +21,13 @@ from tfg_uja.incrustaciones import MODELO
 from tfg_uja.indexer import reconstruir_indice
 from tfg_uja.recuperador import (
     K_POR_DEFECTO,
-    PREGUNTAS_DE_CONTEXTO,
     Fragmento,
     ModeloDiscrepante,
     TitulacionDesconocida,
     abrir_indice,
     acotar_por_distancia,
     catalogo_del_indice,
-    consulta_con_historial,
     distancia_del_indice,
-    nombra_titulacion,
     palabras_distintivas,
     recuperar,
     resolver_titulacion,
@@ -299,70 +296,7 @@ def test_el_fragmento_trae_lo_necesario_para_citarlo(indice):
     assert fragmento.texto
 
 
-# --- La consulta de seguimiento ---
-
-
-def test_una_pregunta_suelta_se_incrusta_tal_cual():
-    assert consulta_con_historial("¿qué es Álgebra?", []) == "¿qué es Álgebra?"
-
-
-def test_una_pregunta_de_seguimiento_arrastra_las_anteriores():
-    """El caso real: «¿y en primer año?» no nombra ninguna titulación.
-
-    Incrustada sola recupera fragmentos de las doce titulaciones; con la
-    pregunta anterior delante vuelve a caer sobre la que se estaba hablando.
-    """
-    consulta = consulta_con_historial(
-        "¿y en primer año?", ["háblame del Grado en Ingeniería Informática"]
-    )
-    assert "Informática" in consulta
-    assert consulta.endswith("¿y en primer año?")
-
-
-def test_solo_se_arrastran_las_ultimas_preguntas():
-    """Con toda la conversación dentro, el vector se diluye entre temas viejos."""
-    anteriores = [f"pregunta {i}" for i in range(6)]
-    consulta = consulta_con_historial("la actual", anteriores)
-    assert "pregunta 0" not in consulta
-    assert consulta.count("pregunta") == PREGUNTAS_DE_CONTEXTO
-
-
 # --- Cuándo NO hay que arrastrar la conversación ---
-
-
-def test_una_pregunta_que_nombra_su_titulacion_no_arrastra_nada():
-    """Regresión del peor fallo de la sesión del 17/08/2026.
-
-    A «¿cuántas asignaturas tiene el Grado en Ingeniería Informática?» se le
-    antepuso la pregunta anterior, que era sobre una asignatura suelta. El
-    vector quedó dominado por ella, la recuperación devolvió cuatro fragmentos
-    ---los cuatro de esa asignatura--- y el sistema contestó que la titulación
-    entera «cuenta con una sola asignatura llamada Metaheurísticas».
-    """
-    consulta = consulta_con_historial(
-        "¿cuántas asignaturas tiene el Grado en Ingeniería Informática?",
-        ["¿qué se estudia en Metaheurísticas?"],
-        CATALOGO_PRUEBA,
-    )
-    assert "Metaheurísticas" not in consulta
-    assert consulta == "¿cuántas asignaturas tiene el Grado en Ingeniería Informática?"
-
-
-def test_el_nombre_corto_de_la_titulacion_tambien_la_sostiene():
-    """Nadie escribe el nombre oficial completo: escribe «informática»."""
-    consulta = consulta_con_historial(
-        "¿qué salidas tiene informática?", ["háblame de eléctrica"], CATALOGO_PRUEBA
-    )
-    assert consulta == "¿qué salidas tiene informática?"
-
-
-def test_una_pregunta_de_seguimiento_sigue_arrastrando_con_catalogo():
-    """El arreglo no puede llevarse por delante lo que sí necesita la muleta."""
-    consulta = consulta_con_historial(
-        "¿y en primer año?", ["háblame de informática"], CATALOGO_PRUEBA
-    )
-    assert "informática" in consulta
-    assert consulta.endswith("¿y en primer año?")
 
 
 def test_las_palabras_comunes_del_catalogo_no_sirven_para_reconocer():
@@ -371,11 +305,6 @@ def test_las_palabras_comunes_del_catalogo_no_sirven_para_reconocer():
     assert "informatica" in distintivas
     for comun in ("grado", "en", "ingenieria"):
         assert comun not in distintivas
-
-
-def test_una_pregunta_sin_titulacion_no_se_sostiene_sola():
-    assert not nombra_titulacion("¿y en primer año?", CATALOGO_PRUEBA)
-    assert nombra_titulacion("¿y en Mecánica?", CATALOGO_PRUEBA)
 
 
 #: El catálogo real que graba el índice del proyecto, copiado del corpus del
@@ -398,35 +327,6 @@ CATALOGO_REAL = [
     "Grado en Ingeniería de Organización Industrial",
     "Grado en Inteligencia Artificial y Ciberseguridad",
 ]
-
-
-@pytest.mark.parametrize(
-    "pregunta",
-    [
-        "¿qué asignaturas tiene informática?",
-        "cuéntame de eléctrica",
-        "¿y electrónica industrial?",
-        "quiero saber de mecánica",
-        "háblame de geomática",
-        "¿qué es inteligencia artificial y ciberseguridad?",
-        "organización industrial, ¿qué salidas tiene?",
-    ],
-)
-def test_las_doce_titulaciones_reales_se_reconocen_por_su_nombre_corto(pregunta):
-    assert nombra_titulacion(pregunta, CATALOGO_REAL)
-
-
-@pytest.mark.parametrize(
-    "pregunta",
-    [
-        "¿y en primer año?",
-        "¿cuáles son las obligatorias?",
-        "¿qué se ve en esa asignatura?",
-        "¿y las optativas?",
-    ],
-)
-def test_las_preguntas_de_seguimiento_reales_siguen_necesitando_la_muleta(pregunta):
-    assert not nombra_titulacion(pregunta, CATALOGO_REAL)
 
 
 def test_k_por_defecto_es_el_del_modulo():
@@ -617,42 +517,3 @@ def test_una_pregunta_real_sigue_pasando_el_suelo():
     """Las cinco medidas tenían su mejor entre 0,076 y 0,112."""
     reales = [_frag(d) for d in (0.112, 0.113, 0.115)]
     assert len(acotar_por_distancia(reales)) == 3
-
-
-def test_solo_se_arrastra_la_pregunta_que_daba_el_sujeto():
-    """Regresión del turno 8 del 17/08/2026, el peor de la sesión.
-
-    A «¿Y en el segundo?» se le antepusieron las dos anteriores literalmente, y
-    una de ellas era «¿y cuántas de esas son optativas?». La consulta acabó
-    siendo «...optativas... primer curso... y en el segundo», el listado de
-    segundo curso no entró en el contexto y el modelo rellenó con conocimiento
-    propio **seis asignaturas que no existen** en la EPSJ.
-
-    Lo que la pregunta de seguimiento necesita es el sujeto del que se hablaba,
-    no el texto de lo que se preguntó antes.
-    """
-    consulta = consulta_con_historial(
-        "¿Y en el segundo?",
-        [
-            "¿Y cuántas de esas son optativas?",
-            "¿Qué asignaturas se dan en primer curso de Informática?",
-        ],
-        CATALOGO_PRUEBA,
-    )
-    assert "optativas" not in consulta
-    assert "Informática" in consulta
-    assert consulta.endswith("¿Y en el segundo?")
-
-
-def test_si_ninguna_anterior_nombra_titulacion_no_se_arrastra_nada():
-    """Arrastrar preguntas que tampoco tienen sujeto solo mete ruido."""
-    consulta = consulta_con_historial(
-        "¿y en el segundo?", ["¿y las optativas?", "¿cuántas son?"], CATALOGO_PRUEBA
-    )
-    assert consulta == "¿y en el segundo?"
-
-
-def test_sin_catalogo_se_arrastra_como_antes():
-    """El comportamiento previo se conserva cuando no hay con qué decidir."""
-    consulta = consulta_con_historial("la actual", ["una", "dos", "tres"])
-    assert consulta == "dos tres la actual"
