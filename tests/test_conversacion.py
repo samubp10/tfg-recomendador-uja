@@ -17,6 +17,7 @@ import pytest
 from tfg_uja.conversacion import (
     Conversacion,
     contenido,
+    es_continuacion,
     titulaciones_de_la_pregunta,
     titulaciones_de_la_respuesta,
 )
@@ -173,6 +174,42 @@ def test_una_pregunta_que_se_sostiene_sola_no_se_toca():
     assert consulta.texto == (
         "¿Cuántas asignaturas tiene el Grado en Ingeniería Informática?"
     )
+
+
+def test_un_ordinal_solo_no_dice_que_se_pregunta():
+    """«¿Y en segundo?» dice **cuál**, no **qué**: sigue siendo seguimiento.
+
+    Medido sobre las 39 conversaciones derivadas del dataset: tratándola como
+    pregunta que se sostiene sola, la unidad buscada aparecía en el 48 % de los
+    casos; heredando el predicado, en el 100 %.
+    """
+    c = Conversacion(CATALOGO)
+    c.anotar(
+        "¿Qué asignaturas se cursan en primer curso del Grado en "
+        "Ingeniería Informática?",
+        "...",
+    )
+    consulta = c.preparar("¿Y en segundo?")
+    assert "asignaturas" in consulta.texto
+    assert consulta.ambito == [INFORMATICA]
+
+
+def test_una_continuacion_no_se_convierte_en_el_predicado():
+    """Heredar de una continuación arrastra el recorte que ella misma hacía."""
+    assert es_continuacion("¿Y cuántas de esas son optativas?")
+    assert es_continuacion("Y en el grado de electrónica?")
+    assert not es_continuacion("¿Qué asignaturas tiene primero?")
+
+
+def test_una_pregunta_que_solo_lleva_ordinal_hereda_el_predicado_original():
+    """El predicado que se hereda es el de la última pregunta que abrió tema."""
+    c = Conversacion(CATALOGO)
+    c.anotar("¿Qué asignaturas se dan en primer curso de Informática?", "...")
+    c.anotar("¿Y cuántas de esas son optativas?", "...")
+    c.anotar("¿Y en el segundo?", "...")
+    consulta = c.preparar("¿Y en el tercero?")
+    assert "optativas" not in consulta.texto.lower()
+    assert "asignaturas" in consulta.texto
 
 
 # --- El ámbito ---
