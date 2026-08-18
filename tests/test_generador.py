@@ -418,9 +418,36 @@ def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
     entero de Ingeniería Informática; de los catorce nombres que dio, **trece
     no existen** en la EPSJ.
     """
-    respuesta = generador.responder("¿cuánto cuesta la matrícula?", [], "un-modelo")
+    respuesta = generador.responder(
+        "¿cuánto cuesta la matrícula?",
+        [],
+        "un-modelo",
+        [("qué grados hay", "estos")],
+    )
     assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_el_primer_mensaje_sin_contexto_recibe_la_bienvenida(espia):
+    """Casi nadie abre preguntando: abre saludando, y como le sale.
+
+    Medido el 18/08/2026: «hei» y «Ola buenas» no caían en el vocabulario de
+    cortesía, no recuperaban nada y el sistema contestaba «no he encontrado
+    información sobre eso», que responde a una pregunta que nadie había hecho.
+    Enumerar las formas del saludo es una lista que nunca está completa; lo que
+    sí se sabe con certeza es que en el primer mensaje aún no se ha preguntado.
+    """
+    respuesta = generador.responder("hei", [], "un-modelo")
+    assert respuesta == generador.RESPUESTA_SALUDO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_la_bienvenida_es_solo_del_primer_mensaje(espia):
+    """Ya avanzada la conversación, no encontrar algo sí es no encontrarlo."""
+    respuesta = generador.responder(
+        "q tal", [], "un-modelo", [("qué optativas tiene Informática", "estas")]
+    )
+    assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
 
 
 def test_con_fragmentos_si_se_consulta_al_modelo(espia):
