@@ -366,3 +366,38 @@ def test_las_respuestas_viejas_sin_version_se_marcan_como_tales(tmp_path):
     destino = tmp_path / "informe.md"
     experimento.informe(_FILAS, {}, destino)
     assert "sin anotar" in destino.read_text(encoding="utf-8")
+
+
+# --- El tiempo informa, pero no descarta ---
+
+
+def test_sin_presupuesto_no_hay_columna_de_descarte(tmp_path):
+    """Eliminar por tiempo exige una máquina en condiciones controladas.
+
+    El 18/08/2026 una respuesta de 581 caracteres marcó 16.677 s porque el
+    equipo estaba paginando a disco. Con esa varianza el tiempo describe la
+    máquina y no al candidato.
+    """
+    destino = tmp_path / "informe.md"
+    experimento.informe(_FILAS, {}, destino, presupuesto=0)
+    texto = destino.read_text(encoding="utf-8")
+    assert "Fuera de presupuesto" not in texto
+    assert "no descarta a ningún candidato" in texto
+    # Los tiempos se siguen informando: son un dato, no un veredicto.
+    assert "Mediana (s)" in texto
+
+
+def test_con_presupuesto_vuelve_la_columna(tmp_path):
+    destino = tmp_path / "informe.md"
+    experimento.informe(_FILAS, {}, destino, presupuesto=5.0)
+    texto = destino.read_text(encoding="utf-8")
+    assert "Fuera de presupuesto" in texto
+    assert "**5 s**" in texto
+
+
+def test_el_presupuesto_cero_no_cuenta_a_nadie_fuera():
+    lento = [{**_FILAS[0], "segundos_generar": 9999.0}]
+    sin_tope = experimento.resumir(lento, presupuesto=0)
+    assert sin_tope["m"]["fuera_de_presupuesto"] == 0
+    con = experimento.resumir(lento, presupuesto=60.0)
+    assert con["m"]["fuera_de_presupuesto"] == 1
