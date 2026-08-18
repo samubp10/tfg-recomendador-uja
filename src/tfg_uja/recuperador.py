@@ -163,11 +163,27 @@ FACTOR_CORTE: Final[float] = 1.20
 #: entre 0,170 y 0,182 ---lejísimos pero muy juntos entre sí--- y el sistema
 #: contestó con un volcado del plan de estudios.
 #:
-#: 🔴 **Provisional, igual que el factor.** Las cinco preguntas reales medidas
-#: tenían su mejor fragmento entre 0,076 y 0,112, así que 0,15 las deja pasar
-#: todas y descarta el saludo; pero cinco preguntas no son un barrido y el
-#: valor lo fija IT-49. El rechazo por dominio es IT-87, que es otra cosa.
-SUELO_PERTINENCIA: Final[float] = 0.15
+#: Medido el 18/08/2026 sobre las **50 preguntas del conjunto de evaluación**
+#: de IT-27 y siete preguntas ajenas al dominio (biología, psicología,
+#: literatura, medicina, derecho, historia del arte, una receta de cocina):
+#:
+#: * la peor pregunta legítima tiene su mejor fragmento a **0,137**;
+#: * la intrusa más próxima, a **0,147**.
+#:
+#: La separación es limpia, y el valor se pone en el punto medio, con cinco
+#: milésimas de margen a cada lado. El valor anterior, 0,15, salía de mirar
+#: cinco preguntas y quedaba **por encima de las intrusas**: el 18/08/2026 un
+#: modelo de 7B recibió contexto para «me gustan la biología y la salud» ---su
+#: mejor fragmento estaba a 0,148--- y contestó recomendando el «Grado en
+#: Ingeniería Biomédica», el «Grado en Ingeniería Química» y el «Grado en
+#: Medicina Veterinaria». Ninguno existe en la EPSJ.
+#:
+#: Se prefiere pecar de estricto: rechazar una pregunta legítima molesta, pero
+#: admitir una ajena es lo que produce ese tipo de respuesta.
+#:
+#: 🔴 Sigue sin ser un barrido: 57 preguntas no fijan un parámetro, y el valor
+#: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
+SUELO_PERTINENCIA: Final[float] = 0.142
 
 
 class TitulacionDesconocida(ValueError):
