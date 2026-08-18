@@ -61,6 +61,8 @@ import re
 import statistics
 import sys
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 from typing import Any, Final
 
@@ -74,7 +76,8 @@ NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
 sys.path.insert(0, str(RAIZ / "src"))
 
 from tfg_uja.conversacion import Conversacion  # noqa: E402
-from tfg_uja.generador import ErrorDelModelo, construir_prompt, generar  # noqa: E402
+from tfg_uja.generador import SERVIDOR, ErrorDelModelo  # noqa: E402
+from tfg_uja.generador import construir_prompt, generar  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -302,6 +305,30 @@ def responder_una(
     return respuesta, t_recuperar, time.perf_counter() - t1, len(fragmentos)
 
 
+def version_del_servidor(servidor: str = SERVIDOR) -> str:
+    """Versión del servidor de inferencia que está respondiendo.
+
+    Se anota en cada respuesta porque el servidor **se actualiza solo**. El
+    19/08/2026 saltó de la 0.23.2 a la 0.32.14 en mitad del cribado, entre las
+    240 respuestas ya medidas y las que faltaban. Sin este dato, la diferencia
+    entre unos candidatos y otros podría venir del tiempo de ejecución y no del
+    modelo, y nadie se habría enterado.
+
+    Args:
+        servidor: Dirección del servidor de inferencia.
+
+    Returns:
+        La versión, o ``"desconocida"`` si el servidor no la dice. No se
+        propaga el fallo: quedarse sin cribado por no saber la versión sería
+        peor que anotarla como desconocida.
+    """
+    try:
+        with urllib.request.urlopen(f"{servidor}/api/version", timeout=10) as respuesta:
+            return str(json.loads(respuesta.read()).get("version", "desconocida"))
+    except (urllib.error.URLError, ValueError, KeyError):
+        return "desconocida"
+
+
 def ya_medido(ruta: Path) -> set[tuple[str, str]]:
     """Pares ``(modelo, pregunta)`` que ya están en el registro.
 
@@ -350,6 +377,8 @@ def ejecutar(
         registro: Fichero JSONL al que se añade cada respuesta.
     """
     hechas = ya_medido(registro)
+    version = version_del_servidor()
+    print(f"Servidor de inferencia: {version}")
     for modelo in modelos:
         pendientes = [p for p in preguntas if (modelo, p["id"]) not in hechas]
         print(f"\n=== {modelo} — {len(pendientes)} pendientes de {len(preguntas)} ===")
@@ -363,6 +392,7 @@ def ejecutar(
                 continue
             fila = {
                 "modelo": modelo,
+                "servidor": version,
                 "id": pregunta["id"],
                 "familia": pregunta["familia"],
                 "pregunta": pregunta["pregunta"],
@@ -412,7 +442,7 @@ def recalcular(
             for k, v in fila.items()
             if k
             not in {
-                "titulaciones_inventadas",
+                "titulaciones_inventadas",  # se recalculan; el resto se conserva
                 "acierto",
                 "dicho",
                 "precision",
@@ -543,6 +573,16 @@ def informe(filas: list[dict[str, Any]], banco: dict[str, Any], destino: Path) -
     escribir(f"- Presupuesto de tiempo por respuesta: **{PRESUPUESTO:.0f} s**")
     for clave, valor in banco.get("procedencia_del_dataset", {}).items():
         escribir(f"- {clave}: {valor}")
+    servidores = sorted({str(f.get("servidor", "sin anotar")) for f in filas})
+    escribir(f"- Servidor de inferencia: {' · '.join(servidores)}")
+    if len(servidores) > 1:
+        escribir("")
+        escribir(
+            "🔴 **Las respuestas NO se midieron todas con el mismo servidor.** "
+            "Una diferencia entre candidatos puede venir del tiempo de "
+            "ejecución y no del modelo, así que esta tabla no compara nada "
+            "hasta que todas se remidan con una sola versión."
+        )
     escribir("")
     escribir("## Resumen por modelo")
     escribir("")
