@@ -240,10 +240,15 @@ def main(argv: list[str] | None = None) -> int:
     # angulares, porque no nombran una asignatura sino un listado. Se comprueban
     # igual: dejarlos fuera habría metido 16 fragmentos que ningún verificador
     # mira, que es exactamente el patrón de fallo que este proyecto arrastra.
+    # IT-107: los derivados llevan su nombre igual, y por el mismo motivo. Si
+    # se dejaran fuera, 32 fragmentos de recuento quedarían sin verificar, que
+    # es cómo empezó siempre este defecto en las tres veces anteriores.
     descuadres += [
         c
         for c in chunks
-        if c["origen"] == "plan_de_estudios" and not c["texto"].startswith(c["nombre"])
+        if c["origen"]
+        in ("plan_de_estudios", "catalogo", "ficha_titulacion", "mencion")
+        and not c["texto"].startswith(c["nombre"])
     ]
     exigir(
         not descuadres,
@@ -258,7 +263,9 @@ def main(argv: list[str] | None = None) -> int:
     # tiene que cuadrar con el dataset. Es la única forma de detectar que el
     # listado se ha quedado corto: un fragmento con 40 asignaturas de las 50
     # que tiene la titulación se lee igual de bien y es igual de falso.
-    planes = [c for c in chunks if c["origen"] == "plan_de_estudios"]
+    # IT-107 los añade a la misma comprobación: los listados de mención tienen
+    # exactamente la misma forma y el mismo modo de fallar.
+    planes = [c for c in chunks if c["origen"] in ("plan_de_estudios", "mencion")]
     for c in planes:
         if c["chunk_index"] != 0:
             continue
@@ -281,6 +288,78 @@ def main(argv: list[str] | None = None) -> int:
             (
                 f"{c['nombre']!r} dice tener {declarado.group(1)} asignaturas "
                 f"pero el listado trae {listadas}"
+            ),
+        )
+
+    # --- IT-107: las cifras de los derivados cuadran con el dataset ---
+    # Un fragmento derivado no se puede leer contra la fuente como se lee una
+    # guía: su contenido es un número, y un número equivocado se lee igual de
+    # bien que el correcto. Por eso se recalcula aquí desde `grados.json` en vez
+    # de confiar en que el fragmentador contó bien.
+    titulaciones = [d for d in dataset if d["tipo"] == "grado"]
+    simples = sum(1 for g in titulaciones if not g.get("es_doble_grado"))
+    catalogos = [c for c in chunks if c["origen"] == "catalogo"]
+    generales = [c for c in catalogos if c["nombre"].startswith("Titulaciones que")]
+    exigir(
+        len(generales) == 1,
+        lambda: f"hay {len(generales)} catálogos generales, debe haber 1",
+    )
+    declarado = re.search(
+        r"En total son (\d+): (\d+) grados y (\d+) dobles grados", generales[0]["texto"]
+    )
+    if declarado is None:
+        raise InvarianteRoto("el catálogo no declara cuántas titulaciones hay")
+    exigir(
+        (int(declarado.group(1)), int(declarado.group(2)), int(declarado.group(3)))
+        == (len(titulaciones), simples, len(titulaciones) - simples),
+        lambda: (
+            f"el catálogo dice {declarado.group(1)} titulaciones "
+            f"({declarado.group(2)}+{declarado.group(3)}) y el dataset tiene "
+            f"{len(titulaciones)} ({simples}+{len(titulaciones) - simples})"
+        ),
+    )
+    # Los fragmentos por familia declaran su propia cifra y tienen que cuadrar
+    # con la del general: es donde se vería que uno de los dos se ha quedado
+    # atrás tras un cambio en la fuente.
+    for familia, esperadas in (
+        ("Grados", simples),
+        ("Dobles", len(titulaciones) - simples),
+    ):
+        suyo = [c for c in catalogos if c["nombre"].startswith(familia)]
+        if not suyo:
+            continue
+        cifra = re.search(r"En total son (\d+):", suyo[0]["texto"])
+        exigir(
+            cifra is not None and int(cifra.group(1)) == esperadas,
+            lambda: (
+                f"el catálogo de {familia!r} no cuadra con las {esperadas} "
+                "del dataset"
+            ),
+        )
+
+    fichas = [c for c in chunks if c["origen"] == "ficha_titulacion"]
+    exigir(
+        len({f["nombre"] for f in fichas}) == len(titulaciones),
+        lambda: (
+            f"hay {len({f['nombre'] for f in fichas})} fichas para "
+            f"{len(titulaciones)} titulaciones: alguna se queda sin"
+        ),
+    )
+    for ficha in fichas:
+        cifras = re.search(
+            r"En total tiene (\d+) asignaturas: (\d+) obligatorias y (\d+) optativas",
+            ficha["texto"],
+        )
+        if cifras is None:
+            continue  # la titulación cuyo plan la fuente no publica
+        suyas = [a for a in asignaturas if a["grado"] == ficha["grados"][0]]
+        optativas = sum(1 for a in suyas if a["tipo_asignatura"] == "OP")
+        real = (len(suyas), len(suyas) - optativas, optativas)
+        exigir(
+            tuple(int(g) for g in cifras.groups()) == real,
+            lambda: (
+                f"la ficha de {ficha['grados'][0]!r} dice {cifras.groups()} "
+                f"y el dataset dice {real}"
             ),
         )
 

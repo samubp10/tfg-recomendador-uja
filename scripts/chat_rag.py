@@ -7,8 +7,10 @@ para poder comparar candidatos con la misma pregunta.
 
 Arrastra los últimos turnos, y hace falta que los arrastre: una pregunta como
 «¿y en primer año?» no menciona la titulación, así que incrustada sola recupera
-fragmentos de las doce. Es lo mínimo para poder encadenar tres preguntas; el
-manejo serio de la conversación es de la Fase 3.
+fragmentos de las doce. Pero solo cuando la pregunta lo necesita: si ya nombra
+una titulación, se incrusta sola, porque arrastrarla llegó a desviar la
+recuperación entera hacia el tema anterior. Es lo mínimo para poder encadenar
+tres preguntas; el manejo serio de la conversación es de la Fase 3.
 
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
 poder releer después qué se preguntó y qué se respondió sin que las pruebas
@@ -42,7 +44,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.generador import construir_prompt, generar  # noqa: E402
+from tfg_uja.generador import cortesia, responder  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -162,6 +164,9 @@ def main(argumentos: list[str]) -> None:
     analizador.add_argument("--k", type=int, default=K_MAXIMO)
     analizador.add_argument("--grado", default=None)
     analizador.add_argument(
+        "--curso", default=None, help='acota a un curso, p. ej. "primer"'
+    )
+    analizador.add_argument(
         "--k-fijo",
         action="store_true",
         help="trae siempre K fragmentos, sin recortar por distancia",
@@ -194,6 +199,7 @@ def main(argumentos: list[str]) -> None:
     modelo = opciones.modelo
     k = opciones.k
     grado = opciones.grado
+    curso = opciones.curso
     ultimos: list[Fragmento] = []
     historial: list[tuple[str, str]] = []
     # Contador propio: el historial se recorta a los últimos turnos, así que su
@@ -246,6 +252,9 @@ def main(argumentos: list[str]) -> None:
             elif orden == "/fuentes":
                 print(formatear_fuentes(ultimos) if ultimos else "  (aún no hay)")
                 print()
+            elif orden == "/curso" and resto:
+                curso = None if resto == "." else resto
+                print(f"  curso → {curso or 'sin acotar'}\n")
             elif orden == "/olvida":
                 historial.clear()
                 print("  conversación olvidada\n")
@@ -254,7 +263,25 @@ def main(argumentos: list[str]) -> None:
             continue
 
         t0 = time.perf_counter()
-        consulta = consulta_con_historial(entrada, [p for p, _ in historial])
+        # La cortesía se resuelve antes de buscar. No es solo ahorro: el
+        # registro anotaba los veinte fragmentos que la búsqueda traía para un
+        # «gracias» como si hubieran formado el contexto de la respuesta, y no
+        # se usa ninguno. Una sesión que documenta un contexto que no existió
+        # no sirve para auditar nada.
+        fija = cortesia(entrada)
+        if fija is not None:
+            print(f"\n{fija}\n")
+            historial.append((entrada, fija))
+            del historial[:-TURNOS_RECORDADOS]
+            turno += 1
+            ultimos = []
+            if registro is not None:
+                anotar_turno(
+                    registro, turno, entrada, fija, [], modelo, grado, (0.0, 0.0)
+                )
+            continue
+
+        consulta = consulta_con_historial(entrada, [p for p, _ in historial], catalogo)
         try:
             traidos = recuperar(
                 consulta,
@@ -264,6 +291,7 @@ def main(argumentos: list[str]) -> None:
                 k=k,
                 grado=grado,
                 catalogo=catalogo,
+                curso=curso,
             )
         except TitulacionDesconocida as error:
             print(f"\n  {error}. Las que hay:")
@@ -275,7 +303,9 @@ def main(argumentos: list[str]) -> None:
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        respuesta = generar(construir_prompt(entrada, ultimos, historial), modelo)
+        respuesta = responder(
+            entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
+        )
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))

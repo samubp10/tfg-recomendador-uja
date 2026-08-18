@@ -165,6 +165,14 @@ def esquema_lance(dimension: int, metadatos_coleccion: dict[str, str]) -> pa.Sch
             pa.field("grados", pa.list_(pa.string())),
             pa.field("codigos", pa.list_(pa.string())),
             pa.field("tipo_asignatura", pa.string()),
+            # IT-105: el curso también como columna, no solo dentro del texto.
+            # Escrito solo en el texto sirve para que el modelo lo lea, pero no
+            # para acotar la búsqueda a un curso, que es una consulta que la
+            # similitud vectorial no sabe hacer y un preuniversitario sí hace.
+            # Cadena y no entero: en los dobles grados la fuente publica
+            # «Tercer o cuarto curso», y meterlo en un entero obligaría a
+            # escoger uno de los dos, que es inventarse el dato.
+            pa.field("curso", pa.string()),
             pa.field("chunk_index", pa.int64()),
             pa.field("total_chunks", pa.int64()),
         ],
@@ -335,6 +343,9 @@ def metadatos_de_chunk(chunk: dict[str, Any]) -> Metadatos:
         # usa `.get` porque un chunks.json anterior a IT-100 no lo lleva y
         # reindexar un corpus viejo no tiene por qué fallar.
         "tipo_asignatura": chunk.get("tipo_asignatura", ""),
+        # Vacío cuando la fuente no lo publica (las optativas), no un valor de
+        # relleno: la decisión 9 vale también dentro del índice.
+        "curso": chunk.get("curso", ""),
         "chunk_index": chunk["chunk_index"],
         "total_chunks": chunk["total_chunks"],
     }

@@ -17,10 +17,13 @@ import pytest
 from tfg_uja import generador
 from tfg_uja.generador import (
     INSTRUCCIONES,
+    RESPUESTA_DESPEDIDA,
+    RESPUESTA_SALUDO,
     RESUMEN_TURNO,
     TOPE_RESPUESTA,
     VENTANA,
     construir_prompt,
+    cortesia,
     generar,
 )
 from tfg_uja.recuperador import Fragmento
@@ -64,12 +67,30 @@ def test_el_contexto_identifica_cada_fragmento():
     assert "Matrices y determinantes." in prompt
 
 
-def test_los_fragmentos_van_numerados_y_en_orden():
+def test_los_fragmentos_conservan_su_orden_en_el_contexto():
     prompt = construir_prompt(
         "una pregunta",
         [fragmento("Primera", "texto uno"), fragmento("Segunda", "texto dos")],
     )
-    assert prompt.index("[1] Primera") < prompt.index("[2] Segunda")
+    assert prompt.index("Primera") < prompt.index("Segunda")
+
+
+def test_el_contexto_no_numera_los_fragmentos():
+    """Regresión: el número de fragmento se escapó a la respuesta.
+
+    El encabezado llevaba «[1]», «[2]»... para que el modelo pudiera citar. No
+    citó fragmentos ---las instrucciones le piden citar la asignatura--- y en
+    cambio le soltó a un estudiante «...según el contexto ([20])», que es una
+    referencia interna y no significa nada para quien la lee. Tercera vez que
+    un dato puesto en el encabezado acaba en la pantalla del usuario, así que
+    se quita de raíz: lo que no está en el prompt no se puede filtrar.
+    """
+    prompt = construir_prompt(
+        "una pregunta",
+        [fragmento(f"Unidad {i}", "texto") for i in range(1, 4)],
+    )
+    for numero in range(1, 4):
+        assert f"[{numero}]" not in prompt
 
 
 def test_una_guia_compartida_declara_sus_titulaciones():
@@ -335,3 +356,176 @@ def test_no_se_llama_a_ningun_servicio_externo(espia):
     """El sistema se ejecuta entero en local: es requisito del trabajo."""
     generar("un prompt", "un-modelo")
     assert espia["url"].startswith("http://127.0.0.1")
+
+
+# --- El ámbito de la consulta ---
+
+
+def test_el_ambito_se_declara_como_dato_en_el_prompt():
+    """78 guías se imparten en varias titulaciones y el encabezado las nombra.
+
+    Medido: con la búsqueda acotada a Informática, el sistema respondió con un
+    apartado entero sobre Inteligencia Artificial y Ciberseguridad. Acotar la
+    búsqueda no le dice al modelo de qué tiene que hablar.
+    """
+    prompt = construir_prompt(
+        "qué asignaturas hay",
+        [fragmento("Álgebra", "temario")],
+        ambito="Grado en Ingeniería Informática",
+    )
+    assert "ÁMBITO: la consulta es sobre el Grado en Ingeniería Informática" in prompt
+    assert prompt.index("ÁMBITO") < prompt.index("CONTEXTO:")
+
+
+def test_sin_ambito_el_prompt_no_lo_menciona():
+    prompt = construir_prompt("una pregunta", [fragmento("A", "t")])
+    assert "ÁMBITO:" not in prompt
+
+
+# --- Sin contexto no se llama al modelo ---
+
+
+def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
+    """El peor fallo del sistema, y el único que no depende del modelo.
+
+    Medido el 17/08/2026 con un 7B: el recuperador rechazó correctamente un
+    saludo, el prompt decía «no se ha recuperado ningún fragmento» y las
+    instrucciones ya mandaban decirlo. El modelo se inventó un plan de estudios
+    entero de Ingeniería Informática; de los catorce nombres que dio, **trece
+    no existen** en la EPSJ.
+    """
+    respuesta = generador.responder("¿cuánto cuesta la matrícula?", [], "un-modelo")
+    assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_con_fragmentos_si_se_consulta_al_modelo(espia):
+    respuesta = generador.responder(
+        "¿qué se ve en Álgebra?", [fragmento("Álgebra", "Matrices.")], "un-modelo"
+    )
+    assert respuesta == "una respuesta"
+    assert "Matrices." in espia["cuerpo"]["prompt"]
+
+
+def test_la_respuesta_sin_contexto_ofrece_una_salida():
+    """Un «no lo sé» a secas deja al estudiante sin saber qué preguntar."""
+    assert "Politécnica Superior de Jaén" in generador.RESPUESTA_SIN_CONTEXTO
+    assert "?" in generador.RESPUESTA_SIN_CONTEXTO
+
+
+def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
+    generador.responder(
+        "otra",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        [("antes", "dijo algo")],
+        ambito="Grado en Ingeniería Informática",
+    )
+    prompt = espia["cuerpo"]["prompt"]
+    assert "ÁMBITO" in prompt
+    assert "antes" in prompt
+
+
+# --- La cortesía ---
+
+
+@pytest.mark.parametrize(
+    "saludo",
+    ["hola", "Hola!", "buenas", "Buenos días", "hola buenas tardes", "¿qué tal?, hola"],
+)
+def test_un_saludo_se_contesta_como_un_saludo(saludo):
+    """Regresión del caso real: a un «hola», «no he encontrado información».
+
+    El saludo no recupera nada, porque no se parece a ningún fragmento, y el
+    suelo de pertinencia lo rechaza como debe. Pero caer en la respuesta de
+    contexto vacío deja al estudiante creyendo que ha preguntado mal en su
+    primera frase.
+    """
+    assert cortesia(saludo) == RESPUESTA_SALUDO
+
+
+@pytest.mark.parametrize(
+    "despedida", ["gracias", "Muchas gracias!", "adiós", "vale, gracias"]
+)
+def test_una_despedida_se_contesta_como_una_despedida(despedida):
+    assert cortesia(despedida) == RESPUESTA_DESPEDIDA
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "hola, ¿qué asignaturas tiene Informática?",
+        "buenas, quiero saber de Mecánica",
+        "¿qué salidas tiene Geomática?",
+        "",
+    ],
+)
+def test_una_pregunta_con_saludo_delante_sigue_su_camino(pregunta):
+    """Reconocer «hola» dentro del texto se habría comido media pregunta.
+
+    Por eso se exige que **todo** el mensaje quepa en el vocabulario cerrado,
+    y no que contenga un saludo.
+    """
+    assert cortesia(pregunta) is None
+
+
+def test_el_saludo_dice_de_que_sabe_el_sistema():
+    """Es la primera frase que lee casi cualquiera: se aprovecha para orientar."""
+    assert "Politécnica Superior de Jaén" in RESPUESTA_SALUDO
+    for tema in ("asignaturas", "curso", "grados"):
+        assert tema in RESPUESTA_SALUDO
+
+
+def test_el_saludo_se_atiende_aunque_no_haya_contexto(espia):
+    """Va antes que el cortocircuito, y sin llamar al modelo."""
+    assert generador.responder("hola", [], "un-modelo") == RESPUESTA_SALUDO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+# --- IT-34: el prompt declara la oferta real de la Escuela ---
+
+
+def test_el_prompt_enumera_las_titulaciones_que_existen():
+    """Regresión del peor fallo del 16/08/2026.
+
+    A un estudiante interesado en electricidad le recomendó seis titulaciones y
+    **dos no existen** en la EPSJ: «Grado en Ingeniería de Energía» y «Grado en
+    Ingeniería Ambiental». Ninguna estaba en el contexto recuperado. Las
+    instrucciones ya prohibían inventar, así que prohibirlo otra vez no habría
+    servido; lo que se puede hacer desde el prompt es poner delante la lista
+    verdadera. Comprobar la respuesta contra ella es IT-87.
+    """
+    catalogo = ["Grado en Ingeniería Informática", "Grado en Ingeniería Eléctrica"]
+    prompt = construir_prompt(
+        "recomiéndame algo de electricidad",
+        [fragmento("A", "texto")],
+        catalogo=catalogo,
+    )
+    assert "TITULACIONES DE LA ESCUELA" in prompt
+    for titulacion in catalogo:
+        assert f"- {titulacion}" in prompt
+
+
+def test_el_catalogo_va_antes_del_contexto():
+    """Si fuera después, se leería como un fragmento recuperado más."""
+    prompt = construir_prompt(
+        "una pregunta",
+        [fragmento("A", "texto")],
+        catalogo=["Grado en Ingeniería Informática"],
+    )
+    assert prompt.index("TITULACIONES DE LA ESCUELA") < prompt.index("CONTEXTO:")
+
+
+def test_sin_catalogo_el_prompt_no_lo_menciona():
+    prompt = construir_prompt("una pregunta", [fragmento("A", "texto")])
+    assert "TITULACIONES DE LA ESCUELA" not in prompt
+
+
+def test_el_catalogo_llega_a_traves_de_responder(espia):
+    generador.responder(
+        "otra",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=["Grado en Ingeniería Informática"],
+    )
+    assert "TITULACIONES DE LA ESCUELA" in espia["cuerpo"]["prompt"]

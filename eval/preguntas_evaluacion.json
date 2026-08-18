@@ -1,6 +1,6 @@
 {
   "descripcion": "Conjunto de evaluación del retrieval (IT-27): preguntas reales de un estudiante preuniversitario sobre la oferta de la EPSJ, con las unidades relevantes anotadas a mano. Curso rastreado: 2026/27. Anotado sobre la extracción del 01/08/2026 y verificado contra la del 05/08/2026, en la que todos los selectores siguen resolviendo (scripts/check_evalset.py). Desde IT-77 no se anota ninguna unidad del grado en extinción, que se excluyó del corpus por no admitir nuevas matrículas. Ampliado en IT-100 con 14 preguntas de tipo `listado`, dos por cada titulación con asignaturas propias.",
-  "criterio_relevancia": "Cada pregunta anota la(s) unidad(es) semántica(s) que el sistema debería recuperar, identificadas por (origen, nombre[, grado]) y NO por id de chunk: los ids son posicionales y cambian al re-fragmentar, mientras que la unidad (una asignatura o el bloque de salidas de un grado) es estable. Un chunk recuperado se considera relevante si pertenece a una unidad anotada: chunk.origen == origen, chunk.nombre == nombre y, si el selector lleva grado, grado ∈ chunk.grados. Las preguntas de tipo `listado` (IT-100) apuntan a la unidad `plan_de_estudios` de su titulación, que contiene el listado ya agregado. Anotarlas contra las asignaturas una a una habría dado hasta 118 fragmentos relevantes por pregunta y un techo de Recall@5 de 0,042: no por un fallo del recuperador, sino porque un top-K responde con los K mejores y esas preguntas piden todos.",
+  "criterio_relevancia": "Cada pregunta anota la(s) unidad(es) semántica(s) que el sistema debería recuperar, identificadas por (origen, nombre[, grado]) y NO por id de chunk: los ids son posicionales y cambian al re-fragmentar, mientras que la unidad (una asignatura o el bloque de salidas de un grado) es estable. Un chunk recuperado se considera relevante si pertenece a una unidad anotada: chunk.origen == origen, chunk.nombre == nombre y, si el selector lleva grado, grado ∈ chunk.grados. Las preguntas de tipo `listado` (IT-100) apuntan a la unidad `plan_de_estudios` de su titulación, que contiene el listado ya agregado. Anotarlas contra las asignaturas una a una habría dado hasta 118 fragmentos relevantes por pregunta y un techo de Recall@5 de 0,042: no por un fallo del recuperador, sino porque un top-K responde con los K mejores y esas preguntas piden todos. IT-105 partió los listados de obligatorias en un fragmento por curso; los selectores de esas siete preguntas se reanclaron a los fragmentos por curso de su titulación, todos ellos, porque la respuesta completa los necesita todos. Mientras estuvieron colgando, esas preguntas puntuaban 0 por construcción.",
   "preguntas": [
     {
       "id": "P-001",
@@ -442,7 +442,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Electrónica Industrial",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería Electrónica Industrial",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería Electrónica Industrial",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Electrónica Industrial",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería Electrónica Industrial",
           "grado": "Grado en Ingeniería Electrónica Industrial"
         }
       ]
@@ -466,7 +481,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Eléctrica",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería Eléctrica",
+          "grado": "Grado en Ingeniería Eléctrica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería Eléctrica",
+          "grado": "Grado en Ingeniería Eléctrica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Eléctrica",
+          "grado": "Grado en Ingeniería Eléctrica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería Eléctrica",
           "grado": "Grado en Ingeniería Eléctrica"
         }
       ]
@@ -490,7 +520,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)",
           "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
         }
       ]
@@ -514,7 +559,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Informática",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería Informática",
+          "grado": "Grado en Ingeniería Informática"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería Informática",
+          "grado": "Grado en Ingeniería Informática"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Informática",
+          "grado": "Grado en Ingeniería Informática"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería Informática",
           "grado": "Grado en Ingeniería Informática"
         }
       ]
@@ -538,7 +598,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería Mecánica",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería Mecánica",
+          "grado": "Grado en Ingeniería Mecánica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería Mecánica",
+          "grado": "Grado en Ingeniería Mecánica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería Mecánica",
+          "grado": "Grado en Ingeniería Mecánica"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería Mecánica",
           "grado": "Grado en Ingeniería Mecánica"
         }
       ]
@@ -562,7 +637,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Ingeniería de Organización Industrial",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Ingeniería de Organización Industrial",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Ingeniería de Organización Industrial",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Ingeniería de Organización Industrial",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Ingeniería de Organización Industrial",
           "grado": "Grado en Ingeniería de Organización Industrial"
         }
       ]
@@ -586,7 +676,22 @@
       "relevantes": [
         {
           "origen": "plan_de_estudios",
-          "nombre": "Asignaturas obligatorias del Grado en Inteligencia Artificial y Ciberseguridad",
+          "nombre": "Asignaturas obligatorias de cuarto curso del Grado en Inteligencia Artificial y Ciberseguridad",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de primer curso del Grado en Inteligencia Artificial y Ciberseguridad",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de segundo curso del Grado en Inteligencia Artificial y Ciberseguridad",
+          "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+        },
+        {
+          "origen": "plan_de_estudios",
+          "nombre": "Asignaturas obligatorias de tercer curso del Grado en Inteligencia Artificial y Ciberseguridad",
           "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
         }
       ]

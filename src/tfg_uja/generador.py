@@ -37,6 +37,7 @@ from typing import Final
 
 from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
+from tfg_uja.text_cleaner import palabras
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
 #: sistema tiene que poder ejecutarse entero en el equipo del autor.
@@ -79,6 +80,9 @@ INSTRUCCIONES: Final[str] = (
     "publicada; no es lo mismo que no exista la asignatura.\n"
     "- Al enumerar asignaturas, agrúpalas por curso y termina siempre con las "
     "optativas, que no tienen curso asignado. No te dejes ningún grupo.\n"
+    "- Si hay un ÁMBITO declarado, responde sobre esa titulación. Varias "
+    "asignaturas se imparten en más de una, y el contexto las nombra todas; "
+    "menciónalo si viene al caso, pero no cambies de titulación.\n"
     "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
     "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
     "anteriores.\n"
@@ -151,13 +155,13 @@ def _curso_del_listado(nombre: str) -> int:
     return len(ORDEN_CURSOS) + 1
 
 
-def _etiqueta(indice: int, fragmento: Fragmento) -> str:
+def _etiqueta(fragmento: Fragmento) -> str:
     """Compone la línea que encabeza un fragmento dentro del contexto.
 
-    **No lleva el número de parte, y se quitó a la vista de dos medidas.** Se
-    puso para que el modelo supiera cuándo le faltaba un trozo de una lista, y
-    no lo consiguió: aun con una regla explícita prohibiéndolo, se lo contó al
-    usuario dos veces, la segunda inventándose una asignatura llamada «Sistemas
+    **No lleva número de parte, y se quitó a la vista de dos medidas.** Se puso
+    para que el modelo supiera cuándo le faltaba un trozo de una lista, y no lo
+    consiguió: aun con una regla explícita prohibiéndolo, se lo contó al usuario
+    dos veces, la segunda inventándose una asignatura llamada «Sistemas
     inteligentes de información (parte 3 de 4)» y afirmando que su guía no
     estaba publicada. Es el mismo patrón que las titulaciones inventadas: una
     instrucción no basta para impedir un comportamiento.
@@ -166,14 +170,196 @@ def _etiqueta(indice: int, fragmento: Fragmento) -> str:
     partido en tres tercios alfabéticos--- lo resolvió IT-105 de raíz, partiendo
     los listados por curso. El aviso costaba más de lo que evitaba.
 
+    **Tampoco lleva número de orden**, por lo mismo y con una medida más. El
+    número servía para citar, pero el modelo no cita fragmentos: cita
+    asignaturas, que es lo que le piden las instrucciones. Lo único que hizo
+    fue escaparse tal cual a la respuesta de un estudiante ---«...según el
+    contexto ([20])»---, que es una referencia interna del sistema y no
+    significa nada para quien la lee. Tercera vez que un dato puesto en el
+    encabezado para uso del modelo acaba en la pantalla del usuario.
+
     Args:
-        indice: Número con el que se cita el fragmento, desde 1.
         fragmento: Fragmento que se va a encabezar.
 
     Returns:
         La línea de encabezado, sin el texto del fragmento.
     """
-    return f"[{indice}] {fragmento.nombre} — {', '.join(fragmento.grados)}"
+    return f"{fragmento.nombre} — {', '.join(fragmento.grados)}"
+
+
+#: Lo que se responde cuando la recuperación no ha traído nada pertinente.
+#: Es texto fijo y no una respuesta del modelo, a propósito: ver
+#: :func:`responder`.
+RESPUESTA_SIN_CONTEXTO: Final[str] = (
+    "No he encontrado información sobre eso en la web de la Escuela "
+    "Politécnica Superior de Jaén. Puedo ayudarte con las titulaciones que "
+    "se imparten allí: sus asignaturas, qué se estudia en cada una y qué "
+    "salidas profesionales tienen. ¿Sobre cuál te gustaría saber?"
+)
+
+#: Con lo que se abre la conversación. Un saludo no es una pregunta fallida:
+#: es la primera línea que escribe casi cualquiera, y se aprovecha para decir
+#: de qué sabe el sistema en vez de para decir que no sabe.
+RESPUESTA_SALUDO: Final[str] = (
+    "¡Hola! Te puedo ayudar con las titulaciones de la Escuela Politécnica "
+    "Superior de Jaén: qué grados y dobles grados se estudian allí, qué "
+    "asignaturas tiene cada uno y en qué curso se dan, qué se ve en cada "
+    "asignatura y a qué se puede dedicar uno al terminar.\n\n"
+    "Pregúntame por la titulación que te interese, o por lo que te gustaría "
+    "estudiar y te digo cuáles encajan."
+)
+
+#: Con lo que se cierra. Contestar «no he encontrado información sobre eso» a
+#: un «gracias» es el mismo despropósito que contestárselo a un «hola».
+RESPUESTA_DESPEDIDA: Final[str] = (
+    "¡De nada! Si te surge cualquier otra duda sobre las titulaciones de la "
+    "Escuela Politécnica Superior de Jaén, aquí estoy."
+)
+
+#: Vocabulario con el que se puede escribir un mensaje entero sin preguntar
+#: nada. Es una lista **cerrada** y se exige que **todas** las palabras del
+#: mensaje estén en ella, de modo que «hola, ¿qué asignaturas tiene
+#: Informática?» no se toma por un saludo y sigue su camino normal.
+_CORTESIA: Final[frozenset[str]] = frozenset(
+    {
+        "hola",
+        "buenas",
+        "buenos",
+        "dias",
+        "tardes",
+        "noches",
+        "saludos",
+        "saludo",
+        "hey",
+        "ey",
+        "que",
+        "tal",
+        "como",
+        "estas",
+        "va",
+        "muy",
+        "bien",
+        "gracias",
+        "muchas",
+        "mil",
+        "adios",
+        "chao",
+        "hasta",
+        "luego",
+        "pronto",
+        "manana",
+        "vale",
+        "ok",
+        "nada",
+        "por",
+        "favor",
+        "un",
+        "una",
+        "y",
+        "de",
+        "a",
+        "eres",
+        "quien",
+        "todo",
+    }
+)
+
+#: Las que además tienen que aparecer para que el mensaje sea un saludo. Sin
+#: esta condición, un resto de frase como «vale» o «y a mí» entraría por ser
+#: todo cortesía.
+_SALUDO: Final[frozenset[str]] = frozenset(
+    {"hola", "buenas", "buenos", "saludos", "hey", "ey"}
+)
+
+#: Y las que lo convierten en una despedida o un agradecimiento.
+_DESPEDIDA: Final[frozenset[str]] = frozenset(
+    {"gracias", "adios", "chao", "hasta", "luego", "pronto"}
+)
+
+
+def cortesia(pregunta: str) -> str | None:
+    """Devuelve la respuesta fija si el mensaje es solo cortesía.
+
+    Un «hola» no recupera nada, porque no se parece a ningún fragmento del
+    corpus, y el suelo de pertinencia lo rechaza como debe. El problema es lo
+    que venía después: el sistema contestaba «no he encontrado información
+    sobre eso», que para un saludo no tiene ningún sentido y deja al estudiante
+    pensando que ha preguntado mal en su primera frase.
+
+    Se reconoce por vocabulario cerrado y exigiendo que **todo** el mensaje
+    quepa en él, no por buscar «hola» dentro del texto: si no, «hola, ¿qué
+    asignaturas tiene Informática?» se quedaría sin responder. Es el mismo
+    criterio que el resto del módulo ---un mecanismo que no depende de que el
+    modelo obedezca--- y por eso no se le pide al modelo que salude.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        La respuesta fija que corresponda, o ``None`` si el mensaje pregunta
+        algo y hay que seguir el camino normal.
+    """
+    dichas = palabras(pregunta)
+    if not dichas or not dichas <= _CORTESIA:
+        return None
+    if dichas & _DESPEDIDA:
+        return RESPUESTA_DESPEDIDA
+    if dichas & _SALUDO:
+        return RESPUESTA_SALUDO
+    return None
+
+
+def responder(
+    pregunta: str,
+    fragmentos: list[Fragmento],
+    modelo: str,
+    historial: list[tuple[str, str]] | None = None,
+    ambito: str | None = None,
+    catalogo: list[str] | None = None,
+) -> str:
+    """Devuelve la respuesta del sistema a una pregunta.
+
+    **La cortesía se atiende antes de mirar el contexto.** Un saludo no
+    recupera nada, y sin esta rama caía en la respuesta de contexto vacío:
+    a un estudiante que escribía «hola» el sistema le contestaba que no había
+    encontrado información sobre eso.
+
+    **Sin fragmentos no se llama al modelo.** No es una optimización: es la
+    única forma que hemos encontrado de evitar el peor fallo del sistema.
+
+    Medido el 17/08/2026 con un modelo de 7B: el recuperador rechazó
+    correctamente un saludo y no devolvió ningún fragmento, el prompt decía
+    «no se ha recuperado ningún fragmento» y las instrucciones ya mandaban
+    decirlo en vez de suponer. El modelo respondió inventándose un plan de
+    estudios completo de Ingeniería Informática, con asignaturas repartidas
+    por cursos. De los catorce nombres que dio, **trece no existen** en la
+    EPSJ.
+
+    El contexto vacío es el estado más peligroso de un sistema RAG, porque el
+    modelo responde con la misma seguridad que cuando ha leído algo. Y ya
+    sabemos, de tres intentos, que una instrucción no lo impide. Cortocircuitar
+    sí, porque no depende de que el modelo obedezca.
+
+    Args:
+        pregunta: Pregunta del usuario, tal cual la escribe.
+        fragmentos: Fragmentos recuperados, ya acotados.
+        modelo: Nombre del modelo en el servidor local.
+        historial: Turnos anteriores de la conversación, si los hay.
+        ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        catalogo: Titulaciones que declara el índice, para que el prompt las
+            enumere.
+
+    Returns:
+        La respuesta, del modelo o una de las fijas del módulo.
+    """
+    fija = cortesia(pregunta)
+    if fija is not None:
+        return fija
+    if not fragmentos:
+        return RESPUESTA_SIN_CONTEXTO
+    return generar(
+        construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
+    )
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
@@ -200,6 +386,8 @@ def construir_prompt(
     pregunta: str,
     fragmentos: list[Fragmento],
     historial: list[tuple[str, str]] | None = None,
+    ambito: str | None = None,
+    catalogo: list[str] | None = None,
 ) -> str:
     """Arma el texto que lee el modelo.
 
@@ -213,10 +401,24 @@ def construir_prompt(
     nivel que los fragmentos del corpus, y cualquier dato inventado en un turno
     se convertiría en fuente para el siguiente.
 
+    **El catálogo se declara siempre, y es un dato, no una prohibición.** El
+    fallo más grave que se le ha visto al sistema es recomendar titulaciones
+    que no existen: el 16/08/2026 recomendó seis a un estudiante interesado en
+    electricidad y **dos no existen** en la EPSJ. Las instrucciones ya decían
+    «usa ÚNICAMENTE la información del CONTEXTO», así que prohibirlo otra vez
+    no habría cambiado nada. Lo que sí se puede hacer desde el prompt es que la
+    lista verdadera esté delante en todas las consultas, cueste lo que cueste
+    ---son unas 150 fichas de las 8.192 de la ventana---, en vez de esperar a
+    que la recuperación la traiga. Comprobar la respuesta contra ese catálogo,
+    que es lo único que no depende de que el modelo obedezca, es IT-87.
+
     Args:
         pregunta: Pregunta del usuario, tal cual la escribe.
         fragmentos: Fragmentos recuperados, de más a menos próximo.
         historial: Turnos anteriores de la conversación, si los hay.
+        ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        catalogo: Titulaciones que declara el índice. Si no se pasa, el prompt
+            no las enumera y el modelo solo cuenta con el contexto.
 
     Returns:
         Prompt completo, listo para enviar al modelo.
@@ -225,11 +427,25 @@ def construir_prompt(
         contexto = "(no se ha recuperado ningún fragmento)"
     else:
         contexto = "\n\n".join(
-            f"{_etiqueta(i, f)}\n{f.texto}"
-            for i, f in enumerate(ordenar_contexto(fragmentos), start=1)
+            f"{_etiqueta(f)}\n{f.texto}" for f in ordenar_contexto(fragmentos)
         )
+    oferta = (
+        "TITULACIONES DE LA ESCUELA. Son estas y no hay ninguna más:\n"
+        + "\n".join(f"- {t}" for t in catalogo)
+        + "\n\n"
+        if catalogo
+        else ""
+    )
+    # El ámbito se **declara como dato**, no como prohibición. 78 guías del
+    # corpus se imparten en varias titulaciones y su encabezado las nombra
+    # todas, así que acotar la búsqueda a una no impide que el modelo hable de
+    # las otras: medido, con el filtro puesto en Informática respondió con un
+    # apartado entero sobre Inteligencia Artificial y Ciberseguridad.
+    encabezado = f"ÁMBITO: la consulta es sobre el {ambito}.\n\n" if ambito else ""
     return (
         f"{INSTRUCCIONES}\n\n"
+        f"{oferta}"
+        f"{encabezado}"
         f"{_conversacion(historial or [])}"
         f"CONTEXTO:\n{contexto}\n\n"
         f"PREGUNTA: {pregunta}\n\n"

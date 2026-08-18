@@ -105,6 +105,14 @@ ORDEN_CURSOS: Final[tuple[str, ...]] = (
 
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
+#: Rótulo con el que la fuente marca las optativas que no pertenecen a ninguna
+#: mención concreta. **No es una mención**, aunque viaje en el mismo campo que
+#: ellas, y presentarlo como tal induce a error: medido el 17/08/2026, el
+#: sistema contestó que Ingeniería Mecánica «tiene dos menciones» y una de las
+#: dos era este rótulo. Se compara normalizado porque la fuente no es
+#: consistente con mayúsculas ni tildes.
+_COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
+
 
 #: Acrónimo del grado de procedencia que los planes de los dobles grados
 #: añaden al final del nombre de una asignatura, entre paréntesis: «CIRCUITOS
@@ -517,6 +525,7 @@ def _chunks_de_plan_de_estudios(
                     "codigos": [None],
                     "nombre": titulo,
                     "tipo_asignatura": "",
+                    "curso": curso,
                 }
                 chunks.extend(
                     _chunks_de_unidad(
@@ -532,6 +541,315 @@ def _chunks_de_plan_de_estudios(
                         tamanos,
                     )
                 )
+    return chunks
+
+
+def _duracion_en_cursos(asignaturas: list[dict[str, Any]]) -> int:
+    """Cuántos cursos abarca un plan, según el ordinal más alto que rotula.
+
+    Se deduce de los rótulos que publica la fuente y no de una regla del tipo
+    «un grado dura cuatro años»: los dobles duran cinco y el corpus tiene los
+    dos casos. Un rótulo disyuntivo ---«Tercer o cuarto curso»--- cuenta por el
+    más alto que nombra, porque el plan llega hasta ahí.
+
+    Args:
+        asignaturas: Asignaturas de una misma titulación.
+
+    Returns:
+        Número de cursos, o 0 si ninguna asignatura lleva curso rotulado.
+    """
+    tope = 0
+    for asignatura in asignaturas:
+        rotulo = (asignatura.get("curso") or "").lower()
+        for posicion, ordinal in enumerate(ORDEN_CURSOS, start=1):
+            if ordinal in rotulo:
+                tope = max(tope, posicion)
+    return tope
+
+
+def _chunks_de_catalogo(
+    items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int],
+) -> list[dict[str, Any]]:
+    """Genera el fragmento que enumera la oferta de la Escuela (IT-107).
+
+    «¿Qué se puede estudiar en la EPSJ?» es la primera pregunta de un
+    preuniversitario y el corpus **no la contestaba**: la respuesta está
+    repartida entre doce titulaciones y ningún fragmento la reúne, así que la
+    recuperación no traía nada pertinente y el sistema contestaba que no tenía
+    información. Medido el 17/08/2026: preguntado por las titulaciones de la
+    rama industrial, un modelo de 7B nombró cinco reales y se inventó una
+    especialidad que no existe.
+
+    Args:
+        items: Dataset completo tal como lo exporta el spider.
+        tamanos: Objetivo, máximo y mínimo de fragmento.
+
+    Returns:
+        Los fragmentos del catálogo, de origen ``catalogo``.
+    """
+    grados = sorted(
+        (g for g in items if g["tipo"] == "grado"), key=lambda g: g["nombre"]
+    )
+    if not grados:
+        return []
+    simples = [g["nombre"] for g in grados if not g.get("es_doble_grado")]
+    dobles = [g["nombre"] for g in grados if g.get("es_doble_grado")]
+
+    def base_de(nombres: list[str], titulo: str) -> dict[str, Any]:
+        return {
+            # Las titulaciones de las que habla el fragmento. La lista no puede
+            # ir vacía: el verificador exige que `grados` y `codigos` sean
+            # listas paralelas y no vacías.
+            "grados": nombres,
+            "codigos": [None] * len(nombres),
+            "nombre": titulo,
+            "tipo_asignatura": "",
+            "curso": "",
+        }
+
+    titulo = "Titulaciones que se imparten en la Escuela Politécnica Superior de Jaén"
+    encabezado = (
+        f"{titulo}. En total son {len(grados)}: {len(simples)} grados y "
+        f"{len(dobles)} dobles grados."
+    )
+    bloques = []
+    if simples:
+        bloques.append("Grados:\n" + "\n".join(f"{n}." for n in simples))
+    if dobles:
+        bloques.append("Dobles grados:\n" + "\n".join(f"{n}." for n in dobles))
+    chunks = _chunks_de_unidad(
+        encabezado,
+        "\n\n".join(bloques),
+        base_de([g["nombre"] for g in grados], titulo),
+        "catalogo",
+        tamanos,
+    )
+
+    # Y uno por familia. No es redundancia gratuita: medido sobre el índice
+    # completo, «¿qué dobles grados hay?» no recuperaba el catálogo sino
+    # **veinte fichas** de titulaciones sueltas, porque los nombres propios
+    # («Doble Grado en Ingeniería Eléctrica y Mecánica») se parecen más a la
+    # pregunta que un encabezado que habla de las doce a la vez. Con su propio
+    # fragmento, la pregunta cae donde tiene que caer.
+    for familia, nombres in (("Grados", simples), ("Dobles grados", dobles)):
+        if not nombres:
+            continue
+        titulo_familia = (
+            f"{familia} que se imparten en la Escuela Politécnica Superior de Jaén"
+        )
+        chunks.extend(
+            _chunks_de_unidad(
+                f"{titulo_familia}. En total son {len(nombres)}:",
+                "\n\n".join(f"{n}." for n in nombres),
+                base_de(nombres, titulo_familia),
+                "catalogo",
+                tamanos,
+            )
+        )
+    return chunks
+
+
+def _chunks_de_ficha(
+    items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int],
+) -> list[dict[str, Any]]:
+    """Genera la ficha de cifras de cada titulación (IT-107).
+
+    Contesta las preguntas de recuento ---cuántas asignaturas tiene, cuántas
+    optativas, cuántos cursos dura--- que el corpus contenía pero no decía.
+    Medido el 17/08/2026: preguntado por cuántas asignaturas tiene Ingeniería
+    Informática, un modelo de 7B contestó que **una**. La cifra real es 67 y no
+    existía en el corpus como texto: había que contar 67 fragmentos.
+
+    **No se emite el total de créditos.** Sumar los ECTS de todo lo que se
+    oferta da 408 en Informática, y un grado son 240: la diferencia son las
+    optativas, de las que solo se cursa una parte, y el corpus no publica
+    cuántas. Un número que se lee como «los créditos de la carrera» y no lo es
+    sería peor que no darlo.
+
+    Una titulación sin asignaturas en el corpus recibe **su propio fragmento
+    diciéndolo**, en vez de quedarse fuera. Es el mismo criterio que aplica
+    IT-09 a las asignaturas sin guía: un hueco silencioso hace que el sistema
+    responda como si la titulación no existiera, y sí existe.
+
+    Args:
+        items: Dataset completo tal como lo exporta el spider.
+        tamanos: Objetivo, máximo y mínimo de fragmento.
+
+    Returns:
+        Los fragmentos de ficha, de origen ``ficha_titulacion``.
+    """
+    por_grado: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        if item["tipo"] == "asignatura":
+            por_grado.setdefault(item["grado"], []).append(item)
+
+    chunks: list[dict[str, Any]] = []
+    for grado in sorted(
+        (g for g in items if g["tipo"] == "grado"), key=lambda g: g["nombre"]
+    ):
+        nombre = grado["nombre"]
+        titulo = f"Datos generales del {nombre}"
+        base = {
+            "grados": [nombre],
+            "codigos": [None],
+            "nombre": titulo,
+            "tipo_asignatura": "",
+            "curso": "",
+        }
+        suyas = por_grado.get(nombre, [])
+        if not suyas:
+            chunks.extend(
+                _chunks_de_unidad(
+                    f"{titulo}.",
+                    "La web de la EPSJ no publica el plan de estudios de esta "
+                    "titulación, por lo que no se dispone de sus asignaturas.",
+                    base,
+                    "ficha_titulacion",
+                    tamanos,
+                )
+            )
+            continue
+
+        optativas = [
+            a for a in suyas if a["tipo_asignatura"] in _GRUPOS_PLAN["optativas"]
+        ]
+        obligatorias = [a for a in suyas if a not in optativas]
+        cursos = _duracion_en_cursos(suyas)
+        frases = [
+            f"En total tiene {len(suyas)} asignaturas: {len(obligatorias)} "
+            f"obligatorias y {len(optativas)} optativas."
+        ]
+        if cursos:
+            frases.append(f"El plan de estudios se organiza en {cursos} cursos.")
+        if not optativas:
+            frases.append(
+                "La web de la EPSJ no publica optativas para esta titulación."
+            )
+        # Cuáles son las menciones, no solo qué asignaturas tiene cada una.
+        # Medido el 17/08/2026: a «¿qué menciones tiene Ingeniería Mecánica?» el
+        # sistema contestó «dos» y son tres, porque el corpus tenía el listado
+        # de cada mención pero ninguna unidad decía cuántas hay ni cómo se
+        # llaman. Misma carencia de agregación que resolvió el resto de IT-107.
+        menciones = sorted(
+            {
+                m
+                for a in suyas
+                for m in (a.get("menciones") or [])
+                if _normalizar(m) != _COMUN_A_TODAS
+            }
+        )
+        if menciones:
+            frases.append(f"Tiene {len(menciones)} menciones: {', '.join(menciones)}.")
+        reparto = [
+            f"{curso}: {len(del_curso)} asignaturas."
+            for curso, del_curso in _por_curso(obligatorias)
+            if curso
+        ]
+        cuerpo = " ".join(frases)
+        if reparto:
+            cuerpo += "\n\nReparto de las obligatorias por curso:\n" + "\n".join(
+                reparto
+            )
+        if optativas:
+            cuerpo += (
+                f"\n\nLas {len(optativas)} optativas no llevan curso asignado en "
+                "el plan que publica la EPSJ."
+            )
+        chunks.extend(
+            _chunks_de_unidad(f"{titulo}.", cuerpo, base, "ficha_titulacion", tamanos)
+        )
+    return chunks
+
+
+def _chunks_de_mencion(
+    items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int],
+) -> list[dict[str, Any]]:
+    """Genera el listado de asignaturas de cada mención (IT-107).
+
+    La mención viaja como metadato de cada asignatura y aparece en el
+    encabezado de su fragmento, pero ninguna unidad reúne las de una misma
+    mención. Medido el 17/08/2026: preguntado por las asignaturas de una
+    mención concreta de Informática, el sistema contestó que no estaban en el
+    contexto. Estaban en el corpus, repartidas en cuatro unidades distintas.
+
+    Los nombres son **los que publica la fuente, sin desarrollar**. Dos de
+    Geomática son las siglas «TIA» y «TIG», y el corpus no dice qué significan:
+    inventar el desarrollo sería añadir información que la EPSJ no publica.
+
+    Args:
+        items: Dataset completo tal como lo exporta el spider.
+        tamanos: Objetivo, máximo y mínimo de fragmento.
+
+    Returns:
+        Los fragmentos de mención, de origen ``mencion``.
+    """
+    por_mencion: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for item in items:
+        if item["tipo"] != "asignatura":
+            continue
+        for mencion in item.get("menciones") or []:
+            por_mencion.setdefault((item["grado"], mencion), []).append(item)
+
+    chunks: list[dict[str, Any]] = []
+
+    # Cuáles son, antes de qué tiene cada una. Medido el 17/08/2026: a «¿qué
+    # menciones tiene Ingeniería Mecánica?» el sistema contestó «dos» y son
+    # tres. La respuesta estaba repartida en cuatro unidades y ninguna decía
+    # cuántas hay. Se probó a meter la lista en la ficha de la titulación y la
+    # recuperación no la traía: su encabezado, «Datos generales del…», no se
+    # parece a la pregunta. Con encabezado propio sí.
+    por_grado: dict[str, list[str]] = {}
+    for grado, mencion in por_mencion:
+        if _normalizar(mencion) != _COMUN_A_TODAS:
+            por_grado.setdefault(grado, []).append(mencion)
+    for grado in sorted(por_grado):
+        nombres = sorted(por_grado[grado])
+        titulo = f"Menciones del {grado}"
+        chunks.extend(
+            _chunks_de_unidad(
+                f"{titulo}. En total son {len(nombres)}:",
+                "\n\n".join(f"{n}." for n in nombres),
+                {
+                    "grados": [grado],
+                    "codigos": [None],
+                    "nombre": titulo,
+                    "tipo_asignatura": "",
+                    "curso": "",
+                },
+                "mencion",
+                tamanos,
+            )
+        )
+
+    for grado, mencion in sorted(por_mencion):
+        asignaturas = sorted(por_mencion[(grado, mencion)], key=lambda a: a["nombre"])
+        if _normalizar(mencion) == _COMUN_A_TODAS:
+            titulo = f"Asignaturas optativas comunes a todas las menciones del {grado}"
+        else:
+            titulo = f"Asignaturas de la mención «{mencion}» del {grado}"
+        lineas = []
+        for a in asignaturas:
+            ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
+            lineas.append(f"{a['nombre']}{ects}.")
+        base = {
+            "grados": [grado],
+            "codigos": [None],
+            "nombre": titulo,
+            "tipo_asignatura": "",
+            "curso": "",
+        }
+        chunks.extend(
+            _chunks_de_unidad(
+                f"{titulo}. En total son {len(asignaturas)}:",
+                "\n\n".join(lineas),
+                base,
+                "mencion",
+                tamanos,
+            )
+        )
     return chunks
 
 
@@ -720,6 +1038,11 @@ def trocear_dataset(
             "codigos": codigos,
             "nombre": nombre,
             "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
+            # IT-105. Se toma de la asignatura del grupo con el mismo criterio
+            # que el tipo. Ojo: una guía compartida entre titulaciones puede
+            # impartirse en cursos distintos en cada una, así que este valor es
+            # el de la primera y no vale para afirmar nada de las demás.
+            "curso": (asignatura.get("curso", "") if asignatura else ""),
         }
         chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
 
@@ -732,14 +1055,24 @@ def trocear_dataset(
                 "nombre": item["grado"],
                 # Las salidas no son una asignatura: el campo queda vacío en
                 # lugar de inventarle un tipo, con el mismo criterio que se
-                # aplica al ECTS ausente.
+                # aplica al ECTS ausente. Lo mismo con el curso.
                 "tipo_asignatura": "",
+                "curso": "",
             }
             chunks.extend(
                 _chunks_de_unidad(encabezado, item["texto"], base, "salidas", tamanos)
             )
 
     chunks.extend(_chunks_de_plan_de_estudios(items, tamanos))
+
+    # IT-107: fragmentos derivados que contestan las preguntas de agregación.
+    # Mismo argumento que el listado del plan y la misma frontera: todo sale de
+    # contar y agrupar lo que la fuente publica. Nada de comparar titulaciones
+    # ni de agrupar asignaturas por tema, que serían criterios nuestros metidos
+    # en un corpus que se defiende por ser información oficial de la EPSJ.
+    chunks.extend(_chunks_de_catalogo(items, tamanos))
+    chunks.extend(_chunks_de_ficha(items, tamanos))
+    chunks.extend(_chunks_de_mencion(items, tamanos))
 
     # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
     # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
@@ -797,6 +1130,7 @@ def trocear_dataset(
             "codigos": [asignatura["codigo"]],
             "nombre": asignatura["nombre"],
             "tipo_asignatura": asignatura["tipo_asignatura"],
+            "curso": asignatura.get("curso", ""),
         }
         chunks.append(
             {
