@@ -5,12 +5,10 @@ de IT-38: es la herramienta para sentarse delante y ver qué contesta el sistema
 que es lo que ninguna cifra enseña. Permite cambiar de modelo sin reiniciar,
 para poder comparar candidatos con la misma pregunta.
 
-Arrastra los últimos turnos, y hace falta que los arrastre: una pregunta como
-«¿y en primer año?» no menciona la titulación, así que incrustada sola recupera
-fragmentos de las doce. Pero solo cuando la pregunta lo necesita: si ya nombra
-una titulación, se incrusta sola, porque arrastrarla llegó a desviar la
-recuperación entera hacia el tema anterior. Es lo mínimo para poder encadenar
-tres preguntas; el manejo serio de la conversación es de la Fase 3.
+La conversación la lleva :class:`tfg_uja.conversacion.Conversacion` (IT-106),
+que recuerda de qué titulación se habla ---también si la nombró el asistente y
+no el estudiante--- y acota la búsqueda con un filtro exacto. Sin eso, «¿y qué
+asignaturas tiene en primero?» recuperaba fragmentos de las doce titulaciones.
 
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
 poder releer después qué se preguntó y qué se respondió sin que las pruebas
@@ -28,7 +26,9 @@ Dentro del chat:
     /modelo <nombre>    cambia de modelo generativo
     /k <n>              cambia cuántos fragmentos se recuperan
     /grado <nombre>     acota la búsqueda a una titulación ("/grado ." la quita)
+    /curso <nombre>     acota a un curso ("/curso ." lo quita)
     /fuentes            muestra los fragmentos de la última respuesta
+    /ambito             dice de qué titulación cree el sistema que se habla
     /olvida             vacía la conversación y empieza de cero
     /salir
 """
