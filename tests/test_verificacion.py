@@ -187,3 +187,73 @@ def test_la_cobertura_no_premia_un_formato_sobre_otro():
     vinetas = "- Minería web\n- Desarrollo de videojuegos"
     assert cotejar_listado(prosa, corpus, corpus)[1] == 1.0
     assert cotejar_listado(vinetas, corpus, corpus)[1] == 1.0
+
+
+# --- El formato del modelo no puede cambiar la nota (18/08/2026) ---
+
+#: Respuesta literal de ministral-3:3b, correcta y en negrita. Es el caso que
+#: destapó el fallo: la negrita se colaba dentro del nombre.
+_EN_NEGRITA = (
+    "En el **primer curso del Grado en Ingeniería Informática**, "
+    "las asignaturas obligatorias son:\n\n"
+    "- **Matemática discreta** (6 ECTS).\n"
+    "- **Álgebra** (6 ECTS).\n"
+    "- **Programación orientada a objetos** (6 ECTS).\n"
+)
+
+#: Respuesta literal de gemma3, correcta, con un rótulo encabezando la sublista.
+_CON_ROTULO = (
+    "Las asignaturas del Grado en Ingeniería Informática en primer curso son:\n\n"
+    "*   Primer curso:\n"
+    "    *   Matemática discreta (6 ECTS)\n"
+    "    *   Álgebra (6 ECTS)\n"
+    "    *   Programación orientada a objetos (6 ECTS)\n"
+)
+
+_TRES = {"Matemática discreta", "Álgebra", "Programación orientada a objetos"}
+
+
+def test_la_negrita_no_forma_parte_del_nombre():
+    """Regresión: «**Álgebra**» no casaba con ninguna asignatura del corpus."""
+    assert elementos_de_lista(_EN_NEGRITA) == [
+        "Matemática discreta",
+        "Álgebra",
+        "Programación orientada a objetos",
+    ]
+
+
+def test_una_respuesta_perfecta_en_negrita_no_puntua_cero():
+    """Antes puntuaba 0,000 de precisión con las tres asignaturas acertadas."""
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        _EN_NEGRITA, _TRES, _TRES
+    )
+    assert (inventadas, omitidas) == (set(), set())
+    assert (precision, cobertura) == (1.0, 1.0)
+
+
+def test_un_rotulo_de_sublista_no_es_un_elemento():
+    """«Primer curso:» encabeza la lista; contarlo inventaba una asignatura."""
+    assert "Primer curso" not in elementos_de_lista(_CON_ROTULO)
+    assert len(elementos_de_lista(_CON_ROTULO)) == 3
+
+
+def test_el_rotulo_no_baja_la_precision_de_una_respuesta_correcta():
+    precision, _, inventadas, _ = cotejar_listado(_CON_ROTULO, _TRES, _TRES)
+    assert inventadas == set()
+    assert precision == 1.0
+
+
+def test_los_dos_puntos_dentro_del_elemento_siguen_recortando_la_cola():
+    """Un elemento que **no** termina en dos puntos conserva su nombre."""
+    assert elementos_de_lista("- Álgebra: 6 ECTS") == ["Álgebra"]
+
+
+def test_la_negrita_tambien_se_quita_en_la_enumeracion_en_prosa():
+    """En prosa la negrita también estorba, aunque el nombre llegue con lo que
+    lo introducía delante: eso lo absorbe después la comparación por sufijo."""
+    texto = "Son **Minería web** (6 ECTS) y **Álgebra** (6 ECTS)."
+    assert elementos_de_lista(texto) == ["Son Minería web", "Álgebra"]
+    corpus = {"Minería web", "Álgebra"}
+    precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
+    assert inventadas == set()
+    assert (precision, cobertura) == (1.0, 1.0)
