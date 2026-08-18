@@ -32,6 +32,7 @@ extremo, con dos decisiones que no son de redacción sino de arquitectura:
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.request
 from typing import Final
 
@@ -91,6 +92,19 @@ INSTRUCCIONES: Final[str] = (
 #: Cuántas preguntas anteriores se le recuerdan al modelo. Son **preguntas**,
 #: no respuestas: ver :func:`_conversacion`.
 TURNOS_EN_EL_PROMPT: Final[int] = 3
+
+
+class ErrorDelModelo(RuntimeError):
+    """El servidor de inferencia no ha podido responder.
+
+    Existe para que quien llama pueda distinguir «el modelo ha fallado» de un
+    fallo del propio sistema, y decidir qué hacer. El caso real que la motivó,
+    el 18/08/2026: descargando un modelo de 9 GB mientras se cargaba uno de 7B,
+    el servidor devolvió un 500 por falta de memoria y la excepción sin capturar
+    **se llevó por delante la sesión de pruebas entera**, con su conversación.
+    Una herramienta para probar a mano no puede perder el trabajo por un fallo
+    pasajero del servidor.
+    """
 
 
 def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
@@ -530,6 +544,18 @@ def generar(
         data=json.dumps(cuerpo).encode("utf-8"),
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(peticion, timeout=600) as respuesta:
-        datos = json.loads(respuesta.read())
+    try:
+        with urllib.request.urlopen(peticion, timeout=600) as respuesta:
+            datos = json.loads(respuesta.read())
+    except urllib.error.HTTPError as error:
+        detalle = error.read().decode("utf-8", "replace").strip()
+        raise ErrorDelModelo(
+            f"el servidor respondió {error.code} al generar con «{modelo}»"
+            + (f": {detalle[:200]}" if detalle else "")
+        ) from error
+    except urllib.error.URLError as error:
+        raise ErrorDelModelo(
+            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
+            "¿Está Ollama en marcha?"
+        ) from error
     return str(datos.get("response", "")).strip()
