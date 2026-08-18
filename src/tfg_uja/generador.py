@@ -32,6 +32,7 @@ extremo, con dos decisiones que no son de redacción sino de arquitectura:
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.request
 from typing import Final
 
@@ -83,17 +84,27 @@ INSTRUCCIONES: Final[str] = (
     "- Si hay un ÁMBITO declarado, responde sobre esa titulación. Varias "
     "asignaturas se imparten en más de una, y el contexto las nombra todas; "
     "menciónalo si viene al caso, pero no cambies de titulación.\n"
-    "- La CONVERSACIÓN PREVIA sirve solo para entender a qué se refiere la "
-    "pregunta. Los datos salen del CONTEXTO, nunca de tus respuestas "
-    "anteriores.\n"
+    "- Las PREGUNTAS ANTERIORES sirven solo para entender a qué se refiere la "
+    "pregunta actual. Todos los datos salen del CONTEXTO.\n"
     "- Cita la asignatura o la titulación de la que sale cada dato."
 )
 
-#: Cuánto se conserva de cada respuesta anterior al recordarla, en caracteres.
-#: Entera no cabe: tres respuestas de listado ocuparían más ventana que el
-#: propio contexto. Lo que hace falta del turno anterior es de qué se hablaba,
-#: no su contenido, que además puede arrastrar errores de esa respuesta.
-RESUMEN_TURNO: Final[int] = 300
+#: Cuántas preguntas anteriores se le recuerdan al modelo. Son **preguntas**,
+#: no respuestas: ver :func:`_conversacion`.
+TURNOS_EN_EL_PROMPT: Final[int] = 3
+
+
+class ErrorDelModelo(RuntimeError):
+    """El servidor de inferencia no ha podido responder.
+
+    Existe para que quien llama pueda distinguir «el modelo ha fallado» de un
+    fallo del propio sistema, y decidir qué hacer. El caso real que la motivó,
+    el 18/08/2026: descargando un modelo de 9 GB mientras se cargaba uno de 7B,
+    el servidor devolvió un 500 por falta de memoria y la excepción sin capturar
+    **se llevó por delante la sesión de pruebas entera**, con su conversación.
+    Una herramienta para probar a mano no puede perder el trabajo por un fallo
+    pasajero del servidor.
+    """
 
 
 def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
@@ -123,12 +134,31 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
     # proximidad. Medido: con el orden por distancia, las optativas caían entre
     # los cursos segundo y primero, y el modelo enumeró los cuatro cursos y se
     # dejó las diecisiete optativas fuera aunque las tenía delante.
-    listados = [f for f in fragmentos if f.origen == "plan_de_estudios"]
-    ancla = min((mejor[(f.nombre, f.origen)] for f in listados), default=0.0)
+    #
+    # El ancla es **por titulación**, no una sola para todos los listados. Con
+    # una sola, los cursos se ordenaban entre sí ignorando de qué titulación
+    # eran, y las titulaciones quedaban intercaladas: medido el 17/08/2026, a
+    # «¿y en el segundo?» el listado correcto llegaba el octavo de dieciocho,
+    # detrás de cinco listados de primer curso de otras titulaciones, y el
+    # modelo contestó por un doble grado que no se le había preguntado. Así
+    # cada titulación viaja entera y en orden, y entre titulaciones sigue
+    # mandando la proximidad.
+    anclas: dict[tuple[str, ...], float] = {}
+    for f in fragmentos:
+        if f.origen != "plan_de_estudios":
+            continue
+        titulacion = tuple(f.grados)
+        distancia = mejor[(f.nombre, f.origen)]
+        anclas[titulacion] = min(anclas.get(titulacion, distancia), distancia)
 
     def orden(f: Fragmento) -> tuple[float, int, str, int]:
         if f.origen == "plan_de_estudios":
-            return (ancla, _curso_del_listado(f.nombre), f.nombre, f.chunk_index)
+            return (
+                anclas[tuple(f.grados)],
+                _curso_del_listado(f.nombre),
+                f.nombre,
+                f.chunk_index,
+            )
         return (mejor[(f.nombre, f.origen)], 0, f.nombre, f.chunk_index)
 
     return sorted(fragmentos, key=orden)
@@ -230,6 +260,9 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
         "noches",
         "saludos",
         "saludo",
+        "hello",
+        "hi",
+        "hallo",
         "hey",
         "ey",
         "que",
@@ -267,8 +300,14 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
 #: Las que además tienen que aparecer para que el mensaje sea un saludo. Sin
 #: esta condición, un resto de frase como «vale» o «y a mí» entraría por ser
 #: todo cortesía.
+#:
+#: Las tres últimas no son españolas, y entran porque un estudiante abre en el
+#: idioma que le sale: medido el 17/08/2026, «Hallo» cayó en la respuesta de
+#: contexto vacío y se llevó un «no he encontrado información sobre eso». Lo
+#: que se reconoce es la apertura, no el idioma: el asistente sigue
+#: respondiendo en español.
 _SALUDO: Final[frozenset[str]] = frozenset(
-    {"hola", "buenas", "buenos", "saludos", "hey", "ey"}
+    {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
 )
 
 #: Y las que lo convierten en una despedida o un agradecimiento.
@@ -363,23 +402,33 @@ def responder(
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
-    """Rehace los turnos anteriores, con las respuestas recortadas.
+    """Rehace los turnos anteriores. **Solo las preguntas.**
+
+    Las respuestas del propio modelo ya no entran. Entraban recortadas a 300
+    caracteres y con la regla «los datos salen del CONTEXTO, nunca de tus
+    respuestas anteriores» escrita en las instrucciones, y no bastó: medido el
+    17/08/2026, preguntado por los dobles grados, el modelo cerró su respuesta
+    con «En el primer curso de todos los títulos mencionados se imparte
+    Matemáticas I», frase copiada de su propia respuesta dos turnos antes y sin
+    ninguna relación con lo que se le había preguntado.
+
+    Es el patrón de siempre en este proyecto: una prohibición en el prompt no es
+    un control. Lo que no está en el prompt no se puede copiar, y para entender
+    a qué se refiere «¿y en el segundo?» basta con saber qué se preguntó antes;
+    lo que el modelo contestó no aporta nada y sí arrastra sus propios errores.
 
     Args:
         historial: Pares ``(pregunta, respuesta)``, del más antiguo al último.
+            La respuesta se ignora a propósito.
 
     Returns:
-        El bloque de conversación previa, o cadena vacía si no hay ninguna.
+        El bloque de preguntas anteriores, o cadena vacía si no hay ninguna.
     """
     if not historial:
         return ""
-    turnos = []
-    for pregunta, respuesta in historial:
-        recorte = respuesta[:RESUMEN_TURNO]
-        if len(respuesta) > RESUMEN_TURNO:
-            recorte += " [...]"
-        turnos.append(f"Estudiante: {pregunta}\nAsistente: {recorte}")
-    return "CONVERSACIÓN PREVIA:\n" + "\n\n".join(turnos) + "\n\n"
+    preguntas = [p for p, _ in historial[-TURNOS_EN_EL_PROMPT:]]
+    lista = "\n".join(f"- {p}" for p in preguntas)
+    return f"PREGUNTAS ANTERIORES DEL ESTUDIANTE:\n{lista}\n\n"
 
 
 def construir_prompt(
@@ -495,6 +544,18 @@ def generar(
         data=json.dumps(cuerpo).encode("utf-8"),
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(peticion, timeout=600) as respuesta:
-        datos = json.loads(respuesta.read())
+    try:
+        with urllib.request.urlopen(peticion, timeout=600) as respuesta:
+            datos = json.loads(respuesta.read())
+    except urllib.error.HTTPError as error:
+        detalle = error.read().decode("utf-8", "replace").strip()
+        raise ErrorDelModelo(
+            f"el servidor respondió {error.code} al generar con «{modelo}»"
+            + (f": {detalle[:200]}" if detalle else "")
+        ) from error
+    except urllib.error.URLError as error:
+        raise ErrorDelModelo(
+            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
+            "¿Está Ollama en marcha?"
+        ) from error
     return str(datos.get("response", "")).strip()

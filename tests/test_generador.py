@@ -19,7 +19,6 @@ from tfg_uja.generador import (
     INSTRUCCIONES,
     RESPUESTA_DESPEDIDA,
     RESPUESTA_SALUDO,
-    RESUMEN_TURNO,
     TOPE_RESPUESTA,
     VENTANA,
     construir_prompt,
@@ -115,39 +114,47 @@ def test_sin_fragmentos_el_prompt_lo_dice_explicitamente():
 # --- La conversación previa ---
 
 
-def test_los_turnos_anteriores_entran_en_el_prompt():
-    """Sin ellos, «¿y en primer año?» no sabe de qué titulación se hablaba."""
+def test_las_preguntas_anteriores_entran_en_el_prompt():
+    """Sin ellas, «¿y en primer año?» no sabe de qué titulación se hablaba."""
     prompt = construir_prompt(
         "¿y en primer año?",
         [fragmento("Álgebra", "temario")],
         [("háblame de Informática", "es una carrera de cuatro años")],
     )
     assert "háblame de Informática" in prompt
-    assert "es una carrera de cuatro años" in prompt
 
 
-def test_la_conversacion_va_separada_del_contexto():
-    """Regresión de diseño: una respuesta inventada no puede volverse fuente.
+def test_las_respuestas_anteriores_no_entran_en_el_prompt():
+    """Regresión del turno 13 del 17/08/2026.
 
-    Si el turno anterior entrara mezclado con los fragmentos del corpus, lo que
-    el modelo se inventó en una respuesta sería contexto para la siguiente, y
-    el error se consolidaría en vez de corregirse.
+    Preguntado por los dobles grados, el modelo cerró su respuesta con «En el
+    primer curso de todos los títulos mencionados se imparte Matemáticas I»,
+    copiada literalmente de su propia respuesta dos turnos antes y sin relación
+    con lo que se le preguntaba. La regla que lo prohibía llevaba escrita en
+    las instrucciones desde el principio.
+
+    Lo que no está en el prompt no se puede copiar.
     """
+    inventado = "TEXTO-QUE-DIJO-EL-MODELO"
     prompt = construir_prompt(
         "otra pregunta",
         [fragmento("Álgebra", "temario real")],
-        [("antes", "algo que dijo el modelo")],
+        [("antes", inventado)],
     )
-    assert prompt.index("CONVERSACIÓN PREVIA") < prompt.index("CONTEXTO:")
-    assert "nunca de tus respuestas anteriores" in prompt
+    assert inventado not in prompt
+    assert "antes" in prompt
 
 
-def test_una_respuesta_larga_se_recorta_al_recordarla():
-    """Tres respuestas de listado enteras ocuparían más que el propio contexto."""
-    larga = "x" * (RESUMEN_TURNO + 500)
-    prompt = construir_prompt("otra", [fragmento("A", "t")], [("antes", larga)])
-    assert larga not in prompt
-    assert "[...]" in prompt
+def test_las_preguntas_anteriores_van_separadas_del_contexto():
+    """Al mismo nivel que los fragmentos se leerían como parte del corpus."""
+    prompt = construir_prompt(
+        "otra pregunta",
+        [fragmento("Álgebra", "temario real")],
+        [("antes", "algo")],
+    )
+    assert prompt.index("PREGUNTAS ANTERIORES DEL ESTUDIANTE:") < prompt.index(
+        "CONTEXTO:"
+    )
 
 
 def test_sin_historial_el_prompt_no_cambia():
@@ -155,12 +162,12 @@ def test_sin_historial_el_prompt_no_cambia():
 
     Se busca el rótulo con sus dos puntos, que solo aparece encabezando el
     bloque; sin ellos casaría también con la regla de las instrucciones que
-    habla de la conversación previa, y la prueba pasaría por el motivo malo.
+    habla de las preguntas anteriores, y la prueba pasaría por el motivo malo.
     """
     sin = construir_prompt("una pregunta", [fragmento("A", "t")])
     vacio = construir_prompt("una pregunta", [fragmento("A", "t")], [])
     assert sin == vacio
-    assert "CONVERSACIÓN PREVIA:" not in sin
+    assert "PREGUNTAS ANTERIORES DEL ESTUDIANTE:" not in sin
 
 
 # --- El orden y la integridad del contexto ---
@@ -529,3 +536,97 @@ def test_el_catalogo_llega_a_traves_de_responder(espia):
         catalogo=["Grado en Ingeniería Informática"],
     )
     assert "TITULACIONES DE LA ESCUELA" in espia["cuerpo"]["prompt"]
+
+
+@pytest.mark.parametrize("apertura", ["Hallo", "hello", "Hi!"])
+def test_un_saludo_en_otro_idioma_tambien_es_un_saludo(apertura):
+    """Regresión del turno 3 del 17/08/2026.
+
+    «Hallo» cayó en la respuesta de contexto vacío y se llevó un «no he
+    encontrado información sobre eso». Un estudiante abre en el idioma que le
+    sale; lo que se reconoce es la apertura, no el idioma, y la respuesta sigue
+    siendo en español.
+    """
+    assert cortesia(apertura) == RESPUESTA_SALUDO
+
+
+def test_cada_titulacion_viaja_entera_en_los_listados():
+    """Regresión del turno 8 del 17/08/2026, en su segunda forma.
+
+    Con un ancla única para todos los listados, los cursos se ordenaban entre
+    sí ignorando de qué titulación eran. A «¿y en el segundo?» el listado
+    correcto llegaba el octavo de dieciocho, detrás de cinco listados de primer
+    curso de otras titulaciones, y el modelo contestó por un doble grado que no
+    se le había preguntado.
+    """
+    proxima = ["Grado en Ingeniería Electrónica Industrial"]
+    lejana = ["Doble Grado en Ingeniería Eléctrica y Electrónica Industrial"]
+    recuperados = [
+        fragmento(
+            "Asignaturas obligatorias de primer curso del Doble",
+            "LEJANA-PRIMERO",
+            lejana,
+            distancia=0.082,
+            origen="plan_de_estudios",
+        ),
+        fragmento(
+            "Asignaturas obligatorias de segundo curso del Grado",
+            "PROXIMA-SEGUNDO",
+            proxima,
+            distancia=0.076,
+            origen="plan_de_estudios",
+        ),
+        fragmento(
+            "Asignaturas obligatorias de primer curso del Grado",
+            "PROXIMA-PRIMERO",
+            proxima,
+            distancia=0.077,
+            origen="plan_de_estudios",
+        ),
+    ]
+    prompt = construir_prompt("¿y en el segundo?", recuperados)
+    # La titulación más próxima va entera y en orden de curso, antes que la otra.
+    assert (
+        prompt.index("PROXIMA-PRIMERO")
+        < prompt.index("PROXIMA-SEGUNDO")
+        < prompt.index("LEJANA-PRIMERO")
+    )
+
+
+# --- El servidor puede fallar ---
+
+
+def test_un_500_del_servidor_no_se_escapa_como_httperror(monkeypatch):
+    """Regresión del 18/08/2026.
+
+    Descargando un modelo de 9 GB mientras se cargaba uno de 7B, el servidor
+    devolvió un 500 por falta de memoria. La excepción sin capturar se llevó por
+    delante la sesión de pruebas entera, con su conversación. Una herramienta
+    para probar a mano no puede perder el trabajo por un fallo pasajero.
+    """
+    import io
+    import urllib.error
+
+    def falla(*_args, **_kwargs):
+        raise urllib.error.HTTPError(
+            "http://x", 500, "Internal Server Error", {}, io.BytesIO(b"sin memoria")
+        )
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", falla)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "500" in str(fallo.value)
+    assert "sin memoria" in str(fallo.value)
+
+
+def test_un_servidor_apagado_se_explica(monkeypatch):
+    """El caso más frecuente: Ollama no está en marcha."""
+    import urllib.error
+
+    def falla(*_args, **_kwargs):
+        raise urllib.error.URLError("conexión rechazada")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", falla)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "Ollama" in str(fallo.value)

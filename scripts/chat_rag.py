@@ -44,7 +44,11 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.generador import cortesia, responder  # noqa: E402
+from tfg_uja.generador import (  # noqa: E402
+    ErrorDelModelo,
+    cortesia,
+    responder,
+)
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -303,9 +307,20 @@ def main(argumentos: list[str]) -> None:
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        respuesta = responder(
-            entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
-        )
+        try:
+            respuesta = responder(
+                entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
+            )
+        except ErrorDelModelo as error:
+            # Se avisa y se sigue. Un fallo pasajero del servidor no puede
+            # costar la sesion entera: el 18/08/2026 un 500 por falta de
+            # memoria, con una descarga de 9 GB en marcha, se llevo por delante
+            # la conversacion de pruebas completa.
+            print(
+                f"\n  [!] {error}\n"
+                f"      La pregunta no se ha respondido; puedes repetirla.\n"
+            )
+            continue
         t_generar = time.perf_counter() - t1
 
         historial.append((entrada, respuesta))
