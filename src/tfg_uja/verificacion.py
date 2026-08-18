@@ -83,6 +83,49 @@ _ENUMERADA: Final[re.Pattern[str]] = re.compile(
 )
 
 
+#: Paréntesis con el que la fuente distingue de qué titulación del doble grado
+#: viene una asignatura: «MÁQUINAS TÉRMICAS (GIM)», «CONTROL POR COMPUTADOR
+#: (GIEI)». Son 54 de los 316 nombres del corpus, y el mismo mecanismo marca el
+#: plan en «Grado en Ingeniería Geomática y Topográfica (plan 2025)».
+_CALIFICADOR: Final[re.Pattern[str]] = re.compile(r"\s*\([^)]*\)")
+
+#: Abreviaturas que la fuente usa dentro de un nombre. Son las de los seis
+#: trabajos de fin de grado y nada más; se enumeran en vez de resolverlas por
+#: regla porque una regla general convertiría cualquier punto en abreviatura.
+_ABREVIATURAS: Final[dict[str, str]] = {"ing.": "ingenieria"}
+
+
+def nucleo(nombre: str) -> str:
+    """Deja un nombre en la forma con la que se puede comparar de verdad.
+
+    Normalizar no basta. El corpus escribe «AUTOMÁTICA AVANZADA (GIEI)» y
+    cualquier modelo responde «Automática Avanzada», porque el paréntesis no es
+    parte del nombre de la asignatura: es la marca con la que la fuente dice a
+    cuál de las dos titulaciones de un doble grado pertenece. Comparando con él
+    puesto, **una respuesta perfecta puntúa cero**.
+
+    No es una hipótesis: medido el 18/08/2026, ministral-8b enumeró las diez
+    obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
+    Electrónica Industrial y Mecánica, las diez correctas y ninguna de más, y
+    la cobertura salía 0,000 con las diez contadas como omitidas.
+
+    Quitar el calificador no confunde asignaturas distintas: comprobado sobre
+    el corpus entero, los nombres que colapsan son la misma asignatura con y
+    sin sigla ---la que se imparte en el grado simple y en el doble---, y
+    dentro de ninguna pregunta del banco colapsan dos respuestas esperadas.
+
+    Args:
+        nombre: Nombre tal como lo publica la fuente o como lo escribe el
+            modelo.
+
+    Returns:
+        El nombre en minúsculas, sin tildes, sin el calificador entre
+        paréntesis y con las abreviaturas de la fuente resueltas.
+    """
+    limpio = normalizar(_CALIFICADOR.sub(" ", nombre))
+    return " ".join(_ABREVIATURAS.get(p, p) for p in limpio.split())
+
+
 def titulaciones_nombradas(respuesta: str) -> set[str]:
     """Titulaciones que la respuesta presenta como tales.
 
@@ -209,10 +252,10 @@ def cotejar_listado(
         proporción de lo esperado que aparece. Sin elementos enumerados la
         precisión es 0,0: no haber dicho nada no es haber acertado.
     """
-    dichas = [normalizar(e) for e in elementos_de_lista(respuesta)]
-    esperadas_norm = {normalizar(e) for e in esperadas}
-    corpus_norm = {normalizar(e) for e in del_corpus}
-    texto = normalizar(respuesta)
+    dichas = [nucleo(e) for e in elementos_de_lista(respuesta)]
+    esperadas_norm = {nucleo(e) for e in esperadas}
+    corpus_norm = {nucleo(e) for e in del_corpus}
+    texto = nucleo(respuesta)
 
     def existe(dicha: str) -> bool:
         # Por sufijo, no por igualdad: dentro de un párrafo el nombre arrastra
