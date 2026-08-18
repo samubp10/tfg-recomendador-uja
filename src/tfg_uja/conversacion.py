@@ -109,27 +109,47 @@ def titulaciones_de_la_respuesta(respuesta: str, catalogo: list[str]) -> list[st
     return [t for t in catalogo if normalizar(t) in dicho]
 
 
-def es_continuacion(pregunta: str) -> bool:
-    """Dice si la pregunta se apoya en la anterior en vez de abrir tema.
+#: Fórmulas con las que una pregunta se refiere a lo que acaba de decirse en
+#: vez de nombrarlo. Son el rastro de que **recorta** el resultado anterior en
+#: lugar de plantear un tema.
+ANAFORAS: Final[tuple[str, ...]] = (
+    "de esas",
+    "de esos",
+    "de estas",
+    "de estos",
+    "de ellas",
+    "de ellos",
+    "de las anteriores",
+    "de los anteriores",
+)
 
-    En castellano una pregunta que empieza por «y» continúa la anterior: «¿y
-    cuántas son optativas?», «¿y en segundo?». Sirve para decidir **qué se
-    hereda**: una continuación nunca pasa a ser el predicado de referencia,
-    porque heredarla arrastra el recorte que ella misma hacía.
 
-    Medido el 17/08/2026: «¿Y en el segundo?» heredó de «¿y cuántas de esas son
-    optativas?», la consulta quedó dominada por «optativas», el listado de
+def recorta_lo_anterior(pregunta: str) -> bool:
+    """Dice si la pregunta afina el resultado anterior en vez de plantear tema.
+
+    Sirve para decidir **qué predicado se hereda**. Una pregunta que recorta
+    no puede ser la referencia de las siguientes, porque arrastraría su propio
+    recorte a preguntas que ya no lo piden.
+
+    Medido el 17/08/2026: «¿Y en el segundo?» heredó de «¿y cuántas **de esas**
+    son optativas?». La consulta quedó dominada por «optativas», el listado de
     segundo curso no entró en el contexto y el modelo rellenó el hueco con
     **seis asignaturas que no existen**.
+
+    No vale con mirar si empieza por «y». Medido el 18/08/2026 sobre la
+    conversación real: «¿Y qué asignaturas tiene en primero?» empieza por «y»
+    pero sí plantea tema, y descartarla dejaba a la siguiente heredando de
+    «soy de bachillerato y me gustan los videojuegos», que no dice nada del
+    plan de estudios. Lo que distingue a una de otra es la anáfora.
 
     Args:
         pregunta: Pregunta tal cual la escribe el usuario.
 
     Returns:
-        ``True`` si arranca con la conjunción.
+        ``True`` si se refiere a lo anterior en lugar de nombrarlo.
     """
-    primeras = normalizar(pregunta).split()
-    return bool(primeras) and "".join(c for c in primeras[0] if c.isalnum()) == "y"
+    dicho = normalizar(pregunta)
+    return any(anafora in dicho for anafora in ANAFORAS)
 
 
 def contenido(pregunta: str, catalogo: list[str]) -> set[str]:
@@ -208,9 +228,18 @@ class Conversacion:
             # Se quitan solo las palabras **distintivas**, no todas las del
             # catálogo: «en» y «de» están en «Grado en Ingeniería...» y
             # quitarlas dejaba la frase descosida («tiene primero»).
-            distintivas = palabras_distintivas(self.catalogo)
+            #
+            # El ordinal heredado solo sobra **si la pregunta de ahora trae el
+            # suyo**. Medido el 18/08/2026 con la conversación real: heredando
+            # «¿y qué asignaturas tiene en primero?» entera, a «¿y en segundo?»
+            # le seguían llegando los listados de *primer* curso; quitándolo
+            # siempre, «¿y en el grado de electrónica?» perdía el curso del que
+            # se venía hablando y dejaba de recuperar ningún plan.
+            sobran = palabras_distintivas(self.catalogo)
+            if palabras(pregunta) & ORDINALES:
+                sobran = sobran | ORDINALES
             anterior = " ".join(
-                p for p in self._predicado.split() if not palabras(p) & distintivas
+                p for p in self._predicado.split() if not palabras(p) & sobran
             )
             texto = f"{anterior} {pregunta}".strip()
         elif not mencionadas and len(ambito) == 1:
@@ -237,7 +266,7 @@ class Conversacion:
         self._preguntas.append(pregunta)
         del self._preguntas[: -self.turnos_recordados]
 
-        if contenido(pregunta, self.catalogo) and not es_continuacion(pregunta):
+        if contenido(pregunta, self.catalogo) and not recorta_lo_anterior(pregunta):
             self._predicado = pregunta
 
         nuevo = titulaciones_de_la_pregunta(
