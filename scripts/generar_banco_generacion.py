@@ -18,6 +18,15 @@ Solo se generan familias cuya respuesta correcta es **exacta y computable**.
 Lo que no lo es ---de qué trata una asignatura, si la recomendación es buena---
 se observa y se cuenta aparte, pero no decide.
 
+Y hay una condición más, que costó descubrir: **la respuesta tiene que estar en
+el corpus**. Se generó durante un tiempo una familia que preguntaba en qué
+titulaciones se imparte una asignatura compartida. La respuesta se computa sin
+problema del dataset, pero ningún fragmento la contiene: los fragmentos se
+componen por titulación y curso, y nadie los cruza. Medido el 18/08/2026, los
+dos modelos probados contestaron 2 y 6 titulaciones donde el dataset dice 10,
+y los dos habían leído bien lo que se les dio. Eran 86 preguntas que habrían
+suspendido a todos los candidatos por un hueco del corpus, no por el modelo.
+
 Uso::
 
     py scripts/generar_banco_generacion.py
@@ -37,9 +46,6 @@ from typing import Any
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 RAIZ = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "src"))
-
-from tfg_uja.text_cleaner import normalizar  # noqa: E402
 
 #: Tipos que un estudiante entiende como «hay que aprobarlas sí o sí». No se
 #: llaman «obligatorias» en la pregunta a propósito: en el plan oficial `FB` es
@@ -259,44 +265,6 @@ def preguntas_de_asignatura(datos: list[dict[str, Any]]) -> list[dict[str, Any]]
     return preguntas
 
 
-def preguntas_de_ubicacion(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """En qué titulaciones se imparte una asignatura compartida.
-
-    Solo se generan para las que se imparten en más de una: en las demás la
-    respuesta es trivial y no distingue a un modelo de otro.
-    """
-    # Se agrupa por el nombre normalizado, no por el literal. La fuente publica
-    # la misma asignatura en mayúsculas en los dobles grados y en caja normal
-    # en los simples ---«ESTADÍSTICA» y «Estadística»---, y agrupar por el
-    # literal las parte en dos: la respuesta correcta a «¿dónde se imparte
-    # Estadística?» pasaba de las diez titulaciones reales a solo seis.
-    # Son 22 los nombres a los que les pasa.
-    donde: dict[str, set[str]] = collections.defaultdict(set)
-    como_se_llama: dict[str, str] = {}
-    for a in _asignaturas(datos):
-        clave = normalizar(a["nombre"])
-        donde[clave].add(a["grado"])
-        # Entre las variantes se muestra la que no grita, si existe.
-        if clave not in como_se_llama or not a["nombre"].isupper():
-            como_se_llama[clave] = a["nombre"]
-
-    compartidas = {como_se_llama[c]: g for c, g in donde.items() if len(g) > 1}
-    return [
-        {
-            "id": f"G-UBI-{numero:03d}",
-            "familia": "ubicacion",
-            "pregunta": (
-                f"¿En qué titulaciones de la EPSJ se imparte "
-                f"{_como_se_escribe(nombre)}?"
-            ),
-            "respuesta": "conjunto",
-            "esperado": sorted(grados),
-            "ambito": {"asignatura": nombre},
-        }
-        for numero, (nombre, grados) in enumerate(sorted(compartidas.items()), 1)
-    ]
-
-
 def muestra_estratificada(
     preguntas: list[dict[str, Any]], tamano: int, semilla: int
 ) -> list[dict[str, Any]]:
@@ -343,7 +311,6 @@ def construir(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
         *preguntas_de_curso(datos),
         *preguntas_de_optativas(datos),
         *preguntas_de_mencion(datos),
-        *preguntas_de_ubicacion(datos),
         *preguntas_de_asignatura(datos),
     ]
 
