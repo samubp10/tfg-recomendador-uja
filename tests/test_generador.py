@@ -591,3 +591,42 @@ def test_cada_titulacion_viaja_entera_en_los_listados():
         < prompt.index("PROXIMA-SEGUNDO")
         < prompt.index("LEJANA-PRIMERO")
     )
+
+
+# --- El servidor puede fallar ---
+
+
+def test_un_500_del_servidor_no_se_escapa_como_httperror(monkeypatch):
+    """Regresión del 18/08/2026.
+
+    Descargando un modelo de 9 GB mientras se cargaba uno de 7B, el servidor
+    devolvió un 500 por falta de memoria. La excepción sin capturar se llevó por
+    delante la sesión de pruebas entera, con su conversación. Una herramienta
+    para probar a mano no puede perder el trabajo por un fallo pasajero.
+    """
+    import io
+    import urllib.error
+
+    def falla(*_args, **_kwargs):
+        raise urllib.error.HTTPError(
+            "http://x", 500, "Internal Server Error", {}, io.BytesIO(b"sin memoria")
+        )
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", falla)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "500" in str(fallo.value)
+    assert "sin memoria" in str(fallo.value)
+
+
+def test_un_servidor_apagado_se_explica(monkeypatch):
+    """El caso más frecuente: Ollama no está en marcha."""
+    import urllib.error
+
+    def falla(*_args, **_kwargs):
+        raise urllib.error.URLError("conexión rechazada")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", falla)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "Ollama" in str(fallo.value)
