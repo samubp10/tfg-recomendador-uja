@@ -415,7 +415,15 @@ def responder(
     if fija is not None:
         return fija
     if not fragmentos:
-        return RESPUESTA_SIN_CONTEXTO
+        # El primer mensaje se trata aparte. Casi nadie abre preguntando: abre
+        # saludando, y lo hace como le sale ---«hei», «Ola buenas», «q tal»---,
+        # así que enumerar las formas del saludo es una lista que nunca está
+        # completa. Lo que sí se sabe con certeza es otra cosa: si es el primer
+        # mensaje y no ha recuperado nada, todavía no se ha preguntado nada, y
+        # entonces lo que toca es dar la bienvenida y decir de qué sabe el
+        # sistema. Decirle «no he encontrado información sobre eso» a alguien
+        # que solo ha dicho hola es contestar a una pregunta que no ha hecho.
+        return RESPUESTA_SALUDO if not historial else RESPUESTA_SIN_CONTEXTO
     return generar(
         construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
     )
