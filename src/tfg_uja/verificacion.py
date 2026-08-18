@@ -54,6 +54,14 @@ _TITULACION: Final[re.Pattern[str]] = re.compile(
 #: que usan de hecho los candidatos probados: guion, asterisco y numeración.
 _VINETA: Final[re.Pattern[str]] = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+(.+?)\s*$")
 
+#: Marcas de énfasis de Markdown que los modelos ponen alrededor del nombre.
+#: No forman parte de él, pero sí impedían reconocerlo: medido el 18/08/2026,
+#: ministral-3:3b y qwen3.5:4b enumeraron **las diez asignaturas correctas** de
+#: primer curso de Informática en negrita, y esta función devolvía
+#: «**Álgebra**», que no casa con ninguna del corpus. Las dos respuestas, que
+#: son perfectas, puntuaban precisión 0,000 y salían las peores de la tabla.
+_ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
+
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
 #: el tipo. No forma parte del nombre de la asignatura.
 _COLA: Final[re.Pattern[str]] = re.compile(
@@ -139,13 +147,20 @@ def elementos_de_lista(respuesta: str) -> list[str]:
         encontrado = _VINETA.match(linea)
         if not encontrado:
             continue
-        nombre = _COLA.sub("", encontrado.group(1)).strip(" .;:")
+        crudo = _ENFASIS.sub("", encontrado.group(1)).strip()
+        # Una viñeta que termina en dos puntos no enumera: encabeza la sublista
+        # que viene debajo. Gemma3 respondió «* Primer curso:» y luego las diez
+        # asignaturas, y contar el rótulo como una más daba una invención que
+        # no existe. Se mira antes de recortar la cola, que se come el signo.
+        if crudo.endswith(":"):
+            continue
+        nombre = _COLA.sub("", crudo).strip(" .;:")
         if nombre:
             elementos.append(nombre)
     if elementos:
         return elementos
     return [
-        _desde_la_mayuscula(m.group(1).strip(" .;:"))
+        _desde_la_mayuscula(_ENFASIS.sub("", m.group(1)).strip(" .;:"))
         for m in _ENUMERADA.finditer(respuesta)
     ]
 
