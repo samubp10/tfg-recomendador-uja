@@ -11,6 +11,7 @@ from __future__ import annotations
 from tfg_uja.verificacion import (
     cotejar_listado,
     elementos_de_lista,
+    nucleo,
     titulaciones_inventadas,
     titulaciones_nombradas,
 )
@@ -254,6 +255,64 @@ def test_la_negrita_tambien_se_quita_en_la_enumeracion_en_prosa():
     texto = "Son **Minería web** (6 ECTS) y **Álgebra** (6 ECTS)."
     assert elementos_de_lista(texto) == ["Son Minería web", "Álgebra"]
     corpus = {"Minería web", "Álgebra"}
+    precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
+    assert inventadas == set()
+    assert (precision, cobertura) == (1.0, 1.0)
+
+
+# --- El calificador de doble grado (caso real del 18/08/2026) ---
+
+#: Las diez obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
+#: Electrónica Industrial y Mecánica, tal como las publica la fuente: con la
+#: sigla de la titulación de la que vienen.
+_CON_SIGLA = {
+    "AUTOMÁTICA AVANZADA (GIEI)",
+    "ELECTROTECNIA AVANZADA (GIEI)",
+    "ELECTRÓNICA ANALÓGICA (GIEI)",
+}
+
+#: Cómo las enumeró ministral-8b: correctas, completas y sin la sigla.
+_SIN_SIGLA = """En el Doble Grado se cursan:
+   - Automática Avanzada (6 ECTS).
+   - Electrotecnia Avanzada (6 ECTS).
+   - Electrónica Analógica (6 ECTS).
+"""
+
+
+def test_la_sigla_del_doble_grado_no_forma_parte_del_nombre():
+    assert nucleo("AUTOMÁTICA AVANZADA (GIEI)") == "automatica avanzada"
+
+
+def test_el_plan_entre_parentesis_tampoco():
+    assert (
+        nucleo("Grado en Ingeniería Geomática y Topográfica (plan 2025)")
+        == "grado en ingenieria geomatica y topografica"
+    )
+
+
+def test_la_abreviatura_de_la_fuente_se_resuelve():
+    """La fuente escribe «ING.» en los seis TFG y ningún modelo la copia."""
+    assert nucleo("TFG ING. MECÁNICA (GIM)") == "tfg ingenieria mecanica"
+
+
+def test_un_listado_correcto_sin_la_sigla_no_puntua_cero():
+    """Regresión del 18/08/2026.
+
+    Con el calificador puesto en la comparación, esta respuesta ---que enumera
+    las tres esperadas, ninguna de más y ninguna de menos--- daba cobertura
+    0,000 y las tres contadas como omitidas.
+    """
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        _SIN_SIGLA, _CON_SIGLA, _CON_SIGLA
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert inventadas == set()
+    assert omitidas == set()
+
+
+def test_expandir_la_abreviatura_no_convierte_el_tfg_en_inventado():
+    texto = "- TFG Ingeniería Mecánica (12 ECTS)."
+    corpus = {"TFG ING. MECÁNICA (GIM)"}
     precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
     assert inventadas == set()
     assert (precision, cobertura) == (1.0, 1.0)
