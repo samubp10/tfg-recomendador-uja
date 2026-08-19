@@ -401,3 +401,23 @@ def test_una_titulacion_que_no_existe_sigue_detectandose():
         "Grado en Ingeniería Biomédica",
         "Grado en Medicina",
     }
+
+
+def test_el_guion_dentro_del_nombre_no_lo_corta():
+    """Regresión: las dos asignaturas del corpus que llevan guion.
+
+    «Interacción persona-ordenador» quedaba en «Interacción persona» y
+    «Técnicas de animación 3D y post-procesamiento» en «...y post». Ninguna
+    casaba con el corpus, y dos respuestas correctas perdían precisión.
+    """
+    assert elementos_de_lista("- **Interacción persona-ordenador** (6 ECTS)") == [
+        "Interacción persona-ordenador"
+    ]
+    assert elementos_de_lista(
+        "- Técnicas de animación 3D y post-procesamiento (6 ECTS)"
+    ) == ["Técnicas de animación 3D y post-procesamiento"]
+
+
+def test_el_guion_con_espacio_delante_sigue_separando_la_cola():
+    """Es la forma en que los modelos escriben los créditos detrás."""
+    assert elementos_de_lista("- **Álgebra** - 6 ECTS") == ["Álgebra"]
