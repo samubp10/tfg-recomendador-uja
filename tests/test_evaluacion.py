@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import pytest
 
+from tfg_uja import evaluacion
+
 from tfg_uja.evaluacion import (
     chunks_relevantes,
     evaluar_modelo,
@@ -179,3 +181,45 @@ def test_evaluar_modelo_agrega_recall_y_mrr_sobre_todas_las_preguntas():
     assert agregados["recall@1"] == pytest.approx((0.5 + 1.0) / 2)
     assert agregados["recall@2"] == pytest.approx((1.0 + 1.0) / 2)
     assert agregados["mrr"] == pytest.approx(1.0)
+
+
+def test_las_preguntas_fuera_de_dominio_no_entran_en_las_metricas():
+    """Regresión de IT-86.
+
+    Su lista de relevantes está vacía a propósito ---lo correcto ante ellas es
+    no recuperar nada--- así que aquí aportarían un 0 fijo a Recall@K y a MRR.
+    Diez preguntas así sobre sesenta bajarían las medias un 17 % sin que el
+    recuperador hubiera fallado en ninguna.
+    """
+    chunks = [
+        {
+            "texto": "Álgebra del Grado en Ingeniería Informática.",
+            "origen": "guia",
+            "nombre": "Álgebra",
+            "grados": ["Grado en Ingeniería Informática"],
+        },
+    ]
+    dentro = {
+        "id": "P-001",
+        "tipo": "temario",
+        "pregunta": "¿qué se ve en Álgebra?",
+        "relevantes": [{"origen": "guia", "nombre": "Álgebra"}],
+    }
+    fuera = {
+        "id": "P-051",
+        "tipo": "fuera_de_dominio",
+        "pregunta": "¿cuál es la capital de Francia?",
+        "relevantes": [],
+    }
+
+    def incrustar(textos):
+        return [[1.0, 0.0] for _ in textos]
+
+    solo_dentro = evaluacion.evaluar_modelo(
+        chunks, [dentro], incrustar, incrustar, ks=(1,)
+    )
+    con_fuera = evaluacion.evaluar_modelo(
+        chunks, [dentro, fuera], incrustar, incrustar, ks=(1,)
+    )
+    assert con_fuera["agregados"] == solo_dentro["agregados"]
+    assert [f["id"] for f in con_fuera["detalle"]] == ["P-001"]
