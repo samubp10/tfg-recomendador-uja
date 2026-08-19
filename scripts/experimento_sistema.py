@@ -235,6 +235,7 @@ def responder_entrada(
             consulta.texto,
             tabla,
             incrustar,
+            respaldo=consulta.respaldo,
             distancia=distancia,
             k=K_MAXIMO,
             catalogo=catalogo,
