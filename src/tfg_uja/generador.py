@@ -120,7 +120,11 @@ INSTRUCCIONES: Final[str] = (
     "menciónalo si viene al caso, pero no cambies de titulación.\n"
     "- Las PREGUNTAS ANTERIORES sirven solo para entender a qué se refiere la "
     "pregunta actual. Todos los datos salen del CONTEXTO.\n"
-    "- Cita la asignatura o la titulación de la que sale cada dato."
+    "- Cita la asignatura o la titulación de la que sale cada dato.\n"
+    "- No recomiendes ninguna titulación que no aparezca en el CONTEXTO ni en "
+    "la lista de titulaciones de la Escuela.\n"
+    "- Trata al estudiante de tú, con cercanía, y cierra ofreciéndote a "
+    "contarle más. Puedes usar como mucho un emoji."
 )
 
 #: Cuántas preguntas anteriores se le recuerdan al modelo. Son **preguntas**,
@@ -393,6 +397,82 @@ def cortesia(pregunta: str) -> str | None:
     return None
 
 
+#: Marcas de que el mensaje pregunta algo, aunque también dé las gracias. Es
+#: la condición que separa «gracias, ¿y qué asignaturas tiene?» de «me gusta la
+#: idea, muchas gracias»: la primera hay que responderla, la segunda no.
+_INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
+    que cual cuales cuando cuanto cuanta cuantos cuantas como donde quien
+    quienes dime cuentame hablame explicame ensename recomiendame
+    """.split())
+
+
+def cierre_de_conversacion(pregunta: str) -> str | None:
+    """Respuesta fija para un mensaje que agradece y no pregunta nada.
+
+    «Me gusta la idea, muchas gracias» no cabe en :func:`cortesia`, que exige
+    que el mensaje entero sea cortesía, y acababa recibiendo «no he encontrado
+    información sobre eso». Aquí basta con que aparezca la fórmula, y lo que se
+    exige a cambio es que **no haya pregunta**: ni signo de interrogación ni
+    palabra interrogativa.
+
+    Se comprueba antes de buscar en el índice, porque un agradecimiento no es
+    una consulta: si se dejara pasar, la ampliación de la consulta que hace
+    :func:`tfg_uja.recuperador.pide_recomendacion` le encontraría contexto y el
+    modelo respondería a una pregunta que nadie ha hecho.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        La despedida, o ``None`` si el mensaje pregunta algo o no agradece.
+    """
+    dichas = palabras(pregunta)
+    if not dichas & _DESPEDIDA:
+        return None
+    if "?" in pregunta or dichas & _INTERROGATIVAS:
+        return None
+    return RESPUESTA_DESPEDIDA
+
+
+def cortesia_sin_contexto(pregunta: str) -> str | None:
+    """Respuesta fija para un mensaje cortés del que no se recuperó nada.
+
+    :func:`cortesia` exige que **todo** el mensaje quepa en el vocabulario
+    cerrado, y por eso deja pasar «me gusta la idea, muchas gracias»: cuatro de
+    sus palabras no son fórmulas. Ese mensaje no recuperaba nada ---no pregunta
+    nada--- y recibía «no he encontrado información sobre eso», que a un
+    agradecimiento le sienta igual de mal que a un saludo.
+
+    Aquí la condición se relaja a que la fórmula **aparezca**, y puede hacerse
+    porque esta función solo se consulta cuando la recuperación ha vuelto
+    vacía: si el mensaje preguntaba algo del dominio, no llega hasta aquí. Es
+    también lo que hace que la respuesta a un mismo mensaje no dependa de en
+    qué turno se escriba.
+
+    Y cuando no trae fórmula ninguna se mira si **pregunta algo**. Sin
+    interrogación ni palabra interrogativa, y sin nada que recuperar, no hay
+    pregunta a la que contestar que no se ha encontrado: lo que hay es alguien
+    que ha escrito «hei» o «q tal», y a eso se le da la bienvenida. La regla
+    anterior lo resolvía mirando si era el primer mensaje, y por eso contestaba
+    distinto a la misma frase según el turno.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        La respuesta fija que corresponda, o ``None`` si el mensaje pregunta
+        algo que no se ha encontrado.
+    """
+    dichas = palabras(pregunta)
+    if dichas & _DESPEDIDA:
+        return RESPUESTA_DESPEDIDA
+    if dichas & _SALUDO:
+        return RESPUESTA_SALUDO
+    if "?" in pregunta or dichas & _INTERROGATIVAS:
+        return None
+    return RESPUESTA_SALUDO
+
+
 def responder(
     pregunta: str,
     fragmentos: list[Fragmento],
@@ -442,19 +522,16 @@ def responder(
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
     """
-    fija = cortesia(pregunta)
+    fija = cortesia(pregunta) or cierre_de_conversacion(pregunta)
     if fija is not None:
         return fija
     if not fragmentos:
-        # El primer mensaje se trata aparte. Casi nadie abre preguntando: abre
-        # saludando, y lo hace como le sale ---«hei», «Ola buenas», «q tal»---,
-        # así que enumerar las formas del saludo es una lista que nunca está
-        # completa. Lo que sí se sabe con certeza es otra cosa: si es el primer
-        # mensaje y no ha recuperado nada, todavía no se ha preguntado nada, y
-        # entonces lo que toca es dar la bienvenida y decir de qué sabe el
-        # sistema. Decirle «no he encontrado información sobre eso» a alguien
-        # que solo ha dicho hola es contestar a una pregunta que no ha hecho.
-        return RESPUESTA_SALUDO if not historial else RESPUESTA_SIN_CONTEXTO
+        # Qué se contesta con el contexto vacío depende de lo que diga el
+        # mensaje, nunca de en qué turno llegue. La regla anterior ---saludo si
+        # era el primero, «no he encontrado» si venía después--- daba dos
+        # respuestas distintas a la misma frase escrita dos veces seguidas, y
+        # eso lo vio cualquiera a la primera sesión.
+        return cortesia_sin_contexto(pregunta) or RESPUESTA_SIN_CONTEXTO
     respuesta = generar(
         construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
     )
@@ -577,6 +654,41 @@ def construir_prompt(
     )
 
 
+#: Con lo que se cierra una respuesta que el modelo no llegó a terminar. Se
+#: escribe siempre que el servidor diga que paró por longitud, porque el
+#: estudiante no tiene forma de distinguir una respuesta completa de una
+#: cortada, y una lista interrumpida se lee como si fuera la lista entera.
+AVISO_RESPUESTA_CORTADA: Final[str] = (
+    "\n\n*He tenido que cortar aquí: la respuesta se estaba haciendo muy "
+    "larga. Pregúntame por la parte que te interese y te la cuento entera.*"
+)
+
+
+def cerrar_en_frase_completa(texto: str) -> str:
+    """Recorta un texto hasta su última frase o línea terminada.
+
+    El tope de la respuesta se agota a mitad de palabra ---«**Nota:** Todas las
+    titul», medido el 19/08/2026---, y entregar eso es peor que entregar menos:
+    la frase partida parece un fallo del sistema y además deja al lector sin
+    saber qué iba a decir.
+
+    Se corta por el final de frase o de línea más avanzado de los dos, porque
+    las respuestas alternan prosa y listas, y en una lista lo que cierra el
+    último elemento es el salto de línea, no el punto.
+
+    Args:
+        texto: Respuesta tal como la devolvió el modelo.
+
+    Returns:
+        El texto hasta el último cierre, o el texto entero si no hay ninguno.
+    """
+    cierres = [texto.rfind(c) for c in (".", "!", "?", "\n")]
+    ultimo = max(cierres)
+    if ultimo < 0:
+        return texto
+    return texto[: ultimo + 1].rstrip()
+
+
 def generar(
     prompt: str,
     modelo: str,
@@ -645,4 +757,7 @@ def generar(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
         ) from error
-    return str(datos.get("response", "")).strip()
+    escrito = str(datos.get("response", "")).strip()
+    if datos.get("done_reason") == "length":
+        return cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
+    return escrito
