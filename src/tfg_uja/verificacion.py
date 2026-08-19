@@ -357,7 +357,19 @@ def cotejar_listado(
     # La cobertura se mide sobre el texto entero y no sobre lo enumerado: da
     # igual si el modelo respondió con viñetas o en prosa, lo que se pregunta
     # es si el nombre está. Así la métrica no premia un formato sobre otro.
-    aciertos = {e for e in esperadas_norm if comparable(e) in texto}
+    #
+    # Se mira además lo enumerado, porque hay una forma de escribir el nombre
+    # que no deja rastro en el texto: sacar el tipo de estudios a un encabezado
+    # y listar debajo solo lo que cambia. La cadena «grado en ingenieria
+    # informatica» no aparece en ninguna parte de esa respuesta, y sin embargo
+    # la titulación está nombrada. `elementos_de_lista` ya devuelve el nombre
+    # recompuesto; aquí solo hay que hacerle caso.
+    enumeradas = {comparable(nucleo(d)) for d in elementos_de_lista(respuesta)}
+    aciertos = {
+        e
+        for e in esperadas_norm
+        if comparable(e) in texto or comparable(e) in enumeradas
+    }
     precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else 0.0
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos
