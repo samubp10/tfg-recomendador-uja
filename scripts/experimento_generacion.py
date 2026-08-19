@@ -194,6 +194,25 @@ def universo(
     return set(catalogo) | asignaturas | menciones
 
 
+def cursos_admisibles(esperado: str) -> list[str]:
+    """Ordinales de curso que da por buenos el rótulo de la fuente.
+
+    En los dobles grados la EPSJ publica rótulos con dos valores ---«Tercer o
+    cuarto curso», «Cuarto o tercer curso»---, porque la asignatura se cursa en
+    uno u otro según el itinerario. El rótulo enumera valores admisibles, no
+    describe uno solo, así que nombrar cualquiera de ellos responde a la
+    pregunta. Son 71 de las 420 preguntas de curso del banco.
+
+    Args:
+        esperado: Rótulo tal como lo publica la fuente.
+
+    Returns:
+        Los ordinales normalizados, sin la palabra «curso».
+    """
+    nucleo = normalizar(esperado).replace(" curso", "").strip()
+    return [parte.strip() for parte in nucleo.split(" o ") if parte.strip()]
+
+
 def acierto_escalar(respuesta: str, esperado: str, familia: str) -> tuple[bool, str]:
     """Comprueba una respuesta de valor único contra la del dataset.
 
@@ -201,6 +220,11 @@ def acierto_escalar(respuesta: str, esperado: str, familia: str) -> tuple[bool, 
     sería falsa: en una respuesta de tres líneas casi siempre aparece suelto un
     «6» por algún lado, y contarlo como acierto daría por bueno a un modelo que
     no ha respondido a la pregunta.
+
+    El curso se busca sin la palabra «curso», que el modelo puede no repetir, y
+    contra cada uno de los valores que admite el rótulo por separado: buscar la
+    cadena entera exigía que la respuesta reprodujera el rótulo literal y daba
+    por fallada la respuesta correcta que nombra solo uno de los dos cursos.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -218,10 +242,9 @@ def acierto_escalar(respuesta: str, esperado: str, familia: str) -> tuple[bool, 
         }
         limpio = esperado.replace(",", ".").rstrip("0").rstrip(".")
         return limpio in dichos, " · ".join(sorted(dichos))
-    # El curso llega como rótulo de la fuente («Tercer o cuarto curso»). Se
-    # busca sin la palabra «curso», que el modelo puede no repetir.
-    nucleo = normalizar(esperado).replace(" curso", "").strip()
-    return nucleo in normalizar(respuesta), ""
+    dicha = normalizar(respuesta)
+    nombrados = [curso for curso in cursos_admisibles(esperado) if curso in dicha]
+    return bool(nombrados), " o ".join(nombrados)
 
 
 def medir(
