@@ -217,10 +217,13 @@ class Consulta:
         texto: Lo que se incrusta.
         ambito: Titulaciones a las que se acota la búsqueda. Vacío significa
             buscar en todo el corpus.
+        respaldo: Con qué se vuelve a buscar si ``texto`` no recupera nada.
+            Lleva delante la última pregunta que sí decía de qué se hablaba.
     """
 
     texto: str
     ambito: list[str]
+    respaldo: str = ""
 
 
 @dataclass
@@ -282,7 +285,22 @@ class Conversacion:
             # nombre oficial, no el texto entero de la pregunta anterior.
             texto = f"{pregunta} {ambito[0]}"
 
-        return Consulta(texto=texto, ambito=list(ambito))
+        # El respaldo se calcula siempre, aunque casi nunca haga falta. Las dos
+        # ramas de arriba deciden por el texto de la pregunta, y decidir por el
+        # texto falla de una forma concreta: «¿y cuántas son en total?» tiene
+        # palabras de contenido ---«total», «son»--- y no dice de qué habla, así
+        # que no hereda el predicado, y su mejor fragmento se queda a 0,1722,
+        # muy por encima del suelo. El sistema respondía que no había encontrado
+        # información sobre lo que él mismo acababa de contar.
+        #
+        # Reintentar con el predicado delante no depende de ninguna lista de
+        # palabras, que es lo que hace frágil a la alternativa: solo depende de
+        # que la primera búsqueda no haya traído nada, que es un hecho, no una
+        # conjetura sobre la frase.
+        respaldo = ""
+        if self._predicado and self._predicado != pregunta:
+            respaldo = f"{self._predicado} {pregunta}".strip()
+        return Consulta(texto=texto, ambito=list(ambito), respaldo=respaldo)
 
     def anotar(self, pregunta: str, respuesta: str) -> None:
         """Registra un turno y actualiza de qué se está hablando.
