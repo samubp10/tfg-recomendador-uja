@@ -285,14 +285,20 @@ def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
 
 
 def test_las_instrucciones_prohiben_salirse_del_contexto():
-    assert "ÚNICAMENTE" in INSTRUCCIONES
-    assert "no está publicada" in INSTRUCCIONES or "no esté" in INSTRUCCIONES
+    """Se comprueba la regla, no cómo esté redactada.
+
+    La versión anterior exigía la palabra «ÚNICAMENTE» literal y saltaba al
+    reescribir el prompt más corto, que es un cambio que no toca la regla. Un
+    test sobre la redacción obliga a editarlo cada vez y deja de proteger nada.
+    """
+    assert "CONTEXTO" in INSTRUCCIONES
+    assert "suponerlo" in INSTRUCCIONES or "suponerla" in INSTRUCCIONES
 
 
 def test_las_instrucciones_distinguen_sin_guia_de_inexistente():
     """Son 86 asignaturas del corpus: el usuario tiene que poder distinguirlo."""
     assert "guía no está publicada" in INSTRUCCIONES
-    assert "no exista la asignatura" in INSTRUCCIONES
+    assert "no es lo mismo que no exista" in INSTRUCCIONES
 
 
 # --- La llamada al modelo ---
