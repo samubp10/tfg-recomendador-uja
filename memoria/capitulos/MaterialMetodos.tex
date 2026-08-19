@@ -1707,138 +1707,215 @@ el texto que recibe el modelo no puede copiarse de él.}
 \end{borrador}
 
 
-\subsection[\textcolor{borrador2}{Selección del modelo de generación}]{\textcolor{borrador2}{Selección del modelo de generación}}
+\subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
 
 \textcolor{borrador2}{Recuperar los fragmentos correctos no basta: alguien tiene
   que redactar con ellos una respuesta que un estudiante de bachillerato pueda
   leer. Este apartado decide quién.}
 
-\subsubsection{\textcolor{borrador2}{Por qué la comparación no puede apoyarse en un juez}}
+  Ahora que se han extraído los datos, y se han fragmentado, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
+  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo
 
-\textcolor{borrador2}{Las dos comparativas anteriores ---incrustaciones y base
-  de datos vectorial--- se deciden con un número sobre una tarea de respuesta
-  conocida. La generación de texto no ofrece eso, y las dos salidas fáciles no
-  se sostienen: una nota de calidad puesta por quien mira no es reproducible, y
-  un modelo que ejerza de juez habría que validarlo aparte, con lo que el
-  problema se traslada en vez de resolverse.}
+\subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
 
-\textcolor{borrador2}{Lo que sí se puede medir contra la colección, sin modelo
-  adicional y sin criterio del autor, es \textbf{si lo que la respuesta nombra
-  existe} y si nombra lo que debía. Son comparaciones de cadena.}
+En el caso de las comparativas y experimentos anteriores (incrustaciones y base de datos vectorial), se decidían por motivos claros, opciones mejores que otras u opciones que por el alcance y enfoque de este proyecto, son elecciones mejores. Sin embargo se han buscado objetivos claros que acerquen a un solo modelo a la elección, como que no alucine o que teniendo los fragmentos delante, los lea y genere la respuesta con todos ellos.
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Lo que hay que decir aquí y todavía no está escrito:
-    \item Las cuatro medidas: titulaciones inventadas, precisión, cobertura y
-      acierto escalar. Definir cada una en una frase.
-    \item Decir explícitamente qué NO mide: si la respuesta está bien escrita,
-      si la recomendación es buena, o si el temario que resume es fiel. Una
-      respuesta correcta y sosa puntúa igual que una correcta y bien redactada.
-    \item Que solo se decide sobre las preguntas de respuesta computable. Las de
-      temario y salidas se observan en sesiones a mano y se reportan como modos
-      de fallo, sin entrar en la decisión.
-  
-\end{borrador}
 
-\subsubsection{\textcolor{borrador2}{El banco de preguntas}}
+\textcolor{borrador2}{Sobre cada respuesta se calculan cuatro medidas, todas
+  ellas comparaciones de cadena contra la colección, sin ningún modelo
+  adicional. La primera cuenta las \textbf{titulaciones inventadas}: nombres con
+  forma de titulación que no aparecen en el catálogo. La \textbf{precisión} mide
+  qué proporción de lo que la respuesta enumera existe de verdad en la
+  colección. La \textbf{cobertura}, qué proporción de lo que debía nombrar
+  aparece. Y el \textbf{acierto escalar} se aplica a las preguntas cuya
+  respuesta es un único valor, como los créditos de una asignatura o el curso en
+  que se imparte. Las cifras que arrojan estas cuatro medidas están en el
+  Apartado~\ref{secc:resultados_rag}.}
 
-\textcolor{borrador2}{El banco lo genera un guion a partir de la colección: ni
-  las preguntas ni las respuestas correctas se escriben a mano. Son 1.023
-  preguntas de seis familias, y de ellas se sortea una muestra de decisión de 80
-  con semilla fija, con todas las familias representadas.}
+\textcolor{borrador2}{Conviene decir también qué queda fuera de estas medidas,
+  porque es bastante. No miden si la respuesta está bien escrita, si la
+  recomendación que hace es acertada para quien pregunta, ni si el resumen de un
+  temario es fiel al original: una respuesta correcta y sosa puntúa igual que
+  una correcta y bien redactada. Por eso las preguntas de temario y de salidas
+  profesionales, cuya respuesta no se puede calcular a partir de la colección,
+  no entran en la decisión; se observan en sesiones manuales y se recogen como
+  modos de fallo.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Pendiente:
-    \item Justificar por qué se decide sobre 80 y no sobre las 1.023: cada
-      pregunta cuesta una llamada al modelo por candidato, y el banco completo
-      con siete candidatos pasa de las siete mil respuestas.
-    \item Explicar por qué la respuesta correcta se deriva de la colección y no
-      se escribe a mano: es la misma operación que produce los fragmentos
-      derivados, contar y agrupar.
-    \item Decidir si la tabla de las seis familias va aquí o en el Capítulo 5.
-  
-\end{borrador}
+\subsubsection{El banco de preguntas elegido}
 
-\subsubsection{\textcolor{borrador2}{El umbral eliminatorio, fijado antes de medir}}
+El banco de preguntas es el se usa para validar y probar los diferentes modelos elegidos, para medir su rendimiento de manera clara y reproducible. 
 
-\textcolor{borrador2}{Cero titulaciones inventadas. Un sistema cuyo cometido es
-  recomendar carreras no puede nombrar una que no existe, porque el estudiante
-  al que va dirigido no tiene forma de detectarlo.}
+Este banco se genera automáticamente mediante código a partir de la colección oficial que se extrae, de esta manera obtenemos junto con la pregunta, la respuesta correcta con la que validar al modelo.
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Aquí hay que sostener dos cosas:
-    \item Que el umbral se escribió \emph{antes} de la primera medición, igual
-      que los de la base de datos vectorial. Es lo que impide acomodarlo luego
-      al candidato que convenga.
-    \item Qué se haría si ningún candidato lo cumpliera: declararlo y decidir
-      entre los que menos incurran, dejándolo escrito como limitación.
-  
-\end{borrador}
+Contiene preguntas repartidas en seis tipos que se ha pensado que podría interesar al usuario objetivo, como preguntas por el catálogo de la Escuela, planes de estudios de las diferentes titulaciones, asignaturas obligatorias y optativas, números de créditos, \dots
 
-\subsubsection{\textcolor{borrador2}{Lo que no decide: el tiempo de respuesta y la tarjeta gráfica}}
+Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que cubre todo el corpus), por lo que se decide extraer únicamente 80 preguntas de estas mediante un muestreo estratificado con semilla fija con una semilla fija para todos los modelos en el experimento. Esta muestra de preguntas garantiza que todos los tipos de preguntas estén representadas en el conjunto final.
+
+
+
+\textcolor{borrador2}{Que la respuesta correcta se derive de la colección y no
+  se escriba a mano no es una comodidad, sino lo que permite que el banco crezca
+  con la fuente. Es además la misma operación que produce los fragmentos
+  derivados del Apartado~\ref{secc:fase2_vectordb}: contar y agrupar lo que el
+  dataset ya contiene.}
+
+\textcolor{borrador2}{El motivo de decidir sobre una muestra y no sobre el banco
+  entero es el coste. Cada pregunta supone una llamada al modelo por candidato,
+  y con siete candidatos el banco completo pasaría de las siete mil respuestas,
+  que a los tiempos de un equipo doméstico son días de cómputo. El banco entero
+  queda para comprobar al finalista una vez elegido.}
 
 \begin{borrador}
-  \item Fase: 2 (IT-35). Apartado necesario y delicado. Lo medido:
-    \item \textbf{El tiempo no decide.} Las respuestas se cronometran mientras
-      el equipo hace otras cosas, y eso no es una excusa sino una medida: el
-      mismo modelo sobre la misma muestra ha dado medianas de 15,9 y de 31,9
-      segundos según lo que hubiera abierto. Una respuesta de 581 caracteres
-      llegó a marcar 16.677 segundos, que es paginación a disco y no inferencia.
-    \item \textbf{La tarjeta gráfica se usa, pero no cabe el modelo entero.} La
-      del equipo tiene 6 GB de memoria dedicada y los candidatos ocupan entre
-      5,3 y 8,9 GB ya cuantizados. El servidor de inferencia carga en la tarjeta
-      las capas que caben y ejecuta el resto en el procesador: de gemma3:12b se
-      midieron 3,28 de sus 8,92 GB en memoria de vídeo, un 37 por ciento.
-    \item Por eso el tiempo describe cuánto del modelo cupo en la tarjeta, no lo
-      rápido que es el modelo. Se informa y no elimina.
-    \item Decidir si esto va aquí o en el anexo de instalación. Mejor aquí,
-      porque explica por qué la comparación se decide con las columnas de
-      calidad y no con las de tiempo.
-  
+  \item Fase: 2 (IT-35). Decidir si la tabla con las seis familias de pregunta
+    va en este apartado o en el Capítulo~\ref{cap:resultados}.
 \end{borrador}
 
-\subsection[\textcolor{borrador2}{El \textit{pipeline} RAG completo}]{\textcolor{borrador2}{El \textit{pipeline} RAG completo}}
+\subsubsection{El umbral del experimento}
+
+Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se inventase las opciones o las respuestas, dado que precisamente estamos haciendo este proyecto para evitar esto.
+
+
+
+
+\textcolor{borrador2}{Los umbrales del experimento son dos. El primero es
+  eliminatorio: \textbf{ninguna titulación inventada} sobre la muestra completa.
+  Un sistema cuyo cometido es recomendar carreras no puede nombrar una que no
+  existe, porque el estudiante al que se dirige no tiene con qué detectarlo. El
+  segundo exige que \textbf{ningún candidato se quede sin contexto} en ninguna
+  pregunta: si a uno el recuperador le trajera menos fragmentos que a los demás
+  no se estaría comparando a los modelos, sino a las recuperaciones que les
+  tocaron.}
+
+\textcolor{borrador2}{Si ningún candidato superase el umbral eliminatorio, la
+  decisión no se anula: se elige entre los que menos incurran y se deja escrito
+  como limitación del sistema, porque un asistente que se inventa titulaciones
+  seguiría siendo un asistente que se inventa titulaciones aunque fuera el mejor
+  de los disponibles.}
+
+\textcolor{borrador2}{Hay en cambio dos magnitudes que se registran y que
+  \textbf{no intervienen en la decisión}. Una es el tiempo de respuesta.
+  Descartar un candidato por lento exige medirlo en condiciones controladas, y
+  el equipo de trabajo es el portátil de desarrollo: el mismo modelo, sobre la
+  misma muestra, ha dado medianas de 15,9 y de 31,9 segundos según lo que
+  estuviera abierto, y una respuesta de 581 caracteres llegó a marcar 16.677
+  segundos porque el sistema estaba paginando a disco. Con esa varianza el
+  tiempo describe la máquina y no al modelo.}
+
+\textcolor{borrador2}{La otra es el reparto entre procesador y tarjeta gráfica.
+  La tarjeta del equipo dispone de 6~GB de memoria dedicada y los candidatos
+  ocupan entre 5,3 y 8,9~GB ya cuantizados a cuatro bits, de modo que el
+  servidor de inferencia carga las capas que caben y ejecuta el resto en el
+  procesador: de uno de los candidatos se midieron 3,28 de sus 8,92~GB en
+  memoria de vídeo. El tiempo de cada uno mide entonces, sobre todo, cuánto de
+  él cupo en la tarjeta, y elegir por ahí sería elegir por el equipo en el que
+  se ha desarrollado el trabajo. Las dos magnitudes se recogen para el anexo de
+  instalación y como amenaza a la validez en el
+  Apartado~\ref{secc:amenazas_validez}.}
+
+
+
+
+
+\subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
 \label{secc:fase2_pipeline}
 
+\textcolor{borrador2}{Con la colección indexada y el modelo
+  generativo elegido, este apartado describe el recorrido completo de una
+  pregunta: qué se recupera, qué se le entrega al modelo y qué se hace cuando no
+  hay nada que entregarle. Los conceptos de recuperación semántica y de
+  \gl{RAG} se explican en el Capítulo~\ref{cap:antecedentes}
+  (Apartado~\ref{subsec:busqueda_semantica_concepto}); aquí se detalla cómo los
+  aplica este sistema.}
+
+\subsubsection{\textcolor{borrador2}{Cuántos fragmentos se recuperan}}
+
+\textcolor{borrador2}{El número de fragmentos que se entregan al modelo no es
+  fijo, y no serlo es una decisión y no un descuido. Las preguntas que recibe el
+  sistema no piden todas lo mismo: cuántas asignaturas tiene una titulación se
+  contesta con un solo fragmento, mientras que enumerar las obligatorias de un
+  grado necesita todos los de su plan. Un K fijo obliga a elegir entre traer
+  ruido en el primer caso o quedarse corto en el segundo.}
+
+\textcolor{borrador2}{En su lugar se combinan tres mecanismos. El primero es una
+  \textbf{banda}: nunca menos de tres fragmentos ni más de veinte. El segundo es
+  un \textbf{corte relativo}: dentro de esa banda se conservan los fragmentos
+  cuya distancia no se aleje más de un factor dado de la del mejor, de modo que
+  una pregunta con una respuesta muy concreta se queda con pocos y una de
+  listado arrastra a todo su grupo. El tercero es un \textbf{suelo absoluto de
+  pertinencia}: por debajo de cierta calidad no se entrega nada, aunque fuera lo
+  mejor que había.}
+
+\subsubsection{\textcolor{borrador2}{Qué se le entrega al modelo}}
+
+\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas.
+  El \textbf{mensaje de sistema} fija quién es el asistente y para quién
+  escribe. Las \textbf{instrucciones} enumeran las reglas de la respuesta: usar
+  solo el contexto, decirlo cuando el contexto no baste, distinguir una guía sin
+  publicar de una asignatura que no existe, y citar de dónde sale cada dato. El
+  \textbf{contexto} son los fragmentos recuperados, cada uno con su encabezado,
+  que dice de qué asignatura y de qué titulación procede. Y las \textbf{preguntas
+  anteriores} de la conversación, que sirven solo para entender a qué se refiere
+  la pregunta actual y nunca como fuente de datos.}
+
 \begin{borrador}
-  \item Fase: 2 (IT-37). Estructura propuesta, de la pregunta a la respuesta:
-    \item \textbf{Cuántos fragmentos se recuperan.} No es un K fijo: hay una
-      banda, un corte relativo por distancia y un suelo absoluto de pertinencia.
-      Explicar por qué un K fijo no vale ---una pregunta de ficha se contesta
-      con un fragmento y una de listado necesita todos los de su titulación---
-      y qué hace cada uno de los tres mecanismos.
-    \item \textbf{Qué se le manda al modelo.} El mensaje de sistema, las
-      instrucciones, el contexto y las preguntas anteriores. Merece una figura.
-    \item \textbf{El contexto vacío se cortocircuita.} Es el estado más
-      peligroso de un sistema RAG, porque el modelo responde con la misma
-      seguridad que cuando ha leído algo. Con las instrucciones diciendo ya que
-      no inventara, un modelo de 7B se fabricó un plan de estudios entero del
-      que trece de catorce nombres no existían. Por eso, sin fragmentos, no se
-      llama al modelo.
-    \item Ese último punto es el hilo conductor del capítulo y conviene
-      enunciarlo aquí: \emph{una instrucción no es un control}.
-  
+  \item Fase: 2 (IT-37). Valorar una figura con el prompt completo despiezado en
+    sus cuatro partes. Es el sitio natural para ella y evita transcribirlo.
 \end{borrador}
 
-\subsection[\textcolor{borrador2}{Restricción del dominio}]{\textcolor{borrador2}{Restricción del dominio}}
+\subsubsection{\textcolor{borrador2}{Qué ocurre cuando no se recupera nada}}
+
+\textcolor{borrador2}{El contexto vacío es el estado más peligroso de un sistema
+  de este tipo, porque el modelo responde con la misma seguridad que cuando ha
+  leído algo. Medido sobre el sistema de este trabajo: con las instrucciones
+  diciendo ya explícitamente que no añadiera datos ausentes del contexto, un
+  modelo de 7B respondió a una pregunta sin fragmentos recuperados fabricando un
+  plan de estudios completo de Ingeniería Informática, repartido por cursos, del
+  que trece de los catorce nombres no existen en la Escuela.}
+
+\textcolor{borrador2}{La solución que adopta el sistema no es reforzar la
+  instrucción, que ya estaba escrita, sino no llegar a preguntar: sin fragmentos
+  recuperados no se llama al modelo y se devuelve una respuesta fija. Esta
+  distinción atraviesa todo el capítulo y conviene enunciarla aquí, porque
+  reaparece en el apartado siguiente y en el tratamiento del dato ausente:
+  \textbf{una instrucción no es un control}. Lo que el sistema no puede permitir
+  no se pide, se impide.}
+
+\subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
 
-\begin{borrador}
-  \item Fase: 2 (IT-87). Lo que hay que contar, con la evidencia ya medida:
-    \item El problema: el sistema recomendó seis titulaciones a un estudiante
-      interesado en la electricidad y dos no existen en la Escuela. Las
-      instrucciones ya prohibían añadir datos ausentes del contexto.
-    \item Que el guardarraíl tiene dos capas y ninguna basta sola. La primera es
-      el suelo de pertinencia del recuperador, que rechaza siete de las diez
-      preguntas ajenas al dominio; las tres que deja pasar son las que usan el
-      vocabulario del dominio para preguntar por otra cosa.
-    \item La segunda capa es una comprobación \emph{posterior} a la generación:
-      toda titulación nombrada tiene que estar en el catálogo de la colección.
-      Si no lo está, la respuesta se retira entera y queda registrada.
-    \item Por qué se retira entera y no se marca solo el nombre: el estudiante
-      lee la lista, no la nota al pie, y una recomendación falsa entre tres
-      verdaderas se lee con la misma confianza que las otras tres.
-    \item Y el límite honesto: la comprobación cubre las titulaciones, no las
-      asignaturas ni las salidas profesionales.
-  
-\end{borrador}
+\textcolor{borrador2}{El asistente informa sobre la oferta de la
+  Escuela y no debe hablar de otra cosa. El problema que motiva este apartado se
+  midió probando el sistema como lo usaría un estudiante de bachillerato: al
+  pedirle titulaciones para alguien interesado en la electricidad, recomendó
+  seis, y dos de ellas no existen en el centro. Las instrucciones ya prohibían
+  entonces añadir información ausente del contexto.}
+
+\textcolor{borrador2}{La restricción se resuelve con dos capas, y ninguna de las
+  dos basta por sí sola. La primera es el suelo de pertinencia descrito en el
+  apartado anterior, que rechaza siete de cada diez preguntas ajenas al dominio.
+  Las tres que deja pasar tienen todas la misma forma: usan el vocabulario del
+  centro para preguntar por algo que no le pertenece ---si se puede estudiar
+  Medicina en la Escuela, qué asignaturas tiene un grado de otra facultad---, y
+  la distancia entre vectores mide precisamente parecido de vocabulario. Por eso
+  el suelo no es un filtro de dominio fiable, y este trabajo no lo presenta como
+  tal.}
+
+\textcolor{borrador2}{La segunda capa actúa \textbf{después} de generar la
+  respuesta, no antes: se extraen de ella los nombres con forma de titulación y
+  se comprueba que todos estén en el catálogo de la colección. El catálogo se lee
+  del propio corpus y no se escribe en el código, de manera que si la Escuela
+  abre una titulación nueva la comprobación no se queda obsoleta en silencio.}
+
+\textcolor{borrador2}{Cuando la comprobación falla se retira la respuesta
+  entera, y no solo el nombre inventado. La razón es el lector: un
+  preuniversitario lee una lista de recomendaciones, no una nota al pie, y una
+  titulación falsa entre tres verdaderas se lee con la misma confianza que las
+  otras tres. La respuesta retirada queda registrada, porque una barrera que
+  descarta en silencio no se puede auditar y su número de activaciones es lo que
+  dice si está haciendo algo o estorbando.}
+
+\textcolor{borrador2}{El límite de esta comprobación conviene decirlo con
+  claridad: cubre las titulaciones, que son doce y están enumeradas en la
+  colección, pero no las asignaturas ni las salidas profesionales. Un modelo que
+  se invente el contenido de una guía no queda atrapado por ella.}
