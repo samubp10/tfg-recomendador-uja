@@ -101,9 +101,70 @@ que convenga.
 
 ## Alternativas consideradas
 
-<!-- Pendiente: una entrada por candidato, con tamaño, cuantización, licencia y
-     ventana de contexto. Los descartados en el cribado a mano llevan además el
-     motivo del descarte con su caso real. -->
+Las tres se ejecutan con el mismo servidor de inferencia local, cuantizadas a
+**Q4_K_M**, con la misma ventana de contexto y el mismo mensaje de sistema. Lo
+único que cambia entre ellas es el modelo.
+
+### Opción A — granite4.1:8b
+
+Modelo de propósito general de IBM, orientado a tareas empresariales sobre
+documentos propios.
+- **URL:** [https://ollama.com/library/granite4.1](https://ollama.com/library/granite4.1)
+- **Tamaño:** 8,8 B de parámetros · 5,3 GB en disco · licencia Apache 2.0.
+
+- **Pros:** el único de los tres que **cabe casi entero** en los 6 GB de memoria
+  de la tarjeta gráfica del equipo. Licencia permisiva sin condiciones de uso
+  añadidas.
+- **Contras:** en el cribado a mano declaró que el contexto no contenía las
+  salidas profesionales de una titulación y a continuación redactó siete,
+  inventadas. Declarar la carencia y responder igual es peor que fallar, porque
+  la respuesta suena informada.
+
+### Opción B — gemma3:12b
+
+Modelo de Google, el mayor de los tres.
+- **URL:** [https://ollama.com/library/gemma3](https://ollama.com/library/gemma3)
+- **Tamaño:** 12,2 B de parámetros · 8,1 GB en disco · licencia *Gemma Terms of
+  Use*, no una licencia libre estándar.
+
+- **Pros:** el más consistente del cribado a mano: no rellenó el dato ausente y
+  no infirió salidas que no estaban.
+- **Contras:** de sus 8,92 GB en memoria solo **3,28 GB caben en la tarjeta
+  gráfica**, un 37 %, así que el resto se ejecuta en el procesador. Y redacta
+  para un lector que no es el suyo: llegó a repetir el mismo inciso veinte veces
+  en una respuesta dirigida a alguien de 17 años.
+
+### Opción C — ministral-8b
+
+Modelo de Mistral AI.
+- **URL:** [https://ollama.com/library/ministral](https://ollama.com/library/ministral)
+- **Tamaño:** 8,5 B de parámetros · 6,1 GB en disco.
+
+- **Pros:** el más rápido de los tres por un margen amplio, y tampoco rellenó el
+  dato ausente.
+- **Contras:** se va del dominio con facilidad; en una sesión a mano terminó
+  recomendando cursos de una plataforma comercial que no aparece en ninguna
+  parte del corpus.
+
+### Sobre el modelo entrenado en español
+
+**salamandra-7b** (7,8 B, 4,9 GB) es el modelo del Barcelona Supercomputing
+Center entrenado con corpus en español y en las lenguas cooficiales, y era el
+candidato con el argumento más natural para este trabajo: el sistema responde en
+español a estudiantes españoles sobre una universidad española.
+
+**Se descarta, y no por sus métricas sino por el umbral eliminatorio.**
+Preguntado por los créditos de la única asignatura del corpus cuya ficha no los
+publica, respondió «9 créditos» y añadió que era obligatoria: se inventó el dato
+**y** el tipo. En la misma sesión enumeró cuatro asignaturas de un curso después
+de afirmar que eran diez.
+
+Merece decirse con precisión, porque la conclusión fácil sería equivocada: **el
+descarte no dice que un modelo entrenado en español rinda peor en español**.
+Dice que este modelo, a este tamaño y con esta cuantización, no respeta el
+contexto recuperado, que es el requisito del que depende todo lo demás en un
+sistema RAG. Un modelo que redacta bien y se inventa los datos es exactamente el
+fallo que este trabajo intenta evitar.
 
 ## Resultados del experimento
 
