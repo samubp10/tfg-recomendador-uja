@@ -129,6 +129,34 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
 \label{secc:resultados_rag}
 
+\begin{borrador}
+  Fase: 2 (IT-38, IT-40). Este apartado no existe todavía porque el experimento
+  que lo llena no se ha ejecutado. Lo que hay que dejar escrito cuando exista:
+  \begin{itemize}
+    \item \textbf{La recuperación primero.} Recall@K y MRR sobre las preguntas
+      de dominio del conjunto, con los techos delante: sobre esta colección el
+      máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968 para K=10, no
+      1. Toda cifra se lee contra su techo, y decirlo antes de dar los números
+      evita que el lector los juzgue contra una referencia que no existe.
+    \item \textbf{La generación después}, con las cuatro medidas del apartado
+      \ref{secc:fase2_llm}: titulaciones inventadas, precisión, cobertura y
+      acierto escalar, para cada uno de los tres candidatos finalistas.
+    \item \textbf{Las cifras sin redondear.} La tarjeta lo pide explícitamente y
+      hay motivo: entre el mejor y el peor de los finalistas la precisión se
+      mueve en centésimas, y redondear a dos decimales borraría la diferencia
+      que la tabla tiene que mostrar.
+    \item \textbf{El rechazo de lo ajeno al dominio}, que es una cifra aparte y
+      con su propio criterio: de las diez preguntas fuera de dominio, cuántas
+      quedan sin fragmentos.
+    \item Y lo que ninguna tabla dice, que se cuenta en prosa: los modos de
+      fallo observados a mano. Un candidato escribió las siete cifras correctas
+      de optativas por titulación y a continuación respondió mal cuál era la
+      mayor. Ningún guardarraíl determinista caza eso, porque todos los nombres
+      y todas las cifras que usó existen en la colección.
+  \end{itemize}
+\end{borrador}
+
+
 
 \section{Validación con usuarios}
 
@@ -161,4 +189,40 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
+
+\begin{borrador}
+  Fase: 2 (IT-39, IT-40). Once amenazas identificadas, cada una con su decisión
+  tomada: corregir, declarar o descartar. El análisis completo, con las cifras
+  medidas de cada una, está en las notas de trabajo de IT-39; aquí van solo las
+  que se declaran, y hay que redactarlas en prosa, no como lista.
+
+  \textbf{Las que se declaran}, agrupadas por el tipo de validez que amenazan:
+  \begin{itemize}
+    \item \emph{De constructo.} Un solo anotador, que además construyó la
+      colección y el sistema: no se puede separar «recupera lo relevante» de
+      «recupera lo que su autor considera relevante». El suelo de pertinencia
+      mide parecido de vocabulario y por eso no es un filtro de dominio fiable.
+      Y 203 de los 1.499 fragmentos no son texto publicado por la Escuela, sino
+      calculados a partir de la colección.
+    \item \emph{Externa.} La cobertura de guías se concentra en las titulaciones
+      en implantación, así que el sistema sabe menos de las más nuevas, que son
+      las que más dudas generan. Y una de las doce titulaciones no tiene plan de
+      estudios publicado: las doce están, de once hay asignaturas.
+    \item \emph{De conclusión.} El techo de Recall@K no llega a 1 sobre esta
+      colección.
+    \item Y la que da su título al capítulo entero: \textbf{el instrumento de
+      medida falló cinco veces en dos días}, siempre con cifras verosímiles que
+      nadie habría cuestionado. Lo que se declara no son los cinco fallos, que
+      están corregidos y con su prueba de regresión, sino la conclusión: un
+      verificador en verde no prueba nada si no se ha comprobado qué mide.
+  \end{itemize}
+
+  \textbf{Lo que NO va aquí, y conviene recordar por qué:} las que se pudieron
+  corregir se corrigieron y no se declaran ---los tiempos contaminados, el
+  cambio de versión del servidor de inferencia---, porque una amenaza corregible
+  que no se corrige es peor que no declararla. Y la generalización a otros
+  centros de la Universidad se descarta: el alcance del trabajo es la Escuela,
+  está en los objetivos, y ningún resultado se enuncia como generalizable.
+\end{borrador}
+
 
