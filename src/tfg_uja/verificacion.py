@@ -64,8 +64,15 @@ _ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
 #: el tipo. No forma parte del nombre de la asignatura.
+#:
+#: El guion corto solo separa cuando lleva espacio delante. Pegado a la palabra
+#: es parte del nombre, y cortando ahí se partían las dos asignaturas del
+#: corpus que lo llevan: «Interacción persona-ordenador» quedaba en
+#: «Interacción persona» y «Técnicas de animación 3D y post-procesamiento» en
+#: «...y post», ninguna de las dos casaba con el corpus y las dos respuestas,
+#: que eran correctas, perdían precisión.
 _COLA: Final[re.Pattern[str]] = re.compile(
-    r"\s*[(\[–—:,-]\s*.*$|\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos).*$",
+    r"\s*[(\[–—:,]\s*.*$|\s+-\s*.*$|\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos).*$",
     re.IGNORECASE,
 )
 
