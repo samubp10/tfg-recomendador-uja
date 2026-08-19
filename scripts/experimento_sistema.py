@@ -384,6 +384,11 @@ def main(argumentos: list[str] | None = None) -> None:
     analizador.add_argument("--datos", default=str(RAIZ / "data" / "grados.json"))
     analizador.add_argument("--registro", required=True)
     analizador.add_argument("--salida", required=True)
+    analizador.add_argument(
+        "--recorregir",
+        action="store_true",
+        help="vuelve a corregir lo ya guardado sin llamar a ningún modelo",
+    )
     opciones = analizador.parse_args(argumentos)
 
     banco = json.loads(Path(opciones.banco).read_text(encoding="utf-8"))["preguntas"]
@@ -393,6 +398,28 @@ def main(argumentos: list[str] | None = None) -> None:
     nombres = universo(
         catalogo, asignaturas_del_corpus(datos), menciones_del_corpus(datos)
     )
+
+    if opciones.recorregir:
+        # Los criterios cambian cuando aparece un defecto en ellos, y ha
+        # aparecido nueve veces. Volver a generar 141 respuestas para aplicar un
+        # corrector nuevo cuesta horas y además cambiaría lo medido; recorregir
+        # lo guardado deja todas las tandas comparables con la misma vara.
+        registro = Path(opciones.registro)
+        preguntas = {p["id"]: p for p in banco}
+        filas = []
+        for linea in registro.read_text(encoding="utf-8").splitlines():
+            fila = json.loads(linea)
+            fila.update(
+                corregir(fila["respuesta"], preguntas[fila["id"]], catalogo, nombres)
+            )
+            filas.append(fila)
+        registro.write_text(
+            "".join(json.dumps(f, ensure_ascii=False) + chr(10) for f in filas),
+            encoding="utf-8",
+        )
+        print(f"Recorregidas {len(filas)} respuestas sin llamar a ningún modelo.")
+        informe(filas, Path(opciones.salida))
+        return
 
     print("Cargando el modelo de incrustaciones...")
     filas = ejecutar(
