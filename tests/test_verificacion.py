@@ -450,3 +450,23 @@ def test_un_encabezado_de_curso_no_se_antepone_al_nombre():
     """Ahí lo factorizado es el curso, no el principio del nombre."""
     respuesta = "**Primer curso:**\n- Álgebra (6 ECTS)\n- Física I (6 ECTS)"
     assert elementos_de_lista(respuesta) == ["Álgebra", "Física I"]
+
+
+def test_la_cobertura_cuenta_la_lista_factorizada():
+    """La respuesta perfecta al catálogo daba cobertura 0,000.
+
+    Al sacar «Grado en:» a un encabezado, la cadena «Grado en Ingeniería
+    Informática» no aparece en ninguna parte del texto, y la cobertura la
+    buscaba ahí. Los nombres sí están, recompuestos, entre los elementos.
+    """
+    respuesta = (
+        "En la Escuela puedes estudiar:\n\n"
+        "**Grado en:**\n- Ingeniería Informática.\n- Ingeniería Mecánica.\n"
+    )
+    esperadas = ["Grado en Ingeniería Informática", "Grado en Ingeniería Mecánica"]
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        respuesta, esperadas, set(esperadas)
+    )
+    assert precision == 1.0
+    assert cobertura == 1.0
+    assert not inventadas and not omitidas
