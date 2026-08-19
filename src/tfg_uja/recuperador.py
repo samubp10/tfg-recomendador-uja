@@ -185,11 +185,6 @@ FACTOR_CORTE: Final[float] = 1.20
 #: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
 SUELO_PERTINENCIA: Final[float] = 0.142
 
-#: Con lo que se desactiva el suelo, para las consultas a las que no se les
-#: puede exigir parecerse a un fragmento. No es un umbral más alto: es no
-#: comprobar, y por eso se escribe así y no como un número que parezca medido.
-SIN_SUELO: Final[float] = float("inf")
-
 #: Palabras con las que alguien pide consejo en vez de preguntar un dato. Es
 #: una lista **cerrada**, y basta con que aparezca una: al contrario que en el
 #: reconocimiento de la cortesía, aquí un falso positivo no rechaza nada, solo
@@ -508,15 +503,22 @@ def contexto_para(
     """Recupera el contexto con el que se va a responder, ya acotado.
 
     Reúne las dos operaciones que siempre van juntas ---buscar y recortar--- y
-    es donde se trata aparte la petición de consejo, que necesita las dos
-    excepciones que describe :func:`pide_recomendacion`: se busca con la
-    consulta ampliada y **no se le aplica el suelo de pertinencia**.
+    es donde se trata aparte la petición de consejo, que se busca con la
+    consulta ampliada y **sin recortar**: ni suelo ni corte relativo.
 
-    Quitar el suelo aquí no lo debilita en general. El suelo comprueba que la
-    pregunta se parezca a algo de la colección, y una petición de consejo no se
+    Las dos excepciones tienen el mismo motivo, y es que una recomendación no
+    la responde un puñado de fragmentos parecidos a la pregunta. El suelo
+    comprueba que la pregunta se parezca a algo de la colección, y esta no se
     parece a nada por construcción: habla de lo que le gusta al estudiante, no
-    de lo que publica la Escuela. Lo que sí se conserva es el corte relativo,
-    de modo que se siguen descartando los fragmentos peores de cada consulta.
+    de lo que publica la Escuela. El corte relativo hace daño por otra vía: con
+    el mejor fragmento a 0,103 dejaba entrar tres, los tres del catálogo y las
+    salidas, y **ninguno con asignaturas dentro**. Medido el 19/08/2026 con ese
+    contexto: de las once asignaturas que el modelo puso como ejemplo, siete no
+    existen en la EPSJ. No las inventó por desobedecer, sino porque no se le
+    dio ninguna y la pregunta pedía concretar.
+
+    Es la lección de siempre en este sistema, ahora por el otro lado: dar poco
+    contexto a una pregunta abierta produce invención igual que darle ninguno.
 
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
@@ -532,5 +534,5 @@ def contexto_para(
         expandir(pregunta) if consejo else pregunta, tabla, incrustar, **opciones
     )
     if consejo:
-        return acotar_por_distancia(traidos, suelo=SIN_SUELO)
+        return traidos[:K_MAXIMO]
     return acotar_por_distancia(traidos)
