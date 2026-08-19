@@ -707,6 +707,77 @@
           "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
         }
       ]
+    },
+    {
+      "id": "P-051",
+      "tipo": "fuera_de_dominio",
+      "clase": "otra_rama_de_la_uja",
+      "pregunta": "¿Puedo estudiar Medicina en la Escuela Politécnica Superior de Jaén?",
+      "relevantes": []
+    },
+    {
+      "id": "P-052",
+      "tipo": "fuera_de_dominio",
+      "clase": "otra_rama_de_la_uja",
+      "pregunta": "¿Qué asignaturas tiene el Grado en Derecho?",
+      "relevantes": []
+    },
+    {
+      "id": "P-053",
+      "tipo": "fuera_de_dominio",
+      "clase": "interes_tematico_ajeno",
+      "pregunta": "Me gustan la biología y la salud, ¿qué carrera me recomiendas de las que hay?",
+      "relevantes": []
+    },
+    {
+      "id": "P-054",
+      "tipo": "fuera_de_dominio",
+      "clase": "interes_tematico_ajeno",
+      "pregunta": "Quiero dedicarme a la psicología infantil, ¿qué me recomiendas?",
+      "relevantes": []
+    },
+    {
+      "id": "P-055",
+      "tipo": "fuera_de_dominio",
+      "clase": "otro_centro",
+      "pregunta": "¿Qué titulaciones se imparten en la Universidad de Granada?",
+      "relevantes": []
+    },
+    {
+      "id": "P-056",
+      "tipo": "fuera_de_dominio",
+      "clase": "otro_centro",
+      "pregunta": "¿Dónde está la Facultad de Ciencias Experimentales?",
+      "relevantes": []
+    },
+    {
+      "id": "P-057",
+      "tipo": "fuera_de_dominio",
+      "clase": "conocimiento_general",
+      "pregunta": "¿Cuál es la capital de Francia?",
+      "relevantes": []
+    },
+    {
+      "id": "P-058",
+      "tipo": "fuera_de_dominio",
+      "clase": "conocimiento_general",
+      "pregunta": "¿Quién escribió El Quijote?",
+      "relevantes": []
+    },
+    {
+      "id": "P-059",
+      "tipo": "fuera_de_dominio",
+      "clase": "peticion_ajena",
+      "pregunta": "Escríbeme un poema sobre el otoño.",
+      "relevantes": []
+    },
+    {
+      "id": "P-060",
+      "tipo": "fuera_de_dominio",
+      "clase": "peticion_ajena",
+      "pregunta": "Resuelve la ecuación x^2 - 5x + 6 = 0.",
+      "relevantes": []
     }
-  ]
+  ],
+  "criterio_fuera_de_dominio": "Las preguntas de tipo `fuera_de_dominio` (IT-86) NO anotan unidades relevantes, y su lista vacía es la anotación correcta: lo que se pide del sistema es que no recupere nada. Su criterio de acierto es el contrario al del resto del conjunto —rechazar es acierto, responder es fallo— y por eso quedan FUERA de Recall@K y de MRR: con la lista vacía aportarían un 0 fijo a las dos y hundirían las métricas sin que el recuperador hubiera fallado. Se mide sobre ellas una sola cifra, la proporción que el recuperador deja en cero fragmentos tras aplicar el suelo de pertinencia. Son diez de sesenta preguntas, un 16,7 %: con menos, cualquier cifra sobre el rechazo sería anecdótica —la granularidad es 1/n— y con diez la proporción se mueve de diez en diez puntos. Se reparten en cinco clases de dos preguntas cada una (otra rama de la UJA, interés temático ajeno, otro centro, conocimiento general y petición ajena) para que ninguna clase decida ella sola el resultado. Ojo a la distinción que NO cubren: una pregunta del dominio cuyo dato la fuente no publica —los créditos ausentes, las notas de corte— no es una pregunta fuera de dominio, y su rechazo se mide aparte."
 }

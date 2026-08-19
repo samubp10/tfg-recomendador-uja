@@ -122,7 +122,7 @@ lugar de tener que creérselo.
 py scripts/experimento_embeddings.py
 ```
 
-Los resultados reales de cada ejecución quedan en `docs/experimentos/`.
+Los resultados reales de cada ejecución quedan en el anexo del ADR correspondiente, escritos por el propio guion.
 
 ## Calidad
 
@@ -147,7 +147,6 @@ scripts/            # verificadores del dataset y experimentos
 eval/               # conjunto de evaluación del retrieval (manual, versionado)
 docs/adr/           # registro de decisiones de arquitectura (ADR)
 docs/dqa/           # registro de anomalías de calidad de datos (DQA)
-docs/experimentos/  # resultados reales de los experimentos
 memoria/            # memoria del TFG en LaTeX (plantilla EPSJ)
 data/               # artefactos generados (NO versionados)
 ```

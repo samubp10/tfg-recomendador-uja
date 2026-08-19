@@ -5,12 +5,10 @@ de IT-38: es la herramienta para sentarse delante y ver qué contesta el sistema
 que es lo que ninguna cifra enseña. Permite cambiar de modelo sin reiniciar,
 para poder comparar candidatos con la misma pregunta.
 
-Arrastra los últimos turnos, y hace falta que los arrastre: una pregunta como
-«¿y en primer año?» no menciona la titulación, así que incrustada sola recupera
-fragmentos de las doce. Pero solo cuando la pregunta lo necesita: si ya nombra
-una titulación, se incrusta sola, porque arrastrarla llegó a desviar la
-recuperación entera hacia el tema anterior. Es lo mínimo para poder encadenar
-tres preguntas; el manejo serio de la conversación es de la Fase 3.
+La conversación la lleva :class:`tfg_uja.conversacion.Conversacion` (IT-106),
+que recuerda de qué titulación se habla ---también si la nombró el asistente y
+no el estudiante--- y acota la búsqueda con un filtro exacto. Sin eso, «¿y qué
+asignaturas tiene en primero?» recuperaba fragmentos de las doce titulaciones.
 
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
 poder releer después qué se preguntó y qué se respondió sin que las pruebas
@@ -28,7 +26,9 @@ Dentro del chat:
     /modelo <nombre>    cambia de modelo generativo
     /k <n>              cambia cuántos fragmentos se recuperan
     /grado <nombre>     acota la búsqueda a una titulación ("/grado ." la quita)
+    /curso <nombre>     acota a un curso ("/curso ." lo quita)
     /fuentes            muestra los fragmentos de la última respuesta
+    /ambito             dice de qué titulación cree el sistema que se habla
     /olvida             vacía la conversación y empieza de cero
     /salir
 """
@@ -38,12 +38,15 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+from tfg_uja.conversacion import Conversacion  # noqa: E402
 from tfg_uja.generador import (  # noqa: E402
     ErrorDelModelo,
     cortesia,
@@ -58,7 +61,6 @@ from tfg_uja.recuperador import (  # noqa: E402
     abrir_indice,
     acotar_por_distancia,
     catalogo_del_indice,
-    consulta_con_historial,
     distancia_del_indice,
     recuperar,
 )
@@ -71,6 +73,64 @@ TURNOS_RECORDADOS = 3
 #: pruebas manuales, no material versionable, y algunas contienen respuestas
 #: equivocadas que no deben confundirse con el corpus.
 CARPETA_REGISTRO = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+
+#: Recordatorio que se imprime cuando la orden tecleada no se reconoce.
+AYUDA_ORDENES = "  órdenes: /modelo /k /grado /curso /fuentes /ambito /olvida /salir\n"
+
+
+@dataclass
+class Ajustes:
+    """Lo que las órdenes del chat pueden cambiar sin reiniciar la sesión.
+
+    Van juntas porque las cuatro se leen en cada turno y las cambia el mismo
+    sitio: sueltas, quien atiende las órdenes tendría que devolver cuatro
+    valores para que el bucle los reasignara.
+
+    Attributes:
+        modelo: Modelo generativo con el que se responde.
+        k: Cuántos fragmentos se recuperan por consulta.
+        grado: Titulación a la que se acota la búsqueda, si se acota.
+        curso: Curso al que se acota la búsqueda, si se acota.
+    """
+
+    modelo: str
+    k: int
+    grado: str | None
+    curso: str | None
+
+
+@dataclass
+class Indice:
+    """El índice ya abierto y lo que hace falta para consultarlo.
+
+    Attributes:
+        tabla: Tabla del índice vectorial.
+        incrustar: Incrustador de consultas.
+        distancia: Métrica con la que se construyó el índice.
+        catalogo: Titulaciones que declara el índice.
+    """
+
+    tabla: Any
+    incrustar: Any
+    distancia: str
+    catalogo: list[str]
+
+
+def _uno_solo(ambito: list[str]) -> str | None:
+    """El ámbito para el prompt, solo si no hay ambigüedad.
+
+    El prompt declara una titulación, no varias: decirle «responde sobre estas
+    tres» no acota nada. Cuando la conversación no ha podido reducirlo a una
+    ---«electrónica» sitúa en tres titulaciones--- el prompt no declara ámbito
+    y quien acota es el filtro, que sí admite la lista entera.
+
+    Args:
+        ambito: Titulaciones deducidas de la conversación.
+
+    Returns:
+        La única titulación, o ``None`` si hay cero o más de una.
+    """
+    return ambito[0] if len(ambito) == 1 else None
 
 
 def formatear_fuentes(fragmentos: list[Fragmento]) -> str:
@@ -156,11 +216,14 @@ def anotar_turno(
         )
 
 
-def main(argumentos: list[str]) -> None:
-    """Punto de entrada del chat.
+def _analizar_argumentos(argumentos: list[str]) -> argparse.Namespace:
+    """Declara y lee las opciones de línea de órdenes.
 
     Args:
         argumentos: Argumentos de línea de comandos.
+
+    Returns:
+        Las opciones ya analizadas.
     """
     analizador = argparse.ArgumentParser(description=__doc__)
     analizador.add_argument("--indice", default=str(RAIZ / "data" / "indice_lance"))
@@ -177,9 +240,23 @@ def main(argumentos: list[str]) -> None:
     )
     analizador.add_argument("--registro", default=str(CARPETA_REGISTRO))
     analizador.add_argument("--sin-registro", action="store_true")
-    opciones = analizador.parse_args(argumentos)
+    return analizador.parse_args(argumentos)
 
-    ruta_indice = Path(opciones.indice)
+
+def _preparar_indice(ruta_indice: Path) -> Indice:
+    """Abre el índice y comprueba que sirve para conversar.
+
+    Termina el programa, en vez de propagar la excepción, cuando falta el
+    índice, cuando no casa con el modelo de incrustaciones o cuando no declara
+    su catálogo: sin cualquiera de las tres cosas no hay chat que valga, y el
+    mensaje dice cómo arreglarlo.
+
+    Args:
+        ruta_indice: Carpeta del índice vectorial.
+
+    Returns:
+        El índice abierto, listo para consultar.
+    """
     if not ruta_indice.exists():
         sys.exit(
             f"No hay índice en {ruta_indice}.\n"
@@ -192,20 +269,233 @@ def main(argumentos: list[str]) -> None:
         tabla = abrir_indice(ruta_indice, MODELO)
     except ModeloDiscrepante as error:
         sys.exit(f"El índice no casa con el modelo: {error}")
-    distancia = distancia_del_indice(ruta_indice)
     catalogo = catalogo_del_indice(ruta_indice)
     if not catalogo:
         sys.exit(
             "El índice no declara su catálogo de titulaciones. Reconstrúyelo:\n"
             f"  py -m tfg_uja.indexer data/chunks.json {ruta_indice}"
         )
+    return Indice(
+        tabla=tabla,
+        incrustar=incrustar,
+        distancia=distancia_del_indice(ruta_indice),
+        catalogo=catalogo,
+    )
 
-    modelo = opciones.modelo
-    k = opciones.k
-    grado = opciones.grado
-    curso = opciones.curso
+
+def _imprimir_cabecera(
+    ruta_indice: Path,
+    indice: Indice,
+    ajustes: Ajustes,
+    k_fijo: bool,
+    registro: Path | None,
+) -> None:
+    """Escribe en pantalla contra qué se está probando.
+
+    Args:
+        ruta_indice: Carpeta del índice vectorial.
+        indice: Índice ya abierto.
+        ajustes: Opciones con las que arranca la sesión.
+        k_fijo: Si se traen siempre K fragmentos, sin recortar por distancia.
+        registro: Fichero de la sesión, o ``None`` si no se registra.
+    """
+    fragmentos = indice.tabla.count_rows()
+    print(f"\nÍndice:  {ruta_indice}  ({fragmentos} fragmentos, {indice.distancia})")
+    print(
+        f"Modelo:  {ajustes.modelo}   ·   K = {ajustes.k}"
+        + (f"   ·   acotado a «{ajustes.grado}»" if ajustes.grado else "")
+    )
+    print(f"Memoria: {TURNOS_RECORDADOS} turnos")
+    print(
+        "Fragmentos: "
+        + (f"K fijo = {ajustes.k}" if k_fijo else f"dinámicos, hasta {ajustes.k}")
+        + f"   ·   {len(indice.catalogo)} titulaciones en el índice"
+    )
+    print(f"Registro: {registro}" if registro else "Registro: desactivado")
+    print("Escribe tu pregunta, o /salir para terminar.\n")
+
+
+def _atender_orden(
+    entrada: str,
+    ajustes: Ajustes,
+    conversacion: Conversacion,
+    ultimos: list[Fragmento],
+) -> bool:
+    """Ejecuta una orden del chat y dice si hay que terminar la sesión.
+
+    Args:
+        entrada: Lo tecleado, que empieza por ``/``.
+        ajustes: Opciones de la sesión, que algunas órdenes cambian.
+        conversacion: Conversación en curso.
+        ultimos: Fragmentos de la última respuesta, para ``/fuentes``.
+
+    Returns:
+        ``True`` si la orden era ``/salir``.
+    """
+    orden, _, resto = entrada.partition(" ")
+    resto = resto.strip()
+    if orden == "/salir":
+        return True
+    if orden == "/modelo" and resto:
+        ajustes.modelo = resto
+        print(f"  modelo → {ajustes.modelo}\n")
+    elif orden == "/k" and resto.isdigit():
+        ajustes.k = int(resto)
+        print(f"  K → {ajustes.k}\n")
+    elif orden == "/grado" and resto:
+        ajustes.grado = None if resto == "." else resto
+        print(f"  titulación → {ajustes.grado or 'sin acotar'}\n")
+    elif orden == "/fuentes":
+        print(formatear_fuentes(ultimos) if ultimos else "  (aún no hay)")
+        print()
+    elif orden == "/curso" and resto:
+        ajustes.curso = None if resto == "." else resto
+        print(f"  curso → {ajustes.curso or 'sin acotar'}\n")
+    elif orden == "/olvida":
+        conversacion.olvidar()
+        print("  conversación olvidada\n")
+    elif orden == "/ambito":
+        vigente = conversacion.ambito
+        dice = ", ".join(vigente) if vigente else "todavía nada"
+        print(f"  de lo que se habla ahora: {dice}\n")
+    else:
+        print(AYUDA_ORDENES)
+    return False
+
+
+def _recuperar_contexto(
+    entrada: str,
+    conversacion: Conversacion,
+    ajustes: Ajustes,
+    indice: Indice,
+    k_fijo: bool,
+) -> tuple[list[Fragmento], list[str]] | None:
+    """Busca en el índice el contexto con el que se responderá.
+
+    Args:
+        entrada: La pregunta tal como se tecleó.
+        conversacion: Conversación en curso, que resuelve el seguimiento.
+        ajustes: Opciones de la sesión.
+        indice: Índice ya abierto.
+        k_fijo: Si se traen siempre K fragmentos, sin recortar por distancia.
+
+    Returns:
+        ``(fragmentos, ámbito de la consulta)``, o ``None`` si se nombró una
+        titulación que no existe, en cuyo caso ya se ha avisado por pantalla.
+    """
+    consulta = conversacion.preparar(entrada)
+    try:
+        traidos = recuperar(
+            consulta.texto,
+            indice.tabla,
+            indice.incrustar,
+            distancia=indice.distancia,
+            k=ajustes.k,
+            grado=ajustes.grado,
+            catalogo=indice.catalogo,
+            curso=ajustes.curso,
+            ambito=consulta.ambito,
+        )
+    except TitulacionDesconocida as error:
+        print(f"\n  {error}. Las que hay:")
+        for t in indice.catalogo:
+            print(f"    - {t}")
+        print()
+        return None
+    return (traidos if k_fijo else acotar_por_distancia(traidos)), consulta.ambito
+
+
+def _generar_respuesta(
+    entrada: str,
+    fragmentos: list[Fragmento],
+    ajustes: Ajustes,
+    conversacion: Conversacion,
+    catalogo: list[str],
+    ambito: list[str],
+) -> str | None:
+    """Pide la respuesta al modelo generativo.
+
+    Args:
+        entrada: La pregunta tal como se tecleó.
+        fragmentos: Contexto recuperado.
+        ajustes: Opciones de la sesión.
+        conversacion: Conversación en curso, de la que sale el historial.
+        catalogo: Titulaciones que declara el índice.
+        ambito: Titulaciones deducidas de la conversación.
+
+    Returns:
+        La respuesta, o ``None`` si el turno se pierde y hay que seguir
+        preguntando, en cuyo caso ya se ha avisado por pantalla.
+    """
+    try:
+        return responder(
+            entrada,
+            fragmentos,
+            ajustes.modelo,
+            [(p, "") for p in conversacion.preguntas()],
+            ambito=ajustes.grado or _uno_solo(ambito),
+            catalogo=catalogo,
+        )
+    except ErrorDelModelo as error:
+        # Se avisa y se sigue. Un fallo pasajero del servidor no puede
+        # costar la sesion entera: el 18/08/2026 un 500 por falta de
+        # memoria, con una descarga de 9 GB en marcha, se llevo por delante
+        # la conversacion de pruebas completa.
+        print(
+            f"\n  [!] {error}\n"
+            f"      La pregunta no se ha respondido; puedes repetirla.\n"
+        )
+        return None
+    except KeyboardInterrupt:
+        # Ctrl+C durante la generacion cancela la pregunta, no la sesion.
+        # Los modelos grandes tardan minutos y el tope de espera es de
+        # diez; sin esto, cortar una respuesta lenta obligaba a rearrancar
+        # y a recargar el indice, y se perdian los turnos ya anotados.
+        print("\n  [!] pregunta cancelada. Sigue preguntando o /salir.\n")
+        return None
+
+
+def _mostrar_respuesta(
+    respuesta: str,
+    ajustes: Ajustes,
+    fragmentos: list[Fragmento],
+    tiempos: tuple[float, float],
+) -> None:
+    """Escribe en pantalla la respuesta, sus tiempos y sus fuentes.
+
+    Args:
+        respuesta: Lo que contestó el modelo.
+        ajustes: Opciones de la sesión, de donde sale el modelo que respondió.
+        fragmentos: Contexto que formó la respuesta.
+        tiempos: Segundos de recuperación y de generación.
+    """
+    print(f"\n{respuesta}\n")
+    print(
+        f"  [{ajustes.modelo} · recuperar {tiempos[0]:.2f} s · "
+        f"generar {tiempos[1]:.2f} s · {len(fragmentos)} fragmentos]"
+    )
+    print(formatear_fuentes(fragmentos))
+    print()
+
+
+def main(argumentos: list[str]) -> None:
+    """Punto de entrada del chat.
+
+    Args:
+        argumentos: Argumentos de línea de comandos.
+    """
+    opciones = _analizar_argumentos(argumentos)
+    ruta_indice = Path(opciones.indice)
+    indice = _preparar_indice(ruta_indice)
+
+    ajustes = Ajustes(
+        modelo=opciones.modelo,
+        k=opciones.k,
+        grado=opciones.grado,
+        curso=opciones.curso,
+    )
     ultimos: list[Fragmento] = []
-    historial: list[tuple[str, str]] = []
+    conversacion = Conversacion(indice.catalogo, turnos_recordados=TURNOS_RECORDADOS)
     # Contador propio: el historial se recorta a los últimos turnos, así que su
     # longitud deja de servir para numerarlos en cuanto se pasa del tercero.
     turno = 0
@@ -213,22 +503,14 @@ def main(argumentos: list[str]) -> None:
     registro = (
         None
         if opciones.sin_registro
-        else abrir_registro(Path(opciones.registro), modelo, k, tabla.count_rows())
+        else abrir_registro(
+            Path(opciones.registro),
+            ajustes.modelo,
+            ajustes.k,
+            indice.tabla.count_rows(),
+        )
     )
-
-    print(f"\nÍndice:  {ruta_indice}  ({tabla.count_rows()} fragmentos, {distancia})")
-    print(
-        f"Modelo:  {modelo}   ·   K = {k}"
-        + (f"   ·   acotado a «{grado}»" if grado else "")
-    )
-    print(f"Memoria: {TURNOS_RECORDADOS} turnos")
-    print(
-        "Fragmentos: "
-        + (f"K fijo = {k}" if opciones.k_fijo else f"dinámicos, hasta {k}")
-        + f"   ·   {len(catalogo)} titulaciones en el índice"
-    )
-    print(f"Registro: {registro}" if registro else "Registro: desactivado")
-    print("Escribe tu pregunta, o /salir para terminar.\n")
+    _imprimir_cabecera(ruta_indice, indice, ajustes, opciones.k_fijo, registro)
 
     while True:
         try:
@@ -240,30 +522,8 @@ def main(argumentos: list[str]) -> None:
             continue
 
         if entrada.startswith("/"):
-            orden, _, resto = entrada.partition(" ")
-            resto = resto.strip()
-            if orden == "/salir":
+            if _atender_orden(entrada, ajustes, conversacion, ultimos):
                 return
-            if orden == "/modelo" and resto:
-                modelo = resto
-                print(f"  modelo → {modelo}\n")
-            elif orden == "/k" and resto.isdigit():
-                k = int(resto)
-                print(f"  K → {k}\n")
-            elif orden == "/grado" and resto:
-                grado = None if resto == "." else resto
-                print(f"  titulación → {grado or 'sin acotar'}\n")
-            elif orden == "/fuentes":
-                print(formatear_fuentes(ultimos) if ultimos else "  (aún no hay)")
-                print()
-            elif orden == "/curso" and resto:
-                curso = None if resto == "." else resto
-                print(f"  curso → {curso or 'sin acotar'}\n")
-            elif orden == "/olvida":
-                historial.clear()
-                print("  conversación olvidada\n")
-            else:
-                print("  órdenes: /modelo /k /grado /fuentes /olvida /salir\n")
             continue
 
         t0 = time.perf_counter()
@@ -275,65 +535,42 @@ def main(argumentos: list[str]) -> None:
         fija = cortesia(entrada)
         if fija is not None:
             print(f"\n{fija}\n")
-            historial.append((entrada, fija))
-            del historial[:-TURNOS_RECORDADOS]
+            conversacion.anotar(entrada, fija)
             turno += 1
             ultimos = []
             if registro is not None:
                 anotar_turno(
-                    registro, turno, entrada, fija, [], modelo, grado, (0.0, 0.0)
+                    registro,
+                    turno,
+                    entrada,
+                    fija,
+                    [],
+                    ajustes.modelo,
+                    ajustes.grado,
+                    (0.0, 0.0),
                 )
             continue
 
-        consulta = consulta_con_historial(entrada, [p for p, _ in historial], catalogo)
-        try:
-            traidos = recuperar(
-                consulta,
-                tabla,
-                incrustar,
-                distancia=distancia,
-                k=k,
-                grado=grado,
-                catalogo=catalogo,
-                curso=curso,
-            )
-        except TitulacionDesconocida as error:
-            print(f"\n  {error}. Las que hay:")
-            for t in catalogo:
-                print(f"    - {t}")
-            print()
+        contexto = _recuperar_contexto(
+            entrada, conversacion, ajustes, indice, opciones.k_fijo
+        )
+        if contexto is None:
             continue
-        ultimos = traidos if opciones.k_fijo else acotar_por_distancia(traidos)
+        ultimos, ambito = contexto
         t_recuperar = time.perf_counter() - t0
 
         t1 = time.perf_counter()
-        try:
-            respuesta = responder(
-                entrada, ultimos, modelo, historial, ambito=grado, catalogo=catalogo
-            )
-        except ErrorDelModelo as error:
-            # Se avisa y se sigue. Un fallo pasajero del servidor no puede
-            # costar la sesion entera: el 18/08/2026 un 500 por falta de
-            # memoria, con una descarga de 9 GB en marcha, se llevo por delante
-            # la conversacion de pruebas completa.
-            print(
-                f"\n  [!] {error}\n"
-                f"      La pregunta no se ha respondido; puedes repetirla.\n"
-            )
+        respuesta = _generar_respuesta(
+            entrada, ultimos, ajustes, conversacion, indice.catalogo, ambito
+        )
+        if respuesta is None:
             continue
         t_generar = time.perf_counter() - t1
 
-        historial.append((entrada, respuesta))
-        del historial[:-TURNOS_RECORDADOS]
+        conversacion.anotar(entrada, respuesta)
         turno += 1
 
-        print(f"\n{respuesta}\n")
-        print(
-            f"  [{modelo} · recuperar {t_recuperar:.2f} s · "
-            f"generar {t_generar:.2f} s · {len(ultimos)} fragmentos]"
-        )
-        print(formatear_fuentes(ultimos))
-        print()
+        _mostrar_respuesta(respuesta, ajustes, ultimos, (t_recuperar, t_generar))
 
         if registro is not None:
             anotar_turno(
@@ -342,8 +579,8 @@ def main(argumentos: list[str]) -> None:
                 entrada,
                 respuesta,
                 ultimos,
-                modelo,
-                grado,
+                ajustes.modelo,
+                ajustes.grado,
                 (t_recuperar, t_generar),
             )
 

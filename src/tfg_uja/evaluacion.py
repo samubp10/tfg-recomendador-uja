@@ -18,13 +18,17 @@ deterministas y no requieren red, igual que ``test_indexer.py``.
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Final
 
 import numpy as np
 
 #: Firma de la función de incrustación: recibe una lista de textos y
 #: devuelve un vector de números reales por texto, en el mismo orden.
 Incrustador = Callable[[list[str]], list[list[float]]]
+
+
+#: Tipo de pregunta cuya respuesta correcta es no recuperar nada (IT-86).
+FUERA_DE_DOMINIO: Final[str] = "fuera_de_dominio"
 
 
 def chunks_relevantes(
@@ -232,6 +236,13 @@ def evaluar_modelo(
         sobre todas las preguntas) y ``"detalle"`` (una fila por pregunta,
         para poder auditar casos concretos).
     """
+    # Las de fuera de dominio (IT-86) no anotan unidades relevantes porque lo
+    # correcto ante ellas es no recuperar nada. Aquí aportarían un 0 fijo a
+    # Recall@K y a MRR y hundirían las medias sin que el recuperador hubiera
+    # fallado, que es exactamente el defecto contra el que avisa el
+    # verificador del conjunto. Su criterio es el contrario y se mide aparte.
+    preguntas = [p for p in preguntas if p["tipo"] != FUERA_DE_DOMINIO]
+
     vectores_chunks = incrustar_chunks([chunk["texto"] for chunk in chunks])
     vectores_preguntas = incrustar_preguntas([p["pregunta"] for p in preguntas])
 

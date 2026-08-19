@@ -343,6 +343,15 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
         encabezado += f". Se imparte en {situacion}"
     if not asignatura.get("ofertada", True):
         encabezado += ". No ofertada en el curso rastreado"
+    # El dato ausente se dice, no se omite. Callarlo deja al modelo generativo
+    # sin forma de distinguir «esto no está publicado» de «esto no cabía en el
+    # fragmento», y entonces lo rellena: medido el 18/08/2026 sobre la única
+    # asignatura de 528 sin créditos en la fuente, cuatro de cinco candidatos
+    # se inventaron una cifra ---9, 6 y 6 ECTS--- y uno de ellos negó además
+    # que la asignatura perteneciese a su titulación. Es la misma regla que ya
+    # aplica a las guías sin publicar, que sí traen su fragmento diciéndolo.
+    if not asignatura.get("ects"):
+        encabezado += ". La web de la EPSJ no publica sus créditos"
     return encabezado + "."
 
 
@@ -465,6 +474,28 @@ def _clave_asignatura(grado: str, codigo: str | None, nombre: str) -> tuple[str,
     return (grado, codigo or nombre)
 
 
+def _creditos(asignatura: dict[str, Any]) -> str:
+    """Compone el paréntesis de créditos de una línea de listado.
+
+    El dato ausente se **escribe**, no se omite. Omitirlo deja un hueco en una
+    lista donde todo lo demás lo lleva, y eso no es reflejar la ausencia: es
+    invitar a rellenarla. Medido el 19/08/2026 sobre el listado de la mención
+    «Sistemas electrónicos», donde las otras tres asignaturas llevan «(6
+    ECTS)» y esta no llevaba nada: granite4.1:8b razonó que «las otras dos
+    tienen 6 ECTS» y concluyó que esta también, declarando por escrito que lo
+    estaba infiriendo.
+
+    Args:
+        asignatura: Item de tipo ``asignatura`` del dataset.
+
+    Returns:
+        El paréntesis, con los créditos o con la ausencia declarada.
+    """
+    if asignatura["ects"]:
+        return f" ({asignatura['ects']} ECTS)"
+    return " (créditos no publicados)"
+
+
 def _chunks_de_plan_de_estudios(
     items: list[dict[str, Any]],
     tamanos: tuple[int, int, int],
@@ -514,8 +545,7 @@ def _chunks_de_plan_de_estudios(
                 lineas = []
                 for a in sorted(del_curso, key=lambda x: x["nombre"]):
                     # El ECTS ausente se refleja, no se imputa (decisión 9).
-                    ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
-                    lineas.append(f"{a['nombre']}{ects}.")
+                    lineas.append(f"{a['nombre']}{_creditos(a)}.")
                 titulo = f"Asignaturas {grupo} de {curso.lower()} del {grado}"
                 if not curso:
                     titulo = f"Asignaturas {grupo} del {grado}"
@@ -832,8 +862,7 @@ def _chunks_de_mencion(
             titulo = f"Asignaturas de la mención «{mencion}» del {grado}"
         lineas = []
         for a in asignaturas:
-            ects = f" ({a['ects']} ECTS)" if a["ects"] else ""
-            lineas.append(f"{a['nombre']}{ects}.")
+            lineas.append(f"{a['nombre']}{_creditos(a)}.")
         base = {
             "grados": [grado],
             "codigos": [None],

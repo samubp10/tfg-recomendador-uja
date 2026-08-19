@@ -359,7 +359,6 @@ verificador identifiquen una asignatura de la misma manera.
 
 ## Referencias
 
-- Resultados literales de la rejilla: `docs/experimentos/it16-fragmentacion.md`.
 - Documentación de LangChain, "Text splitters":
   [https://python.langchain.com/docs/concepts/text_splitters/](https://python.langchain.com/docs/concepts/text_splitters/)
 - Pinecone, "Chunking strategies for LLM applications":
@@ -371,6 +370,7 @@ verificador identifiquen una asignatura de la misma manera.
 
 ## Anexo — las 45 configuraciones
 
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->
 Generado por `scripts/experimento_fragmentacion.py` sobre `data/grados.json`, con las
 50 preguntas de `eval/preguntas_evaluacion.json` y el modelo
 `intfloat/multilingual-e5-small` (ventana de 512 _tokens_), en CPU. Ordenada por
@@ -436,4 +436,5 @@ distinguen: a partir de K=5 se saturan y empatan casi todas.
   cifra suelta no es comparable entre configuraciones.
 - **Trunc.** son los fragmentos que superan la ventana del modelo y que `encode`
   recorta **en silencio**, sin avisar ni fallar.
-</content>
+
+<!-- FIN RESULTADOS AUTOMÁTICOS -->

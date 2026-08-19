@@ -32,6 +32,7 @@ extremo, con dos decisiones que no son de redacción sino de arquitectura:
 from __future__ import annotations
 
 import json
+import logging
 import urllib.error
 import urllib.request
 from typing import Final
@@ -39,6 +40,13 @@ from typing import Final
 from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.text_cleaner import palabras
+from tfg_uja.verificacion import titulaciones_inventadas
+
+#: Registro del módulo. Existe solo para dejar constancia de las respuestas
+#: retiradas: una barrera que descarta en silencio no se puede auditar, y la
+#: cifra de cuántas veces salta es lo que dice si está haciendo algo o si
+#: estorba. Quien use la biblioteca decide dónde va y con qué nivel.
+_registro: Final[logging.Logger] = logging.getLogger(__name__)
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
 #: sistema tiene que poder ejecutarse entero en el equipo del autor.
@@ -64,6 +72,32 @@ VENTANA: Final[int] = 8192
 #: y cierra con algo. Ese margen es el que evita que se corte la última línea,
 #: que es justo donde se notaba.
 TOPE_RESPUESTA: Final[int] = 1200
+
+#: Cuánto se espera una respuesta antes de darla por perdida, en segundos. No
+#: es un criterio de calidad ---el tiempo se mide aparte---, sino el punto a
+#: partir del cual se asume que el modelo se ha colgado: diez minutos para una
+#: respuesta de mil doscientos *tokens* no es lentitud, es que no va a llegar.
+ESPERA_MAXIMA: Final[int] = 600
+
+#: Mensaje de sistema que se manda con cada petición. **Su función no es dar
+#: instrucciones ---esas van en :data:`INSTRUCCIONES`--- sino tapar el que trae
+#: cada modelo de fábrica.**
+#:
+#: Medido el 18/08/2026: al no mandar ninguno, Ollama aplica el de la plantilla
+#: del modelo, y cada candidato trae el suyo. Preguntados «¿quién eres?»,
+#: ministral-3 contestó «un modelo creado por Mistral AI» y gemma3 «entrenado
+#: por Google», sin que el proyecto hubiera escrito eso en ninguna parte. El de
+#: ministral-3 ocupa más de mil palabras, le hace creer que es «Le Chat», le
+#: manda usar herramientas y le dice que pida aclaraciones cuando la pregunta
+#: sea ambigua ---lo contrario de lo que pide este sistema.
+#:
+#: Comparar modelos así no mide los modelos: mide además el texto que cada uno
+#: lleva escondido. Un `system` vacío no sirve, porque Ollama lo trata como
+#: ausente y vuelve a poner el de la plantilla; hace falta uno con contenido.
+SISTEMA: Final[str] = (
+    "Eres un asistente que responde en español siguiendo las instrucciones "
+    "del mensaje que recibes. No tienes herramientas ni acceso a internet."
+)
 
 #: Instrucciones del sistema. La regla que las ordena es que el sistema
 #: prefiere callar a inventar: un estudiante va a decidir su carrera con esto.
@@ -227,6 +261,17 @@ RESPUESTA_SIN_CONTEXTO: Final[str] = (
     "salidas profesionales tienen. ¿Sobre cuál te gustaría saber?"
 )
 
+#: Con lo que se responde cuando la comprobación posterior encuentra una
+#: titulación que no existe. Se retira la respuesta entera y no solo el nombre
+#: inventado: el estudiante lee una lista, no una nota al pie, y una
+#: recomendación falsa entre tres verdaderas se lee con la misma confianza que
+#: las otras tres.
+RESPUESTA_TITULACION_INVENTADA: Final[str] = (
+    "No puedo darte esa respuesta: al redactarla he nombrado titulaciones que "
+    "no se imparten en la Escuela Politécnica Superior de Jaén. Prueba a "
+    "preguntármelo de otra forma, o pídeme la lista de las que sí se imparten."
+)
+
 #: Con lo que se abre la conversación. Un saludo no es una pregunta fallida:
 #: es la primera línea que escribe casi cualquiera, y se aprovecha para decir
 #: de qué sabe el sistema en vez de para decir que no sabe.
@@ -388,6 +433,12 @@ def responder(
         catalogo: Titulaciones que declara el índice, para que el prompt las
             enumere.
 
+    **Lo que el modelo escribe se comprueba antes de entregarlo.** Nombrar
+    una titulación que no existe es el fallo más grave del sistema ---un
+    estudiante no tiene forma de detectarlo--- y es el umbral eliminatorio de
+    IT-35. Si la respuesta nombra alguna que no está en el catálogo, se retira
+    entera.
+
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
     """
@@ -395,10 +446,34 @@ def responder(
     if fija is not None:
         return fija
     if not fragmentos:
-        return RESPUESTA_SIN_CONTEXTO
-    return generar(
+        # El primer mensaje se trata aparte. Casi nadie abre preguntando: abre
+        # saludando, y lo hace como le sale ---«hei», «Ola buenas», «q tal»---,
+        # así que enumerar las formas del saludo es una lista que nunca está
+        # completa. Lo que sí se sabe con certeza es otra cosa: si es el primer
+        # mensaje y no ha recuperado nada, todavía no se ha preguntado nada, y
+        # entonces lo que toca es dar la bienvenida y decir de qué sabe el
+        # sistema. Decirle «no he encontrado información sobre eso» a alguien
+        # que solo ha dicho hola es contestar a una pregunta que no ha hecho.
+        return RESPUESTA_SALUDO if not historial else RESPUESTA_SIN_CONTEXTO
+    respuesta = generar(
         construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
     )
+    # La comprobación va DESPUÉS de generar y no en las instrucciones, que es
+    # lo que distingue un mecanismo de una petición. El prompt ya prohíbe
+    # añadir lo que no esté en el contexto, y aun así el 19/08/2026
+    # mistral-nemo:12b recomendó a un estudiante de FP el «Grado en Ingeniería
+    # de Edificación», que no existe en la EPSJ, junto a tres titulaciones que
+    # sí. Sin catálogo no se puede comprobar nada, y entonces no se comprueba.
+    inventadas = titulaciones_inventadas(respuesta, catalogo) if catalogo else set()
+    if inventadas:
+        _registro.warning(
+            "Respuesta retirada: nombra titulaciones que no existen (%s). "
+            "Pregunta: %r",
+            ", ".join(sorted(inventadas)),
+            pregunta,
+        )
+        return RESPUESTA_TITULACION_INVENTADA
+    return respuesta
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
@@ -509,6 +584,7 @@ def generar(
     ventana: int = VENTANA,
     tope: int = TOPE_RESPUESTA,
     semilla: int = 42,
+    sistema: str = SISTEMA,
 ) -> str:
     """Pide la respuesta al modelo local.
 
@@ -523,6 +599,8 @@ def generar(
         ventana: Ventana de contexto en *tokens*.
         tope: Máximo de *tokens* de la respuesta.
         semilla: Semilla del muestreo.
+        sistema: Mensaje de sistema. Se manda siempre, e igual para todos los
+            modelos, para que ninguno responda bajo el suyo de fábrica.
 
     Returns:
         La respuesta del modelo, sin espacios sobrantes.
@@ -530,6 +608,7 @@ def generar(
     cuerpo = {
         "model": modelo,
         "prompt": prompt,
+        "system": sistema,
         "stream": False,
         "think": False,
         "options": {
@@ -545,7 +624,7 @@ def generar(
         headers={"Content-Type": "application/json"},
     )
     try:
-        with urllib.request.urlopen(peticion, timeout=600) as respuesta:
+        with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             datos = json.loads(respuesta.read())
     except urllib.error.HTTPError as error:
         detalle = error.read().decode("utf-8", "replace").strip()
@@ -553,6 +632,14 @@ def generar(
             f"el servidor respondió {error.code} al generar con «{modelo}»"
             + (f": {detalle[:200]}" if detalle else "")
         ) from error
+    # Va antes de URLError a propósito: agotar la espera de lectura levanta
+    # TimeoutError, que **no** es un URLError, así que sin esta rama se escapa
+    # de las dos y sube. El 19/08/2026 tumbó una tanda de 560 respuestas cuando
+    # llevaba 85: `command-r7b` se colgó en una pregunta y se perdieron las
+    # nueve horas siguientes. Un modelo colgado tiene que costar una pregunta,
+    # no la sesión.
+    except TimeoutError as error:
+        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
     except urllib.error.URLError as error:
         raise ErrorDelModelo(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "

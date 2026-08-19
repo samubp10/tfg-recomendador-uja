@@ -50,7 +50,7 @@ Ejecutar desde la raíz del repositorio y **con el entorno virtual activado**
     source .venv/Scripts/activate
     python -u scripts/experimento_fragmentacion.py
 
-Reescribe ``docs/experimentos/it16-fragmentacion.md``.
+Reescribe el anexo del ADR-0001, entre sus marcas de resultados automáticos.
 """
 
 from __future__ import annotations
@@ -84,7 +84,40 @@ from tfg_uja.incrustaciones import (  # noqa: E402
 RAIZ: Final[Path] = Path(__file__).resolve().parent.parent
 RUTA_DATASET: Final[Path] = RAIZ / "data" / "grados.json"
 RUTA_PREGUNTAS: Final[Path] = RAIZ / "eval" / "preguntas_evaluacion.json"
-RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "experimentos" / "it16-fragmentacion.md"
+RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "adr" / "adr-0001-estrategia-chunking.md"
+
+#: Marcas entre las que vive el bloque que escribe este guion. El resultado del
+#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos hizo
+#: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
+#: propio anexo, porque una se refrescó y la otra no.
+MARCA_INICIO: Final[str] = (
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->"
+)
+MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+
+
+def escribir_en_el_adr(bloque: str) -> None:
+    """Sustituye el bloque de resultados del ADR por el recién calculado.
+
+    Args:
+        bloque: Texto que va entre las marcas, sin ellas.
+
+    Raises:
+        SystemExit: Si el ADR no tiene las dos marcas. Es preferible fallar a
+            escribir el resultado en un sitio que nadie va a leer.
+    """
+    contenido = RUTA_SALIDA.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(
+            f"{RUTA_SALIDA.name} no tiene las marcas de resultados automáticos."
+        )
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    RUTA_SALIDA.write_text(
+        f"{antes}{MARCA_INICIO}\n{bloque.strip()}\n\n{MARCA_FIN}{despues}",
+        encoding="utf-8",
+    )
+
 
 #: Valores de K sobre los que se informa. Conviene distinguir dos cosas que se
 #: llaman igual: la K con la que se **mide** y la K con la que el sistema
@@ -141,6 +174,11 @@ _CACHE: dict[str, np.ndarray] = {}
 
 Incrustador = Callable[[list[str]], list[list[float]]]
 Trozador = Callable[..., list[dict[str, Any]]]
+#: Función que devuelve la longitud en tokens de cada texto.
+Tokenizador = Callable[[list[str]], list[int]]
+#: Una configuración de la rejilla: estrategia, ajuste propio, trozador y la
+#: terna de tamaños ``(objetivo, máximo, mínimo)`` con la que se ejecuta.
+Configuracion = tuple[str, str, Trozador, tuple[int, int, int]]
 
 
 def _incrustar_piezas(piezas: list[str], incrustar: Incrustador) -> np.ndarray:
@@ -209,6 +247,74 @@ def _construir_chunks(
     ]
 
 
+def _trocear_con(
+    funcion: Trozador, datos: list[dict[str, Any]], tamanos: tuple[int, int, int]
+) -> list[dict[str, Any]]:
+    """Trocea la colección sustituyendo el troceador de unidad del fragmentador.
+
+    La sustitución se deshace en un ``finally`` porque el resto del guion
+    ---y la propia estrategia semántica, que llama al troceador original---
+    depende de que ``chunker`` quede como estaba: una configuración que
+    fallara a medio troceo dejaría contaminadas todas las siguientes.
+
+    Args:
+        funcion: Troceador de unidad que se quiere probar.
+        datos: Colección completa del rastreador.
+        tamanos: Terna ``(objetivo, máximo, mínimo)``.
+
+    Returns:
+        list[dict]: Fragmentos de esa configuración.
+    """
+    original = chunker._chunks_de_unidad
+    chunker._chunks_de_unidad = funcion  # type: ignore[assignment]
+    try:
+        return trocear_dataset(datos, tamanos)
+    finally:
+        chunker._chunks_de_unidad = original  # type: ignore[assignment]
+
+
+def _agrupar_por_salto(
+    piezas: list[str], distancias: list[float], umbral: float
+) -> list[list[str]]:
+    """Agrupa piezas consecutivas y abre grupo donde el salto supera el umbral.
+
+    Args:
+        piezas: Piezas de una unidad, en su orden.
+        distancias: Distancia entre cada pieza y la siguiente.
+        umbral: Distancia coseno a partir de la cual se abre un fragmento.
+
+    Returns:
+        list[list[str]]: Piezas agrupadas, sin unir todavía.
+    """
+    grupos: list[list[str]] = [[piezas[0]]]
+    for indice, pieza in enumerate(piezas[1:]):
+        if distancias[indice] >= umbral:
+            grupos.append([pieza])
+        else:
+            grupos[-1].append(pieza)
+    return grupos
+
+
+def _unir_grupos(grupos: list[list[str]], maximo: int) -> list[str]:
+    """Une cada grupo en un cuerpo, repartiendo el que no quepa en el máximo.
+
+    Args:
+        grupos: Piezas agrupadas por salto semántico.
+        maximo: Tamaño máximo del cuerpo, ya descontado el encabezado.
+
+    Returns:
+        list[str]: Cuerpos de fragmento, ninguno por encima del máximo.
+    """
+    cuerpos: list[str] = []
+    for grupo in grupos:
+        unido = "\n".join(grupo)
+        if len(unido) <= maximo:
+            cuerpos.append(unido)
+        else:
+            cuerpos.extend(_empaquetar(grupo, maximo, maximo))
+    return cuerpos
+
+
 def hacer_semantico(umbral: float, incrustar: Incrustador) -> Trozador:
     """Sustituto de ``_chunks_de_unidad`` que corta por salto semántico.
 
@@ -250,19 +356,9 @@ def hacer_semantico(umbral: float, incrustar: Incrustador) -> Trozador:
             cuerpos = list(piezas)
         else:
             distancias = _distancias_consecutivas(_incrustar_piezas(piezas, incrustar))
-            grupos: list[list[str]] = [[piezas[0]]]
-            for indice, pieza in enumerate(piezas[1:]):
-                if distancias[indice] >= umbral:
-                    grupos.append([pieza])
-                else:
-                    grupos[-1].append(pieza)
-            cuerpos = []
-            for grupo in grupos:
-                unido = "\n".join(grupo)
-                if len(unido) <= maximo:
-                    cuerpos.append(unido)
-                else:
-                    cuerpos.extend(_empaquetar(grupo, maximo, maximo))
+            cuerpos = _unir_grupos(
+                _agrupar_por_salto(piezas, distancias, umbral), maximo
+            )
         cuerpos = _fusionar_pequenos(cuerpos, min(tam_minimo, maximo), maximo)
         return _construir_chunks(encabezado, cuerpos, base, origen)
 
@@ -374,12 +470,59 @@ def _distancias_del_corpus(
             )
         return original(encabezado, texto, base, origen, tamanos)
 
-    chunker._chunks_de_unidad = _espia  # type: ignore[assignment]
-    try:
-        trocear_dataset(datos, (maximo, maximo, MINIMO))
-    finally:
-        chunker._chunks_de_unidad = original  # type: ignore[assignment]
+    _trocear_con(_espia, datos, (maximo, maximo, MINIMO))
     return distancias
+
+
+def _configuraciones(
+    maximo: int,
+    umbrales: dict[int, float],
+    estructural: Trozador,
+    incrustar: Incrustador,
+) -> list[Configuracion]:
+    """Enumera las configuraciones que se prueban con un tamaño máximo dado.
+
+    Las tres estrategias aportan el mismo número de variantes de su parámetro
+    propio, para que ninguna compita con más intentos que otra.
+
+    Args:
+        maximo: Tamaño máximo de fragmento, en caracteres.
+        umbrales: Umbral de corte semántico de cada percentil.
+        estructural: La ``_chunks_de_unidad`` real, que es la estrategia del
+            ADR-0001.
+        incrustar: Función de incrustación del lado documento.
+
+    Returns:
+        list: Configuraciones a evaluar, en el orden en que se recorren.
+    """
+    configuraciones: list[Configuracion] = [
+        (
+            "estructural",
+            f"objetivo {ratio:.0%}",
+            estructural,
+            (int(maximo * ratio), maximo, MINIMO),
+        )
+        for ratio in RATIOS_OBJETIVO
+    ]
+    configuraciones += [
+        (
+            "semantica",
+            f"percentil {percentil}",
+            hacer_semantico(umbrales[percentil], incrustar),
+            (maximo, maximo, MINIMO),
+        )
+        for percentil in PERCENTILES
+    ]
+    configuraciones += [
+        (
+            "fijo",
+            f"solape {solape:.0%}",
+            hacer_fijo(solape),
+            (maximo, maximo, MINIMO),
+        )
+        for solape in RATIOS_SOLAPE
+    ]
+    return configuraciones
 
 
 def _evaluar(
@@ -387,7 +530,7 @@ def _evaluar(
     preguntas: list[dict[str, Any]],
     incrustar_doc: Incrustador,
     incrustar_con: Incrustador,
-    tokenizar: Callable[[list[str]], list[int]],
+    tokenizar: Tokenizador,
     ventana: int,
 ) -> dict[str, Any]:
     """Evalúa una fragmentación concreta y reúne sus cifras.
@@ -426,6 +569,64 @@ def _evaluar(
     }
 
 
+def _cargar_entradas() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Lee la colección del rastreador y el conjunto de evaluación.
+
+    Returns:
+        Tupla ``(datos, preguntas)``.
+    """
+    datos = json.loads(RUTA_DATASET.read_text(encoding="utf-8"))
+    crudo = json.loads(RUTA_PREGUNTAS.read_text(encoding="utf-8"))
+    preguntas = crudo["preguntas"] if isinstance(crudo, dict) else crudo
+    return datos, preguntas
+
+
+def _cargar_modelo() -> tuple[Incrustador, Incrustador, Tokenizador, int]:
+    """Carga el modelo del ADR-0003 y expone lo que la rejilla necesita de él.
+
+    Se carga aquí, y no con ``incrustador_de_documentos``, por dos razones:
+    esa función lo cargaría una vez por cada papel y en esta máquina eso son
+    2,5 GB innecesarios, y el experimento necesita el tokenizador para contar
+    truncados, que la interfaz pública no expone.
+
+    Returns:
+        Tupla ``(incrustar_doc, incrustar_con, tokenizar, ventana)``.
+    """
+    from sentence_transformers import SentenceTransformer
+
+    modelo = SentenceTransformer(MODELO)
+
+    def _incrustar(textos: list[str]) -> list[list[float]]:
+        return modelo.encode(textos, show_progress_bar=False).tolist()
+
+    def _tokenizar(textos: list[str]) -> list[int]:
+        return [len(x) for x in modelo.tokenizer(textos)["input_ids"]]
+
+    return (
+        con_prefijo(PREFIJO_DOCUMENTO, _incrustar),
+        con_prefijo(PREFIJO_CONSULTA, _incrustar),
+        _tokenizar,
+        int(modelo.max_seq_length),
+    )
+
+
+def _imprimir_avance(hecho: int, total: int, fila: dict[str, Any]) -> None:
+    """Escribe una línea de progreso por configuración evaluada.
+
+    Args:
+        hecho: Configuraciones ya evaluadas, contando esta.
+        total: Configuraciones de la rejilla.
+        fila: Cifras de la configuración recién evaluada.
+    """
+    print(
+        f"[{hecho:>2}/{total}] {fila['estrategia']:<12} max={fila['maximo']:<5} "
+        f"{fila['ajuste']:<15} frag={fila['fragmentos']:>5} "
+        f"RU@1={fila['ru@1']:.3f} RU@3={fila['ru@3']:.3f} "
+        f"MRR={fila['mrr']:.3f} trunc={fila['truncados']:>4}",
+        flush=True,
+    )
+
+
 def main() -> int:
     """Ejecuta la rejilla completa y escribe el informe.
 
@@ -434,27 +635,8 @@ def main() -> int:
     """
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-    datos = json.loads(RUTA_DATASET.read_text(encoding="utf-8"))
-    crudo = json.loads(RUTA_PREGUNTAS.read_text(encoding="utf-8"))
-    preguntas = crudo["preguntas"] if isinstance(crudo, dict) else crudo
-
-    # Se carga el modelo aquí, y no con `incrustador_de_documentos`, por dos
-    # razones: esa función lo cargaría una vez por cada papel y en esta máquina
-    # eso son 2,5 GB innecesarios, y el experimento necesita el tokenizador
-    # para contar truncados, que la interfaz pública no expone.
-    from sentence_transformers import SentenceTransformer
-
-    modelo = SentenceTransformer(MODELO)
-    ventana = int(modelo.max_seq_length)
-
-    def _incrustar(textos: list[str]) -> list[list[float]]:
-        return modelo.encode(textos, show_progress_bar=False).tolist()
-
-    def _tokenizar(textos: list[str]) -> list[int]:
-        return [len(x) for x in modelo.tokenizer(textos)["input_ids"]]
-
-    incrustar_doc = con_prefijo(PREFIJO_DOCUMENTO, _incrustar)
-    incrustar_con = con_prefijo(PREFIJO_CONSULTA, _incrustar)
+    datos, preguntas = _cargar_entradas()
+    incrustar_doc, incrustar_con, tokenizar, ventana = _cargar_modelo()
     original = chunker._chunks_de_unidad
 
     total = len(MAXIMOS) * (
@@ -470,41 +652,10 @@ def main() -> int:
         distancias = _distancias_del_corpus(datos, incrustar_doc, original, maximo)
         umbrales = {p: float(np.percentile(distancias, p)) for p in PERCENTILES}
 
-        configuraciones: list[tuple[str, str, Trozador, tuple[int, int, int]]] = []
-        for ratio in RATIOS_OBJETIVO:
-            configuraciones.append(
-                (
-                    "estructural",
-                    f"objetivo {ratio:.0%}",
-                    original,
-                    (int(maximo * ratio), maximo, MINIMO),
-                )
-            )
-        for percentil in PERCENTILES:
-            configuraciones.append(
-                (
-                    "semantica",
-                    f"percentil {percentil}",
-                    hacer_semantico(umbrales[percentil], incrustar_doc),
-                    (maximo, maximo, MINIMO),
-                )
-            )
-        for solape in RATIOS_SOLAPE:
-            configuraciones.append(
-                (
-                    "fijo",
-                    f"solape {solape:.0%}",
-                    hacer_fijo(solape),
-                    (maximo, maximo, MINIMO),
-                )
-            )
-
-        for estrategia, ajuste, funcion, tamanos in configuraciones:
-            chunker._chunks_de_unidad = funcion  # type: ignore[assignment]
-            try:
-                chunks = trocear_dataset(datos, tamanos)
-            finally:
-                chunker._chunks_de_unidad = original  # type: ignore[assignment]
+        for estrategia, ajuste, funcion, tamanos in _configuraciones(
+            maximo, umbrales, original, incrustar_doc
+        ):
+            chunks = _trocear_con(funcion, datos, tamanos)
             fila = {
                 "estrategia": estrategia,
                 "maximo": maximo,
@@ -514,47 +665,58 @@ def main() -> int:
                     preguntas,
                     incrustar_doc,
                     incrustar_con,
-                    _tokenizar,
+                    tokenizar,
                     ventana,
                 ),
             }
             filas.append(fila)
             hecho += 1
-            print(
-                f"[{hecho:>2}/{total}] {estrategia:<12} max={maximo:<5} "
-                f"{ajuste:<15} frag={fila['fragmentos']:>5} "
-                f"RU@1={fila['ru@1']:.3f} RU@3={fila['ru@3']:.3f} "
-                f"MRR={fila['mrr']:.3f} trunc={fila['truncados']:>4}",
-                flush=True,
-            )
+            _imprimir_avance(hecho, total, fila)
 
     _escribir_informe(filas, len(preguntas), ventana)
-    print(f"\nInforme escrito en {RUTA_SALIDA.relative_to(RAIZ)}")
+    print(f"\nAnexo de {RUTA_SALIDA.name} reescrito.")
     return 0
 
 
-def _escribir_informe(
-    filas: list[dict[str, Any]], n_preguntas: int, ventana: int
-) -> None:
-    """Vuelca la rejilla completa en un fichero Markdown.
+def _cabecera_del_informe(
+    n_configuraciones: int, n_preguntas: int, ventana: int
+) -> list[str]:
+    """Redacta la procedencia de las cifras de la rejilla.
 
     Args:
-        filas: Una fila por configuración evaluada.
+        n_configuraciones: Configuraciones evaluadas.
         n_preguntas: Tamaño del conjunto de evaluación.
         ventana: Tokens que el modelo llega a leer.
+
+    Returns:
+        list[str]: Líneas de cabecera del informe.
     """
-    lineas = [
-        "# IT-16 — Rejilla de estrategias de fragmentación",
-        "",
+    return [
         f"Generado el {date.today():%d/%m/%Y} con "
         "`py -u scripts/experimento_fragmentacion.py` sobre `data/grados.json`, "
         f"con {n_preguntas} preguntas de `eval/preguntas_evaluacion.json` y el "
         f"modelo `{MODELO}` (ventana de {ventana} tokens), en CPU.",
         "",
-        f"**{len(filas)} configuraciones.** Las tres estrategias comparten el eje "
-        "de tamaño máximo y tienen el mismo número de variantes de su parámetro "
-        "propio, de modo que ninguna compite con más intentos que otra.",
+        f"**{n_configuraciones} configuraciones.** Las tres estrategias comparten "
+        "el eje de tamaño máximo y tienen el mismo número de variantes de su "
+        "parámetro propio, de modo que ninguna compite con más intentos que otra.",
         "",
+    ]
+
+
+def _tabla_del_informe(filas: list[dict[str, Any]]) -> list[str]:
+    """Ordena la rejilla y le da formato de tabla Markdown.
+
+    El orden no es neutral y por eso se explica en las notas: prioriza RU@1 y
+    desempata por MRR, que es donde las configuraciones se distinguen.
+
+    Args:
+        filas: Una fila por configuración evaluada.
+
+    Returns:
+        list[str]: Encabezado, separador y una línea por configuración.
+    """
+    lineas = [
         "| Estrategia | Máx. | Ajuste | Frag. | Mediana | "
         + " | ".join(f"RU@{k}" for k in KS)
         + " | R@5 / techo | MRR | Trunc. |",
@@ -568,49 +730,73 @@ def _escribir_informe(
             + f" | {f['r@5']:.3f} / {f['techo@5']:.3f} | {f['mrr']:.3f} "
             f"| {f['truncados']} |"
         )
-    lineas += [
-        "",
-        "Ordenada por exhaustividad por unidad en el primer resultado, que es "
-        "donde las configuraciones se distinguen: a partir de K=5 se saturan y "
-        "empatan casi todas.",
-        "",
-        "## Cómo leer la tabla",
-        "",
-        "- **RU@K** es la exhaustividad por unidad: si se ha encontrado la "
-        "asignatura correcta. Es la métrica principal porque el conjunto de "
-        "evaluación anota unidades y no fragmentos. Aun así **no es inmune al "
-        "troceo**: una unidad partida en más fragmentos ocupa más huecos del "
-        "top-K, así que la columna **Frag.** hay que leerla al lado.",
-        "- **R@5 / techo** es la exhaustividad por fragmento con su máximo "
-        "alcanzable. Al cambiar el troceo cambian el denominador de esa "
-        "métrica y su techo, de modo que la cifra suelta no es comparable "
-        "entre configuraciones.",
-        "- **Trunc.** son los fragmentos que superan la ventana del modelo y "
-        "que `encode` recorta **en silencio**, sin avisar ni fallar. Es la "
-        "comprobación directa de por qué el máximo de fragmento no puede "
-        "subirse sin mirar.",
-        "",
-        "## Qué NO dice esta tabla",
-        "",
-        "- **No compara el coste de las estrategias.** Lo que se cronometra es "
-        "la evaluación, no el troceo: construir la fragmentación semántica "
-        "exige incrustar todas las piezas del corpus y es mucho más caro que "
-        "las otras dos, y ese coste no aparece en ninguna columna.",
-        "- **No mide la calidad del fragmento**, solo si se recupera. Un "
-        "fragmento cortado a mitad de frase puede recuperarse igual de bien y "
-        "servir peor como contexto para el modelo que redacta.",
-        "- **El eje son caracteres; el límite del modelo son tokens.** La "
-        "correspondencia depende del texto, así que las columnas de máximo no "
-        "son una ventana fija en tokens. Por eso el truncado se cuenta con el "
-        "analizador léxico del modelo y no se estima.",
-        "- **El orden de la tabla no es neutral:** prioriza RU@1 y desempata "
-        "por MRR. Se elige así porque es donde las configuraciones se "
-        "distinguen, pero elegir una configuración por salir primera exige "
-        "justificar que RU@1 es la prioridad correcta para el sistema final.",
-        "",
+    return lineas
+
+
+#: Notas que acompañan a la tabla. Son fijas: no dependen de lo que salga en la
+#: ejecución, sino de qué se puede y qué no se puede leer en esas columnas.
+_NOTAS: Final[tuple[str, ...]] = (
+    "",
+    "Ordenada por exhaustividad por unidad en el primer resultado, que es "
+    "donde las configuraciones se distinguen: a partir de K=5 se saturan y "
+    "empatan casi todas.",
+    "",
+    "## Cómo leer la tabla",
+    "",
+    "- **RU@K** es la exhaustividad por unidad: si se ha encontrado la "
+    "asignatura correcta. Es la métrica principal porque el conjunto de "
+    "evaluación anota unidades y no fragmentos. Aun así **no es inmune al "
+    "troceo**: una unidad partida en más fragmentos ocupa más huecos del "
+    "top-K, así que la columna **Frag.** hay que leerla al lado.",
+    "- **R@5 / techo** es la exhaustividad por fragmento con su máximo "
+    "alcanzable. Al cambiar el troceo cambian el denominador de esa "
+    "métrica y su techo, de modo que la cifra suelta no es comparable "
+    "entre configuraciones.",
+    "- **Trunc.** son los fragmentos que superan la ventana del modelo y "
+    "que `encode` recorta **en silencio**, sin avisar ni fallar. Es la "
+    "comprobación directa de por qué el máximo de fragmento no puede "
+    "subirse sin mirar.",
+    "",
+    "## Qué NO dice esta tabla",
+    "",
+    "- **No compara el coste de las estrategias.** Lo que se cronometra es "
+    "la evaluación, no el troceo: construir la fragmentación semántica "
+    "exige incrustar todas las piezas del corpus y es mucho más caro que "
+    "las otras dos, y ese coste no aparece en ninguna columna.",
+    "- **No mide la calidad del fragmento**, solo si se recupera. Un "
+    "fragmento cortado a mitad de frase puede recuperarse igual de bien y "
+    "servir peor como contexto para el modelo que redacta.",
+    "- **El eje son caracteres; el límite del modelo son tokens.** La "
+    "correspondencia depende del texto, así que las columnas de máximo no "
+    "son una ventana fija en tokens. Por eso el truncado se cuenta con el "
+    "analizador léxico del modelo y no se estima.",
+    "- **El orden de la tabla no es neutral:** prioriza RU@1 y desempata "
+    "por MRR. Se elige así porque es donde las configuraciones se "
+    "distinguen, pero elegir una configuración por salir primera exige "
+    "justificar que RU@1 es la prioridad correcta para el sistema final.",
+    "",
+)
+
+
+def _escribir_informe(
+    filas: list[dict[str, Any]], n_preguntas: int, ventana: int
+) -> None:
+    """Vuelca la rejilla completa en el anexo del ADR.
+
+    El informe no lleva título propio: dentro del ADR ya lo encabeza su
+    apartado, y repetirlo dejaría dos encabezados seguidos.
+
+    Args:
+        filas: Una fila por configuración evaluada.
+        n_preguntas: Tamaño del conjunto de evaluación.
+        ventana: Tokens que el modelo llega a leer.
+    """
+    lineas = [
+        *_cabecera_del_informe(len(filas), n_preguntas, ventana),
+        *_tabla_del_informe(filas),
+        *_NOTAS,
     ]
-    RUTA_SALIDA.parent.mkdir(parents=True, exist_ok=True)
-    RUTA_SALIDA.write_text("\n".join(lineas), encoding="utf-8")
+    escribir_en_el_adr("\n".join(lineas))
 
 
 if __name__ == "__main__":

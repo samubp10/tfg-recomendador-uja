@@ -45,11 +45,17 @@ import numpy as np
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+#: Un fragmento de ``chunks.json``, tal como lo emite el troceador. Se nombra
+#: el concepto en vez de repetir ``dict[str, Any]`` en quince firmas: el tipo
+#: crudo no dice de qué se está hablando y el alias sí, sin añadir ninguna
+#: capa de indirección en tiempo de ejecución.
+type Chunk = dict[str, Any]
+
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 
-#: Dónde viven los resultados brutos. Un ADR, no un fichero de
-#: ``docs/experimentos/``: ver la nota del docstring del módulo.
+#: Dónde viven los resultados brutos: dentro del propio ADR, como anexo suyo,
+#: y no en un fichero aparte.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0004-base-vectorial.md"
 
 #: Marcas entre las que este guion escribe. Permiten volver a ejecutarlo sin
@@ -182,7 +188,7 @@ class Medida:
     notas: list[str] = field(default_factory=list)
 
 
-def cargar_corpus() -> list[dict[str, Any]]:
+def cargar_corpus() -> list[Chunk]:
     """Carga los chunks reales, descartando el ítem de procedencia."""
     items = json.loads(RUTA_CHUNKS.read_text(encoding="utf-8"))
     return [i for i in items if i.get("tipo") == "chunk"]
@@ -194,9 +200,7 @@ def cargar_preguntas() -> list[str]:
     return [p["pregunta"] for p in datos["preguntas"]]
 
 
-def esperados_del_filtro(
-    chunks: list[dict[str, Any]], grado: str, tipo: str | None
-) -> set[int]:
+def esperados_del_filtro(chunks: list[Chunk], grado: str, tipo: str | None) -> set[int]:
     """Verdad de referencia de un caso de U2, calculada sobre ``chunks.json``.
 
     Se calcula aquí y no se le pregunta a ninguna base: si la referencia
@@ -362,7 +366,7 @@ def id_a_indice(identificador: str) -> int:
 def elegir_caso_prefiltrado(
     vectores: np.ndarray,
     consultas: np.ndarray,
-    chunks: list[dict[str, Any]],
+    chunks: list[Chunk],
     k: int = K,
 ) -> tuple[int, str, int] | None:
     """Busca un caso real del corpus que distinga prefiltrado de posfiltrado.
@@ -407,7 +411,7 @@ def elegir_caso_prefiltrado(
 def comprobar_prefiltrado(
     consultador: Consultador,
     consultas: np.ndarray,
-    chunks: list[dict[str, Any]],
+    chunks: list[Chunk],
     caso: tuple[int, str, int],
     k: int = K,
 ) -> tuple[int, int, bool]:
@@ -449,30 +453,34 @@ def rss_actual_mb() -> float:
     return psutil.Process().memory_info().rss / (1024**2)
 
 
-def construir_con_metricas(construir: Callable[[], None]) -> tuple[float, float]:
-    """Ejecuta ``construir`` y devuelve (segundos, delta de RSS en MiB).
+def construir_con_metricas[T](construir: Callable[[], T]) -> tuple[T, float, float]:
+    """Ejecuta ``construir`` y devuelve (lo construido, segundos, RSS en MiB).
 
     Sirve para ChromaDB y LanceDB, que corren en el mismo proceso que el
     guion: la diferencia de RSS antes/después de indexar es lo que cuesta la
     base, no el intérprete ni NumPy (§4.4 de la teoría de bases vectoriales).
     No sirve para Qdrant, que corre en un contenedor aparte.
 
+    Devuelve también lo que ``construir`` haya creado, para que quien la llame
+    no tenga que sacarlo del cierre por un diccionario intermedio.
+
     Args:
-        construir: Bloque que crea el almacén e indexa el corpus.
+        construir: Bloque que crea el almacén e indexa el corpus, y devuelve
+            el almacén ya construido.
 
     Returns:
-        Tiempo de construcción en segundos y delta de RSS en MiB (nunca
-        negativo: una bajada solo indicaría que el recolector de basura
-        liberó algo de otro sitio, no que la base ocupe menos que cero).
+        Lo construido, el tiempo de construcción en segundos y el delta de RSS
+        en MiB (nunca negativo: una bajada solo indicaría que el recolector de
+        basura liberó algo de otro sitio, no que la base ocupe menos que cero).
     """
     gc.collect()
     antes_mem = rss_actual_mb()
     inicio = time.perf_counter()
-    construir()
+    construido = construir()
     segundos = time.perf_counter() - inicio
     gc.collect()
     delta_mem = max(rss_actual_mb() - antes_mem, 0.0)
-    return segundos, delta_mem
+    return construido, segundos, delta_mem
 
 
 def memoria_contenedor_mb(nombre: str) -> float:
@@ -536,7 +544,7 @@ def medir_candidata(
     consultador: Consultador,
     consultas: np.ndarray,
     exactos: list[list[int]],
-    chunks: list[dict[str, Any]],
+    chunks: list[Chunk],
     notas: list[str],
     caso_prefiltrado: tuple[int, str, int] | None = None,
     esfuerzo: dict[str, str] | None = None,
@@ -634,6 +642,33 @@ def medir_numpy(
     return medida, exactos
 
 
+# --- ChromaDB --------------------------------------------------------------
+
+#: Coste de operar ChromaDB (U7). Vive fuera de ``medir_chroma`` porque las
+#: tres tablas de esfuerzo son las columnas de UNA tabla del informe: puestas
+#: juntas se comparan de un vistazo, y enterradas cada una en su función había
+#: que saltar trescientas líneas para ver qué contestaba cada candidata a la
+#: misma pregunta. El orden de las claves es el orden de las filas de la tabla.
+ESFUERZO_CHROMA: Final[dict[str, str]] = {
+    "¿Servicio aparte?": "No: en proceso, `PersistentClient(path=...)`",
+    "¿Docker?": "No",
+    "¿Esquema declarado?": "No: los metadatos se infieren de cada `add`",
+    "¿Métrica declarada?": "**Sí, obligatorio**: por defecto es `l2`",
+    "Preparación antes de insertar": "Ninguna",
+    "Índices de apoyo para filtrar": "Ninguno",
+    "Sintaxis del filtro": "`$and` de `$contains` y `$eq` (dict)",
+}
+
+#: Observaciones sobre cómo se ha medido ChromaDB, que el informe imprime bajo
+#: su veredicto.
+NOTAS_CHROMA: Final[tuple[str, ...]] = (
+    "Distancia coseno declarada explícitamente al crear la colección "
+    "(la de ChromaDB por defecto es l2).",
+    "Su fidelidad NO permite concluir «su índice es fiel» mientras el "
+    "modo no esté determinado.",
+)
+
+
 class AlmacenChroma:
     """Adaptador de una colección de ChromaDB a ``AlmacenVectorial``.
 
@@ -694,29 +729,15 @@ def crear_almacen_chroma(
     )
 
 
-def medir_chroma(
-    chunks: list[dict[str, Any]],
-    vectores: np.ndarray,
-    consultas: np.ndarray,
-    exactos: list[list[int]],
-    ruta_indice: Path,
-    caso_prefiltrado: tuple[int, str, int] | None = None,
-) -> Medida:
-    """Construye y mide ChromaDB, reutilizando el pipeline de ``indexer.py``."""
-    from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
-    from tfg_uja.indexer import indexar_chunks
+def _consultador_chroma(coleccion: Any) -> Consultador:
+    """Adapta las tres operaciones que mide el experimento a la API de Chroma.
 
-    coleccion_holder: dict[str, Any] = {}
+    Args:
+        coleccion: Colección ya construida e indexada.
 
-    def construir() -> None:
-        almacen = crear_almacen_chroma(
-            ruta_indice, {"modelo": MODELO, "prefijo_documento": PREFIJO_DOCUMENTO}
-        )
-        indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
-        coleccion_holder["coleccion"] = almacen.coleccion
-
-    segundos_construir, memoria_mb = construir_con_metricas(construir)
-    coleccion = coleccion_holder["coleccion"]
+    Returns:
+        El adaptador con el que ``medir_candidata`` la interroga.
+    """
 
     def vecinos(consulta: np.ndarray, k: int) -> list[int]:
         resultado = coleccion.query(query_embeddings=[consulta.tolist()], n_results=k)
@@ -744,6 +765,20 @@ def medir_chroma(
         )
         return [id_a_indice(i) for i in resultado["ids"][0]]
 
+    return Consultador(
+        vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
+    )
+
+
+def _modo_chroma(coleccion: Any) -> str:
+    """Describe cómo responde ChromaDB, que es lo que U1 exige declarar.
+
+    Args:
+        coleccion: Colección ya construida.
+
+    Returns:
+        La descripción del modo, tal como aparece en el informe.
+    """
     # `configuration_json` no es API pública documentada de ChromaDB: hoy
     # existe en 1.5.9 y devuelve los parámetros efectivos de HNSW (comprobado),
     # pero una versión futura puede quitarlo o cambiarle la forma. Si
@@ -757,42 +792,81 @@ def medir_chroma(
         metadatos_coleccion = coleccion.metadata or {}
         hnsw = {"space": metadatos_coleccion.get("hnsw:space", "no legible")}
 
+    return (
+        "NO VERIFICABLE desde el cliente — la colección se configura con "
+        f"HNSW (space={hnsw.get('space')}, ef_search={hnsw.get('ef_search')}, "
+        f"max_neighbors={hnsw.get('max_neighbors')}), pero ChromaDB **no "
+        "expone un contador de vectores indexados** como Qdrant, así que "
+        "no se puede comprobar por esta vía si a 1.334 vectores responde "
+        "recorriendo el grafo o el conjunto completo"
+    )
+
+
+def medir_chroma(
+    chunks: list[Chunk],
+    vectores: np.ndarray,
+    consultas: np.ndarray,
+    exactos: list[list[int]],
+    ruta_indice: Path,
+    caso_prefiltrado: tuple[int, str, int] | None = None,
+) -> Medida:
+    """Construye y mide ChromaDB, reutilizando el pipeline de ``indexer.py``."""
+    from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
+    from tfg_uja.indexer import indexar_chunks
+
+    def construir() -> Any:
+        almacen = crear_almacen_chroma(
+            ruta_indice, {"modelo": MODELO, "prefijo_documento": PREFIJO_DOCUMENTO}
+        )
+        indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
+        return almacen.coleccion
+
+    coleccion, segundos_construir, memoria_mb = construir_con_metricas(construir)
+
     return medir_candidata(
         nombre="ChromaDB",
         version=version_instalada("chromadb"),
-        modo=(
-            "NO VERIFICABLE desde el cliente — la colección se configura con "
-            f"HNSW (space={hnsw.get('space')}, ef_search={hnsw.get('ef_search')}, "
-            f"max_neighbors={hnsw.get('max_neighbors')}), pero ChromaDB **no "
-            "expone un contador de vectores indexados** como Qdrant, así que "
-            "no se puede comprobar por esta vía si a 1.334 vectores responde "
-            "recorriendo el grafo o el conjunto completo"
-        ),
+        modo=_modo_chroma(coleccion),
         segundos_construir=segundos_construir,
         memoria_mb=memoria_mb,
-        consultador=Consultador(
-            vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
-        ),
+        consultador=_consultador_chroma(coleccion),
         consultas=consultas,
         exactos=exactos,
         chunks=chunks,
         caso_prefiltrado=caso_prefiltrado,
-        esfuerzo={
-            "¿Servicio aparte?": "No: en proceso, `PersistentClient(path=...)`",
-            "¿Docker?": "No",
-            "¿Esquema declarado?": "No: los metadatos se infieren de cada `add`",
-            "¿Métrica declarada?": "**Sí, obligatorio**: por defecto es `l2`",
-            "Preparación antes de insertar": "Ninguna",
-            "Índices de apoyo para filtrar": "Ninguno",
-            "Sintaxis del filtro": "`$and` de `$contains` y `$eq` (dict)",
-        },
-        notas=[
-            "Distancia coseno declarada explícitamente al crear la colección "
-            "(la de ChromaDB por defecto es l2).",
-            "Su fidelidad NO permite concluir «su índice es fiel» mientras el "
-            "modo no esté determinado.",
-        ],
+        esfuerzo=ESFUERZO_CHROMA,
+        notas=list(NOTAS_CHROMA),
     )
+
+
+# --- LanceDB ---------------------------------------------------------------
+
+#: Coste de operar LanceDB (U7). Mismas claves y mismo orden que
+#: :data:`ESFUERZO_CHROMA`: son las filas de la tabla del informe.
+ESFUERZO_LANCEDB: Final[dict[str, str]] = {
+    "¿Servicio aparte?": "No: en proceso, `lancedb.connect(ruta)`",
+    "¿Docker?": "No",
+    "¿Esquema declarado?": (
+        "**Sí**: esquema Arrow explícito, con el vector como "
+        "`list_(float32, 384)` de tamaño fijo"
+    ),
+    "¿Métrica declarada?": "**Sí, obligatorio**: por defecto es `l2`",
+    "Preparación antes de insertar": "Crear la tabla con su esquema",
+    "Índices de apoyo para filtrar": (
+        "Ninguno creado. Su documentación menciona un índice escalar "
+        "`LABEL_LIST` para columnas lista; **el filtrado da 58/58 y "
+        "417/417 sin él**, así que a esta escala es de rendimiento y "
+        "no de corrección"
+    ),
+    "Sintaxis del filtro": "SQL de DataFusion: `array_has_any(...)`",
+}
+
+#: Observaciones sobre cómo se ha medido LanceDB.
+NOTAS_LANCEDB: Final[tuple[str, ...]] = (
+    "Prefiltrado por defecto (prefilter=True).",
+    "Distancia coseno declarada en cada consulta: la de LanceDB por "
+    "defecto es l2 (comprobado ejecutándolo).",
+)
 
 
 def _sql_literal(valor: str) -> str:
@@ -858,38 +932,17 @@ class AlmacenLance:
         self.tabla.add(registros)
 
 
-def medir_lancedb(
-    chunks: list[dict[str, Any]],
-    vectores: np.ndarray,
-    consultas: np.ndarray,
-    exactos: list[list[int]],
-    ruta_indice: Path,
-    caso_prefiltrado: tuple[int, str, int] | None = None,
-) -> Medida:
-    """Construye y mide LanceDB."""
-    import lancedb
+def _consultador_lancedb(tabla: Any, total: int) -> Consultador:
+    """Adapta las tres operaciones que mide el experimento a la API de Lance.
 
-    from tfg_uja.indexer import indexar_chunks
+    Args:
+        tabla: Tabla ya construida e indexada.
+        total: Filas que tiene, para pedirlas todas al comprobar U2 (que no es
+            una búsqueda por similitud, sino una consulta estructural sin K).
 
-    almacen_holder: dict[str, AlmacenLance] = {}
-
-    def construir() -> None:
-        db = lancedb.connect(str(ruta_indice))
-        tabla = db.create_table(
-            "chunks_epsj", schema=_esquema_lance(vectores.shape[1]), mode="overwrite"
-        )
-        almacen = AlmacenLance(tabla)
-        indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
-        almacen_holder["almacen"] = almacen
-
-    segundos_construir, memoria_mb = construir_con_metricas(construir)
-    tabla = almacen_holder["almacen"].tabla
-    total = tabla.count_rows()
-
-    # El modo se LEE de la tabla, no se afirma por documentación: si algún día
-    # LanceDB decidiera construir un índice a esta escala, el informe lo diría
-    # en vez de seguir asegurando que no lo hay.
-    indices = tabla.list_indices()
+    Returns:
+        El adaptador con el que ``medir_candidata`` la interroga.
+    """
 
     def vecinos(consulta: np.ndarray, k: int) -> list[int]:
         # `distance_type("cosine")` es OBLIGATORIO, no decorativo: la métrica
@@ -921,46 +974,100 @@ def medir_lancedb(
         )
         return [id_a_indice(f["id"]) for f in filas]
 
+    return Consultador(
+        vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
+    )
+
+
+def _modo_lancedb(tabla: Any) -> str:
+    """Describe cómo responde LanceDB, que es lo que U1 exige declarar.
+
+    Args:
+        tabla: Tabla ya construida.
+
+    Returns:
+        La descripción del modo, tal como aparece en el informe.
+    """
+    # El modo se LEE de la tabla, no se afirma por documentación: si algún día
+    # LanceDB decidiera construir un índice a esta escala, el informe lo diría
+    # en vez de seguir asegurando que no lo hay.
+    indices = tabla.list_indices()
+    return (
+        f"escaneo completo — MEDIDO: list_indices() = {indices or '[]'}, "
+        "ningún índice ANN construido (el corpus está por debajo de las "
+        "«few thousand rows» que recomienda su documentación)"
+    )
+
+
+def medir_lancedb(
+    chunks: list[Chunk],
+    vectores: np.ndarray,
+    consultas: np.ndarray,
+    exactos: list[list[int]],
+    ruta_indice: Path,
+    caso_prefiltrado: tuple[int, str, int] | None = None,
+) -> Medida:
+    """Construye y mide LanceDB."""
+    import lancedb
+
+    from tfg_uja.indexer import indexar_chunks
+
+    def construir() -> Any:
+        db = lancedb.connect(str(ruta_indice))
+        tabla = db.create_table(
+            "chunks_epsj", schema=_esquema_lance(vectores.shape[1]), mode="overwrite"
+        )
+        almacen = AlmacenLance(tabla)
+        indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
+        return almacen.tabla
+
+    tabla, segundos_construir, memoria_mb = construir_con_metricas(construir)
+
     return medir_candidata(
         nombre="LanceDB",
         version=version_instalada("lancedb"),
-        modo=(
-            f"escaneo completo — MEDIDO: list_indices() = {indices or '[]'}, "
-            "ningún índice ANN construido (el corpus está por debajo de las "
-            "«few thousand rows» que recomienda su documentación)"
-        ),
+        modo=_modo_lancedb(tabla),
         segundos_construir=segundos_construir,
         memoria_mb=memoria_mb,
-        consultador=Consultador(
-            vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
-        ),
+        consultador=_consultador_lancedb(tabla, tabla.count_rows()),
         consultas=consultas,
         exactos=exactos,
         chunks=chunks,
         caso_prefiltrado=caso_prefiltrado,
-        esfuerzo={
-            "¿Servicio aparte?": "No: en proceso, `lancedb.connect(ruta)`",
-            "¿Docker?": "No",
-            "¿Esquema declarado?": (
-                "**Sí**: esquema Arrow explícito, con el vector como "
-                "`list_(float32, 384)` de tamaño fijo"
-            ),
-            "¿Métrica declarada?": "**Sí, obligatorio**: por defecto es `l2`",
-            "Preparación antes de insertar": "Crear la tabla con su esquema",
-            "Índices de apoyo para filtrar": (
-                "Ninguno creado. Su documentación menciona un índice escalar "
-                "`LABEL_LIST` para columnas lista; **el filtrado da 58/58 y "
-                "417/417 sin él**, así que a esta escala es de rendimiento y "
-                "no de corrección"
-            ),
-            "Sintaxis del filtro": "SQL de DataFusion: `array_has_any(...)`",
-        },
-        notas=[
-            "Prefiltrado por defecto (prefilter=True).",
-            "Distancia coseno declarada en cada consulta: la de LanceDB por "
-            "defecto es l2 (comprobado ejecutándolo).",
-        ],
+        esfuerzo=ESFUERZO_LANCEDB,
+        notas=list(NOTAS_LANCEDB),
     )
+
+
+# --- Qdrant ----------------------------------------------------------------
+
+#: Coste de operar Qdrant (U7). Mismas claves y mismo orden que
+#: :data:`ESFUERZO_CHROMA`: son las filas de la tabla del informe.
+ESFUERZO_QDRANT: Final[dict[str, str]] = {
+    "¿Servicio aparte?": "**Sí**: servidor en `localhost:6333`",
+    "¿Docker?": (
+        "**Sí** para el experimento. Solo en desarrollo: el sistema "
+        "no depende de Docker en marcha"
+    ),
+    "¿Esquema declarado?": (
+        "Parcial: `VectorParams(size, distance)`. El payload es JSON libre"
+    ),
+    "¿Métrica declarada?": "**Sí**, en `VectorParams`",
+    "Preparación antes de insertar": (
+        "**Dos índices de payload** (`grados`, `tipo_asignatura`), y "
+        "conviene crearlos ANTES de insertar porque son los que "
+        "generan las aristas del HNSW filtrable"
+    ),
+    "Índices de apoyo para filtrar": "Dos, del tipo `KEYWORD`",
+    "Sintaxis del filtro": "Objetos `Filter(must=[FieldCondition...])`",
+}
+
+#: Observaciones sobre cómo se ha medido Qdrant.
+NOTAS_QDRANT: Final[tuple[str, ...]] = (
+    "Memoria del contenedor completo (docker stats), no del proceso "
+    "cliente: incluye el sistema base del contenedor.",
+    "Índices de payload creados antes de insertar los datos.",
+)
 
 
 class AlmacenQdrant:
@@ -991,71 +1098,51 @@ class AlmacenQdrant:
         self.cliente.upsert(collection_name=self.coleccion, points=puntos)
 
 
-def medir_qdrant(
-    chunks: list[dict[str, Any]],
-    vectores: np.ndarray,
-    consultas: np.ndarray,
-    exactos: list[list[int]],
-    caso_prefiltrado: tuple[int, str, int] | None = None,
-) -> Medida:
-    """Construye y mide Qdrant. Requiere el contenedor levantado."""
-    from qdrant_client import QdrantClient
-    from qdrant_client.models import (
-        Distance,
-        FieldCondition,
-        Filter,
-        MatchValue,
-        PayloadSchemaType,
-        VectorParams,
+def _crear_coleccion_qdrant(cliente: Any, nombre: str, dimension: int) -> None:
+    """Deja la colección vacía y con sus índices de payload, lista para insertar.
+
+    Args:
+        cliente: Cliente del servidor de Qdrant.
+        nombre: Nombre de la colección.
+        dimension: Dimensión de los vectores del modelo.
+    """
+    from qdrant_client.models import Distance, PayloadSchemaType, VectorParams
+
+    # `collection_exists` en vez de un delete envuelto en `except: pass`:
+    # ese patrón se traga también un Qdrant caído o un fallo de red, y
+    # entonces el error aparece más adelante, en `create_collection`, con
+    # un mensaje que no dice cuál era el problema real.
+    if cliente.collection_exists(nombre):
+        cliente.delete_collection(nombre)
+    cliente.create_collection(
+        collection_name=nombre,
+        vectors_config=VectorParams(size=dimension, distance=Distance.COSINE),
+    )
+    # Los índices de payload se crean ANTES de insertar: son los que
+    # generan las aristas extra del HNSW filtrable (§2.3 de
+    # 02_los_3_candidatos.md). A esta escala no llega a construirse HNSW,
+    # pero es la forma correcta de operar la candidata igualmente.
+    cliente.create_payload_index(
+        nombre, "grados", field_schema=PayloadSchemaType.KEYWORD
+    )
+    cliente.create_payload_index(
+        nombre,
+        "tipo_asignatura",
+        field_schema=PayloadSchemaType.KEYWORD,
     )
 
-    from tfg_uja.indexer import indexar_chunks
 
-    cliente = QdrantClient(url=URL_QDRANT)
-    nombre_coleccion = "chunks_epsj"
+def _consultador_qdrant(cliente: Any, nombre_coleccion: str) -> Consultador:
+    """Adapta las tres operaciones que mide el experimento a la API de Qdrant.
 
-    def construir() -> None:
-        # `collection_exists` en vez de un delete envuelto en `except: pass`:
-        # ese patrón se traga también un Qdrant caído o un fallo de red, y
-        # entonces el error aparece más adelante, en `create_collection`, con
-        # un mensaje que no dice cuál era el problema real.
-        if cliente.collection_exists(nombre_coleccion):
-            cliente.delete_collection(nombre_coleccion)
-        cliente.create_collection(
-            collection_name=nombre_coleccion,
-            vectors_config=VectorParams(
-                size=vectores.shape[1], distance=Distance.COSINE
-            ),
-        )
-        # Los índices de payload se crean ANTES de insertar: son los que
-        # generan las aristas extra del HNSW filtrable (§2.3 de
-        # 02_los_3_candidatos.md). A esta escala no llega a construirse HNSW,
-        # pero es la forma correcta de operar la candidata igualmente.
-        cliente.create_payload_index(
-            nombre_coleccion, "grados", field_schema=PayloadSchemaType.KEYWORD
-        )
-        cliente.create_payload_index(
-            nombre_coleccion,
-            "tipo_asignatura",
-            field_schema=PayloadSchemaType.KEYWORD,
-        )
-        almacen = AlmacenQdrant(cliente, nombre_coleccion)
-        indexar_chunks(chunks, almacen, incrustador_fijo(vectores))
+    Args:
+        cliente: Cliente del servidor de Qdrant.
+        nombre_coleccion: Colección ya construida e indexada.
 
-    inicio = time.perf_counter()
-    construir()
-    segundos_construir = time.perf_counter() - inicio
-    memoria_mb = memoria_contenedor_mb(CONTENEDOR_QDRANT)
-
-    # Qdrant es la única de las tres que expone cuántos vectores tiene
-    # realmente indexados, así que aquí el modo no hay que suponerlo: se lee.
-    # Es la comprobación que evita el quinto caso de «el verificador medía algo
-    # distinto de lo que creía medir»: una fidelidad de 1,000 obtenida por
-    # escaneo completo significa «no perdió nada», no «su índice es fiel».
-    info = cliente.get_collection(nombre_coleccion)
-    indexados = info.indexed_vectors_count or 0
-    umbral_indexado = info.config.optimizer_config.indexing_threshold
-    umbral_escaneo = info.config.hnsw_config.full_scan_threshold
+    Returns:
+        El adaptador con el que ``medir_candidata`` la interroga.
+    """
+    from qdrant_client.models import FieldCondition, Filter, MatchValue
 
     def vecinos(consulta: np.ndarray, k: int) -> list[int]:
         resultado = cliente.query_points(
@@ -1103,52 +1190,84 @@ def medir_qdrant(
         )
         return [int(p.id) for p in resultado.points]
 
+    return Consultador(
+        vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
+    )
+
+
+def _modo_qdrant(info: Any) -> str:
+    """Describe cómo responde Qdrant, leyéndolo de la colección.
+
+    Qdrant es la única de las tres que expone cuántos vectores tiene
+    realmente indexados, así que aquí el modo no hay que suponerlo: se lee.
+    Es la comprobación que evita el quinto caso de «el verificador medía algo
+    distinto de lo que creía medir»: una fidelidad de 1,000 obtenida por
+    escaneo completo significa «no perdió nada», no «su índice es fiel».
+
+    Args:
+        info: Descripción de la colección, tal como la devuelve
+            ``get_collection``.
+
+    Returns:
+        La descripción del modo, tal como aparece en el informe.
+    """
+    indexados = info.indexed_vectors_count or 0
+    umbral_indexado = info.config.optimizer_config.indexing_threshold
+    umbral_escaneo = info.config.hnsw_config.full_scan_threshold
+    return (
+        f"{'escaneo completo' if indexados == 0 else 'HNSW'} — MEDIDO: "
+        f"indexed_vectors_count = {indexados} de {info.points_count} "
+        f"puntos (indexing_threshold = {umbral_indexado} KiB, "
+        f"full_scan_threshold = {umbral_escaneo} KiB; el corpus ocupa "
+        "~2001 KiB, por debajo de ambos; no se han bajado a mano para "
+        "forzar la construcción del índice)"
+    )
+
+
+def medir_qdrant(
+    chunks: list[Chunk],
+    vectores: np.ndarray,
+    consultas: np.ndarray,
+    exactos: list[list[int]],
+    caso_prefiltrado: tuple[int, str, int] | None = None,
+) -> Medida:
+    """Construye y mide Qdrant. Requiere el contenedor levantado.
+
+    No pasa por :func:`construir_con_metricas` porque su memoria no se mide
+    igual: el proceso de Python solo ve al cliente, así que la construcción se
+    cronometra aquí y la memoria se le pide al contenedor.
+    """
+    from qdrant_client import QdrantClient
+
+    from tfg_uja.indexer import indexar_chunks
+
+    cliente = QdrantClient(url=URL_QDRANT)
+    nombre_coleccion = "chunks_epsj"
+
+    inicio = time.perf_counter()
+    _crear_coleccion_qdrant(cliente, nombre_coleccion, vectores.shape[1])
+    indexar_chunks(
+        chunks, AlmacenQdrant(cliente, nombre_coleccion), incrustador_fijo(vectores)
+    )
+    segundos_construir = time.perf_counter() - inicio
+    memoria_mb = memoria_contenedor_mb(CONTENEDOR_QDRANT)
+
     return medir_candidata(
         nombre="Qdrant",
         version=(
             f"cliente {version_instalada('qdrant-client')} · "
             "imagen qdrant/qdrant:v1.19.0 (pyproject.toml)"
         ),
-        modo=(
-            f"{'escaneo completo' if indexados == 0 else 'HNSW'} — MEDIDO: "
-            f"indexed_vectors_count = {indexados} de {info.points_count} "
-            f"puntos (indexing_threshold = {umbral_indexado} KiB, "
-            f"full_scan_threshold = {umbral_escaneo} KiB; el corpus ocupa "
-            "~2001 KiB, por debajo de ambos; no se han bajado a mano para "
-            "forzar la construcción del índice)"
-        ),
+        modo=_modo_qdrant(cliente.get_collection(nombre_coleccion)),
         segundos_construir=segundos_construir,
         memoria_mb=memoria_mb,
-        consultador=Consultador(
-            vecinos=vecinos, filtro=filtro, vecinos_filtrados=vecinos_filtrados
-        ),
+        consultador=_consultador_qdrant(cliente, nombre_coleccion),
         consultas=consultas,
         exactos=exactos,
         chunks=chunks,
         caso_prefiltrado=caso_prefiltrado,
-        esfuerzo={
-            "¿Servicio aparte?": "**Sí**: servidor en `localhost:6333`",
-            "¿Docker?": (
-                "**Sí** para el experimento. Solo en desarrollo: el sistema "
-                "no depende de Docker en marcha"
-            ),
-            "¿Esquema declarado?": (
-                "Parcial: `VectorParams(size, distance)`. El payload es JSON " "libre"
-            ),
-            "¿Métrica declarada?": "**Sí**, en `VectorParams`",
-            "Preparación antes de insertar": (
-                "**Dos índices de payload** (`grados`, `tipo_asignatura`), y "
-                "conviene crearlos ANTES de insertar porque son los que "
-                "generan las aristas del HNSW filtrable"
-            ),
-            "Índices de apoyo para filtrar": "Dos, del tipo `KEYWORD`",
-            "Sintaxis del filtro": "Objetos `Filter(must=[FieldCondition...])`",
-        },
-        notas=[
-            "Memoria del contenedor completo (docker stats), no del proceso "
-            "cliente: incluye el sistema base del contenedor.",
-            "Índices de payload creados antes de insertar los datos.",
-        ],
+        esfuerzo=ESFUERZO_QDRANT,
+        notas=list(NOTAS_QDRANT),
     )
 
 
@@ -1174,7 +1293,7 @@ def comprobar_normas(vectores: np.ndarray) -> tuple[float, float, bool]:
     return float(normas.min()), float(normas.max()), normalizados
 
 
-def poder_discriminante_u2(chunks: list[dict[str, Any]]) -> dict[str, tuple[int, int]]:
+def poder_discriminante_u2(chunks: list[Chunk]) -> dict[str, tuple[int, int]]:
     """Cuántos fragmentos devolvería un filtro por subcadena en cada caso de U2.
 
     Un umbral que se cumple igual con la implementación buena y con la mala no
@@ -1199,6 +1318,70 @@ def poder_discriminante_u2(chunks: list[dict[str, Any]]) -> dict[str, tuple[int,
     return resultado
 
 
+# --- Veredictos contra los umbrales ----------------------------------------
+
+
+def _veredicto_u1(m: Medida) -> str:
+    """U1: fidelidad frente a la fuerza bruta, con el 1,000 exacto por criterio."""
+    return (
+        f"U1 (fidelidad = 1,000 exacto): "
+        f"{'CUMPLE' if m.fidelidad == 1.0 else 'NO CUMPLE'} ({m.fidelidad:.4f})"
+    )
+
+
+def _veredicto_u2(m: Medida) -> str:
+    """U2: el filtrado por metadatos, caso a caso, con su detalle."""
+    u2_ok = all(fp == 0 and rec == esp for rec, esp, fp in m.filtros.values())
+    detalle = "; ".join(
+        f"{etq}: {rec}/{esp} recuperados/esperados, {fp} falsos positivos"
+        for etq, (rec, esp, fp) in m.filtros.items()
+    )
+    return (
+        f"U2 (precisión y exhaustividad 1,000, 0 falsos positivos): "
+        f"{'CUMPLE' if u2_ok else 'NO CUMPLE'} ({detalle})"
+    )
+
+
+def _veredicto_u3(m: Medida) -> str:
+    """U3: latencia mediana, con el p90 al lado para no leerla sola."""
+    return (
+        f"U3 (latencia mediana <= 500 ms): "
+        f"{'CUMPLE' if m.latencia_mediana_ms <= 500 else 'NO CUMPLE'} "
+        f"({m.latencia_mediana_ms:.2f} ms, p90 {m.latencia_p90_ms:.2f} ms)"
+    )
+
+
+def _veredicto_u5(m: Medida) -> str:
+    """U5: memoria residente, que no es binario sino de tres tramos."""
+    if m.memoria_mb <= 512:
+        u5 = "CUMPLE (<= 0,5 GiB)"
+    elif m.memoria_mb <= 1024:
+        u5 = "ZONA INTERMEDIA (> 0,5 GiB y <= 1 GiB)"
+    else:
+        u5 = "DESCARTA (> 1 GiB)"
+    return f"U5 (memoria residente): {u5} ({m.memoria_mb:.2f} MiB)"
+
+
+def _veredicto_prefiltrado(prefiltrado: tuple[int, int, bool]) -> str:
+    """Prefiltrado: no es un umbral, es una garantía de corrección.
+
+    Args:
+        prefiltrado: ``(devueltos, pedidos, todos cumplen el filtro)``.
+
+    Returns:
+        La línea del informe, con el veredicto y sus cifras.
+    """
+    devueltos, pedidos, correctos = prefiltrado
+    prefiltra = devueltos == pedidos and correctos
+    return (
+        f"Prefiltrado (no es un umbral, es una garantía de corrección): "
+        f"{'PREFILTRA' if prefiltra else 'POSFILTRA O PIERDE'} "
+        f"({devueltos} de {pedidos} pedidos"
+        + ("" if correctos else ", y alguno NO cumple el filtro")
+        + ")"
+    )
+
+
 def evaluar_umbrales(medidas: dict[str, Medida]) -> dict[str, list[str]]:
     """Contrasta cada candidata (no la línea base de NumPy) contra U1-U5.
 
@@ -1215,42 +1398,13 @@ def evaluar_umbrales(medidas: dict[str, Medida]) -> dict[str, list[str]]:
     for nombre, m in medidas.items():
         if nombre == "NumPy":
             continue
-        lineas = [
-            f"U1 (fidelidad = 1,000 exacto): "
-            f"{'CUMPLE' if m.fidelidad == 1.0 else 'NO CUMPLE'} ({m.fidelidad:.4f})"
-        ]
+        lineas = [_veredicto_u1(m)]
         if m.filtros:
-            u2_ok = all(fp == 0 and rec == esp for rec, esp, fp in m.filtros.values())
-            detalle = "; ".join(
-                f"{etq}: {rec}/{esp} recuperados/esperados, {fp} falsos positivos"
-                for etq, (rec, esp, fp) in m.filtros.items()
-            )
-            lineas.append(
-                f"U2 (precisión y exhaustividad 1,000, 0 falsos positivos): "
-                f"{'CUMPLE' if u2_ok else 'NO CUMPLE'} ({detalle})"
-            )
-        lineas.append(
-            f"U3 (latencia mediana <= 500 ms): "
-            f"{'CUMPLE' if m.latencia_mediana_ms <= 500 else 'NO CUMPLE'} "
-            f"({m.latencia_mediana_ms:.2f} ms, p90 {m.latencia_p90_ms:.2f} ms)"
-        )
-        if m.memoria_mb <= 512:
-            u5 = "CUMPLE (<= 0,5 GiB)"
-        elif m.memoria_mb <= 1024:
-            u5 = "ZONA INTERMEDIA (> 0,5 GiB y <= 1 GiB)"
-        else:
-            u5 = "DESCARTA (> 1 GiB)"
-        lineas.append(f"U5 (memoria residente): {u5} ({m.memoria_mb:.2f} MiB)")
+            lineas.append(_veredicto_u2(m))
+        lineas.append(_veredicto_u3(m))
+        lineas.append(_veredicto_u5(m))
         if m.prefiltrado is not None:
-            devueltos, pedidos, correctos = m.prefiltrado
-            prefiltra = devueltos == pedidos and correctos
-            lineas.append(
-                f"Prefiltrado (no es un umbral, es una garantía de corrección): "
-                f"{'PREFILTRA' if prefiltra else 'POSFILTRA O PIERDE'} "
-                f"({devueltos} de {pedidos} pedidos"
-                + ("" if correctos else ", y alguno NO cumple el filtro")
-                + ")"
-            )
+            lineas.append(_veredicto_prefiltrado(m.prefiltrado))
         veredictos[nombre] = lineas
     return veredictos
 
@@ -1353,20 +1507,11 @@ def _tabla_prefiltrado(
     return "\n".join(filas)
 
 
-def generar_bloque_resultados(
-    medidas: dict[str, Medida],
-    veredictos: dict[str, list[str]],
-    chunks: list[dict[str, Any]],
-    preguntas: list[str],
-    normas: tuple[float, float, bool],
-    discriminante: dict[str, tuple[int, int]],
-    caso_prefiltrado: tuple[int, str, int] | None,
-) -> str:
-    """Compone el bloque de resultados brutos, listo para insertarse en el ADR."""
-    norma_min, norma_max, constantes = normas
-    partes = [
-        MARCA_INICIO,
-        "",
+def _seccion_cabecera(
+    medidas: dict[str, Medida], chunks: list[Chunk], preguntas: list[str]
+) -> list[str]:
+    """Encabezado con la procedencia de las cifras y la tabla comparativa."""
+    return [
         f"**Generado el {datetime.now():%Y-%m-%d} por "
         f"`scripts/experimento_vectordb.py`, sobre {len(chunks)} fragmentos y "
         f"{len(preguntas)} preguntas de `eval/preguntas_evaluacion.json`. "
@@ -1378,6 +1523,14 @@ def generar_bloque_resultados(
         "",
         _tabla_resumen(medidas),
         "",
+    ]
+
+
+def _seccion_filtrado(
+    medidas: dict[str, Medida], discriminante: dict[str, tuple[int, int]]
+) -> list[str]:
+    """U2 y, justo detrás, el poder discriminante de cada uno de sus casos."""
+    return [
         "### Filtrado por metadatos (U2)",
         "",
         _tabla_filtrado(medidas),
@@ -1392,6 +1545,16 @@ def generar_bloque_resultados(
         "",
         _tabla_discriminante(discriminante),
         "",
+    ]
+
+
+def _seccion_prefiltrado(
+    medidas: dict[str, Medida],
+    caso_prefiltrado: tuple[int, str, int] | None,
+    preguntas: list[str],
+) -> list[str]:
+    """La comprobación que ni U1 ni U2 cubren, con el caso real que la ejerce."""
+    return [
         "### Prefiltrado frente a posfiltrado",
         "",
         "Ni U1 ni U2 lo detectan: U2 pide **todos** los fragmentos que cumplen "
@@ -1403,6 +1566,12 @@ def generar_bloque_resultados(
         "",
         _tabla_prefiltrado(medidas, caso_prefiltrado, preguntas),
         "",
+    ]
+
+
+def _seccion_esfuerzo(medidas: dict[str, Medida]) -> list[str]:
+    """U7, el desempate, registrado en hechos verificables."""
+    return [
         "### Esfuerzo de configuración (U7)",
         "",
         "U7 es un desempate y no una cifra, así que se registra en **hechos "
@@ -1410,9 +1579,14 @@ def generar_bloque_resultados(
         "",
         _tabla_esfuerzo(medidas),
         "",
-        "### Veredicto contra los umbrales U1-U5",
-        "",
     ]
+
+
+def _seccion_veredictos(
+    medidas: dict[str, Medida], veredictos: dict[str, list[str]]
+) -> list[str]:
+    """Umbral a umbral por candidata, con sus notas de medición debajo."""
+    partes = ["### Veredicto contra los umbrales U1-U5", ""]
     for nombre, lineas in veredictos.items():
         partes.append(f"**{nombre}**")
         for linea in lineas:
@@ -1420,7 +1594,15 @@ def generar_bloque_resultados(
         for nota in medidas[nombre].notas:
             partes.append(f"- Nota: {nota}")
         partes.append("")
-    partes += [
+    return partes
+
+
+def _seccion_limitaciones(
+    chunks: list[Chunk], normas: tuple[float, float, bool]
+) -> list[str]:
+    """Lo que las cifras NO permiten concluir, que es lo que las hace defendibles."""
+    norma_min, norma_max, constantes = normas
+    return [
         "### Lo que estas cifras NO permiten concluir",
         "",
         f"- **La métrica de distancia no es distinguible con este modelo.** Las "
@@ -1462,9 +1644,37 @@ def generar_bloque_resultados(
         "miden en el mismo orden en cada ejecución, así que un proceso pesado "
         "de fondo penalizaría siempre a la misma.",
         "",
-        MARCA_FIN,
     ]
-    return "\n".join(partes)
+
+
+def generar_bloque_resultados(
+    medidas: dict[str, Medida],
+    veredictos: dict[str, list[str]],
+    chunks: list[Chunk],
+    preguntas: list[str],
+    normas: tuple[float, float, bool],
+    discriminante: dict[str, tuple[int, int]],
+    caso_prefiltrado: tuple[int, str, int] | None,
+) -> str:
+    """Compone el bloque de resultados brutos, listo para insertarse en el ADR.
+
+    Solo ensambla las secciones en orden. El texto de cada una vive en su
+    propia función, y las marcas de apertura y cierre son responsabilidad de
+    esta: son las que permiten reescribir el bloque sin tocar el resto del ADR.
+    """
+    return "\n".join(
+        [
+            MARCA_INICIO,
+            "",
+            *_seccion_cabecera(medidas, chunks, preguntas),
+            *_seccion_filtrado(medidas, discriminante),
+            *_seccion_prefiltrado(medidas, caso_prefiltrado, preguntas),
+            *_seccion_esfuerzo(medidas),
+            *_seccion_veredictos(medidas, veredictos),
+            *_seccion_limitaciones(chunks, normas),
+            MARCA_FIN,
+        ]
+    )
 
 
 def escribir_resultados(bloque: str) -> None:

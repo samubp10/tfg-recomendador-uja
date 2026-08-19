@@ -39,13 +39,6 @@ from tfg_uja.text_cleaner import normalizar, palabras
 #: IT-49, que lo barrerá con el conjunto de evaluación.
 K_POR_DEFECTO: Final[int] = 10
 
-#: Cuántas preguntas anteriores se arrastran para incrustar la actual.
-#: Dos son las que hacen falta para que una pregunta como «¿y en primer año?»
-#: siga sabiendo de qué titulación se hablaba; con más, el vector se diluye
-#: entre temas que ya se abandonaron.
-PREGUNTAS_DE_CONTEXTO: Final[int] = 2
-
-
 #: Longitud a partir de la cual una palabra del catálogo sirve para reconocer
 #: una titulación. Por debajo quedan las partículas ---«y», «de», «en»--- que
 #: aparecen en cualquier frase y reconocerían una titulación en todas.
@@ -72,74 +65,6 @@ def palabras_distintivas(catalogo: list[str]) -> set[str]:
     return {
         p for p, veces in conteo.items() if veces < tope and len(p) >= LARGO_DISTINTIVO
     }
-
-
-def nombra_titulacion(pregunta: str, catalogo: list[str]) -> bool:
-    """Dice si la pregunta se sostiene sola porque nombra una titulación.
-
-    Args:
-        pregunta: Pregunta actual, tal cual la escribe el usuario.
-        catalogo: Titulaciones que declara el índice.
-
-    Returns:
-        ``True`` si alguna palabra distintiva del catálogo aparece en ella.
-    """
-    return bool(palabras(pregunta) & palabras_distintivas(catalogo))
-
-
-def consulta_con_historial(
-    pregunta: str, anteriores: list[str], catalogo: list[str] | None = None
-) -> str:
-    """Compone el texto que se incrusta, arrastrando las preguntas previas.
-
-    Una pregunta de seguimiento no se sostiene sola. «¿Qué se da en primer y
-    segundo año?» no menciona ninguna titulación, así que incrustada tal cual
-    recupera fragmentos de las doce; con la pregunta anterior delante, el
-    vector vuelve a caer sobre la titulación de la que se venía hablando.
-
-    **Pero arrastrarlas siempre estropea las que sí se sostienen solas.** Medido
-    el 17/08/2026 sobre una conversación real: a «¿cuántas asignaturas tiene el
-    Grado en Ingeniería Informática?» se le antepuso la pregunta anterior, que
-    era sobre una asignatura suelta, y el vector quedó dominado por ella. La
-    recuperación devolvió cuatro fragmentos, los cuatro de esa asignatura, y el
-    sistema contestó que la titulación entera «cuenta con una sola asignatura».
-    En el mismo diálogo, una pregunta por las salidas de Mecánica recuperó las
-    de Informática por el mismo motivo.
-
-    La cura es no arrastrar nada cuando la pregunta ya nombra una titulación:
-    si se sostiene sola, la muleta solo puede desviarla. La condición se decide
-    contra el catálogo del propio índice, no contra una lista escrita a mano.
-
-    **Y cuando sí hace falta arrastrar, se arrastra una sola pregunta: la
-    última que nombró titulación.** Traer las dos anteriores literalmente mete
-    en el vector las palabras de temas ya cerrados. Medido el 17/08/2026:
-    «¿Y en el segundo?», con «¿y cuántas de esas son optativas?» dos turnos
-    atrás, se incrustó como «...optativas... primer curso... y en el segundo»,
-    el listado de segundo curso no entró en el contexto y el modelo rellenó con
-    conocimiento propio **seis asignaturas que no existen**. Lo que la pregunta
-    de seguimiento necesita es el sujeto del que se hablaba, no el texto de lo
-    que se preguntó antes.
-
-    Args:
-        pregunta: Pregunta actual, tal cual la escribe el usuario.
-        anteriores: Preguntas previas de la conversación, de más antigua a más
-            reciente.
-        catalogo: Titulaciones que declara el índice. Sin él no se puede saber
-            si la pregunta se sostiene sola ni cuál de las anteriores da el
-            sujeto, y se arrastran las últimas como antes.
-
-    Returns:
-        El texto a incrustar.
-    """
-    if not catalogo:
-        arrastre = anteriores[-PREGUNTAS_DE_CONTEXTO:]
-        return " ".join([*arrastre, pregunta]) if arrastre else pregunta
-    if nombra_titulacion(pregunta, catalogo):
-        return pregunta
-    sujeto = next(
-        (p for p in reversed(anteriores) if nombra_titulacion(p, catalogo)), None
-    )
-    return f"{sujeto} {pregunta}" if sujeto else pregunta
 
 
 @dataclass(frozen=True)
@@ -238,11 +163,27 @@ FACTOR_CORTE: Final[float] = 1.20
 #: entre 0,170 y 0,182 ---lejísimos pero muy juntos entre sí--- y el sistema
 #: contestó con un volcado del plan de estudios.
 #:
-#: 🔴 **Provisional, igual que el factor.** Las cinco preguntas reales medidas
-#: tenían su mejor fragmento entre 0,076 y 0,112, así que 0,15 las deja pasar
-#: todas y descarta el saludo; pero cinco preguntas no son un barrido y el
-#: valor lo fija IT-49. El rechazo por dominio es IT-87, que es otra cosa.
-SUELO_PERTINENCIA: Final[float] = 0.15
+#: Medido el 18/08/2026 sobre las **50 preguntas del conjunto de evaluación**
+#: de IT-27 y siete preguntas ajenas al dominio (biología, psicología,
+#: literatura, medicina, derecho, historia del arte, una receta de cocina):
+#:
+#: * la peor pregunta legítima tiene su mejor fragmento a **0,137**;
+#: * la intrusa más próxima, a **0,147**.
+#:
+#: La separación es limpia, y el valor se pone en el punto medio, con cinco
+#: milésimas de margen a cada lado. El valor anterior, 0,15, salía de mirar
+#: cinco preguntas y quedaba **por encima de las intrusas**: el 18/08/2026 un
+#: modelo de 7B recibió contexto para «me gustan la biología y la salud» ---su
+#: mejor fragmento estaba a 0,148--- y contestó recomendando el «Grado en
+#: Ingeniería Biomédica», el «Grado en Ingeniería Química» y el «Grado en
+#: Medicina Veterinaria». Ninguno existe en la EPSJ.
+#:
+#: Se prefiere pecar de estricto: rechazar una pregunta legítima molesta, pero
+#: admitir una ajena es lo que produce ese tipo de respuesta.
+#:
+#: 🔴 Sigue sin ser un barrido: 57 preguntas no fijan un parámetro, y el valor
+#: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
+SUELO_PERTINENCIA: Final[float] = 0.142
 
 
 class TitulacionDesconocida(ValueError):
@@ -415,6 +356,7 @@ def recuperar(
     tipo_asignatura: str | None = None,
     catalogo: list[str] | None = None,
     curso: str | None = None,
+    ambito: list[str] | None = None,
 ) -> list[Fragmento]:
     """Devuelve los ``k`` fragmentos más próximos a la pregunta.
 
@@ -436,6 +378,10 @@ def recuperar(
         catalogo: Titulaciones que declara el índice, de
             :func:`catalogo_del_indice`. Hace falta para poder resolver
             ``grado``.
+        ambito: Titulaciones **ya resueltas** contra el catálogo, tal como las
+            deduce :class:`tfg_uja.conversacion.Conversacion`. Se ignora si se
+            pasa ``grado``, que es la petición explícita del usuario y manda
+            sobre lo que el sistema haya deducido.
 
     Returns:
         Fragmentos ordenados de más a menos próximo.
@@ -443,9 +389,15 @@ def recuperar(
     Raises:
         TitulacionDesconocida: Si ``grado`` no casa con ninguna del catálogo.
     """
-    titulaciones = (
-        resolver_titulacion(grado, catalogo or []) if grado is not None else None
-    )
+    if grado is not None:
+        titulaciones: list[str] | None = resolver_titulacion(grado, catalogo or [])
+    else:
+        # El ámbito ya viene resuelto contra el catálogo (lo deduce la
+        # conversación), así que no se vuelve a resolver: hacerlo trataría un
+        # nombre oficial como texto del usuario y podría ampliarlo por
+        # coincidencia parcial ---«Grado en Ingeniería Eléctrica» arrastraría
+        # sus dos dobles grados--- justo cuando ya se sabe cuál es.
+        titulaciones = list(ambito) if ambito else None
     vector = incrustar([pregunta])[0]
     consulta = tabla.search(list(vector)).distance_type(distancia).limit(k)
     expresion = _filtro(titulaciones, tipo_asignatura, curso)

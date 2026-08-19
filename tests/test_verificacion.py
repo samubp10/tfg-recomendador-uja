@@ -11,6 +11,8 @@ from __future__ import annotations
 from tfg_uja.verificacion import (
     cotejar_listado,
     elementos_de_lista,
+    nucleo,
+    sin_tipo_de_estudios,
     titulaciones_inventadas,
     titulaciones_nombradas,
 )
@@ -187,3 +189,189 @@ def test_la_cobertura_no_premia_un_formato_sobre_otro():
     vinetas = "- Minería web\n- Desarrollo de videojuegos"
     assert cotejar_listado(prosa, corpus, corpus)[1] == 1.0
     assert cotejar_listado(vinetas, corpus, corpus)[1] == 1.0
+
+
+# --- El formato del modelo no puede cambiar la nota (18/08/2026) ---
+
+#: Respuesta literal de ministral-3:3b, correcta y en negrita. Es el caso que
+#: destapó el fallo: la negrita se colaba dentro del nombre.
+_EN_NEGRITA = (
+    "En el **primer curso del Grado en Ingeniería Informática**, "
+    "las asignaturas obligatorias son:\n\n"
+    "- **Matemática discreta** (6 ECTS).\n"
+    "- **Álgebra** (6 ECTS).\n"
+    "- **Programación orientada a objetos** (6 ECTS).\n"
+)
+
+#: Respuesta literal de gemma3, correcta, con un rótulo encabezando la sublista.
+_CON_ROTULO = (
+    "Las asignaturas del Grado en Ingeniería Informática en primer curso son:\n\n"
+    "*   Primer curso:\n"
+    "    *   Matemática discreta (6 ECTS)\n"
+    "    *   Álgebra (6 ECTS)\n"
+    "    *   Programación orientada a objetos (6 ECTS)\n"
+)
+
+_TRES = {"Matemática discreta", "Álgebra", "Programación orientada a objetos"}
+
+
+def test_la_negrita_no_forma_parte_del_nombre():
+    """Regresión: «**Álgebra**» no casaba con ninguna asignatura del corpus."""
+    assert elementos_de_lista(_EN_NEGRITA) == [
+        "Matemática discreta",
+        "Álgebra",
+        "Programación orientada a objetos",
+    ]
+
+
+def test_una_respuesta_perfecta_en_negrita_no_puntua_cero():
+    """Antes puntuaba 0,000 de precisión con las tres asignaturas acertadas."""
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        _EN_NEGRITA, _TRES, _TRES
+    )
+    assert (inventadas, omitidas) == (set(), set())
+    assert (precision, cobertura) == (1.0, 1.0)
+
+
+def test_un_rotulo_de_sublista_no_es_un_elemento():
+    """«Primer curso:» encabeza la lista; contarlo inventaba una asignatura."""
+    assert "Primer curso" not in elementos_de_lista(_CON_ROTULO)
+    assert len(elementos_de_lista(_CON_ROTULO)) == 3
+
+
+def test_el_rotulo_no_baja_la_precision_de_una_respuesta_correcta():
+    precision, _, inventadas, _ = cotejar_listado(_CON_ROTULO, _TRES, _TRES)
+    assert inventadas == set()
+    assert precision == 1.0
+
+
+def test_los_dos_puntos_dentro_del_elemento_siguen_recortando_la_cola():
+    """Un elemento que **no** termina en dos puntos conserva su nombre."""
+    assert elementos_de_lista("- Álgebra: 6 ECTS") == ["Álgebra"]
+
+
+def test_la_negrita_tambien_se_quita_en_la_enumeracion_en_prosa():
+    """En prosa la negrita también estorba, aunque el nombre llegue con lo que
+    lo introducía delante: eso lo absorbe después la comparación por sufijo."""
+    texto = "Son **Minería web** (6 ECTS) y **Álgebra** (6 ECTS)."
+    assert elementos_de_lista(texto) == ["Son Minería web", "Álgebra"]
+    corpus = {"Minería web", "Álgebra"}
+    precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
+    assert inventadas == set()
+    assert (precision, cobertura) == (1.0, 1.0)
+
+
+# --- El calificador de doble grado (caso real del 18/08/2026) ---
+
+#: Las diez obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
+#: Electrónica Industrial y Mecánica, tal como las publica la fuente: con la
+#: sigla de la titulación de la que vienen.
+_CON_SIGLA = {
+    "AUTOMÁTICA AVANZADA (GIEI)",
+    "ELECTROTECNIA AVANZADA (GIEI)",
+    "ELECTRÓNICA ANALÓGICA (GIEI)",
+}
+
+#: Cómo las enumeró ministral-8b: correctas, completas y sin la sigla.
+_SIN_SIGLA = """En el Doble Grado se cursan:
+   - Automática Avanzada (6 ECTS).
+   - Electrotecnia Avanzada (6 ECTS).
+   - Electrónica Analógica (6 ECTS).
+"""
+
+
+def test_la_sigla_del_doble_grado_no_forma_parte_del_nombre():
+    assert nucleo("AUTOMÁTICA AVANZADA (GIEI)") == "automatica avanzada"
+
+
+def test_el_plan_entre_parentesis_tampoco():
+    assert (
+        nucleo("Grado en Ingeniería Geomática y Topográfica (plan 2025)")
+        == "grado en ingenieria geomatica y topografica"
+    )
+
+
+def test_la_abreviatura_de_la_fuente_se_resuelve():
+    """La fuente escribe «ING.» en los seis TFG y ningún modelo la copia."""
+    assert nucleo("TFG ING. MECÁNICA (GIM)") == "tfg ingenieria mecanica"
+
+
+def test_un_listado_correcto_sin_la_sigla_no_puntua_cero():
+    """Regresión del 18/08/2026.
+
+    Con el calificador puesto en la comparación, esta respuesta ---que enumera
+    las tres esperadas, ninguna de más y ninguna de menos--- daba cobertura
+    0,000 y las tres contadas como omitidas.
+    """
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        _SIN_SIGLA, _CON_SIGLA, _CON_SIGLA
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert inventadas == set()
+    assert omitidas == set()
+
+
+def test_expandir_la_abreviatura_no_convierte_el_tfg_en_inventado():
+    texto = "- TFG Ingeniería Mecánica (12 ECTS)."
+    corpus = {"TFG ING. MECÁNICA (GIM)"}
+    precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
+    assert inventadas == set()
+    assert (precision, cobertura) == (1.0, 1.0)
+
+
+# --- El nombre de la titulación sin la fórmula «Grado en» (G-CAT-001) ---
+
+_CATALOGO_EPSJ = {
+    "Grado en Ingeniería Eléctrica",
+    "Grado en Ingeniería Mecánica",
+    "Doble Grado en Ingeniería Mecánica (Internacional - Schmalkalden)",
+}
+
+
+def test_nombrar_la_titulacion_sin_la_formula_grado_en():
+    """Regresión de G-CAT-001.
+
+    El 19/08/2026 «command-r7b» enumeró las doce titulaciones de la EPSJ, las
+    doce correctas y ninguna de más, agrupadas bajo dos rótulos que decían
+    cuáles eran grados y cuáles dobles. Como escribía «Ingeniería Eléctrica» y
+    no «Grado en Ingeniería Eléctrica», la respuesta puntuaba precisión 0,083 y
+    cobertura 0,000, con las doce contadas como omitidas. La misma respuesta de
+    «granite4.1:8b», con la fórmula puesta, puntuaba 1,000 y 1,000: lo único
+    que separaba a las dos eran esas dos palabras.
+    """
+    respuesta = (
+        "Grados:\n"
+        "- Ingeniería Eléctrica\n"
+        "- Ingeniería Mecánica\n"
+        "Dobles grados:\n"
+        "- Ingeniería Mecánica (Internacional - Schmalkalden)\n"
+    )
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        respuesta, _CATALOGO_EPSJ, _CATALOGO_EPSJ
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert not inventadas and not omitidas
+
+
+def test_con_la_formula_puesta_se_compara_con_ella():
+    """La corrección no relaja la comparación cuando la respuesta sí la usa."""
+    respuesta = (
+        "- Grado en Ingeniería Eléctrica\n"
+        "- Grado en Ingeniería Mecánica\n"
+        "- Doble Grado en Ingeniería Mecánica (Internacional - Schmalkalden)\n"
+    )
+    precision, cobertura, _, omitidas = cotejar_listado(
+        respuesta, _CATALOGO_EPSJ, _CATALOGO_EPSJ
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert not omitidas
+
+
+def test_sin_tipo_de_estudios_deja_intacto_lo_que_no_lo_lleva():
+    assert sin_tipo_de_estudios("algebra") == "algebra"
+    assert sin_tipo_de_estudios("grado en ingenieria electrica") == (
+        "ingenieria electrica"
+    )
+    assert sin_tipo_de_estudios("doble grado en ingenieria mecanica") == (
+        "ingenieria mecanica"
+    )

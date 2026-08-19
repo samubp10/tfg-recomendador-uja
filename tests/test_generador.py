@@ -335,6 +335,23 @@ def test_el_muestreo_va_fijado(espia):
     assert opciones["seed"] == 42
 
 
+def test_el_mensaje_de_sistema_va_siempre_en_la_peticion(espia):
+    """Regresión: sin mandarlo, cada modelo respondía bajo el suyo de fábrica.
+
+    Medido el 18/08/2026 preguntando «¿quién eres?»: ministral-3 se presentaba
+    como «un modelo creado por Mistral AI» y gemma3 como «entrenado por
+    Google». Comparar candidatos así mide, además del modelo, el texto que cada
+    uno lleva escondido en su plantilla.
+    """
+    generar("un prompt", "un-modelo")
+    assert espia["cuerpo"]["system"] == generador.SISTEMA
+
+
+def test_el_mensaje_de_sistema_no_puede_ir_vacio():
+    """Ollama trata el `system` vacío como ausente y repone el de fábrica."""
+    assert generador.SISTEMA.strip()
+
+
 def test_la_ventana_se_declara_en_la_peticion(espia):
     """Regresión: con la ventana por defecto el modelo no cabe en la tarjeta.
 
@@ -401,9 +418,36 @@ def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
     entero de Ingeniería Informática; de los catorce nombres que dio, **trece
     no existen** en la EPSJ.
     """
-    respuesta = generador.responder("¿cuánto cuesta la matrícula?", [], "un-modelo")
+    respuesta = generador.responder(
+        "¿cuánto cuesta la matrícula?",
+        [],
+        "un-modelo",
+        [("qué grados hay", "estos")],
+    )
     assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_el_primer_mensaje_sin_contexto_recibe_la_bienvenida(espia):
+    """Casi nadie abre preguntando: abre saludando, y como le sale.
+
+    Medido el 18/08/2026: «hei» y «Ola buenas» no caían en el vocabulario de
+    cortesía, no recuperaban nada y el sistema contestaba «no he encontrado
+    información sobre eso», que responde a una pregunta que nadie había hecho.
+    Enumerar las formas del saludo es una lista que nunca está completa; lo que
+    sí se sabe con certeza es que en el primer mensaje aún no se ha preguntado.
+    """
+    respuesta = generador.responder("hei", [], "un-modelo")
+    assert respuesta == generador.RESPUESTA_SALUDO
+    assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
+
+
+def test_la_bienvenida_es_solo_del_primer_mensaje(espia):
+    """Ya avanzada la conversación, no encontrar algo sí es no encontrarlo."""
+    respuesta = generador.responder(
+        "q tal", [], "un-modelo", [("qué optativas tiene Informática", "estas")]
+    )
+    assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
 
 
 def test_con_fragmentos_si_se_consulta_al_modelo(espia):
@@ -630,3 +674,143 @@ def test_un_servidor_apagado_se_explica(monkeypatch):
     with pytest.raises(generador.ErrorDelModelo) as fallo:
         generador.generar("un prompt", "un-modelo")
     assert "Ollama" in str(fallo.value)
+
+
+def test_un_modelo_colgado_no_tumba_la_sesion(monkeypatch):
+    """Regresión del 19/08/2026.
+
+    Agotar la espera de lectura levanta ``TimeoutError``, que **no** es un
+    ``URLError``: se escapaba de las dos ramas y subía. Tumbó una tanda de 560
+    respuestas cuando llevaba 85, y las nueve horas siguientes se perdieron.
+    Un modelo colgado tiene que costar una pregunta, no la sesión.
+    """
+
+    def se_cuelga(*_args, **_kwargs):
+        raise TimeoutError("timed out")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", se_cuelga)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "no respondió" in str(fallo.value)
+    assert str(generador.ESPERA_MAXIMA) in str(fallo.value)
+
+
+# --- La barrera de titulaciones inventadas (IT-87) ---
+
+_CATALOGO_EPSJ = [
+    "Grado en Ingeniería de Organización Industrial",
+    "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+    "Grado en Ingeniería Mecánica",
+]
+
+#: Respuesta real de mistral-nemo:12b del 19/08/2026, turno 19. Tres de las
+#: cuatro titulaciones que recomienda existen; la cuarta no.
+_RESPUESTA_CON_INVENTADA = (
+    "Si estás interesado en estudiar una titulación de ingeniería, podrías "
+    "considerar algunas opciones como:\n"
+    "* Grado en Ingeniería de Organización Industrial: gestión de procesos.\n"
+    "* Grado en Ingeniería Geomática y Topográfica (plan 2025): medición.\n"
+    "* Grado en Ingeniería Mecánica: diseño y construcción de máquinas.\n"
+    "* Grado en Ingeniería de Edificación: construcción y gestión de edificios.\n"
+)
+
+
+def _con_respuesta(monkeypatch, texto: str) -> None:
+    monkeypatch.setattr(generador, "generar", lambda prompt, modelo: texto)
+
+
+def test_una_titulacion_inventada_retira_la_respuesta_entera(monkeypatch):
+    """Regresión del turno 19 de mistral-nemo:12b.
+
+    El «Grado en Ingeniería de Edificación» no se imparte en la EPSJ. Iba
+    cuarto en una lista de recomendaciones cuyas otras tres son reales, que es
+    justo lo que lo hace peligroso: un preuniversitario no tiene con qué
+    distinguirlas. Las instrucciones ya prohibían añadir lo que no está en el
+    contexto.
+    """
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    respuesta = generador.responder(
+        "soy de FP de arquitectura, ¿qué puedo estudiar?",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=_CATALOGO_EPSJ,
+    )
+    assert respuesta == generador.RESPUESTA_TITULACION_INVENTADA
+
+
+def test_si_todas_existen_la_respuesta_pasa(monkeypatch):
+    """La barrera no puede cobrarse las respuestas correctas.
+
+    Medido sobre las 399 respuestas del cribado: bloquea 0.
+    """
+    buena = (
+        "Puedes estudiar el Grado en Ingeniería Mecánica y el Grado en "
+        "Ingeniería de Organización Industrial."
+    )
+    _con_respuesta(monkeypatch, buena)
+    assert (
+        generador.responder(
+            "¿qué puedo estudiar?",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=_CATALOGO_EPSJ,
+        )
+        == buena
+    )
+
+
+def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
+    """Comportamiento declarado: sin catálogo la barrera no actúa."""
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    assert (
+        generador.responder("una pregunta", [fragmento("A", "texto")], "un-modelo")
+        == _RESPUESTA_CON_INVENTADA
+    )
+
+
+#: Respuesta real del 16/08/2026, la que motivó IT-87: seis titulaciones
+#: recomendadas a un estudiante interesado en electricidad, dos inexistentes.
+_RESPUESTA_IT87 = (
+    "Si te interesa la electricidad, en la EPSJ puedes estudiar:\n"
+    "- Grado en Ingeniería Eléctrica\n"
+    "- Grado en Ingeniería Electrónica Industrial\n"
+    "- Grado en Ingeniería de Energía\n"
+    "- Grado en Ingeniería Ambiental\n"
+)
+
+
+def test_el_caso_que_motivo_la_tarjeta_se_detecta(monkeypatch):
+    """Regresión de IT-87.
+
+    Ni el «Grado en Ingeniería de Energía» ni el «Grado en Ingeniería
+    Ambiental» existen en la EPSJ, y ninguno aparecía en el contexto
+    recuperado. Las instrucciones ya prohibían añadir datos que no estuvieran
+    en el contexto.
+    """
+    catalogo = [
+        "Grado en Ingeniería Eléctrica",
+        "Grado en Ingeniería Electrónica Industrial",
+    ]
+    _con_respuesta(monkeypatch, _RESPUESTA_IT87)
+    assert (
+        generador.responder(
+            "¿qué puedo estudiar si me gusta la electricidad?",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=catalogo,
+        )
+        == generador.RESPUESTA_TITULACION_INVENTADA
+    )
+
+
+def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
+    """Una barrera que descarta en silencio no se puede auditar."""
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+        generador.responder(
+            "una pregunta",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=_CATALOGO_EPSJ,
+        )
+    assert "Grado en Ingeniería de Edificación" in caplog.text

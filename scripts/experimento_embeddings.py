@@ -4,7 +4,7 @@ Descarga (o reutiliza de caché) cada modelo candidato, incrusta el
 ``data/chunks.json`` real y el conjunto de evaluación de IT-27
 (``eval/preguntas_evaluacion.json``), y calcula Recall@K por fragmento y por
 unidad, más el MRR, sobre todas las preguntas anotadas. Imprime las tablas de
-resultados y las deja también en ``docs/experimentos/it28-embeddings.md`` para
+resultados y los deja también en el anexo del ADR-0003 para
 no perder el resultado real de la ejecución.
 
 El número de modelos, de preguntas y de fragmentos NO se escribe aquí a
@@ -28,12 +28,48 @@ import time
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Callable, Final
 
 RAIZ = Path(__file__).resolve().parent.parent
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
-RUTA_RESULTADOS = RAIZ / "docs" / "experimentos" / "it28-embeddings.md"
+RUTA_RESULTADOS = RAIZ / "docs" / "adr" / "adr-0003-modelo-de-embeddings.md"
+
+#: Firma de la función de incrustación: recibe una lista de textos y devuelve
+#: un vector de números reales por texto, en el mismo orden.
+Incrustador = Callable[[list[str]], list[list[float]]]
+
+#: Marcas entre las que vive el bloque que escribe este guion. Los resultados
+#: viven **dentro del ADR** y no en un fichero aparte: tenerlos separados fue lo
+#: que permitió que las cifras del cuerpo de un ADR se quedaran atrás respecto a
+#: las de su propio anexo.
+MARCA_INICIO = (
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->"
+)
+MARCA_FIN = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+
+
+def escribir_en_el_adr(destino: Path, bloque: str) -> None:
+    """Sustituye el bloque de resultados del ADR por el recién calculado.
+
+    Args:
+        destino: Fichero del ADR.
+        bloque: Texto que va entre las marcas, sin ellas.
+
+    Raises:
+        SystemExit: Si el destino no tiene las dos marcas. Es preferible fallar
+            a dejar el resultado donde nadie lo va a leer.
+    """
+    contenido = destino.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(f"{destino.name} no tiene las marcas de resultados.")
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    destino.write_text(
+        antes + MARCA_INICIO + "\n" + bloque.strip() + "\n\n" + MARCA_FIN + despues,
+        encoding="utf-8",
+    )
+
 
 #: Puntos de corte del ranking para Recall@K.
 #:
@@ -127,7 +163,7 @@ TAMANO_LOTE: Final[int] = 8
 #:
 #: RETIRADOS de la comparativa: los dos modelos *paraphrase* de ventana 128.
 #: No desaparecen del trabajo —sus cifras y el hallazgo del truncado están en
-#: `docs/experimentos/it28-embeddings-historico.md` y en el ADR-0003—, pero
+#: el ADR-0003—, pero
 #: mantenerlos aquí obligaba a comparar en la misma tabla modelos que leen la
 #: mitad del corpus con modelos que lo leen entero, que es justo lo que esta
 #: selección viene a evitar.
@@ -218,7 +254,9 @@ def cargar_datos(
     return chunks, preguntas
 
 
-def crear_incrustadores(candidato: ModeloCandidato):
+def crear_incrustadores(
+    candidato: ModeloCandidato,
+) -> tuple[Incrustador, Incrustador, Any]:
     """Construye las funciones de incrustación (documento y consulta) del modelo.
 
     Devuelve también el modelo cargado porque hace falta para medir la
@@ -237,19 +275,23 @@ def crear_incrustadores(candidato: ModeloCandidato):
         candidato.nombre, trust_remote_code=candidato.codigo_remoto
     )
 
-    def incrustar_documentos(textos: list[str]) -> list[list[float]]:
-        con_prefijo = [candidato.prefijo_documento + t for t in textos]
-        return modelo.encode(
-            con_prefijo, batch_size=TAMANO_LOTE, show_progress_bar=False
-        ).tolist()
+    def incrustador_con(prefijo: str) -> Incrustador:
+        """Incrustador que antepone el prefijo del papel que le toca."""
 
-    def incrustar_consultas(textos: list[str]) -> list[list[float]]:
-        con_prefijo = [candidato.prefijo_consulta + t for t in textos]
-        return modelo.encode(
-            con_prefijo, batch_size=TAMANO_LOTE, show_progress_bar=False
-        ).tolist()
+        def incrustar(textos: list[str]) -> list[list[float]]:
+            return modelo.encode(
+                [prefijo + texto for texto in textos],
+                batch_size=TAMANO_LOTE,
+                show_progress_bar=False,
+            ).tolist()
 
-    return incrustar_documentos, incrustar_consultas, modelo
+        return incrustar
+
+    return (
+        incrustador_con(candidato.prefijo_documento),
+        incrustador_con(candidato.prefijo_consulta),
+        modelo,
+    )
 
 
 def medir_truncado(
@@ -309,6 +351,51 @@ def _dispositivo() -> str:
     return "CPU"
 
 
+def _tabla_markdown(columnas: list[str], celdas: list[list[str]]) -> str:
+    """Compone una tabla Markdown a partir de sus rótulos y sus celdas.
+
+    Args:
+        columnas: Rótulos de la fila de encabezado.
+        celdas: Valores ya formateados, una lista por fila.
+
+    Returns:
+        Tabla Markdown, sin salto de línea final.
+    """
+    lineas = [
+        "| " + " | ".join(columnas) + " |",
+        "|" + "---|" * len(columnas),
+    ]
+    lineas += ["| " + " | ".join(fila) + " |" for fila in celdas]
+    return "\n".join(lineas)
+
+
+def _celdas_de_contexto(fila: dict[str, Any]) -> list[str]:
+    """Escribe las tres columnas de ventana, truncado y corpus leído.
+
+    Las tres pueden faltar: la medida del truncado se hace aparte de la
+    evaluación, y si falla el modelo sigue teniendo métricas válidas. Se
+    escribe «sin medir» y no un cero, porque un cero en la columna de
+    truncados dice «este modelo lee el corpus entero», que es justo lo que no
+    se sabe.
+
+    Args:
+        fila: Fila de resultados de un modelo.
+
+    Returns:
+        Las tres celdas, ya formateadas.
+    """
+    sin_medir = "sin medir"
+    return [
+        sin_medir if fila["ventana"] is None else str(fila["ventana"]),
+        sin_medir if fila["truncados"] is None else str(fila["truncados"]),
+        (
+            sin_medir
+            if fila["fraccion_leida"] is None
+            else f"{fila['fraccion_leida']:.0%}"
+        ),
+    ]
+
+
 def formatear_tabla(filas: list[dict[str, Any]]) -> str:
     """Da formato Markdown a los resultados agregados por modelo.
 
@@ -326,34 +413,14 @@ def formatear_tabla(filas: list[dict[str, Any]]) -> str:
         + [f"RU@{k}" for k in KS]
         + ["MRR", "Tiempo (s)", "Ventana", "Truncados", "Corpus leído"]
     )
-    lineas = [
-        "| " + " | ".join(columnas) + " |",
-        "|" + "---|" * len(columnas),
+    celdas = [
+        [fila["nombre"]]
+        + [f"{fila[m]:.3f}" for m in metricas]
+        + [f"{fila['mrr']:.3f}", f"{fila['tiempo_s']:.1f}"]
+        + _celdas_de_contexto(fila)
+        for fila in filas
     ]
-    for fila in filas:
-        # Las tres columnas de contexto pueden faltar: la medida del truncado
-        # se hace aparte de la evaluación, y si falla el modelo sigue teniendo
-        # métricas válidas. Se escribe «sin medir» y no un cero, porque un cero
-        # en la columna de truncados dice «este modelo lee el corpus entero»,
-        # que es justo lo que no se sabe.
-        sin_medir = "sin medir"
-        contexto = [
-            sin_medir if fila["ventana"] is None else str(fila["ventana"]),
-            sin_medir if fila["truncados"] is None else str(fila["truncados"]),
-            (
-                sin_medir
-                if fila["fraccion_leida"] is None
-                else f"{fila['fraccion_leida']:.0%}"
-            ),
-        ]
-        valores = (
-            [fila["nombre"]]
-            + [f"{fila[m]:.3f}" for m in metricas]
-            + [f"{fila['mrr']:.3f}", f"{fila['tiempo_s']:.1f}"]
-            + contexto
-        )
-        lineas.append("| " + " | ".join(valores) + " |")
-    return "\n".join(lineas)
+    return _tabla_markdown(columnas, celdas)
 
 
 def formatear_por_tipo(filas: list[dict[str, Any]]) -> str:
@@ -372,187 +439,195 @@ def formatear_por_tipo(filas: list[dict[str, Any]]) -> str:
         Tabla Markdown con una columna por tipo de pregunta.
     """
     tipos = sorted({t for f in filas for t in f["por_tipo"]})
-    encabezado = ["Modelo"] + [
+    columnas = ["Modelo"] + [
         f"{t} (n={int(filas[0]['por_tipo'][t]['n'])})" for t in tipos
     ]
-    lineas = [
-        "| " + " | ".join(encabezado) + " |",
-        "|" + "---|" * len(encabezado),
+    celdas = [
+        [fila["nombre"]] + [f"{fila['por_tipo'][t]['recall@5']:.3f}" for t in tipos]
+        for fila in filas
     ]
-    for fila in filas:
-        valores = [fila["nombre"]] + [
-            f"{fila['por_tipo'][t]['recall@5']:.3f}" for t in tipos
-        ]
-        lineas.append("| " + " | ".join(valores) + " |")
-    return "\n".join(lineas)
+    return _tabla_markdown(columnas, celdas)
 
 
-def main(argumentos: list[str] | None = None) -> int:
-    """Ejecuta el experimento completo y muestra/guarda los resultados.
-
-    Uso::
-
-        py scripts/experimento_embeddings.py
-        py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
-            --salida docs/experimentos/otro-informe.md
+def _evaluar_candidato(
+    candidato: ModeloCandidato,
+    chunks: list[dict[str, Any]],
+    preguntas: list[dict[str, Any]],
+    evaluar: Callable[..., dict[str, Any]],
+) -> tuple[dict[str, Any], str | None]:
+    """Carga un modelo, lo evalúa y mide cuánto corpus llega a leer.
 
     Args:
-        argumentos: Argumentos de línea de comandos. ``None`` toma los reales.
+        candidato: Modelo a evaluar.
+        chunks: Corpus a incrustar.
+        preguntas: Conjunto de evaluación.
+        evaluar: ``tfg_uja.evaluacion.evaluar_modelo``, ya importada por quien
+            llama: así el fallo de importación salta antes de tocar la red y
+            no se confunde con un modelo que no ha podido descargarse.
 
     Returns:
-        0 solo si todos los modelos se evaluaron **y** se caracterizaron; 1 si
-        alguno falló (p. ej. por no poder descargarse) y también si alguno se
-        evaluó sin poder medir cuánto corpus lee. Lo segundo no invalida sus
-        métricas, pero sí la comparación, que es para lo que existe la tabla:
-        sin la columna de truncado no se puede separar «mejor modelo» de
-        «modelo que sí lee el fragmento entero», que es exactamente el hallazgo
-        de IT-29 que obligó a rehacer esta comparativa.
+        Tupla ``(fila, aviso)``. El aviso es ``None`` salvo que el modelo se
+        haya evaluado sin poder medir su ventana de contexto.
+
+    Raises:
+        Exception: Lo que falle al cargar el modelo o al evaluarlo. Quien
+            llama decide si sigue con el resto de candidatos.
     """
-    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-
-    analizador = argparse.ArgumentParser(description=__doc__)
-    analizador.add_argument("--chunks", type=Path, default=RUTA_CHUNKS)
-    analizador.add_argument("--salida", type=Path, default=RUTA_RESULTADOS)
-    opciones = analizador.parse_args(argumentos)
-    candidatos = CANDIDATOS
-
-    # Import perezoso: solo evaluar_modelo, no crear_incrustadores, para dar
-    # un error claro y rápido si faltan los chunks/eval antes de tocar red.
-    from tfg_uja.evaluacion import evaluar_modelo
-
-    chunks, preguntas = cargar_datos(opciones.chunks)
-    print(
-        f"Corpus: {opciones.chunks} | Chunks: {len(chunks)} | "
-        f"Preguntas: {len(preguntas)}\n"
-    )
-
-    filas: list[dict[str, Any]] = []
-    fallos: list[str] = []
-    #: Modelos que sí se han evaluado pero de los que falta alguna medida de
-    #: contexto. No invalidan su fila, pero sí lo que se puede concluir de ella.
-    avisos: list[str] = []
-    for candidato in candidatos:
-        print(f"Evaluando {candidato.nombre} ({candidato.descripcion}) ...")
-        inicio = time.monotonic()
-        ventana: int | None = None
-        truncados: int | None = None
-        fraccion: float | None = None
+    inicio = time.monotonic()
+    ventana: int | None = None
+    truncados: int | None = None
+    fraccion: float | None = None
+    aviso: str | None = None
+    try:
+        incrustar_doc, incrustar_consulta, modelo = crear_incrustadores(candidato)
+        resultado = evaluar(chunks, preguntas, incrustar_doc, incrustar_consulta, ks=KS)
+        # El cronómetro se para ANTES de medir el truncado: esa medida
+        # tokeniza el corpus una vez más y añadía 16 s a la línea base,
+        # con lo que la columna de tiempo dejaba de ser comparable con la
+        # ejecución del 24/07. Se mide lo mismo que se medía entonces:
+        # cargar el modelo, incrustar el corpus y evaluar.
+        tiempo = time.monotonic() - inicio
+        # La medida de la ventana va en su propio `try`, y no por prudencia
+        # decorativa: estaba dentro del grande, así que un fallo al
+        # tokenizar ---un modelo que sirve su tokenizador de otra manera---
+        # tiraba a la basura unas métricas que YA se habían calculado bien y
+        # declaraba el modelo como no evaluado. Son dos cosas distintas: no
+        # haber podido evaluar un modelo, y haberlo evaluado sin saber
+        # cuánto corpus llegó a leer. La segunda se dice, no se disfraza de
+        # la primera ni se rellena con un número inventado.
         try:
-            incrustar_doc, incrustar_consulta, modelo = crear_incrustadores(candidato)
-            resultado = evaluar_modelo(
-                chunks, preguntas, incrustar_doc, incrustar_consulta, ks=KS
+            ventana, truncados, fraccion = medir_truncado(
+                modelo,
+                [c["texto"] for c in chunks],
+                candidato.prefijo_documento,
             )
-            # El cronómetro se para ANTES de medir el truncado: esa medida
-            # tokeniza el corpus una vez más y añadía 16 s a la línea base,
-            # con lo que la columna de tiempo dejaba de ser comparable con la
-            # ejecución del 24/07. Se mide lo mismo que se medía entonces:
-            # cargar el modelo, incrustar el corpus y evaluar.
-            tiempo = time.monotonic() - inicio
-            # La medida de la ventana va en su propio `try`, y no por prudencia
-            # decorativa: estaba dentro del grande, así que un fallo al
-            # tokenizar ---un modelo que sirve su tokenizador de otra manera---
-            # tiraba a la basura unas métricas que YA se habían calculado bien y
-            # declaraba el modelo como no evaluado. Son dos cosas distintas: no
-            # haber podido evaluar un modelo, y haberlo evaluado sin saber
-            # cuánto corpus llegó a leer. La segunda se dice, no se disfraza de
-            # la primera ni se rellena con un número inventado.
-            try:
-                ventana, truncados, fraccion = medir_truncado(
-                    modelo,
-                    [c["texto"] for c in chunks],
-                    candidato.prefijo_documento,
-                )
-            except Exception as error:  # noqa: BLE001 - la evaluación sí vale
-                print(f"  AVISO: no se ha podido medir la ventana: {error}")
-                avisos.append(
-                    f"{candidato.nombre}: evaluado, pero sin poder medir su "
-                    f"ventana de contexto ni el truncado ({error}). Sus "
-                    f"métricas no se pueden comparar con las de otro modelo "
-                    f"sin saber cuánto corpus ha leído cada uno."
-                )
-        except Exception as error:  # noqa: BLE001 - se informa y se sigue con el resto
-            print(f"  FALLÓ: {error}")
-            fallos.append(f"{candidato.nombre}: {error}")
-            continue
-        finally:
-            # Soltar el modelo ANTES de cargar el siguiente. Sin esto, dos
-            # modelos de 560M coincidían en memoria durante la carga del
-            # segundo y la ejecución moría por falta de RAM, no por un error
-            # del código. Va en `finally` para que también se suelte cuando el
-            # modelo ha fallado a medio cargar, que es justo el momento en el
-            # que menos memoria queda.
-            #
-            # Hay que soltar las TRES referencias: las dos funciones de
-            # incrustación son cierres que capturan el modelo, así que anular
-            # solo `modelo` no liberaría ni un byte.
-            incrustar_doc = incrustar_consulta = modelo = None  # noqa: F841
-            gc.collect()
-        fila = {
-            "nombre": candidato.nombre,
-            "tiempo_s": tiempo,
-            "ventana": ventana,
-            "truncados": truncados,
-            "fraccion_leida": fraccion,
-            "por_tipo": resultado["por_tipo"],
-            **resultado["agregados"],
-        }
-        filas.append(fila)
-        print(
-            f"  fragmento R@3={fila['recall@3']:.3f} R@5={fila['recall@5']:.3f} "
-            f"R@10={fila['recall@10']:.3f}"
-        )
-        print(
-            f"  unidad     R@3={fila['recall_unidad@3']:.3f} "
-            f"R@5={fila['recall_unidad@5']:.3f} "
-            f"R@10={fila['recall_unidad@10']:.3f}  "
-            f"MRR={fila['mrr']:.3f}  ({tiempo:.1f}s)"
-        )
-        if truncados:
-            print(
-                f"  AVISO: ventana de {ventana} tokens; {truncados} de "
-                f"{len(chunks)} fragmentos se truncan; el modelo llega a leer "
-                f"el {fraccion:.2%} de los tokens del corpus."
+        except Exception as error:  # noqa: BLE001 - la evaluación sí vale
+            print(f"  AVISO: no se ha podido medir la ventana: {error}")
+            aviso = (
+                f"{candidato.nombre}: evaluado, pero sin poder medir su "
+                f"ventana de contexto ni el truncado ({error}). Sus "
+                f"métricas no se pueden comparar con las de otro modelo "
+                f"sin saber cuánto corpus ha leído cada uno."
             )
+    finally:
+        # Soltar el modelo ANTES de cargar el siguiente. Sin esto, dos
+        # modelos de 560M coincidían en memoria durante la carga del
+        # segundo y la ejecución moría por falta de RAM, no por un error
+        # del código. Va en `finally` para que también se suelte cuando el
+        # modelo ha fallado a medio cargar, que es justo el momento en el
+        # que menos memoria queda.
+        #
+        # Hay que soltar las TRES referencias: las dos funciones de
+        # incrustación son cierres que capturan el modelo, así que anular
+        # solo `modelo` no liberaría ni un byte.
+        incrustar_doc = incrustar_consulta = modelo = None  # noqa: F841
+        gc.collect()
+    fila = {
+        "nombre": candidato.nombre,
+        "tiempo_s": tiempo,
+        "ventana": ventana,
+        "truncados": truncados,
+        "fraccion_leida": fraccion,
+        "por_tipo": resultado["por_tipo"],
+        **resultado["agregados"],
+    }
+    return fila, aviso
 
-    if not filas:
-        print("\nNingún modelo pudo evaluarse.")
-        return 1
 
-    tabla = formatear_tabla(filas)
-    print("\n" + tabla)
-    por_tipo = formatear_por_tipo(filas)
-    print("\nRecall@5 por tipo de pregunta:\n" + por_tipo)
+def _imprimir_resultado(fila: dict[str, Any], total_chunks: int) -> None:
+    """Escribe por consola lo que ha salido de un modelo.
 
-    techos = techos_de_recall(preguntas, chunks)
-    techos_texto = (
+    Args:
+        fila: Fila de resultados del modelo.
+        total_chunks: Fragmentos del corpus, para leer el truncado en
+            proporción y no como un número suelto.
+    """
+    print(
+        f"  fragmento R@3={fila['recall@3']:.3f} R@5={fila['recall@5']:.3f} "
+        f"R@10={fila['recall@10']:.3f}"
+    )
+    print(
+        f"  unidad     R@3={fila['recall_unidad@3']:.3f} "
+        f"R@5={fila['recall_unidad@5']:.3f} "
+        f"R@10={fila['recall_unidad@10']:.3f}  "
+        f"MRR={fila['mrr']:.3f}  ({fila['tiempo_s']:.1f}s)"
+    )
+    if fila["truncados"]:
+        print(
+            f"  AVISO: ventana de {fila['ventana']} tokens; {fila['truncados']} de "
+            f"{total_chunks} fragmentos se truncan; el modelo llega a leer "
+            f"el {fila['fraccion_leida']:.2%} de los tokens del corpus."
+        )
+
+
+def _texto_de_techos(techos: dict[int, float]) -> str:
+    """Redacta los techos de Recall@K en una frase reutilizable.
+
+    La misma frase va por consola y dentro del informe: si se escribieran por
+    separado, una de las dos podría quedarse con cifras viejas.
+
+    Args:
+        techos: Diccionario ``{K: techo}``.
+
+    Returns:
+        Frase con los techos de cada K.
+    """
+    return (
         "sobre este corpus el máximo posible es "
         + ", ".join(f"**{v:.3f}** para R@{k}" for k, v in sorted(techos.items()))
         + "."
     )
-    print("\nTechos de Recall@K por fragmento: " + techos_texto)
 
-    opciones.salida.parent.mkdir(parents=True, exist_ok=True)
+
+def _cabecera_del_informe(
+    ruta_chunks: Path, total_chunks: int, total_preguntas: int
+) -> str:
+    """Escribe la procedencia de las cifras: corpus, preguntas y dispositivo.
+
+    Args:
+        ruta_chunks: Corpus que se ha evaluado.
+        total_chunks: Fragmentos evaluados.
+        total_preguntas: Preguntas del conjunto de evaluación.
+
+    Returns:
+        Párrafo de cabecera del informe.
+    """
     # Ruta relativa a la raíz del repositorio: la absoluta lleva el nombre de
     # usuario de quien lo ejecuta y además no significa nada para quien lea el
     # informe en otra máquina.
     try:
-        corpus = opciones.chunks.resolve().relative_to(RAIZ).as_posix()
+        corpus = ruta_chunks.resolve().relative_to(RAIZ).as_posix()
     except ValueError:
-        corpus = opciones.chunks.name
-    cabecera_md = (
-        "# IT-28 — Resultados del experimento comparativo de embeddings\n\n"
+        corpus = ruta_chunks.name
+    return (
         f"Generado el {date.today():%d/%m/%Y} ejecutando "
         f"`py scripts/experimento_embeddings.py` contra `{corpus}` "
-        f"({len(chunks)} fragmentos, {len(preguntas)} preguntas de "
+        f"({total_chunks} fragmentos, {total_preguntas} preguntas de "
         f"`eval/preguntas_evaluacion.json`), en **{_dispositivo()}**.\n\n"
     )
+
+
+def _pie_del_informe(
+    tabla_por_tipo: str, techos_texto: str, fallos: list[str], avisos: list[str]
+) -> str:
+    """Escribe el desglose por tipo, cómo leer las columnas y las incidencias.
+
+    Args:
+        tabla_por_tipo: Tabla de Recall@5 por tipo de pregunta.
+        techos_texto: Frase de :func:`_texto_de_techos`.
+        fallos: Modelos que no han podido evaluarse.
+        avisos: Modelos evaluados sin poder medir su ventana.
+
+    Returns:
+        Texto que va debajo de la tabla principal.
+    """
     pie_md = (
-        "\n\n## Recall@5 por tipo de pregunta\n\n" + por_tipo + "\n\n"
+        "\n\n### Recall@5 por tipo de pregunta\n\n" + tabla_por_tipo + "\n\n"
         "La media general no se puede leer sin este desglose. Las preguntas de "
         "tipo `listado` piden **todas** las asignaturas de un grupo, así que su "
         "techo depende de cuántas unidades relevantes tengan y no de lo bien "
         "que recupere el modelo.\n"
-        "\n## Cómo leer las columnas\n\n"
+        "\n### Cómo leer las columnas\n\n"
         "- **R@K** es Recall@K por **fragmento**: cuántos de los trozos de la "
         "unidad correcta se han recuperado. Mide cobertura. **Su techo no es "
         "1**, porque una unidad repartida en más de K fragmentos no cabe "
@@ -583,20 +658,99 @@ def main(argumentos: list[str] | None = None) -> int:
         "la métrica, no un hallazgo. Lo que decide K es el coste de contexto y "
         "la distracción del generador, y eso se mide en la Fase 2.\n"
     )
-    pie_md += "\n## Modelos evaluados\n\n" + "\n".join(
-        f"- `{c.nombre}`: {c.descripcion}" for c in candidatos
+    pie_md += "\n### Modelos evaluados\n\n" + "\n".join(
+        f"- `{c.nombre}`: {c.descripcion}" for c in CANDIDATOS
     )
     if fallos:
-        pie_md += "\n\n## Fallos\n\n" + "\n".join(f"- {f}" for f in fallos)
+        pie_md += "\n\n### Fallos\n\n" + "\n".join(f"- {f}" for f in fallos)
     if avisos:
         pie_md += (
-            "\n\n## Modelos evaluados sin caracterizar\n\n"
+            "\n\n### Modelos evaluados sin caracterizar\n\n"
             + "\n".join(f"- {a}" for a in avisos)
             + "\n\nSus métricas son válidas, pero **no son comparables** con "
             "las de los demás mientras no se sepa cuánto corpus lee cada uno.\n"
         )
-    opciones.salida.write_text(cabecera_md + tabla + pie_md + "\n", encoding="utf-8")
-    print(f"\nResultados guardados en {opciones.salida}")
+    return pie_md
+
+
+def main(argumentos: list[str] | None = None) -> int:
+    """Ejecuta el experimento completo y muestra/guarda los resultados.
+
+    Uso::
+
+        py scripts/experimento_embeddings.py
+        py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
+            --salida docs/adr/adr-0003-modelo-de-embeddings.md
+
+    Args:
+        argumentos: Argumentos de línea de comandos. ``None`` toma los reales.
+
+    Returns:
+        0 solo si todos los modelos se evaluaron **y** se caracterizaron; 1 si
+        alguno falló (p. ej. por no poder descargarse) y también si alguno se
+        evaluó sin poder medir cuánto corpus lee. Lo segundo no invalida sus
+        métricas, pero sí la comparación, que es para lo que existe la tabla:
+        sin la columna de truncado no se puede separar «mejor modelo» de
+        «modelo que sí lee el fragmento entero», que es exactamente el hallazgo
+        de IT-29 que obligó a rehacer esta comparativa.
+    """
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+
+    analizador = argparse.ArgumentParser(description=__doc__)
+    analizador.add_argument("--chunks", type=Path, default=RUTA_CHUNKS)
+    analizador.add_argument("--salida", type=Path, default=RUTA_RESULTADOS)
+    opciones = analizador.parse_args(argumentos)
+
+    # Import perezoso: solo evaluar_modelo, no crear_incrustadores, para dar
+    # un error claro y rápido si faltan los chunks/eval antes de tocar red.
+    from tfg_uja.evaluacion import evaluar_modelo
+
+    chunks, preguntas = cargar_datos(opciones.chunks)
+    print(
+        f"Corpus: {opciones.chunks} | Chunks: {len(chunks)} | "
+        f"Preguntas: {len(preguntas)}\n"
+    )
+
+    filas: list[dict[str, Any]] = []
+    fallos: list[str] = []
+    #: Modelos que sí se han evaluado pero de los que falta alguna medida de
+    #: contexto. No invalidan su fila, pero sí lo que se puede concluir de ella.
+    avisos: list[str] = []
+    for candidato in CANDIDATOS:
+        print(f"Evaluando {candidato.nombre} ({candidato.descripcion}) ...")
+        try:
+            fila, aviso = _evaluar_candidato(
+                candidato, chunks, preguntas, evaluar_modelo
+            )
+        except Exception as error:  # noqa: BLE001 - se informa y se sigue con el resto
+            print(f"  FALLÓ: {error}")
+            fallos.append(f"{candidato.nombre}: {error}")
+            continue
+        if aviso:
+            avisos.append(aviso)
+        filas.append(fila)
+        _imprimir_resultado(fila, len(chunks))
+
+    if not filas:
+        print("\nNingún modelo pudo evaluarse.")
+        return 1
+
+    tabla = formatear_tabla(filas)
+    print("\n" + tabla)
+    por_tipo = formatear_por_tipo(filas)
+    print("\nRecall@5 por tipo de pregunta:\n" + por_tipo)
+
+    techos_texto = _texto_de_techos(techos_de_recall(preguntas, chunks))
+    print("\nTechos de Recall@K por fragmento: " + techos_texto)
+
+    opciones.salida.parent.mkdir(parents=True, exist_ok=True)
+    escribir_en_el_adr(
+        opciones.salida,
+        _cabecera_del_informe(opciones.chunks, len(chunks), len(preguntas))
+        + tabla
+        + _pie_del_informe(por_tipo, techos_texto, fallos, avisos),
+    )
+    print(f"\nAnexo de {opciones.salida.name} reescrito.")
     for aviso in avisos:
         print(f"AVISO: {aviso}")
 

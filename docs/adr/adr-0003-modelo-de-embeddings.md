@@ -113,15 +113,25 @@ del corpus batiese a los multilingües.
 Los dos modelos de la familia _paraphrase_ de `sentence-transformers`
 —`paraphrase-multilingual-MiniLM-L12-v2` y
 `paraphrase-multilingual-mpnet-base-v2`— quedan fuera porque la biblioteca los
-sirve con ventana de 128 _tokens_. Sus cifras están en
-`docs/experimentos/it28-embeddings-historico.md`.
+sirve con ventana de 128 _tokens_. **No es una decisión de conveniencia:** con
+esa ventana `encode` recorta en silencio, y medido sobre el corpus de entonces
+solo llegaban a leer la mitad del texto:
+
+| Modelo (ventana 126 _tokens_ útiles) |  R@3 |  R@5 |  MRR | Frag. truncados | Corpus leído |
+| ------------------------------------ | ---: | ---: | ---: | --------------: | -----------: |
+| paraphrase-multilingual-MiniLM-L12-v2 | 0,420 | 0,570 | 0,619 | 685 | 50 % |
+| paraphrase-multilingual-mpnet-base-v2 | 0,584 | 0,668 | 0,730 | 685 | 50 % |
+
+Compararlos con los demás sería atribuir a la calidad de sus representaciones
+una diferencia que viene de haber leído la mitad del corpus. De ahí sale el
+criterio de admisión: **ventana ≥ 512 _tokens_**.
 
 ## Decisión
 
 **`intfloat/multilingual-e5-small`, con los prefijos `"query: "` y `"passage: "`**
 que exige su ficha.
 
-Resultados sobre la colección completa, en `docs/experimentos/it28-embeddings.md`:
+Resultados sobre la colección completa (los literales, en el anexo):
 
 | Modelo                             |   R@3 |   R@5 |  R@10 |      RU@3 |      RU@5 |     RU@10 |       MRR | Tiempo (s) |
 | ---------------------------------- | ----: | ----: | ----: | --------: | --------: | --------: | --------: | ---------: |
@@ -134,6 +144,26 @@ Resultados sobre la colección completa, en `docs/experimentos/it28-embeddings.m
 entera en un top-K: sobre esta colección el máximo alcanzable es **0,789** para
 R@3, **0,906** para R@5 y **0,968** para R@10. Lo que falta se mide contra ese
 techo, no contra 1.
+
+**Dónde se paga cada coste.** El factor más llamativo de la tabla —que el
+grande tarda ocho veces más en incrustar la colección— es justo el que **casi no
+se paga**: reindexar es un proceso por lotes que se lanza cuando cambia el
+dataset, y que tarde uno u ocho minutos no lo nota nadie. Lo que se paga en cada
+consulta es incrustar la pregunta, que son milisegundos en los dos, y **tener el
+modelo residente en memoria**.
+
+| Operación | Cada cuánto | e5-small | e5-large |
+| --------- | ----------- | -------: | -------: |
+| Incrustar la colección | Al regenerar el dataset | 61 s | 486 s |
+| Incrustar una consulta | En cada pregunta | ~ms | ~ms |
+| Recorrer el índice | En cada pregunta | 1,2 MB | 3,1 MB |
+| Tener el modelo cargado | Mientras el servicio viva | ~0,5 GB | ~2,2 GB |
+
+🔴 Por tanto **el argumento no es que el grande sea ocho veces más lento**, que
+mide lo que menos importa. Es que en la máquina donde este sistema se ejecuta el
+recuperador tiene que convivir con el modelo generativo, y 2,2 GB frente a
+0,5 GB sobre 16 GB es la diferencia entre que quepa y que no. **Es un coste de
+memoria, no de tiempo.**
 
 **El criterio que decide no es la calidad de la recuperación sino la viabilidad
 del sistema completo**, y este ADR tiene que decirlo con esas palabras en lugar
@@ -197,13 +227,23 @@ suficiente como para agotar la ventana de 512 _tokens_.
   obvia, que cualquiera que retome el proyecto puede romper sin darse cuenta.
 - La reproducibilidad depende de que Hugging Face siga sirviendo esos pesos.
   Mitigación: quedan en caché local tras la primera descarga.
+- **El coste por consulta no está medido.** Lo que se cronometra es incrustar la
+  colección entera; la latencia de una consulta suelta, con uno u otro modelo, no
+  se ha tomado. El razonamiento sobre el tamaño de la operación es plausible,
+  pero es razonamiento y no medición, y es lo primero que habría que medir si
+  esta decisión se pone en duda.
+- **Tampoco está medido el consumo de memoria del sistema completo**
+  ---recuperador más modelo generativo---, porque el generativo no se elige aquí.
+  El argumento se apoya en que 2,2 GB frente a 0,5 GB es una diferencia grande
+  sobre 16 GB, no en una medición del conjunto.
+- **Las 50 preguntas son un conjunto pequeño y anotado por una sola persona.** La
+  diferencia entre el modelo elegido y el grande cabe dentro de lo que podría
+  mover una anotación distinta, así que no se presenta como una separación
+  establecida.
 
 ## Referencias
 
 - Fichas de los cuatro modelos evaluados, enlazadas en cada alternativa.
-- Resultados literales: `docs/experimentos/it28-embeddings.md`. Los de los
-  modelos excluidos por ventana, en
-  `docs/experimentos/it28-embeddings-historico.md`.
 - Documentación de `sentence-transformers`, sobre `max_seq_length` y el recorte
   automático: [https://www.sbert.net/](https://www.sbert.net/)
 - L. Wang, N. Yang, X. Huang, L. Yang, R. Majumder, F. Wei, "Multilingual E5 Text
@@ -227,3 +267,45 @@ suficiente como para agotar la ventana de 512 _tokens_.
   uno entrenado para similitud.
 - M. Nygard, "Documenting Architecture Decisions", cognitect.com
   ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
+
+## Anexo — resultados del experimento
+
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->
+Generado el 06/08/2026 ejecutando `py scripts/experimento_embeddings.py` contra `data/chunks.json` (1334 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
+
+| Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) | Ventana | Truncados | Corpus leído |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| intfloat/multilingual-e5-small | 0.697 | 0.803 | 0.911 | 0.985 | 0.990 | 1.000 | 0.970 | 108.0 | 510 | 0 | 100% |
+| intfloat/multilingual-e5-large | 0.740 | 0.852 | 0.938 | 0.995 | 1.000 | 1.000 | 0.970 | 604.3 | 510 | 0 | 100% |
+| BAAI/bge-m3 | 0.720 | 0.836 | 0.917 | 0.985 | 0.995 | 0.995 | 0.949 | 650.3 | 8190 | 0 | 100% |
+| hiiamsid/sentence_similarity_spanish_es | 0.152 | 0.194 | 0.307 | 0.410 | 0.505 | 0.610 | 0.342 | 220.6 | 510 | 0 | 100% |
+
+### Recall@5 por tipo de pregunta
+
+| Modelo | listado (n=14) | metadatos (n=6) | salidas (n=8) | sin_guia (n=2) | temario (n=20) |
+|---|---|---|---|---|---|
+| intfloat/multilingual-e5-small | 1.000 | 0.697 | 0.690 | 1.000 | 0.723 |
+| intfloat/multilingual-e5-large | 1.000 | 0.664 | 0.889 | 1.000 | 0.776 |
+| BAAI/bge-m3 | 1.000 | 0.631 | 0.917 | 1.000 | 0.733 |
+| hiiamsid/sentence_similarity_spanish_es | 0.000 | 0.096 | 0.350 | 0.500 | 0.266 |
+
+La media general no se puede leer sin este desglose. Las preguntas de tipo `listado` piden **todas** las asignaturas de un grupo, así que su techo depende de cuántas unidades relevantes tengan y no de lo bien que recupere el modelo.
+
+### Cómo leer las columnas
+
+- **R@K** es Recall@K por **fragmento**: cuántos de los trozos de la unidad correcta se han recuperado. Mide cobertura. **Su techo no es 1**, porque una unidad repartida en más de K fragmentos no cabe entera en el top-K: sobre este corpus el máximo posible es **0.789** para R@3, **0.906** para R@5, **0.968** para R@10. Hay que restar del techo, no de 1, para saber lo que falta de verdad.
+- **RU@K** es Recall@K por **unidad**: si se ha encontrado la asignatura correcta, sin castigar que falte alguno de sus trozos. Mide acierto, y su techo sí es 1.
+- Las dos van juntas a propósito. La primera describe el sistema tal como está hoy; la segunda, el sistema con expansión por unidad, que todavía no existe. **La brecha entre ambas es el dato**: dice si lo que falla es encontrar la asignatura o completarla.
+- **Ventana** es el `max_seq_length` con el que sentence-transformers sirve el modelo, descontados los dos tokens especiales. Todo lo que pase de ahí, `encode` lo recorta **en silencio**: no avisa, no falla y devuelve un vector de aspecto normal. Por eso una diferencia de Recall entre modelos de ventana distinta no se puede atribuir solo a la calidad de sus representaciones.
+- **Tiempo** es reloj de pared de un portátil que está haciendo otras cosas, así que solo separa órdenes de magnitud. Medido: entre dos ejecuciones seguidas del 04/08/2026 **todas las métricas salieron idénticas a tres decimales**, pero los tiempos variaron hasta un 25 % y los dos modelos grandes llegaron a intercambiarse el orden. Sirve para decir «este tarda cinco veces más que aquel», no para ordenar dos modelos que quedan cerca.
+
+⚠️ Recall@K es **monótono creciente en K**: mirar más resultados no puede reducir los aciertos. Que K=10 gane a K=5 es una propiedad de la métrica, no un hallazgo. Lo que decide K es el coste de contexto y la distracción del generador, y eso se mide en la Fase 2.
+
+### Modelos evaluados
+
+- `intfloat/multilingual-e5-small`: PEQUEÑO / titular. El elegido en el ADR-0003 y ganador de IT-28. Orientado a recuperación; exige prefijos 'query:'/'passage:' según su ficha, aplicados aquí. 118M parámetros, 384 dimensiones, MIT.
+- `intfloat/multilingual-e5-large`: GRANDE 1. Misma familia, mismo entrenamiento y mismos prefijos que el titular, con 5x su tamaño: es el único par que aísla el efecto del TAMAÑO sin cambiar nada más. 560M, 1024 dimensiones, MIT.
+- `BAAI/bge-m3`: GRANDE 2. Tamaño parecido al anterior pero otra arquitectura y otro entrenamiento, y sin prefijos: es el contraste de FAMILIA. Ventana de 8192 tokens, así que no puede truncar. 568M, 1024 dimensiones, MIT.
+- `hiiamsid/sentence_similarity_spanish_es`: ESPAÑOL. El mejor específico de español disponible: comprobado el 04/08/2026, es el único con uso real (22.500 descargas/mes) frente a derivados con decenas. Entrenado para similitud semántica y no para recuperación, que es la hipótesis que pone a prueba. 110M, Apache 2.0.
+
+<!-- FIN RESULTADOS AUTOMÁTICOS -->

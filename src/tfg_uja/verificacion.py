@@ -54,6 +54,14 @@ _TITULACION: Final[re.Pattern[str]] = re.compile(
 #: que usan de hecho los candidatos probados: guion, asterisco y numeración.
 _VINETA: Final[re.Pattern[str]] = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+(.+?)\s*$")
 
+#: Marcas de énfasis de Markdown que los modelos ponen alrededor del nombre.
+#: No forman parte de él, pero sí impedían reconocerlo: medido el 18/08/2026,
+#: ministral-3:3b y qwen3.5:4b enumeraron **las diez asignaturas correctas** de
+#: primer curso de Informática en negrita, y esta función devolvía
+#: «**Álgebra**», que no casa con ninguna del corpus. Las dos respuestas, que
+#: son perfectas, puntuaban precisión 0,000 y salían las peores de la tabla.
+_ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
+
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
 #: el tipo. No forma parte del nombre de la asignatura.
 _COLA: Final[re.Pattern[str]] = re.compile(
@@ -73,6 +81,66 @@ _ENUMERADA: Final[re.Pattern[str]] = re.compile(
     r"([^,;:.()\n]{3,90}?)\s*\(\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos)[^)]*\)",
     re.IGNORECASE,
 )
+
+
+#: Paréntesis con el que la fuente distingue de qué titulación del doble grado
+#: viene una asignatura: «MÁQUINAS TÉRMICAS (GIM)», «CONTROL POR COMPUTADOR
+#: (GIEI)». Son 54 de los 316 nombres del corpus, y el mismo mecanismo marca el
+#: plan en «Grado en Ingeniería Geomática y Topográfica (plan 2025)».
+_CALIFICADOR: Final[re.Pattern[str]] = re.compile(r"\s*\([^)]*\)")
+
+#: Abreviaturas que la fuente usa dentro de un nombre. Son las de los seis
+#: trabajos de fin de grado y nada más; se enumeran en vez de resolverlas por
+#: regla porque una regla general convertiría cualquier punto en abreviatura.
+_ABREVIATURAS: Final[dict[str, str]] = {"ing.": "ingenieria"}
+
+#: Fórmula con la que la fuente antepone el tipo de estudios al nombre de la
+#: titulación: «Grado en Ingeniería Eléctrica», «Doble Grado en Ingeniería
+#: Eléctrica y Mecánica». Un modelo puede nombrar la titulación sin ella.
+_TIPO_DE_ESTUDIOS: Final[re.Pattern[str]] = re.compile(r"^(?:doble\s+)?grado\s+en\s+")
+
+
+def sin_tipo_de_estudios(nombre: str) -> str:
+    """Quita la fórmula «Grado en» del principio de un nombre ya normalizado.
+
+    Args:
+        nombre: Nombre pasado antes por :func:`nucleo`.
+
+    Returns:
+        El nombre sin la fórmula. Si no la lleva, el nombre tal cual.
+    """
+    return _TIPO_DE_ESTUDIOS.sub("", nombre)
+
+
+def nucleo(nombre: str) -> str:
+    """Deja un nombre en la forma con la que se puede comparar de verdad.
+
+    Normalizar no basta. El corpus escribe «AUTOMÁTICA AVANZADA (GIEI)» y
+    cualquier modelo responde «Automática Avanzada», porque el paréntesis no es
+    parte del nombre de la asignatura: es la marca con la que la fuente dice a
+    cuál de las dos titulaciones de un doble grado pertenece. Comparando con él
+    puesto, **una respuesta perfecta puntúa cero**.
+
+    No es una hipótesis: medido el 18/08/2026, ministral-8b enumeró las diez
+    obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
+    Electrónica Industrial y Mecánica, las diez correctas y ninguna de más, y
+    la cobertura salía 0,000 con las diez contadas como omitidas.
+
+    Quitar el calificador no confunde asignaturas distintas: comprobado sobre
+    el corpus entero, los nombres que colapsan son la misma asignatura con y
+    sin sigla ---la que se imparte en el grado simple y en el doble---, y
+    dentro de ninguna pregunta del banco colapsan dos respuestas esperadas.
+
+    Args:
+        nombre: Nombre tal como lo publica la fuente o como lo escribe el
+            modelo.
+
+    Returns:
+        El nombre en minúsculas, sin tildes, sin el calificador entre
+        paréntesis y con las abreviaturas de la fuente resueltas.
+    """
+    limpio = normalizar(_CALIFICADOR.sub(" ", nombre))
+    return " ".join(_ABREVIATURAS.get(p, p) for p in limpio.split())
 
 
 def titulaciones_nombradas(respuesta: str) -> set[str]:
@@ -139,13 +207,20 @@ def elementos_de_lista(respuesta: str) -> list[str]:
         encontrado = _VINETA.match(linea)
         if not encontrado:
             continue
-        nombre = _COLA.sub("", encontrado.group(1)).strip(" .;:")
+        crudo = _ENFASIS.sub("", encontrado.group(1)).strip()
+        # Una viñeta que termina en dos puntos no enumera: encabeza la sublista
+        # que viene debajo. Gemma3 respondió «* Primer curso:» y luego las diez
+        # asignaturas, y contar el rótulo como una más daba una invención que
+        # no existe. Se mira antes de recortar la cola, que se come el signo.
+        if crudo.endswith(":"):
+            continue
+        nombre = _COLA.sub("", crudo).strip(" .;:")
         if nombre:
             elementos.append(nombre)
     if elementos:
         return elementos
     return [
-        _desde_la_mayuscula(m.group(1).strip(" .;:"))
+        _desde_la_mayuscula(_ENFASIS.sub("", m.group(1)).strip(" .;:"))
         for m in _ENUMERADA.finditer(respuesta)
     ]
 
@@ -194,22 +269,34 @@ def cotejar_listado(
         proporción de lo esperado que aparece. Sin elementos enumerados la
         precisión es 0,0: no haber dicho nada no es haber acertado.
     """
-    dichas = [normalizar(e) for e in elementos_de_lista(respuesta)]
-    esperadas_norm = {normalizar(e) for e in esperadas}
-    corpus_norm = {normalizar(e) for e in del_corpus}
-    texto = normalizar(respuesta)
+    dichas = [nucleo(e) for e in elementos_de_lista(respuesta)]
+    esperadas_norm = {nucleo(e) for e in esperadas}
+    corpus_norm = {nucleo(e) for e in del_corpus}
+    texto = nucleo(respuesta)
+    # La fuente escribe «Grado en Ingeniería Eléctrica» y un modelo puede
+    # escribir «Ingeniería Eléctrica»: es la misma titulación. Se decide una
+    # vez por respuesta, mirando si usa la fórmula, en vez de quitarla
+    # siempre; quitarla siempre juntaría el Grado en Ingeniería Mecánica con
+    # el Doble Grado en Ingeniería Mecánica (Internacional), que se
+    # distinguen justo por ahí una vez retirado el paréntesis.
+    con_formula = "grado en" in texto
+
+    def comparable(nombre: str) -> str:
+        return nombre if con_formula else sin_tipo_de_estudios(nombre)
+
+    comparables = {comparable(c) for c in corpus_norm}
 
     def existe(dicha: str) -> bool:
         # Por sufijo, no por igualdad: dentro de un párrafo el nombre arrastra
         # delante lo que lo introducía ---«incluyendo Algoritmos geométricos»---
         # y eso es del modelo redactando, no una asignatura distinta.
-        return any(dicha == c or dicha.endswith(" " + c) for c in corpus_norm)
+        return any(dicha == c or dicha.endswith(" " + c) for c in comparables)
 
     inventadas = {d for d in dichas if not existe(d)}
     # La cobertura se mide sobre el texto entero y no sobre lo enumerado: da
     # igual si el modelo respondió con viñetas o en prosa, lo que se pregunta
     # es si el nombre está. Así la métrica no premia un formato sobre otro.
-    aciertos = {e for e in esperadas_norm if e in texto}
+    aciertos = {e for e in esperadas_norm if comparable(e) in texto}
     precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else 0.0
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos
