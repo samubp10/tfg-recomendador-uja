@@ -84,3 +84,17 @@ def test_cubre_varios_tipos_de_pregunta():
     tipos = {p["tipo"] for p in cargar()["preguntas"]}
     assert {"salidas", "temario"} <= tipos
     assert len(tipos) >= 3
+
+
+def test_el_tipo_sin_guia_no_se_queda_en_cuatro_preguntas():
+    """Regresión: este tipo ya se erosionó solo una vez.
+
+    Bajó de cinco preguntas a dos porque la fuente publicó tres de esas guías
+    entre una extracción y la siguiente. Con dos, cualquier cifra sobre la
+    población de 86 asignaturas sin contenido se movía de cincuenta en
+    cincuenta puntos.
+    """
+    sin_guia = [p for p in cargar()["preguntas"] if p["tipo"] == "sin_guia"]
+    assert len(sin_guia) >= 5
+    titulaciones = {s["grado"] for p in sin_guia for s in p["relevantes"]}
+    assert len(titulaciones) >= 3
