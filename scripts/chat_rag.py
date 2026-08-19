@@ -399,7 +399,11 @@ def _recuperar_contexto(
             )
         else:
             traidos = contexto_para(
-                consulta.texto, indice.tabla, indice.incrustar, **opciones
+                consulta.texto,
+                indice.tabla,
+                indice.incrustar,
+                respaldo=consulta.respaldo,
+                **opciones,
             )
     except TitulacionDesconocida as error:
         print(f"\n  {error}. Las que hay:")
