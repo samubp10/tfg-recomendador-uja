@@ -1690,8 +1690,7 @@ construye sobre el corpus. La garantía no se pide, se impone: lo que no está e
 el texto que recibe el modelo no puede copiarse de él.}
 
 \begin{borrador}
-  Fase: 2 (IT-106). Decisiones que quedan abiertas en este apartado:
-  \begin{itemize}
+  \item Fase: 2 (IT-106). Decisiones que quedan abiertas en este apartado:
     \item La tarjeta asignaba este contenido a la Fase 3, porque se preveía
       construirlo junto con la aplicación web. El mecanismo, sin embargo,
       pertenece al \textit{pipeline} de recuperación y se ha escrito aquí. Hay
@@ -1704,7 +1703,7 @@ el texto que recibe el modelo no puede copiarse de él.}
       ilustre de dónde sale el sujeto, o si la explicación se sostiene sin ella.
     \item Comprobar si el término \textit{MRR} ya está en el glosario desde el
       apartado de incrustaciones, o si hay que marcarlo aquí con \texttt{\textbackslash gl}.
-  \end{itemize}
+  
 \end{borrador}
 
 
@@ -1729,8 +1728,7 @@ el texto que recibe el modelo no puede copiarse de él.}
   existe} y si nombra lo que debía. Son comparaciones de cadena.}
 
 \begin{borrador}
-  Fase: 2 (IT-35). Lo que hay que decir aquí y todavía no está escrito:
-  \begin{itemize}
+  \item Fase: 2 (IT-35). Lo que hay que decir aquí y todavía no está escrito:
     \item Las cuatro medidas: titulaciones inventadas, precisión, cobertura y
       acierto escalar. Definir cada una en una frase.
     \item Decir explícitamente qué NO mide: si la respuesta está bien escrita,
@@ -1739,7 +1737,7 @@ el texto que recibe el modelo no puede copiarse de él.}
     \item Que solo se decide sobre las preguntas de respuesta computable. Las de
       temario y salidas se observan en sesiones a mano y se reportan como modos
       de fallo, sin entrar en la decisión.
-  \end{itemize}
+  
 \end{borrador}
 
 \subsubsection{\textcolor{borrador2}{El banco de preguntas}}
@@ -1750,8 +1748,7 @@ el texto que recibe el modelo no puede copiarse de él.}
   con semilla fija, con todas las familias representadas.}
 
 \begin{borrador}
-  Fase: 2 (IT-35). Pendiente:
-  \begin{itemize}
+  \item Fase: 2 (IT-35). Pendiente:
     \item Justificar por qué se decide sobre 80 y no sobre las 1.023: cada
       pregunta cuesta una llamada al modelo por candidato, y el banco completo
       con siete candidatos pasa de las siete mil respuestas.
@@ -1759,7 +1756,7 @@ el texto que recibe el modelo no puede copiarse de él.}
       se escribe a mano: es la misma operación que produce los fragmentos
       derivados, contar y agrupar.
     \item Decidir si la tabla de las seis familias va aquí o en el Capítulo 5.
-  \end{itemize}
+  
 \end{borrador}
 
 \subsubsection{\textcolor{borrador2}{El umbral eliminatorio, fijado antes de medir}}
@@ -1769,21 +1766,19 @@ el texto que recibe el modelo no puede copiarse de él.}
   al que va dirigido no tiene forma de detectarlo.}
 
 \begin{borrador}
-  Fase: 2 (IT-35). Aquí hay que sostener dos cosas:
-  \begin{itemize}
+  \item Fase: 2 (IT-35). Aquí hay que sostener dos cosas:
     \item Que el umbral se escribió \emph{antes} de la primera medición, igual
       que los de la base de datos vectorial. Es lo que impide acomodarlo luego
       al candidato que convenga.
     \item Qué se haría si ningún candidato lo cumpliera: declararlo y decidir
       entre los que menos incurran, dejándolo escrito como limitación.
-  \end{itemize}
+  
 \end{borrador}
 
 \subsubsection{\textcolor{borrador2}{Lo que no decide: el tiempo de respuesta y la tarjeta gráfica}}
 
 \begin{borrador}
-  Fase: 2 (IT-35). Apartado necesario y delicado. Lo medido:
-  \begin{itemize}
+  \item Fase: 2 (IT-35). Apartado necesario y delicado. Lo medido:
     \item \textbf{El tiempo no decide.} Las respuestas se cronometran mientras
       el equipo hace otras cosas, y eso no es una excusa sino una medida: el
       mismo modelo sobre la misma muestra ha dado medianas de 15,9 y de 31,9
@@ -1799,15 +1794,14 @@ el texto que recibe el modelo no puede copiarse de él.}
     \item Decidir si esto va aquí o en el anexo de instalación. Mejor aquí,
       porque explica por qué la comparación se decide con las columnas de
       calidad y no con las de tiempo.
-  \end{itemize}
+  
 \end{borrador}
 
 \subsection[\textcolor{borrador2}{El \textit{pipeline} RAG completo}]{\textcolor{borrador2}{El \textit{pipeline} RAG completo}}
 \label{secc:fase2_pipeline}
 
 \begin{borrador}
-  Fase: 2 (IT-37). Estructura propuesta, de la pregunta a la respuesta:
-  \begin{itemize}
+  \item Fase: 2 (IT-37). Estructura propuesta, de la pregunta a la respuesta:
     \item \textbf{Cuántos fragmentos se recuperan.} No es un K fijo: hay una
       banda, un corte relativo por distancia y un suelo absoluto de pertinencia.
       Explicar por qué un K fijo no vale ---una pregunta de ficha se contesta
@@ -1823,15 +1817,14 @@ el texto que recibe el modelo no puede copiarse de él.}
       llama al modelo.
     \item Ese último punto es el hilo conductor del capítulo y conviene
       enunciarlo aquí: \emph{una instrucción no es un control}.
-  \end{itemize}
+  
 \end{borrador}
 
 \subsection[\textcolor{borrador2}{Restricción del dominio}]{\textcolor{borrador2}{Restricción del dominio}}
 \label{secc:fase2_dominio}
 
 \begin{borrador}
-  Fase: 2 (IT-87). Lo que hay que contar, con la evidencia ya medida:
-  \begin{itemize}
+  \item Fase: 2 (IT-87). Lo que hay que contar, con la evidencia ya medida:
     \item El problema: el sistema recomendó seis titulaciones a un estudiante
       interesado en la electricidad y dos no existen en la Escuela. Las
       instrucciones ya prohibían añadir datos ausentes del contexto.
@@ -1847,5 +1840,5 @@ el texto que recibe el modelo no puede copiarse de él.}
       verdaderas se lee con la misma confianza que las otras tres.
     \item Y el límite honesto: la comprobación cubre las titulaciones, no las
       asignaturas ni las salidas profesionales.
-  \end{itemize}
+  
 \end{borrador}

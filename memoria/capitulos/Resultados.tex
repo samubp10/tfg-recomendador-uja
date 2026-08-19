@@ -130,9 +130,8 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \label{secc:resultados_rag}
 
 \begin{borrador}
-  Fase: 2 (IT-38, IT-40). Este apartado no existe todavía porque el experimento
+  \item Fase: 2 (IT-38, IT-40). Este apartado no existe todavía porque el experimento
   que lo llena no se ha ejecutado. Lo que hay que dejar escrito cuando exista:
-  \begin{itemize}
     \item \textbf{La recuperación primero.} Recall@K y MRR sobre las preguntas
       de dominio del conjunto, con los techos delante: sobre esta colección el
       máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968 para K=10, no
@@ -153,7 +152,7 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
       de optativas por titulación y a continuación respondió mal cuál era la
       mayor. Ningún guardarraíl determinista caza eso, porque todos los nombres
       y todas las cifras que usó existen en la colección.
-  \end{itemize}
+  
 \end{borrador}
 
 
@@ -191,13 +190,12 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \label{secc:amenazas_validez}
 
 \begin{borrador}
-  Fase: 2 (IT-39, IT-40). Once amenazas identificadas, cada una con su decisión
+  \item Fase: 2 (IT-39, IT-40). Once amenazas identificadas, cada una con su decisión
   tomada: corregir, declarar o descartar. El análisis completo, con las cifras
   medidas de cada una, está en las notas de trabajo de IT-39; aquí van solo las
   que se declaran, y hay que redactarlas en prosa, no como lista.
 
   \textbf{Las que se declaran}, agrupadas por el tipo de validez que amenazan:
-  \begin{itemize}
     \item \emph{De constructo.} Un solo anotador, que además construyó la
       colección y el sistema: no se puede separar «recupera lo relevante» de
       «recupera lo que su autor considera relevante». El suelo de pertinencia
@@ -215,9 +213,8 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
       nadie habría cuestionado. Lo que se declara no son los cinco fallos, que
       están corregidos y con su prueba de regresión, sino la conclusión: un
       verificador en verde no prueba nada si no se ha comprobado qué mide.
-  \end{itemize}
-
-  \textbf{Lo que NO va aquí, y conviene recordar por qué:} las que se pudieron
+  
+  \item \textbf{Lo que NO va aquí, y conviene recordar por qué:} las que se pudieron
   corregir se corrigieron y no se declaran ---los tiempos contaminados, el
   cambio de versión del servidor de inferencia---, porque una amenaza corregible
   que no se corrige es peor que no declararla. Y la generalización a otros
