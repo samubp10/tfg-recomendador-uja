@@ -32,6 +32,7 @@ extremo, con dos decisiones que no son de redacción sino de arquitectura:
 from __future__ import annotations
 
 import json
+import logging
 import urllib.error
 import urllib.request
 from typing import Final
@@ -40,6 +41,12 @@ from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.text_cleaner import palabras
 from tfg_uja.verificacion import titulaciones_inventadas
+
+#: Registro del módulo. Existe solo para dejar constancia de las respuestas
+#: retiradas: una barrera que descarta en silencio no se puede auditar, y la
+#: cifra de cuántas veces salta es lo que dice si está haciendo algo o si
+#: estorba. Quien use la biblioteca decide dónde va y con qué nivel.
+_registro: Final[logging.Logger] = logging.getLogger(__name__)
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
 #: sistema tiene que poder ejecutarse entero en el equipo del autor.
@@ -457,7 +464,14 @@ def responder(
     # mistral-nemo:12b recomendó a un estudiante de FP el «Grado en Ingeniería
     # de Edificación», que no existe en la EPSJ, junto a tres titulaciones que
     # sí. Sin catálogo no se puede comprobar nada, y entonces no se comprueba.
-    if catalogo and titulaciones_inventadas(respuesta, catalogo):
+    inventadas = titulaciones_inventadas(respuesta, catalogo) if catalogo else set()
+    if inventadas:
+        _registro.warning(
+            "Respuesta retirada: nombra titulaciones que no existen (%s). "
+            "Pregunta: %r",
+            ", ".join(sorted(inventadas)),
+            pregunta,
+        )
         return RESPUESTA_TITULACION_INVENTADA
     return respuesta
 
