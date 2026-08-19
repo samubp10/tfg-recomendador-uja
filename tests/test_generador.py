@@ -674,3 +674,22 @@ def test_un_servidor_apagado_se_explica(monkeypatch):
     with pytest.raises(generador.ErrorDelModelo) as fallo:
         generador.generar("un prompt", "un-modelo")
     assert "Ollama" in str(fallo.value)
+
+
+def test_un_modelo_colgado_no_tumba_la_sesion(monkeypatch):
+    """Regresión del 19/08/2026.
+
+    Agotar la espera de lectura levanta ``TimeoutError``, que **no** es un
+    ``URLError``: se escapaba de las dos ramas y subía. Tumbó una tanda de 560
+    respuestas cuando llevaba 85, y las nueve horas siguientes se perdieron.
+    Un modelo colgado tiene que costar una pregunta, no la sesión.
+    """
+
+    def se_cuelga(*_args, **_kwargs):
+        raise TimeoutError("timed out")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", se_cuelga)
+    with pytest.raises(generador.ErrorDelModelo) as fallo:
+        generador.generar("un prompt", "un-modelo")
+    assert "no respondió" in str(fallo.value)
+    assert str(generador.ESPERA_MAXIMA) in str(fallo.value)
