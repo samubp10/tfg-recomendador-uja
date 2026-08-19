@@ -12,6 +12,7 @@ from tfg_uja.verificacion import (
     cotejar_listado,
     elementos_de_lista,
     nucleo,
+    sin_tipo_de_estudios,
     titulaciones_inventadas,
     titulaciones_nombradas,
 )
@@ -316,3 +317,61 @@ def test_expandir_la_abreviatura_no_convierte_el_tfg_en_inventado():
     precision, cobertura, inventadas, _ = cotejar_listado(texto, corpus, corpus)
     assert inventadas == set()
     assert (precision, cobertura) == (1.0, 1.0)
+
+
+# --- El nombre de la titulación sin la fórmula «Grado en» (G-CAT-001) ---
+
+_CATALOGO_EPSJ = {
+    "Grado en Ingeniería Eléctrica",
+    "Grado en Ingeniería Mecánica",
+    "Doble Grado en Ingeniería Mecánica (Internacional - Schmalkalden)",
+}
+
+
+def test_nombrar_la_titulacion_sin_la_formula_grado_en():
+    """Regresión de G-CAT-001.
+
+    El 19/08/2026 «command-r7b» enumeró las doce titulaciones de la EPSJ, las
+    doce correctas y ninguna de más, agrupadas bajo dos rótulos que decían
+    cuáles eran grados y cuáles dobles. Como escribía «Ingeniería Eléctrica» y
+    no «Grado en Ingeniería Eléctrica», la respuesta puntuaba precisión 0,083 y
+    cobertura 0,000, con las doce contadas como omitidas. La misma respuesta de
+    «granite4.1:8b», con la fórmula puesta, puntuaba 1,000 y 1,000: lo único
+    que separaba a las dos eran esas dos palabras.
+    """
+    respuesta = (
+        "Grados:\n"
+        "- Ingeniería Eléctrica\n"
+        "- Ingeniería Mecánica\n"
+        "Dobles grados:\n"
+        "- Ingeniería Mecánica (Internacional - Schmalkalden)\n"
+    )
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        respuesta, _CATALOGO_EPSJ, _CATALOGO_EPSJ
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert not inventadas and not omitidas
+
+
+def test_con_la_formula_puesta_se_compara_con_ella():
+    """La corrección no relaja la comparación cuando la respuesta sí la usa."""
+    respuesta = (
+        "- Grado en Ingeniería Eléctrica\n"
+        "- Grado en Ingeniería Mecánica\n"
+        "- Doble Grado en Ingeniería Mecánica (Internacional - Schmalkalden)\n"
+    )
+    precision, cobertura, _, omitidas = cotejar_listado(
+        respuesta, _CATALOGO_EPSJ, _CATALOGO_EPSJ
+    )
+    assert (precision, cobertura) == (1.0, 1.0)
+    assert not omitidas
+
+
+def test_sin_tipo_de_estudios_deja_intacto_lo_que_no_lo_lleva():
+    assert sin_tipo_de_estudios("algebra") == "algebra"
+    assert sin_tipo_de_estudios("grado en ingenieria electrica") == (
+        "ingenieria electrica"
+    )
+    assert sin_tipo_de_estudios("doble grado en ingenieria mecanica") == (
+        "ingenieria mecanica"
+    )
