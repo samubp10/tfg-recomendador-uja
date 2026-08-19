@@ -375,3 +375,29 @@ def test_sin_tipo_de_estudios_deja_intacto_lo_que_no_lo_lleva():
     assert sin_tipo_de_estudios("doble grado en ingenieria mecanica") == (
         "ingenieria mecanica"
     )
+
+
+def test_abreviar_el_nombre_por_dentro_no_es_inventarlo():
+    """Regresión: la barrera retiró una respuesta correcta el 19/08/2026.
+
+    `ministral-8b` recomendó cuatro titulaciones reales y escribió una de
+    ellas «Grado en Mecánica». Ningún prefijo casa con «Grado en Ingeniería
+    Mecánica», así que contaba como inventada y la respuesta entera se retiró.
+    """
+    catalogo = [
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería Informática",
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+    ]
+    dicho = "Te encaja el Grado en Mecánica, que tiene mucho dibujo técnico."
+    assert titulaciones_inventadas(dicho, catalogo) == set()
+
+
+def test_una_titulacion_que_no_existe_sigue_detectandose():
+    """Admitir la abreviatura no puede abrir la mano con lo inventado."""
+    catalogo = ["Grado en Ingeniería Mecánica", "Grado en Ingeniería Informática"]
+    dicho = "Te recomiendo el Grado en Ingeniería Biomédica y el Grado en Medicina."
+    assert titulaciones_inventadas(dicho, catalogo) == {
+        "Grado en Ingeniería Biomédica",
+        "Grado en Medicina",
+    }
