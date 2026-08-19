@@ -461,14 +461,15 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
             fill=white, inner sep=1.5pt},
         mult/.style={font=\scriptsize, inner sep=1pt}
       ]
-      % Entidades y campos comprobados el 07/08/2026 contra los ficheros reales
-      % data/grados.json (837 items) y data/chunks.json (1.335). Respecto a la
-      % version del 30/07: Asignatura.ects es una cadena y no un decimal (la
-      % fuente publica "6", y una asignatura lo trae vacio), Chunk incorpora
-      % tipo_asignatura, y aparece el item de procedencia que encabeza cada
-      % fichero. Las cuatro flechas que llegan a Chunk son los cuatro valores
-      % reales del campo origen: guia (1.193), asignatura_sin_guia (86),
-      % plan_de_estudios (33) y salidas (22). El trazado es ortogonal a
+      % Entidades y campos comprobados el 16/08/2026 contra los ficheros reales
+      % data/grados.json (837 items) y data/chunks.json (1.460 fragmentos).
+      % Respecto a la version del 07/08: Asignatura incorpora curso y
+      % cuatrimestre, y Chunk incorpora curso (IT-105). Asignatura.ects es una
+      % cadena y no un decimal (la fuente publica "6", y una asignatura lo trae
+      % vacio), Chunk lleva tipo_asignatura, y el item de procedencia encabeza
+      % cada fichero. Las cuatro flechas que llegan a Chunk son los cuatro
+      % valores reales del campo origen: guia (1.296), asignatura_sin_guia (86),
+      % plan_de_estudios (56) y salidas (22). El trazado es ortogonal a
       % proposito: con lineas rectas y angulos rectos ninguna flecha cruza a
       % otra ni pasa por encima de una caja.
       \node[clase] (grado) at (0,0) {\textbf{Grado}
@@ -490,6 +491,8 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         nombre: \texttt{str}\\
         tipo\_asignatura: \texttt{str}\\
         ects: \textcolor{borrador2}{\texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
+        \textcolor{borrador2}{cuatrimestre: \texttt{str}}\\
         ofertada: \texttt{bool}\\
         tiene\_guia: \texttt{bool}\\
         menciones: \texttt{list}\\
@@ -513,6 +516,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
         codigos: \texttt{list}\\
         nombre: \texttt{str}\\
         \textcolor{borrador2}{tipo\_asignatura: \texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
         texto: \texttt{str}\\
         chunk\_index: \texttt{int}\\
         total\_chunks: \texttt{int}};
@@ -561,14 +565,23 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
   \label{fig:modelo_datos}
 \end{figure}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Diagrama vuelto a comprobar el 07/08/2026} contra los ficheros reales
-  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json}, 1.335). En turquesa,
-  lo que ha cambiado respecto a la versión del 30/07, que es lo que tienes que explicar en
-  el texto o dejar dicho en el pie:
+\begin{borrador}
+  \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
+  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
+  \sout{1.335} 1.460 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
+  explicar en el texto o dejar dicho en el pie:
+  \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
+  \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
+  Lo que hay que explicar es \emph{por qué es una cadena y no un número}: la EPSJ publica
+  el curso agrupando las tablas bajo un rótulo de sección, y en los dobles grados ese
+  rótulo dice «Tercer o Cuarto Curso», porque a partir de tercero el estudiante elige por
+  qué especialidad empieza. Guardarlo como entero obligaría a escoger uno de los dos, que
+  es inventarse el dato. De las 528 asignaturas, 420 lo declaran; las 108 restantes son
+  exactamente las optativas, que la fuente publica sin curso.
   \item \textbf{(1) Faltaban dos de las cuatro procedencias de un fragmento.} El campo
-  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia} (1.193 fragmentos),
-  \texttt{asignatura\_sin\_guia} (86), \texttt{plan\_de\_estudios} (33) y \texttt{salidas}
+  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia}
+  (\sout{1.193} 1.296 fragmentos), \texttt{asignatura\_sin\_guia} (86),
+  \texttt{plan\_de\_estudios} (\sout{33} 56) y \texttt{salidas}
   (22)--- y el diagrama solo dibujaba dos flechas hacia \texttt{Chunk}. Tal como estaba,
   daba a entender que una asignatura sin guía no llega al índice, y sí llega.
   \item \textbf{(2) \texttt{Chunk} tiene un campo más:} \texttt{tipo\_asignatura}, que no
@@ -1063,10 +1076,15 @@ idénticas solo deja el índice ligeramente más grande.
 \begin{borrador}                                                                                                                                                    
   \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
   con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
-  \texttt{check\_chunks.py} el 06/08/2026, tiene \textbf{1.334 fragmentos}: 1.193 de guía,
-  86 informativos de asignaturas sin contenido, 33 de plan de estudios y 22 de salidas, en
-  \textbf{322 unidades} de las que 78 se comparten entre titulaciones. Los tamaños van de
-  \textbf{171 a 900} caracteres, con mediana de 838 y percentil 90 de 894.
+  \texttt{check\_chunks.py} sobre la extracción del 16/08/2026 (curso 2026-27), tiene
+  \textbf{1.499 fragmentos}: 1.296 de guía, 86 informativos de asignaturas sin contenido,
+  56 de plan de estudios, 24 de mención, 22 de salidas, 12 de ficha de titulación y 3 de
+  catálogo, en \textbf{398 unidades} de las que 81 se comparten entre titulaciones. Los
+  tamaños van de \textbf{96 a 900} caracteres, con mediana de 836 y percentil 90 de 895.
+  \item Los tres últimos tipos ---mención, ficha de titulación y catálogo--- no existían
+  en el corpus de IT-16: los introduce IT-107 y se explican en el
+  Apartado~\ref{secc:fragmentos_derivados}. Al citar el tamaño del corpus hay que decir de
+  qué extracción es, porque la fuente ha cambiado tres veces este verano.
   \item \textbf{Ojo al porcentaje de reducción}, que no se puede copiar del de abajo: al
   bajar el máximo, una misma unidad produce más fragmentos, de modo que cambian tanto el
   número del que se parte como aquel al que se llega. Sácalo de la salida del verificador
@@ -1287,7 +1305,11 @@ La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del 
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 33 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
+El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los \sout{33} \textcolor{borrador2}{56} fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
+
+\textcolor{borrador2}{Esa tercera rama dejó de ser la única. El
+Apartado~\ref{secc:fragmentos_derivados} recoge los demás fragmentos compuestos por el
+mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
 
 
 \begin{figure}[H]
@@ -1365,6 +1387,68 @@ salió cada respuesta.
     titulaciones. Fuente: Elaboración propia.}
   \label{fig:estructura_chunk}
 \end{figure}
+
+\subsubsection[\textcolor{borrador2}{Fragmentos derivados de la colección}]{\textcolor{borrador2}{Fragmentos derivados de la colección}}
+\label{secc:fragmentos_derivados}
+
+\textcolor{borrador2}{Hay preguntas que la colección contiene pero no dice. «¿Cuántas
+asignaturas tiene el Grado en Ingeniería Informática?» se contesta contando sesenta y siete
+fragmentos, y la recuperación devuelve los $k$ mejores, no todos: no es un fallo del
+recuperador, sino que la pregunta es de agregación y el mecanismo no está hecho para eso.
+Probado el 17/08/2026 sobre la colección sin estos fragmentos, el sistema contestó que esa
+titulación «cuenta con una sola asignatura».}
+
+\textcolor{borrador2}{La solución es la misma que ya se aplicó al listado del plan de
+estudios: si la respuesta se puede calcular, se calcula al trocear y se escribe como un
+fragmento más. Se componen cuatro tipos:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Catálogo de la Escuela.} Qué titulaciones se
+        imparten, y las mismas separadas en grados y dobles grados. Tres fragmentos.}
+  \item \textcolor{borrador2}{\textbf{Ficha de titulación.} Cuántas asignaturas tiene,
+        cuántas son obligatorias y cuántas optativas, en cuántos cursos se organiza el
+        plan, cuáles son sus menciones y cómo se reparten las obligatorias por curso. Uno
+        por titulación.}
+  \item \textcolor{borrador2}{\textbf{Menciones.} Cuáles son las de cada titulación, y qué
+        asignaturas tiene cada una.}
+  \item \textcolor{borrador2}{\textbf{Listado del plan de estudios}, ya descrito, que fue
+        el primero de esta familia.}
+\end{itemize}
+
+\textcolor{borrador2}{Dos decisiones acotan lo que puede componerse, y son las que hacen
+defendible el procedimiento.}
+
+\textcolor{borrador2}{La primera es que \textbf{solo se compone lo que se deriva por
+cálculo}: contar, agrupar y ordenar datos que la EPSJ publica. Queda fuera cualquier
+fragmento que compare titulaciones entre sí o que agrupe asignaturas por tema, porque eso
+no está en la fuente y sería un criterio propio metido dentro de una colección que se
+defiende justamente por recoger información oficial. Los fragmentos derivados no añaden
+información: la reorganizan.}
+
+\textcolor{borrador2}{La segunda es que \textbf{no se publica ningún dato que se preste a
+leerse por otro}. Sumar los créditos de todo lo que oferta Ingeniería Informática da 408, y
+el grado son 240: la diferencia son las optativas, de las que solo se cursa una parte, y la
+fuente no publica cuántas. Un número que se leería como «los créditos de la carrera» sin
+serlo es peor que no darlo, así que la ficha no lo lleva.}
+
+\textcolor{borrador2}{Que estos fragmentos sean calculados obliga además a verificarlos de
+otra forma. Una guía se contrasta con la fuente leyéndola; un fragmento derivado es un
+número, y un número equivocado se lee igual de bien que el correcto. Por eso el verificador
+de la colección recalcula sus cifras desde el conjunto de datos original en lugar de dar por
+buena la del fragmentador.}
+
+\begin{borrador}
+  \item Faltan por decidir dos cosas de este apartado. La primera, si conviene una tabla con
+  los cuatro tipos, cuántos fragmentos aporta cada uno y un ejemplo literal de cada uno, al
+  estilo de \texttt{TablaConjuntoEvaluacion}. Con siete tipos de origen en la colección
+  (guía, sin guía, plan, mención, ficha, catálogo y salidas) puede que ya haga falta.
+  \item La segunda, si el efecto medido va aquí o en el Capítulo~\ref{cap:resultados}. Hay
+  cifras de antes y después sobre las mismas preguntas, y por la regla que separa los
+  capítulos deberían ir en Resultados, con aquí solo el diseño.
+  \item Ojo con una tentación: NO presentar esto como «se mejoró el sistema». Ante el
+  tribunal es una decisión de diseño de la colección con su criterio y su límite, no una
+  crónica de arreglos.
+\end{borrador}
 
 \subsection[Selección del modelo de incrustaciones]{Selección del modelo de incrustaciones}
 \label{secc:fase1_embeddings}
@@ -1512,3 +1596,113 @@ Las titulaciones y asignaturas se guardan como listas paralelas y no como una so
 Por último, este índice registra tres datos importantes, como con qué modelo se calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos incrustados y con qué métrica de distancia consultarlo (similitud del coseno o euclídea). Esto se hace para que el buscador pueda verificar automáticamente al empezar que se están usando los mismos parámetros con los que se creó el índice para evitar errores.
 
 
+
+\subsection[La conversación con el asistente]{La conversación con el asistente}
+\label{secc:fase2_conversacion}
+
+\textcolor{borrador2}{Un estudiante no interroga al sistema con preguntas
+sueltas: conversa. Y en cuanto conversa, sus preguntas dejan de sostenerse
+solas. «¿Y en segundo?» no dice de qué titulación habla; «¿y qué asignaturas
+tiene en primero?» tampoco, aunque la titulación esté clarísima para quien
+escribe. El buscador, sin embargo, solo ve el texto de esa última pregunta, y
+un texto así se parece por igual a las doce titulaciones del corpus.}
+
+\textcolor{borrador2}{El problema tiene un matiz que condiciona toda la
+solución: el sujeto de la conversación no siempre lo introduce el estudiante.
+Cuando alguien escribe «me gustan los videojuegos» y el asistente le responde
+recomendándole el Grado en Ingeniería Informática, la titulación de la que se
+habla a partir de ese momento aparece únicamente en la respuesta. Un mecanismo
+que solo mire las preguntas del usuario no puede saberlo.}
+
+\subsubsection{\textcolor{borrador2}{Alternativas consideradas}}
+
+\textcolor{borrador2}{Se compararon tres formas de convertir una pregunta de
+seguimiento en algo que se pueda buscar. La primera es no hacer nada y buscar
+con la pregunta tal cual, que sirve de línea base. La segunda, anteponerle el
+texto de la pregunta anterior, que es la solución inmediata. La tercera es la
+que adopta el sistema: deducir de qué titulación se está hablando y
+\textbf{acotar la búsqueda con un filtro exacto} sobre los metadatos del
+índice, dejando el texto solo para ordenar lo que ese filtro admite.}
+
+\textcolor{borrador2}{La literatura sobre sistemas conversacionales propone una
+cuarta vía: pedirle al propio modelo de lenguaje que reescriba la pregunta de
+seguimiento en una pregunta autónoma. Se descartó por dos razones. La primera
+es de coste, y está medida: preparar la consulta con el mecanismo adoptado
+tarda 1,5 milisegundos de mediana, mientras que una reescritura con el modelo
+añadiría una generación completa a cada pregunta. La segunda es de naturaleza:
+un mecanismo cuyo funcionamiento depende de que el modelo obedezca una
+instrucción no ofrece garantía alguna, mientras que un filtro sobre metadatos
+sí la ofrece: o el fragmento pertenece a esa titulación o no pertenece.}
+
+\subsubsection{\textcolor{borrador2}{Diseño de la comparación}}
+
+\textcolor{borrador2}{Las conversaciones con las que se comparan las tres
+estrategias no se redactaron a mano, sino que se derivan del propio corpus, de
+la misma forma que los fragmentos compuestos de la sección
+\ref{secc:fragmentos_derivados}. Para cada par de titulación y curso que existe
+en el plan de estudios se genera una conversación cuya última pregunta tiene
+una respuesta conocida por construcción, de modo que medir el acierto no exige
+que nadie juzgue el resultado. Se obtienen así 39 conversaciones repartidas en
+tres familias, que corresponden a las tres formas en que una pregunta puede
+depender de la anterior: cambiar el curso manteniendo la titulación, cambiar la
+titulación manteniendo lo que se pregunta, y arrastrar un sujeto que introdujo
+el asistente.}
+
+\textcolor{borrador2}{Se miden dos cosas distintas y las dos hacen falta. La
+primera es si el fragmento que contiene la respuesta llega siquiera al modelo,
+porque lo que no se recupera no se puede contestar. La segunda es en qué puesto
+llega, medida con el MRR, porque un fragmento que entra el último compite con
+otros diecinueve por la atención del generador.}
+
+\input{tablas/TablaConversacion}
+
+\subsubsection{\textcolor{borrador2}{Resultado y decisión}}
+
+\textcolor{borrador2}{La diferencia entre las dos primeras estrategias y la
+tercera no está en el promedio, sino en dónde falla cada una. Anteponer la
+pregunta anterior resuelve bien el caso de cambiar de curso, pero se hunde
+cuando la pregunta cambia de titulación: acierta una de cada tres, y el
+fragmento correcto casi nunca aparece arriba. La razón es que el texto de la
+pregunta anterior sigue hablando de la titulación abandonada, de modo que la
+consulta apunta a dos sitios a la vez.}
+
+\textcolor{borrador2}{Deducir el sujeto y filtrar por él recupera el fragmento
+correcto en las 39 conversaciones y lo coloca el primero en dos de las tres
+familias. Que el resultado sea perfecto en la cobertura no debe leerse como que
+el problema esté resuelto: significa que estas 39 conversaciones no bastan para
+distinguir entre una solución buena y una excelente, y que separar mejor
+exigiría conversaciones más largas de las que este experimento genera.}
+
+\subsubsection{\textcolor{borrador2}{Qué se recuerda y qué se olvida}}
+
+\textcolor{borrador2}{La ventana del modelo es finita, así que la conversación
+necesita una política de qué conservar cuando se llena. La que sigue el sistema
+descarta primero las preguntas más antiguas y conserva siempre la titulación de
+la que se habla, que ocupa unas pocas palabras y es lo único que la pregunta de
+seguimiento necesita de verdad. Las respuestas del asistente no se conservan en
+ningún caso.}
+
+\textcolor{borrador2}{Esa última regla merece explicación, porque es lo que
+impide un fallo particularmente difícil de detectar: que una respuesta
+equivocada en un turno se convierta en la fuente del turno siguiente, y el
+sistema construya sobre su propio error con la misma seguridad con la que
+construye sobre el corpus. La garantía no se pide, se impone: lo que no está en
+el texto que recibe el modelo no puede copiarse de él.}
+
+\begin{borrador}
+  Fase: 2 (IT-106). Decisiones que quedan abiertas en este apartado:
+  \begin{itemize}
+    \item La tarjeta asignaba este contenido a la Fase 3, porque se preveía
+      construirlo junto con la aplicación web. El mecanismo, sin embargo,
+      pertenece al \textit{pipeline} de recuperación y se ha escrito aquí. Hay
+      que decidir si se queda o si se mueve cuando exista la sección de Fase 3.
+    \item Falta decir que el estado de la conversación vive hoy en el proceso
+      del asistente. Cuando exista la aplicación web habrá que sostener que
+      sigue viviendo en el servidor y no en el navegador, y ese razonamiento
+      todavía no se puede escribir porque el servidor no existe.
+    \item Valorar si conviene una figura con la conversación de tres turnos que
+      ilustre de dónde sale el sujeto, o si la explicación se sostiene sin ella.
+    \item Comprobar si el término \textit{MRR} ya está en el glosario desde el
+      apartado de incrustaciones, o si hay que marcarlo aquí con \texttt{\textbackslash gl}.
+  \end{itemize}
+\end{borrador}
