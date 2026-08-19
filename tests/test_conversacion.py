@@ -376,3 +376,36 @@ def test_el_simple_repetido_dentro_del_doble_sigue_sin_contar():
     assert titulaciones_de_la_respuesta(dicho, CATALOGO) == [
         "Doble Grado en Ingeniería Mecánica y Organización Industrial"
     ]
+
+
+# --- El respaldo para la pregunta de seguimiento ---
+
+
+def test_la_pregunta_de_seguimiento_lleva_respaldo():
+    """Regresión medida el 20/08/2026 sobre el índice completo.
+
+    «¿Y cuántas son en total?» tiene palabras de contenido ---«total», «son»---
+    así que no se la trata como elíptica y se incrusta tal cual. Su mejor
+    fragmento se queda a 0,1722, por encima del suelo, y el sistema respondía
+    que no había encontrado información sobre lo que él mismo acababa de
+    contestar. El respaldo permite reintentar con el predicado delante.
+    """
+    c = Conversacion(CATALOGO)
+    primera = "¿Qué asignaturas optativas tiene el Grado en Ingeniería Informática?"
+    c.anotar(primera, "Tiene diecisiete.")
+    consulta = c.preparar("¿Y cuántas son en total?")
+    assert consulta.respaldo.startswith(primera)
+    assert consulta.respaldo.endswith("¿Y cuántas son en total?")
+
+
+def test_el_primer_mensaje_no_tiene_respaldo():
+    """Sin conversación previa no hay nada con lo que reintentar."""
+    c = Conversacion(CATALOGO)
+    assert c.preparar("¿Qué titulaciones hay?").respaldo == ""
+
+
+def test_el_respaldo_no_repite_la_misma_pregunta():
+    """Reintentar con lo mismo daría el mismo resultado vacío."""
+    c = Conversacion(CATALOGO)
+    c.anotar("¿Qué optativas tiene Informática?", "Diecisiete.")
+    assert c.preparar("¿Qué optativas tiene Informática?").respaldo == ""
