@@ -128,32 +128,81 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
 \label{secc:resultados_rag}
+\textcolor{borrador2}{Esta sección recoge lo que el sistema completo hace con
+  una pregunta. Se separa en dos partes porque son dos preguntas distintas: si
+  el recuperador trae los fragmentos que hacen falta, y si el modelo generativo
+  redacta con ellos una respuesta fiel. El diseño de ambas mediciones ---qué se
+  compara, con qué instrumento y por qué--- está en el
+  Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.}
+
+\subsection{\textcolor{borrador2}{La recuperación}}
 
 \begin{borrador}
-  \item Fase: 2 (IT-38, IT-40). Este apartado no existe todavía porque el experimento
-  que lo llena no se ha ejecutado. Lo que hay que dejar escrito cuando exista:
-    \item \textbf{La recuperación primero.} Recall@K y MRR sobre las preguntas
-      de dominio del conjunto, con los techos delante: sobre esta colección el
-      máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968 para K=10, no
-      1. Toda cifra se lee contra su techo, y decirlo antes de dar los números
-      evita que el lector los juzgue contra una referencia que no existe.
-    \item \textbf{La generación después}, con las cuatro medidas del apartado
-      \ref{secc:fase2_llm}: titulaciones inventadas, precisión, cobertura y
-      acierto escalar, para cada uno de los tres candidatos finalistas.
-    \item \textbf{Las cifras sin redondear.} La tarjeta lo pide explícitamente y
-      hay motivo: entre el mejor y el peor de los finalistas la precisión se
-      mueve en centésimas, y redondear a dos decimales borraría la diferencia
-      que la tabla tiene que mostrar.
-    \item \textbf{El rechazo de lo ajeno al dominio}, que es una cifra aparte y
-      con su propio criterio: de las diez preguntas fuera de dominio, cuántas
-      quedan sin fragmentos.
-    \item Y lo que ninguna tabla dice, que se cuenta en prosa: los modos de
-      fallo observados a mano. Un candidato escribió las siete cifras correctas
-      de optativas por titulación y a continuación respondió mal cuál era la
-      mayor. Ningún guardarraíl determinista caza eso, porque todos los nombres
-      y todas las cifras que usó existen en la colección.
-  
+  \item Fase: 2 (IT-38). Pendiente de ejecutar el experimento. Cuando exista,
+    aquí van Recall@K y MRR sobre las preguntas de dominio del conjunto.
+  \item Antes de la tabla hay que enunciar los techos, no después: sobre esta
+    colección el máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968
+    para K=10, porque hay preguntas cuyas unidades relevantes son más que K.
+    Toda cifra se lee contra su techo; darla contra 1 haría parecer al
+    recuperador peor de lo que es.
+  \item Las diez preguntas ajenas al dominio no entran en estas dos métricas.
+    Su criterio es el contrario y va en su propia subsección.
 \end{borrador}
+
+\subsection{\textcolor{borrador2}{La generación}}
+
+\textcolor{borrador2}{Los tres candidatos finalistas se midieron sobre la misma
+  muestra de ochenta preguntas, con el mismo corpus y la misma versión del
+  servidor de inferencia, en un total de doscientas cuarenta respuestas. La
+  Tabla~\ref{tab:comparativa_generacion} recoge el resultado.}
+
+\begin{borrador}
+  \item Fase: 2 (IT-35). Crear \texttt{memoria/tablas/TablaComparativaGeneracion.tex}
+    con las cifras del guion, sin redondear más allá de la milésima: entre el
+    mejor y el peor candidato la precisión se mueve en centésimas y redondear a
+    dos decimales borraría la diferencia que la tabla tiene que enseñar.
+\end{borrador}
+
+\textcolor{borrador2}{Los tres cumplen el umbral eliminatorio: ninguno nombró
+  una titulación que no exista, y a ninguno se le quedó una pregunta sin
+  contexto recuperado. La consecuencia es que \textbf{el criterio que se fijó
+  para descartar no descarta a nadie}, y la elección hay que sostenerla con el
+  resto de columnas y con lo observado fuera del banco.}
+
+\textcolor{borrador2}{Las diferencias que sí aparecen son pequeñas y conviene no
+  exagerarlas: la precisión de los tres cabe en cinco centésimas, medida sobre
+  treinta y cuatro preguntas de listado por candidato y sin intervalo de
+  confianza calculado, de modo que las diferencias de milésimas entre los dos
+  primeros no significan nada. Lo que sí se sostiene es el desglose por familia
+  de pregunta, donde cada candidato falla en un sitio distinto.}
+
+\begin{borrador}
+  \item Fase: 2 (IT-35). Redactar el desglose por familia con las tres
+    debilidades medidas: uno pierde en las preguntas de mención, otro deja
+    asignaturas fuera al enumerar planes completos por curso, y el tercero no
+    tiene un punto flojo dentro del banco pero sí fuera de él.
+  \item Decidir si el desglose va como tabla propia o en prosa. Son tres
+    candidatos por seis familias: una tabla puede ser más legible.
+\end{borrador}
+
+\subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
+
+\textcolor{borrador2}{Las cuatro medidas anteriores comprueban que lo que la
+  respuesta nombra existe y que nombra lo que debía, y eso deja fuera modos de
+  fallo que ninguna de ellas registra. El más instructivo apareció al pedir a un
+  candidato qué titulación ofrece más asignaturas optativas: escribió las siete
+  cifras correctas, verificadas una a una contra la colección, y a continuación
+  respondió con la titulación equivocada. Ningún guardarraíl determinista
+  detecta ese fallo, porque todos los nombres y todas las cifras que utilizó
+  existen.}
+
+\begin{borrador}
+  \item Fase: 2 (IT-35). Completar con los otros modos de fallo observados en
+    las sesiones manuales: declarar que falta un dato y responderlo igual,
+    enumerar quince elementos correctos y cerrar con una afirmación falsa sobre
+    el resto, y las listas que anuncian un número y enumeran otro.
+\end{borrador}
+
 
 
 
@@ -188,38 +237,87 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
+\textcolor{borrador2}{Los resultados anteriores tienen ocho límites que conviene
+  enunciar aquí y no dejar que los encuentre el lector. Se agrupan por el tipo de
+  validez al que afectan.}
+
+\subsection{\textcolor{borrador2}{Validez de constructo}}
+
+\textcolor{borrador2}{Las preguntas del conjunto de evaluación y las unidades
+  relevantes de cada una las escribió y anotó una sola persona, la misma que
+  construyó la colección y el sistema. No hay una segunda anotación ni medida de
+  concordancia, de modo que no puede separarse del todo si el sistema recupera
+  lo relevante o lo que su autor considera relevante. Corregirlo exigiría un
+  anotador independiente que conociera la oferta del centro y le dedicara horas,
+  y queda fuera del alcance de un trabajo individual; la mitigación razonable
+  para trabajo futuro es anotar por duplicado un subconjunto y publicar el
+  acuerdo.}
+
+\textcolor{borrador2}{El suelo de pertinencia descrito en el
+  Apartado~\ref{secc:fase2_dominio} no es un filtro de dominio fiable, y este
+  trabajo no lo presenta como tal. La distancia entre vectores mide parecido de
+  vocabulario, así que una pregunta ajena al dominio formulada con las palabras
+  del centro lo atraviesa: de las diez preguntas ajenas del conjunto, tres pasan
+  el suelo, y las tres comparten esa forma.}
+
+\textcolor{borrador2}{Y una parte de la colección no es texto publicado por la
+  Escuela. De los fragmentos que la componen, doscientos tres los calcula el
+  fragmentador a partir del propio dataset ---el catálogo, las fichas de cada
+  titulación, los listados del plan y las menciones---, tal como se describe en
+  el Apartado~\ref{secc:fase2_vectordb}. No se inventa nada, todo sale de contar
+  y agrupar lo extraído, pero el lector no debe suponer que cada fragmento
+  procede literalmente de la web.}
+
+\subsection{\textcolor{borrador2}{Validez interna}}
+
+\textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
+  que se desarrolla el proyecto, no en un equipo dedicado, y con el autor
+  trabajando durante las mediciones. El mismo modelo sobre la misma muestra ha
+  dado medianas muy distintas según la carga, y ninguna de las cifras de
+  latencia de este capítulo es extrapolable a otro equipo. La limitación no
+  contamina ninguna conclusión porque, como se justifica en el
+  Apartado~\ref{secc:fase2_llm}, el tiempo no interviene en la elección del
+  modelo.}
+
+\subsection{\textcolor{borrador2}{Validez externa}}
+
+\textcolor{borrador2}{La cobertura de guías docentes no se reparte al azar. Las
+  asignaturas sin contenido publicado se concentran en las titulaciones en
+  implantación, de modo que el sistema sabe menos precisamente de las
+  titulaciones más nuevas, que son las que más dudas generan a un
+  preuniversitario. Y una de las doce titulaciones, el doble grado
+  internacional, no tiene plan de estudios publicado: aparece en el catálogo y
+  tiene ficha, pero ninguna de sus asignaturas está en la colección. Las doce
+  titulaciones están representadas; de once hay plan de estudios.}
+
+\subsection{\textcolor{borrador2}{Validez de conclusión}}
+
+\textcolor{borrador2}{El techo de Recall@K sobre esta colección no llega a uno,
+  porque hay preguntas cuyas unidades relevantes son más numerosas que el número
+  de fragmentos que se recuperan. Cualquier cifra de recuperación se lee contra
+  ese techo.}
+
+\textcolor{borrador2}{Y queda la lección más incómoda de este trabajo. El
+  instrumento con el que se miden las respuestas falló cinco veces en dos días,
+  y las cinco produjo cifras verosímiles que nadie habría cuestionado: un
+  listado de diez asignaturas correctas puntuando cero, dos respuestas perfectas
+  puntuando cero por su formato, tres candidatos coincidiendo en una precisión
+  baja porque el conjunto de comparación era el equivocado, las doce
+  titulaciones correctas puntuando 0,083 por escribirlas sin la fórmula «Grado
+  en», y un verificador que contaba una cosa y rotulaba otra. Los cinco están
+  corregidos y cada uno entró como prueba de regresión con su caso real, pero lo
+  que se declara no son los fallos, sino lo que se sigue de ellos: un verificador
+  en verde no prueba nada mientras no se haya comprobado qué mide.}
 
 \begin{borrador}
-  \item Fase: 2 (IT-39, IT-40). Once amenazas identificadas, cada una con su decisión
-  tomada: corregir, declarar o descartar. El análisis completo, con las cifras
-  medidas de cada una, está en las notas de trabajo de IT-39; aquí van solo las
-  que se declaran, y hay que redactarlas en prosa, no como lista.
-
-  \textbf{Las que se declaran}, agrupadas por el tipo de validez que amenazan:
-    \item \emph{De constructo.} Un solo anotador, que además construyó la
-      colección y el sistema: no se puede separar «recupera lo relevante» de
-      «recupera lo que su autor considera relevante». El suelo de pertinencia
-      mide parecido de vocabulario y por eso no es un filtro de dominio fiable.
-      Y 203 de los 1.499 fragmentos no son texto publicado por la Escuela, sino
-      calculados a partir de la colección.
-    \item \emph{Externa.} La cobertura de guías se concentra en las titulaciones
-      en implantación, así que el sistema sabe menos de las más nuevas, que son
-      las que más dudas generan. Y una de las doce titulaciones no tiene plan de
-      estudios publicado: las doce están, de once hay asignaturas.
-    \item \emph{De conclusión.} El techo de Recall@K no llega a 1 sobre esta
-      colección.
-    \item Y la que da su título al capítulo entero: \textbf{el instrumento de
-      medida falló cinco veces en dos días}, siempre con cifras verosímiles que
-      nadie habría cuestionado. Lo que se declara no son los cinco fallos, que
-      están corregidos y con su prueba de regresión, sino la conclusión: un
-      verificador en verde no prueba nada si no se ha comprobado qué mide.
-  
-  \item \textbf{Lo que NO va aquí, y conviene recordar por qué:} las que se pudieron
-  corregir se corrigieron y no se declaran ---los tiempos contaminados, el
-  cambio de versión del servidor de inferencia---, porque una amenaza corregible
-  que no se corrige es peor que no declararla. Y la generalización a otros
-  centros de la Universidad se descarta: el alcance del trabajo es la Escuela,
-  está en los objetivos, y ningún resultado se enuncia como generalizable.
+  \item Fase: 2 (IT-39). Comprobar al cerrar la memoria que ninguna de estas
+    ocho es corregible con lo que hay: las que lo eran ---el número de preguntas
+    del tipo sin guía y la mezcla de versiones del servidor de inferencia--- se
+    corrigieron y por eso no aparecen aquí. La generalización a otros centros de
+    la Universidad tampoco aparece: queda fuera del alcance declarado en el
+    Capítulo~\ref{cap:objetivos} y ningún resultado se enuncia como
+    generalizable.
 \end{borrador}
+
 
 
