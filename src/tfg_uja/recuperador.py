@@ -157,11 +157,17 @@ K_MAXIMO: Final[int] = 20
 #: mismos vecinos, que es posible porque este parámetro solo decide dónde se
 #: corta una lista ya ordenada.
 #:
-#: Bajarlo de 1,20 a 1,10 **no pierde ninguna pregunta**: la unidad que
-#: responde sigue apareciendo en las 56, y la media de fragmentos por consulta
-#: cae de 7,2 a 4,2. Es menos ventana ocupada y menos tiempo de generación por
-#: la misma información.
-FACTOR_CORTE: Final[float] = 1.10
+#: La rejilla sola diría 1,10: la unidad que responde sigue apareciendo en las
+#: 56 preguntas y la media de fragmentos cae de 7,2 a 4,2. **Y sin embargo se
+#: queda en 1,20**, porque medido sobre el banco del sistema completo ese
+#: recorte hace perder tres respuestas de 47: dos preguntas cuyo contexto pasó
+#: de 20 a 10 y de 12 a 3 fragmentos dejaron de contestarse bien.
+#:
+#: Es la lección de este parámetro y conviene no perderla: **que la unidad
+#: correcta esté entre lo recuperado no basta para que el modelo responda con
+#: ella**. Optimizar el recuperador contra métricas de recuperación mejora la
+#: recuperación y empeora el sistema, y solo se ve midiendo el sistema entero.
+FACTOR_CORTE: Final[float] = 1.20
 
 #: Distancia por encima de la cual se considera que **nada** es pertinente.
 #: El corte relativo quita la cola cuando arriba hay algo bueno, pero no
