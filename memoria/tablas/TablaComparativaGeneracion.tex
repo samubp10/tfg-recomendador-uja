@@ -1,0 +1,47 @@
+% Resultados literales de la ejecucion del 19/08/2026.
+% Fuente: el informe que escribe scripts/experimento_generacion.py.
+% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar
+%   py scripts/experimento_generacion.py
+% y se copian de ahi. 80 preguntas por candidato, 240 respuestas en total,
+% corpus de 1.499 fragmentos y servidor de inferencia 0.32.14.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption[\textcolor{borrador2}{Comparativa de modelos de generación}]{%
+    \textcolor{borrador2}{Comparativa de los tres modelos de generación
+      finalistas sobre la misma muestra de 80 preguntas, 240 respuestas en
+      total. Fuente: elaboración propia.}}
+  \label{tab:comparativa_generacion}
+  \begin{tabular}{@{}lrrrrrrr@{}}
+    \toprule
+    \textbf{Modelo}               & \textbf{Inv.}  & \textbf{S/C}   & \textbf{Precisión}
+                                  & \textbf{Cobertura}              & \textbf{Escalar}
+                                  & \textbf{Mediana}                & \textbf{p90}      \\
+    \midrule
+    \texttt{granite4.1:8b}        & \textbf{0}     & \textbf{0}     & 0,989
+                                  & 0,962                           & 0,957
+                                  & 17,0                            & 42,3              \\
+    \texttt{gemma3:12b}           & \textbf{0}     & \textbf{0}     & 0,938
+                                  & \textbf{1,000}                  & \textbf{1,000}
+                                  & 23,7                            & 107,6             \\
+    \texttt{ministral-8b:latest}  & \textbf{0}     & \textbf{0}     & \textbf{0,990}
+                                  & 0,996                           & 0,957
+                                  & 11,7                            & 44,0              \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textcolor{borrador2}{\textbf{Notas:} \textbf{Inv.} son las titulaciones
+      inventadas, nombres con forma de titulación que no están en el catálogo
+      del centro. \textbf{S/C} son las preguntas que se quedaron sin ningún
+      fragmento recuperado, que es fallo del recuperador y no del modelo, y por
+      eso se cuenta aparte. \textbf{Precisión} y \textbf{cobertura} se promedian
+      sobre las 34 preguntas de listado de cada candidato; \textbf{escalar} es
+      la proporción de acierto sobre las 46 de créditos y curso. Las dos
+      columnas de tiempo están en segundos y \textbf{p90} es su percentil 90;
+      se informan pero no intervienen en la elección, porque las mediciones se
+      tomaron en un equipo que no estaba en condiciones controladas. En
+      negrita, el mejor valor de cada columna salvo en las de tiempo.}
+  \end{minipage}
+\end{table}
