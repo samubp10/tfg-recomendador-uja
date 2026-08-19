@@ -571,17 +571,25 @@ def _informar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) ->
     )
 
 
-def _informar_tamanos(chunks: list[dict], cortos: int) -> None:
-    """Imprime el reparto de tamaños y cuántas colas cortas quedan.
+def _informar_tamanos(chunks: list[dict], colas: int) -> None:
+    """Imprime el reparto de tamaños y cuántos fragmentos son cortos.
 
-    Lo de las colas se informa, no se falla: son colas irreducibles y su
-    número mide cuánto cuesta la preferencia incumplida. Que suba mucho sí es
-    señal de que el máximo se ha quedado corto para este corpus, y eso solo se
-    ve mirándolo.
+    Se informa, no se falla: el mínimo es una preferencia. Su número mide
+    cuánto cuesta la preferencia incumplida, y que suba mucho sí es señal de
+    que el máximo se ha quedado corto para este corpus.
+
+    **Se dan las dos cifras porque son dos cosas distintas**, y darlas juntas
+    ya despistó: el guion informaba solo de las colas y la memoria recogía el
+    total, así que la misma magnitud aparecía con dos valores según de dónde
+    se copiara. Una cola corta es una unidad que se troceó y cuyo último
+    trozo no cabía junto al anterior; una unidad corta es un texto que ya
+    nace por debajo del mínimo ---las menciones y los listados breves, que no
+    se pueden alargar sin inventar contenido--- y contra esa no hay nada que
+    hacer.
 
     Args:
         chunks: Chunks del corpus completo.
-        cortos: Fragmentos legítimos por debajo del mínimo.
+        colas: Colas de unidades troceadas que quedan bajo el mínimo.
     """
     tamanos = sorted(len(c["texto"]) for c in chunks)
     n = len(tamanos)
@@ -589,11 +597,14 @@ def _informar_tamanos(chunks: list[dict], cortos: int) -> None:
         f"Tamaño (chars): min={tamanos[0]} mediana={tamanos[n // 2]} "
         f"p90={tamanos[int(n * 0.9)]} max={tamanos[-1]}"
     )
-    if cortos:
+    bajo_minimo = sum(1 for c in chunks if len(c["texto"]) < TAMANO_MINIMO)
+    if bajo_minimo:
         print(
-            f"  {cortos} fragmentos por debajo del mínimo ({TAMANO_MINIMO}), "
-            f"todos colas que no cabían junto a su vecino sin pasarse del "
-            f"máximo. El mínimo es una preferencia, no una restricción dura."
+            f"  {bajo_minimo} fragmentos por debajo del mínimo "
+            f"({TAMANO_MINIMO}), un {100 * bajo_minimo / n:.2f} %: {colas} son "
+            f"colas que no cabían junto a su vecino y {bajo_minimo - colas} "
+            f"son unidades enteras más cortas que el mínimo. El mínimo es una "
+            f"preferencia, no una restricción dura."
         )
 
 
