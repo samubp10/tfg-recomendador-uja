@@ -33,13 +33,14 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import urllib.error
 import urllib.request
 from typing import Final
 
 from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
-from tfg_uja.text_cleaner import palabras
+from tfg_uja.text_cleaner import normalizar, palabras
 from tfg_uja.verificacion import titulaciones_inventadas
 
 #: Registro del módulo. Existe solo para dejar constancia de las respuestas
@@ -409,6 +410,45 @@ _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
     """.split())
 
 
+#: Con lo que se responde a quien pregunta por otra universidad. El asistente
+#: informa de un centro concreto y decirlo es más útil que callar.
+RESPUESTA_OTRA_UNIVERSIDAD: Final[str] = (
+    "Solo puedo informarte de las titulaciones de la Escuela Politécnica "
+    "Superior de Jaén, de la Universidad de Jaén. Para otras universidades "
+    "tendrás que consultar su propia web. ¿Te ayudo con las de aquí?"
+)
+
+#: Cómo se nombra una universidad dentro de una pregunta. Sirve para reconocer
+#: que se pregunta por **otro centro**, que es algo que el suelo de pertinencia
+#: no puede detectar: «¿La Universidad de Granada tiene Ingeniería
+#: Informática?» tiene su mejor fragmento a 0,1185 ---más cerca que la mayoría
+#: de las preguntas legítimas--- porque nombra una titulación que sí existe
+#: aquí. La distancia entre vectores mide parecido de vocabulario, y el
+#: vocabulario es casi el mismo.
+_OTRA_UNIVERSIDAD: Final[re.Pattern[str]] = re.compile(
+    r"universidad\s+(?:de\s+la|del|de)\s+([a-z]+)"
+)
+
+
+def pregunta_por_otro_centro(pregunta: str) -> str | None:
+    """Respuesta fija si la pregunta nombra una universidad que no es la de Jaén.
+
+    Se reconoce por la fórmula «Universidad de X» y no por una lista de
+    universidades, que nunca estaría completa. Lo que se comprueba es lo único
+    que se sabe con certeza: de qué centro informa este asistente.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        La respuesta fija, o ``None`` si no nombra otra universidad.
+    """
+    for encontrado in _OTRA_UNIVERSIDAD.finditer(normalizar(pregunta)):
+        if encontrado.group(1) != "jaen":
+            return RESPUESTA_OTRA_UNIVERSIDAD
+    return None
+
+
 def cierre_de_conversacion(pregunta: str) -> str | None:
     """Respuesta fija para un mensaje que agradece y no pregunta nada.
 
@@ -525,7 +565,11 @@ def responder(
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
     """
-    fija = cortesia(pregunta) or cierre_de_conversacion(pregunta)
+    fija = (
+        cortesia(pregunta)
+        or cierre_de_conversacion(pregunta)
+        or pregunta_por_otro_centro(pregunta)
+    )
     if fija is not None:
         return fija
     if not fragmentos:
