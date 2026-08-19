@@ -777,7 +777,80 @@
       "clase": "peticion_ajena",
       "pregunta": "Resuelve la ecuación x^2 - 5x + 6 = 0.",
       "relevantes": []
+    },
+    {
+      "id": "P-061",
+      "tipo": "sin_guia",
+      "pregunta": "¿Qué contenidos tiene Big data geoespacial en Geomática y Topográfica?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Big data geoespacial",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-062",
+      "tipo": "sin_guia",
+      "pregunta": "¿De qué trata Catastro y valoraciones?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Catastro y valoraciones",
+          "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+        }
+      ]
+    },
+    {
+      "id": "P-063",
+      "tipo": "sin_guia",
+      "pregunta": "¿Qué se estudia en Microelectrónica en Electrónica Industrial?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Microelectrónica",
+          "grado": "Grado en Ingeniería Electrónica Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-064",
+      "tipo": "sin_guia",
+      "pregunta": "¿Cuál es el temario de Sistemas Electrónicos para la Smart Grid?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Sistemas Electrónicos para la Smart Grid",
+          "grado": "Grado en Ingeniería Eléctrica"
+        }
+      ]
+    },
+    {
+      "id": "P-065",
+      "tipo": "sin_guia",
+      "pregunta": "¿Qué se da en Métodos cuantitativos avanzados en Organización Industrial?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Métodos cuantitativos avanzados",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
+    },
+    {
+      "id": "P-066",
+      "tipo": "sin_guia",
+      "pregunta": "¿Qué contenidos tiene Telecomunicaciones en la Industria?",
+      "relevantes": [
+        {
+          "origen": "asignatura_sin_guia",
+          "nombre": "Telecomunicaciones en la Industria",
+          "grado": "Grado en Ingeniería de Organización Industrial"
+        }
+      ]
     }
   ],
-  "criterio_fuera_de_dominio": "Las preguntas de tipo `fuera_de_dominio` (IT-86) NO anotan unidades relevantes, y su lista vacía es la anotación correcta: lo que se pide del sistema es que no recupere nada. Su criterio de acierto es el contrario al del resto del conjunto —rechazar es acierto, responder es fallo— y por eso quedan FUERA de Recall@K y de MRR: con la lista vacía aportarían un 0 fijo a las dos y hundirían las métricas sin que el recuperador hubiera fallado. Se mide sobre ellas una sola cifra, la proporción que el recuperador deja en cero fragmentos tras aplicar el suelo de pertinencia. Son diez de sesenta preguntas, un 16,7 %: con menos, cualquier cifra sobre el rechazo sería anecdótica —la granularidad es 1/n— y con diez la proporción se mueve de diez en diez puntos. Se reparten en cinco clases de dos preguntas cada una (otra rama de la UJA, interés temático ajeno, otro centro, conocimiento general y petición ajena) para que ninguna clase decida ella sola el resultado. Ojo a la distinción que NO cubren: una pregunta del dominio cuyo dato la fuente no publica —los créditos ausentes, las notas de corte— no es una pregunta fuera de dominio, y su rechazo se mide aparte."
+  "criterio_fuera_de_dominio": "Las preguntas de tipo `fuera_de_dominio` (IT-86) NO anotan unidades relevantes, y su lista vacía es la anotación correcta: lo que se pide del sistema es que no recupere nada. Su criterio de acierto es el contrario al del resto del conjunto —rechazar es acierto, responder es fallo— y por eso quedan FUERA de Recall@K y de MRR: con la lista vacía aportarían un 0 fijo a las dos y hundirían las métricas sin que el recuperador hubiera fallado. Se mide sobre ellas una sola cifra, la proporción que el recuperador deja en cero fragmentos tras aplicar el suelo de pertinencia. Son diez de sesenta y seis preguntas, un 15,2 %: con menos, cualquier cifra sobre el rechazo sería anecdótica —la granularidad es 1/n— y con diez la proporción se mueve de diez en diez puntos. Se reparten en cinco clases de dos preguntas cada una (otra rama de la UJA, interés temático ajeno, otro centro, conocimiento general y petición ajena) para que ninguna clase decida ella sola el resultado. Ojo a la distinción que NO cubren: una pregunta del dominio cuyo dato la fuente no publica —los créditos ausentes, las notas de corte— no es una pregunta fuera de dominio, y su rechazo se mide aparte.",
+  "criterio_sin_guia": "El tipo `sin_guia` (IT-27, ampliado en IT-39) pregunta por asignaturas que existen en el plan y cuya guía docente la fuente no publica. Es la población donde el sistema puede fabricar un temario entero, con 86 asignaturas detrás, así que la respuesta correcta es decir que la guía no está publicada, nunca resumir un contenido. Eran dos preguntas ---bajaron de cinco porque la fuente publicó tres de esas guías entre una extracción y la siguiente--- y con dos cualquier cifra sobre este tipo se movía de cincuenta en cincuenta puntos. Son ocho, repartidas en cuatro titulaciones, para que ni la granularidad ni una sola titulación decidan el resultado."
 }
