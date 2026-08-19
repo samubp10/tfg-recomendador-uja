@@ -343,6 +343,15 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
         encabezado += f". Se imparte en {situacion}"
     if not asignatura.get("ofertada", True):
         encabezado += ". No ofertada en el curso rastreado"
+    # El dato ausente se dice, no se omite. Callarlo deja al modelo generativo
+    # sin forma de distinguir «esto no está publicado» de «esto no cabía en el
+    # fragmento», y entonces lo rellena: medido el 18/08/2026 sobre la única
+    # asignatura de 528 sin créditos en la fuente, cuatro de cinco candidatos
+    # se inventaron una cifra ---9, 6 y 6 ECTS--- y uno de ellos negó además
+    # que la asignatura perteneciese a su titulación. Es la misma regla que ya
+    # aplica a las guías sin publicar, que sí traen su fragmento diciéndolo.
+    if not asignatura.get("ects"):
+        encabezado += ". La web de la EPSJ no publica sus créditos"
     return encabezado + "."
 
 
