@@ -949,3 +949,15 @@ def test_con_creditos_el_encabezado_no_dice_nada_de_eso():
     )
     assert "de 6 ECTS" in encabezado
     assert "no publica sus créditos" not in encabezado
+
+
+def test_los_listados_declaran_el_credito_ausente():
+    """Regresión: un hueco en una lista donde todo lo demás lleva el dato.
+
+    En el listado de la mención «Sistemas electrónicos» las otras tres
+    asignaturas llevan «(6 ECTS)» y «Sistemas Digitales» no llevaba nada.
+    Medido el 19/08/2026: granite4.1:8b razonó que «las otras dos tienen 6
+    ECTS» y concluyó que esta también.
+    """
+    assert chunker._creditos({"ects": "6"}) == " (6 ECTS)"
+    assert chunker._creditos({"ects": ""}) == " (créditos no publicados)"
