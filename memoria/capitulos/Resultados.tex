@@ -156,12 +156,7 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   servidor de inferencia, en un total de doscientas cuarenta respuestas. La
   Tabla~\ref{tab:comparativa_generacion} recoge el resultado.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Crear \texttt{memoria/tablas/TablaComparativaGeneracion.tex}
-    con las cifras del guion, sin redondear más allá de la milésima: entre el
-    mejor y el peor candidato la precisión se mueve en centésimas y redondear a
-    dos decimales borraría la diferencia que la tabla tiene que enseñar.
-\end{borrador}
+\input{tablas/TablaComparativaGeneracion.tex}
 
 \textcolor{borrador2}{Los tres cumplen el umbral eliminatorio: ninguno nombró
   una titulación que no exista, y a ninguno se le quedó una pregunta sin
@@ -176,13 +171,42 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   primeros no significan nada. Lo que sí se sostiene es el desglose por familia
   de pregunta, donde cada candidato falla en un sitio distinto.}
 
+\textcolor{borrador2}{\texttt{granite4.1:8b} es el que peor
+  enumera un plan de estudios completo: su cobertura en esa familia se queda en
+  0,901, la cifra más baja de toda la comparación, y significa que al listar las
+  asignaturas de un curso deja fuera aproximadamente una de cada diez. Como el
+  plan completo de un curso es justo lo que pregunta un estudiante que quiere
+  saber qué va a estudiar, es el peor sitio donde tener el punto flojo.}
+
+\textcolor{borrador2}{\texttt{gemma3:12b} falla en el lado contrario. No omite
+  nada ---su cobertura es 1,000 en las cuatro familias de listado--- pero su
+  precisión en las preguntas de mención baja a 0,846, la más baja de la tabla:
+  añade nombres que existen en la colección y no pertenecen a la mención por la
+  que se pregunta. No es invención, y por eso no lo recoge el criterio
+  eliminatorio, pero al estudiante que pregunta por una mención concreta le
+  llegan asignaturas que no son suyas.}
+
+\textcolor{borrador2}{\texttt{ministral-8b} no tiene un punto flojo dentro del
+  banco: no baja de 0,983 en ninguna familia de listado ni de 0,989 en cobertura.
+  Lo que la tabla no puede decir es si eso se sostiene fuera de las ochenta
+  preguntas medidas, y la última subsección de esta sección recoge por qué esa
+  pregunta no es retórica.}
+
+\textcolor{borrador2}{Hay además dos resultados que comparten los tres. El
+  primero es que los créditos de una asignatura los aciertan siempre, las
+  veintitrés veces cada uno. El segundo es que el curso en el que se imparte
+  falla en las mismas preguntas: las dos que erran \texttt{granite4.1:8b} y
+  \texttt{ministral-8b} son la misma asignatura de dos dobles grados distintos,
+  que la fuente coloca en quinto curso y ambos sitúan en cuarto. Que el fallo
+  coincida apunta a lo que se les entrega y no al modelo que lo lee, pero esa
+  explicación no se ha medido y aquí solo se deja anotada.}
+
 \begin{borrador}
-  \item Fase: 2 (IT-35). Redactar el desglose por familia con las tres
-    debilidades medidas: uno pierde en las preguntas de mención, otro deja
-    asignaturas fuera al enumerar planes completos por curso, y el tercero no
-    tiene un punto flojo dentro del banco pero sí fuera de él.
-  \item Decidir si el desglose va como tabla propia o en prosa. Son tres
-    candidatos por seis familias: una tabla puede ser más legible.
+  \item Fase: 2 (IT-35). Cuando esté elegido el modelo, esta subsección tiene
+    que cerrar diciendo cuál y con qué argumento, porque el umbral no lo hace.
+  \item La familia \texttt{catalogo} tiene una sola pregunta en la muestra y las
+    cifras de esa fila no sostienen ninguna conclusión. Merece decirlo aquí o
+    quitarla de la lectura.
 \end{borrador}
 
 \subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
@@ -260,12 +284,13 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   del centro lo atraviesa: de las diez preguntas ajenas del conjunto, tres pasan
   el suelo, y las tres comparten esa forma.}
 
-\textcolor{borrador2}{Y una parte de la colección no es texto publicado por la
-  Escuela. De los fragmentos que la componen, doscientos tres los calcula el
-  fragmentador a partir del propio dataset ---el catálogo, las fichas de cada
-  titulación, los listados del plan y las menciones---, tal como se describe en
-  el Apartado~\ref{secc:fase2_vectordb}. No se inventa nada, todo sale de contar
-  y agrupar lo extraído, pero el lector no debe suponer que cada fragmento
+\textcolor{borrador2}{Y una parte de la colección no es texto
+  publicado por la Escuela. De los 1.499 fragmentos, 95 los compone el
+  fragmentador contando y agrupando el propio conjunto de datos ---el catálogo,
+  la ficha de cada titulación, los listados del plan y las menciones, según se
+  describe en el Apartado~\ref{secc:fragmentos_derivados}--- y otros 86 son el
+  aviso de que la Escuela no publica guía de esa asignatura. Todo sale de lo
+  extraído y nada se añade, pero el lector no debe suponer que cada fragmento
   procede literalmente de la web.}
 
 \subsection{\textcolor{borrador2}{Validez interna}}
@@ -297,17 +322,22 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   de fragmentos que se recuperan. Cualquier cifra de recuperación se lee contra
   ese techo.}
 
-\textcolor{borrador2}{Y queda la lección más incómoda de este trabajo. El
-  instrumento con el que se miden las respuestas falló cinco veces en dos días,
-  y las cinco produjo cifras verosímiles que nadie habría cuestionado: un
-  listado de diez asignaturas correctas puntuando cero, dos respuestas perfectas
-  puntuando cero por su formato, tres candidatos coincidiendo en una precisión
-  baja porque el conjunto de comparación era el equivocado, las doce
-  titulaciones correctas puntuando 0,083 por escribirlas sin la fórmula «Grado
-  en», y un verificador que contaba una cosa y rotulaba otra. Los cinco están
-  corregidos y cada uno entró como prueba de regresión con su caso real, pero lo
-  que se declara no son los fallos, sino lo que se sigue de ellos: un verificador
-  en verde no prueba nada mientras no se haya comprobado qué mide.}
+\textcolor{borrador2}{Y queda la lección más incómoda de
+  este trabajo. El instrumento con el que se miden las respuestas ha fallado
+  seis veces, y las seis produjo cifras verosímiles que nadie habría
+  cuestionado: un listado de diez asignaturas correctas puntuando cero, dos
+  respuestas perfectas puntuando cero por su formato, tres candidatos
+  coincidiendo en una precisión baja porque el conjunto de comparación era el
+  equivocado, las doce titulaciones correctas puntuando 0,083 por escribirlas
+  sin la fórmula «Grado en», un verificador que contaba una cosa y rotulaba
+  otra, y las asignaturas de doble grado que la fuente sitúa en dos cursos
+  ---«Tercer o cuarto curso»--- dadas por falladas en los tres candidatos
+  porque el cotejo exigía el rótulo entero. Los seis están corregidos y cada
+  uno entró como prueba de regresión con su caso real, pero lo que se declara
+  no son los fallos, sino lo que se sigue de ellos: un verificador en verde no
+  prueba nada mientras no se haya comprobado qué mide, y en este trabajo cada
+  uno de los seis lo descubrió una lectura a mano de respuestas concretas, no
+  una batería de pruebas.}
 
 \begin{borrador}
   \item Fase: 2 (IT-39). Comprobar al cerrar la memoria que ninguna de estas
