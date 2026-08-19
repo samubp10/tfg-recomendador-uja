@@ -185,9 +185,90 @@ FACTOR_CORTE: Final[float] = 1.20
 #: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
 SUELO_PERTINENCIA: Final[float] = 0.142
 
+#: Con lo que se desactiva el suelo, para las consultas a las que no se les
+#: puede exigir parecerse a un fragmento. No es un umbral más alto: es no
+#: comprobar, y por eso se escribe así y no como un número que parezca medido.
+SIN_SUELO: Final[float] = float("inf")
+
+#: Palabras con las que alguien pide consejo en vez de preguntar un dato. Es
+#: una lista **cerrada**, y basta con que aparezca una: al contrario que en el
+#: reconocimiento de la cortesía, aquí un falso positivo no rechaza nada, solo
+#: hace que se busque con más contexto.
+_CONSEJO: Final[frozenset[str]] = frozenset("""
+    recomiendas recomiendame recomienda recomendacion recomendarias
+    recomendable aconsejas aconsejarias gusta gustan gustaria encanta
+    interesa interesan encaja encajan elegir elijo escoger escojo
+    orientacion vocacion dudo decidir
+    """.split())
+
+#: Y las fórmulas que no son una palabra suelta. Se buscan sobre el texto
+#: normalizado entero.
+_FORMULAS_DE_CONSEJO: Final[tuple[str, ...]] = (
+    "no se que estudiar",
+    "no se que carrera",
+    "no tengo claro",
+    "que estudio",
+    "que carrera",
+    "se me da bien",
+    "se me dan bien",
+)
+
+#: Lo que se le añade a una petición de consejo antes de incrustarla. La
+#: pregunta de un estudiante que no sabe qué estudiar habla de lo que le gusta
+#: ---la física, el dibujo--- y no nombra nada del corpus, así que su vector
+#: cae lejos de todo. Añadiendo los términos que sí vertebran la colección, la
+#: consulta se acerca a las fichas de titulación y a las salidas profesionales,
+#: que es justo lo que hace falta para responderla.
+TERMINOS_DEL_DOMINIO: Final[str] = (
+    "Titulaciones, grados y dobles grados de la Escuela Politécnica Superior "
+    "de Jaén, sus asignaturas y sus salidas profesionales."
+)
+
 
 class TitulacionDesconocida(ValueError):
     """El nombre de titulación no está en el catálogo del índice."""
+
+
+def pide_recomendacion(pregunta: str) -> bool:
+    """Si el mensaje pide consejo sobre qué estudiar.
+
+    Se separa del resto de preguntas porque el recuperador la trata distinto,
+    y la razón es medible. «No sé qué estudiar, me gusta la física y el dibujo
+    técnico» tenía su fragmento más próximo a 0,1466 y el suelo de pertinencia
+    está en 0,142: el sistema no recuperaba **nada** y contestaba que no había
+    encontrado información. Con «¿qué me recomiendas?» detrás, la misma frase
+    bajaba a 0,1339 y traía nueve fragmentos.
+
+    Que tres palabras decidan si el sistema responde o no es un fallo, y sobre
+    todo lo es en esta pregunta: recomendar titulaciones a quien todavía no
+    sabe cuál quiere es el cometido del asistente.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        ``True`` si pide consejo.
+    """
+    if palabras(pregunta) & _CONSEJO:
+        return True
+    normalizada = normalizar(pregunta)
+    return any(f in normalizada for f in _FORMULAS_DE_CONSEJO)
+
+
+def expandir(pregunta: str) -> str:
+    """Añade a la consulta los términos que vertebran la colección.
+
+    Solo se usa para buscar. Al modelo se le entrega siempre la pregunta tal
+    como la escribió el estudiante, porque lo que se corrige aquí es dónde se
+    busca, no qué se ha preguntado.
+
+    Args:
+        pregunta: Mensaje del usuario.
+
+    Returns:
+        El texto con el que se consulta el índice.
+    """
+    return f"{pregunta} {TERMINOS_DEL_DOMINIO}"
 
 
 def catalogo_del_indice(ruta_indice: Path) -> list[str]:
@@ -416,3 +497,40 @@ def recuperar(
         )
         for fila in consulta.to_list()
     ]
+
+
+def contexto_para(
+    pregunta: str,
+    tabla: Any,
+    incrustar: Incrustador,
+    **opciones: Any,
+) -> list[Fragmento]:
+    """Recupera el contexto con el que se va a responder, ya acotado.
+
+    Reúne las dos operaciones que siempre van juntas ---buscar y recortar--- y
+    es donde se trata aparte la petición de consejo, que necesita las dos
+    excepciones que describe :func:`pide_recomendacion`: se busca con la
+    consulta ampliada y **no se le aplica el suelo de pertinencia**.
+
+    Quitar el suelo aquí no lo debilita en general. El suelo comprueba que la
+    pregunta se parezca a algo de la colección, y una petición de consejo no se
+    parece a nada por construcción: habla de lo que le gusta al estudiante, no
+    de lo que publica la Escuela. Lo que sí se conserva es el corte relativo,
+    de modo que se siguen descartando los fragmentos peores de cada consulta.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+        tabla: Tabla abierta con :func:`abrir_indice`.
+        incrustar: Incrustador de consultas.
+        **opciones: El resto de argumentos de :func:`recuperar`.
+
+    Returns:
+        Los fragmentos que se le entregan al modelo.
+    """
+    consejo = pide_recomendacion(pregunta)
+    traidos = recuperar(
+        expandir(pregunta) if consejo else pregunta, tabla, incrustar, **opciones
+    )
+    if consejo:
+        return acotar_por_distancia(traidos, suelo=SIN_SUELO)
+    return acotar_por_distancia(traidos)
