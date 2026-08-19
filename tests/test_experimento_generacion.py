@@ -180,6 +180,37 @@ def test_decir_otro_curso_es_fallar():
     assert not acierta
 
 
+def test_nombrar_uno_solo_de_los_dos_cursos_del_rotulo_es_acertar():
+    """Regresión: respuesta real de `granite4.1:8b` a G-ASI-0226.
+
+    El rótulo de la fuente enumera dos cursos admisibles y el modelo nombró
+    uno. Buscar la cadena entera lo contaba como fallo, y con él a las dos
+    preguntas de rótulo doble de la muestra por cada uno de los tres
+    candidatos.
+    """
+    acierta, dicho = experimento.acierto_escalar(
+        "Ingeniería térmica II (GIM) se imparte en el segundo cuatrimestre de "
+        "tercer curso del Doble Grado en Ingeniería Eléctrica y Mecánica.",
+        "Tercer o cuarto curso",
+        "curso_de_asignatura",
+    )
+    assert acierta
+    assert dicho == "tercer"
+
+
+def test_el_rotulo_doble_admite_tambien_el_segundo_de_sus_cursos():
+    """La fuente publica los dos órdenes: «Tercer o cuarto» y «Cuarto o tercer»."""
+    acierta, dicho = experimento.acierto_escalar(
+        "Se imparte en cuarto.", "Cuarto o tercer curso", "curso_de_asignatura"
+    )
+    assert acierta
+    assert dicho == "cuarto"
+
+
+def test_un_rotulo_de_un_solo_curso_admite_ese_curso():
+    assert experimento.cursos_admisibles("Quinto curso") == ["quinto"]
+
+
 # --- La medición completa de una respuesta ---
 
 
