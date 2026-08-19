@@ -83,10 +83,9 @@ from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E40
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
     abrir_indice,
-    acotar_por_distancia,
     catalogo_del_indice,
+    contexto_para,
     distancia_del_indice,
-    recuperar,
 )
 from tfg_uja.text_cleaner import normalizar  # noqa: E402
 from tfg_uja.verificacion import cotejar_listado  # noqa: E402
@@ -317,7 +316,7 @@ def responder_una(
     conversacion = Conversacion(catalogo)
     consulta = conversacion.preparar(pregunta)
     t0 = time.perf_counter()
-    traidos = recuperar(
+    fragmentos = contexto_para(
         consulta.texto,
         tabla,
         incrustar,
@@ -326,7 +325,6 @@ def responder_una(
         catalogo=catalogo,
         ambito=consulta.ambito,
     )
-    fragmentos = acotar_por_distancia(traidos)
     t_recuperar = time.perf_counter() - t0
     if not fragmentos:
         return "", t_recuperar, 0.0, 0
