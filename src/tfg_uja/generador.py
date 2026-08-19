@@ -65,6 +65,12 @@ VENTANA: Final[int] = 8192
 #: que es justo donde se notaba.
 TOPE_RESPUESTA: Final[int] = 1200
 
+#: Cuánto se espera una respuesta antes de darla por perdida, en segundos. No
+#: es un criterio de calidad ---el tiempo se mide aparte---, sino el punto a
+#: partir del cual se asume que el modelo se ha colgado: diez minutos para una
+#: respuesta de mil doscientos *tokens* no es lentitud, es que no va a llegar.
+ESPERA_MAXIMA: Final[int] = 600
+
 #: Mensaje de sistema que se manda con cada petición. **Su función no es dar
 #: instrucciones ---esas van en :data:`INSTRUCCIONES`--- sino tapar el que trae
 #: cada modelo de fábrica.**
@@ -577,7 +583,7 @@ def generar(
         headers={"Content-Type": "application/json"},
     )
     try:
-        with urllib.request.urlopen(peticion, timeout=600) as respuesta:
+        with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             datos = json.loads(respuesta.read())
     except urllib.error.HTTPError as error:
         detalle = error.read().decode("utf-8", "replace").strip()
@@ -585,6 +591,14 @@ def generar(
             f"el servidor respondió {error.code} al generar con «{modelo}»"
             + (f": {detalle[:200]}" if detalle else "")
         ) from error
+    # Va antes de URLError a propósito: agotar la espera de lectura levanta
+    # TimeoutError, que **no** es un URLError, así que sin esta rama se escapa
+    # de las dos y sube. El 19/08/2026 tumbó una tanda de 560 respuestas cuando
+    # llevaba 85: `command-r7b` se colgó en una pregunta y se perdieron las
+    # nueve horas siguientes. Un modelo colgado tiene que costar una pregunta,
+    # no la sesión.
+    except TimeoutError as error:
+        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
     except urllib.error.URLError as error:
         raise ErrorDelModelo(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
