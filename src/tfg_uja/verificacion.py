@@ -27,7 +27,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from tfg_uja.text_cleaner import normalizar
+from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Palabra que puede formar parte del nombre de una titulación, y partículas
 #: que la fuente escribe en minúscula dentro de ellos («de Organización», «y
@@ -167,6 +167,20 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
     Geomática» por «...y Topográfica (plan 2025)»--- sin estar inventándoselo.
     Recortar no es inventar.
 
+    Y tampoco lo es **abreviar por dentro**. El 19/08/2026 esta comprobación
+    retiró una respuesta entera y correcta ---cuatro titulaciones reales
+    recomendadas a un estudiante--- porque una de ellas venía escrita «Grado en
+    Mecánica»: ningún prefijo casa, pero todas sus palabras están en «Grado en
+    Ingeniería Mecánica». Se admite por tanto que las palabras de lo dicho sean
+    un subconjunto de las de alguna titulación real.
+
+    El coste de admitirlo es un falso negativo posible: si la Escuela ofreciera
+    un doble grado y no el simple que lo compone, el simple pasaría por bueno.
+    Se acepta porque los dos errores no son simétricos. Dejar pasar un nombre
+    de una titulación que existe en otra combinación despista; retirar una
+    recomendación correcta y decirle al estudiante que se ha inventado algo lo
+    deja sin respuesta y sin motivo.
+
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
         catalogo: Titulaciones que declara el índice.
@@ -175,11 +189,15 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
         Las que no casan con ninguna del catálogo.
     """
     reales = [normalizar(t) for t in catalogo]
+    en_palabras = [palabras(t) for t in catalogo]
     inventadas = set()
     for nombrada in titulaciones_nombradas(respuesta):
         dicha = normalizar(nombrada)
-        if not any(r.startswith(dicha) or dicha.startswith(r) for r in reales):
-            inventadas.add(nombrada)
+        if any(r.startswith(dicha) or dicha.startswith(r) for r in reales):
+            continue
+        if any(palabras(nombrada) <= reales_en for reales_en in en_palabras):
+            continue
+        inventadas.add(nombrada)
     return inventadas
 
 
