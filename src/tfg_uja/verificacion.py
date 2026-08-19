@@ -94,6 +94,23 @@ _CALIFICADOR: Final[re.Pattern[str]] = re.compile(r"\s*\([^)]*\)")
 #: regla porque una regla general convertiría cualquier punto en abreviatura.
 _ABREVIATURAS: Final[dict[str, str]] = {"ing.": "ingenieria"}
 
+#: Fórmula con la que la fuente antepone el tipo de estudios al nombre de la
+#: titulación: «Grado en Ingeniería Eléctrica», «Doble Grado en Ingeniería
+#: Eléctrica y Mecánica». Un modelo puede nombrar la titulación sin ella.
+_TIPO_DE_ESTUDIOS: Final[re.Pattern[str]] = re.compile(r"^(?:doble\s+)?grado\s+en\s+")
+
+
+def sin_tipo_de_estudios(nombre: str) -> str:
+    """Quita la fórmula «Grado en» del principio de un nombre ya normalizado.
+
+    Args:
+        nombre: Nombre pasado antes por :func:`nucleo`.
+
+    Returns:
+        El nombre sin la fórmula. Si no la lleva, el nombre tal cual.
+    """
+    return _TIPO_DE_ESTUDIOS.sub("", nombre)
+
 
 def nucleo(nombre: str) -> str:
     """Deja un nombre en la forma con la que se puede comparar de verdad.
@@ -256,18 +273,30 @@ def cotejar_listado(
     esperadas_norm = {nucleo(e) for e in esperadas}
     corpus_norm = {nucleo(e) for e in del_corpus}
     texto = nucleo(respuesta)
+    # La fuente escribe «Grado en Ingeniería Eléctrica» y un modelo puede
+    # escribir «Ingeniería Eléctrica»: es la misma titulación. Se decide una
+    # vez por respuesta, mirando si usa la fórmula, en vez de quitarla
+    # siempre; quitarla siempre juntaría el Grado en Ingeniería Mecánica con
+    # el Doble Grado en Ingeniería Mecánica (Internacional), que se
+    # distinguen justo por ahí una vez retirado el paréntesis.
+    con_formula = "grado en" in texto
+
+    def comparable(nombre: str) -> str:
+        return nombre if con_formula else sin_tipo_de_estudios(nombre)
+
+    comparables = {comparable(c) for c in corpus_norm}
 
     def existe(dicha: str) -> bool:
         # Por sufijo, no por igualdad: dentro de un párrafo el nombre arrastra
         # delante lo que lo introducía ---«incluyendo Algoritmos geométricos»---
         # y eso es del modelo redactando, no una asignatura distinta.
-        return any(dicha == c or dicha.endswith(" " + c) for c in corpus_norm)
+        return any(dicha == c or dicha.endswith(" " + c) for c in comparables)
 
     inventadas = {d for d in dichas if not existe(d)}
     # La cobertura se mide sobre el texto entero y no sobre lo enumerado: da
     # igual si el modelo respondió con viñetas o en prosa, lo que se pregunta
     # es si el nombre está. Así la métrica no premia un formato sobre otro.
-    aciertos = {e for e in esperadas_norm if e in texto}
+    aciertos = {e for e in esperadas_norm if comparable(e) in texto}
     precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else 0.0
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos
