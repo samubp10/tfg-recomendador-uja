@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 
+from tfg_uja import chunker
 from tfg_uja.chunker import (
     TAMANO_MAXIMO,
     TAMANO_MINIMO,
@@ -906,3 +907,45 @@ def test_lo_comun_a_todas_las_menciones_no_se_presenta_como_una_mencion():
         f"Asignaturas optativas comunes a todas las menciones del {_SIMPLE}" in titulos
     )
     assert not any("mención «Común" in t for t in titulos)
+
+
+def test_el_encabezado_dice_que_los_creditos_no_estan_publicados():
+    """Regresión: el dato ausente se refleja, no se omite.
+
+    «Sistemas Digitales» es la única de las 528 asignaturas del corpus sin
+    créditos en la fuente. El encabezado se los saltaba en silencio, así que el
+    fragmento era indistinguible de uno al que simplemente no le cupo el dato.
+    Medido el 18/08/2026, cuatro de cinco modelos generativos rellenaron el
+    hueco con una cifra inventada.
+    """
+    asignatura = {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "codigo": "14012045",
+        "nombre": "Sistemas Digitales",
+        "tipo_asignatura": "OP",
+        "ects": "",
+        "ofertada": True,
+        "menciones": [],
+    }
+    encabezado = chunker._encabezado_asignatura(
+        asignatura, ["Grado en Ingeniería Electrónica Industrial"]
+    )
+    assert "La web de la EPSJ no publica sus créditos." in encabezado
+    assert "ECTS" not in encabezado
+
+
+def test_con_creditos_el_encabezado_no_dice_nada_de_eso():
+    asignatura = {
+        "grado": "Grado en Ingeniería Informática",
+        "codigo": "13011001",
+        "nombre": "Álgebra",
+        "tipo_asignatura": "FB",
+        "ects": "6",
+        "ofertada": True,
+        "menciones": [],
+    }
+    encabezado = chunker._encabezado_asignatura(
+        asignatura, ["Grado en Ingeniería Informática"]
+    )
+    assert "de 6 ECTS" in encabezado
+    assert "no publica sus créditos" not in encabezado
