@@ -109,29 +109,32 @@ _PREGUNTA_CATALOGO = {
 }
 
 
-def test_el_catalogo_se_comprueba_contra_las_titulaciones():
-    assert experimento.universo(_PREGUNTA_CATALOGO, CATALOGO, set(), set()) == set(
+def test_el_universo_es_todo_lo_que_el_corpus_nombra():
+    assert experimento.universo(CATALOGO, {"Álgebra"}, {"Automática"}) == set(
         CATALOGO
-    )
+    ) | {"Álgebra", "Automática"}
 
 
-def test_preguntar_por_las_menciones_se_comprueba_contra_las_menciones():
+def test_enumerar_menciones_no_cuenta_como_invencion():
     """Regresión.
 
-    Comprobándolas contra los nombres de asignatura, los tres candidatos daban
-    precisión 0,59-0,62 por enumerar bien lo que se les pedía. Que los tres
-    coincidieran era la señal de que fallaba el instrumento.
+    Comprobando las preguntas de mención contra los nombres de asignatura, los
+    tres candidatos daban precisión 0,59-0,62 por enumerar bien lo que se les
+    pedía. Que los tres coincidieran era la señal de que fallaba el
+    instrumento.
     """
-    assert experimento.universo(
-        _PREGUNTA_MENCIONES, CATALOGO, {"Álgebra"}, {"Automática"}
-    ) == {"Automática"}
+    assert "Automática" in experimento.universo(CATALOGO, {"Álgebra"}, {"Automática"})
 
 
-def test_preguntar_por_las_asignaturas_de_una_mencion_no():
-    """La misma familia, pero el ámbito trae la mención: se piden asignaturas."""
-    assert experimento.universo(
-        _PREGUNTA_ASIGNATURAS_DE_MENCION, CATALOGO, {"Álgebra"}, {"Automática"}
-    ) == {"Álgebra"}
+def test_enumerar_asignaturas_reales_tampoco():
+    """Regresión de G-MEN-003.
+
+    Con el conjunto restringido a las menciones, ``command-r7b`` sacaba
+    precisión 0,136 en esa pregunta por enumerar además las asignaturas de
+    cada mención: diecinueve nombres reales del corpus contados como
+    inventados.
+    """
+    assert "Álgebra" in experimento.universo(CATALOGO, {"Álgebra"}, {"Automática"})
 
 
 # --- Las respuestas de valor único ---
