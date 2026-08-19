@@ -152,10 +152,16 @@ K_MINIMO: Final[int] = 3
 K_MAXIMO: Final[int] = 20
 
 #: Cuánto más lejos que el mejor puede estar un fragmento y seguir entrando.
-#: 🔴 **Provisional.** Sale de mirar tres preguntas, no de un barrido: en ellas
-#: el salto entre lo pertinente y el ruido estaba en 1,22 y 1,25. Fijarlo en
-#: serio es IT-49, con las 50 preguntas del conjunto de evaluación.
-FACTOR_CORTE: Final[float] = 1.20
+#: Sale de la rejilla de IT-49: 240 configuraciones sobre las 56 preguntas de
+#: dominio y las 10 ajenas del conjunto de evaluación, simuladas sobre los
+#: mismos vecinos, que es posible porque este parámetro solo decide dónde se
+#: corta una lista ya ordenada.
+#:
+#: Bajarlo de 1,20 a 1,10 **no pierde ninguna pregunta**: la unidad que
+#: responde sigue apareciendo en las 56, y la media de fragmentos por consulta
+#: cae de 7,2 a 4,2. Es menos ventana ocupada y menos tiempo de generación por
+#: la misma información.
+FACTOR_CORTE: Final[float] = 1.10
 
 #: Distancia por encima de la cual se considera que **nada** es pertinente.
 #: El corte relativo quita la cola cuando arriba hay algo bueno, pero no
@@ -183,7 +189,18 @@ FACTOR_CORTE: Final[float] = 1.20
 #:
 #: 🔴 Sigue sin ser un barrido: 57 preguntas no fijan un parámetro, y el valor
 #: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
-SUELO_PERTINENCIA: Final[float] = 0.142
+#: 🔬 **Fijado por la rejilla de IT-49, y es un óptimo exacto.** Medido sobre
+#: el conjunto actual, la peor pregunta legítima tiene su mejor fragmento a
+#: 0,1367 y las intrusas más próximas están a 0,1039, 0,1358 y 0,1380. En
+#: 0,137 se conservan las 56 preguntas de dominio y se rechazan 8 de las 10
+#: ajenas; cualquier valor entre 0,139 y 0,145 rechaza solo 7 sin conservar ni
+#: una más, y en 0,135 se pierde ya una legítima.
+#:
+#: **Las dos clases se solapan y ningún umbral puede separarlas**: «¿Puedo
+#: estudiar Medicina en la Escuela Politécnica Superior de Jaén?» está a 0,1039,
+#: más cerca que cincuenta preguntas legítimas. Que el suelo no sea un filtro
+#: de dominio fiable no es una limitación de este valor, sino del mecanismo.
+SUELO_PERTINENCIA: Final[float] = 0.137
 
 #: Palabras con las que alguien pide consejo en vez de preguntar un dato. Es
 #: una lista **cerrada**, y basta con que aparezca una: al contrario que en el
