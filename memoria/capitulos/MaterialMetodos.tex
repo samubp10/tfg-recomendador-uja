@@ -1388,67 +1388,14 @@ salió cada respuesta.
   \label{fig:estructura_chunk}
 \end{figure}
 
-\subsubsection[\textcolor{borrador2}{Fragmentos derivados de la colección}]{\textcolor{borrador2}{Fragmentos derivados de la colección}}
+\subsubsection[Fragmentos derivados de la colección]{Fragmentos derivados de la colección}
 \label{secc:fragmentos_derivados}
 
-\textcolor{borrador2}{Hay preguntas que la colección contiene pero no dice. «¿Cuántas
-asignaturas tiene el Grado en Ingeniería Informática?» se contesta contando sesenta y siete
-fragmentos, y la recuperación devuelve los $k$ mejores, no todos: no es un fallo del
-recuperador, sino que la pregunta es de agregación y el mecanismo no está hecho para eso.
-Probado el 17/08/2026 sobre la colección sin estos fragmentos, el sistema contestó que esa
-titulación «cuenta con una sola asignatura».}
+A partir de la colección y en código, se ha decidido generar fragmentos derivados de la colección para ayudar al modelo de generación a responder unos tipos específicos de preguntas.
 
-\textcolor{borrador2}{La solución es la misma que ya se aplicó al listado del plan de
-estudios: si la respuesta se puede calcular, se calcula al trocear y se escribe como un
-fragmento más. Se componen cuatro tipos:}
+Estas preguntas son del tipo de conteo como <<¿Cuántas asignaturas tiene el Grado en Ingeniería Informática?>> o de agregación como <<¿Qué asignaturas optativas tiene el Grado en Ingeniería Informática?>>. Estas harían que se recogieran muchos fragmentos, incluso más que el $k$ establecido, degradando en gran medida la respuesta final.
 
-\begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Catálogo de la Escuela.} Qué titulaciones se
-        imparten, y las mismas separadas en grados y dobles grados. Tres fragmentos.}
-  \item \textcolor{borrador2}{\textbf{Ficha de titulación.} Cuántas asignaturas tiene,
-        cuántas son obligatorias y cuántas optativas, en cuántos cursos se organiza el
-        plan, cuáles son sus menciones y cómo se reparten las obligatorias por curso. Uno
-        por titulación.}
-  \item \textcolor{borrador2}{\textbf{Menciones.} Cuáles son las de cada titulación, y qué
-        asignaturas tiene cada una.}
-  \item \textcolor{borrador2}{\textbf{Listado del plan de estudios}, ya descrito, que fue
-        el primero de esta familia.}
-\end{itemize}
-
-\textcolor{borrador2}{Dos decisiones acotan lo que puede componerse, y son las que hacen
-defendible el procedimiento.}
-
-\textcolor{borrador2}{La primera es que \textbf{solo se compone lo que se deriva por
-cálculo}: contar, agrupar y ordenar datos que la EPSJ publica. Queda fuera cualquier
-fragmento que compare titulaciones entre sí o que agrupe asignaturas por tema, porque eso
-no está en la fuente y sería un criterio propio metido dentro de una colección que se
-defiende justamente por recoger información oficial. Los fragmentos derivados no añaden
-información: la reorganizan.}
-
-\textcolor{borrador2}{La segunda es que \textbf{no se publica ningún dato que se preste a
-leerse por otro}. Sumar los créditos de todo lo que oferta Ingeniería Informática da 408, y
-el grado son 240: la diferencia son las optativas, de las que solo se cursa una parte, y la
-fuente no publica cuántas. Un número que se leería como «los créditos de la carrera» sin
-serlo es peor que no darlo, así que la ficha no lo lleva.}
-
-\textcolor{borrador2}{Que estos fragmentos sean calculados obliga además a verificarlos de
-otra forma. Una guía se contrasta con la fuente leyéndola; un fragmento derivado es un
-número, y un número equivocado se lee igual de bien que el correcto. Por eso el verificador
-de la colección recalcula sus cifras desde el conjunto de datos original en lugar de dar por
-buena la del fragmentador.}
-
-\begin{borrador}
-  \item Faltan por decidir dos cosas de este apartado. La primera, si conviene una tabla con
-  los cuatro tipos, cuántos fragmentos aporta cada uno y un ejemplo literal de cada uno, al
-  estilo de \texttt{TablaConjuntoEvaluacion}. Con siete tipos de origen en la colección
-  (guía, sin guía, plan, mención, ficha, catálogo y salidas) puede que ya haga falta.
-  \item La segunda, si el efecto medido va aquí o en el Capítulo~\ref{cap:resultados}. Hay
-  cifras de antes y después sobre las mismas preguntas, y por la regla que separa los
-  capítulos deberían ir en Resultados, con aquí solo el diseño.
-  \item Ojo con una tentación: NO presentar esto como «se mejoró el sistema». Ante el
-  tribunal es una decisión de diseño de la colección con su criterio y su límite, no una
-  crónica de arreglos.
-\end{borrador}
+Sin embargo, si estas respuestas que se pueden calcular fácilmente se hacen previo a la indexación de la colección, se evita este problema y se hacen las respuestas más deterministas.
 
 \subsection[Selección del modelo de incrustaciones]{Selección del modelo de incrustaciones}
 \label{secc:fase1_embeddings}
