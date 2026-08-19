@@ -693,3 +693,76 @@ def test_un_modelo_colgado_no_tumba_la_sesion(monkeypatch):
         generador.generar("un prompt", "un-modelo")
     assert "no respondió" in str(fallo.value)
     assert str(generador.ESPERA_MAXIMA) in str(fallo.value)
+
+
+# --- La barrera de titulaciones inventadas (IT-87) ---
+
+_CATALOGO_EPSJ = [
+    "Grado en Ingeniería de Organización Industrial",
+    "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+    "Grado en Ingeniería Mecánica",
+]
+
+#: Respuesta real de mistral-nemo:12b del 19/08/2026, turno 19. Tres de las
+#: cuatro titulaciones que recomienda existen; la cuarta no.
+_RESPUESTA_CON_INVENTADA = (
+    "Si estás interesado en estudiar una titulación de ingeniería, podrías "
+    "considerar algunas opciones como:\n"
+    "* Grado en Ingeniería de Organización Industrial: gestión de procesos.\n"
+    "* Grado en Ingeniería Geomática y Topográfica (plan 2025): medición.\n"
+    "* Grado en Ingeniería Mecánica: diseño y construcción de máquinas.\n"
+    "* Grado en Ingeniería de Edificación: construcción y gestión de edificios.\n"
+)
+
+
+def _con_respuesta(monkeypatch, texto: str) -> None:
+    monkeypatch.setattr(generador, "generar", lambda prompt, modelo: texto)
+
+
+def test_una_titulacion_inventada_retira_la_respuesta_entera(monkeypatch):
+    """Regresión del turno 19 de mistral-nemo:12b.
+
+    El «Grado en Ingeniería de Edificación» no se imparte en la EPSJ. Iba
+    cuarto en una lista de recomendaciones cuyas otras tres son reales, que es
+    justo lo que lo hace peligroso: un preuniversitario no tiene con qué
+    distinguirlas. Las instrucciones ya prohibían añadir lo que no está en el
+    contexto.
+    """
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    respuesta = generador.responder(
+        "soy de FP de arquitectura, ¿qué puedo estudiar?",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=_CATALOGO_EPSJ,
+    )
+    assert respuesta == generador.RESPUESTA_TITULACION_INVENTADA
+
+
+def test_si_todas_existen_la_respuesta_pasa(monkeypatch):
+    """La barrera no puede cobrarse las respuestas correctas.
+
+    Medido sobre las 399 respuestas del cribado: bloquea 0.
+    """
+    buena = (
+        "Puedes estudiar el Grado en Ingeniería Mecánica y el Grado en "
+        "Ingeniería de Organización Industrial."
+    )
+    _con_respuesta(monkeypatch, buena)
+    assert (
+        generador.responder(
+            "¿qué puedo estudiar?",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=_CATALOGO_EPSJ,
+        )
+        == buena
+    )
+
+
+def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
+    """Comportamiento declarado: sin catálogo la barrera no actúa."""
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    assert (
+        generador.responder("una pregunta", [fragmento("A", "texto")], "un-modelo")
+        == _RESPUESTA_CON_INVENTADA
+    )
