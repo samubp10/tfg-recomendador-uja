@@ -39,6 +39,7 @@ from typing import Final
 from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.text_cleaner import palabras
+from tfg_uja.verificacion import titulaciones_inventadas
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
 #: sistema tiene que poder ejecutarse entero en el equipo del autor.
@@ -253,6 +254,17 @@ RESPUESTA_SIN_CONTEXTO: Final[str] = (
     "salidas profesionales tienen. ¿Sobre cuál te gustaría saber?"
 )
 
+#: Con lo que se responde cuando la comprobación posterior encuentra una
+#: titulación que no existe. Se retira la respuesta entera y no solo el nombre
+#: inventado: el estudiante lee una lista, no una nota al pie, y una
+#: recomendación falsa entre tres verdaderas se lee con la misma confianza que
+#: las otras tres.
+RESPUESTA_TITULACION_INVENTADA: Final[str] = (
+    "No puedo darte esa respuesta: al redactarla he nombrado titulaciones que "
+    "no se imparten en la Escuela Politécnica Superior de Jaén. Prueba a "
+    "preguntármelo de otra forma, o pídeme la lista de las que sí se imparten."
+)
+
 #: Con lo que se abre la conversación. Un saludo no es una pregunta fallida:
 #: es la primera línea que escribe casi cualquiera, y se aprovecha para decir
 #: de qué sabe el sistema en vez de para decir que no sabe.
@@ -414,6 +426,12 @@ def responder(
         catalogo: Titulaciones que declara el índice, para que el prompt las
             enumere.
 
+    **Lo que el modelo escribe se comprueba antes de entregarlo.** Nombrar
+    una titulación que no existe es el fallo más grave del sistema ---un
+    estudiante no tiene forma de detectarlo--- y es el umbral eliminatorio de
+    IT-35. Si la respuesta nombra alguna que no está en el catálogo, se retira
+    entera.
+
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
     """
@@ -430,9 +448,18 @@ def responder(
         # sistema. Decirle «no he encontrado información sobre eso» a alguien
         # que solo ha dicho hola es contestar a una pregunta que no ha hecho.
         return RESPUESTA_SALUDO if not historial else RESPUESTA_SIN_CONTEXTO
-    return generar(
+    respuesta = generar(
         construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
     )
+    # La comprobación va DESPUÉS de generar y no en las instrucciones, que es
+    # lo que distingue un mecanismo de una petición. El prompt ya prohíbe
+    # añadir lo que no esté en el contexto, y aun así el 19/08/2026
+    # mistral-nemo:12b recomendó a un estudiante de FP el «Grado en Ingeniería
+    # de Edificación», que no existe en la EPSJ, junto a tres titulaciones que
+    # sí. Sin catálogo no se puede comprobar nada, y entonces no se comprueba.
+    if catalogo and titulaciones_inventadas(respuesta, catalogo):
+        return RESPUESTA_TITULACION_INVENTADA
+    return respuesta
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
