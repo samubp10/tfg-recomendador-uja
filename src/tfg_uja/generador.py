@@ -123,8 +123,11 @@ INSTRUCCIONES: Final[str] = (
     "- Cita la asignatura o la titulación de la que sale cada dato.\n"
     "- No recomiendes ninguna titulación que no aparezca en el CONTEXTO ni en "
     "la lista de titulaciones de la Escuela.\n"
-    "- Trata al estudiante de tú, con cercanía, y cierra ofreciéndote a "
-    "contarle más. Puedes usar como mucho un emoji."
+    "- Al enumerar, escribe el nombre y los créditos de cada asignatura y nada "
+    "más. No la describas si no te lo piden.\n"
+    "- Si el contexto trae listas de dos itinerarios de un doble grado, no las "
+    "mezcles: responde con la que pide la pregunta y di cuál es.\n"
+    "- Tutea al estudiante y escribe cercano y directo."
 )
 
 #: Cuántas preguntas anteriores se le recuerdan al modelo. Son **preguntas**,
