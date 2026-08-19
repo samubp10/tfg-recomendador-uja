@@ -1596,3 +1596,113 @@ Las titulaciones y asignaturas se guardan como listas paralelas y no como una so
 Por último, este índice registra tres datos importantes, como con qué modelo se calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos incrustados y con qué métrica de distancia consultarlo (similitud del coseno o euclídea). Esto se hace para que el buscador pueda verificar automáticamente al empezar que se están usando los mismos parámetros con los que se creó el índice para evitar errores.
 
 
+
+\subsection[La conversación con el asistente]{La conversación con el asistente}
+\label{secc:fase2_conversacion}
+
+\textcolor{borrador2}{Un estudiante no interroga al sistema con preguntas
+sueltas: conversa. Y en cuanto conversa, sus preguntas dejan de sostenerse
+solas. «¿Y en segundo?» no dice de qué titulación habla; «¿y qué asignaturas
+tiene en primero?» tampoco, aunque la titulación esté clarísima para quien
+escribe. El buscador, sin embargo, solo ve el texto de esa última pregunta, y
+un texto así se parece por igual a las doce titulaciones del corpus.}
+
+\textcolor{borrador2}{El problema tiene un matiz que condiciona toda la
+solución: el sujeto de la conversación no siempre lo introduce el estudiante.
+Cuando alguien escribe «me gustan los videojuegos» y el asistente le responde
+recomendándole el Grado en Ingeniería Informática, la titulación de la que se
+habla a partir de ese momento aparece únicamente en la respuesta. Un mecanismo
+que solo mire las preguntas del usuario no puede saberlo.}
+
+\subsubsection{\textcolor{borrador2}{Alternativas consideradas}}
+
+\textcolor{borrador2}{Se compararon tres formas de convertir una pregunta de
+seguimiento en algo que se pueda buscar. La primera es no hacer nada y buscar
+con la pregunta tal cual, que sirve de línea base. La segunda, anteponerle el
+texto de la pregunta anterior, que es la solución inmediata. La tercera es la
+que adopta el sistema: deducir de qué titulación se está hablando y
+\textbf{acotar la búsqueda con un filtro exacto} sobre los metadatos del
+índice, dejando el texto solo para ordenar lo que ese filtro admite.}
+
+\textcolor{borrador2}{La literatura sobre sistemas conversacionales propone una
+cuarta vía: pedirle al propio modelo de lenguaje que reescriba la pregunta de
+seguimiento en una pregunta autónoma. Se descartó por dos razones. La primera
+es de coste, y está medida: preparar la consulta con el mecanismo adoptado
+tarda 1,5 milisegundos de mediana, mientras que una reescritura con el modelo
+añadiría una generación completa a cada pregunta. La segunda es de naturaleza:
+un mecanismo cuyo funcionamiento depende de que el modelo obedezca una
+instrucción no ofrece garantía alguna, mientras que un filtro sobre metadatos
+sí la ofrece: o el fragmento pertenece a esa titulación o no pertenece.}
+
+\subsubsection{\textcolor{borrador2}{Diseño de la comparación}}
+
+\textcolor{borrador2}{Las conversaciones con las que se comparan las tres
+estrategias no se redactaron a mano, sino que se derivan del propio corpus, de
+la misma forma que los fragmentos compuestos de la sección
+\ref{secc:fragmentos_derivados}. Para cada par de titulación y curso que existe
+en el plan de estudios se genera una conversación cuya última pregunta tiene
+una respuesta conocida por construcción, de modo que medir el acierto no exige
+que nadie juzgue el resultado. Se obtienen así 39 conversaciones repartidas en
+tres familias, que corresponden a las tres formas en que una pregunta puede
+depender de la anterior: cambiar el curso manteniendo la titulación, cambiar la
+titulación manteniendo lo que se pregunta, y arrastrar un sujeto que introdujo
+el asistente.}
+
+\textcolor{borrador2}{Se miden dos cosas distintas y las dos hacen falta. La
+primera es si el fragmento que contiene la respuesta llega siquiera al modelo,
+porque lo que no se recupera no se puede contestar. La segunda es en qué puesto
+llega, medida con el MRR, porque un fragmento que entra el último compite con
+otros diecinueve por la atención del generador.}
+
+\input{tablas/TablaConversacion}
+
+\subsubsection{\textcolor{borrador2}{Resultado y decisión}}
+
+\textcolor{borrador2}{La diferencia entre las dos primeras estrategias y la
+tercera no está en el promedio, sino en dónde falla cada una. Anteponer la
+pregunta anterior resuelve bien el caso de cambiar de curso, pero se hunde
+cuando la pregunta cambia de titulación: acierta una de cada tres, y el
+fragmento correcto casi nunca aparece arriba. La razón es que el texto de la
+pregunta anterior sigue hablando de la titulación abandonada, de modo que la
+consulta apunta a dos sitios a la vez.}
+
+\textcolor{borrador2}{Deducir el sujeto y filtrar por él recupera el fragmento
+correcto en las 39 conversaciones y lo coloca el primero en dos de las tres
+familias. Que el resultado sea perfecto en la cobertura no debe leerse como que
+el problema esté resuelto: significa que estas 39 conversaciones no bastan para
+distinguir entre una solución buena y una excelente, y que separar mejor
+exigiría conversaciones más largas de las que este experimento genera.}
+
+\subsubsection{\textcolor{borrador2}{Qué se recuerda y qué se olvida}}
+
+\textcolor{borrador2}{La ventana del modelo es finita, así que la conversación
+necesita una política de qué conservar cuando se llena. La que sigue el sistema
+descarta primero las preguntas más antiguas y conserva siempre la titulación de
+la que se habla, que ocupa unas pocas palabras y es lo único que la pregunta de
+seguimiento necesita de verdad. Las respuestas del asistente no se conservan en
+ningún caso.}
+
+\textcolor{borrador2}{Esa última regla merece explicación, porque es lo que
+impide un fallo particularmente difícil de detectar: que una respuesta
+equivocada en un turno se convierta en la fuente del turno siguiente, y el
+sistema construya sobre su propio error con la misma seguridad con la que
+construye sobre el corpus. La garantía no se pide, se impone: lo que no está en
+el texto que recibe el modelo no puede copiarse de él.}
+
+\begin{borrador}
+  Fase: 2 (IT-106). Decisiones que quedan abiertas en este apartado:
+  \begin{itemize}
+    \item La tarjeta asignaba este contenido a la Fase 3, porque se preveía
+      construirlo junto con la aplicación web. El mecanismo, sin embargo,
+      pertenece al \textit{pipeline} de recuperación y se ha escrito aquí. Hay
+      que decidir si se queda o si se mueve cuando exista la sección de Fase 3.
+    \item Falta decir que el estado de la conversación vive hoy en el proceso
+      del asistente. Cuando exista la aplicación web habrá que sostener que
+      sigue viviendo en el servidor y no en el navegador, y ese razonamiento
+      todavía no se puede escribir porque el servidor no existe.
+    \item Valorar si conviene una figura con la conversación de tres turnos que
+      ilustre de dónde sale el sujeto, o si la explicación se sostiene sin ella.
+    \item Comprobar si el término \textit{MRR} ya está en el glosario desde el
+      apartado de incrustaciones, o si hay que marcarlo aquí con \texttt{\textbackslash gl}.
+  \end{itemize}
+\end{borrador}
