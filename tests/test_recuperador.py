@@ -549,9 +549,17 @@ def test_el_suelo_rechaza_la_pregunta_ajena_mas_proxima():
     assert acotar_por_distancia([_frag(0.148)]) == []
 
 
-def test_el_suelo_esta_dentro_de_la_separacion_medida():
-    """Si alguien lo mueve fuera de la banda, que falle aquí y no en producción."""
-    assert 0.137 < SUELO_PERTINENCIA < 0.147
+def test_el_suelo_conserva_la_peor_pregunta_legitima():
+    """La banda la fija la rejilla de IT-49, no una estimación.
+
+    Medido sobre el conjunto actual: la peor pregunta de dominio tiene su mejor
+    fragmento a 0,1367 y hay que conservarla, así que el suelo no puede bajar de
+    ahí. Por arriba, cualquier valor desde 0,139 deja pasar una intrusa más sin
+    conservar ni una pregunta legítima de más, de modo que subirlo solo empeora.
+    """
+    assert 0.1367 < SUELO_PERTINENCIA < 0.139
+    assert acotar_por_distancia([_frag(0.1367)]) != []
+    assert acotar_por_distancia([_frag(0.1380)]) == []
 
 
 # --- La petición de consejo se busca de otra manera ---
