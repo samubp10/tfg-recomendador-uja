@@ -766,3 +766,51 @@ def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
         generador.responder("una pregunta", [fragmento("A", "texto")], "un-modelo")
         == _RESPUESTA_CON_INVENTADA
     )
+
+
+#: Respuesta real del 16/08/2026, la que motivó IT-87: seis titulaciones
+#: recomendadas a un estudiante interesado en electricidad, dos inexistentes.
+_RESPUESTA_IT87 = (
+    "Si te interesa la electricidad, en la EPSJ puedes estudiar:\n"
+    "- Grado en Ingeniería Eléctrica\n"
+    "- Grado en Ingeniería Electrónica Industrial\n"
+    "- Grado en Ingeniería de Energía\n"
+    "- Grado en Ingeniería Ambiental\n"
+)
+
+
+def test_el_caso_que_motivo_la_tarjeta_se_detecta(monkeypatch):
+    """Regresión de IT-87.
+
+    Ni el «Grado en Ingeniería de Energía» ni el «Grado en Ingeniería
+    Ambiental» existen en la EPSJ, y ninguno aparecía en el contexto
+    recuperado. Las instrucciones ya prohibían añadir datos que no estuvieran
+    en el contexto.
+    """
+    catalogo = [
+        "Grado en Ingeniería Eléctrica",
+        "Grado en Ingeniería Electrónica Industrial",
+    ]
+    _con_respuesta(monkeypatch, _RESPUESTA_IT87)
+    assert (
+        generador.responder(
+            "¿qué puedo estudiar si me gusta la electricidad?",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=catalogo,
+        )
+        == generador.RESPUESTA_TITULACION_INVENTADA
+    )
+
+
+def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
+    """Una barrera que descarta en silencio no se puede auditar."""
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+        generador.responder(
+            "una pregunta",
+            [fragmento("A", "texto")],
+            "un-modelo",
+            catalogo=_CATALOGO_EPSJ,
+        )
+    assert "Grado en Ingeniería de Edificación" in caplog.text
