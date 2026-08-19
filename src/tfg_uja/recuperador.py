@@ -515,6 +515,7 @@ def contexto_para(
     pregunta: str,
     tabla: Any,
     incrustar: Incrustador,
+    respaldo: str = "",
     **opciones: Any,
 ) -> list[Fragmento]:
     """Recupera el contexto con el que se va a responder, ya acotado.
@@ -541,6 +542,8 @@ def contexto_para(
         pregunta: Mensaje del usuario, tal cual lo escribe.
         tabla: Tabla abierta con :func:`abrir_indice`.
         incrustar: Incrustador de consultas.
+        respaldo: Con qué volver a buscar si la primera búsqueda vuelve vacía.
+            Lo compone :class:`tfg_uja.conversacion.Consulta`.
         **opciones: El resto de argumentos de :func:`recuperar`.
 
     Returns:
@@ -552,4 +555,17 @@ def contexto_para(
     )
     if consejo:
         return traidos[:K_MAXIMO]
-    return acotar_por_distancia(traidos)
+    fragmentos = acotar_por_distancia(traidos)
+    if fragmentos or not respaldo:
+        return fragmentos
+    # Segundo intento con la pregunta anterior delante. Medido el 20/08/2026:
+    # tras preguntar por las optativas de una titulación, «¿y cuántas son en
+    # total?» tenía su mejor fragmento a 0,1722 y se quedaba sin contexto, de
+    # modo que el sistema decía no haber encontrado información sobre lo que él
+    # mismo acababa de contestar.
+    #
+    # El reintento se hace **solo con la lista vacía**, que es un hecho
+    # comprobado y no una conjetura sobre la frase, y cuesta una búsqueda de
+    # cinco centésimas de segundo en el único caso en que la alternativa es no
+    # responder.
+    return acotar_por_distancia(recuperar(respaldo, tabla, incrustar, **opciones))
