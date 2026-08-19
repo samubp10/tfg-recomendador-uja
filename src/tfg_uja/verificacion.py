@@ -228,7 +228,9 @@ def elementos_de_lista(respuesta: str) -> list[str]:
         Los nombres en el orden en que aparecen, sin créditos ni curso.
     """
     elementos = []
+    encabezado = ""
     for linea in respuesta.splitlines():
+        encabezado = _factoriza(linea) or encabezado
         encontrado = _VINETA.match(linea)
         if not encontrado:
             continue
@@ -241,13 +243,47 @@ def elementos_de_lista(respuesta: str) -> list[str]:
             continue
         nombre = _COLA.sub("", crudo).strip(" .;:")
         if nombre:
-            elementos.append(nombre)
+            elementos.append(f"{encabezado} {nombre}" if encabezado else nombre)
     if elementos:
         return elementos
     return [
         _desde_la_mayuscula(_ENFASIS.sub("", m.group(1)).strip(" .;:"))
         for m in _ENUMERADA.finditer(respuesta)
     ]
+
+
+#: Encabezado que **saca el tipo de estudios fuera** de los elementos de la
+#: lista: «**Grado en:**» seguido de «Ingeniería Informática», «Ingeniería
+#: Mecánica»... No es un capricho de redacción, es lo que hace cualquiera al
+#: enumerar doce titulaciones que empiezan igual, y es mejor prosa que repetir
+#: la fórmula doce veces.
+#:
+#: Medido el 20/08/2026: `ministral-8b` enumeró **las doce correctas** así y el
+#: cotejo devolvió «12 omitidas, 10 de más», porque comparaba «Ingeniería
+#: Informática» contra «Grado en Ingeniería Informática». Precisión y cobertura
+#: salían por los suelos en una respuesta perfecta.
+#:
+#: Solo se reconoce el encabezado que termina en «en:», que es la marca de que
+#: lo factorizado es el principio del nombre. «Primer curso:» no la lleva y no
+#: se antepone a nada, que es lo correcto: ahí lo factorizado es el curso, no
+#: parte del nombre de la asignatura.
+_ENCABEZADO_FACTOR: Final[re.Pattern[str]] = re.compile(
+    r"^[\s*_#>-]*((?:doble\s+)?grado\s+en)\s*:\s*[*_]*\s*$", re.IGNORECASE
+)
+
+
+def _factoriza(linea: str) -> str:
+    """Devuelve el prefijo que esta línea saca fuera de la lista, si lo hace.
+
+    Args:
+        linea: Línea de la respuesta, tal cual.
+
+    Returns:
+        El prefijo sin los dos puntos, o cadena vacía si la línea no es uno de
+        esos encabezados.
+    """
+    encontrado = _ENCABEZADO_FACTOR.match(linea.strip())
+    return encontrado.group(1) if encontrado else ""
 
 
 def _desde_la_mayuscula(texto: str) -> str:
