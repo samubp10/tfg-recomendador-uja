@@ -1680,6 +1680,19 @@ En el caso de las comparativas y experimentos anteriores (incrustaciones y base 
   que se imparte. Las cifras que arrojan estas cuatro medidas están en el
   Apartado~\ref{secc:resultados_rag}.}
 
+\textcolor{borrador2}{Las dos medidas de cadena obligan a fijar cuándo dos
+  formas de decir lo mismo cuentan como iguales, y ahí las decisiones no son
+  neutrales. Los créditos se buscan con su unidad detrás, porque en una
+  respuesta de tres líneas casi siempre aparece un «6» suelto por algún lado y
+  darlo por bueno aprobaría a un modelo que no ha contestado. El nombre de una
+  titulación se compara con la fórmula «Grado en» delante o sin ella según cómo
+  la escriba la propia respuesta, ya que las dos formas son correctas en
+  castellano y penalizar una sería medir estilo. Y el curso se coteja contra
+  cada uno de los valores que admite el rótulo por separado: en los dobles
+  grados la Escuela publica rótulos con dos ---«Tercer o cuarto curso»---
+  porque la asignatura se cursa en uno u otro según el itinerario, de modo que
+  nombrar cualquiera de ellos responde a la pregunta.}
+
 \textcolor{borrador2}{Conviene decir también qué queda fuera de estas medidas,
   porque es bastante. No miden si la respuesta está bien escrita, si la
   recomendación que hace es acertada para quien pregunta, ni si el resumen de un
@@ -1704,8 +1717,8 @@ Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que c
 \textcolor{borrador2}{Que la respuesta correcta se derive de la colección y no
   se escriba a mano no es una comodidad, sino lo que permite que el banco crezca
   con la fuente. Es además la misma operación que produce los fragmentos
-  derivados del Apartado~\ref{secc:fase2_vectordb}: contar y agrupar lo que el
-  dataset ya contiene.}
+  derivados del Apartado~\ref{secc:fragmentos_derivados}: contar y agrupar lo
+  que el dataset ya contiene.}
 
 \textcolor{borrador2}{El motivo de decidir sobre una muestra y no sobre el banco
   entero es el coste. Cada pregunta supone una llamada al modelo por candidato,
@@ -1713,10 +1726,22 @@ Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que c
   que a los tiempos de un equipo doméstico son días de cómputo. El banco entero
   queda para comprobar al finalista una vez elegido.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Decidir si la tabla con las seis familias de pregunta
-    va en este apartado o en el Capítulo~\ref{cap:resultados}.
-\end{borrador}
+\textcolor{borrador2}{Las seis familias son el catálogo de
+  la Escuela, los créditos de una asignatura, el curso en que se imparte, el
+  plan de estudios de un curso completo, las asignaturas de una mención y las
+  optativas de una titulación. En la muestra de ochenta hay veintitrés
+  preguntas de créditos, veintitrés de curso, trece de plan, trece de mención,
+  siete de optativas y una de catálogo.}
+
+\textcolor{borrador2}{Ese reparto no es el del banco entero y conviene saberlo
+  al leer los promedios. En las mil veintitrés preguntas generadas, las de
+  créditos y curso son el noventa y tres por ciento, sencillamente porque hay
+  una de cada por asignatura; en la muestra bajan a algo menos de tres quintos.
+  El muestreo estratificado reparte a favor de las familias escasas para que
+  ninguna quede sin medir ---las siete preguntas de optativas del banco están
+  las siete en la muestra, y la de catálogo es la única que existe---, y la
+  contrapartida es que las cifras globales de la comparación no representan el
+  reparto natural del banco, sino uno construido para cubrir los seis tipos.}
 
 \subsubsection{El umbral del experimento}
 
