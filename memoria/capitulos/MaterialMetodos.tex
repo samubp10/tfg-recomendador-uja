@@ -1706,3 +1706,146 @@ el texto que recibe el modelo no puede copiarse de él.}
       apartado de incrustaciones, o si hay que marcarlo aquí con \texttt{\textbackslash gl}.
   \end{itemize}
 \end{borrador}
+
+
+\subsection[\textcolor{borrador2}{Selección del modelo de generación}]{\textcolor{borrador2}{Selección del modelo de generación}}
+\label{secc:fase2_llm}
+
+\textcolor{borrador2}{Recuperar los fragmentos correctos no basta: alguien tiene
+  que redactar con ellos una respuesta que un estudiante de bachillerato pueda
+  leer. Este apartado decide quién.}
+
+\subsubsection{\textcolor{borrador2}{Por qué la comparación no puede apoyarse en un juez}}
+
+\textcolor{borrador2}{Las dos comparativas anteriores ---incrustaciones y base
+  de datos vectorial--- se deciden con un número sobre una tarea de respuesta
+  conocida. La generación de texto no ofrece eso, y las dos salidas fáciles no
+  se sostienen: una nota de calidad puesta por quien mira no es reproducible, y
+  un modelo que ejerza de juez habría que validarlo aparte, con lo que el
+  problema se traslada en vez de resolverse.}
+
+\textcolor{borrador2}{Lo que sí se puede medir contra la colección, sin modelo
+  adicional y sin criterio del autor, es \textbf{si lo que la respuesta nombra
+  existe} y si nombra lo que debía. Son comparaciones de cadena.}
+
+\begin{borrador}
+  Fase: 2 (IT-35). Lo que hay que decir aquí y todavía no está escrito:
+  \begin{itemize}
+    \item Las cuatro medidas: titulaciones inventadas, precisión, cobertura y
+      acierto escalar. Definir cada una en una frase.
+    \item Decir explícitamente qué NO mide: si la respuesta está bien escrita,
+      si la recomendación es buena, o si el temario que resume es fiel. Una
+      respuesta correcta y sosa puntúa igual que una correcta y bien redactada.
+    \item Que solo se decide sobre las preguntas de respuesta computable. Las de
+      temario y salidas se observan en sesiones a mano y se reportan como modos
+      de fallo, sin entrar en la decisión.
+  \end{itemize}
+\end{borrador}
+
+\subsubsection{\textcolor{borrador2}{El banco de preguntas}}
+
+\textcolor{borrador2}{El banco lo genera un guion a partir de la colección: ni
+  las preguntas ni las respuestas correctas se escriben a mano. Son 1.023
+  preguntas de seis familias, y de ellas se sortea una muestra de decisión de 80
+  con semilla fija, con todas las familias representadas.}
+
+\begin{borrador}
+  Fase: 2 (IT-35). Pendiente:
+  \begin{itemize}
+    \item Justificar por qué se decide sobre 80 y no sobre las 1.023: cada
+      pregunta cuesta una llamada al modelo por candidato, y el banco completo
+      con siete candidatos pasa de las siete mil respuestas.
+    \item Explicar por qué la respuesta correcta se deriva de la colección y no
+      se escribe a mano: es la misma operación que produce los fragmentos
+      derivados, contar y agrupar.
+    \item Decidir si la tabla de las seis familias va aquí o en el Capítulo 5.
+  \end{itemize}
+\end{borrador}
+
+\subsubsection{\textcolor{borrador2}{El umbral eliminatorio, fijado antes de medir}}
+
+\textcolor{borrador2}{Cero titulaciones inventadas. Un sistema cuyo cometido es
+  recomendar carreras no puede nombrar una que no existe, porque el estudiante
+  al que va dirigido no tiene forma de detectarlo.}
+
+\begin{borrador}
+  Fase: 2 (IT-35). Aquí hay que sostener dos cosas:
+  \begin{itemize}
+    \item Que el umbral se escribió \emph{antes} de la primera medición, igual
+      que los de la base de datos vectorial. Es lo que impide acomodarlo luego
+      al candidato que convenga.
+    \item Qué se haría si ningún candidato lo cumpliera: declararlo y decidir
+      entre los que menos incurran, dejándolo escrito como limitación.
+  \end{itemize}
+\end{borrador}
+
+\subsubsection{\textcolor{borrador2}{Lo que no decide: el tiempo de respuesta y la tarjeta gráfica}}
+
+\begin{borrador}
+  Fase: 2 (IT-35). Apartado necesario y delicado. Lo medido:
+  \begin{itemize}
+    \item \textbf{El tiempo no decide.} Las respuestas se cronometran mientras
+      el equipo hace otras cosas, y eso no es una excusa sino una medida: el
+      mismo modelo sobre la misma muestra ha dado medianas de 15,9 y de 31,9
+      segundos según lo que hubiera abierto. Una respuesta de 581 caracteres
+      llegó a marcar 16.677 segundos, que es paginación a disco y no inferencia.
+    \item \textbf{La tarjeta gráfica se usa, pero no cabe el modelo entero.} La
+      del equipo tiene 6 GB de memoria dedicada y los candidatos ocupan entre
+      5,3 y 8,9 GB ya cuantizados. El servidor de inferencia carga en la tarjeta
+      las capas que caben y ejecuta el resto en el procesador: de gemma3:12b se
+      midieron 3,28 de sus 8,92 GB en memoria de vídeo, un 37 por ciento.
+    \item Por eso el tiempo describe cuánto del modelo cupo en la tarjeta, no lo
+      rápido que es el modelo. Se informa y no elimina.
+    \item Decidir si esto va aquí o en el anexo de instalación. Mejor aquí,
+      porque explica por qué la comparación se decide con las columnas de
+      calidad y no con las de tiempo.
+  \end{itemize}
+\end{borrador}
+
+\subsection[\textcolor{borrador2}{El \textit{pipeline} RAG completo}]{\textcolor{borrador2}{El \textit{pipeline} RAG completo}}
+\label{secc:fase2_pipeline}
+
+\begin{borrador}
+  Fase: 2 (IT-37). Estructura propuesta, de la pregunta a la respuesta:
+  \begin{itemize}
+    \item \textbf{Cuántos fragmentos se recuperan.} No es un K fijo: hay una
+      banda, un corte relativo por distancia y un suelo absoluto de pertinencia.
+      Explicar por qué un K fijo no vale ---una pregunta de ficha se contesta
+      con un fragmento y una de listado necesita todos los de su titulación---
+      y qué hace cada uno de los tres mecanismos.
+    \item \textbf{Qué se le manda al modelo.} El mensaje de sistema, las
+      instrucciones, el contexto y las preguntas anteriores. Merece una figura.
+    \item \textbf{El contexto vacío se cortocircuita.} Es el estado más
+      peligroso de un sistema RAG, porque el modelo responde con la misma
+      seguridad que cuando ha leído algo. Con las instrucciones diciendo ya que
+      no inventara, un modelo de 7B se fabricó un plan de estudios entero del
+      que trece de catorce nombres no existían. Por eso, sin fragmentos, no se
+      llama al modelo.
+    \item Ese último punto es el hilo conductor del capítulo y conviene
+      enunciarlo aquí: \emph{una instrucción no es un control}.
+  \end{itemize}
+\end{borrador}
+
+\subsection[\textcolor{borrador2}{Restricción del dominio}]{\textcolor{borrador2}{Restricción del dominio}}
+\label{secc:fase2_dominio}
+
+\begin{borrador}
+  Fase: 2 (IT-87). Lo que hay que contar, con la evidencia ya medida:
+  \begin{itemize}
+    \item El problema: el sistema recomendó seis titulaciones a un estudiante
+      interesado en la electricidad y dos no existen en la Escuela. Las
+      instrucciones ya prohibían añadir datos ausentes del contexto.
+    \item Que el guardarraíl tiene dos capas y ninguna basta sola. La primera es
+      el suelo de pertinencia del recuperador, que rechaza siete de las diez
+      preguntas ajenas al dominio; las tres que deja pasar son las que usan el
+      vocabulario del dominio para preguntar por otra cosa.
+    \item La segunda capa es una comprobación \emph{posterior} a la generación:
+      toda titulación nombrada tiene que estar en el catálogo de la colección.
+      Si no lo está, la respuesta se retira entera y queda registrada.
+    \item Por qué se retira entera y no se marca solo el nombre: el estudiante
+      lee la lista, no la nota al pie, y una recomendación falsa entre tres
+      verdaderas se lee con la misma confianza que las otras tres.
+    \item Y el límite honesto: la comprobación cubre las titulaciones, no las
+      asignaturas ni las salidas profesionales.
+  \end{itemize}
+\end{borrador}
