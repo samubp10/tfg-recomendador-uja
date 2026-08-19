@@ -421,3 +421,32 @@ def test_el_guion_dentro_del_nombre_no_lo_corta():
 def test_el_guion_con_espacio_delante_sigue_separando_la_cola():
     """Es la forma en que los modelos escriben los créditos detrás."""
     assert elementos_de_lista("- **Álgebra** - 6 ECTS") == ["Álgebra"]
+
+
+def test_la_lista_que_factoriza_el_tipo_de_estudios_se_recompone():
+    """Regresión: `ministral-8b` enumeró las doce titulaciones correctas así.
+
+    El cotejo devolvió «12 omitidas, 10 de más» sobre una respuesta perfecta,
+    porque comparaba «Ingeniería Informática» contra «Grado en Ingeniería
+    Informática». Sacar la fórmula fuera de la lista es mejor prosa que
+    repetirla doce veces, no un error del modelo.
+    """
+    respuesta = (
+        "En la Escuela puedes estudiar estas titulaciones:\n\n"
+        "**Grado en:**\n"
+        "- Ingeniería Informática.\n"
+        "- Ingeniería Mecánica.\n\n"
+        "**Doble Grado en:**\n"
+        "- Ingeniería Eléctrica y Mecánica.\n"
+    )
+    assert elementos_de_lista(respuesta) == [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Doble Grado en Ingeniería Eléctrica y Mecánica",
+    ]
+
+
+def test_un_encabezado_de_curso_no_se_antepone_al_nombre():
+    """Ahí lo factorizado es el curso, no el principio del nombre."""
+    respuesta = "**Primer curso:**\n- Álgebra (6 ECTS)\n- Física I (6 ECTS)"
+    assert elementos_de_lista(respuesta) == ["Álgebra", "Física I"]
