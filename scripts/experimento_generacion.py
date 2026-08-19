@@ -163,38 +163,35 @@ def menciones_del_corpus(datos: list[dict[str, Any]]) -> set[str]:
 
 
 def universo(
-    pregunta: dict[str, Any],
     catalogo: list[str],
     asignaturas: set[str],
     menciones: set[str],
 ) -> set[str]:
     """Contra qué conjunto de nombres se comprueba lo que enumera la respuesta.
 
-    No es el mismo para todas las preguntas, y equivocarlo falsea la precisión
-    sin que nada avise. Medido el 18/08/2026: comprobando las trece preguntas
-    de mención contra los nombres de asignatura, los **tres** candidatos daban
-    precisión 0,59-0,62 por enumerar bien las menciones que se les pedían.
-    Que los tres coincidan en una cifra tan baja era la señal de que fallaba el
-    instrumento y no los modelos.
+    Es **todo lo que el corpus nombra**, sin distinguir la pregunta, porque eso
+    es exactamente lo que mide la precisión: la proporción de lo enumerado que
+    existe. Nombrar algo real que no venía a cuento no es inventárselo, y ese
+    fallo lo recoge la cobertura, que sí depende de la pregunta.
 
-    La familia ``menciones`` lleva dos preguntas distintas dentro, y se
-    distinguen por su ámbito: si trae ``mencion``, se pregunta por las
-    asignaturas de esa mención; si no, por las menciones de la titulación.
+    Restringirlo por familia ---como se hizo antes--- mezcla en una sola cifra
+    la invención y la pertinencia, y ha fallado en las dos direcciones. Medido
+    el 18/08/2026, comprobando las trece preguntas de mención contra los
+    nombres de asignatura, los tres candidatos daban precisión 0,59-0,62 por
+    enumerar bien las menciones pedidas. Medido el 19/08/2026, con el conjunto
+    ya restringido a las menciones, ``command-r7b`` sacaba precisión 0,136 en
+    ``G-MEN-003`` por enumerar además las asignaturas de cada mención, que son
+    diecinueve nombres reales del corpus.
 
     Args:
-        pregunta: Registro del banco.
         catalogo: Titulaciones que declara el índice.
         asignaturas: Nombres de asignatura del corpus.
         menciones: Nombres de mención del corpus.
 
     Returns:
-        Los nombres válidos para esa pregunta.
+        Todos los nombres que el corpus reconoce.
     """
-    if pregunta["familia"] == "catalogo":
-        return set(catalogo)
-    if pregunta["familia"] == "menciones" and "mencion" not in pregunta["ambito"]:
-        return menciones
-    return asignaturas
+    return set(catalogo) | asignaturas | menciones
 
 
 def acierto_escalar(respuesta: str, esperado: str, familia: str) -> tuple[bool, str]:
@@ -258,7 +255,7 @@ def medir(
     precision, cobertura, inventadas, omitidas = cotejar_listado(
         respuesta,
         set(esperado),
-        universo(pregunta, catalogo, asignaturas, menciones),
+        universo(catalogo, asignaturas, menciones),
     )
     salida["precision"] = precision
     salida["cobertura"] = cobertura
