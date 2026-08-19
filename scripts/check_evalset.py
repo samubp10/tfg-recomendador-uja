@@ -41,6 +41,11 @@ _CLAVES_SELECTOR_OBLIGATORIAS = frozenset({"origen", "nombre"})
 #: informe sin escribir, en vez de decir qué pregunta está mal.
 _CLAVES_PREGUNTA = frozenset({"id", "tipo", "pregunta", "relevantes"})
 
+#: Tipo de pregunta cuya respuesta correcta es no recuperar nada (IT-86).
+#: Se nombra una vez y se usa en los dos sitios que lo tratan aparte: la
+#: comprobación de esquema y el recuento de cobertura.
+FUERA_DE_DOMINIO = "fuera_de_dominio"
+
 #: Número mínimo de preguntas. Es un suelo heredado del diseño de IT-27, no el
 #: tamaño de diseño del conjunto: hoy son 50. Sirve para detectar que alguien
 #: se ha dejado media lista, no para acreditar potencia estadística.
@@ -128,6 +133,19 @@ def errores_de_esquema(preguntas: list[dict[str, Any]]) -> list[str]:
             continue
 
         relevantes = pregunta["relevantes"]
+        # Las de fuera de dominio (IT-86) son el caso contrario: su lista vacía
+        # es la anotación correcta, porque lo que se les pide al sistema es que
+        # no recupere nada. Quedan fuera de Recall@K y de MRR por el mismo
+        # motivo que hunde a las demás, y se miden con su propio criterio.
+        if pregunta["tipo"] == FUERA_DE_DOMINIO:
+            if relevantes:
+                errores.append(
+                    f"{etiqueta}: es de fuera de dominio y anota "
+                    f"{len(relevantes)} unidad(es) relevante(s). Si hay algo "
+                    f"que recuperar, la pregunta no es de fuera de dominio"
+                )
+            continue
+
         # Una pregunta sin unidades anotadas no mide nada: ningún chunk puede
         # ser relevante, así que aporta un 0 fijo a Recall@K y a MRR y hunde
         # las dos métricas sin que haya fallado el recuperador.
@@ -257,8 +275,15 @@ def _informar_cobertura(
     for pregunta in preguntas:
         por_tipo[pregunta["tipo"]] = por_tipo.get(pregunta["tipo"], 0) + 1
 
+    fuera = por_tipo.get(FUERA_DE_DOMINIO, 0)
     print(f"Preguntas: {len(preguntas)}")
     print(f"Por tipo: {por_tipo}")
+    if fuera:
+        print(
+            f"  De ellas {fuera} son de fuera de dominio "
+            f"({100 * fuera / len(preguntas):.1f} %). No entran en Recall@K "
+            f"ni en MRR: su criterio es el contrario, rechazar es acierto."
+        )
     print(
         f"Titulaciones del corpus: {len(grados_corpus)} | "
         f"nombradas en algún selector: {len(nombrados)} | "
