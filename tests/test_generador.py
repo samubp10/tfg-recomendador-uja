@@ -892,3 +892,37 @@ def test_un_texto_sin_ningun_cierre_se_devuelve_entero():
 def test_el_aviso_de_respuesta_cortada_lo_dice_en_primera_persona():
     """El estudiante no puede distinguir una respuesta cortada de una entera."""
     assert "cortar" in AVISO_RESPUESTA_CORTADA
+
+
+# --- Preguntas sobre otra universidad ---
+
+
+def test_preguntar_por_otra_universidad_no_se_responde_con_la_de_aqui():
+    """Regresión: el suelo de pertinencia no puede detectar esto.
+
+    «¿La Universidad de Granada tiene Ingeniería Informática?» tiene su mejor
+    fragmento a 0,1185, más cerca que la mayoría de las preguntas legítimas,
+    porque nombra una titulación que sí existe aquí. La distancia mide parecido
+    de vocabulario y el vocabulario es casi el mismo.
+    """
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿La Universidad de Granada tiene Ingeniería Informática?"
+        )
+        == generador.RESPUESTA_OTRA_UNIVERSIDAD
+    )
+
+
+def test_la_universidad_de_jaen_si_se_responde():
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿Qué titulaciones tiene la Universidad de Jaén?"
+        )
+        is None
+    )
+
+
+def test_una_pregunta_normal_no_dispara_el_rechazo_de_centro():
+    assert (
+        generador.pregunta_por_otro_centro("¿Qué optativas tiene Informática?") is None
+    )
