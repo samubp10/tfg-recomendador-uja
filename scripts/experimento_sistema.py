@@ -57,10 +57,12 @@ from tfg_uja.verificacion import (  # noqa: E402
     titulaciones_nombradas,
 )
 
-#: Modelos que se comparan cuando no se dice otra cosa.
+#: Modelos que se comparan cuando no se dice otra cosa. Uno de cada talla
+#: ---8B, 9B y 12B--- y de tres familias distintas, para que la comparación no
+#: dependa de las decisiones de un solo fabricante.
 MODELOS: tuple[str, ...] = (
     "ministral-8b:latest",
-    "granite4.1:8b",
+    "qwen3.5:9b",
     "gemma3:12b",
 )
 
