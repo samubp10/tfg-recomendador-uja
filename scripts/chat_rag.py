@@ -59,8 +59,8 @@ from tfg_uja.recuperador import (  # noqa: E402
     ModeloDiscrepante,
     TitulacionDesconocida,
     abrir_indice,
-    acotar_por_distancia,
     catalogo_del_indice,
+    contexto_para,
     distancia_del_indice,
     recuperar,
 )
@@ -384,25 +384,34 @@ def _recuperar_contexto(
         titulación que no existe, en cuyo caso ya se ha avisado por pantalla.
     """
     consulta = conversacion.preparar(entrada)
+    opciones = {
+        "distancia": indice.distancia,
+        "k": ajustes.k,
+        "grado": ajustes.grado,
+        "catalogo": indice.catalogo,
+        "curso": ajustes.curso,
+        "ambito": consulta.ambito,
+    }
     try:
-        traidos = recuperar(
-            consulta.texto,
-            indice.tabla,
-            indice.incrustar,
-            distancia=indice.distancia,
-            k=ajustes.k,
-            grado=ajustes.grado,
-            catalogo=indice.catalogo,
-            curso=ajustes.curso,
-            ambito=consulta.ambito,
-        )
+        if k_fijo:
+            traidos = recuperar(
+                consulta.texto, indice.tabla, indice.incrustar, **opciones
+            )
+        else:
+            traidos = contexto_para(
+                consulta.texto,
+                indice.tabla,
+                indice.incrustar,
+                respaldo=consulta.respaldo,
+                **opciones,
+            )
     except TitulacionDesconocida as error:
         print(f"\n  {error}. Las que hay:")
         for t in indice.catalogo:
             print(f"    - {t}")
         print()
         return None
-    return (traidos if k_fijo else acotar_por_distancia(traidos)), consulta.ambito
+    return traidos, consulta.ambito
 
 
 def _generar_respuesta(

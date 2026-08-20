@@ -1,0 +1,638 @@
+{
+  "descripcion": "Banco de evaluación del sistema completo (IT-37). Las preguntas factuales se sortean del banco derivado del dataset; las de conversación, consejo, cortesía, dominio y ambigüedad se escriben a mano, porque su respuesta correcta no está en ninguna columna del dataset. Ninguna familia necesita un modelo que la juzgue.",
+  "preguntas": [
+    {
+      "id": "G-CAT-001",
+      "familia": "catalogo",
+      "pregunta": "¿Qué titulaciones se pueden estudiar en la Escuela Politécnica Superior de Jaén?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "Doble Grado en Ingeniería Mecánica (Internacional - University of Applied Sciences Schmalkalden, Alemania)",
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "Grado en Ingeniería Electrónica Industrial",
+        "Grado en Ingeniería Eléctrica",
+        "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería de Organización Industrial",
+        "Grado en Inteligencia Artificial y Ciberseguridad"
+      ],
+      "ambito": {}
+    },
+    {
+      "id": "G-ASI-0509",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Regulación automática del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Regulación automática"
+      }
+    },
+    {
+      "id": "G-ASI-0207",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Expresión gráfica del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "EXPRESIÓN GRÁFICA"
+      }
+    },
+    {
+      "id": "G-ASI-0617",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de bases de datos del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Fundamentos de bases de datos"
+      }
+    },
+    {
+      "id": "G-ASI-0347",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tecnología eléctrica (GIOI) del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "TECNOLOGÍA ELÉCTRICA (GIOI)"
+      }
+    },
+    {
+      "id": "G-ASI-0028",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Electrónica analógica (GIEI) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "ELECTRÓNICA ANALÓGICA (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0432",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Sistemas analógicos en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Sistemas analógicos"
+      }
+    },
+    {
+      "id": "G-ASI-0423",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Mecánica de máquinas en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Mecánica de máquinas"
+      }
+    },
+    {
+      "id": "G-ASI-0078",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Simulación de flujos industriales (GIM) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "SIMULACIÓN DE FLUJOS INDUSTRIALES (GIM)"
+      }
+    },
+    {
+      "id": "G-MEN-004",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Informática empresarial",
+        "Sistemas gráficos",
+        "Tratamiento inteligente de la información",
+        "Técnicas para la información y la comunicación"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática"
+      }
+    },
+    {
+      "id": "G-MEN-005",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Construcción industrial",
+        "Ingeniería y fabricación mecánica",
+        "Instalaciones térmicas y de fluidos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica"
+      }
+    },
+    {
+      "id": "G-MEN-011",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Sistemas Eléctricos del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automatización de sistemas eléctricos",
+        "Explotación y planificación de sistemas eléctricos",
+        "Integración en la Red Eléctrica de Sistemas de Energía Renovable",
+        "Matemáticas para ingeniería eléctrica",
+        "Protecciones eléctricas",
+        "Sistemas Electrónicos para la Smart Grid",
+        "Smart Grids. Redes Eléctricas Inteligentes"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "mencion": "Sistemas Eléctricos"
+      }
+    },
+    {
+      "id": "G-MEN-016",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Tratamiento inteligente de la información del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Diseño de modelos de simulación",
+        "Inteligencia ambiental",
+        "Minería web",
+        "Procesamiento del lenguaje natural"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "mencion": "Tratamiento inteligente de la información"
+      }
+    },
+    {
+      "id": "G-OPT-005",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Construcción y arquitectura industrial",
+        "Energía hidráulica y eólica",
+        "Estructuras de hormigón armado",
+        "Estructuras metálicas",
+        "Fluidomecánica industrial",
+        "Ingeniería del mecanizado",
+        "Instalaciones térmicas en la edificación",
+        "Instalaciones térmicas en la industria",
+        "Integridad estructural en elementos mecánicos",
+        "Mantenimiento y seguridad de máquinas",
+        "Métodos avanzados de cálculo en ingeniería mecánica",
+        "Prácticas externas",
+        "Tecnologías aplicadas a la fabricación",
+        "Topografía y materiales de construcción",
+        "Técnicas numéricas y modelado geométrico"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica"
+      }
+    },
+    {
+      "id": "G-OPT-004",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Algoritmos geométricos",
+        "Creación de empresas basadas en TIC",
+        "Desarrollo de videojuegos",
+        "Diseño de modelos de simulación",
+        "Ejercicio profesional de la informática",
+        "Inteligencia ambiental",
+        "Microprocesadores y microcontroladores",
+        "Minería web",
+        "Procesamiento del lenguaje natural",
+        "Programación de aplicaciones gráficas",
+        "Programación hardware",
+        "Protocolos de soporte a las aplicaciones multimedia",
+        "Prácticas externas",
+        "Sistemas de información para las decisiones estratégicas",
+        "Técnicas avanzadas de seguridad",
+        "Técnicas de animación 3D y post-procesamiento",
+        "Web semántica y social"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática"
+      }
+    },
+    {
+      "id": "G-OPT-006",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Aprovechamiento y ahorro energético",
+        "Automática avanzada",
+        "Creación de empresas de base tecnológica",
+        "Entorno económico de la empresa",
+        "Gestión de la innovación",
+        "Gestión del mantenimiento industrial",
+        "Logística y gestión de flotas",
+        "Manutención y almacenaje",
+        "Metrología",
+        "Métodos cuantitativos avanzados",
+        "Prevención de riesgos laborales",
+        "Prácticas externas",
+        "Sistemas informáticos en la industria",
+        "Telecomunicaciones en la Industria",
+        "Técnicas de ingeniería gráfica aplicada"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial"
+      }
+    },
+    {
+      "id": "G-OPT-002",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automatización de sistemas eléctricos",
+        "Eficiencia y ahorro energético",
+        "Explotación y planificación de sistemas eléctricos",
+        "Generación de energía eléctrica con energías renovables",
+        "Instalaciones fotovoltaicas",
+        "Integración en la Red Eléctrica de Sistemas de Energía Renovable",
+        "Matemáticas para ingeniería eléctrica",
+        "Protecciones eléctricas",
+        "Prácticas externas",
+        "Recursos hidroeléctricos",
+        "Sistemas Electrónicos para la Smart Grid",
+        "Smart Grids. Redes Eléctricas Inteligentes",
+        "Tecnología de la iluminación",
+        "Tecnología eléctrica de los sistemas fotovoltaicos",
+        "Topografía y construcción",
+        "Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica"
+      }
+    },
+    {
+      "id": "G-CUR-013",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en quinto curso del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CENTRALES ELÉCTRICAS II (GIE)",
+        "PROYECTOS (GIE)",
+        "SIMULACIÓN DE FLUJOS INDUSTRIALES (GIM)",
+        "SISTEMAS ELÉCTRICOS DE POTENCIA (GIE)",
+        "TFG ING. ELÉCTRICA (GIE)",
+        "TFG ING. MECÁNICA (GIM)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "curso": "Quinto curso"
+      }
+    },
+    {
+      "id": "G-CUR-021",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Control por computador",
+        "Electrónica de potencia",
+        "Proyectos",
+        "Trabajo fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-041",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Estrategia y política de la empresa",
+        "Política industrial y tecnológica",
+        "Proyectos",
+        "Trabajo fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-044",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Complejos industriales",
+        "Fundamentos de tecnología medioambiental",
+        "Gestión de la calidad",
+        "Gestión de sistemas productivos",
+        "Gestión financiera",
+        "Marketing industrial",
+        "Métodos cuantitativos",
+        "Organización del trabajo y factor humano",
+        "Tecnología eléctrica",
+        "Tecnología energética"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "S-CONV-001",
+      "familia": "conversacion",
+      "que_prueba": "el ámbito se hereda de la pregunta anterior",
+      "turnos": [
+        "¿Qué asignaturas optativas tiene el Grado en Ingeniería de Organización Industrial?",
+        "¿Y cuántas son en total?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Grado en Ingeniería de Organización Industrial"
+      ],
+      "prohibido": [
+        "Grado en Ingeniería Mecánica"
+      ]
+    },
+    {
+      "id": "S-CONV-002",
+      "familia": "conversacion",
+      "que_prueba": "regresión del turno 7 del 19/08/2026: el doble grado no puede arrastrar al simple que contiene",
+      "turnos": [
+        "Háblame del Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "¿Y qué asignaturas optativas tiene esta carrera?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial"
+      ],
+      "prohibido": [
+        "Grado en Ingeniería Mecánica"
+      ]
+    },
+    {
+      "id": "S-CONV-003",
+      "familia": "conversacion",
+      "que_prueba": "el ámbito lo fija la respuesta, no la pregunta",
+      "turnos": [
+        "Me gustan los videojuegos y la programación, ¿qué me recomiendas?",
+        "¿Y qué asignaturas tiene en primero?"
+      ],
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-CONV-004",
+      "familia": "conversacion",
+      "que_prueba": "la anáfora recorta el resultado anterior",
+      "turnos": [
+        "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Informática?",
+        "¿Cuál de esas es de matemáticas?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Grado en Ingeniería Informática"
+      ],
+      "prohibido": []
+    },
+    {
+      "id": "S-CONV-005",
+      "familia": "conversacion",
+      "que_prueba": "cambiar de titulación a mitad de conversación",
+      "turnos": [
+        "¿Cuántos créditos tiene Álgebra en el Grado en Ingeniería Informática?",
+        "¿Y en el Grado en Ingeniería Eléctrica?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Grado en Ingeniería Eléctrica"
+      ],
+      "prohibido": []
+    },
+    {
+      "id": "S-CONV-006",
+      "familia": "conversacion",
+      "que_prueba": "regresión del turno 5: dar las gracias cierra, no falla",
+      "turnos": [
+        "¿Qué salidas tiene el Grado en Ingeniería Mecánica?",
+        "Me gusta la idea, muchas gracias"
+      ],
+      "respuesta": "fija",
+      "esperado": [
+        "RESPUESTA_DESPEDIDA"
+      ]
+    },
+    {
+      "id": "S-CONV-007",
+      "familia": "conversacion",
+      "que_prueba": "una pregunta de seguimiento que sí se sostiene sola",
+      "turnos": [
+        "¿Qué es el Grado en Inteligencia Artificial y Ciberseguridad?",
+        "¿Cuántas asignaturas optativas tiene el Grado en Ingeniería Informática?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Grado en Ingeniería Informática"
+      ],
+      "prohibido": []
+    },
+    {
+      "id": "S-CONV-008",
+      "familia": "conversacion",
+      "que_prueba": "tres turnos sobre la misma titulación",
+      "turnos": [
+        "Cuéntame del Grado en Ingeniería Eléctrica",
+        "¿Qué menciones tiene?",
+        "¿Y qué asignaturas hay en la primera?"
+      ],
+      "respuesta": "ambito",
+      "esperado": [
+        "Grado en Ingeniería Eléctrica"
+      ],
+      "prohibido": []
+    },
+    {
+      "id": "S-REC-001",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "No sé qué estudiar, me gusta la física y el dibujo técnico",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-REC-002",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "Me gustan los ordenadores y las matemáticas, ¿qué carrera me pega?",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-REC-003",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "Se me da bien la electrónica y quiero trabajar en la industria",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-REC-004",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "Quiero una carrera con muchas salidas profesionales",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-REC-005",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "Dudo entre algo de informática y algo de industriales",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-REC-006",
+      "familia": "consejo",
+      "que_prueba": "la petición de recomendación recupera contexto y no inventa",
+      "pregunta": "Me interesa la sostenibilidad y las energías renovables",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-COR-001",
+      "familia": "cortesia",
+      "que_prueba": "un mensaje sin pregunta no recibe «no he encontrado nada»",
+      "pregunta": "hola",
+      "respuesta": "fija",
+      "esperado": [
+        "RESPUESTA_SALUDO"
+      ]
+    },
+    {
+      "id": "S-COR-002",
+      "familia": "cortesia",
+      "que_prueba": "un mensaje sin pregunta no recibe «no he encontrado nada»",
+      "pregunta": "buenas tardes",
+      "respuesta": "fija",
+      "esperado": [
+        "RESPUESTA_SALUDO"
+      ]
+    },
+    {
+      "id": "S-COR-003",
+      "familia": "cortesia",
+      "que_prueba": "un mensaje sin pregunta no recibe «no he encontrado nada»",
+      "pregunta": "muchas gracias, hasta luego",
+      "respuesta": "fija",
+      "esperado": [
+        "RESPUESTA_DESPEDIDA"
+      ]
+    },
+    {
+      "id": "S-COR-004",
+      "familia": "cortesia",
+      "que_prueba": "un mensaje sin pregunta no recibe «no he encontrado nada»",
+      "pregunta": "hei",
+      "respuesta": "fija",
+      "esperado": [
+        "RESPUESTA_SALUDO"
+      ]
+    },
+    {
+      "id": "S-AJE-001",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
+      "pregunta": "¿Puedo estudiar Medicina en la Escuela Politécnica Superior de Jaén?",
+      "respuesta": "rechazo",
+      "esperado": []
+    },
+    {
+      "id": "S-AJE-002",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
+      "pregunta": "¿Qué nota de corte tiene el Grado en Derecho?",
+      "respuesta": "rechazo",
+      "esperado": []
+    },
+    {
+      "id": "S-AJE-003",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
+      "pregunta": "¿La Universidad de Granada tiene Ingeniería Informática?",
+      "respuesta": "rechazo",
+      "esperado": []
+    },
+    {
+      "id": "S-AJE-004",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
+      "pregunta": "¿Cuál es la capital de Francia?",
+      "respuesta": "rechazo",
+      "esperado": []
+    },
+    {
+      "id": "S-AJE-005",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
+      "pregunta": "Dame una receta de tortilla de patatas",
+      "respuesta": "rechazo",
+      "esperado": []
+    },
+    {
+      "id": "S-AMB-001",
+      "familia": "ambigua",
+      "que_prueba": "una pregunta que encaja en varias titulaciones",
+      "pregunta": "Háblame del grado de ingeniería industrial",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-AMB-002",
+      "familia": "ambigua",
+      "que_prueba": "una pregunta que encaja en varias titulaciones",
+      "pregunta": "¿Qué asignaturas tiene el grado de mecánica?",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    },
+    {
+      "id": "S-AMB-003",
+      "familia": "ambigua",
+      "que_prueba": "una pregunta que encaja en varias titulaciones",
+      "pregunta": "Quiero información sobre el doble grado",
+      "respuesta": "sin_invencion",
+      "esperado": []
+    }
+  ]
+}

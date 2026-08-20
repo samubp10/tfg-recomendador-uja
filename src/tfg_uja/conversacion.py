@@ -89,6 +89,37 @@ def titulaciones_de_la_pregunta(pregunta: str, catalogo: list[str]) -> list[str]
     return [t for t in catalogo if palabras(t) & dichas]
 
 
+def nombrada_por_si_misma(titulacion: str, texto: str, otras: list[str]) -> bool:
+    """Si la titulación aparece por sí misma y no dentro del nombre de otra.
+
+    El nombre de un grado simple está contenido en el de los dobles que lo
+    incluyen: «Grado en Ingeniería Mecánica» es una subcadena literal de «Doble
+    Grado en Ingeniería Mecánica y Organización Industrial». Buscar la
+    subcadena a secas da por nombrado el grado simple en cuanto se menciona el
+    doble, y eso bastó para cambiar el sujeto de una conversación entera hacia
+    una titulación de la que nadie había hablado.
+
+    Se resuelve contando en lugar de decidiendo por presencia: si el nombre
+    aparece más veces de las que lo arrastran las titulaciones más largas que
+    también están en el texto, es que en alguna de ellas se nombró solo.
+
+    Args:
+        titulacion: Nombre que se comprueba.
+        texto: Texto normalizado en el que se busca.
+        otras: Nombres del catálogo presentes en ese mismo texto.
+
+    Returns:
+        ``True`` si el nombre aparece al menos una vez fuera de otro más largo.
+    """
+    aguja = normalizar(titulacion)
+    arrastradas = sum(
+        texto.count(normalizar(o)) * normalizar(o).count(aguja)
+        for o in otras
+        if o != titulacion and aguja in normalizar(o)
+    )
+    return texto.count(aguja) > arrastradas
+
+
 def titulaciones_de_la_respuesta(respuesta: str, catalogo: list[str]) -> list[str]:
     """Titulaciones que la respuesta del asistente nombra por su nombre entero.
 
@@ -98,6 +129,9 @@ def titulaciones_de_la_respuesta(respuesta: str, catalogo: list[str]) -> list[st
     conversación. Que escriba el nombre oficial entero sí es señal de que está
     hablando de esa titulación.
 
+    Que el nombre esté escrito no basta: tiene que estar escrito **por sí
+    mismo**, y de eso se ocupa :func:`nombrada_por_si_misma`.
+
     Args:
         respuesta: Texto que devolvió el asistente.
         catalogo: Titulaciones que declara el índice.
@@ -106,7 +140,8 @@ def titulaciones_de_la_respuesta(respuesta: str, catalogo: list[str]) -> list[st
         Nombres del catálogo que aparecen enteros, en el orden del catálogo.
     """
     dicho = normalizar(respuesta)
-    return [t for t in catalogo if normalizar(t) in dicho]
+    presentes = [t for t in catalogo if normalizar(t) in dicho]
+    return [t for t in presentes if nombrada_por_si_misma(t, dicho, presentes)]
 
 
 #: Fórmulas con las que una pregunta se refiere a lo que acaba de decirse en
@@ -182,10 +217,13 @@ class Consulta:
         texto: Lo que se incrusta.
         ambito: Titulaciones a las que se acota la búsqueda. Vacío significa
             buscar en todo el corpus.
+        respaldo: Con qué se vuelve a buscar si ``texto`` no recupera nada.
+            Lleva delante la última pregunta que sí decía de qué se hablaba.
     """
 
     texto: str
     ambito: list[str]
+    respaldo: str = ""
 
 
 @dataclass
@@ -247,7 +285,22 @@ class Conversacion:
             # nombre oficial, no el texto entero de la pregunta anterior.
             texto = f"{pregunta} {ambito[0]}"
 
-        return Consulta(texto=texto, ambito=list(ambito))
+        # El respaldo se calcula siempre, aunque casi nunca haga falta. Las dos
+        # ramas de arriba deciden por el texto de la pregunta, y decidir por el
+        # texto falla de una forma concreta: «¿y cuántas son en total?» tiene
+        # palabras de contenido ---«total», «son»--- y no dice de qué habla, así
+        # que no hereda el predicado, y su mejor fragmento se queda a 0,1722,
+        # muy por encima del suelo. El sistema respondía que no había encontrado
+        # información sobre lo que él mismo acababa de contar.
+        #
+        # Reintentar con el predicado delante no depende de ninguna lista de
+        # palabras, que es lo que hace frágil a la alternativa: solo depende de
+        # que la primera búsqueda no haya traído nada, que es un hecho, no una
+        # conjetura sobre la frase.
+        respaldo = ""
+        if self._predicado and self._predicado != pregunta:
+            respaldo = f"{self._predicado} {pregunta}".strip()
+        return Consulta(texto=texto, ambito=list(ambito), respaldo=respaldo)
 
     def anotar(self, pregunta: str, respuesta: str) -> None:
         """Registra un turno y actualiza de qué se está hablando.

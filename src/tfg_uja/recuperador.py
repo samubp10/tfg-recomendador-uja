@@ -152,9 +152,21 @@ K_MINIMO: Final[int] = 3
 K_MAXIMO: Final[int] = 20
 
 #: Cuánto más lejos que el mejor puede estar un fragmento y seguir entrando.
-#: 🔴 **Provisional.** Sale de mirar tres preguntas, no de un barrido: en ellas
-#: el salto entre lo pertinente y el ruido estaba en 1,22 y 1,25. Fijarlo en
-#: serio es IT-49, con las 50 preguntas del conjunto de evaluación.
+#: Sale de la rejilla de IT-49: 240 configuraciones sobre las 56 preguntas de
+#: dominio y las 10 ajenas del conjunto de evaluación, simuladas sobre los
+#: mismos vecinos, que es posible porque este parámetro solo decide dónde se
+#: corta una lista ya ordenada.
+#:
+#: La rejilla sola diría 1,10: la unidad que responde sigue apareciendo en las
+#: 56 preguntas y la media de fragmentos cae de 7,2 a 4,2. **Y sin embargo se
+#: queda en 1,20**, porque medido sobre el banco del sistema completo ese
+#: recorte hace perder tres respuestas de 47: dos preguntas cuyo contexto pasó
+#: de 20 a 10 y de 12 a 3 fragmentos dejaron de contestarse bien.
+#:
+#: Es la lección de este parámetro y conviene no perderla: **que la unidad
+#: correcta esté entre lo recuperado no basta para que el modelo responda con
+#: ella**. Optimizar el recuperador contra métricas de recuperación mejora la
+#: recuperación y empeora el sistema, y solo se ve midiendo el sistema entero.
 FACTOR_CORTE: Final[float] = 1.20
 
 #: Distancia por encima de la cual se considera que **nada** es pertinente.
@@ -183,11 +195,98 @@ FACTOR_CORTE: Final[float] = 1.20
 #:
 #: 🔴 Sigue sin ser un barrido: 57 preguntas no fijan un parámetro, y el valor
 #: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
-SUELO_PERTINENCIA: Final[float] = 0.142
+#: 🔬 **Fijado por la rejilla de IT-49, y es un óptimo exacto.** Medido sobre
+#: el conjunto actual, la peor pregunta legítima tiene su mejor fragmento a
+#: 0,1367 y las intrusas más próximas están a 0,1039, 0,1358 y 0,1380. En
+#: 0,137 se conservan las 56 preguntas de dominio y se rechazan 8 de las 10
+#: ajenas; cualquier valor entre 0,139 y 0,145 rechaza solo 7 sin conservar ni
+#: una más, y en 0,135 se pierde ya una legítima.
+#:
+#: **Las dos clases se solapan y ningún umbral puede separarlas**: «¿Puedo
+#: estudiar Medicina en la Escuela Politécnica Superior de Jaén?» está a 0,1039,
+#: más cerca que cincuenta preguntas legítimas. Que el suelo no sea un filtro
+#: de dominio fiable no es una limitación de este valor, sino del mecanismo.
+SUELO_PERTINENCIA: Final[float] = 0.137
+
+#: Palabras con las que alguien pide consejo en vez de preguntar un dato. Es
+#: una lista **cerrada**, y basta con que aparezca una: al contrario que en el
+#: reconocimiento de la cortesía, aquí un falso positivo no rechaza nada, solo
+#: hace que se busque con más contexto.
+_CONSEJO: Final[frozenset[str]] = frozenset("""
+    recomiendas recomiendame recomienda recomendacion recomendarias
+    recomendable aconsejas aconsejarias gusta gustan gustaria encanta
+    interesa interesan encaja encajan elegir elijo escoger escojo
+    orientacion vocacion dudo decidir
+    """.split())
+
+#: Y las fórmulas que no son una palabra suelta. Se buscan sobre el texto
+#: normalizado entero.
+_FORMULAS_DE_CONSEJO: Final[tuple[str, ...]] = (
+    "no se que estudiar",
+    "no se que carrera",
+    "no tengo claro",
+    "que estudio",
+    "que carrera",
+    "se me da bien",
+    "se me dan bien",
+)
+
+#: Lo que se le añade a una petición de consejo antes de incrustarla. La
+#: pregunta de un estudiante que no sabe qué estudiar habla de lo que le gusta
+#: ---la física, el dibujo--- y no nombra nada del corpus, así que su vector
+#: cae lejos de todo. Añadiendo los términos que sí vertebran la colección, la
+#: consulta se acerca a las fichas de titulación y a las salidas profesionales,
+#: que es justo lo que hace falta para responderla.
+TERMINOS_DEL_DOMINIO: Final[str] = (
+    "Titulaciones, grados y dobles grados de la Escuela Politécnica Superior "
+    "de Jaén, sus asignaturas y sus salidas profesionales."
+)
 
 
 class TitulacionDesconocida(ValueError):
     """El nombre de titulación no está en el catálogo del índice."""
+
+
+def pide_recomendacion(pregunta: str) -> bool:
+    """Si el mensaje pide consejo sobre qué estudiar.
+
+    Se separa del resto de preguntas porque el recuperador la trata distinto,
+    y la razón es medible. «No sé qué estudiar, me gusta la física y el dibujo
+    técnico» tenía su fragmento más próximo a 0,1466 y el suelo de pertinencia
+    está en 0,142: el sistema no recuperaba **nada** y contestaba que no había
+    encontrado información. Con «¿qué me recomiendas?» detrás, la misma frase
+    bajaba a 0,1339 y traía nueve fragmentos.
+
+    Que tres palabras decidan si el sistema responde o no es un fallo, y sobre
+    todo lo es en esta pregunta: recomendar titulaciones a quien todavía no
+    sabe cuál quiere es el cometido del asistente.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+
+    Returns:
+        ``True`` si pide consejo.
+    """
+    if palabras(pregunta) & _CONSEJO:
+        return True
+    normalizada = normalizar(pregunta)
+    return any(f in normalizada for f in _FORMULAS_DE_CONSEJO)
+
+
+def expandir(pregunta: str) -> str:
+    """Añade a la consulta los términos que vertebran la colección.
+
+    Solo se usa para buscar. Al modelo se le entrega siempre la pregunta tal
+    como la escribió el estudiante, porque lo que se corrige aquí es dónde se
+    busca, no qué se ha preguntado.
+
+    Args:
+        pregunta: Mensaje del usuario.
+
+    Returns:
+        El texto con el que se consulta el índice.
+    """
+    return f"{pregunta} {TERMINOS_DEL_DOMINIO}"
 
 
 def catalogo_del_indice(ruta_indice: Path) -> list[str]:
@@ -416,3 +515,63 @@ def recuperar(
         )
         for fila in consulta.to_list()
     ]
+
+
+def contexto_para(
+    pregunta: str,
+    tabla: Any,
+    incrustar: Incrustador,
+    respaldo: str = "",
+    **opciones: Any,
+) -> list[Fragmento]:
+    """Recupera el contexto con el que se va a responder, ya acotado.
+
+    Reúne las dos operaciones que siempre van juntas ---buscar y recortar--- y
+    es donde se trata aparte la petición de consejo, que se busca con la
+    consulta ampliada y **sin recortar**: ni suelo ni corte relativo.
+
+    Las dos excepciones tienen el mismo motivo, y es que una recomendación no
+    la responde un puñado de fragmentos parecidos a la pregunta. El suelo
+    comprueba que la pregunta se parezca a algo de la colección, y esta no se
+    parece a nada por construcción: habla de lo que le gusta al estudiante, no
+    de lo que publica la Escuela. El corte relativo hace daño por otra vía: con
+    el mejor fragmento a 0,103 dejaba entrar tres, los tres del catálogo y las
+    salidas, y **ninguno con asignaturas dentro**. Medido el 19/08/2026 con ese
+    contexto: de las once asignaturas que el modelo puso como ejemplo, siete no
+    existen en la EPSJ. No las inventó por desobedecer, sino porque no se le
+    dio ninguna y la pregunta pedía concretar.
+
+    Es la lección de siempre en este sistema, ahora por el otro lado: dar poco
+    contexto a una pregunta abierta produce invención igual que darle ninguno.
+
+    Args:
+        pregunta: Mensaje del usuario, tal cual lo escribe.
+        tabla: Tabla abierta con :func:`abrir_indice`.
+        incrustar: Incrustador de consultas.
+        respaldo: Con qué volver a buscar si la primera búsqueda vuelve vacía.
+            Lo compone :class:`tfg_uja.conversacion.Consulta`.
+        **opciones: El resto de argumentos de :func:`recuperar`.
+
+    Returns:
+        Los fragmentos que se le entregan al modelo.
+    """
+    consejo = pide_recomendacion(pregunta)
+    traidos = recuperar(
+        expandir(pregunta) if consejo else pregunta, tabla, incrustar, **opciones
+    )
+    if consejo:
+        return traidos[:K_MAXIMO]
+    fragmentos = acotar_por_distancia(traidos)
+    if fragmentos or not respaldo:
+        return fragmentos
+    # Segundo intento con la pregunta anterior delante. Medido el 20/08/2026:
+    # tras preguntar por las optativas de una titulación, «¿y cuántas son en
+    # total?» tenía su mejor fragmento a 0,1722 y se quedaba sin contexto, de
+    # modo que el sistema decía no haber encontrado información sobre lo que él
+    # mismo acababa de contestar.
+    #
+    # El reintento se hace **solo con la lista vacía**, que es un hecho
+    # comprobado y no una conjetura sobre la frase, y cuesta una búsqueda de
+    # cinco centésimas de segundo en el único caso en que la alternativa es no
+    # responder.
+    return acotar_por_distancia(recuperar(respaldo, tabla, incrustar, **opciones))

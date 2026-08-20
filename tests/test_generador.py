@@ -16,14 +16,20 @@ import pytest
 
 from tfg_uja import generador
 from tfg_uja.generador import (
+    AVISO_RESPUESTA_CORTADA,
     INSTRUCCIONES,
     RESPUESTA_DESPEDIDA,
     RESPUESTA_SALUDO,
+    RESPUESTA_SIN_CONTEXTO,
     TOPE_RESPUESTA,
     VENTANA,
+    cerrar_en_frase_completa,
+    cierre_de_conversacion,
     construir_prompt,
     cortesia,
+    cortesia_sin_contexto,
     generar,
+    responder,
 )
 from tfg_uja.recuperador import Fragmento
 
@@ -279,14 +285,20 @@ def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
 
 
 def test_las_instrucciones_prohiben_salirse_del_contexto():
-    assert "ÚNICAMENTE" in INSTRUCCIONES
-    assert "no está publicada" in INSTRUCCIONES or "no esté" in INSTRUCCIONES
+    """Se comprueba la regla, no cómo esté redactada.
+
+    La versión anterior exigía la palabra «ÚNICAMENTE» literal y saltaba al
+    reescribir el prompt más corto, que es un cambio que no toca la regla. Un
+    test sobre la redacción obliga a editarlo cada vez y deja de proteger nada.
+    """
+    assert "CONTEXTO" in INSTRUCCIONES
+    assert "suponerlo" in INSTRUCCIONES or "suponerla" in INSTRUCCIONES
 
 
 def test_las_instrucciones_distinguen_sin_guia_de_inexistente():
     """Son 86 asignaturas del corpus: el usuario tiene que poder distinguirlo."""
     assert "guía no está publicada" in INSTRUCCIONES
-    assert "no exista la asignatura" in INSTRUCCIONES
+    assert "no es lo mismo que no exista" in INSTRUCCIONES
 
 
 # --- La llamada al modelo ---
@@ -428,26 +440,26 @@ def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
 
 
-def test_el_primer_mensaje_sin_contexto_recibe_la_bienvenida(espia):
+def test_un_mensaje_que_no_pregunta_nada_recibe_la_bienvenida(espia):
     """Casi nadie abre preguntando: abre saludando, y como le sale.
 
     Medido el 18/08/2026: «hei» y «Ola buenas» no caían en el vocabulario de
     cortesía, no recuperaban nada y el sistema contestaba «no he encontrado
     información sobre eso», que responde a una pregunta que nadie había hecho.
     Enumerar las formas del saludo es una lista que nunca está completa; lo que
-    sí se sabe con certeza es que en el primer mensaje aún no se ha preguntado.
+    sí se puede comprobar es si el mensaje pregunta algo.
     """
     respuesta = generador.responder("hei", [], "un-modelo")
     assert respuesta == generador.RESPUESTA_SALUDO
     assert "cuerpo" not in espia, "no debía haberse llamado al servidor"
 
 
-def test_la_bienvenida_es_solo_del_primer_mensaje(espia):
-    """Ya avanzada la conversación, no encontrar algo sí es no encontrarlo."""
+def test_la_bienvenida_no_depende_del_turno(espia):
+    """La misma frase recibe la misma respuesta la escriba cuando la escriba."""
     respuesta = generador.responder(
         "q tal", [], "un-modelo", [("qué optativas tiene Informática", "estas")]
     )
-    assert respuesta == generador.RESPUESTA_SIN_CONTEXTO
+    assert respuesta == generador.RESPUESTA_SALUDO
 
 
 def test_con_fragmentos_si_se_consulta_al_modelo(espia):
@@ -814,3 +826,125 @@ def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
             catalogo=_CATALOGO_EPSJ,
         )
     assert "Grado en Ingeniería de Edificación" in caplog.text
+
+
+# --- Lo que enseñó la sesión del 19/08/2026 con `ministral-8b` ---
+
+
+def test_un_agradecimiento_con_mas_palabras_se_cierra_como_cortesia():
+    """Regresión: turno 5 de la sesión del 19/08/2026.
+
+    «Me gusta la idea, muchas gracias» no cabe en la cortesía estricta, que
+    exige que el mensaje entero sean fórmulas, y recibía «no he encontrado
+    información sobre eso».
+    """
+    assert cierre_de_conversacion("Me gusta la idea, muchas gracias") == (
+        RESPUESTA_DESPEDIDA
+    )
+
+
+def test_un_agradecimiento_que_ademas_pregunta_no_se_cierra():
+    """Si hay pregunta, hay que responderla aunque venga precedida de gracias."""
+    assert cierre_de_conversacion("Gracias, ¿y qué asignaturas tiene?") is None
+    assert cierre_de_conversacion("gracias, dime las optativas") is None
+
+
+def test_la_misma_pregunta_sin_contexto_responde_igual_en_todos_los_turnos():
+    """Regresión: turnos 1 y 2 de la sesión, idénticos y con respuesta distinta.
+
+    La regla anterior daba la bienvenida si era el primer mensaje y el rechazo
+    si venía después, de modo que la misma frase escrita dos veces seguidas
+    recibía dos respuestas.
+    """
+    pregunta = "No sé qué estudiar, me gusta la física y el dibujo técnico"
+    primera = responder(pregunta, [], "modelo-que-no-se-llama")
+    segunda = responder(pregunta, [], "modelo-que-no-se-llama", historial=[("a", "b")])
+    assert primera == segunda == RESPUESTA_SIN_CONTEXTO
+
+
+def test_un_saludo_sin_contexto_saluda_aunque_traiga_mas_palabras():
+    assert cortesia_sin_contexto("buenas, quiero información") == RESPUESTA_SALUDO
+
+
+def test_una_respuesta_cortada_se_cierra_en_la_ultima_frase():
+    """Regresión: «**Nota:** Todas las titul», medido en el turno 3."""
+    cortada = "Te encajan tres titulaciones. Son estas.\n\n**Nota:** Todas las titul"
+    assert cerrar_en_frase_completa(cortada) == (
+        "Te encajan tres titulaciones. Son estas."
+    )
+
+
+def test_una_lista_cortada_se_cierra_en_la_ultima_linea_completa():
+    """En una lista, lo que cierra el último elemento es el salto de línea."""
+    cortada = "- Álgebra (6 ECTS)\n- Física I (6 ECTS)\n- Cálculo (6 EC"
+    assert cerrar_en_frase_completa(cortada) == (
+        "- Álgebra (6 ECTS)\n- Física I (6 ECTS)"
+    )
+
+
+def test_un_texto_sin_ningun_cierre_se_devuelve_entero():
+    """Antes que entregar nada, se entrega lo que haya."""
+    assert cerrar_en_frase_completa("Las titulaciones de la Escuela son") == (
+        "Las titulaciones de la Escuela son"
+    )
+
+
+def test_el_aviso_de_respuesta_cortada_lo_dice_en_primera_persona():
+    """El estudiante no puede distinguir una respuesta cortada de una entera."""
+    assert "cortar" in AVISO_RESPUESTA_CORTADA
+
+
+# --- Preguntas sobre otra universidad ---
+
+
+def test_preguntar_por_otra_universidad_no_se_responde_con_la_de_aqui():
+    """Regresión: el suelo de pertinencia no puede detectar esto.
+
+    «¿La Universidad de Granada tiene Ingeniería Informática?» tiene su mejor
+    fragmento a 0,1185, más cerca que la mayoría de las preguntas legítimas,
+    porque nombra una titulación que sí existe aquí. La distancia mide parecido
+    de vocabulario y el vocabulario es casi el mismo.
+    """
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿La Universidad de Granada tiene Ingeniería Informática?"
+        )
+        == generador.RESPUESTA_OTRA_UNIVERSIDAD
+    )
+
+
+def test_la_universidad_de_jaen_si_se_responde():
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿Qué titulaciones tiene la Universidad de Jaén?"
+        )
+        is None
+    )
+
+
+def test_una_pregunta_normal_no_dispara_el_rechazo_de_centro():
+    assert (
+        generador.pregunta_por_otro_centro("¿Qué optativas tiene Informática?") is None
+    )
+
+
+def test_pedir_algo_sin_preguntar_no_recibe_la_bienvenida():
+    """Regresión: «Dame una receta de tortilla de patatas», medido el 20/08/2026.
+
+    No lleva interrogación ni palabra interrogativa, así que la regla que
+    distingue un saludo de una pregunta lo tomaba por un saludo y los tres
+    candidatos contestaron con la bienvenida en vez de decir que de eso no
+    saben. Un imperativo pide algo aunque no pregunte.
+    """
+    assert (
+        generador.responder("Dame una receta de tortilla de patatas", [], "x")
+        == generador.RESPUESTA_SIN_CONTEXTO
+    )
+
+
+def test_un_saludo_con_peticion_sigue_saludando():
+    """«Buenas, quiero información» abre la conversación: se le da la bienvenida."""
+    assert (
+        generador.responder("buenas, quiero información", [], "x")
+        == generador.RESPUESTA_SALUDO
+    )

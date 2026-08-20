@@ -27,7 +27,7 @@ from __future__ import annotations
 import re
 from typing import Final
 
-from tfg_uja.text_cleaner import normalizar
+from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Palabra que puede formar parte del nombre de una titulación, y partículas
 #: que la fuente escribe en minúscula dentro de ellos («de Organización», «y
@@ -64,8 +64,15 @@ _ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
 #: el tipo. No forma parte del nombre de la asignatura.
+#:
+#: El guion corto solo separa cuando lleva espacio delante. Pegado a la palabra
+#: es parte del nombre, y cortando ahí se partían las dos asignaturas del
+#: corpus que lo llevan: «Interacción persona-ordenador» quedaba en
+#: «Interacción persona» y «Técnicas de animación 3D y post-procesamiento» en
+#: «...y post», ninguna de las dos casaba con el corpus y las dos respuestas,
+#: que eran correctas, perdían precisión.
 _COLA: Final[re.Pattern[str]] = re.compile(
-    r"\s*[(\[–—:,-]\s*.*$|\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos).*$",
+    r"\s*[(\[–—:,]\s*.*$|\s+-\s*.*$|\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos).*$",
     re.IGNORECASE,
 )
 
@@ -167,6 +174,20 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
     Geomática» por «...y Topográfica (plan 2025)»--- sin estar inventándoselo.
     Recortar no es inventar.
 
+    Y tampoco lo es **abreviar por dentro**. El 19/08/2026 esta comprobación
+    retiró una respuesta entera y correcta ---cuatro titulaciones reales
+    recomendadas a un estudiante--- porque una de ellas venía escrita «Grado en
+    Mecánica»: ningún prefijo casa, pero todas sus palabras están en «Grado en
+    Ingeniería Mecánica». Se admite por tanto que las palabras de lo dicho sean
+    un subconjunto de las de alguna titulación real.
+
+    El coste de admitirlo es un falso negativo posible: si la Escuela ofreciera
+    un doble grado y no el simple que lo compone, el simple pasaría por bueno.
+    Se acepta porque los dos errores no son simétricos. Dejar pasar un nombre
+    de una titulación que existe en otra combinación despista; retirar una
+    recomendación correcta y decirle al estudiante que se ha inventado algo lo
+    deja sin respuesta y sin motivo.
+
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
         catalogo: Titulaciones que declara el índice.
@@ -175,11 +196,15 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
         Las que no casan con ninguna del catálogo.
     """
     reales = [normalizar(t) for t in catalogo]
+    en_palabras = [palabras(t) for t in catalogo]
     inventadas = set()
     for nombrada in titulaciones_nombradas(respuesta):
         dicha = normalizar(nombrada)
-        if not any(r.startswith(dicha) or dicha.startswith(r) for r in reales):
-            inventadas.add(nombrada)
+        if any(r.startswith(dicha) or dicha.startswith(r) for r in reales):
+            continue
+        if any(palabras(nombrada) <= reales_en for reales_en in en_palabras):
+            continue
+        inventadas.add(nombrada)
     return inventadas
 
 
@@ -203,7 +228,9 @@ def elementos_de_lista(respuesta: str) -> list[str]:
         Los nombres en el orden en que aparecen, sin créditos ni curso.
     """
     elementos = []
+    encabezado = ""
     for linea in respuesta.splitlines():
+        encabezado = _factoriza(linea) or encabezado
         encontrado = _VINETA.match(linea)
         if not encontrado:
             continue
@@ -216,13 +243,47 @@ def elementos_de_lista(respuesta: str) -> list[str]:
             continue
         nombre = _COLA.sub("", crudo).strip(" .;:")
         if nombre:
-            elementos.append(nombre)
+            elementos.append(f"{encabezado} {nombre}" if encabezado else nombre)
     if elementos:
         return elementos
     return [
         _desde_la_mayuscula(_ENFASIS.sub("", m.group(1)).strip(" .;:"))
         for m in _ENUMERADA.finditer(respuesta)
     ]
+
+
+#: Encabezado que **saca el tipo de estudios fuera** de los elementos de la
+#: lista: «**Grado en:**» seguido de «Ingeniería Informática», «Ingeniería
+#: Mecánica»... No es un capricho de redacción, es lo que hace cualquiera al
+#: enumerar doce titulaciones que empiezan igual, y es mejor prosa que repetir
+#: la fórmula doce veces.
+#:
+#: Medido el 20/08/2026: `ministral-8b` enumeró **las doce correctas** así y el
+#: cotejo devolvió «12 omitidas, 10 de más», porque comparaba «Ingeniería
+#: Informática» contra «Grado en Ingeniería Informática». Precisión y cobertura
+#: salían por los suelos en una respuesta perfecta.
+#:
+#: Solo se reconoce el encabezado que termina en «en:», que es la marca de que
+#: lo factorizado es el principio del nombre. «Primer curso:» no la lleva y no
+#: se antepone a nada, que es lo correcto: ahí lo factorizado es el curso, no
+#: parte del nombre de la asignatura.
+_ENCABEZADO_FACTOR: Final[re.Pattern[str]] = re.compile(
+    r"^[\s*_#>-]*((?:doble\s+)?grado\s+en)\s*:\s*[*_]*\s*$", re.IGNORECASE
+)
+
+
+def _factoriza(linea: str) -> str:
+    """Devuelve el prefijo que esta línea saca fuera de la lista, si lo hace.
+
+    Args:
+        linea: Línea de la respuesta, tal cual.
+
+    Returns:
+        El prefijo sin los dos puntos, o cadena vacía si la línea no es uno de
+        esos encabezados.
+    """
+    encontrado = _ENCABEZADO_FACTOR.match(linea.strip())
+    return encontrado.group(1) if encontrado else ""
 
 
 def _desde_la_mayuscula(texto: str) -> str:
@@ -296,7 +357,19 @@ def cotejar_listado(
     # La cobertura se mide sobre el texto entero y no sobre lo enumerado: da
     # igual si el modelo respondió con viñetas o en prosa, lo que se pregunta
     # es si el nombre está. Así la métrica no premia un formato sobre otro.
-    aciertos = {e for e in esperadas_norm if comparable(e) in texto}
+    #
+    # Se mira además lo enumerado, porque hay una forma de escribir el nombre
+    # que no deja rastro en el texto: sacar el tipo de estudios a un encabezado
+    # y listar debajo solo lo que cambia. La cadena «grado en ingenieria
+    # informatica» no aparece en ninguna parte de esa respuesta, y sin embargo
+    # la titulación está nombrada. `elementos_de_lista` ya devuelve el nombre
+    # recompuesto; aquí solo hay que hacerle caso.
+    enumeradas = {comparable(nucleo(d)) for d in elementos_de_lista(respuesta)}
+    aciertos = {
+        e
+        for e in esperadas_norm
+        if comparable(e) in texto or comparable(e) in enumeradas
+    }
     precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else 0.0
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos

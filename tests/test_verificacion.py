@@ -375,3 +375,98 @@ def test_sin_tipo_de_estudios_deja_intacto_lo_que_no_lo_lleva():
     assert sin_tipo_de_estudios("doble grado en ingenieria mecanica") == (
         "ingenieria mecanica"
     )
+
+
+def test_abreviar_el_nombre_por_dentro_no_es_inventarlo():
+    """Regresión: la barrera retiró una respuesta correcta el 19/08/2026.
+
+    `ministral-8b` recomendó cuatro titulaciones reales y escribió una de
+    ellas «Grado en Mecánica». Ningún prefijo casa con «Grado en Ingeniería
+    Mecánica», así que contaba como inventada y la respuesta entera se retiró.
+    """
+    catalogo = [
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería Informática",
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+    ]
+    dicho = "Te encaja el Grado en Mecánica, que tiene mucho dibujo técnico."
+    assert titulaciones_inventadas(dicho, catalogo) == set()
+
+
+def test_una_titulacion_que_no_existe_sigue_detectandose():
+    """Admitir la abreviatura no puede abrir la mano con lo inventado."""
+    catalogo = ["Grado en Ingeniería Mecánica", "Grado en Ingeniería Informática"]
+    dicho = "Te recomiendo el Grado en Ingeniería Biomédica y el Grado en Medicina."
+    assert titulaciones_inventadas(dicho, catalogo) == {
+        "Grado en Ingeniería Biomédica",
+        "Grado en Medicina",
+    }
+
+
+def test_el_guion_dentro_del_nombre_no_lo_corta():
+    """Regresión: las dos asignaturas del corpus que llevan guion.
+
+    «Interacción persona-ordenador» quedaba en «Interacción persona» y
+    «Técnicas de animación 3D y post-procesamiento» en «...y post». Ninguna
+    casaba con el corpus, y dos respuestas correctas perdían precisión.
+    """
+    assert elementos_de_lista("- **Interacción persona-ordenador** (6 ECTS)") == [
+        "Interacción persona-ordenador"
+    ]
+    assert elementos_de_lista(
+        "- Técnicas de animación 3D y post-procesamiento (6 ECTS)"
+    ) == ["Técnicas de animación 3D y post-procesamiento"]
+
+
+def test_el_guion_con_espacio_delante_sigue_separando_la_cola():
+    """Es la forma en que los modelos escriben los créditos detrás."""
+    assert elementos_de_lista("- **Álgebra** - 6 ECTS") == ["Álgebra"]
+
+
+def test_la_lista_que_factoriza_el_tipo_de_estudios_se_recompone():
+    """Regresión: `ministral-8b` enumeró las doce titulaciones correctas así.
+
+    El cotejo devolvió «12 omitidas, 10 de más» sobre una respuesta perfecta,
+    porque comparaba «Ingeniería Informática» contra «Grado en Ingeniería
+    Informática». Sacar la fórmula fuera de la lista es mejor prosa que
+    repetirla doce veces, no un error del modelo.
+    """
+    respuesta = (
+        "En la Escuela puedes estudiar estas titulaciones:\n\n"
+        "**Grado en:**\n"
+        "- Ingeniería Informática.\n"
+        "- Ingeniería Mecánica.\n\n"
+        "**Doble Grado en:**\n"
+        "- Ingeniería Eléctrica y Mecánica.\n"
+    )
+    assert elementos_de_lista(respuesta) == [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Doble Grado en Ingeniería Eléctrica y Mecánica",
+    ]
+
+
+def test_un_encabezado_de_curso_no_se_antepone_al_nombre():
+    """Ahí lo factorizado es el curso, no el principio del nombre."""
+    respuesta = "**Primer curso:**\n- Álgebra (6 ECTS)\n- Física I (6 ECTS)"
+    assert elementos_de_lista(respuesta) == ["Álgebra", "Física I"]
+
+
+def test_la_cobertura_cuenta_la_lista_factorizada():
+    """La respuesta perfecta al catálogo daba cobertura 0,000.
+
+    Al sacar «Grado en:» a un encabezado, la cadena «Grado en Ingeniería
+    Informática» no aparece en ninguna parte del texto, y la cobertura la
+    buscaba ahí. Los nombres sí están, recompuestos, entre los elementos.
+    """
+    respuesta = (
+        "En la Escuela puedes estudiar:\n\n"
+        "**Grado en:**\n- Ingeniería Informática.\n- Ingeniería Mecánica.\n"
+    )
+    esperadas = ["Grado en Ingeniería Informática", "Grado en Ingeniería Mecánica"]
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        respuesta, esperadas, set(esperadas)
+    )
+    assert precision == 1.0
+    assert cobertura == 1.0
+    assert not inventadas and not omitidas

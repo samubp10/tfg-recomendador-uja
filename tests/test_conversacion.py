@@ -331,3 +331,81 @@ def test_el_ambito_que_se_devuelve_es_una_copia():
     c.anotar("háblame de Informática", "...")
     c.ambito.clear()
     assert c.ambito == [INFORMATICA]
+
+
+# --- El nombre de un grado simple vive dentro del de los dobles ---
+
+
+def test_el_doble_grado_no_arrastra_al_simple_que_contiene():
+    """Regresión: turno 6 de la sesión del 19/08/2026 con `ministral-8b`.
+
+    La respuesta nombró el Doble Grado en Ingeniería Mecánica y Organización
+    Industrial, y el ámbito se quedó también con el Grado en Ingeniería
+    Mecánica, que nadie había mencionado. El turno siguiente pidió las
+    optativas «de esta carrera» y contestó con las de Mecánica.
+    """
+    dicho = (
+        "Es una asignatura clave en los grados de Ingeniería de Organización "
+        "Industrial y Doble Grado en Ingeniería Mecánica y Organización "
+        "Industrial."
+    )
+    assert titulaciones_de_la_respuesta(dicho, CATALOGO) == [
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial"
+    ]
+
+
+def test_si_se_nombran_las_dos_se_reconocen_las_dos():
+    """El filtro no puede tapar al simple cuando sí se ha escrito aparte."""
+    dicho = (
+        "Puedes cursar el Grado en Ingeniería Mecánica o, si prefieres las dos "
+        "cosas, el Doble Grado en Ingeniería Mecánica y Organización Industrial."
+    )
+    assert titulaciones_de_la_respuesta(dicho, CATALOGO) == [
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "Grado en Ingeniería Mecánica",
+    ]
+
+
+def test_el_simple_repetido_dentro_del_doble_sigue_sin_contar():
+    """Dos menciones del doble arrastran dos del simple, y ninguna es suya."""
+    dicho = (
+        "El Doble Grado en Ingeniería Mecánica y Organización Industrial dura "
+        "cinco cursos. El Doble Grado en Ingeniería Mecánica y Organización "
+        "Industrial comparte primero con los dos grados de origen."
+    )
+    assert titulaciones_de_la_respuesta(dicho, CATALOGO) == [
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial"
+    ]
+
+
+# --- El respaldo para la pregunta de seguimiento ---
+
+
+def test_la_pregunta_de_seguimiento_lleva_respaldo():
+    """Regresión medida el 20/08/2026 sobre el índice completo.
+
+    «¿Y cuántas son en total?» tiene palabras de contenido ---«total», «son»---
+    así que no se la trata como elíptica y se incrusta tal cual. Su mejor
+    fragmento se queda a 0,1722, por encima del suelo, y el sistema respondía
+    que no había encontrado información sobre lo que él mismo acababa de
+    contestar. El respaldo permite reintentar con el predicado delante.
+    """
+    c = Conversacion(CATALOGO)
+    primera = "¿Qué asignaturas optativas tiene el Grado en Ingeniería Informática?"
+    c.anotar(primera, "Tiene diecisiete.")
+    consulta = c.preparar("¿Y cuántas son en total?")
+    assert consulta.respaldo.startswith(primera)
+    assert consulta.respaldo.endswith("¿Y cuántas son en total?")
+
+
+def test_el_primer_mensaje_no_tiene_respaldo():
+    """Sin conversación previa no hay nada con lo que reintentar."""
+    c = Conversacion(CATALOGO)
+    assert c.preparar("¿Qué titulaciones hay?").respaldo == ""
+
+
+def test_el_respaldo_no_repite_la_misma_pregunta():
+    """Reintentar con lo mismo daría el mismo resultado vacío."""
+    c = Conversacion(CATALOGO)
+    c.anotar("¿Qué optativas tiene Informática?", "Diecisiete.")
+    assert c.preparar("¿Qué optativas tiene Informática?").respaldo == ""

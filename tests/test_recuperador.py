@@ -29,7 +29,9 @@ from tfg_uja.recuperador import (
     acotar_por_distancia,
     catalogo_del_indice,
     distancia_del_indice,
+    expandir,
     palabras_distintivas,
+    pide_recomendacion,
     recuperar,
     resolver_titulacion,
 )
@@ -547,6 +549,45 @@ def test_el_suelo_rechaza_la_pregunta_ajena_mas_proxima():
     assert acotar_por_distancia([_frag(0.148)]) == []
 
 
-def test_el_suelo_esta_dentro_de_la_separacion_medida():
-    """Si alguien lo mueve fuera de la banda, que falle aquí y no en producción."""
-    assert 0.137 < SUELO_PERTINENCIA < 0.147
+def test_el_suelo_conserva_la_peor_pregunta_legitima():
+    """La banda la fija la rejilla de IT-49, no una estimación.
+
+    Medido sobre el conjunto actual: la peor pregunta de dominio tiene su mejor
+    fragmento a 0,1367 y hay que conservarla, así que el suelo no puede bajar de
+    ahí. Por arriba, cualquier valor desde 0,139 deja pasar una intrusa más sin
+    conservar ni una pregunta legítima de más, de modo que subirlo solo empeora.
+    """
+    assert 0.1367 < SUELO_PERTINENCIA < 0.139
+    assert acotar_por_distancia([_frag(0.1367)]) != []
+    assert acotar_por_distancia([_frag(0.1380)]) == []
+
+
+# --- La petición de consejo se busca de otra manera ---
+
+
+def test_se_reconoce_a_quien_no_sabe_que_estudiar():
+    """Caso real: sin las tres últimas palabras, el sistema no recuperaba nada.
+
+    Medido el 19/08/2026 contra el índice completo: «No sé qué estudiar, me
+    gusta la física y el dibujo técnico» tenía su mejor fragmento a 0,1466, por
+    encima del suelo de 0,142, y devolvía cero fragmentos. La misma frase con
+    «¿qué me recomiendas?» detrás bajaba a 0,1339 y traía nueve.
+    """
+    assert pide_recomendacion("No sé qué estudiar, me gusta la física")
+    assert pide_recomendacion("me gustan los videojuegos, ¿qué estudio?")
+    assert pide_recomendacion("No sé qué estudiar")
+    assert pide_recomendacion("se me da bien dibujar")
+
+
+def test_una_pregunta_por_un_dato_no_es_una_peticion_de_consejo():
+    """La ampliación solo debe entrar donde hace falta."""
+    assert not pide_recomendacion("¿Qué asignaturas tiene Ingeniería Informática?")
+    assert not pide_recomendacion("¿En qué curso se imparte Física I?")
+    assert not pide_recomendacion("¿Cuántos créditos tiene Álgebra?")
+
+
+def test_la_ampliacion_conserva_la_pregunta_entera():
+    """Al modelo se le entrega lo que escribió el estudiante, no esto."""
+    ampliada = expandir("me gusta la física")
+    assert ampliada.startswith("me gusta la física")
+    assert "Escuela Politécnica Superior de Jaén" in ampliada
