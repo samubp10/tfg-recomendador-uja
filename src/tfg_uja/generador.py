@@ -529,6 +529,7 @@ def responder(
     historial: list[tuple[str, str]] | None = None,
     ambito: str | None = None,
     catalogo: list[str] | None = None,
+    traza: dict[str, object] | None = None,
 ) -> str:
     """Devuelve la respuesta del sistema a una pregunta.
 
@@ -561,6 +562,14 @@ def responder(
         ambito: Titulación a la que está acotada la búsqueda, si lo está.
         catalogo: Titulaciones que declara el índice, para que el prompt las
             enumere.
+        traza: Diccionario donde dejar constancia de lo que la barrera retira.
+            Si se pasa, y solo entonces, se rellena con las titulaciones que la
+            dispararon y con el texto retirado. El chat no lo necesita; los
+            experimentos sí, porque sin el texto no hay forma de distinguir un
+            modelo que se inventó una titulación de una barrera que descartó
+            una respuesta buena, y las dos cosas se ven igual desde fuera: una
+            respuesta de rechazo. Ya pasó ---una respuesta correcta se retiró
+            por escribir «Grado en Mecánica» en corto--- y no quedó rastro.
 
     **Lo que el modelo escribe se comprueba antes de entregarlo.** Nombrar
     una titulación que no existe es el fallo más grave del sistema ---un
@@ -598,10 +607,14 @@ def responder(
     if inventadas:
         _registro.warning(
             "Respuesta retirada: nombra titulaciones que no existen (%s). "
-            "Pregunta: %r",
+            "Pregunta: %r. Texto retirado: %r",
             ", ".join(sorted(inventadas)),
             pregunta,
+            respuesta,
         )
+        if traza is not None:
+            traza["inventadas"] = sorted(inventadas)
+            traza["retirada"] = respuesta
         return RESPUESTA_TITULACION_INVENTADA
     return respuesta
 
