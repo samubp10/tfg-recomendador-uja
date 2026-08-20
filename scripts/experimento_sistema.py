@@ -97,6 +97,8 @@ def corregir_sin_invencion(respuesta: str, catalogo: list[str]) -> tuple[bool, s
     inventadas = titulaciones_inventadas(respuesta, catalogo)
     if inventadas:
         return False, "inventa " + ", ".join(sorted(inventadas))
+    if respuesta == generador.RESPUESTA_TITULACION_INVENTADA:
+        return False, "la barrera retiró la respuesta"
     if not titulaciones_nombradas(respuesta):
         return False, "no recomienda ninguna titulación"
     return True, ""
@@ -233,7 +235,7 @@ def responder_entrada(
     incrustar: Any,
     distancia: str,
     catalogo: list[str],
-) -> tuple[str, float, int, int]:
+) -> tuple[str, float, int, int, dict[str, object]]:
     """Pasa una entrada del banco por el sistema, turno a turno.
 
     La conversación se lleva con la misma clase que usa el chat, de modo que el
@@ -250,12 +252,14 @@ def responder_entrada(
         catalogo: Titulaciones que declara el índice.
 
     Returns:
-        ``(respuesta del último turno, segundos, fragmentos, turnos)``.
+        ``(respuesta del último turno, segundos, fragmentos, turnos, traza)``,
+        donde la traza trae lo que la barrera haya retirado en el último turno.
     """
     turnos = pregunta.get("turnos") or [pregunta["pregunta"]]
     conversacion = Conversacion(catalogo)
     respuesta = ""
     fragmentos: list[Any] = []
+    traza: dict[str, object] = {}
     t0 = time.perf_counter()
     for texto in turnos:
         consulta = conversacion.preparar(texto)
@@ -269,6 +273,10 @@ def responder_entrada(
             catalogo=catalogo,
             ambito=consulta.ambito,
         )
+        # Se vacía en cada turno porque lo que se corrige es el último: una
+        # retirada de un turno intermedio contaría contra una respuesta que no
+        # es la suya.
+        traza.clear()
         respuesta = responder(
             texto,
             fragmentos,
@@ -276,9 +284,10 @@ def responder_entrada(
             historial=[(p, "") for p in conversacion.preguntas()],
             ambito=consulta.ambito[0] if len(consulta.ambito) == 1 else None,
             catalogo=catalogo,
+            traza=traza,
         )
         conversacion.anotar(texto, respuesta)
-    return respuesta, time.perf_counter() - t0, len(fragmentos), len(turnos)
+    return respuesta, time.perf_counter() - t0, len(fragmentos), len(turnos), traza
 
 
 def ejecutar(
@@ -313,7 +322,7 @@ def ejecutar(
         for modelo in modelos:
             print(f"\n=== {modelo} — {len(banco)} entradas ===")
             for i, pregunta in enumerate(banco, 1):
-                respuesta, segundos, cuantos, turnos = responder_entrada(
+                respuesta, segundos, cuantos, turnos, traza = responder_entrada(
                     pregunta, modelo, tabla, incrustar, distancia, catalogo
                 )
                 fila = {
@@ -325,6 +334,7 @@ def ejecutar(
                     "segundos": round(segundos, 2),
                     "fragmentos": cuantos,
                     "respuesta": respuesta,
+                    **traza,
                     **corregir(respuesta, pregunta, catalogo, nombres),
                 }
                 filas.append(fila)
