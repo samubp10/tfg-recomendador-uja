@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
@@ -41,6 +42,7 @@ from tfg_uja.conversacion import (  # noqa: E402
     titulaciones_de_la_respuesta,
 )
 from tfg_uja.generador import responder  # noqa: E402
+from tfg_uja.text_cleaner import palabras  # noqa: E402
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
     K_MAXIMO,
@@ -100,18 +102,44 @@ def corregir_sin_invencion(respuesta: str, catalogo: list[str]) -> tuple[bool, s
     return True, ""
 
 
-def corregir_rechazo(respuesta: str) -> tuple[bool, str]:
-    """Comprueba que a una pregunta ajena no se le recomiende una carrera.
+#: Respuestas fijas que ya son un rechazo correcto por construcción.
+_RECHAZOS_FIJOS: tuple[str, ...] = (
+    generador.RESPUESTA_SIN_CONTEXTO,
+    generador.RESPUESTA_OTRA_UNIVERSIDAD,
+)
+
+
+def corregir_rechazo(respuesta: str, catalogo: list[str]) -> tuple[bool, str]:
+    """Comprueba que a una pregunta ajena se le responda que no.
+
+    La primera versión de este criterio exigía que la respuesta **no nombrara
+    ninguna titulación**, y con eso daba por fallada la mejor de las tres que se
+    midieron: «No, no puedes estudiar Medicina en la Escuela Politécnica
+    Superior de Jaén. Las titulaciones que ofrece son...» seguida de la lista
+    correcta. Enumerar lo que sí hay después de negar lo que no hay es mejor
+    servicio, no un error, y un criterio que lo penaliza mide la parquedad en
+    vez del acierto.
+
+    Lo que sí hay que exigir son dos cosas comprobables: que no aparezca
+    ninguna titulación inventada y que la respuesta **niegue**. Una que
+    empezara «Sí, puedes estudiar Medicina aquí» no lleva negación y es
+    exactamente el fallo que este criterio busca.
 
     Args:
         respuesta: Lo que devolvió el sistema.
+        catalogo: Titulaciones que declara el índice.
 
     Returns:
         ``(acierta, detalle)``.
     """
-    dichas = titulaciones_nombradas(respuesta)
-    if dichas:
-        return False, "nombra " + ", ".join(sorted(dichas))
+    if respuesta in _RECHAZOS_FIJOS:
+        return True, ""
+    inventadas = titulaciones_inventadas(respuesta, catalogo)
+    if inventadas:
+        return False, "inventa " + ", ".join(sorted(inventadas))
+    apertura = re.split("[.!?" + chr(10) + "]", respuesta, maxsplit=1)[0]
+    if "no" not in palabras(apertura):
+        return False, "no niega lo preguntado"
     return True, ""
 
 
@@ -189,7 +217,7 @@ def corregir(
     elif criterio == "sin_invencion":
         acierta, detalle = corregir_sin_invencion(respuesta, catalogo)
     elif criterio == "rechazo":
-        acierta, detalle = corregir_rechazo(respuesta)
+        acierta, detalle = corregir_rechazo(respuesta, catalogo)
     elif criterio == "ambito":
         acierta, detalle = corregir_ambito(respuesta, pregunta, catalogo)
     else:
