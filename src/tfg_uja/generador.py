@@ -404,9 +404,15 @@ def cortesia(pregunta: str) -> str | None:
 #: Marcas de que el mensaje pregunta algo, aunque también dé las gracias. Es
 #: la condición que separa «gracias, ¿y qué asignaturas tiene?» de «me gusta la
 #: idea, muchas gracias»: la primera hay que responderla, la segunda no.
+#: Van también los imperativos de petición, que piden algo sin preguntar nada.
+#: Medido el 20/08/2026: «Dame una receta de tortilla de patatas» no lleva
+#: interrogación ni palabra interrogativa, así que los tres candidatos
+#: contestaron con la bienvenida en vez de decir que de eso no saben.
 _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
     que cual cuales cuando cuanto cuanta cuantos cuantas como donde quien
-    quienes dime cuentame hablame explicame ensename recomiendame
+    quienes dime cuentame hablame explicame ensename recomiendame dame damelo
+    muestrame ponme escribeme buscame ayudame necesito quiero busco escribe
+    haz dale informacion info
     """.split())
 
 
