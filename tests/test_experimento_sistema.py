@@ -77,6 +77,21 @@ def test_no_recomendar_ninguna_tambien_es_fallar():
     assert "ninguna" in detalle
 
 
+def test_la_retirada_de_la_barrera_se_distingue_del_silencio():
+    """Son fallos distintos y el informe los daba por el mismo.
+
+    Cuando la barrera actúa, la respuesta que queda no nombra ninguna
+    titulación ---es una frase fija--- y el criterio la suspendía por «no
+    recomienda ninguna», que se lee como si el modelo se hubiese callado.
+    Lo que pasó es lo contrario: nombró de más y se le retiró todo.
+    """
+    acierta, detalle = sistema.corregir_sin_invencion(
+        generador.RESPUESTA_TITULACION_INVENTADA, CATALOGO
+    )
+    assert not acierta
+    assert "barrera" in detalle
+
+
 # --- Preguntas ajenas al dominio ---
 
 
