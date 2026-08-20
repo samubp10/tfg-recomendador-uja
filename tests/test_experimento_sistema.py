@@ -80,20 +80,46 @@ def test_no_recomendar_ninguna_tambien_es_fallar():
 # --- Preguntas ajenas al dominio ---
 
 
-def test_no_nombrar_ninguna_titulacion_es_rechazar_bien():
-    acierta, _ = sistema.corregir_rechazo(
-        "No he encontrado información sobre eso en la web de la Escuela."
-    )
-    assert acierta
+def test_negar_y_ademas_ofrecer_lo_que_si_hay_es_rechazar_bien():
+    """Regresión: el criterio anterior daba por fallada la mejor respuesta.
 
-
-def test_recomendar_una_carrera_a_quien_pregunta_otra_cosa_es_fallar():
-    """Aunque la titulación exista: la pregunta era de otro centro."""
+    `granite4.1:8b` y `gemma3:12b` contestaron «No, no puedes estudiar Medicina
+    en la Escuela Politécnica Superior de Jaén. Las titulaciones que ofrece
+    son...» con la lista correcta, y el criterio las suspendía por nombrar
+    titulaciones. Enumerar lo que sí hay después de negar lo que no hay es
+    mejor servicio, no un error.
+    """
     acierta, detalle = sistema.corregir_rechazo(
-        "En la Escuela puedes estudiar el Grado en Ingeniería Informática."
+        "No, no puedes estudiar Medicina en la Escuela. Las titulaciones que "
+        "ofrece son el Grado en Ingeniería Informática y el Grado en "
+        "Ingeniería Mecánica.",
+        CATALOGO,
+    )
+    assert acierta, detalle
+
+
+def test_afirmar_lo_que_no_existe_es_fallar():
+    """Es el fallo que este criterio busca de verdad."""
+    acierta, detalle = sistema.corregir_rechazo(
+        "Sí, en la Escuela puedes estudiar el Grado en Ingeniería Informática.",
+        CATALOGO,
     )
     assert not acierta
-    assert "Informática" in detalle
+    assert "niega" in detalle
+
+
+def test_una_titulacion_inventada_falla_aunque_niegue():
+    acierta, detalle = sistema.corregir_rechazo(
+        "No, aquí no hay Medicina, pero tienes el Grado en Ingeniería Biomédica.",
+        CATALOGO,
+    )
+    assert not acierta
+    assert "Biomédica" in detalle
+
+
+def test_la_respuesta_fija_de_contexto_vacio_es_un_rechazo_valido():
+    acierta, _ = sistema.corregir_rechazo(generador.RESPUESTA_SIN_CONTEXTO, CATALOGO)
+    assert acierta
 
 
 # --- Ámbito de la conversación ---
