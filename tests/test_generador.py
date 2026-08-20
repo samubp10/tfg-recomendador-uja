@@ -926,3 +926,25 @@ def test_una_pregunta_normal_no_dispara_el_rechazo_de_centro():
     assert (
         generador.pregunta_por_otro_centro("¿Qué optativas tiene Informática?") is None
     )
+
+
+def test_pedir_algo_sin_preguntar_no_recibe_la_bienvenida():
+    """Regresión: «Dame una receta de tortilla de patatas», medido el 20/08/2026.
+
+    No lleva interrogación ni palabra interrogativa, así que la regla que
+    distingue un saludo de una pregunta lo tomaba por un saludo y los tres
+    candidatos contestaron con la bienvenida en vez de decir que de eso no
+    saben. Un imperativo pide algo aunque no pregunte.
+    """
+    assert (
+        generador.responder("Dame una receta de tortilla de patatas", [], "x")
+        == generador.RESPUESTA_SIN_CONTEXTO
+    )
+
+
+def test_un_saludo_con_peticion_sigue_saludando():
+    """«Buenas, quiero información» abre la conversación: se le da la bienvenida."""
+    assert (
+        generador.responder("buenas, quiero información", [], "x")
+        == generador.RESPUESTA_SALUDO
+    )
