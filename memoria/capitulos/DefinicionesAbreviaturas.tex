@@ -8,48 +8,42 @@ a lo largo de la memoria, ordenados alfabéticamente.
 
 \begin{description}          
   
-  \item[Alucinación] Respuesta de un modelo de lenguaje que resulta
+  \item[\gldestino{alucinacion}Alucinación] Respuesta de un modelo de lenguaje que resulta
         lingüísticamente plausible pero factualmente incorrecta. Es el riesgo que
         motiva el uso de una arquitectura RAG en este trabajo: un modelo sin
         fuentes puede inventar asignaturas o planes de estudio que no existen.
         
-  \item[Autoatención (\textit{self-attention})] Mecanismo central de la
+  \item[\gldestino{autoatención}Autoatención (\textit{self-attention})] Mecanismo central de la
         arquitectura Transformer que calcula la representación de cada palabra
         ponderando la información del resto de palabras de la secuencia según su
         relevancia, sin importar la distancia que las separa.
         
-  \item[Base de datos vectorial] Sistema de almacenamiento especializado en
+  \item[\gldestino{base de datos vectorial}Base de datos vectorial] Sistema de almacenamiento especializado en
         guardar incrustaciones y recuperar las más parecidas a una consulta según
         su similitud, en lugar de por coincidencia exacta de palabras.
         
-  \item[Bolsa de palabras (\textit{Bag of Words})] Representación
-        clásica de un texto que cuenta cuántas veces aparece cada palabra,
-        ignorando el orden y el contexto. Produce vectores dispersos y es la
-        técnica a la que las incrustaciones densas vinieron a sustituir. Véase
-        también BOW.
-        
-  \item[Colección documental] Conjunto de textos, extraídos y depurados, que
+  \item[\gldestino{colección documental}Colección documental] Conjunto de textos, extraídos y depurados, que
         constituye la única fuente de conocimiento del sistema. En este trabajo la
         forman las guías docentes, los planes de estudio y las salidas
         profesionales de la EPSJ.
         
-  \item[Corpus] Colección de textos que se utiliza para entrenar o evaluar
+  \item[\gldestino{corpus}Corpus] Colección de textos que se utiliza para entrenar o evaluar
         un modelo de lenguaje. En este trabajo, el término se usa también para la
         colección documental extraída de la web de la EPSJ.
         
-  \item[Exhaustividad (\textit{Recall@K})] \textcolor{borrador2}{Métrica de
+  \item[\gldestino{exhaustividad}Exhaustividad (\textit{Recall@K})] \textcolor{borrador2}{Métrica de
         recuperación que mide qué proporción de los fragmentos que hacían falta
         para responder aparecen entre los $K$ primeros resultados. No juzga la
         respuesta, sino el material con el que el modelo va a contar para
         redactarla. Su definición formal es la Ecuación~\ref{eq:recall_at_k}.}
 
-  \item[Fidelidad del índice] \textcolor{borrador2}{Grado en que una base de
+  \item[\gldestino{fidelidad del índice}Fidelidad del índice] \textcolor{borrador2}{Grado en que una base de
         datos vectorial devuelve exactamente los mismos vecinos que la búsqueda
         exacta sobre los mismos vectores. Es una propiedad de la herramienta de
         almacenamiento, y se comprueba comparándola con una búsqueda por fuerza
         bruta que sirve de referencia.}
 
-  \item[Fidelidad de la respuesta (\textit{faithfulness})]
+  \item[\gldestino{fidelidad de la respuesta}Fidelidad de la respuesta (\textit{faithfulness})]
         \textcolor{borrador2}{Grado en que lo que afirma una respuesta generada
         está respaldado por los fragmentos que se le entregaron como contexto.
         Es una propiedad del modelo de lenguaje, no del almacenamiento, y es lo
@@ -57,29 +51,29 @@ a lo largo de la memoria, ordenados alfabéticamente.
         fidelidad del índice: son medidas distintas, sobre piezas distintas del
         sistema y en momentos distintos.}
 
-  \item[Fragmentación (\textit{chunking})] Proceso de dividir cada documento
+  \item[\gldestino{chunking}Fragmentación (\textit{chunking})] Proceso de dividir cada documento
         de la colección en fragmentos de un tamaño manejable para el modelo de
         incrustaciones, procurando que cada uno conserve sentido por sí solo.
         
-  \item[Fragmento (\textit{chunk})] Cada una de las piezas de texto
+  \item[\gldestino{fragmento}Fragmento (\textit{chunk})] Cada una de las piezas de texto
         resultantes de la fragmentación. Es la unidad mínima que el sistema
         recupera y entrega al modelo de lenguaje como contexto.
 
-  \item[Generación aumentada por recuperación] Arquitectura que, antes
+  \item[\gldestino{generación aumentada por recuperación}Generación aumentada por recuperación] Arquitectura que, antes
         de responder, busca en una colección documental los fragmentos relevantes
         para la pregunta y se los entrega al modelo de lenguaje como contexto, de
         modo que su respuesta se apoye en documentos reales y verificables. Véase
         también RAG.
 
-  \item[Guía docente] Documento oficial que publica la universidad para cada
+  \item[\gldestino{guía docente}Guía docente] Documento oficial que publica la universidad para cada
         asignatura, con su resumen, sus requisitos previos y su temario.
         
-  \item[Incrustación (\textit{embedding})] Representación de un texto como un
+  \item[\gldestino{incrustacion}Incrustación (\textit{embedding})] Representación de un texto como un
         vector numérico, construida de forma que los textos con significados
         parecidos queden próximos entre sí. Es lo que permite buscar por
         significado y no solo por palabras literales.
         
-  \item[Minería de textos y datos] \textcolor{borrador2}{Toda técnica analítica
+  \item[\gldestino{Minería de textos y datos}Minería de textos y datos] \textcolor{borrador2}{Toda técnica analítica
         automatizada destinada a analizar textos y datos en formato digital con
         el fin de generar información, ya sean pautas, tendencias o
         correlaciones. La definición es la que recoge el artículo 66.1 del Real
@@ -87,65 +81,61 @@ a lo largo de la memoria, ordenados alfabéticamente.
         alcance legal: es el supuesto bajo el que se ampara la extracción
         automatizada realizada en este trabajo (Sección~\ref{secc:marcolegal}).}
 
-  \item[Integración Continua] Práctica de ingeniería que ejecuta de forma
+  \item[\gldestino{integración continua}Integración Continua] Práctica de ingeniería que ejecuta de forma
         automática la batería de pruebas cada vez que se sube código al
         repositorio, de modo que un fallo se detecta en el momento de introducirlo.
         
-  \item[Kanban] Método ágil de gestión del trabajo basado en la
+  \item[\gldestino{Kanban}Kanban] Método ágil de gestión del trabajo basado en la
         visualización del flujo de tareas en un tablero y en limitar el trabajo
         en curso. Es la metodología con la que se ha gestionado este proyecto.
         
-  \item[Marcador de posición (\textit{placeholder})] Fila de una tabla que no
-        representa una asignatura real, sino un hueco genérico (por ejemplo,
-        <<Optativa 1>>). Se descarta durante la validación de los datos.
-        
-  \item[Modelo de lenguaje grande (LLM)] Sistema computacional entrenado
+  \item[\gldestino{modelo de lenguaje grande}Modelo de lenguaje grande (LLM)] Sistema computacional entrenado
         sobre grandes volúmenes de texto para predecir la palabra más probable a
         partir del contexto anterior, capacidad de la que emergen la generación y
         la comprensión de lenguaje natural que exhiben estos modelos.
         
-  \item[Rango recíproco medio (\textit{Mean Reciprocal Rank}, MRR)]
+  \item[\gldestino{rango recíproco medio}Rango recíproco medio (\textit{Mean Reciprocal Rank}, MRR)]
         \textcolor{borrador2}{Métrica de recuperación que premia colocar el
         primer resultado correcto lo más arriba posible, y no solo colocarlo:
         toma el inverso de la posición en que aparece y lo promedia sobre todas
         las preguntas. Su definición formal es la Ecuación~\ref{eq:mrr}.}
 
-  \item[Rastreador web (\textit{spider})] Programa que recorre de forma
+  \item[\gldestino{spider}Rastreador web (\textit{spider})] Programa que recorre de forma
         automática las páginas de un sitio web siguiendo sus enlaces, para extraer
         de ellas datos estructurados.
 
-  \item[Señal semántica] Parte del significado de un
+  \item[\gldestino{señal semántica}Señal semántica] Parte del significado de un
         texto que su incrustación consigue representar. Un fragmento centrado en un
         único asunto produce un vector que apunta con claridad hacia él, uno que
         mezcla asuntos distintos produce un vector intermedio entre todos ellos, que
         no representa bien a ninguno. De ahí la expresión <<diluir la señal
         semántica>>.
         
-  \item[\textit{Slug}] Parte final de una dirección web que identifica el
+  \item[\gldestino{slug}\textit{Slug}] Parte final de una dirección web que identifica el
         recurso concreto.
         
-  \item[Test de Holland] Instrumento de
+  \item[\gldestino{test de Holland}Test de Holland] Instrumento de
         orientación vocacional que clasifica los intereses profesionales de una
         persona en seis tipos (realista, investigador, artístico, social,
         emprendedor, convencional) y los compara con perfiles de puestos o
         estudios afines, para sugerir cuáles encajan mejor con la persona
         evaluada.
         
-  \item[\textit{Token}] Unidad mínima de texto con la que opera un modelo de
+  \item[\gldestino{token}\textit{Token}] Unidad mínima de texto con la que opera un modelo de
         lenguaje (una palabra, una parte de palabra o un signo de puntuación). Los
         modelos no procesan caracteres ni palabras completas, sino secuencias de
         \textit{tokens}.
         
-  \item[Trabajo en curso (\textit{Work In Progress}, WIP)] Número de tareas
+  \item[\gldestino{trabajo en curso}Trabajo en curso (\textit{Work In Progress}, WIP)] Número de tareas
         abiertas simultáneamente. Limitarlo es la regla central de Kanban: obliga a
         terminar antes de empezar algo nuevo.
         
-  \item[Transformador (\textit{Transformer})] Arquitectura de red neuronal
+  \item[\gldestino{transformador}Transformador (\textit{Transformer})] Arquitectura de red neuronal
         basada en el mecanismo de autoatención, que prescinde de la recurrencia y
         permite procesar las secuencias en paralelo. Es la base arquitectónica de
         los modelos de lenguaje grandes actuales.
         
-  \item[Ventana de contexto] Cantidad máxima de texto,
+  \item[\gldestino{ventana de contexto}Ventana de contexto] Cantidad máxima de texto,
         medida en \textit{tokens}, que un modelo puede procesar en una sola
         operación. El texto que excede ese límite se descarta sin aviso, por lo que
         la ventana del modelo de incrustaciones es la que fija el tamaño máximo
@@ -156,37 +146,34 @@ a lo largo de la memoria, ordenados alfabéticamente.
 \section{Abreviaturas y acrónimos}
 
 \begin{description}          
-  \item[ADR] Registro de decisión de arquitectura (\textit{Architecture
+  \item[\gldestino{ADR}ADR] Registro de decisión de arquitectura (\textit{Architecture
           Decision Record}). Documento breve que deja constancia de una decisión
         técnica, sus alternativas y sus motivos.
-  \item[BOW] Bolsa de palabras (\textit{Bag of Words}).
-  \item[CI] Integración continua (\textit{Continuous Integration}).
-  \item[DQA] Evaluación de calidad de datos (\textit{Data Quality
+  \item[\gldestino{CI}CI] Integración continua (\textit{Continuous Integration}).
+  \item[\gldestino{DQA}DQA] Evaluación de calidad de datos (\textit{Data Quality
           Assessment}). Registro con el mismo rigor que un ADR, pero para
         anomalías de calidad de datos en lugar de decisiones de arquitectura:
         qué se observó en la fuente, dónde y qué tratamiento recibió.
-  \item[ECTS] Sistema europeo de transferencia y acumulación de créditos.
-  \item[EPSJ] Escuela Politécnica Superior de Jaén.
-  \item[HTML] Lenguaje de marcado de hipertexto, en el que se publican las
+  \item[\gldestino{ECTS}ECTS] Sistema europeo de transferencia y acumulación de créditos.
+  \item[\gldestino{EPSJ}EPSJ] Escuela Politécnica Superior de Jaén.
+  \item[\gldestino{HTML}HTML] Lenguaje de marcado de hipertexto, en el que se publican las
         páginas web de las que se extraen los datos.
-  \item[IA] Inteligencia Artificial.
-  \item[LLM] Modelo de lenguaje grande (\textit{Large Language Model}).
-  \item[MoSCoW] Técnica de priorización que clasifica las tareas en
+  \item[\gldestino{IA}IA] Inteligencia Artificial.
+  \item[\gldestino{LLM}LLM] Modelo de lenguaje grande (\textit{Large Language Model}).
+  \item[\gldestino{MoSCoW}MoSCoW] Técnica de priorización que clasifica las tareas en
         \textit{Must}, \textit{Should}, \textit{Could} y \textit{Won't}.
-  \item[MRR] \textcolor{borrador2}{Rango recíproco medio (\textit{Mean
+  \item[\gldestino{MRR}MRR] \textcolor{borrador2}{Rango recíproco medio (\textit{Mean
           Reciprocal Rank}).}
-  \item[NLG] Generación de lenguaje natural (\textit{Natural Language
+  \item[\gldestino{NLG}NLG] Generación de lenguaje natural (\textit{Natural Language
           Generation}), la vertiente del PLN dedicada a producir texto.
-  \item[NLP] Procesamiento del lenguaje natural (\textit{Natural Language
+  \item[\gldestino{NLP}NLP] Procesamiento del lenguaje natural (\textit{Natural Language
           Processing}); véase PLN.
-  \item[PLN] Procesamiento del lenguaje natural.
-  \item[RAG] Generación aumentada por recuperación (\textit{Retrieval-Augmented Generation}).
-  \item[SFT] Ajuste supervisado de instrucciones (\textit{Supervised
-          Fine-Tuning}), fase del postentrenamiento de un LLM.
-  \item[TFG] Trabajo Fin de Grado.
-  \item[TGBA] Tasa Global Bruta de Abandono.
-  \item[TGNA] Tasa Global Neta de Abandono.
-  \item[UJA] Universidad de Jaén.
-  \item[URL] Localizador uniforme de recursos; la dirección de una página web.
-  \item[WIP] Trabajo en curso (\textit{Work In Progress}).
+  \item[\gldestino{PLN}PLN] Procesamiento del lenguaje natural.
+  \item[\gldestino{RAG}RAG] Generación aumentada por recuperación (\textit{Retrieval-Augmented Generation}).
+  \item[\gldestino{TFG}TFG] Trabajo Fin de Grado.
+  \item[\gldestino{TGBA}TGBA] Tasa Global Bruta de Abandono.
+  \item[\gldestino{TGNA}TGNA] Tasa Global Neta de Abandono.
+  \item[\gldestino{UJA}UJA] Universidad de Jaén.
+  \item[\gldestino{URL}URL] Localizador uniforme de recursos; la dirección de una página web.
+  \item[\gldestino{WIP}WIP] Trabajo en curso (\textit{Work In Progress}).
 \end{description}
