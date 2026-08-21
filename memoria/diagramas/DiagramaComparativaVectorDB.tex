@@ -1,0 +1,47 @@
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\textwidth}{!}{%
+    \begin{tikzpicture}[node distance=0.7cm and 1.5cm]
+      % Entrada comun: la coleccion y las preguntas se incrustan una sola vez.
+      % Es el argumento de validez del experimento, asi que el diagrama lo pone
+      % en el centro: un unico juego de vectores del que salen las cuatro ramas.
+      \node[nodoDiag] (chunks) {Colección\\de fragmentos};
+      \node[nodoDiag, below=0.8cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
+      \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\textit{embeddings}};
+      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15,
+            right=1.1cm of emb] (vec)
+        {Vectores\\{\scriptsize incrustados}\\{\scriptsize una sola vez}};
+
+      % Las tres candidatas y la linea base reciben exactamente los mismos vectores.
+      \node[nodoDiag, right=2.6cm of vec, yshift=2.5cm]  (a) {ChromaDB};
+      \node[nodoDiag, right=2.6cm of vec, yshift=0.9cm]  (b) {LanceDB};
+      \node[nodoDiag, right=2.6cm of vec, yshift=-0.7cm] (c) {Qdrant};
+      \node[nodoDiag, right=2.6cm of vec, yshift=-3.9cm] (n) {NumPy\\{\scriptsize fuerza bruta}};
+
+      \node[nodoDiag, right=2.4cm of b, yshift=-0.8cm] (fid)
+        {Fidelidad frente\\a la búsqueda exacta};
+
+      \draw[flechaDiag] (chunks) -- (emb);
+      \draw[flechaDiag] (preg.east) -- ++(0.5,0) |- (emb.west);
+      %\draw[flechaDiag] (emb.east) -- ++(0.3,0) |- (vec.north);
+       \draw[flechaDiag] (emb.east) -- (vec.west);
+      \draw[flechaDiag] (vec.east) -- (a.west);
+      \draw[flechaDiag] (vec.east) -- (b.west);
+      \draw[flechaDiag] (vec.east) -- (c.west);
+      \draw[flechaDiag] (vec.east) -- (n.west);
+      \draw[flechaDiag] (a.east) -- (fid.west);
+      \draw[flechaDiag] (b.east) -- (fid.west);
+      \draw[flechaDiag] (c.east) -- (fid.west);
+      \draw[flechaDiag, dashed] (n.east) -- (fid.south);
+
+      \begin{scope}[on background layer]
+        \node[grupoDiag, fit=(a)(b)(c), inner sep=16pt,
+              label={[tituloGrupo]north:Candidatas}] {};
+        \node[grupoDiag, fit=(n), inner sep=12pt,
+              label={[tituloGrupo, anchor=north]south:Línea base, no es candidata}] {};
+      \end{scope}
+    \end{tikzpicture}%
+  }
+  \caption[Diseño de la comparativa de bases de datos vectoriales]{Diagrama que muestra el proceso experimental realizado para evaluar las bases de datos vectoriales. Fuente: elaboración propia.}
+  \label{fig:comparativa_vectordb}
+\end{figure}
