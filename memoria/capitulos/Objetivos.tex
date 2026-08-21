@@ -1,7 +1,7 @@
 \chapter{OBJETIVOS}
 \label{cap:objetivos}
 
-La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de generación aumentada por recuperación (RAG) sobre un modelo de lenguaje de \sout{código abierto (o pesos abiertos)} \textcolor{borrador2}{pesos abiertos} ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
+La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de generación aumentada por recuperación (RAG) sobre un modelo de lenguaje de pesos abiertos ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
 
 \section{Objetivo general}
 
@@ -9,7 +9,7 @@ Diseñar, implementar y evaluar un sistema conversacional capaz de responder, a
 partir de información oficial y actualizada, preguntas de estudiantes
 preuniversitarios sobre las titulaciones de la Escuela Politécnica Superior de
 Jaén, empleando una arquitectura de generación aumentada por recuperación (RAG)
-sobre un modelo de lenguaje de \sout{código abierto} \textcolor{borrador2}{pesos abiertos} ejecutado en local.
+sobre un modelo de lenguaje de pesos abiertos ejecutado en local.
 
 \section{Objetivos específicos}
 
@@ -34,23 +34,7 @@ sobre un modelo de lenguaje de \sout{código abierto} \textcolor{borrador2}{peso
         chat accesible y sin registro.
 \end{itemize}
 
-\begin{borrador}                                                                        
-  \item \textbf{Reformular un objetivo para que encaje con lo hecho es exactamente lo
-    que un tribunal llama mover la portería}, salvo que se declare. Por eso el
-  parámetro sin validar no desaparece: baja a las amenazas a la validez del
-  Capítulo~\ref{cap:resultados} y a trabajo futuro en el
-  Capítulo~\ref{cap:conclusiones}. Si lo quitas de aquí y no lo pones allí, el cambio
-  deja de ser honesto y pasa a ser cosmético.
-  \item \textbf{Alternativa, por si prefieres no reformular:} hacer el experimento. Sería
-  comparar dos o tres juegos de parámetros con las mismas métricas de recuperación
-  del conjunto de IT-27. No es caro ---el guion ya existe---, pero obliga a
-  re-fragmentar y reindexar, y con la entrega el 03/09 compite con IT-31 y con la
-  Fase 2. Es tu decisión de calendario, no mía.
-  \item \textbf{Comprobado además:} ni OE2 ni OE3 tienen ningún requisito de usuario
-  trazado hasta ellos en la Tabla~\ref{tab:requisitos_usuario}. No es un defecto
-  ---son objetivos técnicos internos--- pero si alguien pregunta por la trazabilidad
-  completa, conviene tener la respuesta preparada.
-\end{borrador}
+
 
 \section{Hipótesis de trabajo}
 \label{secc:hipotesis}
@@ -65,7 +49,7 @@ La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro c
 \begin{enumerate}                                      
   \item El recuperador del RAG deberá situar la unidad de la cual sacar la información entre
         los cinco primeros resultados en al menos el 90\,\% de las preguntas, medido con
-        \textit{Recall@5} \textbf{por unidad} sobre un conjunto de 50
+        \textit{Recall@5} por unidad sobre un conjunto de 50
         preguntas de prueba.
         
   \item Ninguna respuesta del sistema tiene que contener información sobre un dato de una
@@ -83,23 +67,6 @@ La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro c
         
 \end{enumerate}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 1 --- pendiente de tarjeta.
-  \item \textbf{Qué se quitó del enunciado el 05/08/2026 y por qué.} Decía «\emph{una
-    aplicación web de chat accesible y sin registro}». Eso es el \textbf{envase} ---cómo se
-  sirve el sistema--- y ya está dicho en el OE6 y en los requisitos de usuario, de modo que
-  aquí solo duplicaba. Además no puede resultar falso: que se puede construir una aplicación
-  web de chat no hay que demostrarlo, y una hipótesis tiene que ser algo que podría salir mal.
-  No se pierde nada: sigue estando donde le toca.
-  \item \textbf{Qué se conservó.} «\emph{Con un sistema RAG}» tampoco es una afirmación
-  falsable ---es una decisión de diseño, y se justifica en el
-  Capítulo~\ref{cap:materialesymetodos}---, pero se queda porque acota de qué sistema se
-  habla. Sin eso, la hipótesis no diría sobre qué se está afirmando nada.
-  \item \textbf{Lo que va en turquesa es lo que hace falsable la frase, y hay que
-    reescribirlo con tus palabras:} que el sistema responde apoyándose en la documentación
-  oficial y no en lo que el modelo se supiera de antes. Eso sí puede fallar, y es lo que el
-  trabajo entero se dedica a sostener. La condición 2 lo mide.
-\end{borrador}
 
 \section{Restricciones del proyecto}
 
@@ -118,7 +85,7 @@ Los requisitos del sistema se han dividido en dos grupos. Por un lado, los requi
 
 \subsection{Requisitos de usuario}
 
-Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad MoSCoW y el objetivo con el que se relacionan.
+Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad \sig{MoSCoW} y el objetivo con el que se relacionan.
 
 \input{tablas/TablaRequisitosUsuario.tex}
 
@@ -127,4 +94,5 @@ Los requisitos de usuario se formulan desde la perspectiva del estudiante preuni
 
 \begin{borrador}                                                                                                                
   \item \textbf{Fase:} 1 (IT-59) --> Aún no se sabe el modelo de LLM
+  \item Decir las especificaciones del sistema pero que un hardware más potente lo correría más rápido y mejor.
 \end{borrador}
