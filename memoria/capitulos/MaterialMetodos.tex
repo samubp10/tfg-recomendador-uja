@@ -4,14 +4,14 @@
 Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Revisar introducción antes de dar por cerrador el capítulo}
+  \item \textbf{Revisar introducción en la Fase 5 cuando se hayan cerrados las fases anteriores}
 \end{borrador}
 
 \section{Metodología de trabajo}
 
-Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la  y los cambios del mismo.
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios del mismo.
 
-Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, integración continua y un estándar de calidad.
+Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
 \begin{borrador}
   \item \textbf{Falta una palabra en el párrafo anterior:} <<los descubrimientos realizados
@@ -66,7 +66,7 @@ Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la ra
 
 \subsection{Integración Continua (CI) y automatización de pruebas}
 \label{secc:Integracion_continua}
-El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (CI) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
+El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (\sig{CI}) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
@@ -352,7 +352,7 @@ El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a 
 
 \section{Arquitectura del sistema}
 
-Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las URL rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
+Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
 \textcolor{red}{No se comienzan los párrafos con 'Y'}
 
@@ -618,7 +618,7 @@ Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer
 Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
 
 \begin{itemize}                                                                                                                                                    
-  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \textit{slugs} inconsistentes en el cuerpo de las páginas.
+  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \glr{slugs}{slug} inconsistentes en el cuerpo de las páginas.
   \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
   \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
   \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
