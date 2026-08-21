@@ -14,7 +14,12 @@
 \textcolor{blue}{[sbp] Este comentario se ha quedado cortado.}
 
 
-Este capítulo sitúa el punto de partida del trabajo. Primero se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios: los recursos que tienen a su alcance y los problemas de accesibilidad y legibilidad que presentan. A continuación se examina el estado del arte, es decir, los asistentes conversacionales y sistemas de recomendación que ya intentan resolver un problema parecido, para delimitar qué hueco viene a cubrir este trabajo. Por último, se recoge el marco legal y ético que condiciona su diseño.
+Este capítulo sitúa el punto de partida del trabajo. Primero se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios tales como recursos que tienen a su alcance y los problemas de accesibilidad y legibilidad que presentan. A continuación se examina el estado del arte, es decir, los asistentes conversacionales y sistemas de recomendación que ya intentan resolver un problema parecido, para delimitar qué hueco viene a cubrir este trabajo. Por último, se recoge el marco legal y ético que condiciona su diseño.
+
+\begin{borrador}
+  \item Introducción viva, revisar en la fase 5
+  \item Hay que revisar este capítulo, puesto que al inicio se habla de los recursos de orientación existentes y sus limitaciones y luego se pasa de apartado a estado del arte y en este también se explican otros recursos como chatbots, sistemas de recomendación educativos 
+\end{borrador}
 
 \section{La orientación académica preuniversitaria}
 
@@ -25,7 +30,7 @@ La orientación académica preuniversitaria tiene como finalidad ayudar al alumn
 
 Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso materializadas en la nota de corte y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
 
-Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (TGNA) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (TGBA) de esa misma cohorte alcanzó el 25,72\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
+Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (\sig{TGNA}) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (\sig{TGBA}) de esa misma cohorte alcanzó el 25,72\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
 
 
 
@@ -53,15 +58,14 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \section{Estado del arte}
 \label{secc:estado_arte}
 
-Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema: qué es un modelo de lenguaje y por qué alucina, en qué consiste la generación aumentada por recuperación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
+Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema, qué es un modelo de lenguaje y por qué alucina, en qué consiste la generación aumentada por recuperación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
 
-\begin{borrador}                        
-  \item \textbf{La frase puente al Capítulo~\ref{cap:materialesymetodos}:} «las decisiones
-  concretas que se han tomado sobre cada una de estas tecnologías, junto con las alternativas
-  descartadas, se justifican en el Capítulo~4». Era lo que hacía cumplir la regla que separa
-  los dos capítulos ---aquí \emph{qué existe}, allí \emph{qué se eligió}--- y avisaba al
-  lector de que las decisiones llegan después. Sin ella, quien lea este capítulo puede
-  echarlas en falta.
+Las decisiones concretas de cada tecnología junto con las alternativas descartadas se justifican en el Capítulo~\ref{cap:materialesymetodos}.
+
+
+
+\begin{borrador}  
+  \item texto introductorio vivo, a revisar en la fase 5                      
 \end{borrador}
 
 
@@ -71,9 +75,11 @@ Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolve
 
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
 
-El Procesamiento del Lenguaje Natural (PLN, o NLP por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Los transformadores, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM): un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores.
+El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}.
 
-Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en inglés) son aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado; estas se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
+Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM). Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
+
+Estos modelos sufren de un gran problema por lo que son gravemente criticados, y estas son las alucinaciones. Estas consisten en la generación de lenguaje natural (\sig{NLG}, por sus siglas en inglés) con aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado y se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
 
 \begin{itemize}                                        
   \item \textbf{Alucinaciones intrínsecas:} El modelo genera información que contradice directamente los datos o el texto proporcionado como fuente.
@@ -82,7 +88,7 @@ Las alucinaciones en la generación de lenguaje natural (NLG, por sus siglas en 
 
 Uno de los factores por los que los modelos podrían alucinar son los datos de entrada, dado que muchos conjuntos de datos se construyen de forma automatizada, emparejando fuentes con textos de referencia que contienen información extra (por ejemplo, emparejar una tabla de datos de Wikipedia con el primer párrafo del artículo, el cual suele contener más datos que la tabla)\cite{ji2023hallucination}.
 
-Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios: inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la Escuela Politécnica Superior de Jaén (EPSJ), la respuesta incluye información falsa: oferta titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas.
+Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios tales como inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la Escuela Politécnica Superior de Jaén (EPSJ), la respuesta incluye información falsa, tal como la oferta de titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas. Esto es un claro ejemplo de alucinación extrínseca dado que ha sacado la información de la página web, pero es que además ha añadido más carreras que aunque sí que se den en otras escuelas superiores, no es el caso de la EPSJ.
 
 \begin{figure}[H]
   \centering
@@ -96,7 +102,7 @@ Esto podría conllevar una inaceptable mala orientación a futuros estudiantes u
   \label{fig:alucinacion_deepseek}
 \end{figure}
 
-Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de generación aumentada por recuperación (RAG) que se describe en el apartado siguiente: no elimina por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales.
+Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de generación aumentada por recuperación (RAG) que se describe en el apartado siguiente, su objetivo no es eliminar por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales y verídicos.
 
 \subsection[Generación aumentada por recuperación (RAG)]{Generación aumentada por recuperación (RAG)}
 \label{subsec:rag_concepto}
@@ -105,7 +111,7 @@ Los modelos de lenguaje almacenan en sus parámetros parte del conocimiento adqu
 
 La generación aumentada por recuperación fue propuesta por Lewis et al.~\cite{lewis2020rag} como una arquitectura que combina la memoria paramétrica de un modelo de lenguaje con una memoria externa formada por una colección de documentos. Ante una consulta, el sistema recupera primero los textos que considera más relevantes y los proporciona al modelo como contexto para generar la respuesta. De esta forma, el conocimiento almacenado en los parámetros no constituye la única fuente disponible durante la generación.
 
-Este enfoque presenta dos ventajas principales. En primer lugar, permite actualizar la información disponible modificando la colección documental, sin necesidad de volver a entrenar el modelo completo. En segundo lugar, posibilita relacionar las respuestas con los documentos recuperados, lo que mejora su trazabilidad y facilita comprobar si están respaldadas por una fuente. Esta capacidad resulta útil para reducir el problema de las alucinaciones descrito más arriba, aunque no lo elimina por completo: el sistema todavía puede recuperar información poco pertinente, interpretar incorrectamente el contexto o generar afirmaciones que no estén contenidas en él.
+Este enfoque presenta dos ventajas principales. En primer lugar, permite actualizar la información disponible modificando la \sig{colección documental}, sin necesidad de volver a entrenar el modelo completo. En segundo lugar, posibilita relacionar las respuestas con los documentos recuperados, lo que mejora su trazabilidad y facilita comprobar si están respaldadas por una fuente. Esta capacidad resulta útil para reducir el problema de las alucinaciones descrito más arriba, aunque no lo elimina por completo: el sistema todavía puede recuperar información poco pertinente, interpretar incorrectamente el contexto o generar afirmaciones que no estén contenidas en él.
 
 \subsection{Modelos propietarios frente a modelos de pesos abiertos}
 \label{subsec:propietarios_abiertos}
@@ -114,7 +120,7 @@ Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicament
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
-Conviene no confundir los modelos de pesos abiertos con aquellos de código abierto, ya que son diferentes. \textcolor{borrador2}{De un modelo de pesos abiertos, que son los que se citan en este apartado, se pueden descargar los parámetros que la red aprendió durante el entrenamiento, que es lo que hace falta para ejecutarlo en un equipo elegido por quien lo despliega. Un modelo se considera de código abierto cuando, además de los pesos, se publican con una licencia que permite estudiarlos y modificarlos el código con el que se entrenó y los datos y la procedencia que se usaron para hacerlo.} Ninguna de las familias de modelos citadas en este apartado cumple lo segundo.
+Conviene no confundir los modelos de pesos abiertos con aquellos de código abierto, ya que son diferentes. De un modelo de pesos abiertos se pueden descargar los parámetros que la red aprendió durante el entrenamiento al que fue sometido, que es lo que hace falta para ejecutarlo en un equipo de despliege de este. En contra posición, un modelo se considera de código abierto cuando, además de los pesos, se publican con la licencia que permite estudiarlos y modificar el código con el que se entrenó y los datos y la procedencia que se usaron para ello. Ninguna de la familia de modelos citadas en este apartado cumple lo segundo.
 
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
@@ -169,7 +175,7 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
 \subsection[Minería de datos y rastreo web]{Minería de datos y rastreo web}
 \label{subsec:mineria_rastreo}
 
-El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su HTML. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
+El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su \sig{HTML}. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
 
  \begin{borrador}
   \item Falta hacer referencia a este apartado y borrarlo de definiciones si es que queda muy redundante.
@@ -180,8 +186,8 @@ El rastreo web (\textit{web scraping}) es la actividad de extraer información y
 \label{subsec:chunking_concepto}
 
 Los modelos de incrustaciones operan sobre una \gl{ventana de contexto} limitada, por lo que la colección
-no puede indexarse documento a documento tal y como se recoge desde la página web, es necesario dividir cada texto en fragmentos (\textit{chunks}).
-El tamaño del fragmento es un compromiso: uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
+no puede indexarse documento a documento tal y como se recoge desde la página web, es necesario dividir cada texto en \glp{fragmentos}{fragmento} (\textit{chunks}).
+El tamaño del fragmento es un factor a tener en cuenta dado que uno demasiado grande diluye la \gl{señal semántica} y satura la ventana de contexto,
 mientras que uno demasiado pequeño pierde el contexto necesario para que el fragmento tenga sentido por sí solo.
 
 \subsection[Incrustaciones de texto]{Incrustaciones de texto}
@@ -195,7 +201,7 @@ Existen cuatro propiedades de un modelo de incrustaciones que son importantes en
 
 \begin{itemize}
   \item  \textbf{La dimensión del vector: } Fija cuánta memoria ocupa el índice y cuánto cuesta cada comparación.
-  \item  \textbf{La ventana de contexto: } Esta está medida en \textit{tokens}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.
+  \item  \textbf{La ventana de contexto: } Esta está medida en \glr{tokens}{token}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.
   \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es sumamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas.
   \item  \textbf{La simetría entre la pregunta y el documento}: Una búsqueda simétrica es cuando los dos textos que se comparan tienen un papel y forma parecidas, como dos frases que se comparan para saber si significan lo mismo, y una búsqueda es asimétrica cuando por ejemplo se compara una pregunta breve frente a un documento extenso que la responde y que no se le parece en nada. Los modelos a menudo son entrenados para ambas cosas, y algunas familias de modelos resulven lo anterior poniéndole una etiqueta que devlare cuál de los dos papeles cumple.
 \end{itemize}
@@ -245,7 +251,7 @@ la respuesta, y puede fallar al redactar la respuesta.
 
 Estas proceden del campo clásico de la recuperación de información\cite{jurafsky2026slp3} y todas necesitan lo mismo, que es un conjunto de preguntas anotadas a mano en el que, para cada pregunta, se sabe de antemano qué documento es el correcto. Sin ese conjunto no se puede medir nada, porque no hay con qué comparar lo que el sistema devuelve.
 
-Una de ellas es \textit{Recall@K}, que mide qué proporción de los
+Una de ellas es \glr{Recall@K}{exhaustividad}, que mide qué proporción de los
   documentos relevantes de cada pregunta aparece entre los $K$ resultados que el sistema
   devuelve, promediada sobre todas las preguntas. Responde a si el material necesario ha llegado, no a en qué orden.
 
@@ -257,7 +263,7 @@ Una de ellas es \textit{Recall@K}, que mide qué proporción de los
 Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
   anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.
 
-El \textit{Mean Reciprocal Rank} (MRR) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
+El \textit{Mean Reciprocal Rank} (\sig{MRR}) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
 
 \begin{equation}
   \text{MRR} = \frac{1}{|Q|} \sum_{q \in Q} \frac{1}{\text{rank}(q)}
@@ -402,7 +408,7 @@ junto con estrategias basadas en contenido e híbridas, siendo estas últimas la
 
 Un enfoque distinto, de corte psicométrico, son los tests vocacionales, aquellos que son herramientas utilizadas en la
 orientación profesional y que por ejemplo, se implementan en sistemas expertos que automatizan la aplicación del
-Test de Holland para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
+\glp{Test de Holland}{test de Holland} para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
 por reglas codificadas que infieren afinidades entre intereses del estudiante y perfiles profesionales~\cite{huayta2024vocational}.
 
 Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre, sino que 
@@ -454,7 +460,7 @@ La alternativa elegida es evitar el problema en el origen, ya que el sistema no 
 
 \subsection{Transparencia en el uso de la inteligencia artificial}
 
-Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de IA en el momento de la primera interacción.
+Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción.
 
 
 
