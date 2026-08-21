@@ -1,0 +1,38 @@
+\begin{figure}[H]
+  \centering
+  \resizebox{0.95\textwidth}{!}{%
+    \begin{tikzpicture}[                                                                                                                  
+        font=\footnotesize,
+        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+            inner sep=7pt, rounded corners=2pt}
+      ]
+      % Caso real: bloque de salidas del Grado en Ingenieria Informatica
+      % (1.137 caracteres en data/grados.json, rastreo del 05/08/2026).
+      \node[bloque, text width=10.5cm] (txt) {%
+        \textbf{Campo \texttt{texto}} \hfill \textit{un único bloque, sin estructura interna}\\[4pt]
+        «El graduado en Ingeniería Informática presenta multitud de salidas
+        profesionales. Es una de las titulaciones que tiene más demanda en el
+        mercado laboral, con una tasa de paro inexistente y una oferta de
+        trabajo que crece cada día. El graduado en Ingeniería Informática
+        desempeña sus funciones en todos los sectores de la actividad
+        económica, en empresas, consultoras informáticas, la
+        administración\dots»};
+      \node[bloque, text width=5.2cm, right=8mm of txt.north east,
+        anchor=north west] (met) {%
+        \textbf{Metadatos}\\[4pt]
+        \texttt{tipo}: salidas\\
+        \texttt{grado}: Grado en Ingeniería Informática\\[4pt]
+        No lleva código: la unidad es la \textbf{titulación entera}, no una
+        asignatura.};
+      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=16.6cm,
+        below=6mm of txt.south west, anchor=north west] (nota) {%
+        La colección tiene \textbf{8 bloques para 12 titulaciones}: los siete
+        grados simples y un único doble grado. Los otros cuatro dobles no
+        publican salidas propias.};
+    \end{tikzpicture}%
+  }
+  \caption[Estructura de un bloque de salidas profesionales]{\textcolor{borrador2}{Estructura
+      de un bloque de salidas profesionales, sobre el caso real del Grado en Ingeniería
+      Informática. Fuente: Elaboración propia.}}
+  \label{fig:estructura_salidas}
+\end{figure}
