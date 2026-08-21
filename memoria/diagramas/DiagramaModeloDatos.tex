@@ -1,0 +1,118 @@
+\begin{figure}[H]
+  \centering
+  \resizebox{0.82\textwidth}{!}{%
+    \begin{tikzpicture}[                                                                                                                  
+        clase/.style={rectangle split, rectangle split parts=2,
+            draw=diagNodoBorde, fill=diagNodo, align=left,
+            font=\footnotesize, inner sep=4pt},
+        meta/.style={rectangle split, rectangle split parts=2,
+            draw=borrador2, densely dashed, fill=diagNodo, align=left,
+            text=borrador2, font=\footnotesize, inner sep=4pt},
+        etiqRel/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+        etiqOrigen/.style={font=\scriptsize\ttfamily, text=borrador2,
+            fill=white, inner sep=1.5pt},
+        mult/.style={font=\scriptsize, inner sep=1pt}
+      ]
+      % Entidades y campos comprobados el 16/08/2026 contra los ficheros reales
+      % data/grados.json (837 items) y data/chunks.json (1.460 fragmentos).
+      % Respecto a la version del 07/08: Asignatura incorpora curso y
+      % cuatrimestre, y Chunk incorpora curso (IT-105). Asignatura.ects es una
+      % cadena y no un decimal (la fuente publica "6", y una asignatura lo trae
+      % vacio), Chunk lleva tipo_asignatura, y el item de procedencia encabeza
+      % cada fichero. Las cuatro flechas que llegan a Chunk son los cuatro
+      % valores reales del campo origen: guia (1.296), asignatura_sin_guia (86),
+      % plan_de_estudios (56) y salidas (22). El trazado es ortogonal a
+      % proposito: con lineas rectas y angulos rectos ninguna flecha cruza a
+      % otra ni pasa por encima de una caja.
+      \node[clase] (grado) at (0,0) {\textbf{Grado}
+        \nodepart{two}
+        nombre: \texttt{str}\\
+        es\_doble\_grado: \texttt{bool}\\
+        url\_asignaturas: \texttt{str}\\
+        url\_salidas: \texttt{str}};
+      
+      \node[clase] (salidas) at (5.6,-0.5) {\textbf{Salidas}
+        \nodepart{two}
+        grado: \texttt{str}\\
+        texto: \texttt{str}};
+      
+      \node[clase] (asig) at (0,-4.9) {\textbf{Asignatura}
+        \nodepart{two}
+        grado: \texttt{str}\\
+        codigo: \texttt{str}\\
+        nombre: \texttt{str}\\
+        tipo\_asignatura: \texttt{str}\\
+        ects: \textcolor{borrador2}{\texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
+        \textcolor{borrador2}{cuatrimestre: \texttt{str}}\\
+        ofertada: \texttt{bool}\\
+        tiene\_guia: \texttt{bool}\\
+        menciones: \texttt{list}\\
+        url\_guia: \texttt{str}};
+      
+      \node[clase] (guia) at (0,-9.9) {\textbf{Guía}
+        \nodepart{two}
+        grado: \texttt{str}\\
+        codigo: \texttt{str}\\
+        nombre: \texttt{str}\\
+        resumen: \texttt{str}\\
+        temario: \texttt{str}\\
+        fallback: \texttt{bool}\\
+        curso: \texttt{str}\\
+        formato: \texttt{str}};
+      
+      \node[clase] (chunk) at (11.2,-4.9) {\textbf{Chunk}
+        \nodepart{two}
+        origen: \texttt{str}\\
+        grados: \texttt{list}\\
+        codigos: \texttt{list}\\
+        nombre: \texttt{str}\\
+        \textcolor{borrador2}{tipo\_asignatura: \texttt{str}}\\
+        \textcolor{borrador2}{curso: \texttt{str}}\\
+        texto: \texttt{str}\\
+        chunk\_index: \texttt{int}\\
+        total\_chunks: \texttt{int}};
+      
+      \node[meta] (proc) at (6.4,-12.3) {\textbf{Procedencia}
+        \nodepart{two}
+        fecha\_extraccion: \texttt{str}\\
+        origen: \texttt{str}\\
+        fecha\_troceado: \texttt{str}\\
+        cursos: \texttt{list}\\
+        tamanos: \texttt{list}};
+      \node[font=\scriptsize, text=borrador2, align=left, anchor=north west]
+      at ([yshift=-1.5mm]proc.south west)
+      {cabecera de cada fichero de la colección;\\
+        no se indexa};
+      
+      % Relaciones entre las entidades extraídas
+      \draw[flechaDiag] (grado.south) -- node[etiqRel]{ofrece}
+      node[mult, pos=0.1, right]{1} node[mult, pos=0.9, right]{*} (asig.north);
+      \draw[flechaDiag] (grado.east) -- node[etiqRel]{tiene}
+      node[mult, pos=0.1, above]{1} node[mult, pos=0.8, above]{0..1} (salidas.west);
+      \draw[flechaDiag] (asig.south) -- node[etiqRel]{documentada por}
+      node[mult, pos=0.1, right]{1} node[mult, pos=0.82, right]{0..1} (guia.north);
+      
+      % Las cuatro procedencias posibles de un fragmento
+      \draw[flechaDiag] (asig.east) --
+      node[etiqRel, pos=0.45, above]{resumida en, si no tiene guía}
+      node[etiqOrigen, pos=0.45, below]{origen: asignatura\_sin\_guia}
+      node[mult, pos=0.04, above]{1} node[mult, pos=0.96, above]{1} (chunk.west);
+      \draw[flechaDiag] (guia.east) -|
+      node[etiqRel, pos=0.2, above]{troceada y deduplicada en}
+        node[etiqOrigen, pos=0.2, below]{origen: guia}
+        node[mult, pos=0.02, above]{*} node[mult, pos=0.97, right]{*} (chunk.south);
+      \draw[flechaDiag] (salidas.east) -|
+      node[etiqRel, pos=0.25, above]{troceadas en}
+        node[etiqOrigen, pos=0.25, below]{origen: salidas}
+        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, left]{*} (chunk.north west);
+      \draw[flechaDiag] (grado.north) -- ++(0,0.7) -|
+      node[etiqRel, pos=0.3, above]{resume su plan de estudios en}
+        node[etiqOrigen, pos=0.3, below]{origen: plan\_de\_estudios}
+        node[mult, pos=0.02, above]{1} node[mult, pos=0.97, right]{*} (chunk.north east);
+    \end{tikzpicture}%
+  }
+  \caption{Modelo de datos conceptual de las entidades extraídas mediante
+    \textit{web scraping}. Fuente: Elaboración propia.}
+  \label{fig:modelo_datos}
+\end{figure}
