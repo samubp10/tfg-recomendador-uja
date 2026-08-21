@@ -9,16 +9,11 @@ Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetiv
 
 \section{Metodología de trabajo}
 
-Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios del mismo.
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
-\begin{borrador}
-  \item \textbf{Falta una palabra en el párrafo anterior:} <<los descubrimientos realizados
-  sobre los datos de la \_\_\_ y los cambios del mismo>>. Por el contexto debería decir
-  <<de la fuente>>, pero no lo doy por hecho. Y <<del mismo>> no tiene a qué referirse:
-  el sustantivo más cercano es femenino.
-\end{borrador}
+
 
 \subsection{Gestión del trabajo y priorización}
 
@@ -182,35 +177,7 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
 
 
 
-\begin{figure}[htbp]
-  \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{ganttchart}[                                                                                                                                                    
-        hgrid, vgrid,
-        bar/.append style={fill=green!40},
-        bar height=0.5,
-        title height=1,
-        y unit chart=0.7cm,
-        x unit=0.115cm
-      ]{1}{72}
-      \gantttitle{Junio}{7}
-      \gantttitle{Julio}{31}
-      \gantttitle{Agosto}{31}
-      \gantttitle{Sept.}{3} \\
-      \ganttbar{F0 · Cimientos y extracción web}{1}{17} \\
-      \ganttbar{F1 · Embeddings y troceado}{18}{31} \\
-      \ganttbar{F2 · Pipeline RAG y Vector DB}{32}{48} \\
-      \ganttbar{F3 · Aplicación web}{49}{59} \\
-      \ganttbar{F4 · Validación y ablation}{60}{68} \\
-      \ganttbar{F5 · Cierre y defensa}{69}{72} \\
-      \ganttmilestone{Entrega}{72}
-    \end{ganttchart}%
-  }
-  \caption{Planificación temporal del proyecto por fases, ajustada a la
-    Extraordinaria II del curso 2025/26 (entrega el 3 de septiembre de 2026).
-    Fuente: Elaboración propia.}
-  \label{fig:gantt}
-\end{figure}
+\input{diagramas/DiagramaGantt.tex}
 
 \begin{borrador}                                                                                                                                                    
   \item Este diagrama queda vivo, a modificar según pasen los días y las fases
@@ -326,7 +293,7 @@ Los cinco tipos de historias son los siguientes:
 
 \subsection{RAG frente al ajuste fino}
 
-Una alternativa sería ajustar los parámetros del modelo con información específica del dominio mediante ajuste fino (\textit{fine-tuning}). Este procedimiento puede resultar adecuado para adaptar el comportamiento, el formato de salida o el desempeño del modelo en una tarea concreta, pero no ofrece por sí solo una referencia explícita a la fuente de cada afirmación. Además, cuando los datos cambian con frecuencia, mantener el conocimiento actualizado exigiría preparar nuevos ejemplos y repetir el proceso de ajuste.
+Una alternativa sería ajustar los parámetros del modelo con información específica del dominio mediante ajuste fino (\textit{fine-tuning}). Este procedimiento puede resultar adecuado para adaptar el comportamiento, el formato de salida o el desempeño del modelo en una tarea concreta, pero no ofrece por sí solo una referencia explícita a la fuente de cada afirmación. Además, cuando los datos cambian con frecuencia, mantener el conocimiento actualizado exigiría preparar nuevos ejemplos y repetir el proceso de ajuste, lo que resultaría en una alta carga computacional cada vez.
 
 En el contexto de este trabajo, la arquitectura RAG permite separar el modelo de lenguaje de la información oficial de la EPSJ, haciendo de ambos dos módulos independientes e intercambiables. Los planes de estudio, las guías docentes y las salidas profesionales pueden actualizarse en la colección sin modificar los parámetros del modelo, a la vez que los fragmentos recuperados proporcionan una base documental para las respuestas. No obstante, la calidad final dependerá de todo el proceso (\textit{pipeline} RAG), la cobertura y limpieza de la colección, la estrategia de fragmentación, la capacidad del recuperador para seleccionar información pertinente y las instrucciones proporcionadas al modelo durante la generación.
 
@@ -372,73 +339,11 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 
 
-\begin{figure}[H]
-  \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.55cm and 1cm]
-      % Fase 0
-      \node[nodoDiag] (web) {Web pública\\EPSJ};
-      \node[nodoDiag, below=of web] (grados) {\texttt{grados.json}};
-      \node[nodoDiag, below=of grados] (chunks) {\texttt{chunks.json}};
-      % Fase 1
-      % Actualizado el 30/07/2026: el modelo de incrustaciones dejo de ser una
-      % caja generica cuando el ADR-0003 lo fijo, asi que la figura lo nombra.
-      % Actualizado el 13/08/2026: la base de datos deja de ser una caja generica
-      % por el mismo motivo que el modelo, ahora que el ADR-0004 la fija.
-      \node[nodoDiag, right=3.4cm of web] (emb) {Modelo de\\\textit{embeddings}\\{\scriptsize multilingual-e5-small}};
-      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15, below=of emb] (bd) {Base de datos\\vectorial\\{\scriptsize LanceDB}};
-      % Fase 2
-      \node[nodoDiag, right=3cm of emb] (preg) {Pregunta\\del usuario};
-      \node[nodoDiag, below=of preg] (rec) {Recuperación\\de fragmentos};
-      \node[nodoDiag, below=of rec] (llm) {LLM local};
-      \node[nodoDiag, below=of llm] (resp) {Respuesta\\fundamentada};
-      % Fase 3
-      \node[nodoDiag, right=3.2cm of rec] (chat) {Interfaz de chat\\sin registro};
-      % Nodos invisibles que "miden" cada título (mismo texto y fuente que la
-      % etiqueta real) para que el fit incluya su ancho: un label de TikZ no
-      % forma parte del cálculo del área del nodo, así que sin esto el título
-      % puede sobresalir de la caja aunque esta se ensanche.
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of web] (f0medida) {Fase 0 --- Colección de datos};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of emb] (f1medida) {Fase 1 --- Indexación};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of preg] (f2medida) {Fase 2 --- \textit{Pipeline} RAG};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of chat] (f3medida) {Fase 3 --- Aplicación web};
-      % Cajas de fase (en la capa de fondo, para no tapar los nodos)
-      \begin{scope}[on background layer]
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(web)(grados)(chunks)(f0medida), label={[tituloGrupo]north:Fase 0 --- Colección de datos}] (f0) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(emb)(bd)(f1medida), label={[tituloGrupo]north:Fase 1 --- Indexación}] (f1) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(preg)(rec)(llm)(resp)(f2medida), label={[tituloGrupo]north:Fase 2 --- \textit{Pipeline} RAG}] (f2) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(chat)(f3medida), label={[tituloGrupo]north:Fase 3 --- Aplicación web}] (f3) {};
-      \end{scope}
-      % Flechas internas
-      \draw[flechaDiag] (web) -- node[right, font=\footnotesize]{\textit{spider} (Scrapy)} (grados);
-      \draw[flechaDiag] (grados) -- node[right, font=\footnotesize]{\textit{chunker}} (chunks);
-      \draw[flechaDiag] (emb) -- (bd);
-      \draw[flechaDiag] (preg) -- (rec);
-      \draw[flechaDiag] (rec) -- (llm);
-      \draw[flechaDiag] (llm) -- (resp);
-      % Flechas entre fases
-      \draw[flechaDiag] (chunks.east) -- (emb.west);
-      \draw[flechaDiag] (bd.east) -- (rec.west);
-      \draw[flechaDiag] (resp.east) -- (chat.south west);
-    \end{tikzpicture}%
-  }
-  \caption{Arquitectura general del sistema, organizada por fases de
-    desarrollo. Fuente: Elaboración propia.}
-  \label{fig:arquitectura_pipeline}
-\end{figure}
+\input{diagramas/DiagramaArquitecturaPipeline.tex}
 
-\begin{borrador}                                                                                                
-  \item \textbf{Faltan por concretar los bloques de las Fases 1 a 3} ---modelo de
-  incrustaciones, base vectorial, modelo generativo e interfaz--- cuando esas decisiones estén
-  tomadas. Las dos primeras ya lo están y la figura todavía no las recoge.
-  \item \textbf{La figura sitúa los fragmentos dentro de la Fase~0 y el capítulo ya no.} El recuadro <<Fase 0 --- Colección de datos>> engloba el nodo de los
-  fragmentos y la flecha del \textit{chunker}, pero el troceado se cuenta ahora en la Fase~1
-  (Sección~\ref{subsec:chunking}).
-  \item \textbf{Decide qué cuenta la figura antes de tocarla}, porque las dos lecturas son
-  defendibles y no dan el mismo dibujo: si los recuadros son \emph{fases del proyecto}, hay
-  que mover la caja de los fragmentos al grupo de la Fase~1; si son \emph{etapas del
-    sistema} ---lo que se extrae frente a lo que se vectoriza---, está bien como está y lo
-  que sobra es el rótulo <<Fase 0>>. Yo no la he tocado porque es una decisión tuya.
+\begin{borrador}
+  \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
+  \item Rehacer la figura
 \end{borrador}
 
 \section{Diseño de los datos}
@@ -446,124 +351,7 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
-\begin{figure}[H]
-  \centering
-  \resizebox{0.82\textwidth}{!}{%
-    \begin{tikzpicture}[                                                                                                                  
-        clase/.style={rectangle split, rectangle split parts=2,
-            draw=diagNodoBorde, fill=diagNodo, align=left,
-            font=\footnotesize, inner sep=4pt},
-        meta/.style={rectangle split, rectangle split parts=2,
-            draw=borrador2, densely dashed, fill=diagNodo, align=left,
-            text=borrador2, font=\footnotesize, inner sep=4pt},
-        etiqRel/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
-        etiqOrigen/.style={font=\scriptsize\ttfamily, text=borrador2,
-            fill=white, inner sep=1.5pt},
-        mult/.style={font=\scriptsize, inner sep=1pt}
-      ]
-      % Entidades y campos comprobados el 16/08/2026 contra los ficheros reales
-      % data/grados.json (837 items) y data/chunks.json (1.460 fragmentos).
-      % Respecto a la version del 07/08: Asignatura incorpora curso y
-      % cuatrimestre, y Chunk incorpora curso (IT-105). Asignatura.ects es una
-      % cadena y no un decimal (la fuente publica "6", y una asignatura lo trae
-      % vacio), Chunk lleva tipo_asignatura, y el item de procedencia encabeza
-      % cada fichero. Las cuatro flechas que llegan a Chunk son los cuatro
-      % valores reales del campo origen: guia (1.296), asignatura_sin_guia (86),
-      % plan_de_estudios (56) y salidas (22). El trazado es ortogonal a
-      % proposito: con lineas rectas y angulos rectos ninguna flecha cruza a
-      % otra ni pasa por encima de una caja.
-      \node[clase] (grado) at (0,0) {\textbf{Grado}
-        \nodepart{two}
-        nombre: \texttt{str}\\
-        es\_doble\_grado: \texttt{bool}\\
-        url\_asignaturas: \texttt{str}\\
-        url\_salidas: \texttt{str}};
-      
-      \node[clase] (salidas) at (5.6,-0.5) {\textbf{Salidas}
-        \nodepart{two}
-        grado: \texttt{str}\\
-        texto: \texttt{str}};
-      
-      \node[clase] (asig) at (0,-4.9) {\textbf{Asignatura}
-        \nodepart{two}
-        grado: \texttt{str}\\
-        codigo: \texttt{str}\\
-        nombre: \texttt{str}\\
-        tipo\_asignatura: \texttt{str}\\
-        ects: \textcolor{borrador2}{\texttt{str}}\\
-        \textcolor{borrador2}{curso: \texttt{str}}\\
-        \textcolor{borrador2}{cuatrimestre: \texttt{str}}\\
-        ofertada: \texttt{bool}\\
-        tiene\_guia: \texttt{bool}\\
-        menciones: \texttt{list}\\
-        url\_guia: \texttt{str}};
-      
-      \node[clase] (guia) at (0,-9.9) {\textbf{Guía}
-        \nodepart{two}
-        grado: \texttt{str}\\
-        codigo: \texttt{str}\\
-        nombre: \texttt{str}\\
-        resumen: \texttt{str}\\
-        temario: \texttt{str}\\
-        fallback: \texttt{bool}\\
-        curso: \texttt{str}\\
-        formato: \texttt{str}};
-      
-      \node[clase] (chunk) at (11.2,-4.9) {\textbf{Chunk}
-        \nodepart{two}
-        origen: \texttt{str}\\
-        grados: \texttt{list}\\
-        codigos: \texttt{list}\\
-        nombre: \texttt{str}\\
-        \textcolor{borrador2}{tipo\_asignatura: \texttt{str}}\\
-        \textcolor{borrador2}{curso: \texttt{str}}\\
-        texto: \texttt{str}\\
-        chunk\_index: \texttt{int}\\
-        total\_chunks: \texttt{int}};
-      
-      \node[meta] (proc) at (6.4,-12.3) {\textbf{Procedencia}
-        \nodepart{two}
-        fecha\_extraccion: \texttt{str}\\
-        origen: \texttt{str}\\
-        fecha\_troceado: \texttt{str}\\
-        cursos: \texttt{list}\\
-        tamanos: \texttt{list}};
-      \node[font=\scriptsize, text=borrador2, align=left, anchor=north west]
-      at ([yshift=-1.5mm]proc.south west)
-      {cabecera de cada fichero de la colección;\\
-        no se indexa};
-      
-      % Relaciones entre las entidades extraídas
-      \draw[flechaDiag] (grado.south) -- node[etiqRel]{ofrece}
-      node[mult, pos=0.1, right]{1} node[mult, pos=0.9, right]{*} (asig.north);
-      \draw[flechaDiag] (grado.east) -- node[etiqRel]{tiene}
-      node[mult, pos=0.1, above]{1} node[mult, pos=0.8, above]{0..1} (salidas.west);
-      \draw[flechaDiag] (asig.south) -- node[etiqRel]{documentada por}
-      node[mult, pos=0.1, right]{1} node[mult, pos=0.82, right]{0..1} (guia.north);
-      
-      % Las cuatro procedencias posibles de un fragmento
-      \draw[flechaDiag] (asig.east) --
-      node[etiqRel, pos=0.45, above]{resumida en, si no tiene guía}
-      node[etiqOrigen, pos=0.45, below]{origen: asignatura\_sin\_guia}
-      node[mult, pos=0.04, above]{1} node[mult, pos=0.96, above]{1} (chunk.west);
-      \draw[flechaDiag] (guia.east) -|
-      node[etiqRel, pos=0.2, above]{troceada y deduplicada en}
-        node[etiqOrigen, pos=0.2, below]{origen: guia}
-        node[mult, pos=0.02, above]{*} node[mult, pos=0.97, right]{*} (chunk.south);
-      \draw[flechaDiag] (salidas.east) -|
-      node[etiqRel, pos=0.25, above]{troceadas en}
-        node[etiqOrigen, pos=0.25, below]{origen: salidas}
-        node[mult, pos=0.03, above]{1} node[mult, pos=0.97, left]{*} (chunk.north west);
-      \draw[flechaDiag] (grado.north) -- ++(0,0.7) -|
-      node[etiqRel, pos=0.3, above]{resume su plan de estudios en}
-        node[etiqOrigen, pos=0.3, below]{origen: plan\_de\_estudios}
-        node[mult, pos=0.02, above]{1} node[mult, pos=0.97, right]{*} (chunk.north east);
-    \end{tikzpicture}%
-  }
-  \caption{Modelo de datos conceptual de las entidades extraídas mediante
-    \textit{web scraping}. Fuente: Elaboración propia.}
-  \label{fig:modelo_datos}
-\end{figure}
+\input{diagramas/DiagramaModeloDatos.tex}
 
 \begin{borrador}
   \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
@@ -606,9 +394,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
   ahora en la Fase~1 (Sección~\ref{subsec:chunking}) y aquí se ha quedado la deduplicación.
   Con eso, lo que produce esta fase es \texttt{grados.json} ---el contenido extraído de la
   web, deduplicado--- y no \texttt{chunks.json}.
-  \item \textbf{Merece una frase en el párrafo de apertura de la fase}, si es que llegas a
-  escribirlo: qué entra y qué sale de la Fase~0. Es la forma más barata de que el lector no
-  eche de menos el troceado al llegar al final del apartado.
+  \item Decir qué entra y qué sale de la Fase~0. 
 \end{borrador}
 
 \subsection{Situación de partida}
@@ -661,25 +447,10 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
           colección no puede decir que ha fallado ella cuando el hueco es del origen.}
 \end{itemize}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 0, revisión. Andamiaje: la prosa la escribes tú. Cada uno de estos
-  cinco puntos tiene su registro con la evidencia ---DQA-0002 el cambio a PDF, DQA-0003 las
-  tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---, así
-  que aquí van a alto nivel igual que los anteriores.
-  \item \textbf{Cuidado con una frase que es fácil escribir mal:} <<ya no hay HTML>> es
-  falso. Lo que ya no llega en HTML es \emph{el contenido de las guías}. La navegación
-  ---menú, portadas, tablas de asignaturas y salidas--- sigue siendo HTML, y por eso el
-  problema de la codificación mentirosa que se cuenta más abajo sigue vigente.
-  \item \textbf{Revisa la lista anterior a la luz de esto.} El párrafo que la abre dice
-  <<un análisis técnico a nivel de código (sobre todo HTML)>>, y conviene matizarlo. De los
-  cuatro obstáculos originales, tres siguen siendo ciertos tal cual; el de los enlaces rotos
-  con el sufijo duplicado (\texttt{\dots\_es.htmles.html}) pertenece a la etapa en la que
-  las guías eran páginas HTML: decide si lo mantienes como parte del relato ---la
-  reparación de enlaces sigue en el código--- o si lo mueves a donde se cuenta la limpieza.
-  \item \textbf{Esto es lo que contesta a la pregunta del tutor} sobre cómo se mantiene
-  actualizada la información. La respuesta honesta no es <<se vuelve a rastrear>>, sino que
-  la fuente ha cambiado tres veces en un verano y que el sistema detectó y absorbió cada
-  cambio. Merece la pena que lo digas aquí y lo enlaces con las amenazas a la validez.
+\begin{borrador}
+  \item \textbf{Fase:} ---DQA-0002 el cambio a PDF, DQA-0003 las
+  tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---.
+  \item Hay que eliminar la parte de HTML, nombrarla que cuando se cambie al inicio diciendo que se empezó el proyecto con esa versión y luego hubo que cambiarla a pdf, Obviamente solo lo de las guías, todo lo demás de HTML sí.
 \end{borrador}
 
 
@@ -740,12 +511,13 @@ Se basa en la automatización de navegadores con renderizado real.
 \end{itemize}
 
 %[jccuevas] \paragraph{Decisión final}
+\paragraph{Decisión final}
 Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
 
 
-
-% Python 3.13, Scrapy (justificado en el ADR-0002), pytest con casos de prueba
-% reales, mypy, GitHub Actions. Conviene una tabla: herramienta - papel.
+\begin{borrador}
+\item Hay que revisar este apartado para que tenga más sentido con los otros ADR que están en las otras fases.
+\end{borrador}
 
 \subsection{Extracción del catálogo de titulaciones y asignaturas}
 
@@ -756,18 +528,8 @@ rastreador (\textit{spider}) y la página web, así como las posibles alteracion
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
 \begin{borrador}                                                                                                                                                    
-  \item Las bifurcaciones ya no son tres sino más, y conviene
-  enumerarlas en este orden, que es el del recorrido del dato. Volver a reescribir este párrafo anterior con tener esto en cuenta
-  \item \textbf{(1) Titulación vigente o en extinción.} Las que están en extinción
-  se descartan \emph{antes} de rastrearlas.
-  \item \textbf{(2) Asignatura con guía publicada o sin ella.} Sin cambios, pero hay que volver a añadirla.
-  \item \textbf{(3) La guía llega en PDF o en HTML.} Es la bifurcación nueva y la
-  que más pesa: el enlace acaba en \texttt{.html} pero puede devolver un PDF,
-  así que la decisión se toma por el tipo de contenido real y no por la
-  extensión de la dirección. Hoy \textbf{las 288 guías del corpus salen por
-    la rama del PDF}; la rama HTML se conserva por retrocompatibilidad y no la
-  recorre ninguna.
-  \item \textbf{(4) Grado simple o doble.} Sin cambios.
+  \item Revisar este apartado que ha cambiado en las fases posteriores.
+  \item Hay que simplificar o hacer varios diagramas puesto que no se ve bien de cara al lector del tfg, hay muchos contenidos y todo es muy pequeño, que ocupe una página no es el problema, que se vea mal sí.
 \end{borrador}
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
@@ -785,169 +547,30 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 \subsection{Extracción de las guías docentes}
 
 La extracción de las guías docentes es la etapa donde se concentran las anomalías en el contenido aportado por el servidor.
-\sout{El primer obstáculo es de codificación: cada guía declara en su etiqueta \texttt{<meta>} estar codificada en UTF-8,
-pero el servidor de la universidad la sirve realmente en ISO-8859-1. Esto llevaba a múltiples fallos, dado que corrompía las eñes y tildes del idioma español.
-Scrapy resuelve el problema sin código adicional porque prioriza la cabecera HTTP \texttt{Content-Type} sobre esa declaración,
-tal y como se justificó al elegirlo y se documenta en la sección \ref{sec:eleccion_herramientas}.}
 
-\sout{El contenido de interés (el resumen y la descripción de contenidos) se localiza por el identificador
-de su sección dentro del HTML de la guía, y no por su posición en el documento: la posición varía entre titulaciones,
-pero el identificador es estable.}
-
-\textcolor{borrador2}{En el curso 2026-27 la Escuela sirve las 288 guías docentes del catálogo
-  en PDF, sin excepción. La lectura del HTML de una guía, que era el único camino en cursos
-  anteriores, ya no la recorre ninguna, de modo que el resto de este apartado describe la
-  metodología sobre el PDF: es la que produce la colección que se evalúa. La trampa de
-  codificación ---un documento que se declara en UTF-8 y se sirve en ISO-8859-1--- sigue
-  siendo pertinente para las páginas HTML que sí se rastrean, el catálogo de titulaciones y
-  las tablas de asignaturas, y se justifica al elegir la herramienta en la
-  sección~\ref{sec:eleccion_herramientas}.}
+En el curso 2026/2027, la Escuela Politécnica Superior de Jaén ofrece la completitud de las guías docentes de las asignaturas en formato PDF, una nueva medida introducida para este curso puesto que anteriormente se servía en formato HTML.
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
   contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
-\textcolor{borrador2}{La Figura~\ref{fig:anatomia_guia} recoge sobre un caso real qué parte
-  de una guía docente llega a la colección y qué se queda fuera. A la izquierda, los rótulos
-  de sección de la plantilla que publica la Escuela; a la derecha, el registro que produce la
-  extracción. Solo dos de los diecisiete rótulos pasan el filtro, y el resto se descarta por
-  no estar en la lista, no por estar prohibido.}
+La figura que viene a continuación ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, nada más extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartado y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los diecisete rótulos los que pasan la limpieza y el resto se descarta.
 
-\begin{figure}[H]
-  \centering
-  \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[                                                                                                                  
-        font=\footnotesize,
-        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
-            inner sep=7pt, rounded corners=2pt}
-      ]
-      % La plantilla de guia docente en PDF, con sus 17 rotulos de seccion.
-      % Se listan los nueve que hacen falta para entender el filtro; los ocho
-      % restantes se resumen en la ultima fila.
-      \node[bloque, text width=9.6cm] (pdf) {%
-        \textbf{Guía docente en PDF} \hfill \textit{plantilla de la UJA}\\[4pt]
-        \begin{tabular}{@{}p{7.4cm}l@{}}
-          \small FICHA IDENTIFICATIVA               & \small descartada           \\
-          \small PROFESORADO                        & \small descartada           \\
-          \small \textbf{RESUMEN}                   & \small \textbf{pasa}        \\
-          \small COMPETENCIAS                       & \small descartada           \\
-          \small RESULTADOS DE APRENDIZAJE          & \small descartada           \\
-          \small \textbf{DESCRIPCIÓN DE CONTENIDOS} & \small \textbf{pasa}        \\
-          \small METODOLOGÍA DOCENTE                & \small descartada           \\
-          \small SISTEMA DE EVALUACIÓN              & \small descartada           \\
-          \small BIBLIOGRAFÍA                       & \small descartada           \\
-          \small \textit{y 8 rótulos más}           & \small \textit{descartados} \\
-        \end{tabular}};
-      
-      \node[bloque, text width=8.6cm, right=2.6cm of pdf.north east,
-        anchor=north west] (reg) {%
-        \textbf{Registro \texttt{guia} de la colección} \hfill \textit{ejemplo real}\\[4pt]
-        \texttt{grado}: Grado en Ingeniería Informática\\
-        \texttt{codigo}: 13312005\\
-        \texttt{nombre}: Desarrollo ágil\\
-        \texttt{curso}: 2026-27 \qquad \texttt{formato}: pdf\\[4pt]
-        \texttt{resumen}: «Conocimientos previos y recomendaciones.
-        Se recomienda NO cursar esta asignatura si no se ha cursado antes
-        \textit{Gestión y control de proyectos informáticos}\dots»\\[4pt]
-        \texttt{temario}: «Teoría. Introducción. eXtreme Programming y TDD.
-        Lean, Kanban y ScrumBan. Scrum y GASPs. DevOps. Práctica. Gestión ágil
-        y trazabilidad\dots»};
-      
-      \draw[flechaDiag] (pdf.east) --
-      node[align=center, font=\scriptsize, above, midway]
-      {lista de\\PERMITIDOS} (reg.west |- pdf.east);
-      
-      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=9.6cm,
-        below=6mm of pdf.south west, anchor=north west] (fuera) {%
-        La sección \textbf{PROFESORADO} trae nombres, correos y teléfonos que la
-        versión en HTML no publicaba. Con una lista de prohibidos, una sección
-        nueva con datos personales entraría sola; con una de permitidos, se
-        queda fuera por defecto.};
-    \end{tikzpicture}%
-  }
-  \caption[Anatomía de una guía docente en PDF]{\textcolor{borrador2}{Qué se conserva de una
-      guía docente servida en PDF y qué se descarta. El ejemplo es real: la guía de
-      \textit{Desarrollo ágil}, del Grado en Ingeniería Informática, curso 2026-27. Fuente:
-      Elaboración propia.}}
-  \label{fig:anatomia_guia}
-\end{figure}
+\input{diagramas/DiagramaAnatomiaGuia.tex}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 1 (IT-95, IT-96) --- \emph{esta subsección describe un mecanismo que
-    ya no es el que se usa}. Todo lo de arriba cuenta la extracción desde HTML, y hoy
-  \textbf{las 288 guías del corpus vienen de PDF y ninguna de HTML}. Hay que reescribirla
-  contando los dos caminos y cuál está vivo. La figura de la anatomía de la guía ya da por
-  hecha esa reescritura ---describe la extracción desde PDF---, así que hoy va por delante del
-  texto.
-  \item La comprobación no es una estimación: el camino HTML une sus bloques con doble salto
-  de línea y el limpiador colapsa todo espacio en blanco, así que un texto sacado del HTML no
-  puede contener un salto suelto. No hay ni un doble salto en todo el corpus y sí 564 campos
-  con saltos simples.
-  \item Consecuencia que hay que enunciar: el módulo de extracción de PDF dejó de ser un caso
-  particular y es por donde pasa \textbf{el 100~\% del contenido}. Sus 17 rótulos de sección,
-  escritos a mano contra la plantilla observada, sostienen ahora la colección entera. La
-  evidencia, las pruebas que lo cubren y qué hacer si la plantilla cambia están en el
-  DQA-0002.
-  \item \textbf{Cifras vigentes:} de las \textbf{528} asignaturas, \textbf{442} cuentan con
-  guía y \textbf{86} no, una cobertura del \textbf{83,7~\%}; las \textbf{288} guías se agrupan
-  en \textbf{210} unidades tras deduplicar. Van con su curso, porque la Escuela publica guías
-  durante todo el año.
-  \item \textbf{El mecanismo de respaldo se activa en 0 de las 288 guías} (campo
-  \texttt{fallback}). No es que se active poco: no se ejecuta nunca, porque pertenece al
-  camino HTML. Escribir <<se activa un mecanismo de respaldo>> describiendo código que no se
-  ejecuta es de lo que el tribunal comprueba en treinta segundos abriendo el conjunto de
-  datos. Los cinco casos reales son otra cosa: guías \textbf{publicadas con las secciones de
-    contenido vacías en el origen}, que es un hueco de la fuente y no un fallo de extracción
-  (DQA-0004).
-  \item \textbf{La lista de permitidos merece enunciarse una vez como principio}, porque el
-  proyecto la aplica en dos sitios: en las secciones del PDF ---solo pasan resumen y
-  descripción de contenidos--- y en el nombre de la asignatura, que se toma del mismo enlace
-  del que sale la dirección de su guía y no juntando todo el texto de la celda. Cuando la
-  Escuela añadió un segundo enlace al <<Syllabus>>, ese rótulo se pegaba al nombre de 43
-  asignaturas; tomar solo lo que se sabe válido lo dejó fuera por construcción.
-  \item \textbf{Cómo contarlo, que es lo delicado:} la memoria describe el
-  \emph{estado final} del sistema, no su historia. No se narra la migración
-  paso a paso ni las cifras intermedias (esas viven en el DQA-0002 y en el
-  registro de decisiones, que es su sitio). Basta con una frase honesta:
-  \emph{al comenzar el proyecto la mayoría de las guías se servían en HTML,
-    durante el desarrollo la Escuela pasó a servirlas en PDF, y el camino
-    anterior se conserva por retrocompatibilidad}. Lo que se describe con
-  detalle es la extracción desde PDF, que es la que produce el corpus.
-  \item El motivo de conservarlo, si el tribunal pregunta, no es que el código sea
-  barato: es la asimetría del riesgo. Mantenerlo no cuesta nada apreciable;
-  retirarlo obligaría a reescribirlo si la fuente revierte, y la fuente no
-  da garantías (ha cambiado de formato dos veces en un año, y servir un PDF
-  detrás de una dirección acabada en \texttt{.html} parece más un artefacto
-  de una migración en curso que una decisión firme).
-  \item Concretamente no se ejecutan nunca con el corpus actual: la localización
-  de secciones por identificador, el umbral de contenido, el mecanismo de
-  respaldo y el campo \texttt{cuerpo\_general} (0 respaldos de 288 guías).
-  \item Las cifras 361/296/65 y el 82 \% son las del snapshot de julio de 2026,
-  curso 2025-26. Hay que sustituirlas por las del rastreo definitivo y decir
-  de qué fecha y de qué curso son, no darlas como atemporales.
-  \item La frase sobre <<5 guías donde la estructura esperada no aparece>> ya no
-  describe lo que pasa: hoy el respaldo no se activa ninguna vez. Lo que sí
-  hay son 5 asignaturas cuya guía se publica con las secciones de contenido
-  \emph{vacías en el origen} (ver el Capítulo~\ref{cap:resultados}).
+\begin{borrador}
+  \item VERIFICAR CIFRAS VIGENTES Y CAMBIAR.
+  \item \textbf{El mecanismo de respaldo se activa en 0 de las 288 guías}  Por lo que ya no es nada importante.
+  \item \textbf{La lista de permitidos no se va a enunciar, es una característica muy técnica como para enunciarse aquí}
 \end{borrador}
 
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada uno de los siete grados simples y uno del único doble grado que publica salidas propias. \sout{En el caso de los dobles grados, la lista de salidas es la concatenación de
-los dos grados por separado.}
+uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cuál se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
 
-\textcolor{borrador2}{De las cinco titulaciones dobles, solo el Doble Grado en Ingeniería
-  Eléctrica y Mecánica publica un texto propio, y ese texto no es la concatenación de los de
-  sus dos grados base. La coincidencia se da en la enumeración de funciones ---doce de sus
-  catorce líneas aparecen literalmente en uno de los dos grados---, pero el bloque se abre
-  con dos párrafos que no figuran en ninguno de ellos: el primero enuncia a qué profesiones
-  reguladas da acceso la doble titulación, y el segundo describe su ámbito laboral hablando
-  de los titulados en ambos grados a la vez. Esa es la razón por la que la página se rastrea
-  en lugar de sintetizarse uniendo las de los grados base: unirlas dejaría fuera lo único que
-  la doble titulación dice de sí misma, y escribirlo por nuestra cuenta sería inventar
-  contenido que la fuente sí publica.}
+A continuación se muestra la Figura~\ref{fig:estructura_salidas} la cuál recoge la estructura de uno de estos objetos de información sobre un caso real. 
 
 \textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
   esos bloques sobre un caso real. Es el más simple de los cuatro tipos de ítem de la
@@ -955,44 +578,7 @@ los dos grados por separado.}
   único dato de identificación el nombre de la titulación. No lleva código de asignatura
   porque la unidad de la que habla es la titulación entera.}
 
-\begin{figure}[H]
-  \centering
-  \resizebox{0.95\textwidth}{!}{%
-    \begin{tikzpicture}[                                                                                                                  
-        font=\footnotesize,
-        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
-            inner sep=7pt, rounded corners=2pt}
-      ]
-      % Caso real: bloque de salidas del Grado en Ingenieria Informatica
-      % (1.137 caracteres en data/grados.json, rastreo del 05/08/2026).
-      \node[bloque, text width=10.5cm] (txt) {%
-        \textbf{Campo \texttt{texto}} \hfill \textit{un único bloque, sin estructura interna}\\[4pt]
-        «El graduado en Ingeniería Informática presenta multitud de salidas
-        profesionales. Es una de las titulaciones que tiene más demanda en el
-        mercado laboral, con una tasa de paro inexistente y una oferta de
-        trabajo que crece cada día. El graduado en Ingeniería Informática
-        desempeña sus funciones en todos los sectores de la actividad
-        económica, en empresas, consultoras informáticas, la
-        administración\dots»};
-      \node[bloque, text width=5.2cm, right=8mm of txt.north east,
-        anchor=north west] (met) {%
-        \textbf{Metadatos}\\[4pt]
-        \texttt{tipo}: salidas\\
-        \texttt{grado}: Grado en Ingeniería Informática\\[4pt]
-        No lleva código: la unidad es la \textbf{titulación entera}, no una
-        asignatura.};
-      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=16.6cm,
-        below=6mm of txt.south west, anchor=north west] (nota) {%
-        La colección tiene \textbf{8 bloques para 12 titulaciones}: los siete
-        grados simples y un único doble grado. Los otros cuatro dobles no
-        publican salidas propias.};
-    \end{tikzpicture}%
-  }
-  \caption[Estructura de un bloque de salidas profesionales]{\textcolor{borrador2}{Estructura
-      de un bloque de salidas profesionales, sobre el caso real del Grado en Ingeniería
-      Informática. Fuente: Elaboración propia.}}
-  \label{fig:estructura_salidas}
-\end{figure}
+\input{diagramas/DiagramaEstructuraSalidas.tex}
 
 \begin{borrador}                                                                                                                                                    
   \item El párrafo en turquesa está comprobado sobre \texttt{data/grados.json} (rastreo del
@@ -1325,68 +911,7 @@ vector, mientras que el resto de campos acompañan al fragmento sin intervenir e
 salió cada respuesta.
 
 
-\begin{figure}[H]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[                                                                                                                                                    
-      font=\footnotesize,
-      bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
-          inner sep=7pt, rounded corners=2pt},
-      titulo/.style={font=\footnotesize\bfseries, anchor=north west,
-          text=diagGrupoBorde!55!black}
-    ]
-    % --- Columna izquierda: el campo que se incrusta ---
-    \node[bloque, text width=9.2cm] (enc) {%
-      \textbf{Encabezado autocontenido} \hfill \textit{generado, no extraído}\\[3pt]
-      <<Automática industrial>>, asignatura obligatoria de 6 ECTS impartida en
-      4 titulaciones: Grado en Ingeniería Electrónica Industrial; Grado en
-      Ingeniería Eléctrica; Grado en Ingeniería Mecánica; Grado en Ingeniería
-      de Organización Industrial.};
-    \node[bloque, text width=9.2cm, below=4mm of enc.south west,
-      anchor=north west] (cue) {%
-      \textbf{Cuerpo} \hfill \textit{texto de la guía docente}\\[3pt]
-      Teoría. Tema 1: Introducción. 1.1 ¿Qué es la automática (industrial)?
-      1.2 Sistemas (en automática).\dots};
-    
-    % --- Columna derecha: metadatos ---
-    \node[bloque, text width=5.6cm, right=9mm of enc.north east,
-    anchor=north west] (met) {%
-    \textbf{Metadatos}\\[3pt]
-    \texttt{origen}: guia\\
-    \texttt{nombre}: Automática industrial\\
-    \texttt{grados}: [4 titulaciones]\\
-    \texttt{codigos}: [13112002, 13512002,\\ \hphantom{\texttt{codigos}: [}13412001, 13012001]\\
-    \texttt{chunk\_index}: 1\\
-    \texttt{total\_chunks}: 5};
-    
-    % --- Agrupaciones ---
-    \begin{scope}[on background layer]
-      \node[grupoDiag, rounded corners=3pt, fit=(enc)(cue)] (gtxt) {};
-      \node[grupoDiag, rounded corners=3pt, fit=(met)] (gmet) {};
-    \end{scope}
-    \node[titulo, anchor=south west] (ltxt)
-    at ([yshift=1.4mm]gtxt.north west) {campo \texttt{texto}: lo único que se convierte en vector};
-    \node[titulo, anchor=south west] (lmet)
-    at ([yshift=1.4mm]gmet.north west) {acompañan al vector, no se buscan};
-    
-    % --- Marco exterior (engloba también los rótulos de cada grupo) ---
-    \begin{scope}[on background layer]
-      \node[draw=diagNodoBorde, thick, rounded corners=4pt, inner sep=9pt,
-        fit=(gtxt)(gmet)(ltxt)(lmet)] (marco) {};
-    \end{scope}
-    \node[font=\footnotesize\bfseries, anchor=south west]
-    at ([yshift=1.8mm]marco.north west)
-    {Segundo fragmento de 5 de <<Automática industrial>>};
-  \end{tikzpicture}%
-  }
-  \caption[Estructura de un fragmento (\textit{chunk})]{Estructura de un
-    fragmento de la colección, sobre un caso real de \texttt{chunks.json}. El
-    encabezado se antepone al cuerpo para que el fragmento siga teniendo sentido
-    al recuperarse aislado; los campos \texttt{grados} y \texttt{codigos} son
-    listas porque esta guía está deduplicada y se imparte en cuatro
-    titulaciones. Fuente: Elaboración propia.}
-  \label{fig:estructura_chunk}
-\end{figure}
+\input{diagramas/DiagramaEstructuraChunk.tex}
 
 \subsubsection[Fragmentos derivados de la colección]{Fragmentos derivados de la colección}
 \label{secc:fragmentos_derivados}
@@ -1480,53 +1005,7 @@ Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant nece
 La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque que vemos este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
 
-\begin{figure}[H]
-  \centering
-  \resizebox{0.95\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.7cm and 1.5cm]
-      % Entrada comun: la coleccion y las preguntas se incrustan una sola vez.
-      % Es el argumento de validez del experimento, asi que el diagrama lo pone
-      % en el centro: un unico juego de vectores del que salen las cuatro ramas.
-      \node[nodoDiag] (chunks) {Colección\\de fragmentos};
-      \node[nodoDiag, below=0.8cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
-      \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\textit{embeddings}};
-      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15,
-            right=1.1cm of emb] (vec)
-        {Vectores\\{\scriptsize incrustados}\\{\scriptsize una sola vez}};
-
-      % Las tres candidatas y la linea base reciben exactamente los mismos vectores.
-      \node[nodoDiag, right=2.6cm of vec, yshift=2.5cm]  (a) {ChromaDB};
-      \node[nodoDiag, right=2.6cm of vec, yshift=0.9cm]  (b) {LanceDB};
-      \node[nodoDiag, right=2.6cm of vec, yshift=-0.7cm] (c) {Qdrant};
-      \node[nodoDiag, right=2.6cm of vec, yshift=-3.9cm] (n) {NumPy\\{\scriptsize fuerza bruta}};
-
-      \node[nodoDiag, right=2.4cm of b, yshift=-0.8cm] (fid)
-        {Fidelidad frente\\a la búsqueda exacta};
-
-      \draw[flechaDiag] (chunks) -- (emb);
-      \draw[flechaDiag] (preg.east) -- ++(0.5,0) |- (emb.west);
-      %\draw[flechaDiag] (emb.east) -- ++(0.3,0) |- (vec.north);
-       \draw[flechaDiag] (emb.east) -- (vec.west);
-      \draw[flechaDiag] (vec.east) -- (a.west);
-      \draw[flechaDiag] (vec.east) -- (b.west);
-      \draw[flechaDiag] (vec.east) -- (c.west);
-      \draw[flechaDiag] (vec.east) -- (n.west);
-      \draw[flechaDiag] (a.east) -- (fid.west);
-      \draw[flechaDiag] (b.east) -- (fid.west);
-      \draw[flechaDiag] (c.east) -- (fid.west);
-      \draw[flechaDiag, dashed] (n.east) -- (fid.south);
-
-      \begin{scope}[on background layer]
-        \node[grupoDiag, fit=(a)(b)(c), inner sep=16pt,
-              label={[tituloGrupo]north:Candidatas}] {};
-        \node[grupoDiag, fit=(n), inner sep=12pt,
-              label={[tituloGrupo, anchor=north]south:Línea base, no es candidata}] {};
-      \end{scope}
-    \end{tikzpicture}%
-  }
-  \caption[Diseño de la comparativa de bases de datos vectoriales]{Diagrama que muestra el proceso experimental realizado para evaluar las bases de datos vectoriales. Fuente: elaboración propia.}
-  \label{fig:comparativa_vectordb}
-\end{figure}
+\input{diagramas/DiagramaComparativaVectorDB.tex}
 
 \subsection[Construcción del índice]{Construcción del índice}
 \label{secc:fase2_construccion_indice}
