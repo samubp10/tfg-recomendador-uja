@@ -1,0 +1,58 @@
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[                                                                                                                  
+        font=\footnotesize,
+        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+            inner sep=7pt, rounded corners=2pt}
+      ]
+      % La plantilla de guia docente en PDF, con sus 17 rotulos de seccion.
+      % Se listan los nueve que hacen falta para entender el filtro; los ocho
+      % restantes se resumen en la ultima fila.
+      \node[bloque, text width=9.6cm] (pdf) {%
+        \textbf{Guía docente en PDF} \hfill \textit{plantilla de la UJA}\\[4pt]
+        \begin{tabular}{@{}p{7.4cm}l@{}}
+          \small FICHA IDENTIFICATIVA               & \small descartada           \\
+          \small PROFESORADO                        & \small descartada           \\
+          \small \textbf{RESUMEN}                   & \small \textbf{pasa}        \\
+          \small COMPETENCIAS                       & \small descartada           \\
+          \small RESULTADOS DE APRENDIZAJE          & \small descartada           \\
+          \small \textbf{DESCRIPCIÓN DE CONTENIDOS} & \small \textbf{pasa}        \\
+          \small METODOLOGÍA DOCENTE                & \small descartada           \\
+          \small SISTEMA DE EVALUACIÓN              & \small descartada           \\
+          \small BIBLIOGRAFÍA                       & \small descartada           \\
+          \small \textit{y 8 rótulos más}           & \small \textit{descartados} \\
+        \end{tabular}};
+      
+      \node[bloque, text width=8.6cm, right=2.6cm of pdf.north east,
+        anchor=north west] (reg) {%
+        \textbf{Registro \texttt{guia} de la colección} \hfill \textit{ejemplo real}\\[4pt]
+        \texttt{grado}: Grado en Ingeniería Informática\\
+        \texttt{codigo}: 13312005\\
+        \texttt{nombre}: Desarrollo ágil\\
+        \texttt{curso}: 2026-27 \qquad \texttt{formato}: pdf\\[4pt]
+        \texttt{resumen}: «Conocimientos previos y recomendaciones.
+        Se recomienda NO cursar esta asignatura si no se ha cursado antes
+        \textit{Gestión y control de proyectos informáticos}\dots»\\[4pt]
+        \texttt{temario}: «Teoría. Introducción. eXtreme Programming y TDD.
+        Lean, Kanban y ScrumBan. Scrum y GASPs. DevOps. Práctica. Gestión ágil
+        y trazabilidad\dots»};
+      
+      \draw[flechaDiag] (pdf.east) --
+      node[align=center, font=\scriptsize, above, midway]
+      {lista de\\PERMITIDOS} (reg.west |- pdf.east);
+      
+      \node[bloque, fill=diagGrupo, draw=diagGrupoBorde, text width=9.6cm,
+        below=6mm of pdf.south west, anchor=north west] (fuera) {%
+        La sección \textbf{PROFESORADO} trae nombres, correos y teléfonos que la
+        versión en HTML no publicaba. Con una lista de prohibidos, una sección
+        nueva con datos personales entraría sola; con una de permitidos, se
+        queda fuera por defecto.};
+    \end{tikzpicture}%
+  }
+  \caption[Anatomía de una guía docente en PDF]{\textcolor{borrador2}{Qué se conserva de una
+      guía docente servida en PDF y qué se descarta. El ejemplo es real: la guía de
+      \textit{Desarrollo ágil}, del Grado en Ingeniería Informática, curso 2026-27. Fuente:
+      Elaboración propia.}}
+  \label{fig:anatomia_guia}
+\end{figure}
