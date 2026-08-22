@@ -71,6 +71,9 @@ KS: Final[tuple[int, ...]] = (3, 5, 10)
 RUTA_CHUNKS: Final[Path] = RAIZ / "data" / "chunks.json"
 RUTA_EVAL: Final[Path] = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_INDICE: Final[Path] = RAIZ / "data" / "indice_lance"
+RUTA_VALIDACION: Final[Path] = (
+    RAIZ / "eval" / "preguntas_fuera_de_dominio_validacion.json"
+)
 RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "experimentos" / "it38-recuperacion.md"
 
 
@@ -159,6 +162,7 @@ def informe(
     agregados: dict[str, float],
     techos: dict[int, float],
     ajenas: list[tuple[str, int, bool]],
+    validacion: list[tuple[str, int, bool]],
     cuantos_chunks: int,
     cuantas_preguntas: int,
     procedencia: dict[str, Any],
@@ -169,7 +173,9 @@ def informe(
     Args:
         agregados: Medias que devuelve :func:`evaluar_modelo`.
         techos: Techo de Recall@K por fragmento, por cada K.
-        ajenas: Fragmentos recibidos por cada pregunta ajena.
+        ajenas: Fragmentos recibidos por cada pregunta ajena del conjunto
+            de IT-27, con el que se ajustó el suelo.
+        validacion: Lo mismo sobre el conjunto que no intervino en el ajuste.
         cuantos_chunks: Tamaño del corpus medido.
         cuantas_preguntas: Preguntas de dominio medidas.
         procedencia: Registro de procedencia del corpus.
@@ -240,6 +246,28 @@ def informe(
     for identificador, cuantos, consejo in ajenas:
         marca = "rechazada" if cuantos == 0 else f"{cuantos}"
         lineas.append(f"| {identificador} | {marca} | {'sí' if consejo else 'no'} |")
+    if validacion:
+        limpias = sum(1 for _, cuantos, _c in validacion if cuantos == 0)
+        lineas += [
+            "",
+            "## Rechazo sobre preguntas que no intervinieron en el ajuste",
+            "",
+            "El suelo de pertinencia se eligió optimizando el rechazo sobre las",
+            "preguntas ajenas de la tabla anterior, así que aquella cifra dice lo",
+            "bien que se ajustó el parámetro, no lo bien que el sistema rechaza.",
+            "**Esta es la que sostiene una conclusión**: ninguna de estas",
+            "preguntas ha intervenido en ningún ajuste.",
+            "",
+            f"**Rechazadas: {limpias} de {len(validacion)}.**",
+            "",
+            "| Pregunta | Fragmentos recibidos | Petición de consejo |",
+            "| --- | ---: | :---: |",
+        ]
+        for identificador, cuantos, consejo in validacion:
+            marca = "rechazada" if cuantos == 0 else f"{cuantos}"
+            lineas.append(
+                f"| {identificador} | {marca} | {'sí' if consejo else 'no'} |"
+            )
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 
@@ -253,6 +281,7 @@ def main(argumentos: list[str] | None = None) -> None:
     analizador = argparse.ArgumentParser(description=__doc__)
     analizador.add_argument("--chunks", type=Path, default=RUTA_CHUNKS)
     analizador.add_argument("--indice", type=Path, default=RUTA_INDICE)
+    analizador.add_argument("--validacion", type=Path, default=RUTA_VALIDACION)
     analizador.add_argument("--salida", type=Path, default=RUTA_SALIDA)
     opciones = analizador.parse_args(argumentos)
 
@@ -290,10 +319,21 @@ def main(argumentos: list[str] | None = None) -> None:
         f"({consejos} de las que pasan piden consejo)"
     )
 
+    validacion: list[tuple[str, int, bool]] = []
+    if opciones.validacion.exists():
+        print("Midiendo el conjunto que no intervino en el ajuste...")
+        sueltas = json.loads(opciones.validacion.read_text(encoding="utf-8"))[
+            "preguntas"
+        ]
+        validacion = medir_ajenas(sueltas, opciones.indice)
+        limpias = sum(1 for _, cuantos, _c in validacion if cuantos == 0)
+        print(f"  rechazadas: {limpias} de {len(validacion)}")
+
     informe(
         agregados,
         {k: techo_de_recall(dominio, chunks, k) for k in KS},
         ajenas,
+        validacion,
         len(chunks),
         len(dominio),
         procedencia,
