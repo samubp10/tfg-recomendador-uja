@@ -1,0 +1,38 @@
+% Resultados literales de la ejecucion sobre el corpus del curso 2026-27.
+% Fuente: docs/experimentos/it38-recuperacion.md, escrito por el propio script.
+% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar
+%   py scripts/experimento_recuperacion.py
+% y se copian de ahi. Corpus de 1.499 fragmentos y 56 preguntas de dominio.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption[Recuperación sobre el conjunto de evaluación]{Recuperación del
+    sistema sobre la colección completa y las 56 preguntas de dominio del
+    conjunto de evaluación. Fuente: elaboración propia.}
+  \label{tab:recuperacion}
+  \begin{tabular}{@{}crrr@{}}
+    \toprule
+    \textbf{K} & \textbf{R@K} & \textbf{Techo de R@K} & \textbf{RU@K}   \\
+    \midrule
+    3          & 0,652        & 0,754                 & 0,906           \\
+    5          & 0,789        & 0,906                 & 0,973           \\
+    10         & 0,881        & 0,966                 & \textbf{0,991}  \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textbf{Notas:} \textbf{R@K} es la exhaustividad por \emph{fragmento}
+    (cuántos de los trozos de la unidad correcta aparecen entre los $K$
+    primeros resultados). \textbf{RU@K} es la exhaustividad por \emph{unidad}
+    (si se ha encontrado la asignatura correcta, sin penalizar que falte alguno
+    de sus trozos). El \textbf{techo} es el valor más alto que R@K puede
+    alcanzar sobre esta colección: hay preguntas cuyas unidades relevantes son
+    más numerosas que $K$, de modo que su R@K no puede valer 1 por perfecto que
+    sea el orden. Cada R@K se lee contra su techo y no contra 1; RU@K tiene
+    techo 1 y se interpreta sola. El \textbf{MRR} (\textit{Mean Reciprocal
+    Rank}), media del inverso de la posición del primer resultado correcto,
+    es \textbf{0,926} y no depende de $K$. Las diez preguntas ajenas al dominio
+    quedan fuera de estas medidas: su criterio de acierto es el contrario.
+  \end{minipage}
+\end{table}

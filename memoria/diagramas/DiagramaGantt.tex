@@ -1,0 +1,29 @@
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{ganttchart}[                                                                                                                                                    
+        hgrid, vgrid,
+        bar/.append style={fill=green!40},
+        bar height=0.5,
+        title height=1,
+        y unit chart=0.7cm,
+        x unit=0.115cm
+      ]{1}{72}
+      \gantttitle{Junio}{7}
+      \gantttitle{Julio}{31}
+      \gantttitle{Agosto}{31}
+      \gantttitle{Sept.}{3} \\
+      \ganttbar{F0 · Cimientos y extracción web}{1}{17} \\
+      \ganttbar{F1 · Embeddings y troceado}{18}{31} \\
+      \ganttbar{F2 · Pipeline RAG y Vector DB}{32}{48} \\
+      \ganttbar{F3 · Aplicación web}{49}{59} \\
+      \ganttbar{F4 · Validación y ablation}{60}{68} \\
+      \ganttbar{F5 · Cierre y defensa}{69}{72} \\
+      \ganttmilestone{Entrega}{72}
+    \end{ganttchart}%
+  }
+  \caption{Planificación temporal del proyecto por fases, ajustada a la
+    Extraordinaria II del curso 2025/26 (entrega el 3 de septiembre de 2026).
+    Fuente: Elaboración propia.}
+  \label{fig:gantt}
+\end{figure}
