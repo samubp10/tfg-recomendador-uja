@@ -92,7 +92,43 @@ Los requisitos de usuario se formulan desde la perspectiva del estudiante preuni
 
 \subsection{Requisitos del sistema}
 
-\begin{borrador}                                                                                                                
-  \item \textbf{Fase:} 1 (IT-59) --> Aún no se sabe el modelo de LLM
-  \item Decir las especificaciones del sistema pero que un hardware más potente lo correría más rápido y mejor.
-\end{borrador}
+\textcolor{borrador2}{Los requisitos del sistema traducen lo que el estudiante
+  espera en condiciones técnicas comprobables, y se identifican con un código
+  para poder rastrear cada uno hasta el requisito de usuario que lo origina y
+  hasta el objetivo específico que lo respalda. Se separan en dos grupos: la
+  Tabla~\ref{tab:requisitos_funcionales} recoge los funcionales, que dicen qué
+  tiene que hacer el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales}
+  los no funcionales, que dicen con qué condiciones tiene que hacerlo.}
+
+\textcolor{borrador2}{No todos los requisitos tienen el mismo origen, y la
+  diferencia importa lo suficiente como para que las dos tablas la recojan en
+  una columna propia. Unos salen de una decisión de diseño argumentada en el
+  Capítulo~\ref{cap:materialesymetodos}; otros no se podían escribir hasta
+  haber medido, porque dependen de qué modelo de incrustaciones, qué base de
+  datos vectorial o qué modelo generativo resultara viable en el equipo
+  disponible. Estos últimos remiten al registro de decisión que los sostiene,
+  de modo que quien lea un requisito pueda ir a ver con qué evidencia se fijó y
+  qué alternativas se descartaron.}
+
+\input{tablas/TablaRequisitosFuncionales.tex}
+
+\input{tablas/TablaRequisitosNoFuncionales.tex}
+
+\textcolor{borrador2}{Conviene detenerse en dos de ellos, porque son los que
+  más condicionan al resto. El primero es RNF-01: que todo el sistema tenga que
+  caber en un equipo doméstico no es una preferencia, sino la restricción que
+  ya se enuncia en la hipótesis de trabajo
+  (Sección~\ref{secc:hipotesis}), y es la que explica que el modelo de
+  incrustaciones elegido no sea el que mejores cifras dio. Un equipo más
+  potente permitiría modelos mayores y respuestas más rápidas; lo que este
+  trabajo sostiene es que no hacen falta para que el sistema funcione, no que
+  den lo mismo.}
+
+\textcolor{borrador2}{El segundo es RNF-04, que fija el orden de prelación
+  entre la fidelidad de la respuesta y el tiempo que tarde en darla. Podría
+  parecer más natural exigir en su lugar un tiempo máximo de respuesta, pero un
+  umbral así describiría el equipo antes que el sistema, y habría descartado
+  por norma al modelo que se acaba eligiendo. La medida del tiempo de respuesta
+  no desaparece por ello: se recoge en el Capítulo~\ref{cap:resultados} como lo
+  que es, una consecuencia medida de esa prelación y no el criterio que la
+  decidió.}
