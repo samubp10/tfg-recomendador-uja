@@ -106,9 +106,15 @@ line-length = 88
 testpaths = ["tests"]
 # Patrón de nombres de archivos que se ejecutarán (archivos que empiezan por test_)
 python_files = "test_*.py"
-# Bandera estricta que exige que cualquier decorador @pytest.mark esté registrado abajo
-addopts = "--strict-markers"
+# --strict-markers exige que cualquier @pytest.mark esté registrado abajo.
+# -ra imprime el motivo de cada test saltado: un salto silencioso pasa por
+# verde, y aquí hay pruebas que se saltan solas cuando falta el índice o el
+# servidor de inferencia. Que se anuncie es parte de lo que prometen.
+# -m "not lento" deja fuera de la ejecución por defecto las que llaman al
+# modelo para todo el conjunto de evaluación; se piden con -m lento.
+addopts = "--strict-markers -ra -m 'not lento'"
 # Registro de marcadores personalizados para clasificar/filtrar la ejecución de tests
 markers = [
     "dataset: valida la integridad del dataset versionado (data/grados.json)",
+    "lento: recorre el conjunto entero llamando al modelo; minutos, no segundos",
 ]
