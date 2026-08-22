@@ -1,0 +1,77 @@
+{
+  "descripcion": "Conjunto de validación del rechazo de preguntas ajenas al dominio. Vive en un fichero aparte del conjunto de IT-27 y no forma parte de él: ninguna de estas preguntas ha intervenido en ningún ajuste del sistema. Existe porque el suelo de pertinencia se eligió optimizando el rechazo sobre las diez preguntas de tipo `fuera_de_dominio` del conjunto de evaluación, de modo que medir el rechazo sobre esas mismas diez informa de lo bien que se ajustó el parámetro, no de lo bien que el sistema rechaza. La cifra que sostiene una conclusión es la de aquí.",
+  "criterio_de_acierto": "El acierto es el contrario al del conjunto de dominio: el sistema acierta cuando el recuperador deja la consulta en cero fragmentos, porque entonces no se llega a llamar al modelo generativo. Estas preguntas NO anotan unidades relevantes y quedan fuera de Recall@K y de MRR, igual que las del conjunto de IT-27.",
+  "diseno": "Diez preguntas repartidas en las mismas cinco clases y con el mismo tamaño por clase que las diez del conjunto de evaluación, dos por clase, para que las dos cifras sean comparables y para que ninguna clase decida ella sola el resultado. Dos están escritas para ser difíciles a propósito: la de la Escuela Politécnica Superior de Linares comparte casi todo su vocabulario con el nombre del centro que sí cubre el sistema, y la de la Universidad Politécnica de Valencia nombra una titulación que existe en el catálogo. Las dos miden por vocabulario cercano, que es justo donde un suelo de distancia tiene su límite.",
+  "preguntas": [
+    {
+      "id": "V-001",
+      "tipo": "fuera_de_dominio",
+      "clase": "otra_rama_de_la_uja",
+      "pregunta": "¿Se puede estudiar Enfermería aquí?",
+      "relevantes": []
+    },
+    {
+      "id": "V-002",
+      "tipo": "fuera_de_dominio",
+      "clase": "otra_rama_de_la_uja",
+      "pregunta": "¿Cuántos créditos tiene el Grado en Administración y Dirección de Empresas?",
+      "relevantes": []
+    },
+    {
+      "id": "V-003",
+      "tipo": "fuera_de_dominio",
+      "clase": "interes_tematico_ajeno",
+      "pregunta": "Quiero ser arquitecto, ¿qué me recomiendas?",
+      "relevantes": []
+    },
+    {
+      "id": "V-004",
+      "tipo": "fuera_de_dominio",
+      "clase": "interes_tematico_ajeno",
+      "pregunta": "Me gusta el derecho penal, ¿qué carrera me pega?",
+      "relevantes": []
+    },
+    {
+      "id": "V-005",
+      "tipo": "fuera_de_dominio",
+      "clase": "otro_centro",
+      "pregunta": "¿La Universidad Politécnica de Valencia tiene Ingeniería Mecánica?",
+      "relevantes": []
+    },
+    {
+      "id": "V-006",
+      "tipo": "fuera_de_dominio",
+      "clase": "otro_centro",
+      "pregunta": "¿Qué se estudia en la Escuela Politécnica Superior de Linares?",
+      "relevantes": []
+    },
+    {
+      "id": "V-007",
+      "tipo": "fuera_de_dominio",
+      "clase": "conocimiento_general",
+      "pregunta": "¿Cuántos habitantes tiene Jaén?",
+      "relevantes": []
+    },
+    {
+      "id": "V-008",
+      "tipo": "fuera_de_dominio",
+      "clase": "conocimiento_general",
+      "pregunta": "¿En qué año se fundó la Universidad de Jaén?",
+      "relevantes": []
+    },
+    {
+      "id": "V-009",
+      "tipo": "fuera_de_dominio",
+      "clase": "peticion_ajena",
+      "pregunta": "Tradúceme al inglés: «me gustaría estudiar una ingeniería».",
+      "relevantes": []
+    },
+    {
+      "id": "V-010",
+      "tipo": "fuera_de_dominio",
+      "clase": "peticion_ajena",
+      "pregunta": "Hazme un resumen de la Segunda Guerra Mundial.",
+      "relevantes": []
+    }
+  ]
+}
