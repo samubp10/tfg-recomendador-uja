@@ -159,7 +159,11 @@ def test_el_informe_distingue_las_peticiones_de_consejo(tmp_path):
     recuperacion.informe(
         AGREGADOS,
         TECHOS,
-        [("P-051", 3, False), ("P-053", 20, True), ("P-055", 0, False)],
+        [
+            ("P-051", 3, False, False),
+            ("P-053", 20, True, False),
+            ("P-055", 0, False, False),
+        ],
         [],
         1499,
         56,
@@ -168,7 +172,7 @@ def test_el_informe_distingue_las_peticiones_de_consejo(tmp_path):
     )
     escrito = destino.read_text(encoding="utf-8")
     assert "Rechazadas por el recuperador: 1 de 3" in escrito
-    assert "**1 son peticiones" in escrito
+    assert "**1 es petición de" in escrito
     assert "0.754" in escrito
 
 
@@ -183,8 +187,8 @@ def test_el_conjunto_de_validacion_se_informa_aparte(tmp_path):
     recuperacion.informe(
         AGREGADOS,
         TECHOS,
-        [("P-051", 3, False), ("P-055", 0, False)],
-        [("V-001", 0, False), ("V-006", 12, False)],
+        [("P-051", 3, False, False), ("P-055", 0, False, False)],
+        [("V-001", 0, False, False), ("V-006", 12, False, True)],
         1499,
         56,
         PROCEDENCIA,
@@ -192,14 +196,71 @@ def test_el_conjunto_de_validacion_se_informa_aparte(tmp_path):
     )
     escrito = destino.read_text(encoding="utf-8")
     assert "Rechazadas por el recuperador: 1 de 2" in escrito
-    assert "**Rechazadas: 1 de 2.**" in escrito
+    assert "**Rechazadas por el suelo: 1 de 2.**" in escrito
     assert "V-006" in escrito
+    # V-006 pasa el suelo pero la para la comprobación de otro centro, así que
+    # no cuenta como hueco: esa distinción es el motivo de IT-109.
+    assert "Queda **0 sin ninguna red debajo**" not in escrito
+    assert "**1 la para la comprobación de otro centro**" in escrito
 
 
 def test_sin_conjunto_de_validacion_no_se_inventa_la_seccion(tmp_path):
     """Si el fichero no existe, el informe no debe fingir que sí."""
     destino = tmp_path / "informe.md"
     recuperacion.informe(
-        AGREGADOS, TECHOS, [("P-055", 0, False)], [], 1499, 56, PROCEDENCIA, destino
+        AGREGADOS,
+        TECHOS,
+        [("P-055", 0, False, False)],
+        [],
+        1499,
+        56,
+        PROCEDENCIA,
+        destino,
     )
     assert "no intervinieron en el ajuste" not in destino.read_text(encoding="utf-8")
+
+
+# --- Las que pasan el suelo no son todas un fallo (IT-109) ---
+
+
+def test_el_resumen_separa_lo_deliberado_de_lo_que_no_tiene_red():
+    """«Pasa el suelo» y «el sistema la responde» no son lo mismo.
+
+    Sin la separación, el informe contaba como fallo del filtro las peticiones
+    de consejo, que pasan a propósito, y no distinguía a las que las para la
+    comprobación de otro centro.
+    """
+    medidas = [
+        ("V-001", 0, False, False),  # rechazada por el suelo
+        ("V-002", 20, False, False),  # pasa sin red: el hueco de verdad
+        ("V-003", 20, True, False),  # consejo: deliberado
+        ("V-005", 20, False, True),  # la para la comprobación de centro
+    ]
+    frase = recuperacion._resumen_de_las_que_pasan(medidas)
+    assert "De las 3 que pasan" in frase
+    assert "**1 pide consejo**" in frase
+    assert "**1 la para la comprobación de otro centro**" in frase
+    assert "Queda **1 sin ninguna red debajo**" in frase
+
+
+def test_el_resumen_concuerda_en_plural():
+    """El informe lo lee un tribunal: «Quedan 1» delata quién lo escribe."""
+    medidas = [
+        ("V-002", 20, False, False),
+        ("V-004", 20, False, False),
+        ("V-003", 20, True, False),
+        ("V-006", 20, True, False),
+        ("V-005", 20, False, True),
+        ("V-007", 20, False, True),
+    ]
+    frase = recuperacion._resumen_de_las_que_pasan(medidas)
+    assert "**2 piden consejo**" in frase
+    assert "**2 las para la comprobación de otro centro**" in frase
+    assert "Quedan **2 sin ninguna red debajo**" in frase
+
+
+def test_si_el_suelo_las_rechaza_todas_el_resumen_lo_dice():
+    """El caso bueno también tiene que redactarse, no salir una frase rota."""
+    medidas = [("V-001", 0, False, False), ("V-002", 0, False, False)]
+    frase = recuperacion._resumen_de_las_que_pasan(medidas)
+    assert frase == "No pasa ninguna: el suelo las rechaza todas."
