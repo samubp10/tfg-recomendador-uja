@@ -38,11 +38,14 @@ del modelo evaluado.
   consulta no salen del equipo.
 - **Tiene que convivir con el modelo de incrustaciones** en 16 GB de memoria
   principal, la misma restricción de viabilidad que decidió el ADR-0003.
-- **La tarjeta gráfica del equipo tiene 6 GB de memoria dedicada** y los
-  candidatos ocupan entre 5,3 y 8,9 GB ya cuantizados a 4 bits. El servidor de
-  inferencia carga en la tarjeta las capas que caben y ejecuta el resto en el
-  procesador, así que **ningún candidato de este tamaño se ejecuta entero en
-  GPU**.
+- **La tarjeta gráfica del equipo tiene 6 GB de memoria dedicada** y los tres
+  finalistas ocupan entre 6,1 y 8,1 GB en disco ya cuantizados a 4 bits. El
+  servidor de inferencia carga en la tarjeta las capas que caben y ejecuta el
+  resto en el procesador, así que **ninguno de los tres se ejecuta entero en
+  GPU**. El único candidato que sí cabe entero es `salamandra-7b`, con 4,9 GB,
+  y esa es la razón de que sea con diferencia el más rápido de los cuatro: la
+  comparación de tiempos mide sobre todo cuánto de cada modelo cupo en la
+  tarjeta.
 - **El destinatario es un estudiante de bachillerato.** Una respuesta correcta
   pero ilegible no sirve, y eso no lo mide ninguna de las métricas de abajo.
 
