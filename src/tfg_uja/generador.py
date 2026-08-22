@@ -420,19 +420,35 @@ _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
 #: informa de un centro concreto y decirlo es más útil que callar.
 RESPUESTA_OTRA_UNIVERSIDAD: Final[str] = (
     "Solo puedo informarte de las titulaciones de la Escuela Politécnica "
-    "Superior de Jaén, de la Universidad de Jaén. Para otras universidades "
-    "tendrás que consultar su propia web. ¿Te ayudo con las de aquí?"
+    "Superior de Jaén. De otros centros, aunque sean de la propia Universidad "
+    "de Jaén, tendrás que consultar su web. ¿Te ayudo con las de aquí?"
 )
 
-#: Cómo se nombra una universidad dentro de una pregunta. Sirve para reconocer
-#: que se pregunta por **otro centro**, que es algo que el suelo de pertinencia
-#: no puede detectar: «¿La Universidad de Granada tiene Ingeniería
+#: Cómo se nombra un centro universitario dentro de una pregunta. Sirve para
+#: reconocer que se pregunta por **otro centro**, que es algo que el suelo de
+#: pertinencia no puede detectar: «¿La Universidad de Granada tiene Ingeniería
 #: Informática?» tiene su mejor fragmento a 0,1185 ---más cerca que la mayoría
 #: de las preguntas legítimas--- porque nombra una titulación que sí existe
 #: aquí. La distancia entre vectores mide parecido de vocabulario, y el
 #: vocabulario es casi el mismo.
+#:
+#: Lo que identifica al centro es **el topónimo que va detrás del «de»**, no la
+#: palabra «universidad». Reconocer solo la fórmula «Universidad de X» dejaba
+#: pasar dos formas muy corrientes, medidas sobre el conjunto de validación:
+#:
+#: * «Universidad **Politécnica** de Valencia», donde detrás de «universidad»
+#:   viene el adjetivo y no la preposición. De ahí el hueco opcional para uno o
+#:   dos adjetivos.
+#: * «**Escuela** Politécnica Superior de **Linares**», que no contiene la
+#:   palabra «universidad» en absoluto. Y es el caso incómodo, porque la EPS de
+#:   Linares es un centro real de la propia Universidad de Jaén cuyo nombre se
+#:   distingue del de la EPS de Jaén en una sola palabra: un preuniversitario
+#:   de la provincia puede confundirlas sin ninguna mala intención.
+#:
+#: Se sigue sin usar una lista de universidades, que nunca estaría completa.
 _OTRA_UNIVERSIDAD: Final[re.Pattern[str]] = re.compile(
-    r"universidad\s+(?:de\s+la|del|de)\s+([a-z]+)"
+    r"(?:universidad|universitat|escuela|facultad|campus)"
+    r"(?:\s+[a-z]+){0,3}?\s+(?:de\s+la|del|de)\s+([a-z]+)"
 )
 
 
