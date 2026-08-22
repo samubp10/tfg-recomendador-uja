@@ -133,6 +133,21 @@ def test_sin_registro_de_procedencia_se_devuelve_vacio(tmp_path):
 # --- El informe ---
 
 
+AGREGADOS = {
+    "recall@3": 0.65,
+    "recall@5": 0.79,
+    "recall@10": 0.88,
+    "recall_unidad@3": 0.91,
+    "recall_unidad@5": 0.97,
+    "recall_unidad@10": 0.99,
+    "mrr": 0.93,
+}
+
+TECHOS = {3: 0.754, 5: 0.906, 10: 0.966}
+
+PROCEDENCIA = {"fecha_extraccion": "2026-08-16", "origen": "https://eps.ujaen.es"}
+
+
 def test_el_informe_distingue_las_peticiones_de_consejo(tmp_path):
     """Que una petición de consejo reciba contexto no es un fallo del filtro.
 
@@ -142,23 +157,49 @@ def test_el_informe_distingue_las_peticiones_de_consejo(tmp_path):
     """
     destino = tmp_path / "informe.md"
     recuperacion.informe(
-        {
-            "recall@3": 0.65,
-            "recall@5": 0.79,
-            "recall@10": 0.88,
-            "recall_unidad@3": 0.91,
-            "recall_unidad@5": 0.97,
-            "recall_unidad@10": 0.99,
-            "mrr": 0.93,
-        },
-        {3: 0.754, 5: 0.906, 10: 0.966},
+        AGREGADOS,
+        TECHOS,
         [("P-051", 3, False), ("P-053", 20, True), ("P-055", 0, False)],
+        [],
         1499,
         56,
-        {"fecha_extraccion": "2026-08-16", "origen": "https://eps.ujaen.es"},
+        PROCEDENCIA,
         destino,
     )
     escrito = destino.read_text(encoding="utf-8")
     assert "Rechazadas por el recuperador: 1 de 3" in escrito
     assert "**1 son peticiones" in escrito
     assert "0.754" in escrito
+
+
+def test_el_conjunto_de_validacion_se_informa_aparte(tmp_path):
+    """Las dos cifras de rechazo no dicen lo mismo y no pueden mezclarse.
+
+    La del conjunto de IT-27 mide lo bien que se ajustó el suelo, porque es el
+    conjunto sobre el que se ajustó. La del otro mide lo bien que el sistema
+    rechaza. Sumarlas en una sola cifra las estropearía las dos.
+    """
+    destino = tmp_path / "informe.md"
+    recuperacion.informe(
+        AGREGADOS,
+        TECHOS,
+        [("P-051", 3, False), ("P-055", 0, False)],
+        [("V-001", 0, False), ("V-006", 12, False)],
+        1499,
+        56,
+        PROCEDENCIA,
+        destino,
+    )
+    escrito = destino.read_text(encoding="utf-8")
+    assert "Rechazadas por el recuperador: 1 de 2" in escrito
+    assert "**Rechazadas: 1 de 2.**" in escrito
+    assert "V-006" in escrito
+
+
+def test_sin_conjunto_de_validacion_no_se_inventa_la_seccion(tmp_path):
+    """Si el fichero no existe, el informe no debe fingir que sí."""
+    destino = tmp_path / "informe.md"
+    recuperacion.informe(
+        AGREGADOS, TECHOS, [("P-055", 0, False)], [], 1499, 56, PROCEDENCIA, destino
+    )
+    assert "no intervinieron en el ajuste" not in destino.read_text(encoding="utf-8")
