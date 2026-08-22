@@ -50,6 +50,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 from tfg_uja.evaluacion import chunks_relevantes, evaluar_modelo  # noqa: E402
+from tfg_uja.generador import pregunta_por_otro_centro  # noqa: E402
 from tfg_uja.incrustaciones import (  # noqa: E402
     MODELO,
     incrustador_de_consultas,
@@ -123,7 +124,7 @@ def techo_de_recall(
 
 def medir_ajenas(
     preguntas: list[dict[str, Any]], ruta_indice: Path
-) -> list[tuple[str, int, bool]]:
+) -> list[tuple[str, int, bool, bool]]:
     """Cuántos fragmentos recibe cada pregunta ajena al dominio.
 
     Pasa por el recuperador **real**, con su banda, su corte relativo y su
@@ -131,12 +132,19 @@ def medir_ajenas(
     si el sistema decide que no hay nada pertinente. Cero fragmentos es el
     resultado correcto: significa que ni siquiera se llamará al modelo.
 
+    De cada pregunta que **sí** pasa el suelo se registra además qué hay
+    debajo, porque «pasa el filtro» y «el sistema la responde» no son lo mismo
+    y confundirlos exagera el fallo: una petición de consejo pasa a propósito,
+    y una pregunta por otro centro la para la comprobación del generador. Lo
+    que de verdad preocupa es la que pasa sin ninguna de las dos cosas.
+
     Args:
         preguntas: Preguntas de tipo ``fuera_de_dominio``.
         ruta_indice: Carpeta donde persiste el indice vectorial.
 
     Returns:
-        Una tupla ``(id, fragmentos, es petición de consejo)`` por pregunta.
+        Una tupla ``(id, fragmentos, es petición de consejo, la para la
+        comprobación de otro centro)`` por pregunta.
     """
     tabla = abrir_indice(ruta_indice, MODELO)
     incrustar = incrustador_de_consultas(MODELO)
@@ -153,16 +161,53 @@ def medir_ajenas(
             catalogo=catalogo,
         )
         medidas.append(
-            (pregunta["id"], len(traidos), pide_recomendacion(pregunta["pregunta"]))
+            (
+                pregunta["id"],
+                len(traidos),
+                pide_recomendacion(pregunta["pregunta"]),
+                pregunta_por_otro_centro(pregunta["pregunta"]) is not None,
+            )
         )
     return medidas
+
+
+def _resumen_de_las_que_pasan(medidas: list[tuple[str, int, bool, bool]]) -> str:
+    """Frase que reparte las preguntas que pasan el suelo según qué las frena.
+
+    Se compone aquí y no en línea porque la concordancia importa: el informe lo
+    lee un tribunal, y «Quedan 1 sin red» delata que la frase la escribe un
+    contador y no una persona.
+
+    Args:
+        medidas: Tuplas ``(id, fragmentos, consejo, otro centro)``.
+
+    Returns:
+        La frase entera, o una que lo diga si no pasa ninguna.
+    """
+    pasan = [(cj, o) for _, cuantos, cj, o in medidas if cuantos]
+    if not pasan:
+        return "No pasa ninguna: el suelo las rechaza todas."
+    consejo = sum(1 for cj, _o in pasan if cj)
+    centro = sum(1 for cj, o in pasan if not cj and o)
+    sin_red = sum(1 for cj, o in pasan if not cj and not o)
+    quedan = (
+        "Queda **1 sin ninguna red debajo**"
+        if sin_red == 1
+        else (f"Quedan **{sin_red} sin ninguna red debajo**")
+    )
+    return (
+        f"De las {len(pasan)} que pasan, **{consejo} "
+        f"{'pide' if consejo == 1 else 'piden'} consejo** y **{centro} "
+        f"{'la para' if centro == 1 else 'las para'} la comprobación de otro "
+        f"centro**. {quedan}, y esa es la cifra del hueco."
+    )
 
 
 def informe(
     agregados: dict[str, float],
     techos: dict[int, float],
-    ajenas: list[tuple[str, int, bool]],
-    validacion: list[tuple[str, int, bool]],
+    ajenas: list[tuple[str, int, bool, bool]],
+    validacion: list[tuple[str, int, bool, bool]],
     cuantos_chunks: int,
     cuantas_preguntas: int,
     procedencia: dict[str, Any],
@@ -181,8 +226,16 @@ def informe(
         procedencia: Registro de procedencia del corpus.
         destino: Fichero de salida.
     """
-    rechazadas = sum(1 for _, cuantos, _consejo in ajenas if cuantos == 0)
-    consejos = sum(1 for _, cuantos, consejo in ajenas if cuantos and consejo)
+    rechazadas = sum(1 for _, cuantos, _c, _o in ajenas if cuantos == 0)
+    consejos = sum(1 for _, cuantos, consejo, _o in ajenas if cuantos and consejo)
+    con_red = sum(
+        1 for _, cuantos, consejo, otro in ajenas if cuantos and not consejo and otro
+    )
+    sin_red = sum(
+        1
+        for _, cuantos, consejo, otro in ajenas
+        if cuantos and not consejo and not otro
+    )
     lineas = [
         "# Recuperación del sistema sobre el conjunto de IT-27 (IT-38)",
         "",
@@ -233,21 +286,32 @@ def informe(
         "",
         f"**Rechazadas por el recuperador: {rechazadas} de {len(ajenas)}.**",
         "",
-        f"De las {len(ajenas) - rechazadas} que pasan, **{consejos} son peticiones",
-        "de consejo**, y que pasen es deliberado: a esas el sistema les entrega la",
-        "banda completa a propósito. Quien pregunta qué carrera le pega no debe",
-        "recibir silencio, sino lo que sí se imparte aquí; a esas respuestas las",
-        "vigila la barrera de titulaciones, no el suelo. Contarlas como fallo del",
-        "filtro sería contar como error el comportamiento que se busca.",
+        f"De las {len(ajenas) - rechazadas} que pasan el suelo, no todas son un",
+        "fallo, y mezclarlas exagera el problema. Se separan en tres:",
         "",
-        "| Pregunta | Fragmentos recibidos | Petición de consejo |",
-        "| --- | ---: | :---: |",
+        f"* **{consejos} {'es petición' if consejos == 1 else 'son peticiones'} de",
+        "  consejo**, y que pasen es deliberado: a esas el sistema les entrega la",
+        "  banda completa a propósito. Quien pregunta qué carrera le pega no debe",
+        "  recibir silencio, sino lo que sí se imparte aquí. Contarlas como fallo",
+        "  del filtro sería contar como error el comportamiento que se busca.",
+        f"* **{con_red} {'la para' if con_red == 1 else 'las para'} la comprobación",
+        "  de otro centro**, que actúa después del suelo y antes del modelo. Pasar",
+        "  el suelo no es lo mismo que ser respondida.",
+        f"* **{sin_red} {'pasa' if sin_red == 1 else 'pasan'} sin ninguna de las dos",
+        "  cosas.** Esta es la cifra que mide de verdad el hueco, y la única que",
+        "  hay que mirar para saber si el sistema se sale de su dominio.",
+        "",
+        "| Pregunta | Fragmentos recibidos | Petición de consejo | Otro centro |",
+        "| --- | ---: | :---: | :---: |",
     ]
-    for identificador, cuantos, consejo in ajenas:
+    for identificador, cuantos, consejo, otro in ajenas:
         marca = "rechazada" if cuantos == 0 else f"{cuantos}"
-        lineas.append(f"| {identificador} | {marca} | {'sí' if consejo else 'no'} |")
+        lineas.append(
+            f"| {identificador} | {marca} | {'sí' if consejo else 'no'} "
+            f"| {'sí' if otro else 'no'} |"
+        )
     if validacion:
-        limpias = sum(1 for _, cuantos, _c in validacion if cuantos == 0)
+        limpias = sum(1 for _, cuantos, _c, _o in validacion if cuantos == 0)
         lineas += [
             "",
             "## Rechazo sobre preguntas que no intervinieron en el ajuste",
@@ -258,15 +322,18 @@ def informe(
             "**Esta es la que sostiene una conclusión**: ninguna de estas",
             "preguntas ha intervenido en ningún ajuste.",
             "",
-            f"**Rechazadas: {limpias} de {len(validacion)}.**",
+            f"**Rechazadas por el suelo: {limpias} de {len(validacion)}.**",
             "",
-            "| Pregunta | Fragmentos recibidos | Petición de consejo |",
-            "| --- | ---: | :---: |",
+            _resumen_de_las_que_pasan(validacion),
+            "",
+            "| Pregunta | Fragmentos recibidos | Petición de consejo | Otro centro |",
+            "| --- | ---: | :---: | :---: |",
         ]
-        for identificador, cuantos, consejo in validacion:
+        for identificador, cuantos, consejo, otro in validacion:
             marca = "rechazada" if cuantos == 0 else f"{cuantos}"
             lineas.append(
-                f"| {identificador} | {marca} | {'sí' if consejo else 'no'} |"
+                f"| {identificador} | {marca} | {'sí' if consejo else 'no'} "
+                f"| {'sí' if otro else 'no'} |"
             )
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text("\n".join(lineas) + "\n", encoding="utf-8")
@@ -312,22 +379,29 @@ def main(argumentos: list[str] | None = None) -> None:
 
     print("Midiendo las preguntas ajenas contra el índice real...")
     ajenas = medir_ajenas(ajenas_declaradas, opciones.indice)
-    rechazadas = sum(1 for _, cuantos, _consejo in ajenas if cuantos == 0)
-    consejos = sum(1 for _, cuantos, consejo in ajenas if cuantos and consejo)
+    rechazadas = sum(1 for _, cuantos, _c, _o in ajenas if cuantos == 0)
+    consejos = sum(1 for _, cuantos, consejo, _o in ajenas if cuantos and consejo)
     print(
         f"  rechazadas: {rechazadas} de {len(ajenas)} "
         f"({consejos} de las que pasan piden consejo)"
     )
 
-    validacion: list[tuple[str, int, bool]] = []
+    validacion: list[tuple[str, int, bool, bool]] = []
     if opciones.validacion.exists():
         print("Midiendo el conjunto que no intervino en el ajuste...")
         sueltas = json.loads(opciones.validacion.read_text(encoding="utf-8"))[
             "preguntas"
         ]
         validacion = medir_ajenas(sueltas, opciones.indice)
-        limpias = sum(1 for _, cuantos, _c in validacion if cuantos == 0)
-        print(f"  rechazadas: {limpias} de {len(validacion)}")
+        limpias = sum(1 for _, cuantos, _c, _o in validacion if cuantos == 0)
+        sueltas_sin_red = sum(
+            1 for _, c, consejo, otro in validacion if c and not consejo and not otro
+        )
+        print(
+            f"  rechazadas: {limpias} de {len(validacion)} "
+            f"({sueltas_sin_red} "
+            f"{'pasa' if sueltas_sin_red == 1 else 'pasan'} sin ninguna red debajo)"
+        )
 
     informe(
         agregados,
