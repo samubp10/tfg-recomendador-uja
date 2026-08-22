@@ -1,0 +1,46 @@
+% Requisitos funcionales del sistema (IT-59).
+%
+% La ultima columna no es decoracion: separa los requisitos que salen de una
+% decision de diseno (remiten a una seccion) de los que salen de un experimento
+% (remiten a un ADR). Esa distincion es la que pide la tarjeta.
+%
+% Las columnas se reparten el ancho con \hsize porque el enunciado del
+% requisito necesita mas sitio que la procedencia; los dos factores tienen que
+% sumar 2 (el numero de columnas X).
+\begin{table}[htbp]
+  \centering
+  \color{borrador2}
+  \small
+  \caption[Requisitos funcionales del sistema]{Requisitos funcionales del
+    sistema. Fuente: Elaboración propia.}
+  \label{tab:requisitos_funcionales}
+  \begin{tabularx}{\textwidth}{@{}l >{\hsize=1.42\hsize}Y c >{\hsize=0.58\hsize}Y@{}}
+    \toprule
+    \textbf{ID} & \textbf{Requisito} & \textbf{Traza} & \textbf{Se fija en} \\
+    \midrule
+    RF-01 & Construir la colección documental a partir de la web oficial de la EPSJ, conservando la procedencia de cada dato                & OE1 · RU-02 & ADR-0002 \\
+    RF-02 & Fragmentar la colección sin que ningún fragmento mezcle dos asignaturas                                                          & OE2 · RU-02 & ADR-0001 \\
+    RF-03 & Indexar los fragmentos en una base de datos vectorial que se reconstruya por completo en cada ejecución                          & OE3         & ADR-0004 \\
+    RF-04 & Recuperar de esa base los fragmentos pertinentes a cada consulta, en número variable según su pertinencia                        & OE4 · RU-01 & Sección~\ref{secc:fase2_pipeline} \\
+    RF-05 & Redactar la respuesta empleando únicamente los fragmentos recuperados                                                            & OE4 · RU-02 & ADR-0005 \\
+    RF-06 & Retirar la respuesta entera, y no solo el nombre, cuando nombre una titulación que no está en el catálogo                        & OE4 · RU-03 & Sección~\ref{secc:fase2_dominio} \\
+    RF-07 & Avisar de que la pregunta queda fuera de su ámbito en lugar de improvisar una respuesta                                          & OE4 · RU-06 & Sección~\ref{secc:fase2_dominio} \\
+    RF-08 & Resolver las preguntas de seguimiento manteniendo el hilo de los últimos turnos de la conversación                               & OE6 · RU-04 & Sección~\ref{secc:fase2_conversacion} \\
+    RF-09 & Mostrar junto a la respuesta las fuentes de la colección de las que sale                                                         & OE5 · RU-02 & Sección~\ref{secc:fase2_pipeline} \\
+    RF-10 & Ofrecer la interfaz de chat sin registro previo ni instalación por parte del usuario                                             & OE6 · RU-05 & Sección~\ref{secc:fase3_interfaz} \\
+    \bottomrule
+  \end{tabularx}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textbf{Notas:} \textbf{RF} identifica un requisito funcional del sistema.
+    La columna \textbf{Traza} enlaza cada uno con el objetivo específico
+    (\textbf{OE}) que lo respalda y con el requisito de usuario (\textbf{RU})
+    del que nace, recogido en la Tabla~\ref{tab:requisitos_usuario}. La columna
+    \textbf{Se fija en} distingue el origen del requisito: los que remiten a un
+    \textbf{ADR} (\textit{Architecture Decision Record}) dependen de una
+    decisión tomada por experimentación, y su justificación y sus alternativas
+    están en ese registro; los que remiten a una sección salen de una decisión
+    de diseño argumentada en el texto.
+  \end{minipage}
+\end{table}
