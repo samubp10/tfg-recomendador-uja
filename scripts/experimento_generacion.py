@@ -43,15 +43,21 @@ Uso::
     py scripts/experimento_generacion.py --limite 10          # prueba corta
     py scripts/experimento_generacion.py --solo-informe       # solo reescribe el .md
     py scripts/experimento_generacion.py --recalcular         # repuntúa lo guardado
+    py scripts/experimento_generacion.py --adr                # datos brutos al ADR-0005
 
 Las respuestas se van guardando según se producen y una ejecución nueva **no
 repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
 horas por un corte del servidor no es aceptable.
 
-Escribe **fuera del repositorio**, en ``Notas_TFG/pruebas_chat/``. Un cribado no
-es una decisión de arquitectura: cuando IT-36 elija el modelo, sus cifras irán
-al ADR-0005, que es donde este proyecto guarda los resultados de experimentos.
-Mientras tanto son notas de trabajo y no tienen por qué versionarse.
+El informe se escribe **fuera del repositorio**, en ``Notas_TFG/pruebas_chat/``,
+porque un cribado no es una decisión de arquitectura: mientras se criba son
+notas de trabajo y no tienen por qué versionarse.
+
+Con ``--adr`` se escriben además los datos brutos **dentro del ADR-0005**, entre
+sus marcas de resultados automáticos, que es donde este proyecto guarda los
+resultados de un experimento cuando ya sostienen una decisión (IT-36). El guion
+solo toca lo que hay entre las marcas: la Decisión y las Consecuencias son del
+autor y no se generan.
 """
 
 from __future__ import annotations
@@ -73,6 +79,19 @@ RAIZ = Path(__file__).resolve().parent.parent
 
 #: Dónde se dejan las notas de trabajo, fuera del repositorio.
 NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+
+#: El ADR que registra la elección del modelo generativo (IT-36). Los datos
+#: brutos viven dentro del propio ADR, como anexo suyo, igual que en el
+#: ADR-0001, el ADR-0003 y el ADR-0004.
+RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0005-modelo-de-generacion.md"
+
+#: Marcas entre las que escribe este guion. Existen para poder volver a
+#: ejecutarlo sin pisar lo que el autor haya redactado en el resto del ADR: la
+#: Decisión y las Consecuencias son suyas y el guion no las toca.
+MARCA_INICIO: Final[str] = (
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_generacion.py) -->"
+)
+MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 
 sys.path.insert(0, str(RAIZ / "src"))
 
@@ -754,6 +773,131 @@ def informe(
     print(f"\nInforme escrito en {destino}")
 
 
+def bloque_adr(filas: list[dict[str, Any]], banco: dict[str, Any]) -> str:
+    """Compone los datos brutos que van dentro del ADR-0005.
+
+    Solo cifras: la Decisión y las Consecuencias las escribe el autor. Es el
+    mismo reparto que en el ADR-0001, el ADR-0003 y el ADR-0004, y la razón es
+    que un ADR guarda dos cosas, resultados y decisiones, y solo las primeras
+    se pueden generar.
+
+    Args:
+        filas: Respuestas medidas, tal como están en el JSONL.
+        banco: Banco de preguntas, del que sale la procedencia del corpus.
+
+    Returns:
+        El bloque entero, marcas incluidas, listo para insertar.
+    """
+    resumen = resumir(filas)
+    familias = por_familia(filas)
+    procedencia = banco.get("procedencia_del_dataset", {})
+    preguntas = len({f["id"] for f in filas})
+    lineas: list[str] = [
+        MARCA_INICIO,
+        "",
+        "> Lo escribe `scripts/experimento_generacion.py --adr`. "
+        "**No editar a mano.**",
+        "",
+        f"- Preguntas del banco: **{preguntas}** · "
+        f"respuestas medidas: **{len(filas)}**",
+        f"- Corpus extraído el "
+        f"{procedencia.get('fecha_extraccion', '(sin fecha)')} de "
+        f"{procedencia.get('origen', '(sin origen)')}",
+        f"- Servidor de inferencia: {_servidores(filas)}",
+        "",
+        "### Comparativa de los candidatos",
+        "",
+        "| Modelo | Titul. inventadas | Precisión | Sin medir | Cobertura "
+        "| Acierto escalar | Mediana (s) | p90 (s) |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for modelo, cifras in resumen.items():
+        lineas.append(
+            f"| `{modelo}` | {cifras['titulaciones_inventadas']} "
+            f"| {_cifra(cifras['precision'])} "
+            f"| {cifras['precision_no_medible']}/{cifras['listados']} "
+            f"| {cifras['cobertura']:.3f} | {cifras['acierto_escalar']:.3f} "
+            f"| {cifras['mediana_s']:.1f} | {cifras['p90_s']:.1f} |"
+        )
+    lineas += [
+        "",
+        "**Titulaciones inventadas** es el criterio eliminatorio: un nombre "
+        "con forma de titulación que no está en el catálogo del índice. "
+        "**Sin medir** son las respuestas de listado redactadas en prosa, que "
+        "no enumeran nada: su precisión no existe y queda fuera de la media "
+        "(IT-110). Que no se pueda medir no las exime, porque la cobertura se "
+        "mide sobre el texto entero y sí las recoge.",
+        "",
+        "### Desglose por familia de pregunta",
+        "",
+    ]
+    for modelo, fam in familias.items():
+        lineas += [
+            f"#### `{modelo}`",
+            "",
+            "| Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        for nombre, cifras in sorted(fam.items()):
+            pre = _cifra(cifras["precision"]) if cifras["es_listado"] else "—"
+            cob = f"{cifras['cobertura']:.3f}" if cifras["es_listado"] else "—"
+            acierto = "—" if cifras["es_listado"] else f"{cifras['acierto']:.3f}"
+            lineas.append(
+                f"| {nombre} | {cifras['n']} | {pre} | {cob} | {acierto} "
+                f"| {cifras['mediana_s']:.1f} |"
+            )
+        lineas.append("")
+    lineas += [MARCA_FIN]
+    return "\n".join(lineas)
+
+
+def _servidores(filas: list[dict[str, Any]]) -> str:
+    """Qué versiones del servidor de inferencia produjeron estas respuestas.
+
+    Se declara siempre, y no solo cuando hay una sola, porque una tabla que
+    mezcla dos versiones no compara los modelos entre sí: compara además los
+    servidores. Ya pasó con la criba amplia.
+
+    Args:
+        filas: Respuestas medidas.
+
+    Returns:
+        Las versiones separadas por comas, o un aviso si hay más de una.
+    """
+    versiones = sorted({str(f.get("servidor", "?")) for f in filas})
+    if len(versiones) == 1:
+        return versiones[0]
+    return f"⚠️ MEZCLADAS: {', '.join(versiones)}"
+
+
+def escribir_adr(bloque: str) -> None:
+    """Inserta o reemplaza el bloque de resultados dentro del ADR-0005.
+
+    Solo sustituye lo que hay entre las marcas, de modo que no toca ni una
+    línea de lo que el autor haya escrito en el resto del documento.
+
+    Args:
+        bloque: El bloque completo, marcas incluidas.
+
+    Raises:
+        SystemExit: Si el ADR no existe o no lleva las marcas. Se falla de
+            forma ruidosa a propósito: escribir el bloque al final de un
+            fichero que no lo esperaba deja el ADR desordenado sin avisar.
+    """
+    if not RUTA_ADR.exists():
+        raise SystemExit(f"No existe {RUTA_ADR}: el ADR lo abre IT-36, no este guion.")
+    contenido = RUTA_ADR.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(
+            f"{RUTA_ADR} no lleva las marcas de resultados automáticos. "
+            "Añádelas donde deba ir el bloque."
+        )
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    RUTA_ADR.write_text(antes + bloque + despues, encoding="utf-8")
+    print(f"Resultados escritos en {RUTA_ADR}")
+
+
 def main(argumentos: list[str] | None = None) -> None:
     """Punto de entrada.
 
@@ -783,6 +927,11 @@ def main(argumentos: list[str] | None = None) -> None:
         "--recalcular",
         action="store_true",
         help="repuntúa las respuestas guardadas sin llamar a ningún modelo",
+    )
+    analizador.add_argument(
+        "--adr",
+        action="store_true",
+        help="escribe además los datos brutos dentro del ADR-0005 (IT-36)",
     )
     opciones = analizador.parse_args(argumentos)
 
@@ -831,6 +980,8 @@ def main(argumentos: list[str] | None = None) -> None:
         )
         print(f"Repuntuadas {len(filas)} respuestas sin llamar a ningún modelo.")
     informe(filas, banco, Path(opciones.salida), opciones.presupuesto)
+    if opciones.adr:
+        escribir_adr(bloque_adr(filas, banco))
 
 
 if __name__ == "__main__":
