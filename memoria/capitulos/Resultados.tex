@@ -137,16 +137,38 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \subsection{\textcolor{borrador2}{La recuperación}}
 
+\textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
+  conjunto de evaluación anota, para cada pregunta, las unidades que la
+  responden, y algunas se responden con más fragmentos de los que el sistema
+  entrega: la lista de asignaturas de una titulación ocupa varios. En esas
+  preguntas la exhaustividad por fragmento no puede llegar a uno por perfecto
+  que sea el orden, y el máximo alcanzable sobre esta colección es 0,754 para
+  tres fragmentos, 0,906 para cinco y 0,966 para diez. Leer una cifra contra
+  uno en vez de contra su techo haría parecer al recuperador peor de lo que
+  es.}
+
+\input{tablas/TablaRecuperacion.tex}
+
+\textcolor{borrador2}{La lectura de la Tabla~\ref{tab:recuperacion} depende de
+  qué se le pregunte a los datos. Por \textbf{unidad}, el recuperador encuentra
+  la asignatura correcta en el 90,6\,\% de las preguntas con solo tres
+  fragmentos y en el 99,1\,\% con diez: para la pregunta que un estudiante hace
+  de verdad ---qué se estudia en tal asignatura--- la unidad que la responde
+  entra casi siempre. Por \textbf{fragmento} las cifras son más bajas, y no
+  miden lo mismo: 0,652 con tres fragmentos sobre un techo de 0,754 significa
+  que se recupera el 86\,\% de lo alcanzable, no que se falle una de cada tres
+  veces.}
+
+\textcolor{borrador2}{El MRR de 0,926 dice que el primer fragmento útil aparece
+  casi siempre en la primera posición. Es la cifra que más importa para la
+  generación, porque el modelo lee el contexto en el orden en que se le
+  entrega.}
+
 \begin{borrador}
-  \item Fase: 2 (IT-38). Pendiente de ejecutar el experimento. Cuando exista,
-    aquí van Recall@K y MRR sobre las preguntas de dominio del conjunto.
-  \item Antes de la tabla hay que enunciar los techos, no después: sobre esta
-    colección el máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968
-    para K=10, porque hay preguntas cuyas unidades relevantes son más que K.
-    Toda cifra se lee contra su techo; darla contra 1 haría parecer al
-    recuperador peor de lo que es.
-  \item Las diez preguntas ajenas al dominio no entran en estas dos métricas.
-    Su criterio es el contrario y va en su propia subsección.
+  \item Fase: 2 (IT-38). Falta la subsección con el rechazo de las preguntas
+    ajenas al dominio, que no entran en esta tabla porque su criterio de
+    acierto es el contrario. La cifra que vale es la del conjunto que no
+    intervino en el ajuste del suelo, y está pendiente de medir.
 \end{borrador}
 
 \subsection{\textcolor{borrador2}{La generación}}
