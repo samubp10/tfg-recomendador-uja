@@ -23,6 +23,7 @@ Las tres se comprueban aquí, y las tres tienen prueba de regresión.
 from __future__ import annotations
 
 import json
+import re
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -231,6 +232,20 @@ _FORMULAS_DE_CONSEJO: Final[tuple[str, ...]] = (
     "se me dan bien",
 )
 
+#: Lo que el usuario **cita** en lugar de preguntar. Se descuenta antes de
+#: buscar las palabras de consejo, porque una frase entrecomillada es material
+#: sobre el que se pide algo, no la petición.
+#:
+#: Sin esto, «Tradúceme al inglés: "me gustaría estudiar una ingeniería"» se
+#: daba por petición de consejo, por la palabra «gustaría» de dentro de la
+#: cita. No era un fallo inocuo: a las peticiones de consejo se les entrega la
+#: banda completa a propósito, así que una petición ajena al dominio se colaba
+#: **y además** el informe la contaba entre las que pasan por diseño. Medido
+#: sobre el conjunto de validación de preguntas ajenas.
+_ENTRECOMILLADO: Final[re.Pattern[str]] = re.compile(
+    r"«[^»]*»|\"[^\"]*\"|“[^”]*”|'[^']{4,}'"
+)
+
 #: Lo que se le añade a una petición de consejo antes de incrustarla. La
 #: pregunta de un estudiante que no sabe qué estudiar habla de lo que le gusta
 #: ---la física, el dibujo--- y no nombra nada del corpus, así que su vector
@@ -267,9 +282,10 @@ def pide_recomendacion(pregunta: str) -> bool:
     Returns:
         ``True`` si pide consejo.
     """
-    if palabras(pregunta) & _CONSEJO:
+    sin_citas = _ENTRECOMILLADO.sub(" ", pregunta)
+    if palabras(sin_citas) & _CONSEJO:
         return True
-    normalizada = normalizar(pregunta)
+    normalizada = normalizar(sin_citas)
     return any(f in normalizada for f in _FORMULAS_DE_CONSEJO)
 
 
