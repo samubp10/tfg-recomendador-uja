@@ -1434,3 +1434,33 @@ Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se 
   una pantalla que no las necesita. Esa decisión no cierra ninguna puerta: la
   interfaz habla con el servidor por peticiones \sig{HTTP} corrientes, así que
   sustituirla más adelante no obligaría a tocar nada de lo que hay detrás.}
+
+\subsection[\textcolor{borrador2}{El guion gráfico de la pantalla}]{\textcolor{borrador2}{El guion gráfico de la pantalla}}
+\label{secc:fase3_storyboard}
+
+\textcolor{borrador2}{La pantalla se decide en este apartado y no en la
+  implementación. La Figura~\ref{fig:storyboard_chat} recoge el guion gráfico
+  con los dos casos que tiene que resolver: el normal, en el que el sistema
+  responde con lo que ha recuperado, y aquel en el que no encuentra nada con lo
+  que hacerlo. El segundo no es un caso excepcional que se atienda al final: es
+  la mitad del diseño, porque un asistente que solo se haya pensado para cuando
+  sabe la respuesta improvisa cuando no la sabe.}
+
+\input{diagramas/DiagramaStoryboardChat.tex}
+
+\textcolor{borrador2}{La decisión que sostiene el guion es que la respuesta va
+  acompañada del bloque de fuentes de las que sale, y que ese bloque
+  \textbf{solo aparece cuando hay algo que citar}. La alternativa era mostrarlo
+  siempre, vacío cuando no hubiera fragmentos, y se descarta porque un bloque
+  vacío se lee como un fallo de la pantalla y no como lo que es: que el sistema
+  no está respaldando nada. Su ausencia dice más que su presencia vacía, y no
+  hay que explicarla.}
+
+\textcolor{borrador2}{En el segundo caso el asistente no devuelve un error, ni
+  se disculpa sin más: dice que no ha encontrado esa información y enumera de
+  qué sí puede hablar. Es la misma idea que gobierna la restricción del dominio
+  (Sección~\ref{secc:fase2_dominio}) llevada a la pantalla, y por eso el texto
+  que aparece en la figura no es una redacción de ejemplo, sino la constante
+  con la que responde el sistema. Que el guion enseñe el texto real y no un
+  relleno es lo que permite comprobar que la pantalla y el código dicen lo
+  mismo.}
