@@ -1023,135 +1023,80 @@ Por último, este índice registra tres datos importantes, como con qué modelo 
 
 
 
-\subsection[La conversación con el asistente]{La conversación con el asistente}
+\subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
 \label{secc:fase2_conversacion}
 
-\textcolor{borrador2}{Un estudiante no interroga al sistema con preguntas
-sueltas: conversa. Y en cuanto conversa, sus preguntas dejan de sostenerse
-solas. «¿Y en segundo?» no dice de qué titulación habla; «¿y qué asignaturas
-tiene en primero?» tampoco, aunque la titulación esté clarísima para quien
-escribe. El buscador, sin embargo, solo ve el texto de esa última pregunta, y
-un texto así se parece por igual a las doce titulaciones del corpus.}
+Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas \sout{podrías} \textcolor{borrador2}{podrían} ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
 
-\textcolor{borrador2}{El problema tiene un matiz que condiciona toda la
-solución: el sujeto de la conversación no siempre lo introduce el estudiante.
-Cuando alguien escribe «me gustan los videojuegos» y el asistente le responde
-recomendándole el Grado en Ingeniería Informática, la titulación de la que se
-habla a partir de ese momento aparece únicamente en la respuesta. Un mecanismo
-que solo mire las preguntas del usuario no puede saberlo.}
+Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien \sout{lo cuál} \textcolor{borrador2}{lo cual} no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
-\subsubsection{\textcolor{borrador2}{Alternativas consideradas}}
+\subsubsection{Alternativas consideradas}
 
-\textcolor{borrador2}{Se compararon tres formas de convertir una pregunta de
-seguimiento en algo que se pueda buscar. La primera es no hacer nada y buscar
-con la pregunta tal cual, que sirve de línea base. La segunda, anteponerle el
-texto de la pregunta anterior, que es la solución inmediata. La tercera es la
-que adopta el sistema: deducir de qué titulación se está hablando y
-\textbf{acotar la búsqueda con un filtro exacto} sobre los metadatos del
-índice, dejando el texto solo para ordenar lo que ese filtro admite.}
+Una primera alternativa era añadirle el prompt anterior y la respuesta al actual dándole no un gran contexto pero información útil si es que la pregunta siguiente se refiere a esta, pero tiene un gran problema, y es que a lo que la conversación se alarga deja de ser efectivo y lo que en realidad es útil está a varias preguntas y respuestas de distancia. La segunda alternativa, que es la finalmente adoptada, es interpretar la pregunta para saber de qué titulación se está hablando y acotar la búsqueda a esta titulación en concreto.
 
-\textcolor{borrador2}{La literatura sobre sistemas conversacionales propone una
-cuarta vía: pedirle al propio modelo de lenguaje que reescriba la pregunta de
-seguimiento en una pregunta autónoma. Se descartó por dos razones. La primera
-es de coste, y está medida: preparar la consulta con el mecanismo adoptado
-tarda 1,5 milisegundos de mediana, mientras que una reescritura con el modelo
-añadiría una generación completa a cada pregunta. La segunda es de naturaleza:
-un mecanismo cuyo funcionamiento depende de que el modelo obedezca una
-instrucción no ofrece garantía alguna, mientras que un filtro sobre metadatos
-sí la ofrece: o el fragmento pertenece a esa titulación o no pertenece.}
+\textcolor{borrador2}{Conviene precisar qué se descarta de la primera, porque el
+  sistema no la abandona entera: las preguntas anteriores \textbf{sí} viajan en
+  el \textit{prompt}, y son las tres últimas. Lo que se descarta son las
+  \textbf{respuestas}. La razón es que una respuesta equivocada de un turno se
+  convierte en fuente del siguiente, y lo que no está en el \textit{prompt} no
+  se puede copiar.}
 
-\subsubsection{\textcolor{borrador2}{Diseño de la comparación}}
+\textcolor{borrador2}{La respuesta sí se lee, pero para otra cosa: para saber de
+  qué se está hablando. Es el caso que obliga a ello: <<me gustan los
+  videojuegos>>, a lo que el asistente contesta que le encaja el Grado en
+  Ingeniería Informática, y después <<¿y qué asignaturas tiene en primero?>>. La
+  titulación no aparece en ninguna de las dos preguntas, solo en la respuesta, y
+  mirando únicamente las preguntas el sistema contestaba de otra titulación sin
+  ninguna señal de duda. De ahí la distinción que sostiene el diseño: la
+  respuesta \textbf{se lee} para fijar el sujeto y \textbf{no entra} en el
+  \textit{prompt} como fuente de datos.}
 
-\textcolor{borrador2}{Las conversaciones con las que se comparan las tres
-estrategias no se redactaron a mano, sino que se derivan del propio corpus, de
-la misma forma que los fragmentos compuestos de la sección
-\ref{secc:fragmentos_derivados}. Para cada par de titulación y curso que existe
-en el plan de estudios se genera una conversación cuya última pregunta tiene
-una respuesta conocida por construcción, de modo que medir el acierto no exige
-que nadie juzgue el resultado. Se obtienen así 39 conversaciones repartidas en
-tres familias, que corresponden a las tres formas en que una pregunta puede
-depender de la anterior: cambiar el curso manteniendo la titulación, cambiar la
-titulación manteniendo lo que se pregunta, y arrastrar un sujeto que introdujo
-el asistente.}
 
-\textcolor{borrador2}{Se miden dos cosas distintas y las dos hacen falta. La
-primera es si el fragmento que contiene la respuesta llega siquiera al modelo,
-porque lo que no se recupera no se puede contestar. La segunda es en qué puesto
-llega, medida con el MRR, porque un fragmento que entra el último compite con
-otros diecinueve por la atención del generador.}
+\subsubsection{Qué se recuerda y qué se olvida}
 
-\input{tablas/TablaConversacion}
 
-\subsubsection{\textcolor{borrador2}{Resultado y decisión}}
+Como hemos dicho anteriormente, la \sout{ventada} \textcolor{borrador2}{ventana} de contexto del modelo es finita, así que la conversación mantenida necesita tener una política de qué información mantener cuando se llena. La que sigue el sistema \sout{presente,} \textcolor{borrador2}{presente} descarta primero las preguntas más antiguas y conserva siempre el grado de la que se está hablando actualmente, que ocupa unas pocas palabras y es lo más importante en ese momento. \sout{Cabiera la posibilidad de que el usuario se refiriera a otra titulación en preguntas anteriores, pero debido a esta limitación de la ventana y a una limitación de memoria principal, no es posible sostenerla.}
 
-\textcolor{borrador2}{La diferencia entre las dos primeras estrategias y la
-tercera no está en el promedio, sino en dónde falla cada una. Anteponer la
-pregunta anterior resuelve bien el caso de cambiar de curso, pero se hunde
-cuando la pregunta cambia de titulación: acierta una de cada tres, y el
-fragmento correcto casi nunca aparece arriba. La razón es que el texto de la
-pregunta anterior sigue hablando de la titulación abandonada, de modo que la
-consulta apunta a dos sitios a la vez.}
+\textcolor{borrador2}{Que el usuario cambie de titulación a mitad de
+  conversación no es un caso que quede sin resolver por falta de memoria, sino
+  una regla de resolución: lo que la pregunta nombra manda, y solo cuando no
+  nombra ninguna se hereda la del turno anterior. Así, <<¿y en Mecánica?>>
+  cambia el sujeto en el acto, y <<¿y en segundo?>> lo conserva. Lo que el
+  sistema no sostiene son dos titulaciones a la vez como sujeto de una misma
+  pregunta implícita, porque entonces no habría forma de saber a cuál se
+  refiere.}
 
-\textcolor{borrador2}{Deducir el sujeto y filtrar por él recupera el fragmento
-correcto en las 39 conversaciones y lo coloca el primero en dos de las tres
-familias. Que el resultado sea perfecto en la cobertura no debe leerse como que
-el problema esté resuelto: significa que estas 39 conversaciones no bastan para
-distinguir entre una solución buena y una excelente, y que separar mejor
-exigiría conversaciones más largas de las que este experimento genera.}
 
-\subsubsection{\textcolor{borrador2}{Qué se recuerda y qué se olvida}}
-
-\textcolor{borrador2}{La ventana del modelo es finita, así que la conversación
-necesita una política de qué conservar cuando se llena. La que sigue el sistema
-descarta primero las preguntas más antiguas y conserva siempre la titulación de
-la que se habla, que ocupa unas pocas palabras y es lo único que la pregunta de
-seguimiento necesita de verdad. Las respuestas del asistente no se conservan en
-ningún caso.}
-
-\textcolor{borrador2}{Esa última regla merece explicación, porque es lo que
-impide un fallo particularmente difícil de detectar: que una respuesta
-equivocada en un turno se convierta en la fuente del turno siguiente, y el
-sistema construya sobre su propio error con la misma seguridad con la que
-construye sobre el corpus. La garantía no se pide, se impone: lo que no está en
-el texto que recibe el modelo no puede copiarse de él.}
 
 \begin{borrador}
-  \item Fase: 2 (IT-106). Decisiones que quedan abiertas en este apartado:
-    \item La tarjeta asignaba este contenido a la Fase 3, porque se preveía
-      construirlo junto con la aplicación web. El mecanismo, sin embargo,
-      pertenece al \textit{pipeline} de recuperación y se ha escrito aquí. Hay
-      que decidir si se queda o si se mueve cuando exista la sección de Fase 3.
-    \item Falta decir que el estado de la conversación vive hoy en el proceso
-      del asistente. Cuando exista la aplicación web habrá que sostener que
-      sigue viviendo en el servidor y no en el navegador, y ese razonamiento
-      todavía no se puede escribir porque el servidor no existe.
-    \item Valorar si conviene una figura con la conversación de tres turnos que
-      ilustre de dónde sale el sujeto, o si la explicación se sostiene sin ella.
-    \item Comprobar si el término \textit{MRR} ya está en el glosario desde el
-      apartado de incrustaciones, o si hay que marcarlo aquí con \texttt{\textbackslash gl}.
-  
+  \item Fase: 2 (IT-106). Falta decir que el estado de la conversación vive hoy
+    en el proceso del asistente. Cuando exista la aplicación web habrá que
+    sostener que sigue viviendo en el servidor y no en el navegador, y ese
+    razonamiento todavía no se puede escribir porque el servidor no existe.
 \end{borrador}
+
+\input{diagramas/DiagramaConversacion.tex}
 
 
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
 
-\textcolor{borrador2}{Recuperar los fragmentos correctos no basta: alguien tiene
-  que redactar con ellos una respuesta que un estudiante de bachillerato pueda
-  leer. Este apartado decide quién.}
-
   Ahora que se han extraído los datos, y se han fragmentado, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
-  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo
+  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo que va ha realizar esta acción.
 
 \subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
 
 En el caso de las comparativas y experimentos anteriores (incrustaciones y base de datos vectorial), se decidían por motivos claros, opciones mejores que otras u opciones que por el alcance y enfoque de este proyecto, son elecciones mejores. Sin embargo se han buscado objetivos claros que acerquen a un solo modelo a la elección, como que no alucine o que teniendo los fragmentos delante, los lea y genere la respuesta con todos ellos.
 
 
-\textcolor{borrador2}{Sobre cada respuesta se calculan cuatro medidas, todas
-  ellas comparaciones de cadena contra la colección, sin ningún modelo
-  adicional. La primera cuenta las \textbf{titulaciones inventadas}: nombres con
-  forma de titulación que no aparecen en el catálogo. La \textbf{precisión} mide
+Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cuatro medidas, todas ellas comparaciones de cadena contra la colección de datos:
+
+\begin{itemize}
+  \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tienen sentido que se den en una escuela Politécnica superior, no se encuentra en los datos recogidos.
+  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad 
+\end{itemize}
+
+\textcolor{borrador2}{ La \textbf{precisión} mide
   qué proporción de lo que la respuesta enumera existe de verdad en la
   colección. La \textbf{cobertura}, qué proporción de lo que debía nombrar
   aparece. Y el \textbf{acierto escalar} se aplica a las preguntas cuya

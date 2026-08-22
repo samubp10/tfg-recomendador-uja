@@ -137,16 +137,38 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \subsection{\textcolor{borrador2}{La recuperación}}
 
+\textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
+  conjunto de evaluación anota, para cada pregunta, las unidades que la
+  responden, y algunas se responden con más fragmentos de los que el sistema
+  entrega: la lista de asignaturas de una titulación ocupa varios. En esas
+  preguntas la exhaustividad por fragmento no puede llegar a uno por perfecto
+  que sea el orden, y el máximo alcanzable sobre esta colección es 0,754 para
+  tres fragmentos, 0,906 para cinco y 0,966 para diez. Leer una cifra contra
+  uno en vez de contra su techo haría parecer al recuperador peor de lo que
+  es.}
+
+\input{tablas/TablaRecuperacion.tex}
+
+\textcolor{borrador2}{La lectura de la Tabla~\ref{tab:recuperacion} depende de
+  qué se le pregunte a los datos. Por \textbf{unidad}, el recuperador encuentra
+  la asignatura correcta en el 90,6\,\% de las preguntas con solo tres
+  fragmentos y en el 99,1\,\% con diez: para la pregunta que un estudiante hace
+  de verdad ---qué se estudia en tal asignatura--- la unidad que la responde
+  entra casi siempre. Por \textbf{fragmento} las cifras son más bajas, y no
+  miden lo mismo: 0,652 con tres fragmentos sobre un techo de 0,754 significa
+  que se recupera el 86\,\% de lo alcanzable, no que se falle una de cada tres
+  veces.}
+
+\textcolor{borrador2}{El MRR de 0,926 dice que el primer fragmento útil aparece
+  casi siempre en la primera posición. Es la cifra que más importa para la
+  generación, porque el modelo lee el contexto en el orden en que se le
+  entrega.}
+
 \begin{borrador}
-  \item Fase: 2 (IT-38). Pendiente de ejecutar el experimento. Cuando exista,
-    aquí van Recall@K y MRR sobre las preguntas de dominio del conjunto.
-  \item Antes de la tabla hay que enunciar los techos, no después: sobre esta
-    colección el máximo alcanzable es 0,789 para K=3, 0,906 para K=5 y 0,968
-    para K=10, porque hay preguntas cuyas unidades relevantes son más que K.
-    Toda cifra se lee contra su techo; darla contra 1 haría parecer al
-    recuperador peor de lo que es.
-  \item Las diez preguntas ajenas al dominio no entran en estas dos métricas.
-    Su criterio es el contrario y va en su propia subsección.
+  \item Fase: 2 (IT-38). Falta la subsección con el rechazo de las preguntas
+    ajenas al dominio, que no entran en esta tabla porque su criterio de
+    acierto es el contrario. La cifra que vale es la del conjunto que no
+    intervino en el ajuste del suelo, y está pendiente de medir.
 \end{borrador}
 
 \subsection{\textcolor{borrador2}{La generación}}
@@ -274,28 +296,28 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
-\textcolor{borrador2}{Los resultados anteriores tienen ocho límites que conviene
+\textcolor{borrador2}{Los resultados anteriores tienen límites que conviene
   enunciar aquí y no dejar que los encuentre el lector. Se agrupan por el tipo de
   validez al que afectan.}
 
 \subsection{\textcolor{borrador2}{Validez de constructo}}
 
-\textcolor{borrador2}{Las preguntas del conjunto de evaluación y las unidades
-  relevantes de cada una las escribió y anotó una sola persona, la misma que
-  construyó la colección y el sistema. No hay una segunda anotación ni medida de
-  concordancia, de modo que no puede separarse del todo si el sistema recupera
-  lo relevante o lo que su autor considera relevante. Corregirlo exigiría un
-  anotador independiente que conociera la oferta del centro y le dedicara horas,
-  y queda fuera del alcance de un trabajo individual; la mitigación razonable
-  para trabajo futuro es anotar por duplicado un subconjunto y publicar el
-  acuerdo.}
-
 \textcolor{borrador2}{El suelo de pertinencia descrito en el
   Apartado~\ref{secc:fase2_dominio} no es un filtro de dominio fiable, y este
   trabajo no lo presenta como tal. La distancia entre vectores mide parecido de
   vocabulario, así que una pregunta ajena al dominio formulada con las palabras
-  del centro lo atraviesa: de las diez preguntas ajenas del conjunto, tres pasan
-  el suelo, y las tres comparten esa forma.}
+  del centro lo atraviesa: preguntar si se puede estudiar Medicina en la Escuela
+  o qué asignaturas tiene un grado de otra facultad nombra el centro y nombra
+  una titulación, y por vocabulario se parece a lo que el sistema sí cubre.}
+
+\textcolor{borrador2}{Conviene además no leer esa cifra como si todas las
+  preguntas que atraviesan el suelo fueran un fallo. Las peticiones de consejo
+  reciben contexto \textbf{a propósito}, aunque el interés que expresen sea
+  ajeno a la oferta del centro: a quien dice que le gusta la biología y pregunta
+  qué carrera le pega no se le responde con silencio, sino con lo que sí se
+  imparte. A esas respuestas las vigila la comprobación de titulaciones y no el
+  suelo, y contarlas como error del filtro sería contar como fallo el
+  comportamiento que se busca.}
 
 \textcolor{borrador2}{Y una parte de la colección no es texto
   publicado por la Escuela. De los 1.499 fragmentos, 95 los compone el
@@ -307,6 +329,22 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   procede literalmente de la web.}
 
 \subsection{\textcolor{borrador2}{Validez interna}}
+
+\textcolor{borrador2}{El suelo de pertinencia se eligió buscando el valor que
+  más preguntas ajenas rechazaba, y las preguntas con las que se buscó son las
+  mismas que después miden ese rechazo. Medido así, el resultado dice lo bien
+  que se ajustó el parámetro a un conjunto concreto, no lo bien que el sistema
+  rechaza lo que no le corresponde, y una cifra obtenida sobre los mismos datos
+  con los que se decidió el valor no sostiene ninguna conclusión.}
+
+\textcolor{borrador2}{Este límite \textbf{sí} era corregible, y por eso no se
+  deja declarado sin más: se escribió un segundo conjunto de preguntas ajenas
+  que no ha intervenido en ningún ajuste, con el mismo reparto por clases que el
+  primero, y el rechazo se mide sobre él. Dos de sus preguntas están escritas
+  para ser difíciles a propósito ---una nombra otro centro de la Universidad con
+  un nombre casi idéntico al de este, y otra nombra una titulación que sí existe
+  en el catálogo---, porque es ahí, en el vocabulario cercano, donde un umbral
+  de distancia tiene su límite.}
 
 \textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
   que se desarrolla el proyecto, no en un equipo dedicado, y con el autor
@@ -337,29 +375,34 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \textcolor{borrador2}{Y queda la lección más incómoda de
   este trabajo. El instrumento con el que se miden las respuestas ha fallado
-  seis veces, y las seis produjo cifras verosímiles que nadie habría
-  cuestionado: un listado de diez asignaturas correctas puntuando cero, dos
-  respuestas perfectas puntuando cero por su formato, tres candidatos
-  coincidiendo en una precisión baja porque el conjunto de comparación era el
-  equivocado, las doce titulaciones correctas puntuando 0,083 por escribirlas
-  sin la fórmula «Grado en», un verificador que contaba una cosa y rotulaba
-  otra, y las asignaturas de doble grado que la fuente sitúa en dos cursos
-  ---«Tercer o cuarto curso»--- dadas por falladas en los tres candidatos
-  porque el cotejo exigía el rótulo entero. Los seis están corregidos y cada
+  varias veces a lo largo del desarrollo, y en todos los casos produjo cifras
+  verosímiles que nadie habría cuestionado: un listado de diez asignaturas
+  correctas puntuando cero, dos respuestas perfectas puntuando cero por su
+  formato, tres candidatos coincidiendo en una precisión baja porque el
+  conjunto de comparación era el equivocado, las doce titulaciones correctas
+  puntuando 0,083 por escribirlas sin la fórmula «Grado en», un verificador que
+  contaba una cosa y rotulaba otra, y las asignaturas de doble grado que la
+  fuente sitúa en dos cursos ---«Tercer o cuarto curso»--- dadas por falladas
+  porque el cotejo exigía el rótulo entero. Todos están corregidos y cada
   uno entró como prueba de regresión con su caso real, pero lo que se declara
   no son los fallos, sino lo que se sigue de ellos: un verificador en verde no
   prueba nada mientras no se haya comprobado qué mide, y en este trabajo cada
-  uno de los seis lo descubrió una lectura a mano de respuestas concretas, no
+  uno de ellos lo descubrió una lectura a mano de respuestas concretas, no
   una batería de pruebas.}
 
 \begin{borrador}
   \item Fase: 2 (IT-39). Comprobar al cerrar la memoria que ninguna de estas
-    ocho es corregible con lo que hay: las que lo eran ---el número de preguntas
+    es corregible con lo que hay: las que lo eran ---el número de preguntas
     del tipo sin guía y la mezcla de versiones del servidor de inferencia--- se
     corrigieron y por eso no aparecen aquí. La generalización a otros centros de
     la Universidad tampoco aparece: queda fuera del alcance declarado en el
     Capítulo~\ref{cap:objetivos} y ningún resultado se enuncia como
     generalizable.
+  \item El sobreajuste del suelo es un caso intermedio y por eso sí aparece: lo
+    corregible era la \textbf{medición}, y se corrigió con un segundo conjunto
+    de preguntas; el parámetro sigue elegido sobre diez preguntas, y eso es lo
+    que queda declarado. Falta escribir aquí la cifra de rechazo sobre ese
+    segundo conjunto cuando esté medida.
 \end{borrador}
 
 
