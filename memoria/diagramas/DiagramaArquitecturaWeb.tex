@@ -1,0 +1,63 @@
+% Arquitectura de la aplicacion web (IT-42).
+%
+% Lo que esta figura existe para ensenar no es el recorrido de una pregunta
+% ---eso ya esta en el diagrama de secuencia--- sino DONDE ESTAN LOS LIMITES DE
+% PROCESO. De ahi que el pipeline aparezca como una sola caja y no desglosado:
+% desglosarlo repetiria la otra figura y obligaria a encoger la letra, que es
+% justo lo que se ha pedido evitar.
+%
+% El servidor de inferencia va con borde discontinuo porque es lo unico que
+% corre en OTRO PROCESO, y ya existia antes de la aplicacion web.
+%
+% El indice y el modelo de incrustaciones se cargan UNA VEZ al arrancar, no en
+% cada peticion; esa es la razon de que el pipeline se importe como biblioteca
+% y no se invoque como programa aparte.
+%
+% Ojo al salto de linea dentro de un grupo: el \\ va FUERA de las llaves del
+% \scriptsize, o TikZ rompe el alineado con errores ilegibles.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      procesoAparte/.style={nodoDiag, densely dashed, thick},
+      rotulo/.style={font=\footnotesize, inner sep=2pt},
+      ]
+      % --- Cliente ---
+      \node[nodoDiag] (nav) at (0,0) {Navegador\\{\scriptsize interfaz de chat}};
+      % --- Lo que vive dentro del proceso del servidor ---
+      \node[nodoDiag] (ent) at (4.8,0) {Punto de entrada\\{\scriptsize HTTP}};
+      \node[nodoDiag, minimum width=5.2cm, minimum height=1.6cm] (pipe) at (10.4,0)
+      {\textit{Pipeline} RAG\\{\scriptsize \texttt{conversacion.py} · \texttt{recuperador.py}}\\{\scriptsize \texttt{generador.py} · \texttt{verificacion.py}}};
+      % --- Lo que queda fuera del proceso ---
+      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15]
+      (bd) at (8.3,-3.6) {Índice vectorial\\{\scriptsize LanceDB, en disco}};
+      \node[procesoAparte] (ollama) at (12.9,-3.6)
+      {Servidor de inferencia\\{\scriptsize Ollama · gemma3:12b}};
+      % --- Caja del proceso, en el fondo para no tapar los nodos ---
+      \begin{scope}[on background layer]
+        \node[grupoDiag, inner xsep=18pt, inner ysep=16pt, fit=(ent)(pipe),
+        label={[tituloGrupo]north:Un solo proceso de Python}] (proc) {};
+      \end{scope}
+      % --- Ida ---
+      \draw[flechaDiag] (nav) -- node[rotulo, above]{pregunta} (ent);
+      \draw[flechaDiag] (ent) -- (pipe);
+      \draw[{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick]
+      ([xshift=-1.9cm]pipe.south) -- node[rotulo, left, pos=0.62]{búsqueda vectorial} (bd.north);
+      \draw[{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick, densely dashed]
+      ([xshift=1.9cm]pipe.south) -- node[rotulo, right, pos=0.62]{HTTP local} (ollama.north);
+      % --- Vuelta al navegador, por encima de la caja del proceso. Sube por el
+      % borde derecho de la caja y no por su centro, para no cruzar el rotulo
+      % "Un solo proceso de Python".
+      \draw[flechaDiag] ([xshift=2.2cm]pipe.north) -- ([xshift=2.2cm]pipe.north |- 0,2.4)
+      -- node[rotulo, above]{respuesta, y fuentes de las que sale}
+      (nav.north |- 0,2.4) -- (nav.north);
+    \end{tikzpicture}%
+  }
+  \caption[Arquitectura de la aplicación web]{\textcolor{borrador2}{Arquitectura
+      de la aplicación web. El borde discontinuo marca lo que es otro proceso y
+      no otro módulo: el servidor de inferencia ya existía antes de la
+      aplicación, y es el único límite de proceso que atraviesa una pregunta.
+      El desglose interno del \textit{pipeline} está en la
+      Figura~\ref{fig:secuencia_rag}. Fuente: Elaboración propia.}}
+  \label{fig:arquitectura_web}
+\end{figure}
