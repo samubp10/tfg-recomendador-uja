@@ -267,22 +267,22 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \subsection{\textcolor{borrador2}{Validez de constructo}}
 
-\textcolor{borrador2}{Las preguntas del conjunto de evaluación y las unidades
-  relevantes de cada una las escribió y anotó una sola persona, la misma que
-  construyó la colección y el sistema. No hay una segunda anotación ni medida de
-  concordancia, de modo que no puede separarse del todo si el sistema recupera
-  lo relevante o lo que su autor considera relevante. Corregirlo exigiría un
-  anotador independiente que conociera la oferta del centro y le dedicara horas,
-  y queda fuera del alcance de un trabajo individual; la mitigación razonable
-  para trabajo futuro es anotar por duplicado un subconjunto y publicar el
-  acuerdo.}
-
 \textcolor{borrador2}{El suelo de pertinencia descrito en el
   Apartado~\ref{secc:fase2_dominio} no es un filtro de dominio fiable, y este
   trabajo no lo presenta como tal. La distancia entre vectores mide parecido de
   vocabulario, así que una pregunta ajena al dominio formulada con las palabras
-  del centro lo atraviesa: de las diez preguntas ajenas del conjunto, tres pasan
-  el suelo, y las tres comparten esa forma.}
+  del centro lo atraviesa: preguntar si se puede estudiar Medicina en la Escuela
+  o qué asignaturas tiene un grado de otra facultad nombra el centro y nombra
+  una titulación, y por vocabulario se parece a lo que el sistema sí cubre.}
+
+\textcolor{borrador2}{Conviene además no leer esa cifra como si todas las
+  preguntas que atraviesan el suelo fueran un fallo. Las peticiones de consejo
+  reciben contexto \textbf{a propósito}, aunque el interés que expresen sea
+  ajeno a la oferta del centro: a quien dice que le gusta la biología y pregunta
+  qué carrera le pega no se le responde con silencio, sino con lo que sí se
+  imparte. A esas respuestas las vigila la comprobación de titulaciones y no el
+  suelo, y contarlas como error del filtro sería contar como fallo el
+  comportamiento que se busca.}
 
 \textcolor{borrador2}{Y una parte de la colección no es texto
   publicado por la Escuela. De los 1.499 fragmentos, 95 los compone el
@@ -294,6 +294,22 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   procede literalmente de la web.}
 
 \subsection{\textcolor{borrador2}{Validez interna}}
+
+\textcolor{borrador2}{El suelo de pertinencia se eligió buscando el valor que
+  más preguntas ajenas rechazaba, y las preguntas con las que se buscó son las
+  mismas que después miden ese rechazo. Medido así, el resultado dice lo bien
+  que se ajustó el parámetro a un conjunto concreto, no lo bien que el sistema
+  rechaza lo que no le corresponde, y una cifra obtenida sobre los mismos datos
+  con los que se decidió el valor no sostiene ninguna conclusión.}
+
+\textcolor{borrador2}{Este límite \textbf{sí} era corregible, y por eso no se
+  deja declarado sin más: se escribió un segundo conjunto de preguntas ajenas
+  que no ha intervenido en ningún ajuste, con el mismo reparto por clases que el
+  primero, y el rechazo se mide sobre él. Dos de sus preguntas están escritas
+  para ser difíciles a propósito ---una nombra otro centro de la Universidad con
+  un nombre casi idéntico al de este, y otra nombra una titulación que sí existe
+  en el catálogo---, porque es ahí, en el vocabulario cercano, donde un umbral
+  de distancia tiene su límite.}
 
 \textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
   que se desarrolla el proyecto, no en un equipo dedicado, y con el autor
@@ -347,6 +363,11 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
     la Universidad tampoco aparece: queda fuera del alcance declarado en el
     Capítulo~\ref{cap:objetivos} y ningún resultado se enuncia como
     generalizable.
+  \item El sobreajuste del suelo es un caso intermedio y por eso sí aparece: lo
+    corregible era la \textbf{medición}, y se corrigió con un segundo conjunto
+    de preguntas; el parámetro sigue elegido sobre diez preguntas, y eso es lo
+    que queda declarado. Falta escribir aquí la cifra de rechazo sobre ese
+    segundo conjunto cuando esté medida.
 \end{borrador}
 
 
