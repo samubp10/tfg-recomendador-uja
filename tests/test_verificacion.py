@@ -140,14 +140,72 @@ def test_una_asignatura_de_otra_titulacion_no_cuenta_como_inventada():
     assert cobertura == 1.0
 
 
-def test_no_enumerar_nada_no_es_acertar():
-    """Un modelo que contesta en prosa «son cincuenta» no ha listado ninguna."""
+def test_no_enumerar_nada_deja_la_precision_sin_medir_y_lo_caza_la_cobertura():
+    """Contestar «son cincuenta» sin listarlas sigue siendo un fallo.
+
+    Lo que cambia es quién lo caza. La precisión no vale cero, no existe: no se
+    ha encontrado nada falso porque no se ha enumerado nada. Quien suspende la
+    respuesta es la cobertura, que se mide sobre el texto entero y no depende
+    de que se usen viñetas.
+    """
     precision, cobertura, _, omitidas = cotejar_listado(
         "El grado tiene cincuenta asignaturas obligatorias.", {"Álgebra"}, {"Álgebra"}
     )
-    assert precision == 0.0
+    assert precision is None
     assert cobertura == 0.0
     assert omitidas == {"algebra"}
+
+
+def test_una_respuesta_correcta_en_prosa_no_puntua_cero():
+    """Regresión de G-MEN-001, del cribado del 22/08/2026.
+
+    `gemma3:12b` nombró las tres menciones correctas en prosa y la métrica le
+    puso precisión 0,000 con cero invenciones y cero omisiones. Puntuar así
+    ordenaba a los modelos por su estilo de redacción y no por su veracidad.
+    """
+    texto = (
+        "El Grado en Ingeniería Electrónica Industrial tiene tres menciones: "
+        "Automática, Sistemas electrónicos y Sistemas fotovoltaicos."
+    )
+    esperadas = {"Automática", "Sistemas electrónicos", "Sistemas fotovoltaicos"}
+    precision, cobertura, inventadas, omitidas = cotejar_listado(
+        texto, esperadas, esperadas
+    )
+    assert precision is None
+    assert cobertura == 1.0
+    assert not inventadas and not omitidas
+
+
+def test_un_nombre_partido_por_un_punto_se_cuenta_inventado():
+    """Límite conocido del cotejo, declarado a propósito (G-MEN-011).
+
+    «Smart Grids. Redes Eléctricas Inteligentes» citada por su segunda mitad se
+    cuenta como inventada aunque exista. Es el único nombre así de todo el
+    corpus, de modo que una regla de alias se escribiría para un caso único.
+    Esta prueba no celebra el comportamiento: lo fija, para que quien lo cambie
+    sepa que era una decisión y no un descuido.
+    """
+    corpus = {"Smart Grids. Redes Eléctricas Inteligentes"}
+    precision, _, inventadas, _ = cotejar_listado(
+        "- Redes Eléctricas Inteligentes", corpus, corpus
+    )
+    assert precision == 0.0
+    assert inventadas == {"redes electricas inteligentes"}
+
+
+def test_el_nombre_partido_entero_si_se_reconoce():
+    """Contrapartida de la anterior: citado entero, casa.
+
+    Sin ella, la limitación podría confundirse con que el cotejo no reconoce
+    ese nombre de ninguna forma.
+    """
+    corpus = {"Smart Grids. Redes Eléctricas Inteligentes"}
+    precision, cobertura, inventadas, _ = cotejar_listado(
+        "- Smart Grids. Redes Eléctricas Inteligentes", corpus, corpus
+    )
+    assert precision == 1.0
+    assert cobertura == 1.0
+    assert not inventadas
 
 
 # --- Enumeración en prosa (calibrado contra la sesión del 17/08/2026) ---
