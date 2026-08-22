@@ -1,0 +1,57 @@
+% Ejemplo de conversacion de tres turnos (IT-106).
+%
+% El caso esta elegido para que se vea el mecanismo y no para que quede bonito:
+% la titulacion NO aparece en ninguna de las dos preguntas del usuario, solo en
+% la respuesta del asistente. Es el unico ejemplo en el que se distingue mirar
+% las preguntas de mirar tambien la respuesta, que es la correccion de IT-106.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      turno/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+                    font=\small, text width=6.6cm, inner sep=6pt,
+                    rounded corners=3pt},
+      asistente/.style={turno, fill=white},
+      sujeto/.style={draw=diagGrupoBorde, fill=diagGrupo, align=center,
+                     font=\small, text width=5.8cm, inner sep=5pt,
+                     rounded corners=3pt},
+      rotulo/.style={font=\small\itshape, anchor=west},
+      hilo/.style={-{Latex[length=2mm]}, semithick, draw=diagGrupoBorde!70!black},
+    ]
+      \node[rotulo] at (0,0.9) {Conversación};
+      \node[rotulo] at (8.4,0.9) {De qué se está hablando};
+
+      % --- Turno 1 ---
+      \node[turno, anchor=north west] (p1) at (0,0.4)
+        {\textbf{Estudiante:} me gustan los videojuegos};
+      \node[asistente, anchor=north west] (r1) at (0,-1.0)
+        {\textbf{Asistente:} te encaja el \textbf{Grado en Ingeniería
+         Informática}, que tiene asignaturas de programación y gráficos};
+      \node[sujeto, anchor=north west] (s1) at (8.4,-1.0)
+        {Grado en Ingeniería Informática\\{\footnotesize sale de la
+         \textbf{respuesta}}};
+
+      % --- Turno 2 ---
+      \node[turno, anchor=north west] (p2) at (0,-3.4)
+        {\textbf{Estudiante:} ¿y qué asignaturas tiene en primero?};
+      \node[sujeto, anchor=north west] (s2) at (8.4,-3.4)
+        {Grado en Ingeniería Informática\\{\footnotesize se \textbf{hereda}: la
+         pregunta no nombra ninguna}};
+
+      % --- Turno 3 ---
+      \node[turno, anchor=north west] (p3) at (0,-5.6)
+        {\textbf{Estudiante:} ¿y en Mecánica?};
+      \node[sujeto, anchor=north west] (s3) at (8.4,-5.6)
+        {Grado en Ingeniería Mecánica\\{\footnotesize \textbf{cambia}: lo que la
+         pregunta nombra manda}};
+
+      \draw[hilo] (s1.south) -- (s2.north);
+      \draw[hilo] (s2.south) -- (s3.north);
+    \end{tikzpicture}%
+  }
+  \caption{\textcolor{borrador2}{De dónde sale el sujeto en cada turno. En el
+    primero la titulación solo aparece en la respuesta del asistente, nunca en
+    lo que escribe el estudiante: mirando únicamente las preguntas, el sistema
+    no sabría de qué se está hablando.}}
+  \label{fig:conversacion_tres_turnos}
+\end{figure}
