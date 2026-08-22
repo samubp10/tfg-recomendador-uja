@@ -198,14 +198,20 @@ def corregir(
         precision, cobertura, inventadas, omitidas = cotejar_listado(
             respuesta, pregunta["esperado"], nombres
         )
+        # Una respuesta en prosa no enumera nada y su precisión es None: no se
+        # ha encontrado nada falso, se ha medido sobre nada. Entonces quien
+        # decide es la cobertura, que se mide sobre el texto entero y no
+        # depende del formato. Exigir `precision == 1.0` suspendía respuestas
+        # correctas por no usar viñetas.
+        precision_ok = precision is None or precision == 1.0
         salida.update(
             precision=precision,
             cobertura=cobertura,
             omitidas=len(omitidas),
-            acierta=precision == 1.0 and cobertura == 1.0,
+            acierta=precision_ok and cobertura == 1.0,
             detalle=(
                 f"{len(omitidas)} omitidas, {len(inventadas)} de más"
-                if precision < 1.0 or cobertura < 1.0
+                if not precision_ok or cobertura < 1.0
                 else ""
             ),
         )
