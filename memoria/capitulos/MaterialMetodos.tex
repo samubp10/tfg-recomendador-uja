@@ -1370,3 +1370,67 @@ Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se 
   claridad: cubre las titulaciones, que son doce y están enumeradas en la
   colección, pero no las asignaturas ni las salidas profesionales. Un modelo que
   se invente el contenido de una guía no queda atrapado por ella.}
+
+
+\section[\textcolor{borrador2}{Fase 3: la aplicación web}]{\textcolor{borrador2}{Fase 3: la aplicación web}}
+\label{secc:fase3}
+
+\subsection[\textcolor{borrador2}{Arquitectura de la aplicación}]{\textcolor{borrador2}{Arquitectura de la aplicación}}
+\label{secc:fase3_arquitectura}
+
+\textcolor{borrador2}{La aplicación se resuelve con un solo proceso de servidor
+  que atiende las preguntas y sirve la interfaz, y que importa como biblioteca
+  el \textit{pipeline} descrito en la Sección~\ref{secc:fase2_pipeline}. La
+  Figura~\ref{fig:arquitectura_web} recoge esa estructura: lo único que queda
+  fuera del proceso es el servidor de inferencia y el fichero del índice.}
+
+\input{diagramas/DiagramaArquitecturaWeb.tex}
+
+\textcolor{borrador2}{La razón de que el \textit{pipeline} se importe en lugar
+  de invocarse aparte es que hay dos cosas que se cargan una sola vez al
+  arrancar y conviene que sigan cargadas: el modelo de incrustaciones y la
+  conexión con el índice. Un diseño que lanzase el \textit{pipeline} como
+  programa independiente en cada pregunta pagaría esa carga en todas ellas, y
+  el usuario al que va dirigido el sistema está esperando delante de un cuadro
+  de texto. La segunda razón es la memoria: en el equipo descrito en la
+  Sección~\ref{secc:equipo_ejecucion} el modelo generativo ya ocupa la mayor
+  parte de la disponible, y cada proceso adicional compite con él por lo que
+  queda.}
+
+\textcolor{borrador2}{La alternativa considerada fue repartir el sistema en
+  servicios independientes ---uno de recuperación, otro de generación y una
+  pasarela por delante---, que es la forma habitual de organizar una aplicación
+  de este tipo cuando se despliega en varias máquinas. Se descarta porque los
+  servicios independientes resuelven dos problemas que aquí no existen: escalar
+  cada parte por separado y desplegarlas por separado. Hay un solo equipo y un
+  solo despliegue, de modo que lo que aportaría no es capacidad sino una copia
+  más del modelo de incrustaciones en memoria, o comunicación entre procesos
+  para evitarla.}
+
+\textcolor{borrador2}{Conviene precisar que no se está rechazando separar
+  procesos como principio, porque el sistema ya tiene un límite de proceso: el
+  del servidor de inferencia, que se dibuja con borde discontinuo en la figura.
+  Ese corte sí está justificado, y por una razón concreta ---cargar el modelo
+  generativo cuesta decenas de segundos, y mantenerlo residente entre peticiones
+  es exactamente lo que hace ese proceso---. El criterio que se ha seguido es
+  admitir un límite de proceso cuando exista una razón así, y no encontrarla
+  para ningún otro corte es lo que deja la arquitectura en un solo proceso
+  propio.}
+
+\subsection[\textcolor{borrador2}{La interfaz}]{\textcolor{borrador2}{La interfaz}}
+\label{secc:fase3_interfaz}
+
+\textcolor{borrador2}{La interfaz es una única página servida por el mismo
+  proceso, escrita en \sig{HTML}, hojas de estilo y \textit{JavaScript} sin
+  marco de trabajo ni paso de compilación previo. Se accede sin registro, que
+  es el requisito RU-05 de la Tabla~\ref{tab:requisitos_usuario}, y por tanto
+  no hay cuentas de usuario, ni sesiones persistentes, ni base de datos de
+  usuarios que proteger.}
+
+\textcolor{borrador2}{La alternativa era construirla con uno de los marcos de
+  trabajo habituales para interfaces web. Se descarta porque lo que hay que
+  dibujar es un cuadro de texto y una lista de mensajes, y adoptar un marco de
+  trabajo obligaría a añadir una cadena de construcción y sus dependencias para
+  una pantalla que no las necesita. Esa decisión no cierra ninguna puerta: la
+  interfaz habla con el servidor por peticiones \sig{HTTP} corrientes, así que
+  sustituirla más adelante no obligaría a tocar nada de lo que hay detrás.}
