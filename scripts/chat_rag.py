@@ -227,7 +227,10 @@ def _analizar_argumentos(argumentos: list[str]) -> argparse.Namespace:
     """
     analizador = argparse.ArgumentParser(description=__doc__)
     analizador.add_argument("--indice", default=str(RAIZ / "data" / "indice_lance"))
-    analizador.add_argument("--modelo", default="gemma3:latest")
+    # El modelo del sistema, no el que hubiera a mano: `gemma3:latest` es el de
+    # 3,3 GB, descartado por tamaño en el cribado, y arrancar con él significaba
+    # que el chat no ejecutaba el sistema que se está midiendo.
+    analizador.add_argument("--modelo", default="gemma3:12b")
     analizador.add_argument("--k", type=int, default=K_MAXIMO)
     analizador.add_argument("--grado", default=None)
     analizador.add_argument(

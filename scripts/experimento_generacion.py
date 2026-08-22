@@ -91,17 +91,24 @@ from tfg_uja.text_cleaner import normalizar  # noqa: E402
 from tfg_uja.verificacion import cotejar_listado  # noqa: E402
 from tfg_uja.verificacion import titulaciones_inventadas  # noqa: E402
 
-#: Candidatos que se criban si no se dice otra cosa: **todos los instalados**.
-#: La criba final se hace con los siete a la vez, no por tandas, para que
-#: ninguno se compare contra una medición tomada en otras condiciones.
+#: Candidatos que se miden si no se dice otra cosa: **los tres finalistas**,
+#: uno por talla ---8B, 9B y 12B--- y uno por fabricante, de modo que ninguna
+#: diferencia se pueda confundir con el tamaño ni con la casa que lo entrena.
+#:
+#: Los tres se miden **a la vez y en la misma tanda**, que es la razón de que
+#: sean tres y no ocho. La criba amplia sí pasó por ocho candidatos, y de ahí
+#: salieron los descartes ---mistral-7b se inventó tres titulaciones enteras,
+#: salamandra-7b lo desaconsejan sus propios autores sobre este servidor---,
+#: pero aquella pasada quedó partida en dos versiones de Ollama y sus cifras no
+#: forman una tabla comparable. Medir los ocho de nuevo cuesta una noche entera
+#: de máquina y no lo pide el alcance de este trabajo: lo que la decisión
+#: necesita es que **los finalistas** se comparen en igualdad de condiciones.
+#:
+#: Los descartes previos se cuentan con su motivo, no con su cifra.
 MODELOS: Final[tuple[str, ...]] = (
-    "granite4.1:8b",
-    "command-r7b",
     "ministral-8b:latest",
-    "salamandra-7b",
-    "mistral-nemo:12b",
+    "qwen3.5:9b",
     "gemma3:12b",
-    "qwen2.5:14b",
 )
 
 #: Tope de tiempo por respuesta, en segundos. **Cero significa sin tope**, que
