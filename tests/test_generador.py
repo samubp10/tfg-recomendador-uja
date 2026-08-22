@@ -948,3 +948,40 @@ def test_un_saludo_con_peticion_sigue_saludando():
         generador.responder("buenas, quiero información", [], "x")
         == generador.RESPUESTA_SALUDO
     )
+
+
+def test_la_traza_recoge_lo_que_la_barrera_retira(monkeypatch):
+    """Sin el texto retirado no se puede auditar la barrera.
+
+    Una respuesta de rechazo se ve igual venga de un modelo que se inventó una
+    titulación o de una barrera que descartó una respuesta buena, y son cosas
+    opuestas. Quien mide necesita poder mirar qué se tiró.
+    """
+    _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
+    traza: dict[str, object] = {}
+    respuesta = generador.responder(
+        "soy de FP de arquitectura, ¿qué puedo estudiar?",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=_CATALOGO_EPSJ,
+        traza=traza,
+    )
+    assert respuesta == generador.RESPUESTA_TITULACION_INVENTADA
+    assert traza["inventadas"] == ["Grado en Ingeniería de Edificación"]
+    assert traza["retirada"] == _RESPUESTA_CON_INVENTADA
+
+
+def test_la_traza_queda_vacia_si_la_barrera_no_salta(monkeypatch):
+    """Solo se anota lo retirado. Una traza vacía significa que no hubo nada."""
+    buena = "Puedes estudiar el Grado en Ingeniería Mecánica."
+    _con_respuesta(monkeypatch, buena)
+    traza: dict[str, object] = {}
+    respuesta = generador.responder(
+        "¿qué puedo estudiar?",
+        [fragmento("A", "texto")],
+        "un-modelo",
+        catalogo=_CATALOGO_EPSJ,
+        traza=traza,
+    )
+    assert respuesta == buena
+    assert traza == {}
