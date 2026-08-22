@@ -435,3 +435,123 @@ def test_el_presupuesto_cero_no_cuenta_a_nadie_fuera():
     assert sin_tope["m"]["fuera_de_presupuesto"] == 0
     con = experimento.resumir(lento, presupuesto=60.0)
     assert con["m"]["fuera_de_presupuesto"] == 1
+
+
+# --- La precisión que no se puede medir (IT-110) ---
+#
+# Una respuesta de listado redactada en prosa no enumera nada, así que su
+# precisión es None y no cero. Lo que se comprueba aquí es que ese None no se
+# cuele en las medias como un cero, que es lo que hundía la cifra de los
+# modelos que redactan en prosa.
+
+
+def _fila_listado(id_: str, precision, cobertura, familia="menciones"):
+    """Fila de listado mínima, para no repetir el diccionario entero.
+
+    Args:
+        id_: Identificador de la pregunta.
+        precision: Precisión medida, o ``None`` si la respuesta fue en prosa.
+        cobertura: Cobertura medida.
+        familia: Familia de la pregunta.
+
+    Returns:
+        La fila tal como la escribe el registro.
+    """
+    return {
+        "modelo": "m",
+        "id": id_,
+        "familia": familia,
+        "respuesta": "…",
+        "fragmentos": 3,
+        "segundos_generar": 10.0,
+        "segundos_recuperar": 0.0,
+        "precision": precision,
+        "cobertura": cobertura,
+        "inventadas": [],
+        "omitidas": 0,
+        "esperadas": 1,
+        "titulaciones_inventadas": [],
+    }
+
+
+def test_la_prosa_no_entra_en_la_media_de_precision():
+    """Regresión del cribado del 22/08/2026.
+
+    Con la respuesta en prosa contando como 0,0 la media salía 0,500 y decía
+    que la mitad de lo enumerado era falso. No se enumeró nada falso: no se
+    enumeró nada.
+    """
+    filas = [_fila_listado("G-1", 1.0, 1.0), _fila_listado("G-2", None, 1.0)]
+    resumen = experimento.resumir(filas)["m"]
+    assert resumen["precision"] == 1.0
+    assert resumen["listados"] == 2
+    assert resumen["precision_no_medible"] == 1
+
+
+def test_si_ninguna_se_puede_medir_la_precision_no_es_cero_sino_nada():
+    """El caso extremo: un modelo que contesta siempre en prosa.
+
+    Devolver 0,0 aquí sería afirmar que todo lo que dijo es falso, cuando lo
+    cierto es que no hay nada medido sobre lo que afirmar.
+    """
+    filas = [_fila_listado("G-1", None, 1.0), _fila_listado("G-2", None, 0.0)]
+    resumen = experimento.resumir(filas)["m"]
+    assert resumen["precision"] is None
+    assert resumen["precision_no_medible"] == 2
+
+
+def test_la_cobertura_si_recoge_a_quien_no_contesto():
+    """Quedarse sin medir no exime: el que no dijo nada suspende igual.
+
+    Es el caso de las tres respuestas de optativas del cribado, que daban el
+    recuento («ofrece un total de 16») en lugar de la lista. Su precisión no se
+    puede medir, pero su cobertura es 0.
+    """
+    filas = [_fila_listado("G-1", None, 0.0), _fila_listado("G-2", None, 0.0)]
+    resumen = experimento.resumir(filas)["m"]
+    assert resumen["precision"] is None
+    assert resumen["cobertura"] == 0.0
+
+
+def test_el_desglose_por_familia_tambien_aparta_la_prosa():
+    filas = [
+        _fila_listado("G-1", 1.0, 1.0, "menciones"),
+        _fila_listado("G-2", None, 1.0, "menciones"),
+        _fila_listado("G-3", None, 1.0, "optativas"),
+    ]
+    familias = experimento.por_familia(filas)["m"]
+    assert familias["menciones"]["precision"] == 1.0
+    assert familias["menciones"]["precision_no_medible"] == 1
+    assert familias["optativas"]["precision"] is None
+    assert familias["optativas"]["precision_no_medible"] == 1
+
+
+def test_una_media_que_no_existe_se_escribe_con_un_guion():
+    """`0.000` y «no se ha podido medir» no se pueden leer igual."""
+    assert experimento._cifra(1.0) == "1.000"
+    assert experimento._cifra(0.5) == "0.500"
+    # Cero sí es una cifra: significa que todo lo enumerado era falso, y eso
+    # tiene que poder distinguirse del guion de «no se ha podido medir».
+    assert experimento._cifra(0.0) == "0.000"
+    assert experimento._cifra(None) == "—"
+
+
+def test_el_informe_declara_cuantas_quedaron_sin_medir(tmp_path):
+    """Si el informe no lo dice, la media engaña sin que se note."""
+    destino = tmp_path / "informe.md"
+    filas = [_fila_listado("G-1", 1.0, 1.0), _fila_listado("G-2", None, 1.0)]
+    experimento.informe(filas, {"procedencia_del_dataset": {}}, destino)
+    texto = destino.read_text(encoding="utf-8")
+    assert "Sin medir" in texto
+    assert "1/2" in texto
+    assert "su precisión no es cero, no existe" in texto
+
+
+def test_el_informe_no_revienta_cuando_no_hay_nada_que_promediar(tmp_path):
+    """Todas en prosa: la tabla tiene que escribirse igual, con guiones."""
+    destino = tmp_path / "informe.md"
+    filas = [_fila_listado("G-1", None, 1.0), _fila_listado("G-2", None, 0.0)]
+    experimento.informe(filas, {"procedencia_del_dataset": {}}, destino)
+    texto = destino.read_text(encoding="utf-8")
+    assert "| — |" in texto
+    assert "2/2" in texto
