@@ -136,6 +136,7 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.}
 
 \subsection{\textcolor{borrador2}{La recuperación}}
+\label{secc:resultados_rag_recuperacion}
 
 \textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
   conjunto de evaluación anota, para cada pregunta, las unidades que la
@@ -242,6 +243,60 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   familia en la que ninguno llega a pleno. Que el punto flojo sea el mismo para
   todos apunta a lo que se les entrega y no al modelo que lo lee, pero esa
   explicación no se ha medido y aquí solo se deja anotada.}
+
+\subsection{\textcolor{borrador2}{El sistema completo}}
+
+\textcolor{borrador2}{Las dos subsecciones anteriores miden piezas: el
+  recuperador por un lado y el modelo generativo por otro, cada uno con
+  preguntas sueltas. Lo que un usuario encuentra no es ninguna de las dos, sino
+  el recorrido entero, y ahí aparecen situaciones que las preguntas sueltas no
+  contienen: turnos encadenados que se refieren a lo dicho antes, mensajes que
+  piden consejo en vez de un dato, mensajes que no preguntan nada y preguntas
+  que no van del centro. El banco de evaluación del sistema recoge esas cinco
+  situaciones además de las seis familias de dato, y suma cuarenta y siete
+  entradas. La Tabla~\ref{tab:evaluacion_sistema} las reparte.}
+
+\input{tablas/TablaEvaluacionSistema.tex}
+
+\textcolor{borrador2}{El sistema acierta las cuarenta y siete, y conviene decir
+  enseguida qué significa y qué no. Un pleno sobre cuarenta y siete entradas no
+  es una tasa de acierto de uno: la cota inferior del intervalo de confianza al
+  95\,\% es 0,938, de modo que lo que sostienen estos datos es que el sistema
+  acierta al menos catorce de cada quince veces, no siempre. Y el banco no es
+  una muestra de lo que preguntará un preuniversitario: sus preguntas de dato se
+  derivan de la propia colección, así que comprueban que el sistema es coherente
+  con sus fuentes, no que responda a lo que de verdad se le va a preguntar.}
+
+\textcolor{borrador2}{El resultado interesante no está en el recuento sino en
+  cómo se reparte el trabajo. Ocho de las cuarenta y siete entradas se resuelven
+  \textbf{sin llegar a llamar al modelo generativo}: las cuatro de cortesía, que
+  contesta el propio sistema, y cuatro de las cinco ajenas, que se paran antes.
+  Y esas cuatro no se paran todas en el mismo sitio. Tres se quedan sin ningún
+  fragmento porque ninguno supera el suelo de pertinencia. La cuarta ---una
+  pregunta por una titulación que sí existe, pero en otra universidad---
+  recupera catorce fragmentos, así que el suelo no la ve, y la detiene la
+  comprobación de centro ajeno, que actúa después. La quinta llega hasta el
+  modelo, y es el modelo el que se niega, respondiendo con el catálogo del
+  centro que sí tiene delante. Tres barreras independientes, y cada una para un
+  tipo de pregunta que las otras dos dejan pasar.}
+
+\textcolor{borrador2}{Ese cinco de cinco no debe leerse, sin embargo, como el
+  rendimiento del sistema frente a lo ajeno. Las cinco preguntas de este banco
+  son evidentes ---la capital de Francia, una receta, una carrera que el centro
+  no imparte---, y sobre cinco casos la cota inferior al 95\,\% es 0,549, que no
+  sostiene nada. La cifra que sí dice algo es la de la
+  Subsección~\ref{secc:resultados_rag_recuperacion}, medida sobre diez preguntas
+  construidas a propósito para colarse y que no intervinieron en ningún ajuste:
+  allí el rechazo es de cinco de diez. Presentar el cinco de cinco como la
+  respuesta a esa pregunta sería escoger el conjunto que da mejor cifra.}
+
+\textcolor{borrador2}{Sobre los tiempos hay que ser igual de cuidadoso. La
+  mediana de 53,6 segundos no es lo que tarda una respuesta: mezcla entradas de
+  un solo turno con diálogos de hasta ocho, cuyo tiempo acumula todos. Las
+  preguntas de dato sueltas se mueven entre los 10,6 segundos de una de créditos
+  y los 88,3 de una de optativas, y las cortesías y los rechazos tempranos se
+  responden en décimas porque no encienden el modelo. La cifra que describe el
+  coste de una respuesta es la del apartado anterior, no esta.}
 
 \subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
 

@@ -1,0 +1,55 @@
+% Resultados literales de la evaluacion del sistema completo (IT-38).
+% Fuente: docs/experimentos/it38-sistema.md, escrito por el propio guion
+%   scripts/experimento_sistema.py, y el registro data/registro_sistema_gemma3.jsonl.
+% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar el guion y se
+%   copian de ahi. 47 entradas del banco de IT-37, modelo gemma3:12b, corpus de
+%   1.499 fragmentos y servidor de inferencia 0.32.14.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption[\textcolor{borrador2}{Evaluación del sistema completo}]{%
+    \textcolor{borrador2}{Comportamiento del sistema completo sobre las 47
+      entradas del banco de evaluación, por familia. Fuente: elaboración
+      propia.}}
+  \label{tab:evaluacion_sistema}
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    \textbf{Familia}                    & \textbf{n} & \textbf{Aciertos}
+                                        & \textbf{Mediana (s)}             \\
+    \midrule
+    Créditos de una asignatura          & 4          & 4  &  10,6           \\
+    Curso en que se imparte             & 4          & 4  &  14,8           \\
+    Asignaturas de una mención          & 4          & 4  &  30,2           \\
+    Plan de estudios de un curso        & 4          & 4  &  39,5           \\
+    Optativas de una titulación         & 4          & 4  &  88,3           \\
+    Catálogo del centro                 & 1          & 1  &  53,6           \\
+    \midrule
+    Conversación encadenada             & 8          & 8  & 113,4           \\
+    Petición de consejo                 & 6          & 6  &  91,9           \\
+    Pregunta ambigua                    & 3          & 3  & 153,4           \\
+    Cortesía                            & 4          & 4  &   0,0           \\
+    Fuera de dominio                    & 5          & 5  &   0,1           \\
+    \midrule
+    \textbf{Total}                      & \textbf{47} & \textbf{47} & \textbf{53,6} \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textcolor{borrador2}{\textbf{Notas:} las seis primeras familias preguntan
+      por un dato de la colección y se corrigen contra ella; las cinco últimas
+      comprueban comportamiento y se corrigen contra las respuestas fijas del
+      generador. Ninguna comprobación emplea un modelo que juzgue a otro.
+      \textbf{Conversación encadenada} son diálogos de varios turnos, de modo
+      que su tiempo acumula todos ellos y no es comparable con el de una
+      pregunta suelta; por la misma razón, la mediana total mezcla ambos casos y
+      no debe leerse como el tiempo de una respuesta. \textbf{Ocho de las 47
+      entradas se resuelven sin llegar a llamar al modelo}: las cuatro de
+      cortesía y cuatro de las cinco ajenas, y de ahí sus medianas de décimas de
+      segundo. El pleno se mide sobre 47 entradas: con esa muestra, la cota
+      inferior del intervalo de confianza al 95\,\% es 0,938, no 1. Las cinco
+      preguntas ajenas de este banco son las evidentes; el rechazo frente a
+      preguntas ajenas construidas para colarse se mide aparte y da una cifra
+      muy distinta.}
+  \end{minipage}
+\end{table}
