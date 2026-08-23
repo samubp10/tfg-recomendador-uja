@@ -408,6 +408,13 @@ def cortesia(pregunta: str) -> str | None:
 #: Medido el 20/08/2026: «Dame una receta de tortilla de patatas» no lleva
 #: interrogación ni palabra interrogativa, así que los tres candidatos
 #: contestaron con la bienvenida en vez de decir que de eso no saben.
+#: Hasta cuántas palabras puede tener un mensaje sin fórmula conocida para que
+#: se le siga dando la bienvenida en vez de decirle que no se ha encontrado
+#: nada. Dos, porque un saludo que no está en la lista es «hei» o «q tal»; con
+#: tres ya cabe una petición («resumeme la guerra») y el saludo de respaldo se
+#: convertiría en la respuesta a cualquier cosa que el sistema no entienda.
+_PALABRAS_DEL_SALUDO_DE_RESPALDO: Final[int] = 2
+
 _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
     que cual cuales cuando cuanto cuanta cuantos cuantas como donde quien
     quienes dime cuentame hablame explicame ensename recomiendame dame damelo
@@ -521,6 +528,16 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
     anterior lo resolvía mirando si era el primer mensaje, y por eso contestaba
     distinto a la misma frase según el turno.
 
+    Esa bienvenida de respaldo se limita a los mensajes **muy cortos**, y la
+    razón es un fallo medido: «Hazme un resumen de la Segunda Guerra Mundial» y
+    «Tradúceme al inglés...» no llevan interrogación, y sus verbos ---``hazme``,
+    ``traduceme``--- no están en el vocabulario interrogativo, que recoge unas
+    formas con pronombre enclítico y otras no. Las dos recibían un saludo.
+    Ampliar esa lista con cada verbo nuevo es perseguir casos; lo que separa de
+    verdad un saludo no reconocido de una petición ajena es la longitud, porque
+    un saludo que no está en la lista tiene una palabra o dos y una petición
+    tiene las que hagan falta para decir qué se pide.
+
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
 
@@ -535,7 +552,9 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
         return RESPUESTA_SALUDO
     if "?" in pregunta or dichas & _INTERROGATIVAS:
         return None
-    return RESPUESTA_SALUDO
+    if len(dichas) <= _PALABRAS_DEL_SALUDO_DE_RESPALDO:
+        return RESPUESTA_SALUDO
+    return None
 
 
 def responder(

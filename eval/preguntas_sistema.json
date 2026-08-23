@@ -576,7 +576,8 @@
       "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
       "pregunta": "¿Puedo estudiar Medicina en la Escuela Politécnica Superior de Jaén?",
       "respuesta": "rechazo",
-      "esperado": []
+      "esperado": [],
+      "origen": "escrita_en_el_guion"
     },
     {
       "id": "S-AJE-002",
@@ -584,7 +585,8 @@
       "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
       "pregunta": "¿Qué nota de corte tiene el Grado en Derecho?",
       "respuesta": "rechazo",
-      "esperado": []
+      "esperado": [],
+      "origen": "escrita_en_el_guion"
     },
     {
       "id": "S-AJE-003",
@@ -592,7 +594,8 @@
       "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
       "pregunta": "¿La Universidad de Granada tiene Ingeniería Informática?",
       "respuesta": "rechazo",
-      "esperado": []
+      "esperado": [],
+      "origen": "escrita_en_el_guion"
     },
     {
       "id": "S-AJE-004",
@@ -600,7 +603,8 @@
       "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
       "pregunta": "¿Cuál es la capital de Francia?",
       "respuesta": "rechazo",
-      "esperado": []
+      "esperado": [],
+      "origen": "escrita_en_el_guion"
     },
     {
       "id": "S-AJE-005",
@@ -608,7 +612,98 @@
       "que_prueba": "no se recomienda una carrera a quien pregunta otra cosa",
       "pregunta": "Dame una receta de tortilla de patatas",
       "respuesta": "rechazo",
-      "esperado": []
+      "esperado": [],
+      "origen": "escrita_en_el_guion"
+    },
+    {
+      "id": "S-AJE-006",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase otra_rama_de_la_uja",
+      "pregunta": "¿Se puede estudiar Enfermería aquí?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-001"
+    },
+    {
+      "id": "S-AJE-007",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase otra_rama_de_la_uja",
+      "pregunta": "¿Cuántos créditos tiene el Grado en Administración y Dirección de Empresas?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-002"
+    },
+    {
+      "id": "S-AJE-008",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase interes_tematico_ajeno",
+      "pregunta": "Quiero ser arquitecto, ¿qué me recomiendas?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-003"
+    },
+    {
+      "id": "S-AJE-009",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase interes_tematico_ajeno",
+      "pregunta": "Me gusta el derecho penal, ¿qué carrera me pega?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-004"
+    },
+    {
+      "id": "S-AJE-010",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase otro_centro",
+      "pregunta": "¿La Universidad Politécnica de Valencia tiene Ingeniería Mecánica?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-005"
+    },
+    {
+      "id": "S-AJE-011",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase otro_centro",
+      "pregunta": "¿Qué se estudia en la Escuela Politécnica Superior de Linares?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-006"
+    },
+    {
+      "id": "S-AJE-012",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase conocimiento_general",
+      "pregunta": "¿Cuántos habitantes tiene Jaén?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-007"
+    },
+    {
+      "id": "S-AJE-013",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase conocimiento_general",
+      "pregunta": "¿En qué año se fundó la Universidad de Jaén?",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-008"
+    },
+    {
+      "id": "S-AJE-014",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase peticion_ajena",
+      "pregunta": "Tradúceme al inglés: «me gustaría estudiar una ingeniería».",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-009"
+    },
+    {
+      "id": "S-AJE-015",
+      "familia": "fuera_de_dominio",
+      "que_prueba": "rechazo ante una pregunta ajena de clase peticion_ajena",
+      "pregunta": "Hazme un resumen de la Segunda Guerra Mundial.",
+      "respuesta": "rechazo",
+      "esperado": [],
+      "origen": "conjunto_de_validacion:V-010"
     },
     {
       "id": "S-AMB-001",
