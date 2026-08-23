@@ -223,3 +223,17 @@ def test_las_preguntas_fuera_de_dominio_no_entran_en_las_metricas():
     )
     assert con_fuera["agregados"] == solo_dentro["agregados"]
     assert [f["id"] for f in con_fuera["detalle"]] == ["P-001"]
+
+
+def test_recall_de_unidad_exige_que_la_pregunta_tenga_relevantes():
+    """Una pregunta sin unidades relevantes no es evaluable, y se dice.
+
+    Es el caso de las diez preguntas fuera de dominio del conjunto: su lista de
+    relevantes está vacía a propósito. Devolver 0,0 en vez de fallar las metería
+    en la media y hundiría el Recall con un valor que no significa nada, que es
+    justo lo que el conjunto de evaluación evita dejándolas fuera.
+    """
+    chunks = [{"origen": "guia", "grados": ["G"], "codigos": ["1"], "nombre": "A"}]
+
+    with pytest.raises(ValueError, match="no es evaluable"):
+        evaluacion.recall_de_unidad_en_k([0], set(), chunks, 3)
