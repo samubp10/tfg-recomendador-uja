@@ -18,7 +18,7 @@ sobre una tarea de respuesta conocida, y el ganador salía de un número. La
 generación de texto libre no ofrece eso, y las dos salidas fáciles no se
 sostienen ante un tribunal:
 
-- **Una nota de calidad puesta por el autor** no es reproducible ni
+- **Una nota de calidad puesta por un humano** no es reproducible ni
   independiente de quien la pone.
 - **Un modelo que ejerza de juez** traslada el problema en vez de resolverlo:
   habría que validar al juez, y esa validación es otro experimento con la misma
@@ -59,12 +59,12 @@ están versionadas en `eval/`.
 
 Sobre cada respuesta se calculan cuatro medidas:
 
-| Medida | Qué cuenta |
-| --- | --- |
-| **Titulaciones inventadas** | Nombres con forma de titulación que no están en el catálogo del corpus |
-| **Precisión** | De lo que la respuesta enumera, qué proporción existe en el corpus |
-| **Cobertura** | De lo que debía nombrar, qué proporción aparece |
-| **Acierto escalar** | Para las preguntas de valor único: créditos, número de asignaturas, cursos |
+| Medida                      | Qué cuenta                                                                 |
+| --------------------------- | -------------------------------------------------------------------------- |
+| **Titulaciones inventadas** | Nombres con forma de titulación que no están en el catálogo del corpus     |
+| **Precisión**               | De lo que la respuesta enumera, qué proporción existe en el corpus         |
+| **Cobertura**               | De lo que debía nombrar, qué proporción aparece                            |
+| **Acierto escalar**         | Para las preguntas de valor único: créditos, número de asignaturas, cursos |
 
 **Lo que este instrumento no mide**, y hay que tenerlo delante al leer cualquier
 cifra: si la respuesta está bien escrita, si la recomendación es acertada, o si
@@ -111,6 +111,7 @@ Las tres se ejecutan con el mismo servidor de inferencia local, cuantizadas a
 ### Opción A — qwen3.5:9b
 
 Modelo de Alibaba, el intermedio de los tres en tamaño.
+
 - **URL:** [https://ollama.com/library/qwen3.5](https://ollama.com/library/qwen3.5)
 - **Tamaño:** 9,7 B de parámetros · 6,6 GB en disco · licencia Apache 2.0.
 
@@ -124,9 +125,10 @@ Modelo de Alibaba, el intermedio de los tres en tamaño.
 ### Opción B — gemma3:12b
 
 Modelo de Google, el mayor de los tres.
+
 - **URL:** [https://ollama.com/library/gemma3](https://ollama.com/library/gemma3)
-- **Tamaño:** 12,2 B de parámetros · 8,1 GB en disco · licencia *Gemma Terms of
-  Use*, no una licencia libre estándar.
+- **Tamaño:** 12,2 B de parámetros · 8,1 GB en disco · licencia _Gemma Terms of
+  Use_, no una licencia libre estándar.
 
 - **Pros:** el más consistente del cribado a mano: no rellenó el dato ausente y
   no infirió salidas que no estaban.
@@ -138,6 +140,7 @@ Modelo de Google, el mayor de los tres.
 ### Opción C — ministral-8b
 
 Modelo de Mistral AI.
+
 - **URL:** [https://ollama.com/library/ministral](https://ollama.com/library/ministral)
 - **Tamaño:** 8,5 B de parámetros · 6,1 GB en disco.
 
@@ -174,13 +177,6 @@ Preguntado por los créditos de la única asignatura del corpus cuya ficha no lo
 publica, respondió «9 créditos» y añadió que era obligatoria: se inventó el dato
 **y** el tipo. En la misma sesión enumeró cuatro asignaturas de un curso después
 de afirmar que eran diez.
-
-Merece decirse con precisión, porque la conclusión fácil sería equivocada: **el
-descarte no dice que un modelo entrenado en español rinda peor en español**.
-Dice que este modelo, a este tamaño y con esta cuantización, no respeta el
-contexto recuperado, que es el requisito del que depende todo lo demás en un
-sistema RAG. Un modelo que redacta bien y se inventa los datos es exactamente el
-fallo que este trabajo intenta evitar.
 
 Aun así **se mide junto a los tres finalistas**, y por eso aparece en la tabla
 de resultados: un descarte apoyado solo en una sesión a mano es más débil que
@@ -272,8 +268,7 @@ pregunta se quedó sin contexto recuperado. Los umbrales, por tanto, no separan 
 nadie, y la decisión se toma sobre las medidas descriptivas.
 
 Sobre ellas, `gemma3:12b` es **primero o empatado en las tres**: precisión
-1,000, cobertura 1,000 y acierto escalar 0,978, el más alto de los cuatro. No
-gana por poco en una y pierde en otra: no pierde en ninguna.
+1,000, cobertura 1,000 y acierto escalar 0,978, el más alto de los cuatro. No pierde en ninguna.
 
 Y es el más lento, con 21,6 segundos de mediana frente a los 12,1 de
 `ministral-8b`. Esa es la contrapartida que se acepta, y se acepta porque el
@@ -282,20 +277,12 @@ deprisa, no inventar**. Un asistente que orienta a alguien que va a elegir
 carrera no puede permitirse un dato falso para llegar antes, y quien lo consulta
 tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 
-El descarte de los otros tres no necesita el tiempo para sostenerse.
 `ministral-8b` y `qwen3.5:9b` quedan por detrás en cobertura y en acierto
 escalar, que son las dos medidas que dicen si la respuesta contiene lo que debía
 contener. `salamandra-7b` es con diferencia el más rápido —3,8 segundos— y es el
 único que cabe entero en la tarjeta gráfica, pero su cobertura es 0,908: a las
 preguntas de optativas contesta cuántas hay en lugar de cuáles son, y ese es
 justo el tipo de pregunta que un preuniversitario hace.
-
-Conviene decir qué **no** sostiene esta decisión. No la sostiene que
-`gemma3:12b` escriba mejor: el instrumento no mide la redacción, y en las
-sesiones a mano este mismo modelo llegó a repetir el mismo inciso veinte veces
-en una respuesta dirigida a alguien de diecisiete años. Tampoco la sostiene su
-tamaño, porque el mayor de los candidatos podría haber quedado último sin que
-nada de este experimento lo impidiera.
 
 ## Consecuencias
 
@@ -327,8 +314,8 @@ nada de este experimento lo impidiera.
   cabo.
 - **Las familias sin respuesta computable —temario y salidas— no entran en la
   decisión**, y son precisamente las que más texto libre generan.
-- **La licencia de `gemma3` no es una licencia libre estándar** sino los *Gemma
-  Terms of Use*, con condiciones de uso añadidas. `qwen3.5:9b` y `granite4.1:8b`
+- **La licencia de `gemma3` no es una licencia libre estándar** sino los _Gemma
+  Terms of Use_, con condiciones de uso añadidas. `qwen3.5:9b` y `granite4.1:8b`
   eran Apache 2.0 y se han quedado fuera.
 
 ## Referencias
