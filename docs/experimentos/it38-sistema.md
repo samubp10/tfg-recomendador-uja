@@ -2,14 +2,14 @@
 
 > Lo escribe `scripts/experimento_sistema.py`. **No editar a mano.**
 
-- Entradas del banco: **47**
+- Entradas del banco: **57**
 - Servidor de inferencia: 0.32.14
 
 ## Aciertos por modelo
 
 | Modelo | Aciertos | Tasa | Mediana (s) |
 | --- | ---: | ---: | ---: |
-| `gemma3:12b` | 47 de 47 | 1.000 | 53.6 |
+| `gemma3:12b` | 57 de 57 | 1.000 | 32.2 |
 
 ## Aciertos por familia
 
@@ -22,7 +22,7 @@
 | cortesia | 4 | 4/4 |
 | creditos | 4 | 4/4 |
 | curso_de_asignatura | 4 | 4/4 |
-| fuera_de_dominio | 5 | 5/5 |
+| fuera_de_dominio | 15 | 15/15 |
 | menciones | 4 | 4/4 |
 | optativas | 4 | 4/4 |
 | plan_por_curso | 4 | 4/4 |
