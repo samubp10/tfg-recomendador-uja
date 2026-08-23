@@ -244,25 +244,22 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   todos apunta a lo que se les entrega y no al modelo que lo lee, pero esa
   explicación no se ha medido y aquí solo se deja anotada.}
 
-\textcolor{borrador2}{Con estas cifras se adopta \texttt{gemma3:12b} como modelo
-  generativo del sistema, y la decisión queda registrada en el
-  ADR-0005\cite{repo_tfg}. Conviene decir con qué argumento se toma, porque no es
-  el del umbral: el criterio eliminatorio que se escribió antes de medir lo
-  cumplen los cuatro, de modo que aquí no descarta a nadie y la elección hay que
-  sostenerla sobre las medidas descriptivas. Sobre ellas
-  \texttt{gemma3:12b} es primero o empatado en las tres ---precisión 1,000,
-  cobertura 1,000 y acierto escalar 0,978, el más alto de los cuatro--- y no
-  queda por detrás en ninguna, que es lo que ninguno de los otros tres consigue.}
+\textcolor{borrador2}{Con estas cifras se adopta \texttt{gemma3:12b}, por las
+  razones que desarrolla el Apartado~\ref{secc:eleccion_gemma3}. Conviene
+  subrayar aquí lo que la tabla enseña por sí sola, porque es lo que más
+  condiciona su lectura: el umbral eliminatorio lo cumplen los cuatro, de modo
+  que \textbf{el criterio que se fijó para descartar no descarta a nadie} y la
+  elección se sostiene sobre las medidas descriptivas. Sobre ellas
+  \texttt{gemma3:12b} es primero o empatado en las tres y no queda por detrás en
+  ninguna, que es lo que ninguno de los otros tres consigue.}
 
 \textcolor{borrador2}{Lo que sí lo deja en último lugar es el tiempo: 21,6
   segundos de mediana frente a los 12,1 de \texttt{ministral-8b}. Se adopta el
-  más lento a sabiendas, y no por descuido, porque el orden entre las dos cosas
-  está fijado de antemano en RNF-04 y no se decide aquí: antes que responder
-  deprisa, no inventar. Invertir ese orden habría llevado a
-  \texttt{ministral-8b}, que es el mismo candidato al que se vio salirse del
-  dominio en las sesiones a mano. El tiempo aparece por tanto en este capítulo
-  como lo que es, una consecuencia medida de esa prelación, y el
-  Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede leerse.}
+  más lento a sabiendas, porque el orden entre fidelidad y rapidez está fijado
+  de antemano en el RNF-04 y no se decide con estas cifras. El tiempo aparece
+  por tanto en este capítulo como lo que es, una consecuencia medida de esa
+  prelación, y el Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede
+  leerse.}
 
 \subsection{\textcolor{borrador2}{El sistema completo}}
 
