@@ -175,12 +175,6 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \subsection{\textcolor{borrador2}{La generación}}
 
 \begin{borrador}
-  \item Fase: 2 (IT-35). Falta cerrar la subsección diciendo qué modelo se
-    adopta y con qué argumento, porque el umbral eliminatorio no lo hace: lo
-    cumplen los cuatro.
-  \item La familia \texttt{catalogo} tiene una sola pregunta en la muestra y las
-    cifras de esa fila no sostienen ninguna conclusión. Merece decirlo aquí o
-    quitarla de la lectura.
   \item El registro en bruto de esta tanda ya no existe, de modo que los fallos
     de curso no pueden mirarse pregunta a pregunta sin volver a ejecutarla. Todo
     lo que se afirma aquí sale del informe agregado.
@@ -208,6 +202,12 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   calculado, de modo que ese orden no significa nada. Donde sí hay separación es
   en la cobertura, en el acierto escalar y, sobre todo, en el desglose por
   familia de pregunta.}
+
+\textcolor{borrador2}{De ese desglose queda fuera una familia. A
+  \texttt{catalogo} le tocó una sola pregunta en el sorteo de la muestra, y los
+  cuatro candidatos la aciertan; con un caso, esa fila no separa a nadie ni
+  sostiene ninguna conclusión, y no se usa aquí para leer nada. Las cifras que
+  siguen se apoyan en las familias con veintitrés, trece y siete preguntas.}
 
 \textcolor{borrador2}{\texttt{gemma3:12b} es el único sin punto flojo entre las
   preguntas de listado: precisión y cobertura valen 1,000 en las cuatro familias
@@ -243,6 +243,23 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   familia en la que ninguno llega a pleno. Que el punto flojo sea el mismo para
   todos apunta a lo que se les entrega y no al modelo que lo lee, pero esa
   explicación no se ha medido y aquí solo se deja anotada.}
+
+\textcolor{borrador2}{Con estas cifras se adopta \texttt{gemma3:12b}, por las
+  razones que desarrolla el Apartado~\ref{secc:eleccion_gemma3}. Conviene
+  subrayar aquí lo que la tabla enseña por sí sola, porque es lo que más
+  condiciona su lectura: el umbral eliminatorio lo cumplen los cuatro, de modo
+  que \textbf{el criterio que se fijó para descartar no descarta a nadie} y la
+  elección se sostiene sobre las medidas descriptivas. Sobre ellas
+  \texttt{gemma3:12b} es primero o empatado en las tres y no queda por detrás en
+  ninguna, que es lo que ninguno de los otros tres consigue.}
+
+\textcolor{borrador2}{Lo que sí lo deja en último lugar es el tiempo: 21,6
+  segundos de mediana frente a los 12,1 de \texttt{ministral-8b}. Se adopta el
+  más lento a sabiendas, porque el orden entre fidelidad y rapidez está fijado
+  de antemano en el RNF-04 y no se decide con estas cifras. El tiempo aparece
+  por tanto en este capítulo como lo que es, una consecuencia medida de esa
+  prelación, y el Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede
+  leerse.}
 
 \subsection{\textcolor{borrador2}{El sistema completo}}
 
