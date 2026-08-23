@@ -2,7 +2,7 @@
 
 _Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions_
 
-- **Estado:** Propuesta
+- **Estado:** Aceptada
 - **Decisores:** Samuel Blanco Palmero
 - **Contexto técnico:** Fase 2 (pipeline RAG) del Recomendador UJA
 
