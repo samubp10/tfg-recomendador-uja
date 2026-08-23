@@ -961,3 +961,228 @@ def test_los_listados_declaran_el_credito_ausente():
     """
     assert chunker._creditos({"ects": "6"}) == " (6 ECTS)"
     assert chunker._creditos({"ects": ""}) == " (créditos no publicados)"
+
+
+# --- Bordes del troceado que ninguna guía real había ejercitado ---
+
+
+def test_un_parrafo_vacio_entre_saltos_no_produce_una_pieza():
+    """Tres saltos seguidos dejan un párrafo vacío que no es un fragmento.
+
+    Sale de las guías en PDF: al pegar las líneas útiles quedan huecos dobles
+    donde el original tenía un rótulo suprimido. Sin la guarda, cada hueco
+    entraría como pieza vacía y acabaría contando como fragmento.
+    """
+    piezas = chunker._dividir_en_piezas("Primero.\n\n\n\nSegundo.", 900)
+
+    assert piezas == ["Primero.", "Segundo."]
+
+
+def test_una_palabra_mas_larga_que_el_maximo_se_corta_por_donde_sea():
+    """Sin espacio donde cortar se corta en seco, porque el máximo es duro.
+
+    El máximo de 900 es restricción dura y no una preferencia: una URL larga o
+    un identificador sin espacios no puede saltárselo por no encontrar dónde
+    partir. Se prefiere un corte feo a un fragmento que incumple.
+    """
+    larga = "A" * 50
+
+    piezas = chunker._dividir_en_piezas(larga, 20)
+
+    assert all(len(p) <= 20 for p in piezas)
+    assert "".join(piezas) == larga
+
+
+def test_un_encabezado_sin_metadatos_enumera_las_titulaciones_que_comparten():
+    """Una guía compartida nombra todas sus titulaciones, no solo la primera.
+
+    Es la consecuencia de que `grados` sea una lista: 81 de las 398 unidades se
+    imparten en más de una titulación, y un encabezado que solo nombrase una
+    haría que el modelo negase la asignatura al preguntarle por la otra.
+    """
+    uno = chunker._encabezado_sin_metadatos(
+        "Álgebra", ["Grado en Ingeniería Eléctrica"]
+    )
+    varios = chunker._encabezado_sin_metadatos(
+        "Álgebra",
+        ["Grado en Ingeniería Eléctrica", "Grado en Ingeniería Mecánica"],
+    )
+
+    assert uno == "«Álgebra», asignatura del Grado en Ingeniería Eléctrica."
+    assert varios == (
+        "«Álgebra», asignatura impartida en: Grado en Ingeniería Eléctrica; "
+        "Grado en Ingeniería Mecánica."
+    )
+
+
+def test_un_curso_con_rotulo_desconocido_va_al_final_sin_perderse():
+    """Un rótulo de curso que no es ordinal se ordena al final, pero se conserva.
+
+    La fuente ya cambió tres veces este verano y el rótulo de curso es de los
+    que se han movido. Descartar lo que no se reconoce perdería asignaturas en
+    silencio, que es exactamente el fallo que este proyecto ha pagado cuatro
+    veces; mandarlo al final las conserva y hace visible la anomalía.
+    """
+    asignaturas = [
+        {"nombre": "De primero", "curso": "Primer curso"},
+        {"nombre": "De rótulo raro", "curso": "Curso de adaptación"},
+        {"nombre": "Sin curso", "curso": ""},
+    ]
+
+    ordenadas = chunker._por_curso(asignaturas)
+
+    cursos = [curso for curso, _ in ordenadas]
+    assert cursos[0] == "Primer curso"
+    assert "Curso de adaptación" in cursos
+    assert cursos[-1] == ""
+
+
+def test_main_escribe_la_procedencia_como_primer_registro(tmp_path, capsys):
+    """El fichero de fragmentos lleva dentro de dónde y cuándo salió (IT-90).
+
+    La procedencia va como PRIMER registro del fichero, no en uno aparte, para
+    que no pueda separarse de los datos que describe. Es también la trampa que
+    hace que ``len(chunks)`` cuente uno de más si no se filtra.
+    """
+    items = [
+        {
+            "tipo": "grado",
+            "nombre": "Grado en Ingeniería Informática",
+            "url": "https://eps.ujaen.es/grados/informatica",
+            "es_doble_grado": False,
+        },
+        {
+            "tipo": "salidas",
+            "grado": "Grado en Ingeniería Informática",
+            "texto": "Las salidas profesionales abarcan el desarrollo de software.",
+        },
+    ]
+    entrada = tmp_path / "grados.json"
+    entrada.write_text(json.dumps(items, ensure_ascii=False), encoding="utf-8")
+    salida = tmp_path / "chunks.json"
+
+    chunker.main(str(entrada), str(salida))
+
+    escrito = json.loads(salida.read_text(encoding="utf-8"))
+    assert escrito[0]["tipo"] == "procedencia"
+    assert escrito[0]["tamanos"] == [900, 900, 200]
+    assert all(c["tipo"] == "chunk" for c in escrito[1:])
+    assert f"chunks escritos en {salida}" in capsys.readouterr().out
+
+
+def test_si_el_reparto_deja_menos_fragmentos_se_reevalua_desde_el_principio():
+    """Cuando reequilibrar reduce el número de fragmentos, se vuelve a empezar.
+
+    Ocurre porque las piezas se recortan al repartirlas: el texto que sale de
+    una guía en PDF llega con líneas en blanco de sobra, y esos huecos cuentan
+    para el máximo mientras están pegados pero desaparecen al trocear. Un par
+    que no cabía junto acaba cabiendo, y entonces hay que reevaluar desde el
+    principio porque el fragmento resultante puede volver a fusionarse con su
+    vecino.
+
+    La guarda contraria ---descartar el reparto que devuelve MÁS fragmentos---
+    es la que hace que el bucle termine, y es la que a IT-92 se le escapó: el
+    recuento oscilaba entre 7 y 8 y el troceado no acababa nunca.
+    """
+    corto = "A" * 40
+    con_huecos = "B" * 40 + "\n" * 30
+
+    resultado = chunker._fusionar_pequenos([corto, con_huecos], 50, 100)
+
+    assert len(resultado) == 1
+    assert len(resultado[0]) == 81
+
+
+# --- IT-101: enganchar las asignaturas del doble grado a la guía que ya existe ---
+#
+# Un doble grado no publica guías propias. Sus asignaturas son casi todas las
+# mismas que las de sus dos grados base, pero con códigos de otra serie, así que
+# se cruzan por NOMBRE y no por código. El cruce añade la titulación doble a la
+# unidad que ya existe en vez de duplicar unos 200 fragmentos de temario.
+
+
+def _it101_grado(nombre: str, doble: bool = False) -> dict:
+    return {
+        "tipo": "grado",
+        "nombre": nombre,
+        "url": f"https://eps.ujaen.es/{nombre.lower().replace(' ', '-')}",
+        "es_doble_grado": doble,
+    }
+
+
+def _it101_asignatura(grado: str, codigo: str, nombre: str) -> dict:
+    return {
+        "tipo": "asignatura",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": nombre,
+        "tipo_asignatura": "FB",
+        "ects": "6",
+        "menciones": [],
+        "ofertada": True,
+        "tiene_guia": True,
+    }
+
+
+def _it101_guia(grado: str, codigo: str, nombre: str, temario: str) -> dict:
+    return {
+        "tipo": "guia",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": nombre,
+        "resumen": f"Resumen de {nombre}.",
+        "temario": temario,
+        "fallback": False,
+    }
+
+
+def test_la_asignatura_del_doble_grado_se_engancha_a_la_guia_del_grado_base():
+    """El doble grado entra en la lista de titulaciones, sin duplicar el temario.
+
+    El plan del doble escribe los nombres en mayúsculas y el del simple en
+    minúsculas, que es por lo que la comparación se hace normalizada: en crudo
+    no casaba ni uno solo de los 178 nombres, y las asignaturas del doble
+    acababan con un fragmento afirmando en falso que no tenían guía.
+    """
+    items = [
+        _it101_grado("Grado A"),
+        _it101_grado("Doble Grado A y B", doble=True),
+        _it101_asignatura("Grado A", "10000001", "Álgebra lineal"),
+        _it101_asignatura("Doble Grado A y B", "90000001", "ÁLGEBRA LINEAL"),
+        _it101_guia("Grado A", "10000001", "Álgebra lineal", "Espacios vectoriales."),
+    ]
+
+    chunks = chunker.trocear_dataset(items)
+
+    algebra = [c for c in chunks if c["nombre"] == "Álgebra lineal"]
+    assert len(algebra) == 1
+    assert algebra[0]["grados"] == ["Grado A", "Doble Grado A y B"]
+    assert algebra[0]["codigos"] == ["10000001", "90000001"]
+
+
+def test_un_nombre_ambiguo_entre_varias_guias_no_se_reparte_a_ojo(capsys):
+    """Si el nombre casa con dos guías distintas, no se engancha a ninguna y se avisa.
+
+    Adivinar de cuál cuelga sería inventarse el dato, y repartirlo entre las dos
+    metería en la unidad una titulación que quizá no la imparte. Se avisa por
+    salida de error porque este proyecto ya ha pagado cuatro veces el precio de
+    un dato que se pierde sin decir nada.
+    """
+    items = [
+        _it101_grado("Grado A"),
+        _it101_grado("Grado B"),
+        _it101_grado("Doble Grado A y B", doble=True),
+        _it101_asignatura("Grado A", "10000001", "Física"),
+        _it101_asignatura("Grado B", "20000001", "Física"),
+        _it101_asignatura("Doble Grado A y B", "90000001", "FÍSICA"),
+        _it101_guia("Grado A", "10000001", "Física", "Mecánica clásica y ondas."),
+        _it101_guia("Grado B", "20000001", "Física", "Electromagnetismo y óptica."),
+    ]
+
+    chunks = chunker.trocear_dataset(items)
+
+    for chunk in chunks:
+        assert "Doble Grado A y B" not in chunk["grados"] or chunk["origen"] != "guia"
+    aviso = capsys.readouterr().err
+    assert "nombre ambiguo" in aviso
+    assert "Doble Grado A y B - FÍSICA" in aviso
