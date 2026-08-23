@@ -182,3 +182,56 @@ def test_una_guia_correcta_no_necesita_motivo() -> None:
     # tiene sentido preguntar por qué falló.
     for fixture, _ in _GUIAS:
         assert extraer_guia(_bytes(fixture)) is not None
+
+
+# --- Por qué una guía publicada se queda sin contenido (DQA-0004) ---
+#
+# Los cuatro motivos existen porque durante el rastreo los cuatro casos eran
+# indistinguibles y se llamaban todos «PDF ilegible», que era falso: los seis
+# casos reales del 29/07/2026 se leían perfectamente y lo vacío eran las
+# secciones en el origen. Distinguirlos es lo que permite decir en la memoria
+# que 86 asignaturas no tienen contenido SIN afirmar que el extractor falla.
+
+
+def test_un_pdf_corrupto_se_declara_ilegible():
+    """Lo que ni siquiera se abre es ilegible, y así se cuenta."""
+    assert guia_pdf.motivo_sin_guia(b"esto no es un PDF") == guia_pdf.ILEGIBLE
+
+
+def test_una_guia_real_con_rotulos_se_declara_de_secciones_vacias():
+    """Se abre, tiene texto y se le reconocen los rótulos: lo vacío es la fuente.
+
+    Es el motivo que sostiene la lectura del corpus. Si este caso se contase
+    como «ilegible», la memoria estaría diciendo que el extractor pierde
+    guías cuando lo que ocurre es que la Escuela las publica sin contenido.
+    """
+    datos = (
+        Path(__file__).parent / "fixtures" / "guia_estadistica_iayc.pdf"
+    ).read_bytes()
+
+    assert guia_pdf.motivo_sin_guia(datos) == guia_pdf.SECCIONES_VACIAS
+
+
+def test_un_pdf_legible_cuyos_rotulos_no_se_reconocen_lo_dice(monkeypatch):
+    """Si la plantilla cambia, se dice que cambió, no que el PDF esté roto.
+
+    Es la anomalía que ya ocurrió con las tablas de asignaturas (IT-76): la
+    fuente cambia de forma y el sistema tiene que distinguir «no lo entiendo»
+    de «no hay nada», porque la primera se arregla y la segunda no.
+    """
+    datos = (
+        Path(__file__).parent / "fixtures" / "guia_estadistica_iayc.pdf"
+    ).read_bytes()
+    monkeypatch.setattr(guia_pdf, "_lineas_utiles", lambda texto: ["Otro rótulo"])
+
+    assert guia_pdf.motivo_sin_guia(datos) == guia_pdf.ROTULOS_DESCONOCIDOS
+
+
+def test_un_pdf_que_se_abre_pero_no_trae_texto_se_declara_escaneado(monkeypatch):
+    """Un PDF sin capa de texto es un escaneo, no un fichero corrupto."""
+    datos = (
+        Path(__file__).parent / "fixtures" / "guia_estadistica_iayc.pdf"
+    ).read_bytes()
+    monkeypatch.setattr(guia_pdf, "_texto_del_pdf", lambda datos: "   \n  ")
+
+    assert guia_pdf.motivo_sin_guia(datos) == guia_pdf.SIN_TEXTO
