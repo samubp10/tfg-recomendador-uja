@@ -1103,44 +1103,21 @@ Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cu
 
 \begin{itemize}
   \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tienen sentido que se den en una escuela Politécnica superior, no se encuentra en los datos recogidos.
-  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad 
+  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad en la colección.
+  \item \textbf{Cobertura: }Qué proporción de lo que debía decir realmente aparece.
+  \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuyas respuestas es un único valor como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
 \end{itemize}
 
-\textcolor{borrador2}{ La \textbf{precisión} mide
-  qué proporción de lo que la respuesta enumera existe de verdad en la
-  colección. La \textbf{cobertura}, qué proporción de lo que debía nombrar
-  aparece. Y el \textbf{acierto escalar} se aplica a las preguntas cuya
-  respuesta es un único valor, como los créditos de una asignatura o el curso en
-  que se imparte. Las cifras que arrojan estas cuatro medidas están en el
-  Apartado~\ref{secc:resultados_rag}.}
+Cabe destacar que las cifras calculadas de estas cuatros medidas están en el Apartado~\ref{secc:resultados_rag}.
 
-\textcolor{borrador2}{Las dos medidas de cadena obligan a fijar cuándo dos
-  formas de decir lo mismo cuentan como iguales, y ahí las decisiones no son
-  neutrales. Los créditos se buscan con su unidad detrás, porque en una
-  respuesta de tres líneas casi siempre aparece un «6» suelto por algún lado y
-  darlo por bueno aprobaría a un modelo que no ha contestado. El nombre de una
-  titulación se compara con la fórmula «Grado en» delante o sin ella según cómo
-  la escriba la propia respuesta, ya que las dos formas son correctas en
-  castellano y penalizar una sería medir estilo. Y el curso se coteja contra
-  cada uno de los valores que admite el rótulo por separado: en los dobles
-  grados la Escuela publica rótulos con dos ---«Tercer o cuarto curso»---
-  porque la asignatura se cursa en uno u otro según el itinerario, de modo que
-  nombrar cualquiera de ellos responde a la pregunta.}
 
-\textcolor{borrador2}{Conviene decir también qué queda fuera de estas medidas,
-  porque es bastante. No miden si la respuesta está bien escrita, si la
-  recomendación que hace es acertada para quien pregunta, ni si el resumen de un
-  temario es fiel al original: una respuesta correcta y sosa puntúa igual que
-  una correcta y bien redactada. Por eso las preguntas de temario y de salidas
-  profesionales, cuya respuesta no se puede calcular a partir de la colección,
-  no entran en la decisión; se observan en sesiones manuales y se recogen como
-  modos de fallo.}
+Para evitar problemas como falsos positivos o penalizaciones en las respuestas del agente que son cadenas de caracteres, se establecen tres criterios tales como exigir la unidad junto al número de créditos (que ponga 6 créditos o 6 ECTS) para evitar números al azar, admitir los nombres de la titulación con o sin el prefijo <<Grado en>>, y aceptar cualquiera de los cursos válidos en asignaturas de itinerario variable en dobles grados.
 
 \subsubsection{El banco de preguntas elegido}
 
 El banco de preguntas es el se usa para validar y probar los diferentes modelos elegidos, para medir su rendimiento de manera clara y reproducible. 
 
-Este banco se genera automáticamente mediante código a partir de la colección oficial que se extrae, de esta manera obtenemos junto con la pregunta, la respuesta correcta con la que validar al modelo.
+Este banco se genera automáticamente mediante código a partir de la colección oficial que se extrae, de esta manera obtenemos junto con la pregunta, la respuesta correcta con la que validar al modelo. Esto permite además que si el día de mañana crece la fuente, el banco crezca con ella haciendo más preguntas y comprobando mejor el modelo.
 
 Contiene preguntas repartidas en seis tipos que se ha pensado que podría interesar al usuario objetivo, como preguntas por el catálogo de la Escuela, planes de estudios de las diferentes titulaciones, asignaturas obligatorias y optativas, números de créditos, \dots
 
@@ -1192,48 +1169,16 @@ Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que c
 
 \subsubsection{El umbral del experimento}
 
-Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se inventase las opciones o las respuestas, dado que precisamente estamos haciendo este proyecto para evitar esto.
+Los umbrales del experimento son dos:
 
+\begin{itemize}
+  \item \textbf{Ninguna titulación inventada: }Es un umbral eliminatorio, lo que significa que si se llegase a inventar alguna, el modelo sería totalmente descartado.
+  \item \textbf{Ningún candidato se quede sin contexto: }Si a un modelo se le ofreciera menos fragmentos que los demás no se estarían comparando modelos, sino las recuperaciones que les tocaron.
+\end{itemize}
 
+Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para la decisión del modelo. La primera es el tiempo que este tarda en responder ya que no todos los modelos se comprueban bajo las mismas condiciones controladas, y el equipo en el que se hacen es un portátil de desarrollo que tiene más aplicaciones abiertas. 
 
-
-\textcolor{borrador2}{Los umbrales del experimento son dos. El primero es
-  eliminatorio: \textbf{ninguna titulación inventada} sobre la muestra completa.
-  Un sistema cuyo cometido es recomendar carreras no puede nombrar una que no
-  existe, porque el estudiante al que se dirige no tiene con qué detectarlo. El
-  segundo exige que \textbf{ningún candidato se quede sin contexto} en ninguna
-  pregunta: si a uno el recuperador le trajera menos fragmentos que a los demás
-  no se estaría comparando a los modelos, sino a las recuperaciones que les
-  tocaron.}
-
-\textcolor{borrador2}{Si ningún candidato superase el umbral eliminatorio, la
-  decisión no se anula: se elige entre los que menos incurran y se deja escrito
-  como limitación del sistema, porque un asistente que se inventa titulaciones
-  seguiría siendo un asistente que se inventa titulaciones aunque fuera el mejor
-  de los disponibles.}
-
-\textcolor{borrador2}{Hay en cambio dos magnitudes que se registran y que
-  \textbf{no intervienen en la decisión}. Una es el tiempo de respuesta.
-  Descartar un candidato por lento exige medirlo en condiciones controladas, y
-  el equipo de trabajo es el portátil de desarrollo: el mismo modelo, sobre la
-  misma muestra, ha dado medianas de 15,9 y de 31,9 segundos según lo que
-  estuviera abierto, y una respuesta de 581 caracteres llegó a marcar 16.677
-  segundos porque el sistema estaba paginando a disco. Con esa varianza el
-  tiempo describe la máquina y no al modelo.}
-
-\textcolor{borrador2}{La otra es el reparto entre procesador y tarjeta gráfica.
-  La tarjeta del equipo dispone de 6~GB de memoria dedicada y los candidatos
-  ocupan entre 5,3 y 8,9~GB ya cuantizados a cuatro bits, de modo que el
-  servidor de inferencia carga las capas que caben y ejecuta el resto en el
-  procesador: de uno de los candidatos se midieron 3,28 de sus 8,92~GB en
-  memoria de vídeo. El tiempo de cada uno mide entonces, sobre todo, cuánto de
-  él cupo en la tarjeta, y elegir por ahí sería elegir por el equipo en el que
-  se ha desarrollado el trabajo. Las dos magnitudes se recogen para el anexo de
-  instalación y como amenaza a la validez en el
-  Apartado~\ref{secc:amenazas_validez}.}
-
-
-
+La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador. Al seleccionar un modelo más capaz y por ende más grande, se excede la memoria de la tarjeta gráfica disponible y parte de su ejecución se traslada a la memoria principal, por lo que los tiempos medidos reflejan las limitaciones del hardware de desarrollo del proyecto más que la eficiencia intrínseca de cada modelo. Ambas magnitudes se documentan y analizan como una amenaza a la validez en el Apartado~\ref{secc:amenazas_validez}.
 
 
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
