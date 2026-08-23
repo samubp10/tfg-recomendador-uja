@@ -1180,7 +1180,8 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
 
 \subsubsection{\textcolor{borrador2}{Qué se le entrega al modelo}}
 
-\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas.
+\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas,
+  que recoge la Figura~\ref{fig:prompt_despiezado}.
   El \textbf{mensaje de sistema} fija quién es el asistente y para quién
   escribe. Las \textbf{instrucciones} enumeran las reglas de la respuesta: usar
   solo el contexto, decirlo cuando el contexto no baste, distinguir una guía sin
@@ -1190,10 +1191,16 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
   anteriores} de la conversación, que sirven solo para entender a qué se refiere
   la pregunta actual y nunca como fuente de datos.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-37). Valorar una figura con el prompt completo despiezado en
-    sus cuatro partes. Es el sitio natural para ella y evita transcribirlo.
-\end{borrador}
+\input{diagramas/DiagramaPromptDespiezado.tex}
+
+\textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
+  las mismas siempre; las dos últimas cambian con cada una, y por eso en la
+  figura solo esas dos tienen dibujado de dónde salen. La distinción que importa
+  está en la última: de la conversación viajan las \textbf{preguntas} y no las
+  respuestas. Es lo que impide que una respuesta equivocada en un turno se
+  convierta en fuente del siguiente, y es un control y no una recomendación
+  ---lo que no está en el \textit{prompt} no se puede copiar---, que es la misma
+  idea que gobierna el apartado siguiente.}
 
 \subsubsection{\textcolor{borrador2}{Qué ocurre cuando no se recupera nada}}
 
