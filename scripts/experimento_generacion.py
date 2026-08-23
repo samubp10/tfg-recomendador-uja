@@ -514,6 +514,23 @@ def _media(valores: list[float]) -> float:
     return statistics.fmean(valores) if valores else 0.0
 
 
+def _cifra(valor: float | None) -> str:
+    """Formatea una media que puede no existir.
+
+    Se separa en una función porque la precisión aparece en dos tablas del
+    informe y en las dos hay que distinguir «vale cero» de «no se ha podido
+    medir». Escribir «0.000» en el segundo caso es lo que hacía que una
+    respuesta correcta en prosa se leyera como la peor posible.
+
+    Args:
+        valor: La media, o ``None`` si no había nada que promediar.
+
+    Returns:
+        La cifra con tres decimales, o un guion si no existe.
+    """
+    return f"{valor:.3f}" if valor is not None else "—"
+
+
 def resumir(
     filas: list[dict[str, Any]], presupuesto: float = PRESUPUESTO
 ) -> dict[str, dict[str, Any]]:
@@ -530,6 +547,10 @@ def resumir(
     for modelo in dict.fromkeys(f["modelo"] for f in filas):
         suyas = [f for f in filas if f["modelo"] == modelo]
         listados = [f for f in suyas if "precision" in f]
+        # Una respuesta redactada en prosa no enumera nada, así que su
+        # precisión no vale cero: no existe. Promediarla como cero puntuaba el
+        # formato y no la veracidad, de modo que se aparta y se cuenta.
+        medibles = [f for f in listados if f["precision"] is not None]
         escalares = [f for f in suyas if "acierto" in f]
         tiempos = [f["segundos_generar"] for f in suyas if f["fragmentos"]]
         inventadas = [f for f in suyas if f["titulaciones_inventadas"]]
@@ -540,9 +561,12 @@ def resumir(
             "nombres_inventados": sorted(
                 {n for f in inventadas for n in f["titulaciones_inventadas"]}
             ),
-            "precision": _media([f["precision"] for f in listados]),
+            "precision": (
+                _media([f["precision"] for f in medibles]) if medibles else None
+            ),
             "cobertura": _media([f["cobertura"] for f in listados]),
             "listados": len(listados),
+            "precision_no_medible": len(listados) - len(medibles),
             "acierto_escalar": _media(
                 [1.0 if f["acierto"] else 0.0 for f in escalares]
             ),
@@ -578,13 +602,17 @@ def por_familia(filas: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
         for familia in dict.fromkeys(f["familia"] for f in suyas):
             trozo = [f for f in suyas if f["familia"] == familia]
             listados = [f for f in trozo if "precision" in f]
+            medibles = [f for f in listados if f["precision"] is not None]
             escalares = [f for f in trozo if "acierto" in f]
             salida[modelo][familia] = {
                 "n": len(trozo),
-                "precision": _media([f["precision"] for f in listados]),
+                "precision": (
+                    _media([f["precision"] for f in medibles]) if medibles else None
+                ),
                 "cobertura": _media([f["cobertura"] for f in listados]),
                 "acierto": _media([1.0 if f["acierto"] else 0.0 for f in escalares]),
                 "es_listado": bool(listados),
+                "precision_no_medible": len(listados) - len(medibles),
                 "mediana_s": statistics.median([f["segundos_generar"] for f in trozo]),
             }
     return salida
@@ -644,15 +672,19 @@ def informe(
     cola = " Fuera de presupuesto |" if presupuesto else ""
     guion = " ---: |" if presupuesto else ""
     escribir(
-        "| Modelo | n | Titul. inventadas | Precisión | Cobertura "
+        "| Modelo | n | Titul. inventadas | Precisión | Sin medir | Cobertura "
         "| Acierto escalar | Mediana (s) | p90 (s) | Máx (s) |" + cola
     )
-    escribir("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |" + guion)
+    escribir(
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |" + guion
+    )
     for modelo, cifras in resumen.items():
         fila = (
             f"| `{modelo}` | {cifras['respuestas']} "
             f"| {cifras['titulaciones_inventadas']} "
-            f"| {cifras['precision']:.3f} | {cifras['cobertura']:.3f} "
+            f"| {_cifra(cifras['precision'])} "
+            f"| {cifras['precision_no_medible']}/{cifras['listados']} "
+            f"| {cifras['cobertura']:.3f} "
             f"| {cifras['acierto_escalar']:.3f} | {cifras['mediana_s']:.1f} "
             f"| {cifras['p90_s']:.1f} | {cifras['max_s']:.1f} |"
         )
@@ -663,6 +695,15 @@ def informe(
     escribir(
         "Precisión y cobertura se promedian sobre las preguntas de listado; el "
         "acierto escalar, sobre las de créditos y curso."
+    )
+    escribir("")
+    escribir(
+        "**Sin medir** son las respuestas de listado que no enumeran nada "
+        "porque están redactadas en prosa: su precisión no es cero, no existe, "
+        "y quedan fuera de la media. Contarlas como cero puntuaría el formato "
+        "de la redacción y no la veracidad de lo dicho. Que una respuesta "
+        "quede sin medir no la exime: si además no dijo lo que debía, la "
+        "cobertura lo recoge, porque se mide sobre el texto entero."
     )
     escribir("")
     escribir("## Titulaciones inventadas")
@@ -690,7 +731,7 @@ def informe(
         escribir("| Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |")
         escribir("| --- | ---: | ---: | ---: | ---: | ---: |")
         for nombre, cifras in sorted(fam.items()):
-            pre = f"{cifras['precision']:.3f}" if cifras["es_listado"] else "—"
+            pre = _cifra(cifras["precision"]) if cifras["es_listado"] else "—"
             cob = f"{cifras['cobertura']:.3f}" if cifras["es_listado"] else "—"
             acierto = "—" if cifras["es_listado"] else f"{cifras['acierto']:.3f}"
             escribir(

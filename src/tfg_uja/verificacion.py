@@ -310,12 +310,27 @@ def _desde_la_mayuscula(texto: str) -> str:
 
 def cotejar_listado(
     respuesta: str, esperadas: set[str], del_corpus: set[str]
-) -> tuple[float, float, set[str], set[str]]:
+) -> tuple[float | None, float, set[str], set[str]]:
     """Compara un listado generado con el que dice el dataset.
 
     Las dos cifras miden cosas distintas y las dos hacen falta: un modelo puede
     no inventarse nada y dejarse la mitad de la lista, que es exactamente lo
     que pasó el 16/08/2026 con las cincuenta obligatorias de Informática.
+
+    **La precisión solo existe si hay algo enumerado.** Cuando la respuesta
+    está redactada en prosa, `elementos_de_lista` no extrae ningún nombre y la
+    precisión es ``None``, no cero: no se ha encontrado nada falso, se ha
+    medido sobre nada. Devolver 0,0 puntuaba con la peor nota posible
+    respuestas correctas por el mero hecho de no usar viñetas, y ordenaba a los
+    modelos por su estilo de redacción en lugar de por su veracidad. Quien no
+    contestó de verdad ya queda retratado por la cobertura, que se mide sobre
+    el texto entero y no depende del formato.
+
+    Límite conocido: un nombre oficial formado por dos títulos unidos por un
+    punto solo se reconoce entero. «Smart Grids. Redes Eléctricas
+    Inteligentes» citada como «Redes Eléctricas Inteligentes» se cuenta como
+    inventada aunque exista. Es el único nombre así de todo el corpus, de modo
+    que una regla de alias se estaría escribiendo para un caso único.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -326,9 +341,9 @@ def cotejar_listado(
 
     Returns:
         ``(precision, cobertura, inventadas, omitidas)``. La precisión es la
-        proporción de lo enumerado que existe en el corpus; la cobertura, la
-        proporción de lo esperado que aparece. Sin elementos enumerados la
-        precisión es 0,0: no haber dicho nada no es haber acertado.
+        proporción de lo enumerado que existe en el corpus, o ``None`` si la
+        respuesta no enumeró nada; la cobertura, la proporción de lo esperado
+        que aparece.
     """
     dichas = [nucleo(e) for e in elementos_de_lista(respuesta)]
     esperadas_norm = {nucleo(e) for e in esperadas}
@@ -370,6 +385,6 @@ def cotejar_listado(
         for e in esperadas_norm
         if comparable(e) in texto or comparable(e) in enumeradas
     }
-    precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else 0.0
+    precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else None
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos
