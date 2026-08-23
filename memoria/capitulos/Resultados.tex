@@ -165,12 +165,31 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   generación, porque el modelo lee el contexto en el orden en que se le
   entrega.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-38). Falta la subsección con el rechazo de las preguntas
-    ajenas al dominio, que no entran en esta tabla porque su criterio de
-    acierto es el contrario. La cifra que vale es la del conjunto que no
-    intervino en el ajuste del suelo, y está pendiente de medir.
-\end{borrador}
+\textcolor{borrador2}{Las preguntas ajenas al dominio no entran en esa tabla, y
+  no por descuido: su criterio de acierto es el contrario. Una pregunta ajena se
+  responde bien cuando el recuperador \textbf{no} entrega nada, de modo que su
+  lista de unidades relevantes está vacía y aportaría un cero fijo a las dos
+  métricas. Se miden aparte, y lo que se mide aquí es solo el suelo de
+  pertinencia, que es la primera de las tres barreras y la única que actúa
+  durante la recuperación.}
+
+\textcolor{borrador2}{El suelo detiene \textbf{cinco de las diez} preguntas del
+  conjunto de validación. Esa es la cifra que se informa, y no la del conjunto
+  con el que se eligió el valor del suelo ---donde detiene seis de diez---,
+  porque medir sobre las mismas preguntas con las que se ajustó un parámetro
+  informa de lo bien que se ajustó, no de lo bien que rechaza. De las cinco que
+  lo atraviesan, dos son peticiones de consejo, a las que se les entrega
+  contexto \textbf{a propósito}; dos nombran otro centro y las recoge la
+  comprobación que actúa después; y queda \textbf{una} que a esta altura del
+  recorrido no tiene nada debajo.}
+
+\textcolor{borrador2}{Ese uno es la medida honesta del hueco que deja un umbral
+  de distancia, y conviene enunciarlo sin adornos: \textbf{el suelo de
+  pertinencia no es un filtro de dominio}. Mide parecido de vocabulario, y una
+  pregunta ajena escrita con las palabras del centro se le parece. Lo que ocurre
+  con esa pregunta cuando se la deja seguir hasta el final ---y con las otras
+  cuatro--- se ve en la Subsección~\ref{secc:resultados_rag_sistema}, que mide el
+  sistema entero en lugar de esta primera barrera.}
 
 \subsection{\textcolor{borrador2}{La generación}}
 
@@ -245,6 +264,7 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   explicación no se ha medido y aquí solo se deja anotada.}
 
 \subsection{\textcolor{borrador2}{El sistema completo}}
+\label{secc:resultados_rag_sistema}
 
 \textcolor{borrador2}{Las dos subsecciones anteriores miden piezas: el
   recuperador por un lado y el modelo generativo por otro, cada uno con
@@ -253,50 +273,72 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   contienen: turnos encadenados que se refieren a lo dicho antes, mensajes que
   piden consejo en vez de un dato, mensajes que no preguntan nada y preguntas
   que no van del centro. El banco de evaluación del sistema recoge esas cinco
-  situaciones además de las seis familias de dato, y suma cuarenta y siete
+  situaciones además de las seis familias de dato, y suma cincuenta y siete
   entradas. La Tabla~\ref{tab:evaluacion_sistema} las reparte.}
 
 \input{tablas/TablaEvaluacionSistema.tex}
 
-\textcolor{borrador2}{El sistema acierta las cuarenta y siete, y conviene decir
-  enseguida qué significa y qué no. Un pleno sobre cuarenta y siete entradas no
+\textcolor{borrador2}{El sistema acierta las cincuenta y siete, y conviene decir
+  enseguida qué significa y qué no. Un pleno sobre cincuenta y siete entradas no
   es una tasa de acierto de uno: la cota inferior del intervalo de confianza al
-  95\,\% es 0,938, de modo que lo que sostienen estos datos es que el sistema
-  acierta al menos catorce de cada quince veces, no siempre. Y el banco no es
+  95\,\% es 0,949, de modo que lo que sostienen estos datos es que el sistema
+  acierta al menos diecinueve de cada veinte veces, no siempre. Y el banco no es
   una muestra de lo que preguntará un preuniversitario: sus preguntas de dato se
   derivan de la propia colección, así que comprueban que el sistema es coherente
   con sus fuentes, no que responda a lo que de verdad se le va a preguntar.}
 
 \textcolor{borrador2}{El resultado interesante no está en el recuento sino en
-  cómo se reparte el trabajo. Ocho de las cuarenta y siete entradas se resuelven
-  \textbf{sin llegar a llamar al modelo generativo}: las cuatro de cortesía, que
-  contesta el propio sistema, y cuatro de las cinco ajenas, que se paran antes.
-  Y esas cuatro no se paran todas en el mismo sitio. Tres se quedan sin ningún
-  fragmento porque ninguno supera el suelo de pertinencia. La cuarta ---una
-  pregunta por una titulación que sí existe, pero en otra universidad---
-  recupera catorce fragmentos, así que el suelo no la ve, y la detiene la
-  comprobación de centro ajeno, que actúa después. La quinta llega hasta el
-  modelo, y es el modelo el que se niega, respondiendo con el catálogo del
-  centro que sí tiene delante. Tres barreras independientes, y cada una para un
-  tipo de pregunta que las otras dos dejan pasar.}
+  cómo se reparte el trabajo. Quince de las cincuenta y siete entradas se
+  resuelven \textbf{sin llegar a llamar al modelo generativo}: las cuatro de
+  cortesía, que contesta el propio sistema, y once de las quince ajenas, que se
+  paran antes. Y las quince ajenas no se paran todas en el mismo sitio, que es
+  lo que hace legible el diseño: \textbf{ocho} se quedan sin ningún fragmento
+  porque ninguno supera el suelo de pertinencia; \textbf{tres} recuperan
+  fragmentos ---hasta veinte, de modo que el suelo no las ve--- y las detiene la
+  comprobación de centro ajeno, que actúa después; y \textbf{una} llega hasta el
+  modelo, que redacta una respuesta nombrando una titulación que no existe en la
+  Escuela, y se la retira entera. Cada una de las tres barreras detiene un tipo
+  de pregunta que las otras dos dejan pasar.}
 
-\textcolor{borrador2}{Ese cinco de cinco no debe leerse, sin embargo, como el
-  rendimiento del sistema frente a lo ajeno. Las cinco preguntas de este banco
-  son evidentes ---la capital de Francia, una receta, una carrera que el centro
-  no imparte---, y sobre cinco casos la cota inferior al 95\,\% es 0,549, que no
-  sostiene nada. La cifra que sí dice algo es la de la
-  Subsección~\ref{secc:resultados_rag_recuperacion}, medida sobre diez preguntas
-  construidas a propósito para colarse y que no intervinieron en ningún ajuste:
-  allí el rechazo es de cinco de diez. Presentar el cinco de cinco como la
-  respuesta a esa pregunta sería escoger el conjunto que da mejor cifra.}
+\textcolor{borrador2}{Quedan \textbf{tres} de las quince, y merecen leerse
+  aparte porque no las detiene ninguna barrera: recuperan contexto, lo
+  atraviesan todo y es el modelo el que se niega por su cuenta, respondiendo que
+  ninguna de las titulaciones que tiene delante encaja con lo que se le pregunta.
+  El resultado es el correcto, pero el mecanismo no es el mismo: una barrera
+  impide, y un modelo que se porta bien solo obedece. Contar esas tres como si
+  el sistema las hubiera parado sería atribuir a un control lo que hoy descansa
+  en el comportamiento del modelo, y bastaría cambiar de modelo para que dejara
+  de ser cierto. Son, por tanto, la parte del rechazo que este trabajo
+  \textbf{no puede garantizar}, y la dirección natural de mejora: llevar a un
+  control lo que ahora solo se pide en las instrucciones.}
 
-\textcolor{borrador2}{Sobre los tiempos hay que ser igual de cuidadoso. La
-  mediana de 53,6 segundos no es lo que tarda una respuesta: mezcla entradas de
-  un solo turno con diálogos de hasta ocho, cuyo tiempo acumula todos. Las
-  preguntas de dato sueltas se mueven entre los 10,6 segundos de una de créditos
-  y los 88,3 de una de optativas, y las cortesías y los rechazos tempranos se
-  responden en décimas porque no encienden el modelo. La cifra que describe el
-  coste de una respuesta es la del apartado anterior, no esta.}
+\textcolor{borrador2}{Que las quince se rechacen tampoco autoriza a leerlo como
+  el rendimiento del sistema frente a cualquier pregunta ajena. Sobre quince
+  casos la cota inferior al 95\,\% es 0,819, y esas quince no son una muestra de
+  lo ajeno sino dos conjuntos pegados: cinco preguntas evidentes ---la capital de
+  Francia, una receta, una carrera que el centro no imparte--- y diez escritas a
+  propósito para colarse, dos de ellas nombrando otro centro de la Universidad
+  con un nombre casi idéntico al de este. Se miden juntas justamente para no
+  informar dos cifras distintas de lo mismo, que es lo que ocurría cuando el
+  banco solo traía las cinco evidentes.}
+
+\textcolor{borrador2}{Conviene además no confundir esta cifra con la del
+  Apartado~\ref{secc:resultados_rag_recuperacion}. Allí se mide qué preguntas
+  ajenas detiene \textbf{el suelo de pertinencia por sí solo}, y son cinco de
+  diez; aquí se mide qué preguntas ajenas detiene \textbf{el sistema entero}, con
+  sus tres barreras encadenadas. No son la misma pregunta ni el mismo
+  instrumento, y presentar la segunda como si mejorase a la primera sería
+  atribuir al suelo un mérito que es de las otras dos.}
+
+\textcolor{borrador2}{Sobre los tiempos hay que ser igual de cuidadoso, y en la
+  dirección contraria a la que sugiere la tabla. La mediana de 32,2 segundos no
+  es lo que tarda una respuesta, y es \textbf{más baja que la de cualquier
+  familia que llame al modelo}: la arrastran hacia abajo las quince entradas que
+  se resuelven en centésimas sin encenderlo. Las preguntas de dato sueltas se
+  mueven entre los 11,3 segundos de una de créditos y los 109,4 de una de
+  optativas, y los diálogos de varios turnos acumulan el tiempo de todos ellos.
+  La cifra que describe el coste de una respuesta es la del apartado anterior, no
+  esta.}
 
 \subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
 
@@ -444,19 +486,57 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   uno de ellos lo descubrió una lectura a mano de respuestas concretas, no
   una batería de pruebas.}
 
+\subsection{\textcolor{borrador2}{Qué haría falta para levantarlas}}
+\label{secc:levantar_amenazas}
+
+\textcolor{borrador2}{Ninguna de las cuatro se declara como un límite
+  insalvable, y conviene decir de cada una qué haría falta para quitarla de en
+  medio. Las que se podían corregir con lo que hay aquí no están en esta
+  sección: se corrigieron, y una limitación corregida no es una limitación del
+  trabajo.}
+
+\textcolor{borrador2}{Para la \textbf{validez de constructo}, lo que separa al
+  suelo de pertinencia de un filtro de dominio es que el suelo mide parecido de
+  vocabulario y el dominio no es una cuestión de vocabulario. Levantarlo pide
+  otra clase de comprobación: decidir si la pregunta habla de algo que la
+  colección contiene antes de buscarlo, y no después de medir cuánto se le
+  parece. El sistema ya hace algo así con la comprobación de centro ajeno, que
+  no mide distancias sino que reconoce nombres, y es la que detiene justamente
+  las preguntas que el suelo deja pasar. Extender esa idea al resto del dominio
+  es trabajo de la fase de validación y no de esta.}
+
+\textcolor{borrador2}{Para la \textbf{validez interna}, el parámetro sigue
+  elegido sobre diez preguntas aunque se mida sobre otras diez. Lo que lo
+  levantaría no es más cuidado sino más datos: un conjunto de ajuste bastante
+  mayor, partido en pliegues, de modo que ningún valor del suelo se elija sobre
+  el mismo material con el que después se comprueba. Escribir a mano ese
+  conjunto es el coste real, porque las preguntas ajenas no se pueden derivar de
+  la colección ---no hay en ella ninguna columna que diga qué es ajeno--- y son
+  las únicas del trabajo que hay que redactar una a una. La parte de los tiempos
+  se levanta sola en cuanto se mida en un equipo dedicado y sin nadie
+  trabajando en él.}
+
+\textcolor{borrador2}{Para la \textbf{validez externa} hay dos cosas distintas.
+  El sesgo de cobertura no lo puede arreglar este trabajo, porque depende de que
+  la Escuela publique las guías que faltan; lo que sí se puede hacer, y sería
+  barato, es informar las cifras de recuperación por titulación en vez de
+  agregadas, y que se vea dónde el sistema sabe menos. La generalización a otros
+  centros es otra cosa: no se levanta con más medidas sobre esta colección, sino
+  repitiendo la canalización entera sobre la web de otro centro, y eso queda
+  fuera del alcance declarado en el Capítulo~\ref{cap:objetivos}.}
+
+\textcolor{borrador2}{Y para la \textbf{validez de conclusión}, el techo de
+  Recall@K sube recuperando más fragmentos, que es un parámetro y no un límite;
+  lo que no sube por medir más veces es la confianza en el propio instrumento.
+  Ahí lo único que ha funcionado en este trabajo ha sido leer respuestas
+  concretas a mano hasta encontrar la que el corrector puntuaba mal, y lo que
+  levantaría de verdad esa amenaza es que las preguntas y sus respuestas
+  correctas las escribiera alguien distinto de quien escribe el corrector.}
+
 \begin{borrador}
-  \item Fase: 2 (IT-39). Comprobar al cerrar la memoria que ninguna de estas
-    es corregible con lo que hay: las que lo eran ---el número de preguntas
-    del tipo sin guía y la mezcla de versiones del servidor de inferencia--- se
-    corrigieron y por eso no aparecen aquí. La generalización a otros centros de
-    la Universidad tampoco aparece: queda fuera del alcance declarado en el
-    Capítulo~\ref{cap:objetivos} y ningún resultado se enuncia como
-    generalizable.
-  \item El sobreajuste del suelo es un caso intermedio y por eso sí aparece: lo
-    corregible era la \textbf{medición}, y se corrigió con un segundo conjunto
-    de preguntas; el parámetro sigue elegido sobre diez preguntas, y eso es lo
-    que queda declarado. Falta escribir aquí la cifra de rechazo sobre ese
-    segundo conjunto cuando esté medida.
+  \item Fase: 2 (IT-39). Apartado vivo hasta cerrar la memoria: comprobar
+    entonces que ninguna de las cuatro se ha vuelto corregible con lo que haya
+    para entonces.
 \end{borrador}
 
 
