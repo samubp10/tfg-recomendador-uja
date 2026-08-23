@@ -38,6 +38,7 @@ from tfg_uja.indexer import (
     crear_almacen_lance,
     indexar_chunks,
     metadatos_de_chunk,
+    main,
     metadatos_de_indice,
     procedencia_de_indice,
     reconstruir_indice,
@@ -445,3 +446,48 @@ def test_los_metadatos_del_indice_vuelven_como_texto(tmp_path, chunks_reales):
         isinstance(clave, str) and isinstance(valor, str)
         for clave, valor in metadatos.items()
     )
+
+
+# --- Los dos extremos del indexador ---
+
+
+def test_un_lote_vacio_no_llega_a_crear_la_tabla(almacen):
+    """Un lote sin nada no debe dejar rastro, ni siquiera una tabla vacía.
+
+    La guarda existe porque el esquema de la tabla se deduce de la dimensión del
+    primer vector del lote: sin ella, un lote vacío reventaría al mirar
+    ``vectores[0]``, y lo haría durante la reconstrucción del índice y no en una
+    prueba. El caso llega solo cuando el troceado deja una tanda sin fragmentos.
+    """
+    almacen.anadir([], [], [], [])
+
+    assert almacen.tabla is None
+
+
+def test_main_reconstruye_el_indice_y_dice_cuantos(tmp_path, chunks_reales, capsys):
+    """El punto de entrada de consola indexa y cuenta lo que ha indexado.
+
+    Es la orden que documenta el README y la que hay que ejecutar tras cada
+    troceado, así que conviene que esté probada y no solo escrita.
+    """
+    ruta_chunks = tmp_path / "chunks.json"
+    ruta_chunks.write_text(
+        json.dumps(chunks_reales, ensure_ascii=False), encoding="utf-8"
+    )
+    ruta_indice = tmp_path / "indice"
+
+    def incrustador_falso(textos: list[str]) -> list[list[float]]:
+        return [[float(len(t) % 97)] + [0.0] * 7 for t in textos]
+
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(
+        "tfg_uja.indexer.incrustador_de_documentos", lambda modelo: incrustador_falso
+    )
+    try:
+        main([str(ruta_chunks), str(ruta_indice)])
+    finally:
+        monkeypatch.undo()
+
+    salida = capsys.readouterr().out
+    assert f"chunks indexados en {ruta_indice}" in salida
+    assert MODELO in salida
