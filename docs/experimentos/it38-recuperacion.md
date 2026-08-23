@@ -40,22 +40,55 @@ modelo.
 
 **Rechazadas por el recuperador: 6 de 10.**
 
-De las 4 que pasan, **2 son peticiones
-de consejo**, y que pasen es deliberado: a esas el sistema les entrega la
-banda completa a propósito. Quien pregunta qué carrera le pega no debe
-recibir silencio, sino lo que sí se imparte aquí; a esas respuestas las
-vigila la barrera de titulaciones, no el suelo. Contarlas como fallo del
-filtro sería contar como error el comportamiento que se busca.
+De las 4 que pasan el suelo, no todas son un
+fallo, y mezclarlas exagera el problema. Se separan en tres:
 
-| Pregunta | Fragmentos recibidos | Petición de consejo |
-| --- | ---: | :---: |
-| P-051 | 3 | no |
-| P-052 | 20 | no |
-| P-053 | 20 | sí |
-| P-054 | 20 | sí |
-| P-055 | rechazada | no |
-| P-056 | rechazada | no |
-| P-057 | rechazada | no |
-| P-058 | rechazada | no |
-| P-059 | rechazada | no |
-| P-060 | rechazada | no |
+* **2 son peticiones de
+  consejo**, y que pasen es deliberado: a esas el sistema les entrega la
+  banda completa a propósito. Quien pregunta qué carrera le pega no debe
+  recibir silencio, sino lo que sí se imparte aquí. Contarlas como fallo
+  del filtro sería contar como error el comportamiento que se busca.
+* **0 las para la comprobación
+  de otro centro**, que actúa después del suelo y antes del modelo. Pasar
+  el suelo no es lo mismo que ser respondida.
+* **2 pasan sin ninguna de las dos
+  cosas.** Esta es la cifra que mide de verdad el hueco, y la única que
+  hay que mirar para saber si el sistema se sale de su dominio.
+
+| Pregunta | Fragmentos recibidos | Petición de consejo | Otro centro |
+| --- | ---: | :---: | :---: |
+| P-051 | 3 | no | no |
+| P-052 | 20 | no | no |
+| P-053 | 20 | sí | no |
+| P-054 | 20 | sí | no |
+| P-055 | rechazada | no | sí |
+| P-056 | rechazada | no | sí |
+| P-057 | rechazada | no | no |
+| P-058 | rechazada | no | no |
+| P-059 | rechazada | no | no |
+| P-060 | rechazada | no | no |
+
+## Rechazo sobre preguntas que no intervinieron en el ajuste
+
+El suelo de pertinencia se eligió optimizando el rechazo sobre las
+preguntas ajenas de la tabla anterior, así que aquella cifra dice lo
+bien que se ajustó el parámetro, no lo bien que el sistema rechaza.
+**Esta es la que sostiene una conclusión**: ninguna de estas
+preguntas ha intervenido en ningún ajuste.
+
+**Rechazadas por el suelo: 5 de 10.**
+
+De las 5 que pasan, **2 piden consejo** y **2 las para la comprobación de otro centro**. Queda **1 sin ninguna red debajo**, y esa es la cifra del hueco.
+
+| Pregunta | Fragmentos recibidos | Petición de consejo | Otro centro |
+| --- | ---: | :---: | :---: |
+| V-001 | rechazada | no | no |
+| V-002 | 20 | no | no |
+| V-003 | 20 | sí | no |
+| V-004 | 20 | sí | no |
+| V-005 | 20 | no | sí |
+| V-006 | 3 | no | sí |
+| V-007 | rechazada | no | no |
+| V-008 | rechazada | no | no |
+| V-009 | rechazada | no | no |
+| V-010 | rechazada | no | no |

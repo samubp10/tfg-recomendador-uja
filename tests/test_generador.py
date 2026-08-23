@@ -985,3 +985,69 @@ def test_la_traza_queda_vacia_si_la_barrera_no_salta(monkeypatch):
     )
     assert respuesta == buena
     assert traza == {}
+
+
+# --- Otro centro que no es la EPSJ (IT-109) ---
+#
+# Los tres primeros casos salen del conjunto de validación de preguntas ajenas
+# al dominio, el que no intervino en ningún ajuste. Los tres pasaban el suelo de
+# pertinencia y ninguno tenía segunda línea de defensa.
+
+
+def test_una_universidad_con_adjetivo_delante_del_de():
+    """V-005: detrás de «universidad» viene el adjetivo, no la preposición."""
+    assert generador.pregunta_por_otro_centro(
+        "¿La Universidad Politécnica de Valencia tiene Ingeniería Mecánica?"
+    )
+
+
+def test_un_centro_hermano_de_la_propia_universidad_de_jaen():
+    """V-006, el caso incómodo: la EPS de Linares es de la UJA.
+
+    Su nombre se distingue del de la EPS de Jaén en una sola palabra, así que
+    confundirlas no requiere ninguna mala intención. Antes de esto el sistema
+    devolvía tres fragmentos del centro equivocado.
+    """
+    assert generador.pregunta_por_otro_centro(
+        "¿Qué se estudia en la Escuela Politécnica Superior de Linares?"
+    )
+
+
+def test_una_facultad_de_otra_rama_tampoco_es_de_aqui():
+    assert generador.pregunta_por_otro_centro(
+        "¿Qué salidas tiene la Facultad de Ciencias Sociales?"
+    )
+
+
+def test_la_formula_que_ya_funcionaba_sigue_funcionando():
+    """El caso que motivó la comprobación no puede romperse al ampliarla."""
+    assert generador.pregunta_por_otro_centro(
+        "¿La Universidad de Granada tiene Ingeniería Informática?"
+    )
+
+
+def test_preguntar_por_la_escuela_de_jaen_no_es_preguntar_por_otro_centro():
+    """Lo que decide es el topónimo, y aquí el topónimo es el nuestro."""
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿Qué se estudia en la Escuela Politécnica Superior de Jaén?"
+        )
+        is None
+    )
+    assert (
+        generador.pregunta_por_otro_centro("¿La Universidad de Jaén tiene Informática?")
+        is None
+    )
+
+
+def test_una_pregunta_normal_del_dominio_no_dispara_la_comprobacion():
+    """Con un falso positivo aquí el asistente dejaría de servir para nada."""
+    assert (
+        generador.pregunta_por_otro_centro(
+            "¿Qué asignaturas tiene Ingeniería Mecánica?"
+        )
+        is None
+    )
+    assert (
+        generador.pregunta_por_otro_centro("¿Cuántos créditos tiene Álgebra?") is None
+    )

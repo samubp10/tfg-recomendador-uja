@@ -591,3 +591,40 @@ def test_la_ampliacion_conserva_la_pregunta_entera():
     ampliada = expandir("me gusta la física")
     assert ampliada.startswith("me gusta la física")
     assert "Escuela Politécnica Superior de Jaén" in ampliada
+
+
+# --- Lo citado no es lo preguntado (IT-109) ---
+
+
+def test_una_frase_citada_no_convierte_la_peticion_en_consejo():
+    """V-009, del conjunto de validación.
+
+    «Tradúceme al inglés: "me gustaría estudiar una ingeniería"» se daba por
+    petición de consejo por la palabra «gustaría» de dentro de la cita. El
+    daño era doble: la petición ajena se colaba, y además el informe la
+    contaba entre las que pasan por diseño.
+    """
+    assert not pide_recomendacion(
+        "Tradúceme al inglés: «me gustaría estudiar una ingeniería»."
+    )
+    assert not pide_recomendacion(
+        'Tradúceme al inglés: "me gustaría estudiar una ingeniería".'
+    )
+
+
+def test_las_peticiones_de_consejo_de_verdad_siguen_pasando():
+    """Es el comportamiento buscado, no un fallo: contarlo como error sería
+    contar como error justo lo que el asistente existe para hacer."""
+    assert pide_recomendacion("Quiero ser arquitecto, ¿qué me recomiendas?")
+    assert pide_recomendacion("Me gusta el derecho penal, ¿qué carrera me pega?")
+    assert pide_recomendacion(
+        "No sé qué estudiar, me gusta la física y el dibujo técnico"
+    )
+    assert pide_recomendacion("Se me da bien la programación, ¿qué carrera me pega?")
+
+
+def test_pedir_consejo_fuera_de_la_cita_si_cuenta():
+    """Descontar la cita no puede servir para esconder la petición real."""
+    assert pide_recomendacion(
+        "Mi amigo dice «yo haré Mecánica», pero ¿qué me recomiendas a mí?"
+    )
