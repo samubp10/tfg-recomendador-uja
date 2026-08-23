@@ -356,7 +356,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \begin{borrador}
   \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
   (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
-  \sout{1.335} 1.460 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
+  \sout{1.335} 1.499 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
   explicar en el texto o dejar dicho en el pie:
   \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
   \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
@@ -717,11 +717,14 @@ idénticas solo deja el índice ligeramente más grande.
 \textcolor{borrador2}{Decidir cuándo dos guías son la misma no es lo único que obliga a fijar un
   criterio de identidad. El fragmentador necesita además localizar, para cada guía, la asignatura de
   la que salen los metadatos del encabezado, y esa búsqueda se hacía por el par (titulación, código).
-  El código, sin embargo, no siempre está publicado: 48 asignaturas de los planes de implantación
-  reciente no lo tienen, y todas ellas caían bajo la misma clave dentro de su titulación, de modo que
-  la última sobrescribía a las anteriores sin que nada avisara. En el plan de 2025 del Grado en
-  Ingeniería Geomática y Topográfica eran 29 asignaturas reducidas a una sola entrada, y 18 en el
-  Grado en Inteligencia Artificial y Ciberseguridad. Si alguna de ellas llegara a publicar su guía, el
+  El código, sin embargo, no siempre está publicado: 48 asignaturas no lo tienen, y todas ellas
+  caían bajo la misma clave dentro de su titulación, de modo que la última sobrescribía a las
+  anteriores sin que nada avisara. En el plan de 2025 del Grado en Ingeniería Geomática y
+  Topográfica eran 29 asignaturas reducidas a una sola entrada, y 18 en el Grado en Inteligencia
+  Artificial y Ciberseguridad. Las dos son titulaciones de implantación reciente, pero la
+  cuadragésima octava no lo es: aparece en el Grado en Ingeniería Electrónica Industrial, de modo
+  que la falta de código no es una característica exclusiva de los planes nuevos y el criterio no
+  puede apoyarse en que lo sea. Si alguna de ellas llegara a publicar su guía, el
   encabezado resultante atribuiría el temario a una materia distinta, y lo haría dentro del campo
   \texttt{texto}, que es justamente el único que se convierte en vector. La clave pasó a ser el par
   (titulación, código o nombre) --- la misma que ya usaban el rastreador y el verificador de
@@ -1120,22 +1123,25 @@ Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que c
 
 \textcolor{borrador2}{El motivo de decidir sobre una muestra y no sobre el banco
   entero es el coste. Cada pregunta supone una llamada al modelo por candidato,
-  de modo que las mil veintitrés preguntas del banco pasarían de las tres mil
-  respuestas solo con los tres finalistas, que a los tiempos de un equipo
+  de modo que las mil veintitrés preguntas del banco pasarían de las cuatro mil
+  respuestas con los cuatro modelos que se miden, que a los tiempos de un equipo
   doméstico son días de cómputo. El banco entero queda para comprobar al
   finalista una vez elegido.}
 
-\textcolor{borrador2}{Los candidatos que se comparan son tres, y no son tres
-  por casualidad. La criba previa pasó por ocho modelos y de ella salieron los
-  descartes ---uno se inventó tres titulaciones enteras; otro, el modelo
-  público en español, lo desaconsejan sus propios autores sobre el servidor de
-  inferencia que usa este trabajo---. Para la comparación que decide quedan uno
-  de ocho mil millones de parámetros, uno de nueve mil y uno de doce mil, cada
-  uno de un fabricante distinto, de manera que ninguna diferencia observada
-  pueda atribuirse al tamaño ni a las decisiones de una sola casa. Los tres se
-  miden \textbf{en la misma tanda}, con la misma versión del servidor y el
-  mismo corpus, porque comparar mediciones tomadas en momentos distintos es
-  comparar además las condiciones en que se tomaron.}
+\textcolor{borrador2}{Los candidatos que compiten por el puesto son tres, y no
+  son tres por casualidad. La criba previa pasó por ocho modelos y de ella
+  salieron dos descartes con nombre: uno se inventó tres titulaciones enteras y
+  otro declaró que el contexto no traía las salidas profesionales de una
+  titulación para redactar acto seguido siete, inventadas. Para la comparación
+  que decide quedan uno de ocho mil millones de parámetros, uno de nueve mil y
+  uno de doce mil, cada uno de un fabricante distinto, de manera que ninguna
+  diferencia observada pueda atribuirse al tamaño ni a las decisiones de una
+  sola casa. Junto a ellos se mide un cuarto modelo, entrenado en español, que
+  no compite: su medición responde a otra pregunta, la de si entrenar en español
+  rinde mejor sobre un corpus en español. Los cuatro se miden \textbf{en la
+  misma tanda}, con la misma versión del servidor y el mismo corpus, porque
+  comparar mediciones tomadas en momentos distintos es comparar además las
+  condiciones en que se tomaron.}
 
 \textcolor{borrador2}{Las seis familias son el catálogo de
   la Escuela, los créditos de una asignatura, el curso en que se imparte, el
@@ -1253,13 +1259,13 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 
 \textcolor{borrador2}{La restricción se resuelve con dos capas, y ninguna de las
   dos basta por sí sola. La primera es el suelo de pertinencia descrito en el
-  apartado anterior, que rechaza siete de cada diez preguntas ajenas al dominio.
-  Las tres que deja pasar tienen todas la misma forma: usan el vocabulario del
-  centro para preguntar por algo que no le pertenece ---si se puede estudiar
-  Medicina en la Escuela, qué asignaturas tiene un grado de otra facultad---, y
-  la distancia entre vectores mide precisamente parecido de vocabulario. Por eso
-  el suelo no es un filtro de dominio fiable, y este trabajo no lo presenta como
-  tal.}
+  apartado anterior, que rechaza la mitad de las preguntas ajenas al dominio
+  cuando estas no han intervenido en su ajuste. Las que deja pasar tienen todas
+  la misma forma: usan el vocabulario del centro para preguntar por algo que no
+  le pertenece ---si se puede estudiar Medicina en la Escuela, qué asignaturas
+  tiene un grado de otra facultad---, y la distancia entre vectores mide
+  precisamente parecido de vocabulario. Por eso el suelo no es un filtro de
+  dominio fiable, y este trabajo no lo presenta como tal.}
 
 \textcolor{borrador2}{La segunda capa actúa \textbf{después} de generar la
   respuesta, no antes: se extraen de ella los nombres con forma de titulación y
