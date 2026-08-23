@@ -15,6 +15,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 RAIZ = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
     "experimento_generacion", RAIZ / "scripts" / "experimento_generacion.py"
@@ -555,3 +557,87 @@ def test_el_informe_no_revienta_cuando_no_hay_nada_que_promediar(tmp_path):
     texto = destino.read_text(encoding="utf-8")
     assert "| — |" in texto
     assert "2/2" in texto
+
+
+# --- El bloque de datos brutos del ADR-0005 (IT-36) ---
+
+
+def test_el_bloque_del_adr_lleva_sus_marcas_y_las_cifras():
+    """Sin las marcas, volver a ejecutar el guion pisaría el ADR entero."""
+    filas = [_fila_listado("G-1", 1.0, 1.0), _fila_listado("G-2", None, 1.0)]
+    bloque = experimento.bloque_adr(filas, {"procedencia_del_dataset": {}})
+    assert bloque.startswith(experimento.MARCA_INICIO)
+    assert bloque.rstrip().endswith(experimento.MARCA_FIN)
+    assert "Comparativa de los candidatos" in bloque
+    assert "1/2" in bloque
+
+
+def test_el_bloque_declara_la_procedencia_del_corpus():
+    """Una tabla sin decir de qué extracción sale no es reproducible."""
+    filas = [_fila_listado("G-1", 1.0, 1.0)]
+    bloque = experimento.bloque_adr(
+        filas,
+        {
+            "procedencia_del_dataset": {
+                "fecha_extraccion": "2026-08-16",
+                "origen": "https://eps.ujaen.es/grados",
+            }
+        },
+    )
+    assert "2026-08-16" in bloque
+    assert "https://eps.ujaen.es/grados" in bloque
+
+
+def test_el_bloque_avisa_si_las_respuestas_son_de_dos_servidores():
+    """Ya pasó con la criba amplia: la tabla comparaba también los servidores."""
+    una = _fila_listado("G-1", 1.0, 1.0)
+    otra = _fila_listado("G-2", 1.0, 1.0)
+    una["servidor"] = "0.23.2"
+    otra["servidor"] = "0.32.14"
+    bloque = experimento.bloque_adr([una, otra], {"procedencia_del_dataset": {}})
+    assert "MEZCLADAS" in bloque
+    assert "0.23.2" in bloque and "0.32.14" in bloque
+
+
+def test_con_un_solo_servidor_no_hay_aviso():
+    fila = _fila_listado("G-1", 1.0, 1.0)
+    fila["servidor"] = "0.32.14"
+    bloque = experimento.bloque_adr([fila], {"procedencia_del_dataset": {}})
+    assert "MEZCLADAS" not in bloque
+    assert "0.32.14" in bloque
+
+
+def test_escribir_el_adr_solo_toca_lo_que_hay_entre_las_marcas(tmp_path, monkeypatch):
+    """Lo escrito a mano alrededor del bloque tiene que sobrevivir intacto."""
+    adr = tmp_path / "adr-0005.md"
+    adr.write_text(
+        "# ADR-0005\n\n## Decisión\n\nLa escribe el autor.\n\n"
+        f"{experimento.MARCA_INICIO}\nviejo\n{experimento.MARCA_FIN}\n\n"
+        "## Referencias\n\nY esto también es suyo.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+    experimento.escribir_adr(
+        f"{experimento.MARCA_INICIO}\nnuevo\n{experimento.MARCA_FIN}"
+    )
+    texto = adr.read_text(encoding="utf-8")
+    assert "nuevo" in texto and "viejo" not in texto
+    assert "La escribe el autor." in texto
+    assert "Y esto también es suyo." in texto
+
+
+def test_escribir_el_adr_falla_si_no_existe(tmp_path, monkeypatch):
+    """El ADR lo abre la tarjeta, no el guion: si falta, es que algo va mal."""
+    monkeypatch.setattr(experimento, "RUTA_ADR", tmp_path / "no-existe.md")
+    with pytest.raises(SystemExit, match="No existe"):
+        experimento.escribir_adr("da igual")
+
+
+def test_escribir_el_adr_falla_si_faltan_las_marcas(tmp_path, monkeypatch):
+    """Escribir al final de un fichero que no lo esperaba lo desordena en silencio."""
+    adr = tmp_path / "adr-0005.md"
+    adr.write_text("# ADR-0005\n\nSin marcas.\n", encoding="utf-8")
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+    with pytest.raises(SystemExit, match="marcas"):
+        experimento.escribir_adr("da igual")
+    assert adr.read_text(encoding="utf-8") == "# ADR-0005\n\nSin marcas.\n"
