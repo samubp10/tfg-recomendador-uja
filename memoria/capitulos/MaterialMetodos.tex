@@ -813,25 +813,12 @@ Primero se introducirá el instrumento con el que se mide, que es el conjunto de
 Para la experimentación se ha usado el conjunto de datos extraídos y \sout{50} \textcolor{borrador2}{66} preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
 la aplicación podría querer saber.
 
-Las preguntas abarcan \sout{cinco} \textcolor{borrador2}{seis} tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
-titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra)\textcolor{borrador2}{, y un sexto tipo que no pregunta por la Escuela en absoluto}. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
-
-\textcolor{borrador2}{Ese sexto tipo merece explicarse, porque no se mide como
-  los otros cinco. Son diez preguntas ajenas al dominio ---por una carrera de
-  otra facultad, por otra universidad o por algo que no es académico--- y su
-  criterio de acierto es el contrario: aciertan cuando el sistema \emph{no}
-  recupera nada. No pueden entrar en las métricas de los otros cinco tipos
-  porque su lista de unidades relevantes está vacía, así que aportarían un cero
-  fijo tanto al Recall@K como al MRR y hundirían las dos cifras sin que
-  ninguna dijera nada. Por eso las cifras de recuperación se calculan sobre las
-  56 de dominio y el rechazo de las diez restantes se informa aparte.}
+Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por nuestra institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
 
 \input{tablas/TablaConjuntoEvaluacion.tex}
 
 Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuperar para poder contestar correctamente a la pregunta.
-
-
-
 
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
