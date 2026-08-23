@@ -174,75 +174,74 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \subsection{\textcolor{borrador2}{La generación}}
 
 \begin{borrador}
-  \item Fase: 2 (IT-35). \textbf{Las cifras de esta subsección son de la criba
-    previa y hay que rehacerlas.} Aquella pasada quedó partida entre dos
-    versiones del servidor de inferencia ---se actualizó solo a mitad de las
-    mediciones--- y sus números no forman una tabla comparable. La tanda
-    definitiva mide los tres finalistas a la vez.
-  \item Al rehacerla, uno de los candidatos que aquí se comenta sale de la
-    comparación y entra otro. Los párrafos que nombran un modelo concreto se
-    reescriben con las cifras nuevas; el que habla de la asignatura que varios
-    modelos colocan en un curso equivocado se conserva, porque ese fallo se ha
-    repetido con candidatos distintos y no depende de cuáles sean.
+  \item Fase: 2 (IT-35). Falta cerrar la subsección diciendo qué modelo se
+    adopta y con qué argumento, porque el umbral eliminatorio no lo hace: lo
+    cumplen los cuatro.
+  \item La familia \texttt{catalogo} tiene una sola pregunta en la muestra y las
+    cifras de esa fila no sostienen ninguna conclusión. Merece decirlo aquí o
+    quitarla de la lectura.
+  \item El registro en bruto de esta tanda ya no existe, de modo que los fallos
+    de curso no pueden mirarse pregunta a pregunta sin volver a ejecutarla. Todo
+    lo que se afirma aquí sale del informe agregado.
 \end{borrador}
 
-\textcolor{borrador2}{Los tres candidatos finalistas se midieron sobre la misma
-  muestra de ochenta preguntas, con el mismo corpus y la misma versión del
-  servidor de inferencia, en un total de doscientas cuarenta respuestas. La
+\textcolor{borrador2}{Sobre la misma muestra de ochenta preguntas, el mismo
+  corpus y la misma versión del servidor de inferencia se midieron cuatro
+  modelos, en un total de trescientas veinte respuestas. Tres compiten por el
+  puesto; el cuarto, \texttt{salamandra-7b}, se mide aparte para responder si un
+  modelo entrenado en español rinde mejor sobre un corpus en español. La
   Tabla~\ref{tab:comparativa_generacion} recoge el resultado.}
 
 \input{tablas/TablaComparativaGeneracion.tex}
 
-\textcolor{borrador2}{Los tres cumplen el umbral eliminatorio: ninguno nombró
-  una titulación que no exista, y a ninguno se le quedó una pregunta sin
-  contexto recuperado. La consecuencia es que \textbf{el criterio que se fijó
-  para descartar no descarta a nadie}, y la elección hay que sostenerla con el
-  resto de columnas y con lo observado fuera del banco.}
+\textcolor{borrador2}{Los cuatro cumplen el umbral eliminatorio: ninguno nombró
+  una titulación que no exista en las trescientas veinte respuestas, y a ninguno
+  se le quedó una pregunta sin contexto recuperado. La consecuencia es que
+  \textbf{el criterio que se fijó para descartar no descarta a nadie}, y la
+  elección hay que sostenerla con el resto de columnas y con lo observado fuera
+  del banco.}
 
-\textcolor{borrador2}{Las diferencias que sí aparecen son pequeñas y conviene no
-  exagerarlas: la precisión de los tres cabe en cinco centésimas, medida sobre
-  treinta y cuatro preguntas de listado por candidato y sin intervalo de
-  confianza calculado, de modo que las diferencias de milésimas entre los dos
-  primeros no significan nada. Lo que sí se sostiene es el desglose por familia
-  de pregunta, donde cada candidato falla en un sitio distinto.}
+\textcolor{borrador2}{Las diferencias de precisión son diminutas y conviene no
+  exagerarlas: las cuatro cifras caben en ocho milésimas, medidas sobre treinta
+  y cuatro preguntas de listado por modelo y sin intervalo de confianza
+  calculado, de modo que ese orden no significa nada. Donde sí hay separación es
+  en la cobertura, en el acierto escalar y, sobre todo, en el desglose por
+  familia de pregunta.}
 
-\textcolor{borrador2}{\texttt{granite4.1:8b} es el que peor
-  enumera un plan de estudios completo: su cobertura en esa familia se queda en
-  0,901, la cifra más baja de toda la comparación, y significa que al listar las
-  asignaturas de un curso deja fuera aproximadamente una de cada diez. Como el
-  plan completo de un curso es justo lo que pregunta un estudiante que quiere
-  saber qué va a estudiar, es el peor sitio donde tener el punto flojo.}
+\textcolor{borrador2}{\texttt{gemma3:12b} es el único sin punto flojo entre las
+  preguntas de listado: precisión y cobertura valen 1,000 en las cuatro familias
+  ---catálogo, menciones, optativas y plan por curso---. Su única mancha está en
+  el acierto escalar, 0,978, que corresponde a un fallo en las veintitrés
+  preguntas de curso. Es también el más lento de los tres que compiten, con 21,6
+  segundos de mediana.}
 
-\textcolor{borrador2}{\texttt{gemma3:12b} falla en el lado contrario. No omite
-  nada ---su cobertura es 1,000 en las cuatro familias de listado--- pero su
-  precisión en las preguntas de mención baja a 0,846, la más baja de la tabla:
-  añade nombres que existen en la colección y no pertenecen a la mención por la
-  que se pregunta. No es invención, y por eso no lo recoge el criterio
-  eliminatorio, pero al estudiante que pregunta por una mención concreta le
-  llegan asignaturas que no son suyas.}
+\textcolor{borrador2}{\texttt{ministral-8b} y \texttt{qwen3.5:9b} quedan muy
+  cerca y fallan casi en lo mismo. Los dos aciertan el curso veintiuna veces de
+  veintitrés, frente a las veintidós de \texttt{gemma3:12b}, y los dos dejan
+  fuera alguna asignatura al enumerar el plan completo de un curso: la cobertura
+  en esa familia baja a 0,989 y a 0,992 respectivamente. \texttt{qwen3.5:9b}
+  añade además algún nombre ajeno en las preguntas de mención, donde su
+  precisión es 0,989. Son diferencias de una o dos respuestas, no de
+  comportamiento.}
 
-\textcolor{borrador2}{\texttt{ministral-8b} no tiene un punto flojo dentro del
-  banco: no baja de 0,983 en ninguna familia de listado ni de 0,989 en cobertura.
-  Lo que la tabla no puede decir es si eso se sostiene fuera de las ochenta
-  preguntas medidas, y la última subsección de esta sección recoge por qué esa
-  pregunta no es retórica.}
+\textcolor{borrador2}{\texttt{salamandra-7b} es el caso interesante, y no por
+  donde se esperaba. Es con diferencia el más rápido ---3,8 segundos de mediana,
+  menos de una quinta parte de lo que tarda \texttt{gemma3:12b}--- porque es el
+  único que cabe entero en la tarjeta gráfica, y su precisión, 0,992, tampoco lo
+  delata. Lo que lo delata es la columna \textbf{S/M}: quince de sus treinta y
+  cuatro respuestas de listado están redactadas en prosa y no enumeran nada, y
+  la cobertura recoge el precio, 0,908. El caso extremo son las optativas, donde
+  su cobertura cae a 0,571: a la pregunta de cuáles son las optativas de una
+  titulación contesta cuántas hay. Estar entrenado en español no lo hace mejor
+  sobre un corpus en español, al menos con este instrumento.}
 
-\textcolor{borrador2}{Hay además dos resultados que comparten los tres. El
-  primero es que los créditos de una asignatura los aciertan siempre, las
-  veintitrés veces cada uno. El segundo es que el curso en el que se imparte
-  falla en las mismas preguntas: las dos que erran \texttt{granite4.1:8b} y
-  \texttt{ministral-8b} son la misma asignatura de dos dobles grados distintos,
-  que la fuente coloca en quinto curso y ambos sitúan en cuarto. Que el fallo
-  coincida apunta a lo que se les entrega y no al modelo que lo lee, pero esa
+\textcolor{borrador2}{Queda por último un resultado que comparten los cuatro:
+  los créditos de una asignatura los aciertan siempre, las veintitrés veces cada
+  uno. Y otro que comparten en la dirección contraria: los cuatro fallan alguna
+  pregunta de curso ---una, dos, dos y tres respectivamente---, que es la única
+  familia en la que ninguno llega a pleno. Que el punto flojo sea el mismo para
+  todos apunta a lo que se les entrega y no al modelo que lo lee, pero esa
   explicación no se ha medido y aquí solo se deja anotada.}
-
-\begin{borrador}
-  \item Fase: 2 (IT-35). Cuando esté elegido el modelo, esta subsección tiene
-    que cerrar diciendo cuál y con qué argumento, porque el umbral no lo hace.
-  \item La familia \texttt{catalogo} tiene una sola pregunta en la muestra y las
-    cifras de esa fila no sostienen ninguna conclusión. Merece decirlo aquí o
-    quitarla de la lectura.
-\end{borrador}
 
 \subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
 
