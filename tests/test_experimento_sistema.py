@@ -137,6 +137,45 @@ def test_la_respuesta_fija_de_contexto_vacio_es_un_rechazo_valido():
     assert acierta
 
 
+def test_negar_con_ninguna_cuenta_igual_que_negar_con_no():
+    """Caso real del 23/08/2026, que el criterio anterior suspendía.
+
+    A «me gusta el derecho penal, ¿qué carrera me pega?» el sistema contestó
+    que ninguna de sus titulaciones encaja y que todas son de ingeniería. Es un
+    rechazo impecable, y fallaba porque la primera frase decía «ninguna» y no
+    «no». Un criterio que exige una palabra concreta mide la redacción del
+    rechazo, no el rechazo, que es el mismo defecto que tuvo la precisión del
+    cribado antes de IT-110.
+    """
+    acierta, detalle = sistema.corregir_rechazo(
+        "Dado que te gusta el derecho penal, ninguna de las titulaciones que "
+        "ofrece la Escuela encaja directamente con tus intereses. Todas las "
+        "opciones son de ingeniería, informática o ciberseguridad, y no tienen "
+        "relación con el ámbito legal.",
+        CATALOGO,
+    )
+    assert acierta, detalle
+
+
+def test_la_negacion_puede_llegar_en_la_segunda_frase():
+    """El modelo introduce y niega después; partir por el primer punto lo perdía."""
+    acierta, detalle = sistema.corregir_rechazo(
+        "Vamos a ver lo que ofrece la Escuela. Aquí no se imparte esa carrera.",
+        CATALOGO,
+    )
+    assert acierta, detalle
+
+
+def test_una_respuesta_que_ni_niega_ni_introduce_sigue_fallando():
+    """La regresión del arreglo: ampliar la negación no puede aprobarlo todo."""
+    acierta, detalle = sistema.corregir_rechazo(
+        "La Escuela imparte titulaciones de ingeniería. Te cuento cuáles son.",
+        CATALOGO,
+    )
+    assert not acierta
+    assert "niega" in detalle
+
+
 # --- Ámbito de la conversación ---
 
 

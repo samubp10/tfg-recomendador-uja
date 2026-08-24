@@ -1102,3 +1102,42 @@ def test_una_respuesta_cortada_por_longitud_se_cierra_y_se_avisa(monkeypatch):
     assert escrito.endswith(AVISO_RESPUESTA_CORTADA)
     assert "Físi" not in escrito
     assert "Se cursan Álgebra y Cálculo." in escrito
+
+
+# --- IT-39: un imperativo ajeno no se saluda ---
+
+
+def test_una_peticion_ajena_sin_interrogacion_no_recibe_un_saludo():
+    """«Hazme un resumen de la Segunda Guerra Mundial» no es un saludo.
+
+    Medido el 23/08/2026 sobre el banco del sistema: esa frase y «Tradúceme al
+    inglés...» no llevan interrogación, y sus verbos con pronombre enclítico
+    ---`hazme`, `traduceme`--- no están en el vocabulario interrogativo, que
+    recoge unas formas y otras no. Las dos recibían la bienvenida del asistente
+    en lugar de que se les dijera que eso queda fuera de su ámbito, y eso es
+    peor que no responder: da a entender que la petición se ha entendido.
+    """
+    assert (
+        cortesia_sin_contexto("Hazme un resumen de la Segunda Guerra Mundial.") is None
+    )
+    assert (
+        cortesia_sin_contexto(
+            "Tradúceme al inglés: «me gustaría estudiar una ingeniería»."
+        )
+        is None
+    )
+
+
+def test_un_saludo_que_no_esta_en_la_lista_sigue_recibiendo_la_bienvenida():
+    """La regresión del arreglo: «hei» y «q tal» no pueden dejar de saludarse.
+
+    El respaldo existe porque el vocabulario de saludos no puede recogerlos
+    todos. Lo que lo separa de una petición ajena es la longitud, no el verbo.
+    """
+    assert cortesia_sin_contexto("hei") == RESPUESTA_SALUDO
+    assert cortesia_sin_contexto("q tal") == RESPUESTA_SALUDO
+
+
+def test_el_saludo_de_respaldo_no_se_estira_a_una_frase():
+    """Tres palabras ya son una petición, no un saludo mal escrito."""
+    assert cortesia_sin_contexto("resumeme la guerra") is None
