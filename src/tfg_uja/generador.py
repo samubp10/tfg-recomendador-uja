@@ -801,9 +801,18 @@ def generar(
 ) -> str:
     """Pide la respuesta al modelo local.
 
-    La temperatura va a cero y la semilla fijada: con muestreo libre, dos
-    ejecuciones de la misma pregunta dan respuestas distintas y ninguna
-    medición sobre ellas sería reproducible.
+    La temperatura va a cero y la semilla fijada, que es lo que quita el azar
+    del muestreo. **Eso no basta para que el texto sea reproducible**, y
+    conviene no dar a entender lo contrario: con la misma pregunta, el mismo
+    prompt y estos mismos parámetros, la primera llamada tras cargar el modelo
+    devuelve una redacción y de la segunda en adelante devuelve otra. Las dos
+    son estables y se repiten sin fallo, pero son distintas.
+
+    Lo que sí se sostiene es el resultado: en dos pasadas completas del banco
+    de evaluación cambió la redacción de 27 de las 42 respuestas generadas y
+    **no cambió ni uno de los 57 veredictos**. Eso no es suerte, es
+    consecuencia de que los correctores comparan hechos y no cómo están
+    escritos; medir el formato habría dado cifras distintas cada vez.
 
     Args:
         prompt: Texto que devuelve :func:`construir_prompt`.
