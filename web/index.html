@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asistente de titulaciones · Escuela Politécnica Superior de Jaén</title>
+  <meta name="description"
+    content="Asistente que responde sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.">
+
+  <!--
+    Las tipografías se piden a Google Fonts, pero la página NO depende de que
+    lleguen: cada familia declara su respaldo del sistema en la hoja de estilo.
+    Sin red ---y la defensa puede ser sin red--- se ve con Georgia y la de
+    sistema, que es exactamente el mismo diseño con otra letra.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap">
+
+  <link rel="icon" href="logo-uja.png">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+  <div class="aplicacion">
+
+    <header class="cabecera">
+      <img class="cabecera__escudo" src="logo-uja.png" alt="Universidad de Jaén">
+      <div class="cabecera__textos">
+        <p class="cabecera__titulo">Escuela Politécnica Superior</p>
+        <p class="cabecera__subtitulo">Universidad de Jaén · Asistente Virtual</p>
+      </div>
+    </header>
+
+    <!--
+      `aria-live="polite"` hace que un lector de pantalla anuncie cada respuesta
+      segun aparece. Con la emision por partes esto importa mas de lo habitual:
+      la respuesta se completa a lo largo de un minuto y quien no ve la pantalla
+      no tiene otra forma de saber que sigue llegando texto.
+    -->
+    <main class="conversacion" id="conversacion" aria-live="polite" aria-atomic="false">
+      <img class="conversacion__marca" src="logo-uja.png" alt="" aria-hidden="true">
+      <div class="conversacion__mensajes" id="mensajes"></div>
+    </main>
+
+    <!--
+      Las cuatro sugerencias son preguntas que el sistema SABE responder: el
+      catalogo del centro, una recomendacion, el plan de un curso y las salidas
+      profesionales. Poner aqui algo que no este en el corpus ---horarios,
+      becas, matricula--- garantiza que el primer contacto del estudiante con el
+      asistente sea un rechazo.
+    -->
+    <nav class="sugerencias" id="sugerencias" aria-label="Preguntas sugeridas">
+      <button type="button" class="sugerencia">¿Qué titulaciones puedo estudiar aquí?</button>
+      <button type="button" class="sugerencia">Me gusta la programación, ¿qué me recomiendas?</button>
+      <button type="button" class="sugerencia">¿Qué asignaturas tiene Informática en primero?</button>
+      <button type="button" class="sugerencia">¿A qué puedo dedicarme al terminar?</button>
+    </nav>
+
+    <form class="redaccion" id="redaccion" autocomplete="off">
+      <div class="redaccion__caja">
+        <label class="visualmente-oculto" for="entrada">Escribe tu consulta</label>
+        <textarea id="entrada" class="redaccion__entrada" rows="1"
+          placeholder="Escribe tu consulta aquí… (Intro para enviar)"></textarea>
+        <button type="submit" class="redaccion__enviar" id="enviar" aria-label="Enviar consulta">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15.9 12 3.4 13.8z" />
+          </svg>
+        </button>
+      </div>
+      <p class="redaccion__aviso">
+        Responde solo sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.
+      </p>
+    </form>
+
+  </div>
+
+  <script src="chat.js"></script>
+</body>
+
+</html>
