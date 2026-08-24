@@ -356,7 +356,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \begin{borrador}
   \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
   (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
-  \sout{1.335} 1.460 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
+  \sout{1.335} 1.499 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
   explicar en el texto o dejar dicho en el pie:
   \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
   \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
@@ -717,11 +717,14 @@ idénticas solo deja el índice ligeramente más grande.
 \textcolor{borrador2}{Decidir cuándo dos guías son la misma no es lo único que obliga a fijar un
   criterio de identidad. El fragmentador necesita además localizar, para cada guía, la asignatura de
   la que salen los metadatos del encabezado, y esa búsqueda se hacía por el par (titulación, código).
-  El código, sin embargo, no siempre está publicado: 48 asignaturas de los planes de implantación
-  reciente no lo tienen, y todas ellas caían bajo la misma clave dentro de su titulación, de modo que
-  la última sobrescribía a las anteriores sin que nada avisara. En el plan de 2025 del Grado en
-  Ingeniería Geomática y Topográfica eran 29 asignaturas reducidas a una sola entrada, y 18 en el
-  Grado en Inteligencia Artificial y Ciberseguridad. Si alguna de ellas llegara a publicar su guía, el
+  El código, sin embargo, no siempre está publicado: 48 asignaturas no lo tienen, y todas ellas
+  caían bajo la misma clave dentro de su titulación, de modo que la última sobrescribía a las
+  anteriores sin que nada avisara. En el plan de 2025 del Grado en Ingeniería Geomática y
+  Topográfica eran 29 asignaturas reducidas a una sola entrada, y 18 en el Grado en Inteligencia
+  Artificial y Ciberseguridad. Las dos son titulaciones de implantación reciente, pero la
+  cuadragésima octava no lo es: aparece en el Grado en Ingeniería Electrónica Industrial, de modo
+  que la falta de código no es una característica exclusiva de los planes nuevos y el criterio no
+  puede apoyarse en que lo sea. Si alguna de ellas llegara a publicar su guía, el
   encabezado resultante atribuiría el temario a una materia distinta, y lo haría dentro del campo
   \texttt{texto}, que es justamente el único que se convierte en vector. La clave pasó a ser el par
   (titulación, código o nombre) --- la misma que ya usaban el rastreador y el verificador de
@@ -813,25 +816,12 @@ Primero se introducirá el instrumento con el que se mide, que es el conjunto de
 Para la experimentación se ha usado el conjunto de datos extraídos y \sout{50} \textcolor{borrador2}{66} preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
 la aplicación podría querer saber.
 
-Las preguntas abarcan \sout{cinco} \textcolor{borrador2}{seis} tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
-titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra)\textcolor{borrador2}{, y un sexto tipo que no pregunta por la Escuela en absoluto}. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
-
-\textcolor{borrador2}{Ese sexto tipo merece explicarse, porque no se mide como
-  los otros cinco. Son diez preguntas ajenas al dominio ---por una carrera de
-  otra facultad, por otra universidad o por algo que no es académico--- y su
-  criterio de acierto es el contrario: aciertan cuando el sistema \emph{no}
-  recupera nada. No pueden entrar en las métricas de los otros cinco tipos
-  porque su lista de unidades relevantes está vacía, así que aportarían un cero
-  fijo tanto al Recall@K como al MRR y hundirían las dos cifras sin que
-  ninguna dijera nada. Por eso las cifras de recuperación se calculan sobre las
-  56 de dominio y el rechazo de las diez restantes se informa aparte.}
+Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por nuestra institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
 
 \input{tablas/TablaConjuntoEvaluacion.tex}
 
 Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuperar para poder contestar correctamente a la pregunta.
-
-
-
 
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
@@ -906,6 +896,10 @@ El diagrama recoge además las tres ramas que no siguen ese camino principal. La
 \textcolor{borrador2}{Esa tercera rama dejó de ser la única. El
 Apartado~\ref{secc:fragmentos_derivados} recoge los demás fragmentos compuestos por el
 mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
+
+\begin{borrador}
+  \item Reescribir si algo está mal, no parchear en un nuevo texto.
+\end{borrador}
 
 
 \begin{figure}[H]
@@ -1036,46 +1030,18 @@ Por último, este índice registra tres datos importantes, como con qué modelo 
 \subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
 \label{secc:fase2_conversacion}
 
-Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas \sout{podrías} \textcolor{borrador2}{podrían} ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
+Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
 
-Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien \sout{lo cuál} \textcolor{borrador2}{lo cual} no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
-
-\subsubsection{Alternativas consideradas}
-
-Una primera alternativa era añadirle el prompt anterior y la respuesta al actual dándole no un gran contexto pero información útil si es que la pregunta siguiente se refiere a esta, pero tiene un gran problema, y es que a lo que la conversación se alarga deja de ser efectivo y lo que en realidad es útil está a varias preguntas y respuestas de distancia. La segunda alternativa, que es la finalmente adoptada, es interpretar la pregunta para saber de qué titulación se está hablando y acotar la búsqueda a esta titulación en concreto.
-
-\textcolor{borrador2}{Conviene precisar qué se descarta de la primera, porque el
-  sistema no la abandona entera: las preguntas anteriores \textbf{sí} viajan en
-  el \textit{prompt}, y son las tres últimas. Lo que se descarta son las
-  \textbf{respuestas}. La razón es que una respuesta equivocada de un turno se
-  convierte en fuente del siguiente, y lo que no está en el \textit{prompt} no
-  se puede copiar.}
-
-\textcolor{borrador2}{La respuesta sí se lee, pero para otra cosa: para saber de
-  qué se está hablando. Es el caso que obliga a ello: <<me gustan los
-  videojuegos>>, a lo que el asistente contesta que le encaja el Grado en
-  Ingeniería Informática, y después <<¿y qué asignaturas tiene en primero?>>. La
-  titulación no aparece en ninguna de las dos preguntas, solo en la respuesta, y
-  mirando únicamente las preguntas el sistema contestaba de otra titulación sin
-  ninguna señal de duda. De ahí la distinción que sostiene el diseño: la
-  respuesta \textbf{se lee} para fijar el sujeto y \textbf{no entra} en el
-  \textit{prompt} como fuente de datos.}
+Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien lo cual no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
 
-\subsubsection{Qué se recuerda y qué se olvida}
+\subsubsection{Estrategia de gestión del contexto y resolución de consultas}
 
+Para solucionar el problema del contexto se pensó inicialmente en la inclusión directa del historial completo de la conversación (preguntas del usuario y respuestas del modelo) en el \textit{prompt}, sin embargo, esto haría que un error en la pregunta o en la respuesta se arrastrase por toda esta y contaminaría el resto de respuestas. Por ello, luego se optó por la implementación de una estrategia selectiva en la que únicamente se meterían en el \textit{prompt} las tres últimas preguntas del usuario, excluyendo las respuestas del modelo.
 
-Como hemos dicho anteriormente, la \sout{ventada} \textcolor{borrador2}{ventana} de contexto del modelo es finita, así que la conversación mantenida necesita tener una política de qué información mantener cuando se llena. La que sigue el sistema \sout{presente,} \textcolor{borrador2}{presente} descarta primero las preguntas más antiguas y conserva siempre el grado de la que se está hablando actualmente, que ocupa unas pocas palabras y es lo más importante en ese momento. \sout{Cabiera la posibilidad de que el usuario se refiriera a otra titulación en preguntas anteriores, pero debido a esta limitación de la ventana y a una limitación de memoria principal, no es posible sostenerla.}
+No obstante, la última respuesta del modelo no se descarta por completo, sino que se procesa durante la etapa previa de extracción de entidades (asignaturas, guías, etc.). Por ejemplo, si el usuario expresa interés por los videojuegos, el asistente recomienda el Grado en Ingeniería Informática por sus optativas en dicha materia. A continuación, el usuario puede preguntar <<¿qué asignaturas tiene primero?>>, el nombre del grado se obtendría a partir de la última respuesta del modelo y junto con las tres últimas preguntas se introducirían en la siguiente cuestión.
 
-\textcolor{borrador2}{Que el usuario cambie de titulación a mitad de
-  conversación no es un caso que quede sin resolver por falta de memoria, sino
-  una regla de resolución: lo que la pregunta nombra manda, y solo cuando no
-  nombra ninguna se hereda la del turno anterior. Así, <<¿y en Mecánica?>>
-  cambia el sujeto en el acto, y <<¿y en segundo?>> lo conserva. Lo que el
-  sistema no sostiene son dos titulaciones a la vez como sujeto de una misma
-  pregunta implícita, porque entonces no habría forma de saber a cuál se
-  refiere.}
-
+Este contexto conversacional se mantiene por un conjunto de reglas deterministas de persistencia y reemplazo. Cuando una nueva pregunta nombra explícitamente una titulación del corpus, el sujeto activo (la titulación actual) se actualiza, mientras que si la consulta omite el grado, se hereda automáticamente el sujeto del turno previo.
 
 
 \begin{borrador}
@@ -1103,141 +1069,79 @@ Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cu
 
 \begin{itemize}
   \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tienen sentido que se den en una escuela Politécnica superior, no se encuentra en los datos recogidos.
-  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad 
+  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad en la colección.
+  \item \textbf{Cobertura: }Qué proporción de lo que debía decir realmente aparece.
+  \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuyas respuestas es un único valor como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
 \end{itemize}
 
-\textcolor{borrador2}{ La \textbf{precisión} mide
-  qué proporción de lo que la respuesta enumera existe de verdad en la
-  colección. La \textbf{cobertura}, qué proporción de lo que debía nombrar
-  aparece. Y el \textbf{acierto escalar} se aplica a las preguntas cuya
-  respuesta es un único valor, como los créditos de una asignatura o el curso en
-  que se imparte. Las cifras que arrojan estas cuatro medidas están en el
-  Apartado~\ref{secc:resultados_rag}.}
+Cabe destacar que las cifras calculadas de estas cuatros medidas están en el Apartado~\ref{secc:resultados_rag}.
 
-\textcolor{borrador2}{Las dos medidas de cadena obligan a fijar cuándo dos
-  formas de decir lo mismo cuentan como iguales, y ahí las decisiones no son
-  neutrales. Los créditos se buscan con su unidad detrás, porque en una
-  respuesta de tres líneas casi siempre aparece un «6» suelto por algún lado y
-  darlo por bueno aprobaría a un modelo que no ha contestado. El nombre de una
-  titulación se compara con la fórmula «Grado en» delante o sin ella según cómo
-  la escriba la propia respuesta, ya que las dos formas son correctas en
-  castellano y penalizar una sería medir estilo. Y el curso se coteja contra
-  cada uno de los valores que admite el rótulo por separado: en los dobles
-  grados la Escuela publica rótulos con dos ---«Tercer o cuarto curso»---
-  porque la asignatura se cursa en uno u otro según el itinerario, de modo que
-  nombrar cualquiera de ellos responde a la pregunta.}
 
-\textcolor{borrador2}{Conviene decir también qué queda fuera de estas medidas,
-  porque es bastante. No miden si la respuesta está bien escrita, si la
-  recomendación que hace es acertada para quien pregunta, ni si el resumen de un
-  temario es fiel al original: una respuesta correcta y sosa puntúa igual que
-  una correcta y bien redactada. Por eso las preguntas de temario y de salidas
-  profesionales, cuya respuesta no se puede calcular a partir de la colección,
-  no entran en la decisión; se observan en sesiones manuales y se recogen como
-  modos de fallo.}
+Para evitar problemas como falsos positivos o penalizaciones en las respuestas del agente que son cadenas de caracteres, se establecen tres criterios tales como exigir la unidad junto al número de créditos (que ponga 6 créditos o 6 ECTS) para evitar números al azar, admitir los nombres de la titulación con o sin el prefijo <<Grado en>>, y aceptar cualquiera de los cursos válidos en asignaturas de itinerario variable en dobles grados.
 
 \subsubsection{El banco de preguntas elegido}
 
-El banco de preguntas es el se usa para validar y probar los diferentes modelos elegidos, para medir su rendimiento de manera clara y reproducible. 
+Para evaluar y comparar el rendimiento de los modelos de forma objetiva y reproducible, se construyó un banco de evaluación generado automáticamente mediante código a partir de la colección de datos oficial. Este enfoque deriva tanto las preguntas como sus respuestas correctas (\textit{ground truth}) directamente del conjunto de datos sin requerir etiquetado manual como si pasaba anteriormente, garantizando que el banco crezca de forma escalable si la fuente se amplía en el futuro.
 
-Este banco se genera automáticamente mediante código a partir de la colección oficial que se extrae, de esta manera obtenemos junto con la pregunta, la respuesta correcta con la que validar al modelo.
+El banco de preguntas en su totalidad contiene una cantidad enorme de preguntas, haciendo que si se quisieran probar todas supondría más de 4.000 inferencias y un gran número de horas en un equipo como con el que se está realizando este proyecto. La comparativa en la práctica se realizó con una muestra representativa de 80 preguntas, reservando el banco completo para la validación final del modelo ganador. Esta extracción de las 80 preguntas se llevó a cabo mediante un muestreo estratificado con una semilla fija común para todos los modelos, garantizando la paridad y la reproducibilidad de las pruebas.
 
-Contiene preguntas repartidas en seis tipos que se ha pensado que podría interesar al usuario objetivo, como preguntas por el catálogo de la Escuela, planes de estudios de las diferentes titulaciones, asignaturas obligatorias y optativas, números de créditos, \dots
+El banco se estructura en seis familias temáticas representativas del usuario objetivo, tales como créditos de asignaturas, curso de impartición, planes de estudio completos, asignaturas de mención, asignaturas optativas y catálogo general de la Escuela. Este banco no está equilibrado, haciendo que una familia tenga una gran cantidad de preguntas mientras que otras tengan unas pocas, esto se arregla reequilibrando intencionadamente esta proporción en la prueba. 
 
-Sin embargo, la cantidad total de preguntas generada es demasiada alta (ya que cubre todo el corpus), por lo que se decide extraer únicamente 80 preguntas de estas mediante un muestreo estratificado con semilla fija con una semilla fija para todos los modelos en el experimento. Esta muestra de preguntas garantiza que todos los tipos de preguntas estén representadas en el conjunto final.
-
-
-
-\textcolor{borrador2}{Que la respuesta correcta se derive de la colección y no
-  se escriba a mano no es una comodidad, sino lo que permite que el banco crezca
-  con la fuente. Es además la misma operación que produce los fragmentos
-  derivados del Apartado~\ref{secc:fragmentos_derivados}: contar y agrupar lo
-  que el dataset ya contiene.}
-
-\textcolor{borrador2}{El motivo de decidir sobre una muestra y no sobre el banco
-  entero es el coste. Cada pregunta supone una llamada al modelo por candidato,
-  de modo que las mil veintitrés preguntas del banco pasarían de las tres mil
-  respuestas solo con los tres finalistas, que a los tiempos de un equipo
-  doméstico son días de cómputo. El banco entero queda para comprobar al
-  finalista una vez elegido.}
-
-\textcolor{borrador2}{Los candidatos que se comparan son tres, y no son tres
-  por casualidad. La criba previa pasó por ocho modelos y de ella salieron los
-  descartes ---uno se inventó tres titulaciones enteras; otro, el modelo
-  público en español, lo desaconsejan sus propios autores sobre el servidor de
-  inferencia que usa este trabajo---. Para la comparación que decide quedan uno
-  de ocho mil millones de parámetros, uno de nueve mil y uno de doce mil, cada
-  uno de un fabricante distinto, de manera que ninguna diferencia observada
-  pueda atribuirse al tamaño ni a las decisiones de una sola casa. Los tres se
-  miden \textbf{en la misma tanda}, con la misma versión del servidor y el
-  mismo corpus, porque comparar mediciones tomadas en momentos distintos es
-  comparar además las condiciones en que se tomaron.}
-
-\textcolor{borrador2}{Las seis familias son el catálogo de
-  la Escuela, los créditos de una asignatura, el curso en que se imparte, el
-  plan de estudios de un curso completo, las asignaturas de una mención y las
-  optativas de una titulación. En la muestra de ochenta hay veintitrés
-  preguntas de créditos, veintitrés de curso, trece de plan, trece de mención,
-  siete de optativas y una de catálogo.}
-
-\textcolor{borrador2}{Ese reparto no es el del banco entero y conviene saberlo
-  al leer los promedios. En las mil veintitrés preguntas generadas, las de
-  créditos y curso son el noventa y tres por ciento, sencillamente porque hay
-  una de cada por asignatura; en la muestra bajan a algo menos de tres quintos.
-  El muestreo estratificado reparte a favor de las familias escasas para que
-  ninguna quede sin medir ---las siete preguntas de optativas del banco están
-  las siete en la muestra, y la de catálogo es la única que existe---, y la
-  contrapartida es que las cifras globales de la comparación no representan el
-  reparto natural del banco, sino uno construido para cubrir los seis tipos.}
 
 \subsubsection{El umbral del experimento}
 
-Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se inventase las opciones o las respuestas, dado que precisamente estamos haciendo este proyecto para evitar esto.
+Los umbrales del experimento son dos:
 
+\begin{itemize}
+  \item \textbf{Ninguna titulación inventada: }Es un umbral eliminatorio, lo que significa que si se llegase a inventar alguna, el modelo sería totalmente descartado.
+  \item \textbf{Ningún candidato se quede sin contexto: }Si a un modelo se le ofreciera menos fragmentos que los demás no se estarían comparando modelos, sino las recuperaciones que les tocaron.
+\end{itemize}
 
+Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para la decisión del modelo. La primera es el tiempo que este tarda en responder ya que no todos los modelos se comprueban bajo las mismas condiciones controladas, y el equipo en el que se hacen es un portátil de desarrollo que tiene más aplicaciones abiertas. 
 
+La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador. Al seleccionar un modelo más capaz y por ende más grande, se excede la memoria de la tarjeta gráfica disponible y parte de su ejecución se traslada a la memoria principal, por lo que los tiempos medidos reflejan las limitaciones del hardware de desarrollo del proyecto más que la eficiencia intrínseca de cada modelo. Ambas magnitudes se documentan y analizan como una amenaza a la validez en el Apartado~\ref{secc:amenazas_validez}.
 
-\textcolor{borrador2}{Los umbrales del experimento son dos. El primero es
-  eliminatorio: \textbf{ninguna titulación inventada} sobre la muestra completa.
-  Un sistema cuyo cometido es recomendar carreras no puede nombrar una que no
-  existe, porque el estudiante al que se dirige no tiene con qué detectarlo. El
-  segundo exige que \textbf{ningún candidato se quede sin contexto} en ninguna
-  pregunta: si a uno el recuperador le trajera menos fragmentos que a los demás
-  no se estaría comparando a los modelos, sino a las recuperaciones que les
-  tocaron.}
+\subsubsection[\textcolor{borrador2}{Elección final}]{\textcolor{borrador2}{Elección final}}
+\label{secc:eleccion_gemma3}
 
-\textcolor{borrador2}{Si ningún candidato superase el umbral eliminatorio, la
-  decisión no se anula: se elige entre los que menos incurran y se deja escrito
-  como limitación del sistema, porque un asistente que se inventa titulaciones
-  seguiría siendo un asistente que se inventa titulaciones aunque fuera el mejor
-  de los disponibles.}
+\textcolor{borrador2}{El umbral eliminatorio no resuelve esta elección, y conviene
+  decirlo antes que nada: los cuatro candidatos lo cumplen. Ninguno nombró una
+  titulación inexistente en las trescientas veinte respuestas y a ninguno se le
+  quedó una pregunta sin contexto, de modo que el criterio que se escribió para
+  descartar no descarta a nadie. Que un umbral no separe no lo invalida ---sigue
+  diciendo que los cuatro son admisibles, que era su cometido--- pero obliga a
+  decidir con lo que queda, que son las medidas descriptivas del
+  Apartado~\ref{secc:resultados_rag}.}
 
-\textcolor{borrador2}{Hay en cambio dos magnitudes que se registran y que
-  \textbf{no intervienen en la decisión}. Una es el tiempo de respuesta.
-  Descartar un candidato por lento exige medirlo en condiciones controladas, y
-  el equipo de trabajo es el portátil de desarrollo: el mismo modelo, sobre la
-  misma muestra, ha dado medianas de 15,9 y de 31,9 segundos según lo que
-  estuviera abierto, y una respuesta de 581 caracteres llegó a marcar 16.677
-  segundos porque el sistema estaba paginando a disco. Con esa varianza el
-  tiempo describe la máquina y no al modelo.}
+\textcolor{borrador2}{Sobre ellas se adopta \texttt{gemma3:12b}, porque es el
+  único que no queda por detrás en ninguna: precisión 1,000, cobertura 1,000 y
+  acierto escalar 0,978, el más alto de los cuatro. \texttt{ministral-8b} y
+  \texttt{qwen3.5:9b} pierden en cobertura y en acierto escalar, que son
+  precisamente las dos que dicen si la respuesta contiene lo que debía contener,
+  y \texttt{salamandra-7b} pierde en las dos por bastante más margen.}
 
-\textcolor{borrador2}{La otra es el reparto entre procesador y tarjeta gráfica.
-  La tarjeta del equipo dispone de 6~GB de memoria dedicada y los candidatos
-  ocupan entre 5,3 y 8,9~GB ya cuantizados a cuatro bits, de modo que el
-  servidor de inferencia carga las capas que caben y ejecuta el resto en el
-  procesador: de uno de los candidatos se midieron 3,28 de sus 8,92~GB en
-  memoria de vídeo. El tiempo de cada uno mide entonces, sobre todo, cuánto de
-  él cupo en la tarjeta, y elegir por ahí sería elegir por el equipo en el que
-  se ha desarrollado el trabajo. Las dos magnitudes se recogen para el anexo de
-  instalación y como amenaza a la validez en el
-  Apartado~\ref{secc:amenazas_validez}.}
+\textcolor{borrador2}{La contrapartida es que se adopta el más lento de los
+  cuatro: 21,6 segundos de mediana frente a los 12,1 de \texttt{ministral-8b}.
+  Se acepta a sabiendas y no por descuido, porque el orden entre las dos cosas
+  no se decide aquí sino que está fijado de antemano en el RNF-04 de la
+  Tabla~\ref{tab:requisitos_no_funcionales}: antes que responder deprisa, no
+  inventar. Invertir ese orden habría llevado a \texttt{ministral-8b}, que es el
+  mismo candidato al que se vio salirse del dominio en las sesiones a mano
+  recomendando cursos de una plataforma comercial que no está en el corpus.}
 
-
-
+\textcolor{borrador2}{Hay además una razón para no dejar que el tiempo decida
+  que no tiene que ver con las prioridades sino con lo que la cifra mide. De los
+  8,92~GB que \texttt{gemma3:12b} ocupa en memoria solo caben 3,28 en la tarjeta
+  gráfica del equipo descrito en la Sección~\ref{secc:equipo_ejecucion}, así que
+  esos 21,6 segundos describen este portátil antes que al modelo. Un criterio
+  construido sobre ellos sería un criterio sobre el ordenador de desarrollo. La
+  decisión queda registrada en el ADR-0005\cite{repo_tfg}.}
 
 
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
 \label{secc:fase2_pipeline}
+
+Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle.
 
 \textcolor{borrador2}{Con la colección indexada y el modelo
   generativo elegido, este apartado describe el recorrido completo de una
@@ -1276,7 +1180,8 @@ Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se 
 
 \subsubsection{\textcolor{borrador2}{Qué se le entrega al modelo}}
 
-\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas.
+\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas,
+  que recoge la Figura~\ref{fig:prompt_despiezado}.
   El \textbf{mensaje de sistema} fija quién es el asistente y para quién
   escribe. Las \textbf{instrucciones} enumeran las reglas de la respuesta: usar
   solo el contexto, decirlo cuando el contexto no baste, distinguir una guía sin
@@ -1286,10 +1191,16 @@ Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se 
   anteriores} de la conversación, que sirven solo para entender a qué se refiere
   la pregunta actual y nunca como fuente de datos.}
 
-\begin{borrador}
-  \item Fase: 2 (IT-37). Valorar una figura con el prompt completo despiezado en
-    sus cuatro partes. Es el sitio natural para ella y evita transcribirlo.
-\end{borrador}
+\input{diagramas/DiagramaPromptDespiezado.tex}
+
+\textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
+  las mismas siempre; las dos últimas cambian con cada una, y por eso en la
+  figura solo esas dos tienen dibujado de dónde salen. La distinción que importa
+  está en la última: de la conversación viajan las \textbf{preguntas} y no las
+  respuestas. Es lo que impide que una respuesta equivocada en un turno se
+  convierta en fuente del siguiente, y es un control y no una recomendación
+  ---lo que no está en el \textit{prompt} no se puede copiar---, que es la misma
+  idea que gobierna el apartado siguiente.}
 
 \subsubsection{\textcolor{borrador2}{Qué ocurre cuando no se recupera nada}}
 
@@ -1321,13 +1232,13 @@ Dentro de este umbral hay opciones que son eliminatorias, como que el modelo se 
 
 \textcolor{borrador2}{La restricción se resuelve con dos capas, y ninguna de las
   dos basta por sí sola. La primera es el suelo de pertinencia descrito en el
-  apartado anterior, que rechaza siete de cada diez preguntas ajenas al dominio.
-  Las tres que deja pasar tienen todas la misma forma: usan el vocabulario del
-  centro para preguntar por algo que no le pertenece ---si se puede estudiar
-  Medicina en la Escuela, qué asignaturas tiene un grado de otra facultad---, y
-  la distancia entre vectores mide precisamente parecido de vocabulario. Por eso
-  el suelo no es un filtro de dominio fiable, y este trabajo no lo presenta como
-  tal.}
+  apartado anterior, que rechaza la mitad de las preguntas ajenas al dominio
+  cuando estas no han intervenido en su ajuste. Las que deja pasar tienen todas
+  la misma forma: usan el vocabulario del centro para preguntar por algo que no
+  le pertenece ---si se puede estudiar Medicina en la Escuela, qué asignaturas
+  tiene un grado de otra facultad---, y la distancia entre vectores mide
+  precisamente parecido de vocabulario. Por eso el suelo no es un filtro de
+  dominio fiable, y este trabajo no lo presenta como tal.}
 
 \textcolor{borrador2}{La segunda capa actúa \textbf{después} de generar la
   respuesta, no antes: se extraen de ella los nombres con forma de titulación y
