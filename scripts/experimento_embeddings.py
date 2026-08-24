@@ -520,7 +520,12 @@ def _evaluar_candidato(
         # Hay que soltar las TRES referencias: las dos funciones de
         # incrustación son cierres que capturan el modelo, así que anular
         # solo `modelo` no liberaría ni un byte.
-        incrustar_doc = incrustar_consulta = modelo = None  # noqa: F841
+        # El `type: ignore` es la contrapartida de soltar el modelo: las
+        # tres variables se anotaron con el tipo que tienen mientras se
+        # usan, y aqui se anulan a proposito para que el recolector pueda
+        # llevarselas. Sin el, `mypy scripts/` arrastra un error conocido
+        # y deja de mirarse.
+        incrustar_doc = incrustar_consulta = modelo = None  # type: ignore[assignment] # noqa: F841,E501
         gc.collect()
     fila = {
         "nombre": candidato.nombre,
