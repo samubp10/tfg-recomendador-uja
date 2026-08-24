@@ -93,7 +93,9 @@ def cargar_chunks(ruta: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """
     items = json.loads(ruta.read_text(encoding="utf-8"))
     chunks = [i for i in items if i.get("tipo") == "chunk"]
-    procedencia = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    procedencia: dict[str, Any] = next(
+        (i for i in items if i.get("tipo") == "procedencia"), {}
+    )
     return chunks, procedencia
 
 
