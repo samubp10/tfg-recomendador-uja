@@ -1053,6 +1053,57 @@ def test_una_pregunta_normal_del_dominio_no_dispara_la_comprobacion():
     )
 
 
+# --- Los tres desenlaces que faltaban por cubrir ---
+
+
+def test_una_cortesia_que_no_saluda_ni_se_despide_no_recibe_respuesta_fija():
+    """«Vale» es todo cortesía y no es ni saludo ni despedida: no se contesta.
+
+    Es la condición que el propio módulo declara al separar ``_SALUDO`` de
+    ``_CORTESIA``: sin ella, un resto de frase como «vale» o «por favor»
+    entraría por ser todo palabras corteses y el asistente saludaría a mitad de
+    conversación. Devolver ``None`` deja que el turno siga su curso normal.
+    """
+    assert cortesia("vale") is None
+    assert cortesia("por favor") is None
+
+
+def test_una_despedida_sin_contexto_se_despide_en_vez_de_no_encontrar_nada():
+    """Dar las gracias al final no puede acabar en «no he encontrado nada».
+
+    Es el mismo fallo del turno 5 de la sesión del 19/08/2026, pero por la otra
+    rama: cuando además el recuperador se ha quedado sin fragmentos. Cerrar la
+    conversación no necesita contexto ninguno.
+    """
+    assert cortesia_sin_contexto("muchas gracias, hasta luego") == RESPUESTA_DESPEDIDA
+
+
+def test_una_respuesta_cortada_por_longitud_se_cierra_y_se_avisa(monkeypatch):
+    """Si el modelo agota el tope, se corta en frase entera y se dice que falta.
+
+    Ollama devuelve ``done_reason: "length"`` cuando ha llegado al tope de
+    fichas. Entregar el texto tal cual dejaría la última frase a medias, y el
+    estudiante no tendría forma de saber si eso es toda la información o solo
+    la que cupo.
+    """
+
+    def urlopen_falso(peticion: Any, timeout: int = 0) -> RespuestaFalsa:
+        return RespuestaFalsa(
+            {
+                "response": "Se cursan Álgebra y Cálculo. Además está Físi",
+                "done_reason": "length",
+            }
+        )
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", urlopen_falso)
+
+    escrito = generar("un prompt", "un-modelo")
+
+    assert escrito.endswith(AVISO_RESPUESTA_CORTADA)
+    assert "Físi" not in escrito
+    assert "Se cursan Álgebra y Cálculo." in escrito
+
+
 # --- IT-39: un imperativo ajeno no se saluda ---
 
 

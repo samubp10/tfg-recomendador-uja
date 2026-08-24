@@ -528,3 +528,21 @@ def test_la_cobertura_cuenta_la_lista_factorizada():
     assert precision == 1.0
     assert cobertura == 1.0
     assert not inventadas and not omitidas
+
+
+def test_elementos_en_prosa_sin_ninguna_mayuscula_se_dejan_enteros():
+    """Si nada empieza por mayúscula, no hay dónde recortar y se deja tal cual.
+
+    El recorte existe porque el modelo arrastra lo que introducía el nombre
+    («incluyendo Algoritmos geométricos»), y se apoya en que en la fuente todo
+    nombre de asignatura empieza por mayúscula. Cuando el modelo escribe la
+    enumeración entera en minúscula esa pista no está, y adivinar dónde empieza
+    el nombre sería inventarse el corte: es preferible devolver de más y que el
+    cotejo lo cuente como no encontrado, a devolver un trozo equivocado.
+    """
+    respuesta = "se cursan álgebra (6 ECTS) y física aplicada (6 créditos)."
+
+    assert elementos_de_lista(respuesta) == [
+        "se cursan álgebra",
+        "y física aplicada",
+    ]

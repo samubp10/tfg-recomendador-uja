@@ -61,6 +61,20 @@ def test_url_vacia_o_none_no_rompe():
     assert reparar_url(None) is None
 
 
+def test_reparar_url_deja_intacta_la_que_no_termina_en_html():
+    """Lo que no lleva ".html" no se toca: no hay nada duplicado que cortar.
+
+    La reparación existe porque la fuente concatena la URL consigo misma
+    después del ".html". Una URL sin esa extensión --- las de las guías en PDF,
+    por ejemplo --- no puede tener ese defecto, y recortarla por si acaso la
+    rompería.
+    """
+    from tfg_uja.text_cleaner import reparar_url
+
+    pdf = "https://eps.ujaen.es/guia/13312001"
+    assert reparar_url(pdf) == pdf
+
+
 # --- quitar_nota_al_pie: caso real "Prácticas externas *" ---
 
 
