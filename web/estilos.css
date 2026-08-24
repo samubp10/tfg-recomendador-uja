@@ -1,0 +1,437 @@
+/*
+  Hoja de estilo del asistente (IT-45).
+
+  Los colores y las tipografias salen del diseno hecho en Figma y se recogen
+  aqui como variables para que no haya un valor suelto repetido por el fichero.
+  El verde y el oro son los de la identidad de la Universidad de Jaen.
+
+  No hay marco de trabajo ni paso de compilacion: es la decision de IT-42, que
+  descarta los marcos habituales porque lo que hay que dibujar es un cuadro de
+  texto y una lista de mensajes.
+*/
+
+:root {
+  --uja-verde: #1a8048;
+  --uja-verde-oscuro: #0f5c33;
+  --uja-verde-claro: #eaf5ef;
+  --uja-oro: #c8a951;
+
+  --superficie: #f8f9fa;
+  --superficie-alta: #ffffff;
+  --borde: #e2e8e4;
+  --borde-fuerte: #c8d8cc;
+  --texto: #1a2e22;
+  --texto-suave: #6b7c72;
+
+  --degradado-uja: linear-gradient(135deg, var(--uja-verde) 0%, var(--uja-verde-oscuro) 100%);
+
+  --letra-titulo: "Lora", Georgia, "Times New Roman", serif;
+  --letra-texto: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --radio: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--letra-texto);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.aplicacion {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  background: var(--superficie);
+}
+
+/* ---------------------------------------------------------------- cabecera */
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px;
+  background: var(--degradado-uja);
+  box-shadow: 0 2px 12px rgba(26, 128, 72, 0.28);
+  flex-shrink: 0;
+}
+
+.cabecera__escudo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cabecera__textos {
+  min-width: 0;
+}
+
+.cabecera__titulo {
+  margin: 0;
+  font-family: var(--letra-titulo);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.cabecera__subtitulo {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: #c8e8d4;
+  letter-spacing: 0.06em;
+}
+
+/* ------------------------------------------------------------ conversacion */
+
+.conversacion {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+/* El escudo de fondo es decorativo: `alt` vacio y fuera del arbol de
+   accesibilidad, para que un lector de pantalla no lo anuncie. */
+.conversacion__marca {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  opacity: 0.07;
+  /* El escudo original es rojo, verde y oro. Al 7 % de opacidad y sin tenir,
+     el rojo domina y el fondo se ve rosado. Se lleva al verde de la identidad
+     para que la marca de agua no compita con nada. */
+  filter: grayscale(1) sepia(0.6) hue-rotate(70deg) saturate(2.5);
+  pointer-events: none;
+  user-select: none;
+}
+
+.conversacion__mensajes {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --------------------------------------------------------------- burbujas */
+
+.mensaje {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  align-items: flex-start;
+}
+
+.mensaje--propio {
+  justify-content: flex-end;
+}
+
+.mensaje__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mensaje__avatar--asistente {
+  background: var(--degradado-uja);
+}
+
+.mensaje__avatar--asistente img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.mensaje__avatar--propio {
+  background: var(--uja-oro);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.mensaje__burbuja {
+  max-width: 72%;
+  padding: 11px 16px;
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+}
+
+.mensaje--propio .mensaje__burbuja {
+  background: var(--degradado-uja);
+  color: #ffffff;
+  border-top-right-radius: 4px;
+}
+
+.mensaje--asistente .mensaje__burbuja {
+  background: var(--superficie-alta);
+  border: 1px solid var(--borde);
+  border-top-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 102, 51, 0.06);
+}
+
+/* La respuesta que el sistema devuelve sin llegar a consultar al modelo se
+   marca con un filete dorado. No es decoracion: una respuesta fija tarda
+   decimas de segundo y una elaborada mas de un minuto, y sin distinguirlas la
+   rapida parece un error. */
+.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
+  border-left: 3px solid var(--uja-oro);
+}
+
+.mensaje__burbuja p {
+  margin: 0 0 0.6em;
+}
+
+.mensaje__burbuja p:last-child {
+  margin-bottom: 0;
+}
+
+.mensaje__burbuja ul {
+  margin: 0.2em 0 0.6em;
+  padding-left: 1.2em;
+}
+
+.mensaje__burbuja li {
+  margin: 0.15em 0;
+}
+
+.mensaje__pie {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  display: flex;
+  gap: 8px;
+}
+
+.mensaje--propio .mensaje__pie {
+  color: rgba(255, 255, 255, 0.7);
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------- la espera */
+
+/*
+  La mediana de una respuesta que llega al modelo es de 62,7 s y el percentil 90
+  pasa de dos minutos (medido el 24/08/2026 sobre el banco del sistema). Tres
+  puntitos rebotando durante un minuto se leen como una aplicacion colgada, asi
+  que la espera dice cuanto lleva y, pasado un umbral, explica por que tarda.
+*/
+.espera__puntos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  height: 16px;
+}
+
+.espera__punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--uja-verde);
+  animation: rebote 1.2s ease-in-out infinite;
+}
+
+.espera__punto:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.espera__punto:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes rebote {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+/* Quien haya pedido menos animacion en su sistema no ve el rebote, pero sigue
+   viendo el contador: la informacion no depende del movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .espera__punto {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.espera__aviso {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+}
+
+/* ------------------------------------------------------------ sugerencias */
+
+.sugerencias {
+  display: flex;
+  gap: 8px;
+  padding: 6px 16px 8px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.sugerencias::-webkit-scrollbar {
+  display: none;
+}
+
+.sugerencia {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--borde-fuerte);
+  background: #f0f7f3;
+  color: var(--uja-verde);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.sugerencia:hover:not(:disabled),
+.sugerencia:focus-visible {
+  background: var(--uja-verde);
+  color: #ffffff;
+}
+
+.sugerencia:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------- redaccion */
+
+.redaccion {
+  flex-shrink: 0;
+  padding: 4px 16px 16px;
+}
+
+.redaccion__caja {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radio);
+  background: var(--superficie-alta);
+  border: 1.5px solid var(--borde-fuerte);
+  box-shadow: 0 2px 16px rgba(0, 102, 51, 0.08);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.redaccion__caja:focus-within {
+  border-color: var(--uja-verde);
+  box-shadow: 0 2px 20px rgba(0, 102, 51, 0.15);
+}
+
+.redaccion__entrada {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--texto);
+  max-height: 160px;
+}
+
+.redaccion__entrada::placeholder {
+  color: var(--texto-suave);
+}
+
+.redaccion__enviar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--degradado-uja);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.redaccion__enviar:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.redaccion__aviso {
+  margin: 8px 4px 0;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ fallo */
+
+.mensaje--fallo .mensaje__burbuja {
+  border-color: #d9b3b3;
+  background: #fdf6f6;
+  color: #7a3131;
+}
+
+/* --------------------------------------------------------------- pantallas */
+
+@media (max-width: 620px) {
+  .cabecera__escudo {
+    width: 48px;
+    height: 48px;
+  }
+
+  .mensaje__burbuja {
+    max-width: 84%;
+  }
+
+  .conversacion__marca {
+    width: 200px;
+    height: 200px;
+  }
+}
