@@ -37,6 +37,7 @@ from tfg_uja.conversacion import Conversacion
 from tfg_uja.generador import ErrorDelModelo, responder_por_partes
 from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
 from tfg_uja.incrustaciones import incrustador_de_consultas
+from tfg_uja.sugerencias import sugerencias_para
 from tfg_uja.recuperador import (
     K_MAXIMO,
     abrir_indice,
@@ -63,6 +64,57 @@ PUERTO: Final[int] = 8000
 MAXIMO_CUERPO: Final[int] = 8 * 1024
 
 
+#: Cómo se nombra en pantalla cada tipo de fragmento. La colección los marca
+#: con una etiqueta corta que no significa nada para quien pregunta.
+#:
+#: Las siete claves son las que trae el corpus, contadas sobre ``chunks.json``
+#: y no supuestas: escribirlas de memoria ya dejó tres sin traducir, y el fallo
+#: no se ve en las pruebas porque un origen desconocido sale tal cual y la
+#: pantalla sigue funcionando.
+ROTULOS_DE_ORIGEN: Final[dict[str, str]] = {
+    "guia": "Guía docente",
+    "asignatura_sin_guia": "Asignatura sin guía publicada",
+    "plan_de_estudios": "Plan de estudios",
+    "mencion": "Menciones",
+    "salidas": "Salidas profesionales",
+    "ficha_titulacion": "Ficha de la titulación",
+    "catalogo": "Catálogo de titulaciones",
+}
+
+
+def fuentes_de(fragmentos: list[Any]) -> list[dict[str, str]]:
+    """Unidades de la colección que se le entregaron al modelo para responder.
+
+    Un fragmento no es una fuente. Una guía docente larga se trocea en varios y
+    los tres apuntan al mismo sitio, así que listarlos uno a uno repetiría la
+    misma línea. Se agrupa por unidad, con la misma identidad que usa el resto
+    del sistema: el nombre de la unidad junto a las titulaciones en las que se
+    imparte.
+
+    ⚠️ Lo que devuelve es **lo que se le entregó al modelo**, no lo que el
+    modelo usó al redactar. El sistema no sabe lo segundo, y presentarlo como
+    si lo supiera sería afirmar de más.
+
+    Args:
+        fragmentos: Lo que devolvió el recuperador para esta consulta.
+
+    Returns:
+        Una entrada por unidad, en el orden en que las trajo el recuperador,
+        que es el de proximidad a la pregunta.
+    """
+    vistas: dict[tuple[str, str], dict[str, str]] = {}
+    for fragmento in fragmentos:
+        titulacion = " · ".join(fragmento.grados)
+        clave = (fragmento.nombre, titulacion)
+        if clave not in vistas:
+            vistas[clave] = {
+                "nombre": fragmento.nombre,
+                "titulacion": titulacion,
+                "origen": ROTULOS_DE_ORIGEN.get(fragmento.origen, fragmento.origen),
+            }
+    return list(vistas.values())
+
+
 def partes_de_la_respuesta(
     pregunta: str,
     sistema: tuple[Any, Any, list[str], str],
@@ -79,9 +131,11 @@ def partes_de_la_respuesta(
         conversacion: Estado del diálogo, que se actualiza aquí.
 
     Yields:
-        ``{"parte": ...}`` por cada unidad verificada, ``{"borrar": True}``
-        cuando la respuesta se retira a media emisión, y ``{"error": ...}`` si
-        el modelo no responde.
+        ``{"fuentes": [...]}`` con las unidades recuperadas, ``{"parte": ...}``
+        por cada unidad verificada, ``{"borrar": True}`` cuando la respuesta se
+        retira a media emisión, ``{"sugerencias": [...]}`` con lo que se puede
+        preguntar a continuación, y ``{"error": ...}`` si el modelo no
+        responde.
     """
     tabla, incrustar, catalogo, distancia = sistema
     consulta = conversacion.preparar(pregunta)
@@ -95,6 +149,11 @@ def partes_de_la_respuesta(
         catalogo=catalogo,
         ambito=consulta.ambito,
     )
+    # Las fuentes salen antes que el texto y no después: se conocen en cuanto
+    # termina la recuperación, y el modelo tarda un minuto en dar la primera
+    # frase. Esperar al final sería tener el dato guardado sin motivo.
+    if fragmentos:
+        yield {"fuentes": fuentes_de(fragmentos)}
     entero = ""
     try:
         partes = responder_por_partes(
@@ -118,6 +177,10 @@ def partes_de_la_respuesta(
     # Se anota lo que de verdad se ha entregado: si hubo retirada, lo que queda
     # anotado es la respuesta fija y no el texto retirado.
     conversacion.anotar(pregunta, entero)
+    # Las sugerencias se calculan DESPUÉS de anotar, porque es ahí donde la
+    # conversación fija de qué titulación se está hablando, y eso es lo que
+    # decide qué se puede proponer.
+    yield {"sugerencias": sugerencias_para(tabla, conversacion.ambito, catalogo)}
     yield {"fin": True}
 
 
@@ -156,6 +219,20 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: declarado--- una sola instancia basta.
         conversacion = Conversacion(sistema[2])
 
+        def do_GET(self) -> None:  # noqa: N802 (el nombre lo impone la base)
+            """Sirve la interfaz, y las sugerencias con las que arranca."""
+            if self.path != "/api/sugerencias":
+                super().do_GET()
+                return
+            propuestas = sugerencias_para(sistema[0], [], sistema[2])
+            cuerpo = json.dumps(propuestas, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(cuerpo)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(cuerpo)
+
         def do_POST(self) -> None:  # noqa: N802 (el nombre lo impone la base)
             """Atiende la consulta y emite la respuesta por partes."""
             if self.path != "/api/chat":
@@ -167,7 +244,10 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
                 return
             try:
                 pregunta = json.loads(self.rfile.read(largo) or b"{}").get("pregunta")
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                # UnicodeDecodeError no es hija de JSONDecodeError: un cuerpo
+                # que no venga en UTF-8 se colaba y reventaba el manejador con
+                # una traza, dejando al cliente sin respuesta ninguna.
                 self.send_error(400, "el cuerpo no es JSON válido")
                 return
             if not isinstance(pregunta, str) or not pregunta.strip():

@@ -1,9 +1,10 @@
 /*
   Hoja de estilo del asistente (IT-45).
 
-  Los colores y las tipografias salen del diseno hecho en Figma y se recogen
-  aqui como variables para que no haya un valor suelto repetido por el fichero.
-  El verde y el oro son los de la identidad de la Universidad de Jaen.
+  Los colores salen de la hoja de estilo de la propia Escuela Politecnica
+  Superior y se recogen aqui como variables para que no haya un valor suelto
+  repetido por el fichero. El oro que traia el boceto se ha retirado: la
+  Escuela no tiene dorado en su identidad, era una invencion del boceto.
 
   No hay marco de trabajo ni paso de compilacion: es la decision de IT-42, que
   descarta los marcos habituales porque lo que hay que dibujar es un cuadro de
@@ -11,17 +12,18 @@
 */
 
 :root {
-  --uja-verde: #1a8048;
-  --uja-verde-oscuro: #0f5c33;
-  --uja-verde-claro: #eaf5ef;
-  --uja-oro: #c8a951;
+  --uja-verde: #006d38;
+  --uja-verde-oscuro: #004921;
+  --uja-verde-claro: #e6f2eb;
+  /* El verde azulado de la portada de la Escuela. Sustituye al oro inventado. */
+  --epsj-verdeazul: #3c726b;
 
-  --superficie: #f8f9fa;
+  --superficie: #f4f4f5;
   --superficie-alta: #ffffff;
-  --borde: #e2e8e4;
-  --borde-fuerte: #c8d8cc;
-  --texto: #1a2e22;
-  --texto-suave: #6b7c72;
+  --borde: #ececed;
+  --borde-fuerte: #b0b1b3;
+  --texto: #231f20;
+  --texto-suave: #696a6c;
 
   --degradado-uja: linear-gradient(135deg, var(--uja-verde) 0%, var(--uja-verde-oscuro) 100%);
 
@@ -119,14 +121,17 @@ body {
 /* El escudo de fondo es decorativo: `alt` vacio y fuera del arbol de
    accesibilidad, para que un lector de pantalla no lo anuncie. */
 .conversacion__marca {
-  position: absolute;
+  /* `fixed` y no `absolute`: asi el escudo se queda quieto mientras la
+     conversacion se desplaza por encima, que es lo que hace un fondo y no un
+     elemento mas de la lista. */
+  position: fixed;
   top: 50%;
   left: 50%;
-  width: 300px;
-  height: 300px;
+  width: min(62vmin, 620px);
+  height: min(62vmin, 620px);
   transform: translate(-50%, -50%);
   object-fit: contain;
-  opacity: 0.07;
+  opacity: 0.11;
   /* El escudo original es rojo, verde y oro. Al 7 % de opacidad y sin tenir,
      el rojo domina y el fondo se ve rosado. Se lleva al verde de la identidad
      para que la marca de agua no compita con nada. */
@@ -177,7 +182,7 @@ body {
 }
 
 .mensaje__avatar--propio {
-  background: var(--uja-oro);
+  background: var(--epsj-verdeazul);
   color: #ffffff;
   font-size: 0.7rem;
   font-weight: 600;
@@ -204,11 +209,11 @@ body {
 }
 
 /* La respuesta que el sistema devuelve sin llegar a consultar al modelo se
-   marca con un filete dorado. No es decoracion: una respuesta fija tarda
-   decimas de segundo y una elaborada mas de un minuto, y sin distinguirlas la
-   rapida parece un error. */
+   marca con un filete verde azulado. No es decoracion: una respuesta fija
+   tarda decimas de segundo y una elaborada mas de un minuto, y sin
+   distinguirlas la rapida parece un error. */
 .mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
-  border-left: 3px solid var(--uja-oro);
+  border-left: 3px solid var(--epsj-verdeazul);
 }
 
 .mensaje__burbuja p {
@@ -431,7 +436,131 @@ body {
   }
 
   .conversacion__marca {
-    width: 200px;
-    height: 200px;
+    width: min(70vmin, 340px);
+    height: min(70vmin, 340px);
   }
+}
+
+/* ------------------------------------------------ las fuentes de la respuesta
+
+   RF-09 pide mostrar junto a la respuesta las fuentes de las que sale. Se
+   resuelve con un boton discreto en el pie de la burbuja y no con una lista
+   siempre desplegada: los fragmentos recuperados llegan a ser veinte, y veinte
+   lineas de procedencia debajo de cada respuesta tapan la respuesta.
+
+   El cuadro es un <dialog> del navegador: trae el foco atrapado, el cierre con
+   Escape y el fondo inerte sin escribir una linea para ello. */
+
+.mensaje__fuentes {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--uja-verde);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.mensaje__fuentes:hover {
+  color: var(--uja-verde-oscuro);
+}
+
+.mensaje__fuentes:focus-visible {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.fuentes {
+  width: min(92vw, 520px);
+  max-height: 76vh;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie-alta);
+  color: var(--texto);
+}
+
+.fuentes::backdrop {
+  background: rgba(35, 31, 32, 0.45);
+}
+
+.fuentes__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 10px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.fuentes__titulo {
+  margin: 0;
+  font-family: var(--letra-titulo);
+  font-size: 1rem;
+  color: var(--uja-verde-oscuro);
+}
+
+.fuentes__cerrar {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.fuentes__cerrar:hover {
+  color: var(--texto);
+}
+
+.fuentes__lista {
+  margin: 0;
+  padding: 12px 20px 18px;
+  list-style: none;
+  overflow-y: auto;
+  max-height: calc(76vh - 62px);
+}
+
+.fuentes__lista li {
+  padding: 8px 0 8px 12px;
+  border-left: 3px solid var(--uja-verde-claro);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.fuentes__lista li + li {
+  margin-top: 4px;
+}
+
+.fuentes__titulacion {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 0.76rem;
+}
+
+/* ----------------------------------------------------------- el aviso del pie
+
+   El aviso que hay bajo el cuadro de texto acota el DOMINIO. Este acota otra
+   cosa distinta: que quien redacta es un modelo y puede equivocarse. Son dos
+   advertencias que no se pueden fundir en una sin perder una de las dos. */
+
+.aviso-ia {
+  margin: 0;
+  padding: 0 20px 12px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
+
+.fuentes__nota {
+  margin: 0;
+  padding: 10px 20px 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
 }
