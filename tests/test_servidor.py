@@ -286,6 +286,26 @@ def test_el_origen_se_dice_en_castellano_y_lo_desconocido_pasa_tal_cual() -> Non
     assert [f["origen"] for f in fuentes] == ["Salidas profesionales", "raro"]
 
 
+def test_los_siete_origenes_del_corpus_tienen_rotulo() -> None:
+    """Regresión: tres de los siete se escribieron de memoria y estaban mal.
+
+    Un origen sin rótulo no rompe nada ---sale tal cual---, así que el fallo
+    solo se ve mirando la pantalla. Aquí quedan fijados los nombres reales,
+    contados sobre la colección.
+    """
+    del_corpus = {
+        "guia",
+        "asignatura_sin_guia",
+        "plan_de_estudios",
+        "mencion",
+        "salidas",
+        "ficha_titulacion",
+        "catalogo",
+    }
+
+    assert del_corpus == set(servidor.ROTULOS_DE_ORIGEN)
+
+
 def test_sin_fragmentos_recuperados_no_se_anuncian_fuentes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
