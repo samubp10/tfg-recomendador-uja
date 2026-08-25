@@ -37,6 +37,7 @@ from tfg_uja.conversacion import Conversacion
 from tfg_uja.generador import ErrorDelModelo, responder_por_partes
 from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
 from tfg_uja.incrustaciones import incrustador_de_consultas
+from tfg_uja.sugerencias import sugerencias_para
 from tfg_uja.recuperador import (
     K_MAXIMO,
     abrir_indice,
@@ -132,7 +133,9 @@ def partes_de_la_respuesta(
     Yields:
         ``{"fuentes": [...]}`` con las unidades recuperadas, ``{"parte": ...}``
         por cada unidad verificada, ``{"borrar": True}`` cuando la respuesta se
-        retira a media emisión, y ``{"error": ...}`` si el modelo no responde.
+        retira a media emisión, ``{"sugerencias": [...]}`` con lo que se puede
+        preguntar a continuación, y ``{"error": ...}`` si el modelo no
+        responde.
     """
     tabla, incrustar, catalogo, distancia = sistema
     consulta = conversacion.preparar(pregunta)
@@ -174,6 +177,10 @@ def partes_de_la_respuesta(
     # Se anota lo que de verdad se ha entregado: si hubo retirada, lo que queda
     # anotado es la respuesta fija y no el texto retirado.
     conversacion.anotar(pregunta, entero)
+    # Las sugerencias se calculan DESPUÉS de anotar, porque es ahí donde la
+    # conversación fija de qué titulación se está hablando, y eso es lo que
+    # decide qué se puede proponer.
+    yield {"sugerencias": sugerencias_para(tabla, conversacion.ambito, catalogo)}
     yield {"fin": True}
 
 
@@ -211,6 +218,20 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: desbloquea IT-106. Con un solo visitante ---que es el alcance
         #: declarado--- una sola instancia basta.
         conversacion = Conversacion(sistema[2])
+
+        def do_GET(self) -> None:  # noqa: N802 (el nombre lo impone la base)
+            """Sirve la interfaz, y las sugerencias con las que arranca."""
+            if self.path != "/api/sugerencias":
+                super().do_GET()
+                return
+            propuestas = sugerencias_para(sistema[0], [], sistema[2])
+            cuerpo = json.dumps(propuestas, ensure_ascii=False).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(cuerpo)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(cuerpo)
 
         def do_POST(self) -> None:  # noqa: N802 (el nombre lo impone la base)
             """Atiende la consulta y emite la respuesta por partes."""
