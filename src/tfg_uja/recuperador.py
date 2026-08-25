@@ -404,7 +404,7 @@ def acotar_por_distancia(
     return fragmentos[: max(minimo, min(len(dentro), maximo))]
 
 
-def _escapar(valor: str) -> str:
+def escapar(valor: str) -> str:
     """Escapa un literal para la expresión SQL del filtro.
 
     LanceDB no expone consultas parametrizadas, así que el filtro se compone
@@ -452,12 +452,12 @@ def _filtro(
     """
     condiciones = []
     if titulaciones:
-        lista = ", ".join(f"'{_escapar(t)}'" for t in titulaciones)
+        lista = ", ".join(f"'{escapar(t)}'" for t in titulaciones)
         condiciones.append(f"array_has_any(grados, [{lista}])")
     if curso:
-        condiciones.append(f"starts_with(lower(curso), '{_escapar(curso.lower())}')")
+        condiciones.append(f"starts_with(lower(curso), '{escapar(curso.lower())}')")
     if tipo_asignatura is not None:
-        condiciones.append(f"tipo_asignatura = '{_escapar(tipo_asignatura)}'")
+        condiciones.append(f"tipo_asignatura = '{escapar(tipo_asignatura)}'")
     return " AND ".join(condiciones) if condiciones else None
 
 
