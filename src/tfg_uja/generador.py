@@ -36,6 +36,7 @@ import logging
 import re
 import urllib.error
 import urllib.request
+from collections.abc import Iterator
 from typing import Final
 
 from tfg_uja.chunker import ORDEN_CURSOS
@@ -871,3 +872,182 @@ def generar(
     if datos.get("done_reason") == "length":
         return cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
     return escrito
+
+
+#: Caracteres que cierran una unidad emitible. Son las **fronteras seguras** del
+#: ADR-0006: soltar un trozo cortado a mitad de palabra daria un falso positivo
+#: en `titulaciones_inventadas`, que admite subconjuntos de palabras. «Grado en
+#: Ingenieria» pasa la comprobacion; «Grado en Ingenieria Infor» no.
+FRONTERAS: Final[str] = ".!?\n"
+
+
+def partir_en_unidades(texto: str) -> tuple[list[str], str]:
+    """Separa lo que ya se puede soltar de lo que hay que seguir acumulando.
+
+    Args:
+        texto: Todo lo que el modelo ha escrito y aun no se ha soltado.
+
+    Returns:
+        ``(unidades, resto)``. Cada unidad termina en una frontera segura y el
+        resto se queda en el acumulador hasta que llegue la suya.
+    """
+    unidades: list[str] = []
+    inicio = 0
+    for i, caracter in enumerate(texto):
+        if caracter in FRONTERAS:
+            unidades.append(texto[inicio : i + 1])
+            inicio = i + 1
+    return unidades, texto[inicio:]
+
+
+def generar_por_partes(
+    prompt: str,
+    modelo: str,
+    servidor: str = SERVIDOR,
+    ventana: int = VENTANA,
+    tope: int = TOPE_RESPUESTA,
+    semilla: int = 42,
+    sistema: str = SISTEMA,
+) -> Iterator[str]:
+    """Lo mismo que :func:`generar`, pero devolviendo el texto segun se produce.
+
+    El servidor de inferencia manda un objeto JSON por linea con el trozo
+    recien escrito. Aqui solo se reenvian esos trozos: **no se comprueba nada**,
+    porque la comprobacion necesita fronteras seguras y de eso se encarga
+    :func:`responder_por_partes`.
+
+    Args:
+        prompt: Texto que devuelve :func:`construir_prompt`.
+        modelo: Nombre del modelo en el servidor local.
+        servidor: Direccion del servidor de inferencia.
+        ventana: Ventana de contexto en *tokens*.
+        tope: Maximo de *tokens* de la respuesta.
+        semilla: Semilla del muestreo.
+        sistema: Mensaje de sistema.
+
+    Yields:
+        Los trozos de texto en el orden en que los escribe el modelo, y al
+        final el aviso de respuesta cortada si se agoto el tope.
+
+    Raises:
+        ErrorDelModelo: si el servidor no responde, tarda demasiado o falla.
+    """
+    cuerpo = {
+        "model": modelo,
+        "prompt": prompt,
+        "system": sistema,
+        "stream": True,
+        "think": False,
+        "options": {
+            "num_ctx": ventana,
+            "temperature": 0,
+            "seed": semilla,
+            "num_predict": tope,
+        },
+    }
+    peticion = urllib.request.Request(
+        f"{servidor}/api/generate",
+        data=json.dumps(cuerpo).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
+            for linea in respuesta:
+                if not linea.strip():
+                    continue
+                datos = json.loads(linea)
+                trozo = str(datos.get("response", ""))
+                if trozo:
+                    yield trozo
+                if datos.get("done_reason") == "length":
+                    yield AVISO_RESPUESTA_CORTADA
+    except urllib.error.HTTPError as error:
+        detalle = error.read().decode("utf-8", "replace").strip()
+        raise ErrorDelModelo(
+            f"el servidor respondió {error.code} al generar con «{modelo}»"
+            + (f": {detalle[:200]}" if detalle else "")
+        ) from error
+    except TimeoutError as error:
+        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
+    except urllib.error.URLError as error:
+        raise ErrorDelModelo(
+            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
+            "¿Está Ollama en marcha?"
+        ) from error
+
+
+def responder_por_partes(
+    pregunta: str,
+    fragmentos: list[Fragmento],
+    modelo: str,
+    historial: list[tuple[str, str]] | None = None,
+    ambito: str | None = None,
+    catalogo: list[str] | None = None,
+) -> Iterator[str | None]:
+    """Devuelve la respuesta por partes, **cada una ya verificada** (ADR-0006).
+
+    Mismos desvios que :func:`responder`: la cortesia se atiende antes de mirar
+    el contexto y sin fragmentos no se llama al modelo. En esos dos casos sale
+    una sola parte con la respuesta fija.
+
+    Cuando si se llama al modelo, se acumula hasta una frontera segura y se pasa
+    el **texto acumulado entero** por :func:`titulaciones_inventadas` antes de
+    soltar nada. Verificar solo la unidad nueva dejaria pasar un nombre partido
+    entre dos unidades.
+
+    Si la comprobacion falla, se corta la emision y se emite
+    ``None`` como senal de que hay que **descartar lo ya emitido** y poner en su
+    lugar :data:`RESPUESTA_TITULACION_INVENTADA`, que llega justo despues.
+
+    Args:
+        pregunta: Lo que ha escrito el estudiante.
+        fragmentos: Los que ha traido el recuperador.
+        modelo: Nombre del modelo en el servidor local.
+        historial: Preguntas de los turnos anteriores.
+        ambito: Titulacion de la que se viene hablando, si hay una sola.
+        catalogo: Titulaciones que declara el indice. Sin el no se comprueba.
+
+    Yields:
+        Cadenas con las partes verificadas. Un ``None`` significa «borra lo
+        emitido»: lo que venga despues sustituye a todo lo anterior.
+    """
+    fija = (
+        cortesia(pregunta)
+        or cierre_de_conversacion(pregunta)
+        or pregunta_por_otro_centro(pregunta)
+    )
+    if fija is not None:
+        yield fija
+        return
+    if not fragmentos:
+        yield cortesia_sin_contexto(pregunta) or RESPUESTA_SIN_CONTEXTO
+        return
+
+    prompt = construir_prompt(pregunta, fragmentos, historial, ambito, catalogo)
+    acumulado = ""
+    pendiente = ""
+    for trozo in generar_por_partes(prompt, modelo):
+        pendiente += trozo
+        unidades, pendiente = partir_en_unidades(pendiente)
+        for unidad in unidades:
+            acumulado += unidad
+            if catalogo and titulaciones_inventadas(acumulado, catalogo):
+                _registro.warning(
+                    "Respuesta retirada en curso: nombra titulaciones que no "
+                    "existen. Pregunta: %r. Texto retirado: %r",
+                    pregunta,
+                    acumulado,
+                )
+                yield None
+                yield RESPUESTA_TITULACION_INVENTADA
+                return
+            yield unidad
+
+    # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
+    if pendiente:
+        acumulado += pendiente
+        if catalogo and titulaciones_inventadas(acumulado, catalogo):
+            yield None
+            yield RESPUESTA_TITULACION_INVENTADA
+            return
+        yield pendiente
