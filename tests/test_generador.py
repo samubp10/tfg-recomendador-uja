@@ -1347,3 +1347,44 @@ def test_un_modelo_colgado_cuesta_una_pregunta_y_no_la_sesion(monkeypatch) -> No
 
     with pytest.raises(generador.ErrorDelModelo, match="no respondió"):
         list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+# ------------------------------------------- la respuesta que no llega al modelo
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "Hola",
+        "Buenas tardes",
+        "Gracias, adiós",
+        "¿Puedo estudiar Medicina en la Universidad de Granada?",
+    ],
+)
+def test_hay_preguntas_que_se_contestan_sin_mirar_el_contexto(pregunta: str) -> None:
+    """Las tres salidas anticipadas se deciden con la pregunta y nada más.
+
+    Quien llama necesita saberlo ANTES de recuperar: buscar fragmentos para un
+    saludo es trabajo tirado, y enseñarlos como fuentes de la respuesta es
+    presentar como respaldo algo que nadie usó para redactarla.
+    """
+    assert generador.respuesta_fija(pregunta) is not None
+
+
+def test_una_pregunta_del_dominio_no_tiene_respuesta_fija() -> None:
+    """Si la tuviera, el sistema dejaría de consultar la colección."""
+    assert generador.respuesta_fija("¿Qué asignaturas tiene Informática?") is None
+
+
+def test_las_dos_formas_de_responder_toman_el_mismo_desvio() -> None:
+    """Regresión: la cadena de salidas estaba escrita dos veces.
+
+    Con dos copias, cambiar una y olvidar la otra hace que el chat y la
+    emisión por partes contesten cosas distintas al mismo saludo.
+    """
+    entera = generador.responder("Hola", [], "da-igual", catalogo=[])
+    por_partes = list(
+        generador.responder_por_partes("Hola", [], "da-igual", catalogo=[])
+    )
+
+    assert por_partes == [entera]
