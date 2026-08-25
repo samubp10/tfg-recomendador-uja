@@ -218,7 +218,10 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
                 return
             try:
                 pregunta = json.loads(self.rfile.read(largo) or b"{}").get("pregunta")
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                # UnicodeDecodeError no es hija de JSONDecodeError: un cuerpo
+                # que no venga en UTF-8 se colaba y reventaba el manejador con
+                # una traza, dejando al cliente sin respuesta ninguna.
                 self.send_error(400, "el cuerpo no es JSON válido")
                 return
             if not isinstance(pregunta, str) or not pregunta.strip():
