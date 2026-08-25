@@ -1,0 +1,64 @@
+% Despiece del prompt que recibe el modelo generativo (IT-37).
+%
+% Lo que esta figura existe para ensenar NO es el orden en que se concatenan
+% las cuatro piezas ---eso lo dice el texto en una linea--- sino DE DONDE SALE
+% CADA UNA y, sobre todo, que de la conversacion viajan las PREGUNTAS y no las
+% RESPUESTAS. Esa distincion es la que impide que una respuesta equivocada de
+% un turno se convierta en fuente del siguiente, y hoy solo esta en prosa.
+%
+% Las dos piezas fijas (mensaje de sistema e instrucciones) NO llevan flecha de
+% entrada, y esa ausencia es el dibujo: no dependen de la consulta. Se dijo
+% antes con un corchete punteado y se quito, porque anadia trazos para decir lo
+% que la ausencia de flecha ya decia sola.
+%
+% Ojo al salto de linea dentro de un grupo: el \\ va FUERA de las llaves del
+% \scriptsize, o TikZ rompe el alineado con errores ilegibles.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      pieza/.style={nodoDiag, text width=3.3cm, minimum height=2.4cm},
+      fuente/.style={nodoDiag, text width=3.3cm, minimum height=1.1cm},
+      rotulo/.style={font=\footnotesize, inner sep=3pt},
+      ]
+      % --- Las cuatro piezas, en el orden en que se concatenan ---
+      \node[pieza] (sis) at (0,0)
+      {\textbf{Mensaje de sistema}\\{\scriptsize quién es el asistente}\\{\scriptsize y para quién escribe}};
+      \node[pieza] (ins) at (3.9,0)
+      {\textbf{Instrucciones}\\{\scriptsize usar solo el contexto,}\\{\scriptsize decirlo cuando no baste}\\{\scriptsize y citar de dónde sale}};
+      \node[pieza] (ctx) at (7.8,0)
+      {\textbf{Contexto}\\{\scriptsize los fragmentos recuperados,}\\{\scriptsize cada uno con su encabezado}};
+      \node[pieza] (pre) at (11.7,0)
+      {\textbf{Preguntas anteriores}\\{\scriptsize para saber a qué se refiere}\\{\scriptsize la pregunta actual}};
+
+      % --- La caja del prompt, al fondo para no tapar los nodos ---
+      \begin{scope}[on background layer]
+        \node[grupoDiag, inner xsep=14pt, inner ysep=12pt,
+        fit=(sis)(ins)(ctx)(pre),
+        label={[tituloGrupo]north:El texto que recibe el modelo}] (prompt) {};
+      \end{scope}
+
+      % --- Solo las dos piezas variables tienen origen ---
+      \node[fuente] (indice) at (7.8,-3.8) {Índice vectorial\\{\scriptsize LanceDB}};
+      \node[fuente] (conv) at (11.7,-3.8) {La conversación\\{\scriptsize turnos anteriores}};
+
+      \draw[flechaDiag] (indice) -- node[rotulo, right]{fragmentos} (ctx);
+      \draw[flechaDiag] (conv) -- node[rotulo, right]{solo las preguntas} (pre);
+
+      % --- Lo que la conversacion se queda, que es el motivo de la figura ---
+      \node[rotulo, anchor=north, text width=4.2cm, align=center]
+      at (11.7,-4.9)
+      {Las respuestas anteriores se leen para saber de qué titulación se habla,
+        pero \textbf{no entran aquí} como fuente de datos};
+    \end{tikzpicture}%
+  }
+  \caption[Despiece del \textit{prompt} que recibe el modelo]{\textcolor{borrador2}{Las
+      cuatro piezas con las que se compone el texto que recibe el modelo
+      generativo. Las dos primeras no tienen origen dibujado porque no dependen
+      de la consulta: son las mismas siempre. De la conversación viajan las
+      preguntas y no las respuestas, y esa es la razón de que una respuesta
+      equivocada en un turno no pueda convertirse en fuente del siguiente: lo
+      que no está en el \textit{prompt} no se puede copiar. Fuente: Elaboración
+      propia.}}
+  \label{fig:prompt_despiezado}
+\end{figure}

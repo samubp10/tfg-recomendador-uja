@@ -1,14 +1,18 @@
-% Resultados literales de la evaluacion del sistema completo (IT-38).
+% Resultados literales de la evaluacion del sistema completo (IT-38, IT-39).
 % Fuente: docs/experimentos/it38-sistema.md, escrito por el propio guion
 %   scripts/experimento_sistema.py, y el registro data/registro_sistema_gemma3.jsonl.
 % NO editar estas cifras a mano: si cambian, se vuelve a ejecutar el guion y se
-%   copian de ahi. 47 entradas del banco de IT-37, modelo gemma3:12b, corpus de
+%   copian de ahi. 57 entradas del banco de IT-37, modelo gemma3:12b, corpus de
 %   1.499 fragmentos y servidor de inferencia 0.32.14.
+%
+% La familia fuera de dominio paso de 5 a 15 en IT-39: a las cinco evidentes se
+% le sumaron las diez adversarias, que antes se median en un experimento aparte.
+% Por eso hay una sola cifra de rechazo y ya no dos que parecian contradecirse.
 \begin{table}[htbp]
   \centering
   \small
   \caption[\textcolor{borrador2}{Evaluación del sistema completo}]{%
-    \textcolor{borrador2}{Comportamiento del sistema completo sobre las 47
+    \textcolor{borrador2}{Comportamiento del sistema completo sobre las 57
       entradas del banco de evaluación, por familia. Fuente: elaboración
       propia.}}
   \label{tab:evaluacion_sistema}
@@ -17,20 +21,20 @@
     \textbf{Familia}                    & \textbf{n} & \textbf{Aciertos}
                                         & \textbf{Mediana (s)}             \\
     \midrule
-    Créditos de una asignatura          & 4          & 4  &  10,6           \\
-    Curso en que se imparte             & 4          & 4  &  14,8           \\
-    Asignaturas de una mención          & 4          & 4  &  30,2           \\
-    Plan de estudios de un curso        & 4          & 4  &  39,5           \\
-    Optativas de una titulación         & 4          & 4  &  88,3           \\
-    Catálogo del centro                 & 1          & 1  &  53,6           \\
+    Créditos de una asignatura          & 4          & 4  &  11,3           \\
+    Curso en que se imparte             & 4          & 4  &  17,7           \\
+    Asignaturas de una mención          & 4          & 4  &  28,9           \\
+    Plan de estudios de un curso        & 4          & 4  &  38,3           \\
+    Optativas de una titulación         & 4          & 4  & 109,4           \\
+    Catálogo del centro                 & 1          & 1  &  66,0           \\
     \midrule
-    Conversación encadenada             & 8          & 8  & 113,4           \\
-    Petición de consejo                 & 6          & 6  &  91,9           \\
-    Pregunta ambigua                    & 3          & 3  & 153,4           \\
+    Conversación encadenada             & 8          & 8  & 151,2           \\
+    Petición de consejo                 & 6          & 6  &  99,4           \\
+    Pregunta ambigua                    & 3          & 3  & 166,4           \\
     Cortesía                            & 4          & 4  &   0,0           \\
-    Fuera de dominio                    & 5          & 5  &   0,1           \\
+    Fuera de dominio                    & 15         & 15 &   0,1           \\
     \midrule
-    \textbf{Total}                      & \textbf{47} & \textbf{47} & \textbf{53,6} \\
+    \textbf{Total}                      & \textbf{57} & \textbf{57} & \textbf{32,2} \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
@@ -42,14 +46,16 @@
       generador. Ninguna comprobación emplea un modelo que juzgue a otro.
       \textbf{Conversación encadenada} son diálogos de varios turnos, de modo
       que su tiempo acumula todos ellos y no es comparable con el de una
-      pregunta suelta; por la misma razón, la mediana total mezcla ambos casos y
-      no debe leerse como el tiempo de una respuesta. \textbf{Ocho de las 47
-      entradas se resuelven sin llegar a llamar al modelo}: las cuatro de
-      cortesía y cuatro de las cinco ajenas, y de ahí sus medianas de décimas de
-      segundo. El pleno se mide sobre 47 entradas: con esa muestra, la cota
-      inferior del intervalo de confianza al 95\,\% es 0,938, no 1. Las cinco
-      preguntas ajenas de este banco son las evidentes; el rechazo frente a
-      preguntas ajenas construidas para colarse se mide aparte y da una cifra
-      muy distinta.}
+      pregunta suelta. \textbf{Quince de las 57 entradas se resuelven sin llegar
+      a llamar al modelo}: las cuatro de cortesía y once de las quince ajenas, y
+      de ahí sus medianas de décimas de segundo. Eso hace que la mediana total
+      sea más baja que la de cualquier familia que sí llama al modelo, así que
+      \textbf{no debe leerse como el tiempo de una respuesta}: describe la
+      composición del banco antes que al sistema. \textbf{Fuera de dominio}
+      reúne las cinco preguntas ajenas evidentes y las diez construidas para
+      colarse, que no intervinieron en ningún ajuste. El pleno se mide sobre 57
+      entradas: con esa muestra la cota inferior del intervalo de confianza al
+      95\,\% es 0,949, y sobre las quince ajenas por separado, 0,819. Ninguna de
+      las dos es 1.}
   \end{minipage}
 \end{table}
