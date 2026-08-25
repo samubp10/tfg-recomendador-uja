@@ -262,6 +262,13 @@ async function preguntar(pregunta, silenciosa = false) {
         if (!linea.trim()) continue;
         const suceso = JSON.parse(linea);
         if (suceso.error) throw new Error(suceso.error);
+        if (suceso.borrar) {
+          // El servidor ha retirado la respuesta a media emisión: nombraba una
+          // titulación que no existe. Lo que venga después la sustituye entera,
+          // así que hay que borrar lo pintado y no añadir debajo.
+          acumulado = "";
+          repintar();
+        }
         if (typeof suceso.parte === "string") {
           acumulado += suceso.parte;
           repintar();
