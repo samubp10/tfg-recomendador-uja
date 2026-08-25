@@ -7,7 +7,6 @@
 % hecho midiendo el equipo en vez del sistema.
 \begin{table}[htbp]
   \centering
-  \color{borrador2}
   \small
   \caption[Requisitos no funcionales del sistema]{Requisitos no funcionales del
     sistema. Fuente: Elaboración propia.}
@@ -20,22 +19,14 @@
     RNF-02 & No sacar del equipo ni las preguntas del usuario ni la colección                                                                  & OE4         & Sección~\ref{secc:fase3_arquitectura} \\
     RNF-03 & No incorporar datos personales a la colección, ni siquiera los que la fuente publica junto a los datos que sí se usan             & OE1         & Sección~\ref{secc:alcance} \\
     RNF-04 & Anteponer la fidelidad de la respuesta al tiempo que tarde en darla cuando ambas cosas entren en conflicto                        & OE5         & ADR-0005 \\
-    RNF-05 & Poder reproducirse: el índice se reconstruye entero y todo experimento fija su semilla y sus versiones                            & OE5         & ADR-0004 \\
-    RNF-06 & Seguir siendo correcto cuando la Escuela cambie su oferta, sin tocar el código: lo que el sistema admite se lee de la colección   & OE1 · RU-02 & Sección~\ref{secc:fase2_dominio} \\
+    RNF-05 & Poder reproducirse el índice construyéndose de nuevo y todo experimento fija su semilla y sus versiones                            & OE5         & ADR-0004 \\
+    RNF-06 & Seguir siendo correcto cuando la Escuela cambie su oferta, sin tocar el código  & OE1 · RU-02 & Sección~\ref{secc:fase2_dominio} \\
     RNF-07 & Poder usarse con el teclado y con un lector de pantalla, conforme al nivel AA de las \sig{WCAG} 2.2                               & OE6 · RU-05 & Sección~\ref{secc:fase3_interfaz} \\
     \bottomrule
   \end{tabularx}
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textbf{Notas:} \textbf{RNF} identifica un requisito no funcional, es
-    decir, una condición sobre \emph{cómo} debe comportarse el sistema y no
-    sobre qué hace. Las columnas \textbf{Traza} y \textbf{Se fija en} se leen
-    igual que en la Tabla~\ref{tab:requisitos_funcionales}: los requisitos que
-    remiten a un \textbf{ADR} dependen de una decisión tomada por
-    experimentación. El equipo concreto al que se refiere RNF-01 está descrito
-    en la Sección~\ref{secc:equipo_ejecucion}, y RNF-01 no exige ese equipo en
-    particular sino que ninguno de sus componentes necesite más de lo que él
-    ofrece.
+    \textbf{Notas:} \textbf{RNF} identifica un requisito no funcional (condición o restricción sobre cómo opera el sistema). Las columnas \textbf{Traza} y \textbf{Se fija en} siguen el mismo criterio que la Tabla~\ref{tab:requisitos_funcionales}.
   \end{minipage}
 \end{table}
