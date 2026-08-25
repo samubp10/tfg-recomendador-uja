@@ -34,6 +34,9 @@ const formulario = document.getElementById("redaccion");
 const entrada = document.getElementById("entrada");
 const botonEnviar = document.getElementById("enviar");
 const sugerencias = document.getElementById("sugerencias");
+const cuadroFuentes = document.getElementById("fuentes");
+const listaFuentes = document.getElementById("fuentes-lista");
+const cerrarFuentes = document.getElementById("fuentes-cerrar");
 
 let ocupado = false;
 
@@ -204,6 +207,47 @@ function contarLaEspera(cuerpo) {
   };
 }
 
+
+// ------------------------------------------------- las fuentes de la respuesta
+
+/**
+ * Enseña de qué unidades de la colección salió una respuesta.
+ *
+ * Va en un cuadro y no debajo de cada respuesta porque el recuperador llega a
+ * traer veinte fragmentos, y veinte líneas de procedencia esconden la respuesta
+ * que se ha pedido.
+ *
+ * @param {{nombre: string, titulacion: string, origen: string}[]} lista
+ */
+function abrirFuentes(lista) {
+  listaFuentes.innerHTML = lista
+    .map(
+      (f) =>
+        `<li>${escapar(f.nombre)}` +
+        `<span class="fuentes__titulacion">${escapar(f.origen)}` +
+        (f.titulacion ? ` · ${escapar(f.titulacion)}` : "") +
+        `</span></li>`
+    )
+    .join("");
+  cuadroFuentes.showModal();
+}
+
+/**
+ * Añade al pie de una respuesta el botón que abre sus fuentes.
+ *
+ * @param {HTMLElement} pie Pie de la burbuja ya rellenado con hora y duración.
+ * @param {{nombre: string, titulacion: string, origen: string}[]} lista
+ */
+function ponerBotonDeFuentes(pie, lista) {
+  if (!lista.length) return;
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.className = "mensaje__fuentes";
+  boton.textContent = `Fuentes (${lista.length})`;
+  boton.addEventListener("click", () => abrirFuentes(lista));
+  pie.appendChild(boton);
+}
+
 // ------------------------------------------------------------------- envio
 
 /**
@@ -226,6 +270,7 @@ async function preguntar(pregunta, silenciosa = false) {
 
   let acumulado = "";
   let primeraParte = true;
+  let fuentes = [];
 
   /** Vuelca lo acumulado, sustituyendo la espera la primera vez. */
   const repintar = () => {
@@ -269,6 +314,11 @@ async function preguntar(pregunta, silenciosa = false) {
           acumulado = "";
           repintar();
         }
+        if (Array.isArray(suceso.fuentes)) {
+          // Llegan antes que el texto: se conocen al terminar la recuperación
+          // y el modelo tarda un minuto en dar la primera frase.
+          fuentes = suceso.fuentes;
+        }
         if (typeof suceso.parte === "string") {
           acumulado += suceso.parte;
           repintar();
@@ -289,6 +339,7 @@ async function preguntar(pregunta, silenciosa = false) {
       pie.innerHTML =
         `<span>${horaActual()}</span><span>${segundos.toFixed(1).replace(".", ",")} s</span>`;
     }
+    ponerBotonDeFuentes(pie, fuentes);
   } catch (fallo) {
     pararContador();
     fila.classList.add("mensaje--fallo");
@@ -356,3 +407,5 @@ sugerencias.addEventListener("click", (suceso) => {
 // El saludo se le pide al servidor en vez de escribirlo aqui. Vuelve en
 // decimas de segundo porque es una respuesta fija que no llega al modelo.
 preguntar("Hola", true);
+
+cerrarFuentes.addEventListener("click", () => cuadroFuentes.close());
