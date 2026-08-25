@@ -132,3 +132,64 @@ Los requisitos de usuario se formulan desde la perspectiva del estudiante preuni
   no desaparece por ello: se recoge en el Capítulo~\ref{cap:resultados} como lo
   que es, una consecuencia medida de esa prelación y no el criterio que la
   decidió.}
+
+\subsection[\textcolor{borrador2}{La pantalla, dibujada antes de programarla}]{\textcolor{borrador2}{La pantalla, dibujada antes de programarla}}
+\label{secc:wireframe}
+
+\textcolor{borrador2}{Los requisitos anteriores dicen qué tiene que hacer el
+  sistema, pero no cómo se le presenta a quien va a usarlo. Antes de escribir
+  una línea de la interfaz se dibujó la pantalla entera, que recoge la
+  Figura~\ref{fig:wireframe}. El orden importa lo suficiente como para dejarlo
+  dicho: un boceto hecho después de programar documenta lo que resultó cómodo de
+  implementar, mientras que uno hecho antes obliga a decidir qué se le enseña al
+  estudiante y a comprobar que eso que se le enseña responde a un requisito y no
+  a una costumbre de otras aplicaciones de chat.}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{imagenes/Wireframe_Chatbot.png}
+  \caption[\textcolor{borrador2}{Boceto de la pantalla de conversación}]{\textcolor{borrador2}{Boceto de la pantalla de conversación, dibujado antes de implementar la interfaz. Fuente: Elaboración propia.}}
+  \label{fig:wireframe}
+\end{figure}
+
+\textcolor{borrador2}{Lo que el boceto fija es una pantalla única, sin registro
+  ni instalación previa, que es literalmente lo que pide RU-05: un cuadro de
+  texto donde se escribe en lenguaje corriente (RU-01) y una lista de mensajes
+  encima. No hay menús de titulaciones, ni desplegables de curso, ni filtros;
+  cualquiera de esas piezas devolvería al estudiante a la jerga de la que el
+  sistema pretende sacarlo.}
+
+\textcolor{borrador2}{Además del caso corriente, el boceto tiene que resolver
+  tres situaciones que no son de adorno, porque las tres salen de cómo se
+  comporta el sistema de verdad y no de cómo suelen dibujarse estas pantallas:}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{La espera.} Una respuesta que exige
+        consultar la colección y redactar tarda del orden de un minuto en el
+        equipo de la Sección~\ref{secc:equipo_ejecucion}. Un minuto de pantalla
+        sin cambios es indistinguible de una aplicación colgada, así que la
+        espera necesita ocupar su propio sitio en el diseño. Cómo se resuelve, y
+        qué se pierde al resolverlo así, se argumenta en la
+        Sección~\ref{secc:fase3_emision}.}
+  \item \textcolor{borrador2}{\textbf{La respuesta que llega al instante.} No
+        todas las preguntas llegan al modelo generativo: un saludo, o una
+        pregunta sobre otro centro, se contestan con texto fijo en una décima de
+        segundo. Si esa respuesta se pintara igual que una elaborada, su rapidez
+        parecería un fallo en vez de lo que es.}
+  \item \textcolor{borrador2}{\textbf{El «no tengo información».} Cuando la
+        pregunta cae fuera de lo que contiene la colección ---la nota de corte
+        es el ejemplo más frecuente---, el sistema lo dice en lugar de
+        improvisar. Eso es RU-03 y RU-06 funcionando, no un error, y el diseño
+        tiene que presentarlo como una respuesta legítima: sin iconografía de
+        advertencia y sin el color con el que se avisa de una avería.}
+\end{itemize}
+
+\textcolor{borrador2}{La conversación que aparece dibujada no está redactada
+  para la ocasión: es una ejecutada contra el sistema ya construido, con sus
+  tiempos reales, y cubre los cuatro casos anteriores en cuatro turnos ---un
+  saludo, una petición de recomendación, una pregunta encadenada que hereda la
+  titulación del turno anterior y la pregunta por la nota de corte, que se
+  rechaza---. Un boceto con una conversación inventada tiene un problema que no
+  es estético: promete un sistema que no se ha construido, y el corpus de este
+  trabajo son doce titulaciones de grado, sin másteres, horarios ni plazos de
+  matrícula.}
