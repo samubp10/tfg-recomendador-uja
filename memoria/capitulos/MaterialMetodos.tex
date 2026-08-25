@@ -197,6 +197,7 @@ combinado dos criterios independientes: cuánto valor aporta cada una al resulta
 final y cuánto esfuerzo cuesta.
 
 \subsection{Priorización por valor: MoSCoW}
+\label{secc:moscow}
 
 El valor se ha clasificado con la técnica \textbf{MoSCoW}~\cite{moscow}, que
 divide las tareas en cuatro categorías según su necesidad real para el
@@ -1304,6 +1305,56 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
   admitir un límite de proceso cuando exista una razón así, y no encontrarla
   para ningún otro corte es lo que deja la arquitectura en un solo proceso
   propio.}
+
+\subsection[\textcolor{borrador2}{El punto de entrada}]{\textcolor{borrador2}{El punto de entrada}}
+\label{secc:fase3_punto_entrada}
+
+\textcolor{borrador2}{El proceso que atiende las peticiones se monta sobre el
+  módulo \texttt{http.server} de la biblioteca estándar de \gl{Python}, sin
+  ningún marco de trabajo. La alternativa era cualquiera de los que se usan
+  habitualmente para esto, y lo que las separa se puede medir: contando los
+  paquetes nuevos que cada candidato obligaría a instalar sobre lo que el
+  sistema ya necesita para funcionar, \texttt{http.server} no añade ninguno,
+  \textit{Starlette} con su servidor añade dos, \textit{FastAPI} con el suyo
+  tres y \textit{Flask} cuatro. Conviene decir que la cuenta no es la que se
+  esperaría: \textit{Flask}, que tiene fama de ser el ligero, es el que más
+  añade, porque los otros comparten dependencias con piezas que el sistema ya
+  arrastra por otros motivos.}
+
+\textcolor{borrador2}{Lo que decide, en todo caso, no es esa cuenta sino qué
+  hay que atender: un único punto de entrada y unos ficheros estáticos. Ninguna
+  de las capacidades por las que se elige un marco de trabajo ---validación
+  declarativa de peticiones, documentación automática de la interfaz de
+  programación, inyección de dependencias--- resuelve aquí un problema que
+  exista, y el tiempo de respuesta tampoco puede mejorarlo ninguna de ellas,
+  porque lo fija el modelo generativo y no la capa \sig{HTTP}.}
+
+\textcolor{borrador2}{Esta decisión no se documenta en un registro de
+  arquitectura, y la razón es la misma que ordena el resto del capítulo: el
+  rigor se reparte en proporción a lo que está en juego. Este trabajo es sobre
+  recuperación aumentada, y montar una comparación formal para elegir entre dos
+  micro-marcos de trabajo desplazaría el énfasis hacia lo que no es su
+  aportación. La justificación queda en el cuerpo del \textit{commit} y en este
+  apartado.}
+
+\textcolor{borrador2}{Y hay que decir lo que hay: \texttt{http.server} no está
+  preparado para un despliegue en producción. Atiende las peticiones de una en
+  una, no ofrece \sig{HTTPS} y la propia documentación de \gl{Python} desaconseja
+  ese uso. Nada de eso afecta a este trabajo, porque el despliegue en producción
+  está declarado fuera de alcance en el reparto \sig{MoSCoW} de la
+  Sección~\ref{secc:moscow} y el sistema se ejecuta en el equipo de quien
+  pregunta; pero llevarlo a producción no sería cambiar de servidor, sino
+  resolver antes que el modelo generativo también atiende de uno en uno.}
+
+\textcolor{borrador2}{La consecuencia de diseño más importante de este apartado
+  es la que permite que la elección anterior sea reversible sin coste. La lógica
+  no vive en el manejador de peticiones: vive en una función que recibe la
+  pregunta y va devolviendo las partes de la respuesta ya comprobadas, y que no
+  sabe nada de \sig{HTTP}. El manejador se limita a volcar por la red lo
+  que esa función va devolviendo.
+  Eso tiene dos efectos: el recorrido completo se prueba sin abrir un socket y
+  sin llamar al modelo, con un flujo de fichas inyectado, y sustituir la capa
+  \sig{HTTP} por otra distinta afectaría a unas treinta líneas.}
 
 \subsection[\textcolor{borrador2}{La interfaz}]{\textcolor{borrador2}{La interfaz}}
 \label{secc:fase3_interfaz}
