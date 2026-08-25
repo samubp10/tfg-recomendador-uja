@@ -45,7 +45,9 @@ SISTEMA_FALSO: tuple[Any, Any, list[str], str] = (
 )
 
 
-def frag(nombre: str, origen: str = "guia", grado: str = "Grado en Ingeniería Informática") -> Fragmento:
+def frag(
+    nombre: str, origen: str = "guia", grado: str = "Grado en Ingeniería Informática"
+) -> Fragmento:
     """Un fragmento con lo justo para las pruebas de este módulo."""
     return Fragmento(
         texto="x",
@@ -62,7 +64,9 @@ def frag(nombre: str, origen: str = "guia", grado: str = "Grado en Ingeniería I
 def sin_recuperador(monkeypatch: pytest.MonkeyPatch) -> None:
     """Evita tocar el índice: el recuperador devuelve siempre un fragmento."""
     monkeypatch.setattr(
-        servidor, "contexto_para", lambda *a, **k: [frag("Fundamentos de la programación")]
+        servidor,
+        "contexto_para",
+        lambda *a, **k: [frag("Fundamentos de la programación")],
     )
 
 
@@ -174,6 +178,9 @@ def test_el_manejador_emite_una_linea_json_por_parte(
         (b'{"pregunta":"   "}', "/api/chat", None, 400),
         (b'{"otra":"cosa"}', "/api/chat", None, 400),
         (b"{}", "/api/chat", servidor.MAXIMO_CUERPO + 1, 413),
+        # Regresion: un cuerpo que no viene en UTF-8 reventaba el manejador con
+        # una traza en vez de contestar 400, y el cliente se quedaba sin nada.
+        ('{"pregunta":"¿y?"}'.encode("cp1252"), "/api/chat", None, 400),
     ],
 )
 def test_las_peticiones_mal_formadas_no_llegan_al_modelo(
@@ -272,7 +279,9 @@ def test_la_misma_asignatura_en_dos_grados_no_se_funde() -> None:
 
 def test_el_origen_se_dice_en_castellano_y_lo_desconocido_pasa_tal_cual() -> None:
     """La etiqueta de la colección no significa nada para quien pregunta."""
-    fuentes = servidor.fuentes_de([frag("Salidas", origen="salidas"), frag("X", origen="raro")])
+    fuentes = servidor.fuentes_de(
+        [frag("Salidas", origen="salidas"), frag("X", origen="raro")]
+    )
 
     assert [f["origen"] for f in fuentes] == ["Salidas profesionales", "raro"]
 
@@ -282,7 +291,9 @@ def test_sin_fragmentos_recuperados_no_se_anuncian_fuentes(
 ) -> None:
     """Un botón de fuentes vacío diría que hay respaldo donde no lo hay."""
     monkeypatch.setattr(servidor, "contexto_para", lambda *a, **k: [])
-    monkeypatch.setattr(servidor, "responder_por_partes", lambda *a, **k: iter(["Nada."]))
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Nada."])
+    )
 
     sucesos = list(
         servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
