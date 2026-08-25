@@ -75,7 +75,32 @@
       </p>
     </form>
 
+    <!--
+      Dos avisos distintos y a proposito separados: el de arriba acota el
+      DOMINIO ---de que se puede preguntar--- y este acota la FIABILIDAD ---
+      quien redacta la respuesta y que puede equivocarse---. Fundirlos en uno
+      solo dejaria una de las dos cosas sin decir.
+    -->
+    <p class="aviso-ia">
+      Las respuestas las redacta un modelo de lenguaje a partir de la información
+      publicada por la Escuela, y pueden contener errores. Comprueba en la web
+      oficial del centro cualquier dato del que dependa una decisión.
+    </p>
+
   </div>
+
+  <!--
+    El cuadro de fuentes es un <dialog> del navegador y no un div propio: trae
+    hecho el atrapado del foco, el cierre con Escape y el fondo inerte, que es
+    justo lo que habria que escribir a mano para cumplir RNF-07.
+  -->
+  <dialog class="fuentes" id="fuentes" aria-labelledby="fuentes-titulo">
+    <div class="fuentes__cabecera">
+      <h2 class="fuentes__titulo" id="fuentes-titulo">Fuentes de la respuesta</h2>
+      <button type="button" class="fuentes__cerrar" id="fuentes-cerrar" aria-label="Cerrar el cuadro de fuentes">&#10005;</button>
+    </div>
+    <ul class="fuentes__lista" id="fuentes-lista"></ul>
+  </dialog>
 
   <script src="chat.js"></script>
 </body>
