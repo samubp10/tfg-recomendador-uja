@@ -63,6 +63,52 @@ PUERTO: Final[int] = 8000
 MAXIMO_CUERPO: Final[int] = 8 * 1024
 
 
+#: Como se nombra en pantalla cada tipo de fragmento. La colección los marca
+#: con una etiqueta corta que no significa nada para quien pregunta.
+ROTULOS_DE_ORIGEN: Final[dict[str, str]] = {
+    "guia": "Guía docente",
+    "sin_guia": "Asignatura sin guía publicada",
+    "plan": "Plan de estudios",
+    "mencion": "Menciones",
+    "salidas": "Salidas profesionales",
+    "ficha": "Ficha de la titulación",
+    "catalogo": "Catálogo de titulaciones",
+}
+
+
+def fuentes_de(fragmentos: list[Any]) -> list[dict[str, str]]:
+    """Unidades de la colección que se le entregaron al modelo para responder.
+
+    Un fragmento no es una fuente. Una guía docente larga se trocea en varios y
+    los tres apuntan al mismo sitio, así que listarlos uno a uno repetiría la
+    misma línea. Se agrupa por unidad, con la misma identidad que usa el resto
+    del sistema: el nombre de la unidad junto a las titulaciones en las que se
+    imparte.
+
+    ⚠️ Lo que devuelve es **lo que se le entregó al modelo**, no lo que el
+    modelo usó al redactar. El sistema no sabe lo segundo, y presentarlo como
+    si lo supiera sería afirmar de más.
+
+    Args:
+        fragmentos: Lo que devolvió el recuperador para esta consulta.
+
+    Returns:
+        Una entrada por unidad, en el orden en que las trajo el recuperador,
+        que es el de proximidad a la pregunta.
+    """
+    vistas: dict[tuple[str, str], dict[str, str]] = {}
+    for fragmento in fragmentos:
+        titulacion = " · ".join(fragmento.grados)
+        clave = (fragmento.nombre, titulacion)
+        if clave not in vistas:
+            vistas[clave] = {
+                "nombre": fragmento.nombre,
+                "titulacion": titulacion,
+                "origen": ROTULOS_DE_ORIGEN.get(fragmento.origen, fragmento.origen),
+            }
+    return list(vistas.values())
+
+
 def partes_de_la_respuesta(
     pregunta: str,
     sistema: tuple[Any, Any, list[str], str],
@@ -79,9 +125,9 @@ def partes_de_la_respuesta(
         conversacion: Estado del diálogo, que se actualiza aquí.
 
     Yields:
-        ``{"parte": ...}`` por cada unidad verificada, ``{"borrar": True}``
-        cuando la respuesta se retira a media emisión, y ``{"error": ...}`` si
-        el modelo no responde.
+        ``{"fuentes": [...]}`` con las unidades recuperadas, ``{"parte": ...}``
+        por cada unidad verificada, ``{"borrar": True}`` cuando la respuesta se
+        retira a media emisión, y ``{"error": ...}`` si el modelo no responde.
     """
     tabla, incrustar, catalogo, distancia = sistema
     consulta = conversacion.preparar(pregunta)
@@ -95,6 +141,11 @@ def partes_de_la_respuesta(
         catalogo=catalogo,
         ambito=consulta.ambito,
     )
+    # Las fuentes salen antes que el texto y no después: se conocen en cuanto
+    # termina la recuperación, y el modelo tarda un minuto en dar la primera
+    # frase. Esperar al final sería tener el dato guardado sin motivo.
+    if fragmentos:
+        yield {"fuentes": fuentes_de(fragmentos)}
     entero = ""
     try:
         partes = responder_por_partes(
