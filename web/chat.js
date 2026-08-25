@@ -208,6 +208,29 @@ function contarLaEspera(cuerpo) {
 }
 
 
+// ------------------------------------------------------------- las sugerencias
+
+/**
+ * Repinta los botones de sugerencia con lo que manda el servidor.
+ *
+ * La lista no vive en el HTML: la compone el servidor preguntandole al indice
+ * si existe el fragmento que respalda cada pregunta. Que llegue vacia es un
+ * resultado valido, no un fallo: significa que en este punto del dialogo no
+ * hay ningun atajo que proponer.
+ *
+ * @param {string[]} lista
+ */
+function pintarSugerencias(lista) {
+  sugerencias.innerHTML = "";
+  for (const texto of lista) {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "sugerencia";
+    boton.textContent = texto;
+    sugerencias.appendChild(boton);
+  }
+}
+
 // ------------------------------------------------- las fuentes de la respuesta
 
 /**
@@ -271,6 +294,7 @@ async function preguntar(pregunta, silenciosa = false) {
   let acumulado = "";
   let primeraParte = true;
   let fuentes = [];
+  let propuestas = null;
 
   /** Vuelca lo acumulado, sustituyendo la espera la primera vez. */
   const repintar = () => {
@@ -314,6 +338,7 @@ async function preguntar(pregunta, silenciosa = false) {
           acumulado = "";
           repintar();
         }
+        if (Array.isArray(suceso.sugerencias)) propuestas = suceso.sugerencias;
         if (Array.isArray(suceso.fuentes)) {
           // Llegan antes que el texto: se conocen al terminar la recuperación
           // y el modelo tarda un minuto en dar la primera frase.
@@ -340,6 +365,7 @@ async function preguntar(pregunta, silenciosa = false) {
         `<span>${horaActual()}</span><span>${segundos.toFixed(1).replace(".", ",")} s</span>`;
     }
     ponerBotonDeFuentes(pie, fuentes);
+    if (propuestas) pintarSugerencias(propuestas);
   } catch (fallo) {
     pararContador();
     fila.classList.add("mensaje--fallo");
@@ -409,3 +435,11 @@ sugerencias.addEventListener("click", (suceso) => {
 preguntar("Hola", true);
 
 cerrarFuentes.addEventListener("click", () => cuadroFuentes.close());
+
+// Las sugerencias de arranque tambien las decide el servidor. Si la peticion
+// falla no se pinta ninguna: la conversacion funciona igual escribiendo, y un
+// boton con una pregunta que el indice no respalda es peor que ningun boton.
+fetch("/api/sugerencias")
+  .then((r) => (r.ok ? r.json() : []))
+  .then(pintarSugerencias)
+  .catch(() => {});
