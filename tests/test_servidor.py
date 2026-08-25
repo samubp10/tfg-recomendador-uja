@@ -26,6 +26,7 @@ class ConversacionFalsa:
 
     def __init__(self) -> None:
         self.anotado: list[tuple[str, str]] = []
+        self.ambito: list[str] = []
 
     def preparar(self, texto: str) -> Any:
         return type("Consulta", (), {"texto": texto, "respaldo": None, "ambito": []})()
@@ -60,6 +61,17 @@ def frag(
     )
 
 
+@pytest.fixture(autouse=True)
+def sin_sugerencias(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Las sugerencias consultan el índice; aquí no hay índice que consultar.
+
+    Se anulan en todas las pruebas de este módulo a propósito: lo que se está
+    midiendo es el recorrido de la respuesta, y el módulo de sugerencias tiene
+    sus propias pruebas contra un índice de verdad.
+    """
+    monkeypatch.setattr(servidor, "sugerencias_para", lambda *a, **k: [])
+
+
 @pytest.fixture
 def sin_recuperador(monkeypatch: pytest.MonkeyPatch) -> None:
     """Evita tocar el índice: el recuperador devuelve siempre un fragmento."""
@@ -88,7 +100,12 @@ def test_cada_unidad_verificada_sale_como_una_linea(
             "origen": "Guía docente",
         }
     ]
-    assert sucesos[1:] == [{"parte": "Uno. "}, {"parte": "Dos."}, {"fin": True}]
+    assert sucesos[1:] == [
+        {"parte": "Uno. "},
+        {"parte": "Dos."},
+        {"sugerencias": []},
+        {"fin": True},
+    ]
     assert conversacion.anotado == [("¿Y?", "Uno. Dos.")]
 
 
@@ -167,7 +184,11 @@ def test_el_manejador_emite_una_linea_json_por_parte(
 
     m.do_POST()
 
-    assert sucesos_de(m)[1:] == [{"parte": "Hola."}, {"fin": True}]
+    assert sucesos_de(m)[1:] == [
+        {"parte": "Hola."},
+        {"sugerencias": []},
+        {"fin": True},
+    ]
 
 
 @pytest.mark.parametrize(
@@ -320,3 +341,50 @@ def test_sin_fragmentos_recuperados_no_se_anuncian_fuentes(
     )
 
     assert not any("fuentes" in s for s in sucesos)
+
+
+# ------------------------------------------------------------ las sugerencias
+
+
+def manejador_get(ruta: str):
+    """Un manejador preparado para una petición GET, también sin socket."""
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.path = ruta
+    m.wfile = io.BytesIO()
+    m.cabeceras: list[tuple[str, str]] = []
+    m.send_response = lambda *a, **k: None
+    m.send_header = lambda clave, valor: m.cabeceras.append((clave, valor))
+    m.end_headers = lambda: None
+    return m
+
+
+def test_las_sugerencias_de_arranque_salen_por_su_propia_ruta(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """La interfaz no las trae escritas: se las pide al servidor al cargar."""
+    monkeypatch.setattr(servidor, "sugerencias_para", lambda *a, **k: ["¿Y bien?"])
+    m = manejador_get("/api/sugerencias")
+
+    m.do_GET()
+
+    assert json.loads(m.wfile.getvalue().decode("utf-8")) == ["¿Y bien?"]
+    assert ("Cache-Control", "no-store") in m.cabeceras
+
+
+def test_cualquier_otra_ruta_la_sirve_el_manejador_de_ficheros(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regresión: el atajo de las sugerencias no puede tapar los estáticos."""
+    servido: list[bool] = []
+    monkeypatch.setattr(
+        servidor.SimpleHTTPRequestHandler,
+        "do_GET",
+        lambda self: servido.append(True),
+    )
+    m = manejador_get("/index.html")
+
+    m.do_GET()
+
+    assert servido == [True]
+    assert m.wfile.getvalue() == b""
