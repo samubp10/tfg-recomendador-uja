@@ -17,6 +17,7 @@ from typing import Any
 import pytest
 
 from tfg_uja import servidor
+from tfg_uja.recuperador import Fragmento
 from tfg_uja.generador import ErrorDelModelo, RESPUESTA_TITULACION_INVENTADA
 
 
@@ -44,10 +45,25 @@ SISTEMA_FALSO: tuple[Any, Any, list[str], str] = (
 )
 
 
+def frag(nombre: str, origen: str = "guia", grado: str = "Grado en Ingeniería Informática") -> Fragmento:
+    """Un fragmento con lo justo para las pruebas de este módulo."""
+    return Fragmento(
+        texto="x",
+        nombre=nombre,
+        grados=[grado],
+        origen=origen,
+        distancia=0.1,
+        chunk_index=0,
+        total_chunks=1,
+    )
+
+
 @pytest.fixture
 def sin_recuperador(monkeypatch: pytest.MonkeyPatch) -> None:
     """Evita tocar el índice: el recuperador devuelve siempre un fragmento."""
-    monkeypatch.setattr(servidor, "contexto_para", lambda *a, **k: [{"texto": "x"}])
+    monkeypatch.setattr(
+        servidor, "contexto_para", lambda *a, **k: [frag("Fundamentos de la programación")]
+    )
 
 
 def test_cada_unidad_verificada_sale_como_una_linea(
@@ -61,7 +77,14 @@ def test_cada_unidad_verificada_sale_como_una_linea(
 
     sucesos = list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, conversacion))
 
-    assert sucesos == [{"parte": "Uno. "}, {"parte": "Dos."}, {"fin": True}]
+    assert sucesos[0]["fuentes"] == [
+        {
+            "nombre": "Fundamentos de la programación",
+            "titulacion": "Grado en Ingeniería Informática",
+            "origen": "Guía docente",
+        }
+    ]
+    assert sucesos[1:] == [{"parte": "Uno. "}, {"parte": "Dos."}, {"fin": True}]
     assert conversacion.anotado == [("¿Y?", "Uno. Dos.")]
 
 
@@ -101,7 +124,7 @@ def test_si_el_modelo_no_responde_sale_un_error_y_no_un_cuelgue(
         servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
     )
 
-    assert sucesos == [{"error": "Ollama no responde"}]
+    assert sucesos[-1] == {"error": "Ollama no responde"}
 
 
 # --------------------------------------------------------------- el manejador
@@ -140,7 +163,7 @@ def test_el_manejador_emite_una_linea_json_por_parte(
 
     m.do_POST()
 
-    assert sucesos_de(m) == [{"parte": "Hola."}, {"fin": True}]
+    assert sucesos_de(m)[1:] == [{"parte": "Hola."}, {"fin": True}]
 
 
 @pytest.mark.parametrize(
@@ -214,3 +237,55 @@ def test_abrir_sistema_devuelve_las_cuatro_piezas(
 def test_la_respuesta_fija_de_retirada_es_la_del_modulo() -> None:
     """Regresión: la retirada no puede inventarse un texto propio."""
     assert "no" in RESPUESTA_TITULACION_INVENTADA.lower()
+
+
+# ----------------------------------------------------------------- las fuentes
+
+
+def test_los_fragmentos_de_una_misma_unidad_son_una_sola_fuente() -> None:
+    """Una guía larga se trocea en varios fragmentos y sigue siendo una fuente.
+
+    Listarlos uno a uno repetiría tres veces la misma línea y daría a entender
+    que la respuesta se apoya en tres sitios distintos.
+    """
+    trozos = [frag("Estadística"), frag("Estadística"), frag("Álgebra")]
+
+    assert [f["nombre"] for f in servidor.fuentes_de(trozos)] == [
+        "Estadística",
+        "Álgebra",
+    ]
+
+
+def test_la_misma_asignatura_en_dos_grados_no_se_funde() -> None:
+    """Regresión de la identidad de una asignatura.
+
+    Una guía compartida se imparte en varias titulaciones y el nombre a solas
+    no la identifica: la clave lleva también las titulaciones.
+    """
+    trozos = [
+        frag("Física", grado="Grado en Ingeniería Eléctrica"),
+        frag("Física", grado="Grado en Ingeniería Mecánica"),
+    ]
+
+    assert len(servidor.fuentes_de(trozos)) == 2
+
+
+def test_el_origen_se_dice_en_castellano_y_lo_desconocido_pasa_tal_cual() -> None:
+    """La etiqueta de la colección no significa nada para quien pregunta."""
+    fuentes = servidor.fuentes_de([frag("Salidas", origen="salidas"), frag("X", origen="raro")])
+
+    assert [f["origen"] for f in fuentes] == ["Salidas profesionales", "raro"]
+
+
+def test_sin_fragmentos_recuperados_no_se_anuncian_fuentes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Un botón de fuentes vacío diría que hay respaldo donde no lo hay."""
+    monkeypatch.setattr(servidor, "contexto_para", lambda *a, **k: [])
+    monkeypatch.setattr(servidor, "responder_por_partes", lambda *a, **k: iter(["Nada."]))
+
+    sucesos = list(
+        servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
+    )
+
+    assert not any("fuentes" in s for s in sucesos)
