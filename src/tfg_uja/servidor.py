@@ -63,15 +63,20 @@ PUERTO: Final[int] = 8000
 MAXIMO_CUERPO: Final[int] = 8 * 1024
 
 
-#: Como se nombra en pantalla cada tipo de fragmento. La colección los marca
+#: Cómo se nombra en pantalla cada tipo de fragmento. La colección los marca
 #: con una etiqueta corta que no significa nada para quien pregunta.
+#:
+#: Las siete claves son las que trae el corpus, contadas sobre ``chunks.json``
+#: y no supuestas: escribirlas de memoria ya dejó tres sin traducir, y el fallo
+#: no se ve en las pruebas porque un origen desconocido sale tal cual y la
+#: pantalla sigue funcionando.
 ROTULOS_DE_ORIGEN: Final[dict[str, str]] = {
     "guia": "Guía docente",
-    "sin_guia": "Asignatura sin guía publicada",
-    "plan": "Plan de estudios",
+    "asignatura_sin_guia": "Asignatura sin guía publicada",
+    "plan_de_estudios": "Plan de estudios",
     "mencion": "Menciones",
     "salidas": "Salidas profesionales",
-    "ficha": "Ficha de la titulación",
+    "ficha_titulacion": "Ficha de la titulación",
     "catalogo": "Catálogo de titulaciones",
 }
 
