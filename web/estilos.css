@@ -556,3 +556,11 @@ body {
   line-height: 1.5;
   color: var(--texto-suave);
 }
+
+.fuentes__nota {
+  margin: 0;
+  padding: 10px 20px 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
