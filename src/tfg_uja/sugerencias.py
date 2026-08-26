@@ -22,15 +22,22 @@ Así que aquí no se llama a ningún modelo. Se le pregunta al índice si existe
 el fragmento que respalda cada pregunta, y la pregunta se ofrece solo si
 existe. La consulta es de conteo, no de similitud: no hace falta incrustar
 nada para saber si una titulación tiene salidas profesionales indexadas.
+
+**La mitad de los huecos es siempre de otras titulaciones.** Ofrecer las
+cuatro preguntas de la titulación de la que se está hablando da la impresión
+de que el asistente solo conoce esa ---que es lo que pasó al probarlo con
+Informática---, y además le cierra el abanico justo a quien se supone que lo
+usa: alguien que todavía no sabe qué quiere estudiar. Así que dos huecos son
+para el ámbito y dos para titulaciones de fuera, con su nombre delante, que
+son las que enseñan que hay doce y no una.
 """
 
 from __future__ import annotations
 
-from typing import Any, Final
+from collections.abc import Iterator, Sequence
+from itertools import islice
+from typing import Any, Final, TypeVar
 
-# Se reutiliza el escapado del recuperador en vez de repetirlo: dos copias de
-# la misma defensa acaban divergiendo, y esta compone la misma expresión SQL
-# sobre la misma tabla.
 from tfg_uja.recuperador import escapar
 
 #: Cuántas sugerencias se ofrecen como mucho. Son botones bajo la
@@ -38,28 +45,41 @@ from tfg_uja.recuperador import escapar
 #: menú que hay que leer.
 MAXIMO: Final[int] = 4
 
+#: Cuántos de esos huecos se reservan a lo que se está hablando. El reparto es
+#: por la mitad, y el motivo de que no sea mayor está en el docstring del
+#: módulo: con los cuatro huecos ocupados por una sola titulación, el
+#: asistente parece saber solo de ella.
+DEL_AMBITO: Final[int] = 2
+
 #: Preguntas con las que se arranca una conversación. Las respaldan los
 #: fragmentos de origen ``catalogo``, que son los tres que enumeran las
 #: titulaciones de la Escuela, así que se ofrecen solo si el índice los trae:
 #: un índice construido a partir de un ``chunks.json`` anterior a que el
-#: fragmentador los emitiera no los tiene.
+#: fragmentador los emitiera no los tiene. Se enseña una de las dos, y cuál
+#: depende del desplazamiento.
 ARRANQUE_CATALOGO: Final[tuple[str, ...]] = (
     "¿Qué titulaciones puedo estudiar en la Escuela Politécnica Superior de Jaén?",
     "¿Qué dobles grados ofrece la Escuela Politécnica Superior de Jaén?",
 )
 
-#: La petición de consejo se ofrece siempre, y no depende de que exista un
-#: fragmento concreto: el recuperador la reconoce y la trata aparte ---busca
-#: con la consulta ampliada y sin aplicar el suelo de pertinencia---, de modo
-#: que es la única pregunta que no se queda sin contexto por construcción.
-#: El verbo «recomiendas» no es decorativo: es una de las palabras con las que
-#: ``pide_recomendacion`` distingue esa petición.
+#: La petición de consejo se ofrece siempre al arrancar, y no depende de que
+#: exista un fragmento concreto: el recuperador la reconoce y la trata aparte
+#: ---busca con la consulta ampliada y sin aplicar el suelo de pertinencia---,
+#: de modo que es la única pregunta que no se queda sin contexto por
+#: construcción. El verbo «recomiendas» no es decorativo: es una de las
+#: palabras con las que ``pide_recomendacion`` distingue esa petición.
 PETICION_DE_CONSEJO: Final[str] = "No sé qué estudiar, ¿qué me recomiendas?"
 
-#: Qué pregunta respalda cada origen, en el orden en que se ofrecen. Primero
-#: el plan de estudios, que es de lo que más se pregunta en el conjunto de
-#: evaluación, y la ficha al final porque es la única que existe en las doce
-#: titulaciones y, por tanto, la que menos distingue a una de otra.
+#: El banco de preguntas: qué fragmento respalda a cada una. La condición se
+#: encadena con la de la titulación, así que cada pregunta se ofrece solo
+#: donde el índice tiene con qué responderla; ninguna está aquí sin haberse
+#: contado antes contra el índice completo. Entre paréntesis, en cuántas de
+#: las doce titulaciones hay respaldo (corpus del 19/08/2026, curso 2026-27).
+#:
+#: El orden importa dos veces. Es el orden en que se ofrecen, y es también el
+#: que hace que dos sugerencias seguidas no hablen de lo mismo: van alternando
+#: de asunto, porque el plan de estudios, sus cursos y sus tipos de asignatura
+#: darían si no cuatro maneras de preguntar por la lista de asignaturas.
 #:
 #: Los nombres de origen son los que escribe el fragmentador, no una versión
 #: abreviada: ``plan_de_estudios`` y ``ficha_titulacion``, no ``plan`` ni
@@ -70,15 +90,75 @@ PETICION_DE_CONSEJO: Final[str] = "No sé qué estudiar, ¿qué me recomiendas?"
 #: trae, y sin él la pregunta queda mal escrita («¿Qué asignaturas tiene Grado
 #: en Ingeniería Informática?»). Es «el» en las doce, que empiezan todas por
 #: «Grado en» o «Doble Grado en».
-POR_ORIGEN: Final[tuple[tuple[str, str], ...]] = (
-    ("plan_de_estudios", "¿Qué asignaturas tiene el {titulacion}?"),
-    ("mencion", "¿Qué menciones ofrece el {titulacion}?"),
-    ("salidas", "¿Qué salidas profesionales tiene el {titulacion}?"),
+PLANTILLAS: Final[tuple[tuple[str, str], ...]] = (
+    # 11 de 12
+    ("origen = 'plan_de_estudios'", "¿Qué asignaturas tiene el {titulacion}?"),
+    # 8 de 12
     (
-        "ficha_titulacion",
+        "origen = 'salidas'",
+        "¿Qué salidas profesionales tiene el {titulacion}?",
+    ),
+    # 5 de 12
+    ("origen = 'mencion'", "¿Qué menciones ofrece el {titulacion}?"),
+    # 11 de 12. El curso casa por prefijo, igual que en el recuperador.
+    (
+        "origen = 'guia' AND starts_with(lower(curso), 'primer')",
+        "¿Qué se aprende en las asignaturas de primer curso del {titulacion}?",
+    ),
+    # 7 de 12: las optativas las publica la EPSJ sin curso asignado.
+    (
+        "tipo_asignatura = 'OP'",
+        "¿Qué asignaturas optativas se pueden elegir en el {titulacion}?",
+    ),
+    # 12 de 12: la ficha es lo único que tienen todas, incluido el doble grado
+    # internacional, al que la Escuela no le publica ni una asignatura.
+    (
+        "origen = 'ficha_titulacion'",
         "¿Cuántas asignaturas tiene el {titulacion} y cómo se reparten por curso?",
     ),
+    # 11 de 12
+    (
+        "origen = 'plan_de_estudios' AND starts_with(lower(curso), 'cuarto')",
+        "¿Qué asignaturas se dan en cuarto curso del {titulacion}?",
+    ),
+    # 8 de 12
+    (
+        "tipo_asignatura = 'TFG'",
+        "¿En qué consiste el Trabajo Fin de Grado del {titulacion}?",
+    ),
+    # 10 de 12
+    (
+        "tipo_asignatura = 'FB'",
+        "¿Qué asignaturas de formación básica se cursan en el {titulacion}?",
+    ),
+    # 9 de 12
+    (
+        "origen = 'guia' AND starts_with(lower(curso), 'cuarto')",
+        "¿Qué se estudia en cuarto curso del {titulacion}?",
+    ),
 )
+
+T = TypeVar("T")
+
+
+def _rotar(secuencia: Sequence[T], desplazamiento: int) -> list[T]:
+    """La misma secuencia, empezando por otro sitio.
+
+    Es lo que hace que las sugerencias varíen entre un turno y el siguiente
+    sin sortearlas: con la misma entrada sale siempre lo mismo, que es lo que
+    permite escribir una prueba que compruebe cuáles salen. Un ``random`` sin
+    semilla daría variedad y ninguna forma de comprobarla.
+
+    Args:
+        secuencia: Lo que se rota.
+        desplazamiento: Por cuántos puestos. Puede ser mayor que la longitud.
+
+    Returns:
+        Los mismos elementos, en el mismo orden circular, empezando por el que
+        toque. Lista vacía si la secuencia lo está.
+    """
+    corte = desplazamiento % len(secuencia) if secuencia else 0
+    return list(secuencia[corte:]) + list(secuencia[:corte])
 
 
 def _hay(tabla: Any, filtro: str) -> bool:
@@ -99,56 +179,115 @@ def _hay(tabla: Any, filtro: str) -> bool:
     return tabla.count_rows(filtro) > 0
 
 
-def _de_una(tabla: Any, titulacion: str) -> list[str]:
-    """Preguntas respaldadas por lo que el índice tiene de una titulación.
+def _preguntas(tabla: Any, titulacion: str, desplazamiento: int) -> Iterator[str]:
+    """Va soltando las preguntas que el índice respalda para una titulación.
+
+    Devuelve un iterador y no una lista porque casi siempre se le pide solo la
+    primera o las dos primeras: así se dejan de consultar las plantillas que
+    ya no se van a ofrecer, en vez de comprobar las diez para tirar ocho.
 
     Args:
         tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.
         titulacion: Nombre tal como lo declara el catálogo del índice.
+        desplazamiento: Por dónde empezar el banco de plantillas.
 
-    Returns:
-        Las preguntas cuyo origen aparece en esa titulación, en el orden de
-        :data:`POR_ORIGEN`.
+    Yields:
+        Las preguntas con respaldo, en el orden rotado de :data:`PLANTILLAS`.
     """
     # `array_has_any` casa por elemento exacto, igual que en el recuperador:
     # con una coincidencia de subcadena, «Grado en Ingeniería Eléctrica»
     # arrastraría los fragmentos de sus dos dobles grados y ofrecería sus
     # menciones, que el grado simple sí tiene y el doble no.
     suya = f"array_has_any(grados, ['{escapar(titulacion)}'])"
+    for condicion, pregunta in _rotar(PLANTILLAS, desplazamiento):
+        if _hay(tabla, f"{suya} AND {condicion}"):
+            yield pregunta.format(titulacion=titulacion)
+
+
+def _del_ambito(tabla: Any, conocidas: list[str], desplazamiento: int) -> list[str]:
+    """Preguntas de las titulaciones de las que se está hablando.
+
+    Los huecos reservados se reparten entre ellas: si el ámbito es una sola,
+    se lleva los dos; si son varias ---lo que pasa cuando el estudiante
+    escribe «eléctrica» y eso resuelve al grado simple y a sus dos dobles---,
+    va una de cada, que además sirve para deshacer la ambigüedad, porque al
+    pulsar una el ámbito se queda en esa sola.
+
+    Args:
+        tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.
+        conocidas: Titulaciones del ámbito, ya validadas contra el catálogo.
+        desplazamiento: Por dónde empezar el banco de plantillas.
+
+    Returns:
+        Como mucho :data:`DEL_AMBITO` preguntas.
+    """
+    cada_una = max(1, DEL_AMBITO // len(conocidas))
     return [
-        pregunta.format(titulacion=titulacion)
-        for origen, pregunta in POR_ORIGEN
-        if _hay(tabla, f"{suya} AND origen = '{escapar(origen)}'")
-    ]
+        pregunta
+        for indice, titulacion in enumerate(conocidas)
+        for pregunta in islice(
+            _preguntas(tabla, titulacion, desplazamiento + indice), cada_una
+        )
+    ][:DEL_AMBITO]
 
 
-def _de_arranque(tabla: Any) -> list[str]:
+def _de_arranque(tabla: Any, desplazamiento: int) -> list[str]:
     """Preguntas con las que empezar cuando no se habla de nada todavía.
 
     Args:
         tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.
+        desplazamiento: Cuál de las preguntas de catálogo toca.
 
     Returns:
-        Las del catálogo, si el índice lo trae, y la petición de consejo.
+        Una del catálogo, si el índice lo trae, y la petición de consejo.
     """
-    catalogo = list(ARRANQUE_CATALOGO) if _hay(tabla, "origen = 'catalogo'") else []
-    return (catalogo + [PETICION_DE_CONSEJO])[:MAXIMO]
+    catalogo = _rotar(ARRANQUE_CATALOGO, desplazamiento)
+    respaldadas = catalogo[:1] if _hay(tabla, "origen = 'catalogo'") else []
+    return respaldadas + [PETICION_DE_CONSEJO]
 
 
-def sugerencias_para(tabla: Any, ambito: list[str], catalogo: list[str]) -> list[str]:
+def _de_otras(
+    tabla: Any, otras: list[str], desplazamiento: int, cuantas: int
+) -> list[str]:
+    """Una pregunta de cada una de otras titulaciones, para abrir el abanico.
+
+    Cada titulación estrena el banco por un sitio distinto ---se le suma su
+    posición al desplazamiento---, porque si no las dos sugerencias de fuera
+    saldrían con la misma plantilla y la lista parecería un formulario:
+    «¿Qué asignaturas tiene el X?», «¿Qué asignaturas tiene el Y?».
+
+    Args:
+        tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.
+        otras: Titulaciones del catálogo que no están en el ámbito.
+        desplazamiento: Por dónde empezar, tanto la lista de titulaciones como
+            el banco de plantillas.
+        cuantas: Cuántas preguntas hacen falta.
+
+    Returns:
+        Hasta ``cuantas`` preguntas, cada una de una titulación distinta.
+    """
+    elegidas: list[str] = []
+    for indice, titulacion in enumerate(_rotar(otras, desplazamiento)):
+        if len(elegidas) >= cuantas:
+            break
+        elegidas += islice(_preguntas(tabla, titulacion, desplazamiento + indice), 1)
+    return elegidas
+
+
+def sugerencias_para(
+    tabla: Any, ambito: list[str], catalogo: list[str], desplazamiento: int = 0
+) -> list[str]:
     """Preguntas que ofrecerle al estudiante en el punto en que va el diálogo.
 
-    Con **una** titulación en el ámbito se ofrece lo que el índice tenga de
-    ella, y nada más. Con **varias** ---que es lo que pasa cuando el
-    estudiante escribe «eléctrica» y eso resuelve al grado simple y a sus dos
-    dobles--- se ofrece la primera pregunta respaldada de cada una. Se
-    descartaron las otras dos salidas: dar las cuatro preguntas de una de
-    ellas es elegir por el estudiante cuál era, y ofrecer una comparación
-    («¿en qué se diferencian X e Y?») no la respalda ningún fragmento, porque
-    en el corpus no hay ningún texto que compare dos titulaciones y la
-    respuesta saldría de que el modelo las junte por su cuenta. Una pregunta
-    por titulación, además, sirve para deshacer la ambigüedad: al pulsar una,
-    el ámbito se queda en esa sola.
+    Salen siempre de varias titulaciones: :data:`DEL_AMBITO` huecos para
+    aquello de lo que se está hablando ---o, si no se habla de nada todavía,
+    el catálogo y la petición de consejo--- y el resto para titulaciones de
+    fuera del ámbito.
+
+    Lo que **no** se ofrece nunca es una comparación entre dos titulaciones
+    («¿en qué se diferencian X e Y?»): no la respalda ningún fragmento, porque
+    en el corpus no hay ningún texto que compare dos, y la respuesta saldría
+    de que el modelo las junte por su cuenta.
 
     Args:
         tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.
@@ -156,6 +295,11 @@ def sugerencias_para(tabla: Any, ambito: list[str], catalogo: list[str]) -> list
             el catálogo por :class:`tfg_uja.conversacion.Conversacion`.
         catalogo: Titulaciones que declara el índice, de
             :func:`tfg_uja.recuperador.catalogo_del_indice`.
+        desplazamiento: Por dónde empezar a recorrer el banco de preguntas y
+            la lista de titulaciones. Sirve para que dos turnos seguidos no
+            ofrezcan lo mismo; quien llama puede pasarle el número de turno.
+            Con el mismo valor sale siempre la misma lista, que es lo que
+            permite comprobarla en una prueba.
 
     Returns:
         Como mucho :data:`MAXIMO` preguntas, todas respondibles con este
@@ -168,8 +312,9 @@ def sugerencias_para(tabla: Any, ambito: list[str], catalogo: list[str]) -> list
     # que no está en el catálogo no tiene ni un fragmento, así que todas sus
     # preguntas serían un rechazo garantizado.
     conocidas = [t for t in ambito if t in catalogo]
-    if not conocidas:
-        return _de_arranque(tabla)
-    if len(conocidas) == 1:
-        return _de_una(tabla, conocidas[0])[:MAXIMO]
-    return [p for t in conocidas for p in _de_una(tabla, t)[:1]][:MAXIMO]
+    if conocidas:
+        propias = _del_ambito(tabla, conocidas, desplazamiento)
+    else:
+        propias = _de_arranque(tabla, desplazamiento)
+    otras = [t for t in catalogo if t not in conocidas]
+    return propias + _de_otras(tabla, otras, desplazamiento, MAXIMO - len(propias))
