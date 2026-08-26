@@ -26,7 +26,7 @@ from typing import Any, Final
 
 import numpy as np
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 # El guion del experimento se carga por su ruta, igual que hacen las pruebas

@@ -50,7 +50,7 @@ Durante el rastreo conviene no perder de vista dos avisos:
 ## 2. Verificar el dataset
 
 ```bash
-py scripts/check_dataset.py
+py scripts/verificadores/check_dataset.py
 ```
 
 Comprueba la integridad y **compara el tamaño del corpus con el del último rastreo aceptado**
@@ -64,7 +64,7 @@ legítimo se actualiza `ESPERADO` y se anota el porqué.
 ## 2 bis. Auditar la extracción de los PDF
 
 ```bash
-py scripts/check_guias_pdf.py
+py scripts/verificadores/check_guias_pdf.py
 ```
 
 Desde IT-95 el rastreo deja una copia de cada PDF en `data/guias_pdf/`, y este
@@ -87,7 +87,7 @@ entran al corpus.
 
 ```bash
 py -m tfg_uja.chunker data/grados.json data/chunks.json
-py scripts/check_chunks.py
+py scripts/verificadores/check_chunks.py
 ```
 
 `check_chunks.py` imprime lo primero la procedencia (fecha de extracción y curso, IT-90) y
@@ -98,7 +98,7 @@ asignatura.
 ## 4. Comprobar el conjunto de evaluación
 
 ```bash
-py scripts/check_evalset.py
+py scripts/verificadores/check_evalset.py
 ```
 
 Este es el que más cuidado exige. Sus preguntas se anotaron a mano contra un corpus concreto,
@@ -134,7 +134,7 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
   volver a ejecutarlo antes de apoyarse en ellos:
 
   ```bash
-  py scripts/experimento_embeddings.py
+  py scripts/experimentos/experimento_embeddings.py
   ```
 
 - **El índice vectorial**, que queda describiendo un corpus que ya no existe. Se reconstruye

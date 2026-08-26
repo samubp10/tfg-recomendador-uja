@@ -180,9 +180,9 @@ es: de ellas no hay cifras, y este es el motivo por el que no entraron.
 
 ## Resultados del experimento
 
-<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_vectordb.py) -->
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_vectordb.py) -->
 
-**Generado el 2026-08-13 por `scripts/experimento_vectordb.py`, sobre 1334 fragmentos y 50 preguntas de `eval/preguntas_evaluacion.json`. K = 10, 5 repeticiones por pregunta para la latencia. Las cuatro condiciones reciben los mismos vectores, incrustados una sola vez.**
+**Generado el 2026-08-13 por `scripts/experimentos/experimento_vectordb.py`, sobre 1334 fragmentos y 50 preguntas de `eval/preguntas_evaluacion.json`. K = 10, 5 repeticiones por pregunta para la latencia. Las cuatro condiciones reciben los mismos vectores, incrustados una sola vez.**
 
 ### Tabla comparativa
 
@@ -286,7 +286,7 @@ U7 es un desempate y no una cifra, así que se registra en **hechos verificables
 
 El informe automático de arriba es **un solo pase**, y él mismo advierte de que U6
 exige una segunda ejecución. Se hicieron **20 ciclos completos**
-(`scripts/repeticiones_vectordb.py`), reconstruyendo los tres índices desde cero
+(`scripts/experimentos/repeticiones_vectordb.py`), reconstruyendo los tres índices desde cero
 en cada uno y con los mismos vectores:
 
 | Candidata | Modo (medido) | Fidelidad (U1) | Ciclos que fallan U1 | Latencia mediana | ¿Cumple U6? |
@@ -546,9 +546,9 @@ perdería casi toda su fuerza.
 
 **Del propio proyecto**
 
-- `scripts/experimento_vectordb.py` — el experimento que genera el informe
+- `scripts/experimentos/experimento_vectordb.py` — el experimento que genera el informe
   incrustado en este ADR.
-- `scripts/repeticiones_vectordb.py` — las 20 reconstrucciones con las que se
+- `scripts/experimentos/repeticiones_vectordb.py` — las 20 reconstrucciones con las que se
   comprueba U6.
 - ADR-0003 (modelo de incrustaciones) — fija la dimensión de los vectores, el
   techo de recuperación y la normalización que hace indistinguibles las dos

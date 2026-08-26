@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "check_evalset.py"
+_RUTA = RAIZ / "scripts" / "verificadores" / "check_evalset.py"
 _spec = importlib.util.spec_from_file_location("check_evalset", _RUTA)
 assert _spec is not None and _spec.loader is not None
 check_evalset = importlib.util.module_from_spec(_spec)

@@ -75,7 +75,7 @@ from typing import Any, Final
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 
 #: Dónde se dejan las notas de trabajo, fuera del repositorio.
 NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
@@ -89,7 +89,8 @@ RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0005-modelo-de-generacion.m
 #: ejecutarlo sin pisar lo que el autor haya redactado en el resto del ADR: la
 #: Decisión y las Consecuencias son suyas y el guion no las toca.
 MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_generacion.py) -->"
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
+    "(scripts/experimentos/experimento_generacion.py) -->"
 )
 MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 

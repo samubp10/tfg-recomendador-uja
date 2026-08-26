@@ -23,7 +23,7 @@ import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
-    "generar_banco_sistema", RAIZ / "scripts" / "generar_banco_sistema.py"
+    "generar_banco_sistema", RAIZ / "scripts" / "bancos" / "generar_banco_sistema.py"
 )
 assert _spec is not None and _spec.loader is not None
 generar_banco_sistema = importlib.util.module_from_spec(_spec)

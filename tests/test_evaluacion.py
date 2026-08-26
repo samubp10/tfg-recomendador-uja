@@ -3,7 +3,7 @@
 Deterministas y sin red: los vectores de embedding son artesanales (no un
 modelo real), porque lo que se prueba aquí es la aritmética de Recall@K y
 MRR, no la calidad de ningún modelo concreto (eso lo mide
-``scripts/experimento_embeddings.py`` contra el dataset real).
+``scripts/experimentos/experimento_embeddings.py`` contra el dataset real).
 """
 
 from __future__ import annotations

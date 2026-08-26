@@ -118,7 +118,7 @@ tal fallo.
 | El aviso del rastreo debe distinguir la causa y no llamar «ilegible» a un PDF que se lee | 29/07/2026 | 15411008, 15712019 | `test_guia_pdf.py::test_un_pdf_ilegible_se_distingue_como_tal` (`motivo_sin_guia`) |
 | La asignatura entra igualmente al corpus con su fragmento informativo | 29/07/2026 | `chunks_muestra_real.json` | `test_chunker.py` (fragmento de asignatura sin guía), `test_check_chunks.py` |
 
-`scripts/check_chunks.py` comprueba sobre la colección completa que toda asignatura sin
+`scripts/verificadores/check_chunks.py` comprueba sobre la colección completa que toda asignatura sin
 contenido de guía recibe su fragmento informativo, de modo que ninguna desaparece en silencio.
 
 ## Cómo se corrige y cómo se detecta si vuelve
@@ -147,6 +147,6 @@ está publicada y no recoge ni resumen ni temario.
 
 - `src/tfg_uja/guia_pdf.py` (`motivo_sin_guia`), `src/tfg_uja/chunker.py`
   (texto del fragmento informativo).
-- `scripts/check_guias_pdf.py` (auditoría de la extracción, IT-95).
+- `scripts/verificadores/check_guias_pdf.py` (auditoría de la extracción, IT-95).
 - IT-94 (la asignatura no desaparece), IT-95 (auditoría de las guías en PDF).
 - DQA-0002 (cambio de formato de la fuente a PDF).

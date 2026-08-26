@@ -64,7 +64,7 @@ from typing import Any, Callable, Final
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from tfg_uja import chunker  # noqa: E402
 from tfg_uja.chunker import (  # noqa: E402
@@ -81,7 +81,7 @@ from tfg_uja.incrustaciones import (  # noqa: E402
     con_prefijo,
 )
 
-RAIZ: Final[Path] = Path(__file__).resolve().parent.parent
+RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 RUTA_DATASET: Final[Path] = RAIZ / "data" / "grados.json"
 RUTA_PREGUNTAS: Final[Path] = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "adr" / "adr-0001-estrategia-chunking.md"
@@ -91,7 +91,8 @@ RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "adr" / "adr-0001-estrategia-chunking
 #: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
 #: propio anexo, porque una se refrescó y la otra no.
 MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->"
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
+    "(scripts/experimentos/experimento_fragmentacion.py) -->"
 )
 MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 

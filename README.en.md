@@ -131,10 +131,10 @@ They do not run in CI because `data/` does not exist in a clean checkout; run
 them before every push:
 
 ```console
-py scripts/check_dataset.py     # integrity of degrees/subjects/syllabuses/prospects
-py scripts/check_chunks.py      # chunk sizes and deduplication
-py scripts/check_evalset.py     # the evaluation set resolves against the dataset
-py scripts/check_guias_pdf.py   # PDF extraction, audited against the stored PDFs
+py scripts/verificadores/check_dataset.py     # integrity of degrees/subjects/syllabuses/prospects
+py scripts/verificadores/check_chunks.py      # chunk sizes and deduplication
+py scripts/verificadores/check_evalset.py     # the evaluation set resolves against the dataset
+py scripts/verificadores/check_guias_pdf.py   # PDF extraction, audited against the stored PDFs
 ```
 
 ### Experiments
@@ -142,7 +142,7 @@ py scripts/check_guias_pdf.py   # PDF extraction, audited against the stored PDF
 ```console
 # Compares embedding models (Recall@3, Recall@5, MRR) over the evaluation set.
 # Requires the [index] extra and network access the first time. Local only.
-py scripts/experimento_embeddings.py
+py scripts/experimentos/experimento_embeddings.py
 ```
 
 Real results of every run are kept in the annex of the matching ADR, written by the script itself.

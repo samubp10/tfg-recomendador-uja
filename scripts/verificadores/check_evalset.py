@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 # Las rutas se resuelven relativas a la raíz del repositorio, no a scripts/.
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 

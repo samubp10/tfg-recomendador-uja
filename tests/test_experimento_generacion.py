@@ -19,7 +19,8 @@ import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
-    "experimento_generacion", RAIZ / "scripts" / "experimento_generacion.py"
+    "experimento_generacion",
+    RAIZ / "scripts" / "experimentos" / "experimento_generacion.py",
 )
 assert _spec is not None and _spec.loader is not None
 experimento = importlib.util.module_from_spec(_spec)

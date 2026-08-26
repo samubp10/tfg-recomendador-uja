@@ -77,7 +77,7 @@ Comparar «la estrategia A contra la estrategia B» no significa nada mientras c
 una lleve sus propios parámetros: se estaría comparando dos cosas a la vez. El
 experimento se organiza por eso como una **búsqueda en rejilla**, que prueba
 sistemáticamente todas las combinaciones de los parámetros en juego, con
-`scripts/experimento_fragmentacion.py` sobre `data/grados.json`, las 50 preguntas del
+`scripts/experimentos/experimento_fragmentacion.py` sobre `data/grados.json`, las 50 preguntas del
 conjunto de evaluación y el modelo del ADR-0003, en CPU.
 
 - **Eje común a las tres:** tamaño máximo de 600, 900, 1.200, 1.500 y 1.800
@@ -370,8 +370,8 @@ verificador identifiquen una asignatura de la misma manera.
 
 ## Anexo — las 45 configuraciones
 
-<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->
-Generado por `scripts/experimento_fragmentacion.py` sobre `data/grados.json`, con las
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_fragmentacion.py) -->
+Generado por `scripts/experimentos/experimento_fragmentacion.py` sobre `data/grados.json`, con las
 50 preguntas de `eval/preguntas_evaluacion.json` y el modelo
 `intfloat/multilingual-e5-small` (ventana de 512 _tokens_), en CPU. Ordenada por
 exhaustividad por unidad en el primer resultado, que es donde las configuraciones se

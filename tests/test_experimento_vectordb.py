@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "experimento_vectordb.py"
+_RUTA = RAIZ / "scripts" / "experimentos" / "experimento_vectordb.py"
 _spec = importlib.util.spec_from_file_location("experimento_vectordb", _RUTA)
 assert _spec is not None and _spec.loader is not None
 experimento = importlib.util.module_from_spec(_spec)
@@ -518,7 +518,7 @@ def test_el_experimento_no_exige_las_dependencias_opcionales_al_importarse() -> 
     Se analiza el árbol sintáctico porque lo que importa es dónde está el
     `import`, no si el módulo está instalado en la máquina que ejecuta esto.
     """
-    ruta = RAIZ / "scripts" / "experimento_vectordb.py"
+    ruta = RAIZ / "scripts" / "experimentos" / "experimento_vectordb.py"
     arbol = ast.parse(ruta.read_text(encoding="utf-8"))
 
     de_cabecera: set[str] = set()

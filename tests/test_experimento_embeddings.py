@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "experimento_embeddings.py"
+_RUTA = RAIZ / "scripts" / "experimentos" / "experimento_embeddings.py"
 _spec = importlib.util.spec_from_file_location("experimento_embeddings", _RUTA)
 assert _spec is not None and _spec.loader is not None
 experimento = importlib.util.module_from_spec(_spec)

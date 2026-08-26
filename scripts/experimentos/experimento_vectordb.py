@@ -42,7 +42,7 @@ from typing import Any, Final
 
 import numpy as np
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 #: Un fragmento de ``chunks.json``, tal como lo emite el troceador. Se nombra
@@ -61,7 +61,8 @@ RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0004-base-vectorial.md"
 #: Marcas entre las que este guion escribe. Permiten volver a ejecutarlo sin
 #: pisar lo que el autor haya escrito a mano en el resto del ADR.
 MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_vectordb.py) -->"
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
+    "(scripts/experimentos/experimento_vectordb.py) -->"
 )
 MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 
