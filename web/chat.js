@@ -28,6 +28,15 @@ const SEGUNDOS_PARA_EXPLICAR = 12;
 /** Debajo de esto se considera que la respuesta no llego a consultar al modelo. */
 const SEGUNDOS_RESPUESTA_INMEDIATA = 1;
 
+/**
+ * Cierre de la respuesta para quien no ve la pantalla.
+ *
+ * El pie que se pinta al terminar dice la hora y la duracion, y eso leido en
+ * voz alta ---«09:04, 62,3 s»--- no significa que la respuesta este completa.
+ * Va delante para que sea lo primero que se anuncie.
+ */
+const FIN_PARA_LECTOR = '<span class="visualmente-oculto">Respuesta completa.</span>';
+
 const mensajes = document.getElementById("mensajes");
 const conversacion = document.getElementById("conversacion");
 const formulario = document.getElementById("redaccion");
@@ -144,7 +153,15 @@ function pintarPregunta(texto) {
  * Devuelve las piezas que hay que ir rellenando segun llegan las partes, para
  * no volver a buscarlas en el documento en cada trozo.
  *
- * @returns {{fila: HTMLElement, cuerpo: HTMLElement, pie: HTMLElement}}
+ * La burbuja nace con `aria-busy="true"`. De ese atributo cuelgan las dos
+ * senales de que la respuesta sigue escribiendose: la palabra que la hoja de
+ * estilo pinta debajo del texto y lo que anuncia un lector de pantalla. Hace
+ * falta porque el texto llega por partes durante un minuto y, entre frase y
+ * frase, no habia nada que distinguiera «esta pensando la siguiente» de «ya ha
+ * terminado».
+ *
+ * @returns {{fila: HTMLElement, burbuja: HTMLElement, cuerpo: HTMLElement,
+ *   pie: HTMLElement}}
  */
 function abrirRespuesta() {
   const fila = document.createElement("div");
@@ -153,7 +170,7 @@ function abrirRespuesta() {
     <div class="mensaje__avatar mensaje__avatar--asistente">
       <img src="logo-uja.png" alt="">
     </div>
-    <div class="mensaje__burbuja">
+    <div class="mensaje__burbuja" aria-busy="true">
       <div class="mensaje__cuerpo">
         <div class="espera__puntos" role="status" aria-label="Preparando la respuesta">
           <span class="espera__punto"></span>
@@ -167,6 +184,7 @@ function abrirRespuesta() {
   bajarDelTodo();
   return {
     fila,
+    burbuja: fila.querySelector(".mensaje__burbuja"),
     cuerpo: fila.querySelector(".mensaje__cuerpo"),
     pie: fila.querySelector(".mensaje__pie"),
   };
@@ -287,7 +305,7 @@ async function preguntar(pregunta, silenciosa = false) {
   bloquear(true);
 
   if (!silenciosa) pintarPregunta(pregunta.trim());
-  const { fila, cuerpo, pie } = abrirRespuesta();
+  const { fila, burbuja, cuerpo, pie } = abrirRespuesta();
   const pararContador = contarLaEspera(cuerpo);
   const inicio = Date.now();
 
@@ -338,6 +356,12 @@ async function preguntar(pregunta, silenciosa = false) {
           acumulado = "";
           repintar();
         }
+        if (suceso.fin) {
+          // Ultimo suceso que manda el servidor: es el unico punto en el que
+          // se sabe con certeza que no queda texto por llegar, asi que es
+          // donde se retira la marca de «escribiendo».
+          burbuja.removeAttribute("aria-busy");
+        }
         if (Array.isArray(suceso.sugerencias)) propuestas = suceso.sugerencias;
         if (Array.isArray(suceso.fuentes)) {
           // Llegan antes que el texto: se conocen al terminar la recuperación
@@ -359,9 +383,11 @@ async function preguntar(pregunta, silenciosa = false) {
       // No llego a consultar al modelo: es una de las respuestas fijas. Se
       // marca porque si no, su rapidez se lee como un error.
       fila.classList.add("mensaje--inmediato");
-      pie.innerHTML = `<span>${horaActual()}</span><span>respuesta inmediata</span>`;
+      pie.innerHTML =
+        FIN_PARA_LECTOR + `<span>${horaActual()}</span><span>respuesta inmediata</span>`;
     } else {
       pie.innerHTML =
+        FIN_PARA_LECTOR +
         `<span>${horaActual()}</span><span>${segundos.toFixed(1).replace(".", ",")} s</span>`;
     }
     ponerBotonDeFuentes(pie, fuentes);
@@ -377,6 +403,10 @@ async function preguntar(pregunta, silenciosa = false) {
     );
     pie.innerHTML = `<span>${horaActual()}</span>`;
   } finally {
+    // Red de seguridad: si la conexion se corta o el modelo falla, el suceso
+    // `fin` no llega nunca y la marca se quedaria puesta para siempre,
+    // diciendo que se esta escribiendo algo que ya no va a llegar.
+    burbuja.removeAttribute("aria-busy");
     ocupado = false;
     bloquear(false);
     bajarDelTodo();
