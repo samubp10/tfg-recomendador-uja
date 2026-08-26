@@ -19,7 +19,7 @@ from pathlib import Path
 from tfg_uja import chunker
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "check_chunks.py"
+_RUTA = RAIZ / "scripts" / "verificadores" / "check_chunks.py"
 _spec = importlib.util.spec_from_file_location("check_chunks", _RUTA)
 assert _spec is not None and _spec.loader is not None
 check_chunks = importlib.util.module_from_spec(_spec)

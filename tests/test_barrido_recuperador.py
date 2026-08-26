@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "scripts" / "experimentos"))
 
 import barrido_recuperador as barrido  # noqa: E402
 

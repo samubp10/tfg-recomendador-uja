@@ -2,8 +2,8 @@
 
 Estas pruebas validan el fichero versionado ``eval/preguntas_evaluacion.json``
 sin necesitar ``data/`` (que no existe en CI): el contraste de los selectores
-contra el dataset real lo hace ``scripts/check_evalset.py`` en local, igual
-que el resto de verificadores del proyecto.
+contra el dataset real lo hace ``scripts/verificadores/check_evalset.py``
+en local, igual que el resto de verificadores del proyecto.
 """
 
 from __future__ import annotations

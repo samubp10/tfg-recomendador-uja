@@ -15,7 +15,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
-    "generar_banco", RAIZ / "scripts" / "generar_banco_generacion.py"
+    "generar_banco", RAIZ / "scripts" / "bancos" / "generar_banco_generacion.py"
 )
 assert _spec is not None and _spec.loader is not None
 generar_banco = importlib.util.module_from_spec(_spec)

@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(RAIZ / "scripts"))
+sys.path.insert(0, str(RAIZ / "scripts" / "experimentos"))
 
 import experimento_sistema as sistema  # noqa: E402
 

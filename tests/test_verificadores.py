@@ -20,7 +20,7 @@ import pytest
 from tfg_uja.invariantes import InvarianteRoto, exigir
 
 RAIZ = Path(__file__).resolve().parent.parent
-VERIFICADORES = sorted((RAIZ / "scripts").glob("check_*.py"))
+VERIFICADORES = sorted((RAIZ / "scripts" / "verificadores").glob("check_*.py"))
 
 
 def test_hay_verificadores_que_revisar() -> None:

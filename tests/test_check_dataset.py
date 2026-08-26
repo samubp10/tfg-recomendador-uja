@@ -16,7 +16,7 @@ import importlib.util
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "check_dataset.py"
+_RUTA = RAIZ / "scripts" / "verificadores" / "check_dataset.py"
 _spec = importlib.util.spec_from_file_location("check_dataset", _RUTA)
 assert _spec is not None and _spec.loader is not None
 check_dataset = importlib.util.module_from_spec(_spec)
