@@ -355,37 +355,8 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \input{diagramas/DiagramaModeloDatos.tex}
 
 \begin{borrador}
-  \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
-  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
-  \sout{1.335} 1.499 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
-  explicar en el texto o dejar dicho en el pie:
-  \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
-  \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
-  Lo que hay que explicar es \emph{por qué es una cadena y no un número}: la EPSJ publica
-  el curso agrupando las tablas bajo un rótulo de sección, y en los dobles grados ese
-  rótulo dice «Tercer o Cuarto Curso», porque a partir de tercero el estudiante elige por
-  qué especialidad empieza. Guardarlo como entero obligaría a escoger uno de los dos, que
-  es inventarse el dato. De las 528 asignaturas, 420 lo declaran; las 108 restantes son
-  exactamente las optativas, que la fuente publica sin curso.
-  \item \textbf{(1) Faltaban dos de las cuatro procedencias de un fragmento.} El campo
-  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia}
-  (\sout{1.193} 1.296 fragmentos), \texttt{asignatura\_sin\_guia} (86),
-  \texttt{plan\_de\_estudios} (\sout{33} 56) y \texttt{salidas}
-  (22)--- y el diagrama solo dibujaba dos flechas hacia \texttt{Chunk}. Tal como estaba,
-  daba a entender que una asignatura sin guía no llega al índice, y sí llega.
-  \item \textbf{(2) \texttt{Chunk} tiene un campo más:} \texttt{tipo\_asignatura}, que no
-  estaba.
-  \item \textbf{(3) \texttt{ects} no es un decimal, es una cadena.} La fuente publica
-  <<6>>, y una asignatura lo trae vacío. Ponerlo como \texttt{float} en la memoria
-  contradice el fichero, y es de lo que se comprueba en treinta segundos.
-  \item \textbf{(4) La procedencia ya entra en la figura}, en trazo discontinuo para que
-  se vea que no es una entidad extraída de la web sino la cabecera de cada fichero. Decide
-  si te vale así o prefieres sacarla y explicarla solo en el texto; si la dejas, el pie de
-  figura debería decir por qué va con otro trazo.
-  \item \textbf{Ojo al pie actual:} habla de <<entidades extraídas mediante \textit{web
-    scraping}>>, y ni \texttt{Chunk} ni \texttt{Procedencia} se extraen: se generan. O
-  ajustas el pie, o dices en el texto que la figura recoge el modelo completo y no solo lo
-  extraído.
+  \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
+  \item La próxima vez hacerla sin turqueda
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
@@ -400,58 +371,9 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \subsection{Situación de partida}
 
-Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (sobre todo HTML) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
-
-Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
-
-\begin{itemize}                                                                                                                                                    
-  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \glr{slugs}{slug} inconsistentes en el cuerpo de las páginas.
-  \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
-  \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
-  \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
-\end{itemize}
-
-Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
-
-\textcolor{borrador2}{Los obstáculos anteriores describen la fuente tal y como estaba al
-  comenzar el trabajo. Durante el desarrollo apareció una segunda familia de dificultades de
-  naturaleza distinta: no son defectos del código de las páginas, sino cambios de la propia
-  fuente mientras el sistema se construía sobre ella. Son los que más han condicionado el
-  diseño, porque obligan a que la extracción no dependa de que la Escuela publique hoy como
-  publicaba ayer.}
-
-\begin{itemize}                                                                                                                                                    
-  \item \textcolor{borrador2}{\textbf{El formato de las guías cambió a mitad del
-            desarrollo.} Las guías docentes dejaron de servirse como páginas HTML y pasaron a
-          servirse como documentos PDF. El cambio no fue gradual: en cinco días de julio de 2026 la
-          proporción pasó de ninguna a la totalidad, según la Escuela iba publicando el curso nuevo.
-          Hoy \textbf{el contenido de la colección procede íntegramente de documentos PDF}, aunque
-          el catálogo ---el menú de titulaciones, las portadas, las tablas de asignaturas y las
-          salidas profesionales--- se sigue leyendo del HTML.}
-  \item \textcolor{borrador2}{\textbf{La dirección del enlace no dice qué se va a
-            recibir.} El enlace de cada guía sigue terminando en \texttt{.html} y devuelve un PDF,
-          de modo que decidir por la extensión de la dirección conduce a interpretar un binario como
-          si fuera texto. La decisión se toma por el tipo de contenido que declara la respuesta.}
-  \item \textcolor{borrador2}{\textbf{El documento nuevo trae datos personales que el
-            anterior no traía.} La guía en PDF incorpora un bloque de profesorado con nombre,
-          departamento, despacho, correo electrónico y teléfono, información que la versión en HTML
-          no publicaba. Como el trabajo excluye deliberadamente los datos del profesorado, extraer
-          el documento entero habría introducido en la colección justamente aquello que se había
-          decidido dejar fuera.}
-  \item \textcolor{borrador2}{\textbf{La estructura de las tablas tampoco es estable.} Dos
-          titulaciones intercalaron una columna nueva y las titulaciones dobles rotulan y abrevian
-          esa misma columna de otra manera. En ambos casos la titulación entera desaparecía de la
-          extracción sin producir ningún error, solo un aviso en el registro.}
-  \item \textcolor{borrador2}{\textbf{Hay contenido publicado que está vacío.} Cinco guías
-          se publican con el esqueleto de la plantilla y las secciones de contenido sin rellenar.
-          No es un fallo de la extracción ---el documento se lee perfectamente--- y por eso la
-          colección no puede decir que ha fallado ella cuando el hueco es del origen.}
-\end{itemize}
 
 \begin{borrador}
-  \item \textbf{Fase:} ---DQA-0002 el cambio a PDF, DQA-0003 las
-  tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---.
-  \item Hay que eliminar la parte de HTML, nombrarla que cuando se cambie al inicio diciendo que se empezó el proyecto con esa versión y luego hubo que cambiarla a pdf, Obviamente solo lo de las guías, todo lo demás de HTML sí.
+  \item Rehacer este apartado por completo, hay que ponerlo directamente en PDF, aunque el desarrollo empezara con HTML.
 \end{borrador}
 
 
@@ -569,15 +491,10 @@ La figura que viene a continuación ~\ref{fig:anatomia_guia} muestra un caso rea
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el \sout{cuál}\textcolor{borrador2}{cual} se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
+uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cual se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
 
-A continuación se muestra la Figura~\ref{fig:estructura_salidas} la cuál recoge la estructura de uno de estos objetos de información sobre un caso real. 
 
-\textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
-  esos bloques sobre un caso real. Es el más simple de los cuatro tipos de ítem de la
-  colección: un único campo de texto corrido, sin estructura interna que aprovechar, y como
-  único dato de identificación el nombre de la titulación. No lleva código de asignatura
-  porque la unidad de la que habla es la titulación entera.}
+  La Figura~\ref{fig:estructura_salidas} muestra la estructura de este tipo de elemento a partir de un caso real (las salidas profesionales del Grado en Ingeniería Informática). Consta de un solo bloque de texto continuo y se indeza únicamente con el nombre de la titulación.
 
 \input{diagramas/DiagramaEstructuraSalidas.tex}
 
@@ -814,7 +731,7 @@ Primero se introducirá el instrumento con el que se mide, que es el conjunto de
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
 
-Para la experimentación se ha usado el conjunto de datos extraídos y \sout{50} \textcolor{borrador2}{66} preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
+Para la experimentación se ha usado el conjunto de datos extraídos y 66 preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
 la aplicación podría querer saber.
 
 Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
@@ -892,7 +809,7 @@ La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del 
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los \sout{33} \textcolor{borrador2}{56} fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
+El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 56 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
 
 \textcolor{borrador2}{Esa tercera rama dejó de ser la única. El
 Apartado~\ref{secc:fragmentos_derivados} recoge los demás fragmentos compuestos por el
@@ -1145,14 +1062,14 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle. Los fundamentos teóricos de la recuperación semántica y del paradigma \gl{RAG} se introdujeron en el Capítulo~\ref{cap:antecedentes}
   (Apartado~\ref{subsec:busqueda_semantica_concepto}), aquí se detalla su implementación concreta en la arquitectura del asistente.
 
-  La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada sin que llegue \sout{si quiera}\textcolor{borrador2}{siquiera} a llamar al modelo, ahorrando mucha capacidad de cómputo.
+  La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada sin que llegue siquiera a llamar al modelo, ahorrando mucha capacidad de cómputo.
 
 
 \input{diagramas/DiagramaSecuenciaRAG.tex}
 
-\subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación \sout{adapatativa}\textcolor{borrador2}{adaptativa} y filtrado de fragmentos}
+\subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación adaptativa y filtrado de fragmentos}
 
-El número de fragmentos que se le entregan al modelo ($k$) no es fijo, \sout{si no que}\textcolor{borrador2}{sino que} varía según el tipo de pregunta que se haga, haciendo que si solo se necesita unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran \textcolor{borrador2}{cantidad }de fragmentos para \sout{contruirla}\textcolor{borrador2}{construirla}, lo haga sin problemas, siempre poniendo un límite.
+El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, haciendo que si solo se necesita unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite.
 
 Para plantear esta solución, el sistema utiliza una política de recuperación dinámica que combina tres mecanismos complementarios:
 
@@ -1163,7 +1080,7 @@ Para plantear esta solución, el sistema utiliza una política de recuperación 
 \end{itemize}
 
 
-Cuando ningún fragmento \sout{supero}\textcolor{borrador2}{supera} el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar \sout{si quiera}\textcolor{borrador2}{siquiera} a invocar al modelo para que razone, eliminando por completo la posibilidad de \sout{alucionación}\textcolor{borrador2}{alucinación}.
+Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
 
 
 \subsubsection{Estructura y composición del \textit{prompt}}
@@ -1191,13 +1108,13 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
 
-El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debería irse de este tema. La necesidad de acotar el dominio radica en el riesgo de \sout{qeu}\textcolor{borrador2}{que} el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para \sout{eviar}\textcolor{borrador2}{evitar} que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en dos capas complementarias.
+El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debería irse de este tema. La necesidad de acotar el dominio radica en el riesgo de que el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para evitar que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en dos capas complementarias.
 
-La primera capa es el suelo de pertinencia explicado en el apartado anterior. \sout{Si biene}\textcolor{borrador2}{Si bien} este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas \sout{preuntas}\textcolor{borrador2}{preguntas} que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras \sout{facultados}\textcolor{borrador2}{facultades}) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
+La primera capa es el suelo de pertinencia explicado en el apartado anterior. Si bien este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas preguntas que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras facultades) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
 
 Por ello, la segunda capa opera después de generar la respuesta, y en ella se extraen todas las entidades con estructura de titulación y se verifica que pertenezcan al catálogo oficial de la Escuela.
 
-Cuando esta validación detecta una titulación inexistente, se descarta la respuesta en su totalidad en lugar de suprimir únicamente el nombre erróneo. Conviene señalar que este mecanismo cubre de forma exhaustiva las doce titulaciones oficiales del centro, pero no previene \sout{alucionaciones}\textcolor{borrador2}{alucinaciones} sobre el contenido interno de las asignaturas o las salidas profesionales.
+Cuando esta validación detecta una titulación inexistente, se descarta la respuesta en su totalidad en lugar de suprimir únicamente el nombre erróneo. Conviene señalar que este mecanismo cubre de forma exhaustiva las doce titulaciones oficiales del centro, pero no previene alucinaciones sobre el contenido interno de las asignaturas o las salidas profesionales.
 
 
 \section[Fase 3: la aplicación web]{Fase 3: la aplicación web}
@@ -1206,7 +1123,7 @@ Cuando esta validación detecta una titulación inexistente, se descarta la resp
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el \sout{cuál}\textcolor{borrador2}{cual} importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
