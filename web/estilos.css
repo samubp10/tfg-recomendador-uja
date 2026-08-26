@@ -353,6 +353,54 @@ body {
   color: var(--texto-suave);
 }
 
+/* ------------------------------------------------- la respuesta en curso
+
+   El texto llega por partes a lo largo de un minuto y entre frase y frase no
+   habia forma de distinguir «esta escribiendo la siguiente» de «ya ha
+   terminado»: el aviso de espera se retira con la primera frase y el pie con
+   la hora y la duracion no se pinta hasta despues de la ultima. Ese hueco es
+   el que cubre esta marca.
+
+   Cuelga de `aria-busy`, que es el atributo que un lector de pantalla ya
+   tiene que leer para cumplir RNF-07. Al salir las dos senales ---la que se ve
+   y la que se anuncia--- del mismo sitio, no pueden acabar contradiciendose:
+   no hay una clase que se olvide de quitar por un lado. */
+
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+  content: "escribiendo…";
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  animation: respirar 1.6s ease-in-out infinite;
+}
+
+/* Mientras se ve el aviso de espera la marca sobra: los dos dicen lo mismo y
+   el aviso ademas cuenta los segundos. */
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo:has(.espera__puntos)::after {
+  content: none;
+}
+
+@keyframes respirar {
+
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* El movimiento es solo enfasis: quien haya pedido menos animacion sigue
+   leyendo la palabra, que es donde esta la informacion. */
+@media (prefers-reduced-motion: reduce) {
+  .mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+    animation: none;
+  }
+}
+
 /* ------------------------------------------------------------ sugerencias */
 
 .sugerencias {
