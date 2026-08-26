@@ -16,9 +16,14 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import servidor
+from tfg_uja import registro_chat, servidor
+from tfg_uja.conversacion import Conversacion
 from tfg_uja.recuperador import Fragmento
-from tfg_uja.generador import ErrorDelModelo, RESPUESTA_TITULACION_INVENTADA
+from tfg_uja.generador import (
+    ErrorDelModelo,
+    RESPUESTA_SALUDO,
+    RESPUESTA_TITULACION_INVENTADA,
+)
 
 
 class ConversacionFalsa:
@@ -70,6 +75,27 @@ def sin_sugerencias(monkeypatch: pytest.MonkeyPatch) -> None:
     sus propias pruebas contra un índice de verdad.
     """
     monkeypatch.setattr(servidor, "sugerencias_para", lambda *a, **k: [])
+
+
+@pytest.fixture(autouse=True)
+def registro(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
+    """Cada prueba escribe en su propio registro, nunca en el de ``data/``.
+
+    Va con ``autouse`` a propósito: cualquier prueba que recorra el sistema
+    deja una línea, y sin esto la tanda entera iría ensuciando el registro de
+    las conversaciones de verdad.
+    """
+    destino = tmp_path / "registro_chat.jsonl"
+    monkeypatch.setattr(registro_chat, "REGISTRO", destino)
+    return destino
+
+
+def turnos_de(registro: Path) -> list[dict[str, Any]]:
+    """Lee el registro línea a línea, que es como está pensado para leerse."""
+    if not registro.exists():
+        return []
+    crudo = registro.read_text(encoding="utf-8").splitlines()
+    return [json.loads(linea) for linea in crudo if linea]
 
 
 @pytest.fixture
@@ -151,9 +177,19 @@ def test_si_el_modelo_no_responde_sale_un_error_y_no_un_cuelgue(
 # --------------------------------------------------------------- el manejador
 
 
-def manejador_falso(cuerpo: bytes, ruta: str = "/api/chat", largo: int | None = None):
-    """Crea un manejador sin socket, con la petición ya puesta dentro."""
-    Clase = servidor.manejador(SISTEMA_FALSO)
+def manejador_falso(
+    cuerpo: bytes,
+    ruta: str = "/api/chat",
+    largo: int | None = None,
+    Clase: type | None = None,
+):
+    """Crea un manejador sin socket, con la petición ya puesta dentro.
+
+    ``Clase`` se pasa cuando la prueba necesita **dos peticiones seguidas del
+    mismo servidor**: la conversación y la cuenta de turnos viven en la clase,
+    así que construir una nueva por cada petición es empezar de cero.
+    """
+    Clase = Clase or servidor.manejador(SISTEMA_FALSO)
     m = Clase.__new__(Clase)
     m.path = ruta
     m.rfile = io.BytesIO(cuerpo)
@@ -176,11 +212,17 @@ def sucesos_de(m: Any) -> list[dict[str, object]]:
 def test_el_manejador_emite_una_linea_json_por_parte(
     monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
 ) -> None:
-    """Que es el contrato que espera el navegador."""
+    """Que es el contrato que espera el navegador.
+
+    La pregunta tiene que ser una de verdad y no un «hola»: un saludo se
+    contesta con texto fijo, no se recupera nada y no sale la línea de
+    fuentes, que es la que aquí se salta con el ``[1:]``.
+    """
     monkeypatch.setattr(
         servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
     )
-    m = manejador_falso(json.dumps({"pregunta": "hola"}).encode("utf-8"))
+    cuerpo = json.dumps({"pregunta": "¿qué asignaturas tiene?"}).encode("utf-8")
+    m = manejador_falso(cuerpo)
 
     m.do_POST()
 
@@ -388,3 +430,179 @@ def test_cualquier_otra_ruta_la_sirve_el_manejador_de_ficheros(
 
     assert servido == [True]
     assert m.wfile.getvalue() == b""
+
+
+# ------------------------------------------------------------- el registro
+
+
+def test_cada_turno_deja_una_linea_con_lo_que_hace_falta_para_analizarlo(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, registro: Path
+) -> None:
+    """Un turno tiene que poder leerse entero sin volver a ejecutar nada.
+
+    Se usa la conversación de verdad y no un doble: el ámbito de después lo
+    fija ``anotar``, y con un doble que no lo mueve la prueba no distinguiría
+    registrar antes de anotar de registrar después.
+    """
+    monkeypatch.setattr(
+        servidor,
+        "responder_por_partes",
+        lambda *a, **k: iter(["En el Grado en Ingeniería Informática se programa."]),
+    )
+    conversacion = Conversacion(SISTEMA_FALSO[2])
+
+    list(
+        servidor.partes_de_la_respuesta("¿qué se estudia?", SISTEMA_FALSO, conversacion)
+    )
+
+    (turno,) = turnos_de(registro)
+    assert turno["pregunta"] == "¿qué se estudia?"
+    assert turno["consulta"]["texto"] == "¿qué se estudia?"
+    assert turno["respuesta"] == "En el Grado en Ingeniería Informática se programa."
+    assert turno["ambito_antes"] == []
+    assert turno["ambito_despues"] == SISTEMA_FALSO[2]
+    assert turno["se_busco"] is True
+    assert turno["fragmentos"] == [
+        {
+            "nombre": "Fundamentos de la programación",
+            "origen": "guia",
+            "grados": SISTEMA_FALSO[2],
+            "distancia": 0.1,
+        }
+    ]
+    assert turno["modelo"] == servidor.MODELO_GENERATIVO
+    assert turno["retirada"] is False
+    assert turno["error"] == ""
+
+
+def test_una_respuesta_retirada_se_registra_como_tal(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, registro: Path
+) -> None:
+    """Sin la marca, un turno retirado se lee como una respuesta corta normal."""
+    monkeypatch.setattr(
+        servidor,
+        "responder_por_partes",
+        lambda *a, **k: iter(
+            ["Te recomiendo el Grado en Magia. ", None, RESPUESTA_TITULACION_INVENTADA]
+        ),
+    )
+
+    list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa()))
+
+    (turno,) = turnos_de(registro)
+    assert turno["retirada"] is True
+    assert turno["respuesta"] == RESPUESTA_TITULACION_INVENTADA
+    assert turno["modelo_llamado"] is True
+
+
+def test_un_turno_que_falla_tambien_se_registra(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, registro: Path
+) -> None:
+    """Es justo el que hay que poder analizar: si no se registra, no existió."""
+
+    def revienta(*a: Any, **k: Any) -> Any:
+        raise ErrorDelModelo("Ollama no responde")
+        yield  # pragma: no cover
+
+    monkeypatch.setattr(servidor, "responder_por_partes", revienta)
+
+    list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa()))
+
+    (turno,) = turnos_de(registro)
+    assert turno["error"] == "Ollama no responde"
+    assert turno["respuesta"] == ""
+
+
+def test_que_falle_el_registro_no_deja_al_estudiante_sin_respuesta(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, tmp_path: Path
+) -> None:
+    """Registrar es auxiliar y se comporta como tal.
+
+    El registro se apunta a una carpeta que ya existe: escribir ahí falla de
+    verdad, igual que con el disco lleno o el fichero bloqueado, y no hace
+    falta simularlo con un doble. La respuesta tiene que salir entera igual.
+    """
+    monkeypatch.setattr(registro_chat, "REGISTRO", tmp_path)
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+
+    sucesos = list(
+        servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
+    )
+
+    assert {"parte": "Hola."} in sucesos
+    assert sucesos[-1] == {"fin": True}
+
+
+# ------------------------------------------------- las respuestas fijas
+
+
+def test_un_saludo_ni_llega_al_indice_ni_anuncia_fuentes(
+    monkeypatch: pytest.MonkeyPatch, registro: Path
+) -> None:
+    """Regresión del saludo con fuentes.
+
+    Medido contra el sistema real: «Hola» devolvía **16 fuentes**, las
+    dieciséis de la misma titulación. Un saludo se contesta con texto fijo y
+    no llega al modelo, así que esas dieciséis unidades no respaldan nada: lo
+    que se estaba enseñando como fuentes de la respuesta era lo que había
+    quedado más cerca de la palabra «hola».
+
+    Aquí no se dobla el generador: la respuesta fija la produce el de verdad,
+    que para esto no necesita ni red ni modelo. Lo que se dobla es el
+    recuperador, y para que reviente si alguien lo llama.
+    """
+
+    def no_deberia_buscarse(*a: Any, **k: Any) -> Any:
+        raise AssertionError("un saludo no puede llegar al índice")
+
+    monkeypatch.setattr(servidor, "contexto_para", no_deberia_buscarse)
+    conversacion = Conversacion(SISTEMA_FALSO[2])
+
+    sucesos = list(servidor.partes_de_la_respuesta("Hola", SISTEMA_FALSO, conversacion))
+
+    assert not any("fuentes" in suceso for suceso in sucesos)
+    assert sucesos[0] == {"parte": RESPUESTA_SALUDO}
+    assert sucesos[-1] == {"fin": True}
+    # Un saludo no habla de ninguna titulación: el turno siguiente tiene que
+    # seguir sin sujeto, no heredar uno que nadie ha nombrado.
+    assert conversacion.ambito == []
+
+    (turno,) = turnos_de(registro)
+    assert turno["se_busco"] is False
+    assert turno["recuperados"] == 0
+    assert turno["modelo_llamado"] is False
+
+
+# ------------------------------------------------------ las sugerencias que rotan
+
+
+def test_dos_turnos_seguidos_no_proponen_lo_mismo(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
+) -> None:
+    """El desplazamiento avanza con la conversación, o no rotan.
+
+    Se comprueba con dos peticiones del **mismo** servidor, que es donde vive
+    la cuenta: pidiendo dos veces con manejadores recién construidos las dos
+    empezarían por cero y la prueba pasaría sin que rotase nada.
+    """
+    pedidos: list[int] = []
+
+    def anotar_desplazamiento(
+        tabla: Any, ambito: list[str], catalogo: list[str], desplazamiento: int = 0
+    ) -> list[str]:
+        pedidos.append(desplazamiento)
+        return []
+
+    monkeypatch.setattr(servidor, "sugerencias_para", anotar_desplazamiento)
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    cuerpo = json.dumps({"pregunta": "¿qué asignaturas tiene?"}).encode("utf-8")
+
+    manejador_falso(cuerpo, Clase=Clase).do_POST()
+    manejador_falso(cuerpo, Clase=Clase).do_POST()
+
+    assert pedidos == [1, 2]

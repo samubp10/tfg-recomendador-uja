@@ -31,6 +31,16 @@
   --letra-texto: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --radio: 16px;
+
+  /*
+    Ancho de la columna de lectura y margen minimo a los lados. Las bandas de
+    color ocupan la ventana entera y solo su CONTENIDO se alinea con esta
+    columna. Asi se corrigen las dos cosas que se veian mal: una aplicacion de
+    920 px encogida en medio de una pantalla ancha, y ---si se quitaba ese
+    tope--- una linea de texto de mil pixeles que no hay quien siga.
+  */
+  --columna: 62rem;
+  --margen: clamp(12px, 2.5vw, 32px);
 }
 
 * {
@@ -43,11 +53,21 @@ body {
   margin: 0;
 }
 
+/*
+  El tamano base crece con la ventana en vez de estar clavado en 15 px, y con
+  el crece todo lo demas, que se mide en `rem`. El minimo y el maximo tambien
+  van en `rem`: dentro de `font-size` del elemento raiz esa unidad se resuelve
+  contra el tamano que la persona tenga puesto en el navegador, asi que quien
+  lo haya subido por necesidad no lo pierde.
+*/
+html {
+  font-size: clamp(1rem, 0.2vw + 0.95rem, 1.2rem);
+}
+
 body {
   font-family: var(--letra-texto);
   background: var(--superficie);
   color: var(--texto);
-  font-size: 15px;
   line-height: 1.55;
 }
 
@@ -63,10 +83,24 @@ body {
 .aplicacion {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  max-width: 920px;
-  margin: 0 auto;
-  background: var(--superficie);
+  /* `dvh` y no `vh`: en el movil la barra de direcciones se recoge al
+     desplazar y con `vh` el cuadro de texto queda por debajo del borde. */
+  height: 100dvh;
+}
+
+/*
+  Cada banda ocupa el ancho completo y centra su contenido en la columna de
+  lectura. El relleno lateral no se elige, se calcula: cuando la ventana es mas
+  estrecha que la columna gana el margen minimo, y cuando es mas ancha gana la
+  mitad de lo que sobra. Se mide en `%` y no en `vw` porque `vw` incluye la
+  barra de desplazamiento y produce un desbordamiento horizontal en Windows.
+*/
+.cabecera,
+.conversacion__mensajes,
+.sugerencias,
+.redaccion,
+.aviso-ia {
+  padding-inline: max(var(--margen), (100% - var(--columna)) / 2);
 }
 
 /* ---------------------------------------------------------------- cabecera */
@@ -74,16 +108,16 @@ body {
 .cabecera {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 20px;
+  gap: clamp(10px, 1.2vw, 18px);
+  padding-block: clamp(8px, 1vw, 14px);
   background: var(--degradado-uja);
   box-shadow: 0 2px 12px rgba(26, 128, 72, 0.28);
   flex-shrink: 0;
 }
 
 .cabecera__escudo {
-  width: 64px;
-  height: 64px;
+  width: clamp(44px, 5vw, 76px);
+  height: clamp(44px, 5vw, 76px);
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -125,10 +159,18 @@ body {
      conversacion se desplaza por encima, que es lo que hace un fondo y no un
      elemento mas de la lista. */
   position: fixed;
+  /* Detras de todo: con `z-index` negativo el escudo queda por encima del
+     color de fondo de la pagina y por debajo de la cabecera y de las burbujas,
+     que si son opacas. Por eso `.aplicacion` ya no pinta fondo propio: si lo
+     pintara, lo taparia. */
+  z-index: -1;
   top: 50%;
   left: 50%;
-  width: min(62vmin, 620px);
-  height: min(62vmin, 620px);
+  /* Sin tope en pixeles, que era lo que dejaba el escudo pequeno en una
+     pantalla grande. `vmin` mira el lado corto de la ventana, asi que no se
+     sale ni en apaisado ni en vertical. */
+  width: clamp(220px, 60vmin, 900px);
+  height: clamp(220px, 60vmin, 900px);
   transform: translate(-50%, -50%);
   object-fit: contain;
   opacity: 0.11;
@@ -149,10 +191,11 @@ body {
 
 /* --------------------------------------------------------------- burbujas */
 
+/* Sin relleno lateral propio: lo pone `.conversacion__mensajes`, que es quien
+   sabe donde empieza la columna de lectura. */
 .mensaje {
   display: flex;
   gap: 8px;
-  padding: 0 16px;
   align-items: flex-start;
 }
 
@@ -189,7 +232,10 @@ body {
 }
 
 .mensaje__burbuja {
-  max-width: 72%;
+  /* Dos topes a la vez: en una ventana estrecha manda el porcentaje y en una
+     ancha manda la medida en `ch` ---anchos de caracter, no pixeles---, que es
+     lo que impide que la linea se alargue hasta hacerse incomoda de leer. */
+  max-width: min(84%, 66ch);
   padding: 11px 16px;
   border-radius: var(--radio);
   font-size: 0.9rem;
@@ -307,12 +353,60 @@ body {
   color: var(--texto-suave);
 }
 
+/* ------------------------------------------------- la respuesta en curso
+
+   El texto llega por partes a lo largo de un minuto y entre frase y frase no
+   habia forma de distinguir «esta escribiendo la siguiente» de «ya ha
+   terminado»: el aviso de espera se retira con la primera frase y el pie con
+   la hora y la duracion no se pinta hasta despues de la ultima. Ese hueco es
+   el que cubre esta marca.
+
+   Cuelga de `aria-busy`, que es el atributo que un lector de pantalla ya
+   tiene que leer para cumplir RNF-07. Al salir las dos senales ---la que se ve
+   y la que se anuncia--- del mismo sitio, no pueden acabar contradiciendose:
+   no hay una clase que se olvide de quitar por un lado. */
+
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+  content: "escribiendo…";
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  animation: respirar 1.6s ease-in-out infinite;
+}
+
+/* Mientras se ve el aviso de espera la marca sobra: los dos dicen lo mismo y
+   el aviso ademas cuenta los segundos. */
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo:has(.espera__puntos)::after {
+  content: none;
+}
+
+@keyframes respirar {
+
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* El movimiento es solo enfasis: quien haya pedido menos animacion sigue
+   leyendo la palabra, que es donde esta la informacion. */
+@media (prefers-reduced-motion: reduce) {
+  .mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+    animation: none;
+  }
+}
+
 /* ------------------------------------------------------------ sugerencias */
 
 .sugerencias {
   display: flex;
   gap: 8px;
-  padding: 6px 16px 8px;
+  padding-block: 6px 8px;
   overflow-x: auto;
   flex-shrink: 0;
   scrollbar-width: none;
@@ -351,7 +445,7 @@ body {
 
 .redaccion {
   flex-shrink: 0;
-  padding: 4px 16px 16px;
+  padding-block: 4px 16px;
 }
 
 .redaccion__caja {
@@ -423,24 +517,6 @@ body {
   color: #7a3131;
 }
 
-/* --------------------------------------------------------------- pantallas */
-
-@media (max-width: 620px) {
-  .cabecera__escudo {
-    width: 48px;
-    height: 48px;
-  }
-
-  .mensaje__burbuja {
-    max-width: 84%;
-  }
-
-  .conversacion__marca {
-    width: min(70vmin, 340px);
-    height: min(70vmin, 340px);
-  }
-}
-
 /* ------------------------------------------------ las fuentes de la respuesta
 
    RF-09 pide mostrar junto a la respuesta las fuentes de las que sale. Se
@@ -473,13 +549,22 @@ body {
 }
 
 .fuentes {
-  width: min(92vw, 520px);
-  max-height: 76vh;
+  width: min(92vw, 34rem);
+  max-height: 76dvh;
   padding: 0;
   border: 1px solid var(--borde);
   border-radius: var(--radio);
   background: var(--superficie-alta);
   color: var(--texto);
+}
+
+/* En columna para que solo se desplace la lista y la cabecera del cuadro se
+   quede quieta. Va con `[open]` porque el navegador esconde un <dialog>
+   cerrado con `display: none`, y escribir `display: flex` a secas lo dejaria
+   siempre visible. */
+.fuentes[open] {
+  display: flex;
+  flex-direction: column;
 }
 
 .fuentes::backdrop {
@@ -522,7 +607,11 @@ body {
   padding: 12px 20px 18px;
   list-style: none;
   overflow-y: auto;
-  max-height: calc(76vh - 62px);
+  /* Sin `min-height: 0` un hijo flexible no se encoge por debajo de su
+     contenido y el desplazamiento no llega a activarse nunca. Sustituye a un
+     `calc()` que restaba la altura de la cabecera en pixeles: con el tamano de
+     letra variable esa altura ya no es un numero fijo. */
+  min-height: 0;
 }
 
 .fuentes__lista li {
@@ -550,7 +639,7 @@ body {
 
 .aviso-ia {
   margin: 0;
-  padding: 0 20px 12px;
+  padding-block: 0 12px;
   text-align: center;
   font-size: 0.72rem;
   line-height: 1.5;

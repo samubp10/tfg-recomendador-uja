@@ -558,6 +558,31 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
     return None
 
 
+def respuesta_fija(pregunta: str) -> str | None:
+    """La respuesta que no necesita ni contexto recuperado ni modelo, si la hay.
+
+    Reúne las tres salidas anticipadas que se deciden mirando solo lo que se ha
+    escrito: la cortesía, el cierre de la conversación y la pregunta por otro
+    centro. Existe como función propia, y no repetida en cada sitio, porque
+    quien la llama necesita saber **antes de recuperar** si el modelo va a
+    intervenir: recuperar para un saludo es trabajo tirado, y anunciar los
+    fragmentos de un saludo es peor que tirar el trabajo, porque presenta como
+    respaldo de la respuesta algo que nadie ha usado para redactarla.
+
+    Args:
+        pregunta: Lo que ha escrito el estudiante.
+
+    Returns:
+        El texto fijo con el que se contesta, o ``None`` si esta pregunta hay
+        que responderla de verdad.
+    """
+    return (
+        cortesia(pregunta)
+        or cierre_de_conversacion(pregunta)
+        or pregunta_por_otro_centro(pregunta)
+    )
+
+
 def responder(
     pregunta: str,
     fragmentos: list[Fragmento],
@@ -616,11 +641,7 @@ def responder(
     Returns:
         La respuesta, del modelo o una de las fijas del módulo.
     """
-    fija = (
-        cortesia(pregunta)
-        or cierre_de_conversacion(pregunta)
-        or pregunta_por_otro_centro(pregunta)
-    )
+    fija = respuesta_fija(pregunta)
     if fija is not None:
         return fija
     if not fragmentos:
@@ -1011,11 +1032,7 @@ def responder_por_partes(
         Cadenas con las partes verificadas. Un ``None`` significa «borra lo
         emitido»: lo que venga despues sustituye a todo lo anterior.
     """
-    fija = (
-        cortesia(pregunta)
-        or cierre_de_conversacion(pregunta)
-        or pregunta_por_otro_centro(pregunta)
-    )
+    fija = respuesta_fija(pregunta)
     if fija is not None:
         yield fija
         return

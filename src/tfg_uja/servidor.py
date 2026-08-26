@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from collections.abc import Iterator
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -34,9 +35,14 @@ from pathlib import Path
 from typing import Any, Final
 
 from tfg_uja.conversacion import Conversacion
-from tfg_uja.generador import ErrorDelModelo, responder_por_partes
+from tfg_uja.generador import (
+    ErrorDelModelo,
+    respuesta_fija,
+    responder_por_partes,
+)
 from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
 from tfg_uja.incrustaciones import incrustador_de_consultas
+from tfg_uja.registro_chat import anotar_turno, linea_de_turno
 from tfg_uja.sugerencias import sugerencias_para
 from tfg_uja.recuperador import (
     K_MAXIMO,
@@ -119,16 +125,34 @@ def partes_de_la_respuesta(
     pregunta: str,
     sistema: tuple[Any, Any, list[str], str],
     conversacion: Conversacion,
+    turno: int = 0,
 ) -> Iterator[dict[str, object]]:
     """Recorre el sistema y va soltando lo que hay que mandar al navegador.
 
     No toca HTTP: devuelve los objetos tal cual, y quien los serialice decide
     cómo. Así se prueba el recorrido entero sin levantar un socket.
 
+    Lo primero que se mira es si la pregunta se contesta con texto fijo, y se
+    mira **antes de recuperar**: un saludo no llega al modelo, así que buscarle
+    contexto es trabajo tirado y anunciar lo encontrado como fuentes es
+    presentar como respaldo de la respuesta algo que nadie usó para
+    redactarla. La respuesta fija la sigue produciendo
+    :func:`tfg_uja.generador.responder_por_partes`, que ya sabe darla: aquí
+    solo se evita el trabajo, y así sigue habiendo una única forma de redactar
+    cada respuesta.
+
+    Al terminar el turno ---responda el modelo o falle--- se deja una línea en
+    ``data/registro_chat.jsonl``. Se registra aquí y no en el manejador porque
+    aquí está lo que hay que registrar: la consulta con la que de verdad se
+    buscó y las distancias de los fragmentos, que el manejador ya no ve.
+
     Args:
         pregunta: Lo que ha escrito el estudiante.
         sistema: ``(tabla, incrustar, catalogo, distancia)``, ya abierto.
         conversacion: Estado del diálogo, que se actualiza aquí.
+        turno: Cuántas preguntas lleva la conversación. Solo sirve para
+            desplazar las sugerencias, para que dos turnos seguidos no
+            propongan lo mismo.
 
     Yields:
         ``{"fuentes": [...]}`` con las unidades recuperadas, ``{"parte": ...}``
@@ -138,23 +162,54 @@ def partes_de_la_respuesta(
         responde.
     """
     tabla, incrustar, catalogo, distancia = sistema
+    arranque = time.monotonic()
+    # El ámbito se copia ANTES de preparar la consulta: preparar no lo cambia,
+    # pero anotar sí, y lo que interesa del registro es precisamente en qué
+    # turno cambió de titulación.
+    ambito_antes = list(conversacion.ambito)
     consulta = conversacion.preparar(pregunta)
-    fragmentos = contexto_para(
-        consulta.texto,
-        tabla,
-        incrustar,
-        respaldo=consulta.respaldo,
-        distancia=distancia,
-        k=K_MAXIMO,
-        catalogo=catalogo,
-        ambito=consulta.ambito,
-    )
+    # Reproducido contra el sistema real: «Hola» anunciaba **16 fuentes**,
+    # las dieciséis de la misma titulación, porque se recuperaba primero y se
+    # decidía después. Preguntarlo aquí es lo que lo corta.
+    fija = respuesta_fija(pregunta)
+    fragmentos: list[Any] = []
+    if fija is None:
+        fragmentos = contexto_para(
+            consulta.texto,
+            tabla,
+            incrustar,
+            respaldo=consulta.respaldo,
+            distancia=distancia,
+            k=K_MAXIMO,
+            catalogo=catalogo,
+            ambito=consulta.ambito,
+        )
     # Las fuentes salen antes que el texto y no después: se conocen en cuanto
     # termina la recuperación, y el modelo tarda un minuto en dar la primera
     # frase. Esperar al final sería tener el dato guardado sin motivo.
     if fragmentos:
         yield {"fuentes": fuentes_de(fragmentos)}
     entero = ""
+    retirada = False
+
+    def registrar(fallo: str = "") -> None:
+        """Deja el turno en el registro con el estado tal como esté ahora."""
+        anotar_turno(
+            linea_de_turno(
+                pregunta=pregunta,
+                consulta=consulta,
+                ambito_antes=ambito_antes,
+                ambito_despues=list(conversacion.ambito),
+                fragmentos=fragmentos,
+                se_busco=fija is None,
+                respuesta=entero,
+                retirada=retirada,
+                segundos=time.monotonic() - arranque,
+                modelo=MODELO_GENERATIVO,
+                error=fallo,
+            )
+        )
+
     try:
         partes = responder_por_partes(
             pregunta,
@@ -167,20 +222,28 @@ def partes_de_la_respuesta(
         for parte in partes:
             if parte is None:
                 entero = ""
+                retirada = True
                 yield {"borrar": True}
                 continue
             entero += parte
             yield {"parte": parte}
     except ErrorDelModelo as fallo:
+        # Un turno que falla es justo el que hay que poder analizar después,
+        # así que se registra igual, con el mensaje del fallo dentro.
+        registrar(str(fallo))
         yield {"error": str(fallo)}
         return
     # Se anota lo que de verdad se ha entregado: si hubo retirada, lo que queda
     # anotado es la respuesta fija y no el texto retirado.
     conversacion.anotar(pregunta, entero)
+    # Se registra DESPUÉS de anotar, que es donde la conversación fija de qué
+    # titulación se está hablando: registrarlo antes guardaría siempre el
+    # ámbito del turno anterior.
+    registrar()
     # Las sugerencias se calculan DESPUÉS de anotar, porque es ahí donde la
     # conversación fija de qué titulación se está hablando, y eso es lo que
     # decide qué se puede proponer.
-    yield {"sugerencias": sugerencias_para(tabla, conversacion.ambito, catalogo)}
+    yield {"sugerencias": sugerencias_para(tabla, conversacion.ambito, catalogo, turno)}
     yield {"fin": True}
 
 
@@ -218,6 +281,12 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: desbloquea IT-106. Con un solo visitante ---que es el alcance
         #: declarado--- una sola instancia basta.
         conversacion = Conversacion(sistema[2])
+
+        #: Preguntas atendidas. Solo desplaza las sugerencias, y por eso no
+        #: vale ``len(conversacion.preguntas())``: esa lista es una ventana de
+        #: tres y deja de crecer, de modo que del cuarto turno en adelante se
+        #: volvería a proponer siempre lo mismo.
+        turno = 0
 
         def do_GET(self) -> None:  # noqa: N802 (el nombre lo impone la base)
             """Sirve la interfaz, y las sugerencias con las que arranca."""
@@ -258,8 +327,9 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
             self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
+            type(self).turno += 1
             for suceso in partes_de_la_respuesta(
-                pregunta, sistema, type(self).conversacion
+                pregunta, sistema, type(self).conversacion, type(self).turno
             ):
                 self.wfile.write(json.dumps(suceso, ensure_ascii=False).encode("utf-8"))
                 self.wfile.write(b"\n")
