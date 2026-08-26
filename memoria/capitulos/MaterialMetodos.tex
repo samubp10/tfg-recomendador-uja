@@ -1191,13 +1191,42 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
 
-El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debería irse de este tema. La necesidad de acotar el dominio radica en el riesgo de \sout{qeu}\textcolor{borrador2}{que} el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para \sout{eviar}\textcolor{borrador2}{evitar} que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en dos capas complementarias.
+El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debería irse de este tema. La necesidad de acotar el dominio radica en el riesgo de \sout{qeu}\textcolor{borrador2}{que} el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para \sout{eviar}\textcolor{borrador2}{evitar} que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en \sout{dos}\textcolor{borrador2}{tres} capas complementarias.
 
 La primera capa es el suelo de pertinencia explicado en el apartado anterior. \sout{Si biene}\textcolor{borrador2}{Si bien} este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas \sout{preuntas}\textcolor{borrador2}{preguntas} que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras \sout{facultados}\textcolor{borrador2}{facultades}) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
 
-Por ello, la segunda capa opera después de generar la respuesta, y en ella se extraen todas las entidades con estructura de titulación y se verifica que pertenezcan al catálogo oficial de la Escuela.
+\textcolor{borrador2}{La segunda capa actúa también antes de generar, y cubre
+  justamente lo que el suelo deja pasar: reconoce cuándo la pregunta nombra un
+  centro que no es este. No se hace con una lista de universidades, que nunca
+  estaría completa, sino comprobando lo único que se sabe con certeza ---de qué
+  centro informa este asistente---, de modo que cualquier otro nombre que siga
+  la fórmula «Universidad de \textit{X}» detiene la consulta antes de llamar al
+  modelo.}
+
+\textcolor{borrador2}{Dos casos reales obligaron a ensanchar ese
+  reconocimiento, y los dos vienen del conjunto de preguntas ajenas de
+  validación. El primero es «Universidad Politécnica de Valencia», donde detrás
+  de la palabra «universidad» viene un adjetivo y no la preposición. El segundo
+  es más incómodo: «Escuela Politécnica Superior de Linares» no contiene la
+  palabra «universidad» en absoluto, y además es un centro real de esta misma
+  universidad cuyo nombre se distingue del de la Escuela de Jaén en una sola
+  palabra. Un estudiante de la provincia puede confundirlas sin ninguna mala
+  intención, y el sistema tiene que decírselo en lugar de responderle sobre el
+  centro equivocado.}
+
+Por ello, la \sout{segunda}\textcolor{borrador2}{tercera} capa opera después de generar la respuesta, y en ella se extraen todas las entidades con estructura de titulación y se verifica que pertenezcan al catálogo oficial de la Escuela.
 
 Cuando esta validación detecta una titulación inexistente, se descarta la respuesta en su totalidad en lugar de suprimir únicamente el nombre erróneo. Conviene señalar que este mecanismo cubre de forma exhaustiva las doce titulaciones oficiales del centro, pero no previene \sout{alucionaciones}\textcolor{borrador2}{alucinaciones} sobre el contenido interno de las asignaturas o las salidas profesionales.
+
+\textcolor{borrador2}{Conviene precisar qué detiene cada capa, porque las tres
+  juntas aciertan las quince preguntas ajenas del banco de evaluación y esa
+  cifra puede leerse de más. De esas quince, el suelo de pertinencia detiene
+  ocho, la comprobación de centro ajeno detiene tres y la retirada de la
+  respuesta detiene una. Las tres restantes las rechaza \textbf{el propio
+    modelo por su cuenta}, y eso no es un control del sistema: cambiar de
+  modelo bastaría para perderlo. El trabajo no lo presenta como una garantía,
+  sino como lo que es, un comportamiento observado en el modelo elegido.}
+
 
 
 \section[Fase 3: la aplicación web]{Fase 3: la aplicación web}
@@ -1323,3 +1352,95 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
+\subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
+\label{secc:fase3_fuentes}
+
+\textcolor{borrador2}{El requisito RF-09 pide mostrar junto a la respuesta las
+  fuentes de la colección de las que sale. Se resuelve con un enlace en el pie
+  de cada respuesta que abre un cuadro con la lista, y no con una lista siempre
+  desplegada, porque el recuperador llega a entregar veinte fragmentos y veinte
+  líneas de procedencia debajo de cada respuesta esconden la respuesta que se
+  ha pedido.}
+
+\textcolor{borrador2}{Lo que se lista son \textbf{unidades y no fragmentos}. Una
+  guía docente larga se trocea en varios, y enumerarlos uno a uno repetiría tres
+  veces la misma línea dando a entender tres respaldos distintos donde hay uno.
+  Se agrupan con la misma identidad que usa el resto del sistema ---el nombre de
+  la unidad junto a las titulaciones en las que se imparte---, porque una guía
+  compartida se imparte en varias y el nombre a solas no la identifica.}
+
+\textcolor{borrador2}{Y hay que decir con precisión qué es esa lista, porque el
+  rótulo obvio sería falso. El sistema sabe qué fragmentos \textbf{le entregó}
+  al modelo; no sabe cuáles usó al redactar. La diferencia no es teórica: una
+  pregunta ajena al dominio ---cómo se cocina un plato--- recupera diecisiete
+  fragmentos y aun así se responde que no hay información sobre eso. Con el
+  rótulo «fuentes de la respuesta», esa negativa vendría acompañada de
+  diecisiete fuentes. Por eso el cuadro se titula «fuentes consultadas» y una
+  nota debajo dice que de ahí salió el contexto que se entregó.}
+
+\subsection[\textcolor{borrador2}{Las preguntas que se sugieren}]{\textcolor{borrador2}{Las preguntas que se sugieren}}
+\label{secc:fase3_sugerencias}
+
+\textcolor{borrador2}{Bajo la conversación se ofrecen cuatro preguntas como
+  atajo. No están escritas en la interfaz ni se le piden al modelo: las compone
+  el servidor preguntándole al índice si existe el fragmento que respalda cada
+  una. Las dos alternativas fallan cada una por su lado. Una lista fija ofrece
+  «¿qué menciones tiene?» en las siete titulaciones que no tienen ninguna, y lo
+  que llega al modelo entonces no es contexto vacío sino contexto de otro
+  asunto. Pedírselas al modelo las inventa, que es justo lo que las tres
+  barreras de la Sección~\ref{secc:fase2_dominio} existen para impedir.}
+
+\textcolor{borrador2}{El banco son diez plantillas y cada una lleva la
+  condición que la respalda. Sobre la colección descrita en este capítulo,
+  las diez juntas pueden formular \textbf{92 preguntas distintas}: la ficha de
+  la titulación existe en las doce, el plan de estudios en once y las menciones
+  solo en cinco. Ese reparto es el motivo de que la comprobación se haga contra
+  el índice en lugar de fiarse de que todas las titulaciones tengan lo mismo.}
+
+\textcolor{borrador2}{De los cuatro huecos, dos se reservan para la titulación
+  de la que se está hablando y \textbf{dos para otras}. La primera versión daba
+  los cuatro a la titulación en curso, y el efecto se vio a la primera prueba:
+  tras nombrar una, las cuatro sugerencias eran suyas y el asistente parecía
+  conocer solo esa. Encerrar en la primera titulación que nombra a quien
+  todavía está decidiendo qué estudiar es lo contrario de lo que este sistema
+  pretende.}
+
+\subsection[\textcolor{borrador2}{La espera y el registro de las sesiones}]{\textcolor{borrador2}{La espera y el registro de las sesiones}}
+\label{secc:fase3_espera}
+
+\textcolor{borrador2}{La emisión por partes de la Sección~\ref{secc:fase3_emision}
+  resuelve el minuto de pantalla en blanco, pero abre otro hueco: entre una
+  frase y la siguiente no hay forma de distinguir «está redactando» de «ya ha
+  terminado». Medido sobre una respuesta real, esos huecos llegan a los
+  \textbf{31 segundos} con texto ya escrito delante, que es tiempo de sobra
+  para darla por acabada y marcharse. La interfaz marca por tanto mientras
+  redacta, y retira la marca al llegar el último aviso del servidor.}
+
+\textcolor{borrador2}{Esa marca no es solo visual, y la razón es el RNF-07: una
+  señal que solo se ve deja fuera a quien usa un lector de pantalla, y una que
+  solo se anuncia deja fuera a todos los demás. Las dos cuelgan del mismo
+  atributo del documento, de modo que no existe la posibilidad de que una se
+  retire y la otra se quede puesta.}
+
+\textcolor{borrador2}{Por último, cada turno que atiende el servidor queda
+  anotado en un registro en bruto, una línea por turno, con la pregunta, la
+  consulta con la que de verdad se buscó, las titulaciones de las que se venía
+  hablando, los fragmentos recuperados con su distancia y el tiempo que tardó.
+  Sirve para analizar después una sesión de pruebas sin volver a ejecutarla, que
+  con respuestas de un minuto no es un detalle menor.}
+
+\textcolor{borrador2}{Dos condiciones lo acotan. La primera es que anotar es una
+  tarea auxiliar y se comporta como tal: si el registro no se puede escribir, se
+  pierde la línea y la respuesta se entrega igual. La segunda es que no se
+  guarda nada que identifique a quien pregunta ---ni dirección de red, ni
+  cabeceras del navegador---, porque el RNF-03 lo prohíbe y un registro de
+  conversaciones es precisamente donde ese dato se colaría sin que nadie lo
+  hubiera decidido.}
+
+\textcolor{borrador2}{El registro distingue además dos situaciones que se
+  confundirían al analizarlo, porque las dos aparecen como cero fragmentos
+  recuperados: que no se buscara nada ---la pregunta era un saludo y se
+  contestó sin llegar al índice--- y que se buscara y el suelo de pertinencia lo
+  descartara todo. No se puede deducir de la respuesta, porque un saludo
+  reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
+  el segundo pasa por el índice.}
