@@ -48,7 +48,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":

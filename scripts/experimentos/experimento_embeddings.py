@@ -30,7 +30,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Final
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_RESULTADOS = RAIZ / "docs" / "adr" / "adr-0003-modelo-de-embeddings.md"
@@ -44,7 +44,8 @@ Incrustador = Callable[[list[str]], list[list[float]]]
 #: que permitió que las cifras del cuerpo de un ADR se quedaran atrás respecto a
 #: las de su propio anexo.
 MARCA_INICIO = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->"
+    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
+    "(scripts/experimentos/experimento_embeddings.py) -->"
 )
 MARCA_FIN = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 

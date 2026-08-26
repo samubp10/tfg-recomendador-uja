@@ -619,7 +619,7 @@ def main(argv: list[str] | None = None) -> int:
         Código de salida (0 si todos los invariantes se cumplen).
     """
     argumentos = argv if argv is not None else sys.argv[1:]
-    datos = Path(__file__).resolve().parent.parent / "data"
+    datos = Path(__file__).resolve().parent.parent.parent / "data"
     ruta_chunks = Path(argumentos[0]) if len(argumentos) > 0 else datos / "chunks.json"
     ruta_dataset = Path(argumentos[1]) if len(argumentos) > 1 else datos / "grados.json"
 

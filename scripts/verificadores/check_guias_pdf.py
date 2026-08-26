@@ -27,7 +27,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from tfg_uja.guia_pdf import (  # noqa: E402
     PERMITIDOS,
@@ -294,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
     # tildes y comillas angulares: sin esto la salida sale ilegible.
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
     argumentos = argv if argv is not None else sys.argv[1:]
-    datos_dir = Path(__file__).resolve().parent.parent / "data"
+    datos_dir = Path(__file__).resolve().parent.parent.parent / "data"
     ruta = Path(argumentos[0]) if len(argumentos) > 0 else datos_dir / "grados.json"
     carpeta = Path(argumentos[1]) if len(argumentos) > 1 else datos_dir / "guias_pdf"
 

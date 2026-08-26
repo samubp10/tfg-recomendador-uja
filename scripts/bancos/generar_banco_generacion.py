@@ -45,7 +45,7 @@ from typing import Any
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 
 #: Tipos que un estudiante entiende como «hay que aprobarlas sí o sí». No se
 #: llaman «obligatorias» en la pregunta a propósito: en el plan oficial `FB` es
