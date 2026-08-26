@@ -1,6 +1,6 @@
 # Rejilla de parámetros del recuperador (IT-49)
 
-> Lo escribe `scripts/barrido_recuperador.py`. **No editar a mano.**
+> Lo escribe `scripts/experimentos/barrido_recuperador.py`. **No editar a mano.**
 
 - Configuraciones probadas: **240**
 - Sin llamar a ningún modelo generativo: los tres parámetros solo deciden dónde se corta una lista ya ordenada.

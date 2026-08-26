@@ -9,7 +9,7 @@ colección._
 - **Fecha:** 2026-07-23
 - **Anomalías detectadas entre:** 23/07/2026 y 29/07/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 1 — extracción (`grados_spider.py`,
-  `guia_pdf.py`) y verificación del dataset (`scripts/check_dataset.py`)
+  `guia_pdf.py`) y verificación del dataset (`scripts/verificadores/check_dataset.py`)
 
 ## Contexto
 
@@ -205,7 +205,7 @@ tipografía que hace que un tema en mayúsculas se confunda con un rótulo de se
 | Un cambio de la plantilla movería las fronteras de sección | 29/07/2026 | los tres PDF | `test_guia_pdf.py::test_no_le_falta_a_la_guia_ningun_rotulo_de_la_plantilla`, `::test_se_detecta_que_la_fuente_renombre_un_rotulo`, `::test_ni_el_profesorado_ni_la_cabecera_se_confunden_con_un_rotulo`, `::test_los_rotulos_salen_en_orden_de_lectura` |
 | El formato de cada guía debe quedar declarado en el dato | 29/07/2026 | — | `test_grados_spider.py::test_la_guia_declara_de_que_formato_viene` |
 
-Sobre la colección completa lo comprueba `scripts/check_guias_pdf.py`, que audita las 288
+Sobre la colección completa lo comprueba `scripts/verificadores/check_guias_pdf.py`, que audita las 288
 guías contra su PDF original y enumera, sección por sección, qué se conserva y qué se
 descarta. Su salida sobre el corpus vigente: **946 218 caracteres conservados de 5 010 100, un
 18,9 %**, y el resto descartado con nombre ---cláusulas, sistemas de evaluación, metodologías,
@@ -219,7 +219,7 @@ El riesgo vivo de este registro no es el cambio de formato, que ya está tratado
 terminar donde debe y o se pierde contenido o se arrastra el bloque de profesorado. No se
 manifiesta como error.
 
-1. Ejecutar `py scripts/check_guias_pdf.py`. Comprueba por **ausencia**: avisa si a alguna
+1. Ejecutar `py scripts/verificadores/check_guias_pdf.py`. Comprueba por **ausencia**: avisa si a alguna
    guía le falta uno de los rótulos que la plantilla compone siempre. Un rótulo de más no
    significa nada; uno de menos significa que la plantilla ha cambiado.
 2. Si avisa, abrir el PDF de `data/guias_pdf/` ---el rastreo guarda una copia de cada uno
@@ -239,7 +239,7 @@ la firma `%PDF` del cuerpo.
 
 - `src/tfg_uja/guia_pdf.py`, `src/tfg_uja/grados_spider.py`
   (`parse_guia`, `_guia_desde_pdf`).
-- `scripts/check_dataset.py` (comprobación de binario en campos de texto).
+- `scripts/verificadores/check_dataset.py` (comprobación de binario en campos de texto).
 - `tests/test_guia_pdf.py`, `tests/test_grados_spider.py`
   (fixtures `guia_estadistica_iayc.pdf`,
   `guia_matematica_discreta_informatica.pdf`,

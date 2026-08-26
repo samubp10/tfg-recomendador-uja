@@ -48,7 +48,7 @@ deterministas, reproducibles e independientes del modelo evaluado.
 
 ## Instrumento de medida
 
-El banco de preguntas lo genera `scripts/generar_banco_generacion.py` a partir de
+El banco de preguntas lo genera `scripts/bancos/generar_banco_generacion.py` a partir de
 `data/grados.json`: **ni las preguntas ni las respuestas correctas se escriben a
 mano**. Son 1.023 preguntas de seis familias, y de ellas se sortea con semilla
 fija una muestra de decisión de 80 con todas las familias representadas. Las dos
@@ -184,9 +184,9 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 ## Resultados del experimento
 
-<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_generacion.py) -->
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_generacion.py) -->
 
-> Lo escribe `scripts/experimento_generacion.py --adr`. **No editar a mano.**
+> Lo escribe `scripts/experimentos/experimento_generacion.py --adr`. **No editar a mano.**
 
 - Preguntas del banco: **80** · respuestas medidas: **320**
 - Corpus extraído el 2026-08-16 de https://eps.ujaen.es/grados
@@ -312,5 +312,5 @@ tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 - ADR-0003: modelo de incrustaciones.
 - ADR-0004: base de datos vectorial.
 - `eval/preguntas_generacion.json` y `eval/preguntas_generacion_muestra.json`.
-- `scripts/generar_banco_generacion.py` y `scripts/experimento_generacion.py`.
+- `scripts/bancos/generar_banco_generacion.py` y `scripts/experimentos/experimento_generacion.py`.
 - `src/tfg_uja/verificacion.py`: las comprobaciones deterministas.

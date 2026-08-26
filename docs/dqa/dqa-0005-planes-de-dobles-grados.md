@@ -211,7 +211,7 @@ recibe un fragmento informativo que dice que no tiene guía.
 
 1. La señal es **el número de fragmentos informativos**, no una excepción. Un salto en esa
    cifra al regenerar la colección significa que el cruce ha empeorado. Lo comprueba
-   `py scripts/check_chunks.py`.
+   `py scripts/verificadores/check_chunks.py`.
 2. El cruce normaliza a minúsculas y sin tildes y, si no casa, reintenta sin el acrónimo entre
    paréntesis. Hoy casan 170 de 178; las 8 que no son los dos TFG propios de cada doble grado,
    que efectivamente no existen en ningún grado simple.

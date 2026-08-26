@@ -166,7 +166,7 @@ reproduce las irregularidades de la fuente, que es justamente lo que hay que cub
 | 9 | Marca de no ofertada en el nombre | 03/07/2026 | `tabla_electrica.html` | `test_text_cleaner.py::test_separa_la_marca_de_no_ofertada`, `test_grados_spider.py::test_electrica_marca_las_no_ofertadas_y_limpia_el_nombre`, `::test_electrica_las_demas_se_ofertan` |
 | 10 | Codificación declarada en falso | 03/07/2026 | `guia_matematicas_electrica.html` | `test_grados_spider.py::test_decodifica_los_acentos_correctamente` |
 
-Además de las pruebas unitarias, `scripts/check_dataset.py` recorre la colección completa y
+Además de las pruebas unitarias, `scripts/verificadores/check_dataset.py` recorre la colección completa y
 comprueba el recuento de entidades, la presencia de los campos obligatorios y la validez de
 los tipos de asignatura. Las pruebas cubren los casos conocidos; el verificador cubre el
 conjunto entero, que es donde aparecen los desconocidos.
@@ -176,7 +176,7 @@ conjunto entero, que es donde aparecen los desconocidos.
 Ninguna de estas anomalías produce una excepción, así que **no se detectan mirando si el
 rastreo ha terminado bien**. La secuencia que sí las destapa es siempre la misma:
 
-1. Ejecutar `py scripts/check_dataset.py` sobre la colección recién regenerada. Su constante
+1. Ejecutar `py scripts/verificadores/check_dataset.py` sobre la colección recién regenerada. Su constante
    `ESPERADO` lleva las cifras a mano, de modo que una diferencia salta sola. Ojo: una
    diferencia puede ser un cambio legítimo de la fuente **o** una pérdida silenciosa, y hay
    que averiguar cuál antes de tocar la constante.

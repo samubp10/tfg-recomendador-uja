@@ -41,7 +41,7 @@ en cada ejecución y se informa junto a las métricas.
 
 La comparación se hace sobre la colección completa (**1.334 fragmentos**, curso
 2026-27) y las **50 preguntas** etiquetadas de `eval/preguntas_evaluacion.json`,
-mediante `scripts/experimento_embeddings.py`. Los cuatro candidatos reciben el
+mediante `scripts/experimentos/experimento_embeddings.py`. Los cuatro candidatos reciben el
 mismo corpus y las mismas preguntas.
 
 ## Alternativas consideradas
@@ -270,8 +270,8 @@ suficiente como para agotar la ventana de 512 _tokens_.
 
 ## Anexo — resultados del experimento
 
-<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->
-Generado el 06/08/2026 ejecutando `py scripts/experimento_embeddings.py` contra `data/chunks.json` (1334 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
+<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_embeddings.py) -->
+Generado el 06/08/2026 ejecutando `py scripts/experimentos/experimento_embeddings.py` contra `data/chunks.json` (1334 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
 
 | Modelo | R@3 | R@5 | R@10 | RU@3 | RU@5 | RU@10 | MRR | Tiempo (s) | Ventana | Truncados | Corpus leído |
 |---|---|---|---|---|---|---|---|---|---|---|---|

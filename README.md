@@ -101,10 +101,10 @@ No corren en CI porque `data/` no existe en un *checkout* limpio; se ejecutan
 antes de cada *push*:
 
 ```console
-py scripts/check_dataset.py    # integridad de grados/asignaturas/guías/salidas
-py scripts/check_chunks.py     # tamaños y deduplicación de los fragmentos
-py scripts/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
-py scripts/check_guias_pdf.py  # la extracción de los PDF es fiel a los originales
+py scripts/verificadores/check_dataset.py    # integridad de grados/asignaturas/guías/salidas
+py scripts/verificadores/check_chunks.py     # tamaños y deduplicación de los fragmentos
+py scripts/verificadores/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
+py scripts/verificadores/check_guias_pdf.py  # la extracción de los PDF es fiel a los originales
 ```
 
 `check_guias_pdf.py` compara lo extraído con los PDF que el rastreo guarda en
@@ -119,7 +119,7 @@ lugar de tener que creérselo.
 ```console
 # Compara modelos de embeddings (Recall@3, Recall@5, MRR) sobre el conjunto de
 # evaluación. Requiere el extra [index] y red la primera vez. Solo en local.
-py scripts/experimento_embeddings.py
+py scripts/experimentos/experimento_embeddings.py
 ```
 
 Los resultados reales de cada ejecución quedan en el anexo del ADR correspondiente, escritos por el propio guion.
