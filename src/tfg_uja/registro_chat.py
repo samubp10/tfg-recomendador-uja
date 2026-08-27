@@ -126,6 +126,13 @@ def linea_de_turno(
             "texto": consulta.texto,
             "ambito": list(consulta.ambito),
             "respaldo": consulta.respaldo or "",
+            # Quién decidió el ámbito y qué dijo. Sin esto, un turno en el que
+            # la decisión falló y otro en el que el modelo dijo «sigue» dejan
+            # exactamente el mismo rastro, y el primero se confunde con el
+            # defecto del ámbito atascado. Pasó el 27/08/2026 y solo se vio
+            # comparando tiempos.
+            "decision": consulta.decision,
+            "abierta": consulta.abierta,
         },
         "ambito_antes": list(ambito_antes),
         "ambito_despues": list(ambito_despues),
