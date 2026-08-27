@@ -21,7 +21,11 @@
   --superficie: #f4f4f5;
   --superficie-alta: #ffffff;
   --borde: #ececed;
-  --borde-fuerte: #b0b1b3;
+  /* Medido el 27/08/2026: sobre `--superficie` daba 1,95 y la WCAG pide
+     3,0 para el borde de un control (1.4.11). Con #8c8d8f sube a 3,02.
+     Lo usan la sugerencia y el cuadro de escribir, los dos bordes de
+     control que hay. */
+  --borde-fuerte: #8c8d8f;
   --texto: #231f20;
   --texto-suave: #696a6c;
 
@@ -774,5 +778,111 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .mensaje__fuentes {
     transition: none;
+  }
+}
+
+/* ------------------------------- IT-45 · E1: la respuesta no es un mensaje
+
+   La tarjeta blanca con esquinas redondeadas sobre fondo gris es el aspecto
+   por omision de cualquier aplicacion de mensajeria, y aqui no describe lo que
+   pasa: lo que el asistente devuelve no es un mensaje de alguien, es un
+   informe compuesto a partir de documentos de la Escuela.
+
+   La pregunta del estudiante SI se queda como burbuja ---la escribe una
+   persona--- y el contraste entre las dos formas es lo que separa quien habla
+   de que se responde, sin necesidad de dos colores de tarjeta.
+
+   El filete de la izquierda hace ademas el trabajo que antes hacia el borde
+   del recuadro: marca donde empieza y acaba la respuesta cuando hay varias
+   seguidas. Y sigue distinguiendo la respuesta fija de la elaborada, ahora por
+   color y no por presencia. */
+.mensaje--asistente .mensaje__burbuja {
+  background: none;
+  border: 0;
+  border-left: 2px solid var(--borde-fuerte);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 2px 0 2px 16px;
+  /* Sin recuadro, la linea puede respirar mas sin volverse incomoda de leer. */
+  max-width: min(92%, 72ch);
+}
+
+/* Una respuesta que no llego a consultar al modelo tarda decimas de segundo y
+   una elaborada mas de un minuto. Sin distinguirlas, la rapida parece un fallo. */
+.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
+  border-left-color: var(--epsj-verdeazul);
+}
+
+/* El fallo si conserva el recuadro: es la unica respuesta que hay que poder
+   distinguir de un vistazo entre varias, y el color solo no basta para quien
+   no lo percibe. */
+.mensaje--fallo .mensaje__burbuja {
+  border: 1px solid #b06a6a;
+  border-radius: var(--radio);
+  padding: 11px 16px;
+  background: #fdf6f6;
+  color: #6d2c2c;
+}
+
+/* ------------------------- IT-45 · C1: las fuentes, agrupadas por titulacion
+
+   Con veinte unidades de tres titulaciones, la lista plana obliga a leerlas
+   todas para ver de donde sale la respuesta. */
+.fuentes__grupo {
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--uja-verde-claro);
+}
+
+.fuentes__titulacion {
+  margin: 0 0 4px;
+  color: var(--uja-verde-oscuro);
+  font-size: 0.78rem;
+  font-weight: 600;
+  /* Una unidad compartida trae varias titulaciones en la misma cadena y puede
+     ser larga: que parta donde haga falta en vez de desbordar el cuadro. */
+  overflow-wrap: anywhere;
+}
+
+.fuentes__unidades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fuentes__unidades li {
+  padding: 3px 0;
+  border-left: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.fuentes__unidades li + li {
+  margin-top: 0;
+}
+
+.fuentes__origen {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 0.74rem;
+}
+
+/* ------------------------------------ IT-45 · D3: cuando se pide mas contraste
+
+   `prefers-contrast: more` lo activa quien lo necesita desde su sistema. Se
+   endurecen los bordes y se oscurecen los grises: no cambia ninguna decision de
+   diseno, solo deja de apoyarse en matices que esa persona no distingue. */
+@media (prefers-contrast: more) {
+  :root {
+    --texto-suave: #4a4b4d;
+    --borde: #9a9b9d;
+    --borde-fuerte: #5c5d5f;
+  }
+
+  .mensaje--asistente .mensaje__burbuja {
+    border-left-width: 3px;
+  }
+
+  .sugerencia {
+    border-width: 2px;
   }
 }
