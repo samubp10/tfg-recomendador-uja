@@ -23,7 +23,7 @@ import { test } from "node:test";
 import { cargarChat } from "./dom_minimo.mjs";
 
 const chat = cargarChat();
-const { formatear, escapar, horaActual } = chat;
+const { formatear, escapar, horaActual, agruparFuentes, contarLaEspera } = chat;
 
 // ------------------------------------------------------------------ párrafos
 
@@ -141,4 +141,101 @@ test("el escapado ocurre antes que la negrita", () => {
 
 test("la hora se escribe con dos cifras y dos puntos", () => {
   assert.match(horaActual(), /^\d{2}:\d{2}$/);
+});
+
+// ------------------------------------------------- las fuentes, por titulación
+
+test("las unidades se agrupan por la titulación que las imparte", () => {
+  const grupos = agruparFuentes([
+    { nombre: "Álgebra", titulacion: "G. Informática", origen: "Guía" },
+    { nombre: "Física", titulacion: "G. Mecánica", origen: "Guía" },
+    { nombre: "Cálculo", titulacion: "G. Informática", origen: "Guía" },
+  ]);
+
+  assert.deepEqual(
+    // `Array.from` y no `.map`: ver la nota sobre realms en dom_minimo.mjs.
+    Array.from(grupos, ([t, u]) => [t, Array.from(u, (x) => x.nombre)]),
+    [
+      ["G. Informática", ["Álgebra", "Cálculo"]],
+      ["G. Mecánica", ["Física"]],
+    ]
+  );
+});
+
+test("se conserva el orden de llegada, que es el de proximidad", () => {
+  /*
+    El recuperador devuelve las unidades ordenadas por lo que se parecen a la
+    pregunta. Ordenar los grupos alfabéticamente escondería cuál fue la más
+    próxima, que es justo el dato que un tribunal querría comprobar.
+  */
+  const grupos = agruparFuentes([
+    { nombre: "b", titulacion: "Zeta", origen: "Guía" },
+    { nombre: "a", titulacion: "Alfa", origen: "Guía" },
+  ]);
+
+  assert.deepEqual(Array.from(grupos, ([t]) => t), ["Zeta", "Alfa"]);
+});
+
+test("una unidad compartida por varias titulaciones es un grupo propio", () => {
+  /*
+    El servidor compone la titulación juntando todas en las que se imparte. Esa
+    cadena no se parte aquí: «Álgebra en Informática y en Mecánica» es un caso
+    distinto de «Álgebra en Informática», y fundirlos diría de más.
+  */
+  const grupos = agruparFuentes([
+    { nombre: "Álgebra", titulacion: "G. Informática · G. Mecánica", origen: "Guía" },
+    { nombre: "Cálculo", titulacion: "G. Informática", origen: "Guía" },
+  ]);
+
+  assert.equal(grupos.length, 2);
+});
+
+test("una unidad sin titulación no se pierde", () => {
+  const grupos = agruparFuentes([{ nombre: "x", titulacion: "", origen: "Guía" }]);
+
+  assert.equal(grupos.length, 1);
+  assert.equal(grupos[0][1].length, 1);
+});
+
+test("sin fuentes no hay grupos", () => {
+  assert.equal(agruparFuentes([]).length, 0);
+});
+
+// --------------------------------------------------------- las dos fases
+
+test("la espera empieza diciendo que busca, no que redacta", () => {
+  const cuerpo = chat.document.createElement("div");
+  const espera = contarLaEspera(cuerpo);
+  try {
+    const aviso = cuerpo.hijos.at(-1);
+    assert.match(aviso.textContent, /^Buscando en la información de la Escuela…/);
+  } finally {
+    espera.parar();
+  }
+});
+
+test("la fase cambia cuando llegan las fuentes, no por un cronómetro", () => {
+  /*
+    Es lo que hace que el aviso diga la verdad: mientras no han llegado las
+    fuentes la recuperación sigue en marcha, y en cuanto llegan quien tarda es
+    el modelo. Un umbral de segundos habría dicho «redactando» aunque la
+    búsqueda continuara.
+  */
+  const cuerpo = chat.document.createElement("div");
+  const espera = contarLaEspera(cuerpo);
+  try {
+    const aviso = cuerpo.hijos.at(-1);
+    espera.redactando();
+    assert.match(aviso.textContent, /^Redactando la respuesta…/);
+  } finally {
+    espera.parar();
+  }
+});
+
+test("al parar, el aviso deja de refrescarse", () => {
+  // Si el intervalo quedara vivo, el proceso de pruebas no terminaría solo.
+  const cuerpo = chat.document.createElement("div");
+  const espera = contarLaEspera(cuerpo);
+  espera.parar();
+  assert.ok(true);
 });
