@@ -21,11 +21,20 @@ la conversación **deduce la titulación de la que se habla y acota la búsqueda
 con un filtro exacto**. El filtro no depende de que el modelo obedezca ni de
 que la incrustación acierte: o el fragmento es de esa titulación o no lo es.
 
-Todo lo que hace este módulo es determinista. Se descartó reescribir la
-pregunta pidiéndoselo al modelo ---que es lo que hace la literatura--- por dos
-motivos: cuesta una llamada más por consulta, y este proyecto ya tiene
-documentado que un mecanismo que depende de que el modelo obedezca no es un
-control.
+El mecanismo de este módulo es determinista, y **sigue siéndolo**: reescribir la
+pregunta pidiéndoselo al modelo ---que es lo que hace la literatura--- está
+descartado, y ahora con una medida detrás y no solo con un argumento. Al
+reescribirlas, tres preguntas ajenas al dominio se convirtieron en preguntas
+legítimas y entraron en el corpus a 0,0494, más cerca que cualquier pregunta de
+dominio del conjunto de evaluación: el suelo de pertinencia mide el texto que
+escribe el estudiante y solo ese.
+
+Lo que sí se le pide al modelo, y de forma opcional, es **decidir de qué
+titulación se habla**, porque el mecanismo determinista de aquí no sabe soltar
+el sujeto: `_ambito` solo se sustituye, nunca se vacía. Esa decisión vive en
+:mod:`tfg_uja.ambito` y llega por el atributo ``decisor``, que se inyecta. Sin
+él, este módulo se comporta exactamente como antes y no necesita ningún
+servidor: es lo que permite que sus pruebas sigan sin hablar con nadie.
 """
 
 from __future__ import annotations
@@ -33,6 +42,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Final
 
+from tfg_uja.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decisor
 from tfg_uja.recuperador import palabras_distintivas
 from tfg_uja.text_cleaner import normalizar, palabras
 
@@ -219,11 +229,26 @@ class Consulta:
             buscar en todo el corpus.
         respaldo: Con qué se vuelve a buscar si ``texto`` no recupera nada.
             Lleva delante la última pregunta que sí decía de qué se hablaba.
+        abierta: Si la consulta pregunta por la oferta de la Escuela en general
+            en vez de por una titulación. Se busca como una petición de consejo
+            ---con los términos del dominio y sin recorte relativo--- porque es
+            el mismo tipo de pregunta: no se parece a ninguna unidad concreta y
+            se responde con el catálogo entero.
+        decision: Quién y qué decidió el ámbito de este turno: una de las
+            cuatro clases de :mod:`tfg_uja.ambito`, ``FALLO`` si había decisor
+            y no pudo, o cadena vacía si no lo había. Viaja hasta el registro
+            del chat, y no es adorno: el 27/08/2026, con dos clientes hablando
+            a la vez con el mismo servidor de inferencia, todas las decisiones
+            fallaron en silencio y la conversación se comportó como antes de
+            esta tarjeta. Se tardó en verlo porque la única pista eran los
+            tiempos.
     """
 
     texto: str
     ambito: list[str]
     respaldo: str = ""
+    abierta: bool = False
+    decision: str = ""
 
 
 @dataclass
@@ -233,18 +258,65 @@ class Conversacion:
     Attributes:
         catalogo: Titulaciones que declara el índice.
         turnos_recordados: Cuántas preguntas se conservan para el prompt.
+        decisor: Con qué se decide de qué titulación se habla. Si no se pasa
+            ninguno, se usa el mecanismo determinista de siempre, que acierta el
+            seguimiento pero **no sabe soltar el sujeto**.
     """
 
     catalogo: list[str]
     turnos_recordados: int = TURNOS_RECORDADOS
+    decisor: Decisor | None = None
     _preguntas: list[str] = field(default_factory=list, init=False)
     _ambito: list[str] = field(default_factory=list, init=False)
     _predicado: str = field(default="", init=False)
+    _ultimo_turno: tuple[str, str] | None = field(default=None, init=False)
+    _decidido: str | None = field(default=None, init=False)
 
     @property
     def ambito(self) -> list[str]:
         """Titulaciones de las que se está hablando ahora mismo."""
         return list(self._ambito)
+
+    def _decidir_ambito(self, pregunta: str) -> str:
+        """Reapunta el ámbito con lo que decida el decisor, si lo hay.
+
+        Se llama **antes** de armar la consulta, y no después de responder, que
+        es la diferencia que hace que sirva: la decisión tiene que llegar a
+        tiempo para el turno que cambia de tema, que es justo el que falla.
+
+        Se consulta en **todos** los turnos, también en el primero, porque un
+        solo dueño del ámbito es más fácil de defender que dos que se pisan. En
+        el primero no hay nada que soltar, así que la decisión solo puede acotar
+        una búsqueda que hoy no se acota o dejarla como está; y la cortesía se
+        resuelve antes de llegar aquí, de modo que un «hola» no cuesta nada.
+
+        Args:
+            pregunta: Pregunta tal cual la escribe el usuario.
+
+        Returns:
+            La clase decidida; cadena vacía si no hay decisor, o :data:`FALLO`
+            si lo hay y no supo decidir. En los dos últimos casos la
+            conversación se queda con su mecanismo de siempre, y la diferencia
+            entre ellos se escribe en la consulta para que el registro la
+            conserve: sin distinguirlos, un turno con el servidor caído se lee
+            exactamente igual que el defecto que esto viene a corregir.
+        """
+        self._decidido = None
+        if self.decisor is None:
+            return ""
+        decision = self.decisor(pregunta, list(self._ambito), self._ultimo_turno)
+        if decision is None:
+            return FALLO
+        self._decidido = decision.clase
+        if decision.clase == CAMBIA:
+            self._ambito = list(decision.titulaciones)
+        elif decision.clase in (TODAS, NINGUNA):
+            # Las dos sueltan el ámbito, y con él el nombre que se le pega
+            # detrás a la consulta. Eso es la mitad del arreglo: sin ese texto
+            # añadido la pregunta vuelve a medirse desnuda, que es la única
+            # condición en la que el suelo de pertinencia rechaza lo ajeno.
+            self._ambito = []
+        return decision.clase
 
     def preparar(self, pregunta: str) -> Consulta:
         """Convierte la pregunta en una consulta que se sostiene sola.
@@ -255,8 +327,17 @@ class Conversacion:
         Returns:
             El texto a incrustar y las titulaciones a las que acotar.
         """
+        decidida = self._decidir_ambito(pregunta)
+        decidio = decidida not in ("", FALLO)
         mencionadas = titulaciones_de_la_pregunta(pregunta, self.catalogo)
-        ambito = mencionadas or self._ambito
+        # Cuando el decisor ha hablado, manda él y no las palabras de la
+        # pregunta. Si no, una decisión de «esto no va de la Escuela» se caería
+        # en cuanto la frase llevara dentro el nombre de una titulación: «¿la
+        # Universidad Politécnica de Valencia tiene Ingeniería Mecánica?» dice
+        # «mecánica», y con ella acotaría y le pegaría ese nombre a la consulta,
+        # que es justo lo que hunde a las ajenas por debajo del suelo.
+        ambito = self._ambito if decidio else (mencionadas or self._ambito)
+        abierta = decidida == TODAS
 
         texto = pregunta
         if not contenido(pregunta, self.catalogo) and self._predicado:
@@ -297,10 +378,27 @@ class Conversacion:
         # palabras, que es lo que hace frágil a la alternativa: solo depende de
         # que la primera búsqueda no haya traído nada, que es un hecho, no una
         # conjetura sobre la frase.
+        #
+        # **Pero no se calcula cuando el decisor acaba de soltar el ámbito**, y
+        # esto se vio ejecutándolo: el predicado arrastra la pregunta anterior
+        # entera, con el nombre de la titulación vieja dentro. A «prefiero algo
+        # más de máquinas y motores» la primera búsqueda le devolvía cero
+        # ---que es lo correcto: la pregunta desnuda no llega al suelo--- y el
+        # reintento la rescataba con el predicado de Inteligencia Artificial
+        # delante, devolviendo veinte fragmentos de la titulación que el
+        # estudiante acababa de dejar. El segundo mecanismo deshacía en silencio
+        # lo que había decidido el primero.
         respaldo = ""
-        if self._predicado and self._predicado != pregunta:
+        rescatable = not decidio or decidida == SIGUE
+        if rescatable and self._predicado and self._predicado != pregunta:
             respaldo = f"{self._predicado} {pregunta}".strip()
-        return Consulta(texto=texto, ambito=list(ambito), respaldo=respaldo)
+        return Consulta(
+            texto=texto,
+            ambito=list(ambito),
+            respaldo=respaldo,
+            abierta=abierta,
+            decision=decidida,
+        )
 
     def anotar(self, pregunta: str, respuesta: str) -> None:
         """Registra un turno y actualiza de qué se está hablando.
@@ -312,16 +410,33 @@ class Conversacion:
         las preguntas, el sistema no sabía de qué se hablaba y respondía de
         otra titulación con total seguridad.
 
+        **Con un decisor puesto, el ámbito no se toca aquí.** Lo decide él en
+        cada turno, y con el último turno completo delante, así que sigue viendo
+        la titulación que nombró el asistente ---el caso de IT-106--- sin que
+        haga falta deducirla otra vez con reglas. Dos mecanismos apuntando al
+        mismo dato se acaban contradiciendo: mandaría el último en escribir.
+
         Args:
             pregunta: Lo que se preguntó.
             respuesta: Lo que contestó el asistente.
         """
         self._preguntas.append(pregunta)
         del self._preguntas[: -self.turnos_recordados]
+        self._ultimo_turno = (pregunta, respuesta)
 
         if contenido(pregunta, self.catalogo) and not recorta_lo_anterior(pregunta):
             self._predicado = pregunta
 
+        # Se mira si **ha decidido** alguien en este turno, no si hay decisor
+        # puesto. No es lo mismo, y confundirlo dejaba la conversación sin
+        # ningún mecanismo de ámbito cuando el servidor no contestaba: ni el
+        # del modelo, que no llegó, ni el de reglas, que se saltaba igual. Con
+        # Ollama caído volvía el defecto 1 de IT-106 ---el sujeto lo dice el
+        # asistente y nadie lo recoge--- justo cuando ya nada podía avisar.
+        decidido = self._decidido
+        self._decidido = None
+        if decidido is not None:
+            return
         nuevo = titulaciones_de_la_pregunta(
             pregunta, self.catalogo
         ) or titulaciones_de_la_respuesta(respuesta, self.catalogo)
@@ -342,3 +457,4 @@ class Conversacion:
         self._preguntas.clear()
         self._ambito.clear()
         self._predicado = ""
+        self._ultimo_turno = None
