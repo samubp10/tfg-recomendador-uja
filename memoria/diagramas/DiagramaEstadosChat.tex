@@ -1,0 +1,103 @@
+% Los tres estados de la pantalla de chat (IT-43).
+%
+% NADA de lo que se dibuja aqui esta inventado:
+%   - Las preguntas y las respuestas salen de una conversacion ejecutada contra
+%     el sistema el 24/08/2026, con sus tiempos medidos.
+%   - Los textos de la espera son literalmente los que compone `contarLaEspera`
+%     en la interfaz, incluido el umbral a partir del cual explica por que
+%     tarda.
+%   - El pie «respuesta inmediata» es la marca que la interfaz pone cuando la
+%     respuesta no llego a consultar al modelo.
+%
+% No se dibuja bloque de fuentes: el sistema no cita fragmentos en la
+% respuesta, y dibujarlo prometeria algo que no hace.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      pantalla/.style={draw=diagNodoBorde, thick, rounded corners=4pt, fill=white},
+      barra/.style={draw=diagGrupoBorde, fill=diagGrupo, rounded corners=2pt,
+                    align=center, font=\footnotesize\bfseries, minimum height=0.8cm},
+      usuario/.style={draw=diagNodoBorde, fill=diagNodo, rounded corners=4pt,
+                      align=left, font=\scriptsize, inner sep=5pt},
+      asistente/.style={draw=diagNodoBorde, fill=white, rounded corners=4pt,
+                        align=left, font=\scriptsize, inner sep=5pt},
+      pie/.style={font=\tiny, text=black!55, align=left, inner sep=1pt},
+      nota/.style={draw=diagGrupoBorde, fill=diagGrupo, rounded corners=3pt,
+                   font=\scriptsize, text=black!75, align=left, inner sep=4pt},
+      entrada/.style={draw=diagNodoBorde, rounded corners=4pt, fill=white,
+                      align=left, font=\scriptsize\itshape, inner sep=5pt},
+      punto/.style={circle, draw=diagNodoBorde, fill=diagNodo, minimum size=3.2mm,
+                    inner sep=0pt},
+      rotulo/.style={font=\small\bfseries, anchor=north},
+      ]
+
+      % ===================== 1. CASO NORMAL =====================
+      \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
+      \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
+      \node[usuario, text width=4.4cm, anchor=north east] at (7.4,9.6)
+      {Me gustan los videojuegos y la programación, ¿qué me recomiendas?};
+      \node[asistente, text width=5.8cm, anchor=north west] (r1) at (0.3,7.9)
+      {¡Genial! Si te gustan los videojuegos y la programación, te recomiendo el
+        Grado en Ingeniería Informática. Dentro de este grado, puedes
+        especializarte en la mención «Sistemas gráficos» y cursar la asignatura
+        optativa de «Desarrollo de videojuegos» (6 ECTS)\ldots};
+      \node[pie, anchor=north west, xshift=0.1cm, yshift=-0.1cm] at (r1.south west) {09:01 \quad 82,5 s};
+      \node[entrada, text width=6.5cm, anchor=north west] at (0.3,1.5)
+      {Escribe tu pregunta\ldots};
+      \node[rotulo] at (3.8,-0.2) {1 · Respuesta elaborada};
+
+      % ===================== 2. LA ESPERA =====================
+      \begin{scope}[shift={(8.6,0)}]
+        \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
+        \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
+        \node[usuario, text width=4.4cm, anchor=north east] at (7.4,9.6)
+        {¿Y qué asignaturas tiene en primero?};
+        \node[asistente, text width=5.8cm, minimum height=1.9cm, anchor=north west] (r2) at (0.3,8.3) {};
+        \node[punto] at (1.0,7.85) {};
+        \node[punto] at (1.5,7.85) {};
+        \node[punto] at (2.0,7.85) {};
+        \node[font=\scriptsize, text width=5.4cm, align=left, anchor=north west] at (0.5,7.5)
+        {Redactando la respuesta\ldots\ 47 s. El modelo se ejecuta en este mismo
+          equipo, así que tarda más que un servicio en la nube.};
+        \node[nota, text width=5.6cm, anchor=north west] at (0.4,5.4)
+        {La cuenta empieza en «Buscando en las guías docentes» y cambia a este
+          texto a los 12 s. Mediana medida: 62,7 s; percentil 90: 125,3 s.};
+        \node[entrada, text width=6.5cm, anchor=north west] at (0.3,1.5)
+        {Escribe tu pregunta\ldots};
+        \node[rotulo] at (3.8,-0.2) {2 · La espera};
+      \end{scope}
+
+      % ============ 3. INMEDIATA Y SIN INFORMACION ============
+      \begin{scope}[shift={(17.2,0)}]
+        \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
+        \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
+        \node[asistente, text width=5.8cm, anchor=north west] (r3) at (0.3,9.6)
+        {¡Hola! Te puedo ayudar con las titulaciones de la Escuela Politécnica
+          Superior de Jaén: qué grados y dobles grados se estudian allí\ldots};
+        \node[pie, anchor=north west, xshift=0.1cm, yshift=-0.1cm] at (r3.south west)
+        {09:00 \quad respuesta inmediata};
+        \node[usuario, text width=4.4cm, anchor=north east] at (7.4,7.2)
+        {¿Y cuál es la nota de corte?};
+        \node[asistente, text width=5.8cm, anchor=north west] (r4) at (0.3,6.2)
+        {Lo siento, no tengo información sobre la nota de corte del Grado en
+          Ingeniería Informática. Mi contexto solo incluye información sobre las
+          asignaturas y su contenido.};
+        \node[pie, anchor=north west, xshift=0.1cm, yshift=-0.1cm] at (r4.south west) {09:04 \quad 23,0 s};
+        \node[nota, text width=5.6cm, anchor=north west] at (0.4,3.5)
+        {Ni una ni otra se pintan como error: la primera no llegó a consultar al
+          modelo y la segunda es la garantía de dominio funcionando.};
+        \node[entrada, text width=6.5cm, anchor=north west] at (0.3,1.5)
+        {Escribe tu pregunta\ldots};
+        \node[rotulo] at (3.8,-0.2) {3 · Inmediata y sin información};
+      \end{scope}
+    \end{tikzpicture}%
+  }
+  \caption[\textcolor{borrador2}{Los tres estados de la pantalla de chat}]{\textcolor{borrador2}{Los
+      tres estados que el diseño de la pantalla tiene que resolver, además del
+      caso corriente. Las preguntas y las respuestas proceden de una
+      conversación ejecutada contra el sistema, y los tiempos son los que tardó
+      en darlas; los textos de la espera son los que compone la propia interfaz.
+      Fuente: Elaboración propia.}}
+  \label{fig:estados_chat}
+\end{figure}

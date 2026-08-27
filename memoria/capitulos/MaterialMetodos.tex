@@ -197,6 +197,7 @@ combinado dos criterios independientes: cuánto valor aporta cada una al resulta
 final y cuánto esfuerzo cuesta.
 
 \subsection{Priorización por valor: MoSCoW}
+\label{secc:moscow}
 
 El valor se ha clasificado con la técnica \textbf{MoSCoW}~\cite{moscow}, que
 divide las tareas en cuatro categorías según su necesidad real para el
@@ -354,37 +355,8 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \input{diagramas/DiagramaModeloDatos.tex}
 
 \begin{borrador}
-  \item \textbf{Diagrama vuelto a comprobar el 16/08/2026} contra los ficheros reales
-  (\texttt{data/grados.json}, 837 ítems, y \texttt{data/chunks.json},
-  \sout{1.335} 1.499 fragmentos). En turquesa, lo que ha cambiado y es lo que tienes que
-  explicar en el texto o dejar dicho en el pie:
-  \item \textbf{(0) \texttt{Asignatura} y \texttt{Chunk} tienen el curso.} Se añaden
-  \texttt{curso} y \texttt{cuatrimestre} a la asignatura, y \texttt{curso} al fragmento.
-  Lo que hay que explicar es \emph{por qué es una cadena y no un número}: la EPSJ publica
-  el curso agrupando las tablas bajo un rótulo de sección, y en los dobles grados ese
-  rótulo dice «Tercer o Cuarto Curso», porque a partir de tercero el estudiante elige por
-  qué especialidad empieza. Guardarlo como entero obligaría a escoger uno de los dos, que
-  es inventarse el dato. De las 528 asignaturas, 420 lo declaran; las 108 restantes son
-  exactamente las optativas, que la fuente publica sin curso.
-  \item \textbf{(1) Faltaban dos de las cuatro procedencias de un fragmento.} El campo
-  \texttt{origen} toma cuatro valores en la colección ---\texttt{guia}
-  (\sout{1.193} 1.296 fragmentos), \texttt{asignatura\_sin\_guia} (86),
-  \texttt{plan\_de\_estudios} (\sout{33} 56) y \texttt{salidas}
-  (22)--- y el diagrama solo dibujaba dos flechas hacia \texttt{Chunk}. Tal como estaba,
-  daba a entender que una asignatura sin guía no llega al índice, y sí llega.
-  \item \textbf{(2) \texttt{Chunk} tiene un campo más:} \texttt{tipo\_asignatura}, que no
-  estaba.
-  \item \textbf{(3) \texttt{ects} no es un decimal, es una cadena.} La fuente publica
-  <<6>>, y una asignatura lo trae vacío. Ponerlo como \texttt{float} en la memoria
-  contradice el fichero, y es de lo que se comprueba en treinta segundos.
-  \item \textbf{(4) La procedencia ya entra en la figura}, en trazo discontinuo para que
-  se vea que no es una entidad extraída de la web sino la cabecera de cada fichero. Decide
-  si te vale así o prefieres sacarla y explicarla solo en el texto; si la dejas, el pie de
-  figura debería decir por qué va con otro trazo.
-  \item \textbf{Ojo al pie actual:} habla de <<entidades extraídas mediante \textit{web
-    scraping}>>, y ni \texttt{Chunk} ni \texttt{Procedencia} se extraen: se generan. O
-  ajustas el pie, o dices en el texto que la figura recoge el modelo completo y no solo lo
-  extraído.
+  \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
+  \item La próxima vez hacerla sin turqueda
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
@@ -399,58 +371,9 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \subsection{Situación de partida}
 
-Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (sobre todo HTML) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
-
-Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
-
-\begin{itemize}                                                                                                                                                    
-  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \glr{slugs}{slug} inconsistentes en el cuerpo de las páginas.
-  \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
-  \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
-  \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
-\end{itemize}
-
-Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
-
-\textcolor{borrador2}{Los obstáculos anteriores describen la fuente tal y como estaba al
-  comenzar el trabajo. Durante el desarrollo apareció una segunda familia de dificultades de
-  naturaleza distinta: no son defectos del código de las páginas, sino cambios de la propia
-  fuente mientras el sistema se construía sobre ella. Son los que más han condicionado el
-  diseño, porque obligan a que la extracción no dependa de que la Escuela publique hoy como
-  publicaba ayer.}
-
-\begin{itemize}                                                                                                                                                    
-  \item \textcolor{borrador2}{\textbf{El formato de las guías cambió a mitad del
-            desarrollo.} Las guías docentes dejaron de servirse como páginas HTML y pasaron a
-          servirse como documentos PDF. El cambio no fue gradual: en cinco días de julio de 2026 la
-          proporción pasó de ninguna a la totalidad, según la Escuela iba publicando el curso nuevo.
-          Hoy \textbf{el contenido de la colección procede íntegramente de documentos PDF}, aunque
-          el catálogo ---el menú de titulaciones, las portadas, las tablas de asignaturas y las
-          salidas profesionales--- se sigue leyendo del HTML.}
-  \item \textcolor{borrador2}{\textbf{La dirección del enlace no dice qué se va a
-            recibir.} El enlace de cada guía sigue terminando en \texttt{.html} y devuelve un PDF,
-          de modo que decidir por la extensión de la dirección conduce a interpretar un binario como
-          si fuera texto. La decisión se toma por el tipo de contenido que declara la respuesta.}
-  \item \textcolor{borrador2}{\textbf{El documento nuevo trae datos personales que el
-            anterior no traía.} La guía en PDF incorpora un bloque de profesorado con nombre,
-          departamento, despacho, correo electrónico y teléfono, información que la versión en HTML
-          no publicaba. Como el trabajo excluye deliberadamente los datos del profesorado, extraer
-          el documento entero habría introducido en la colección justamente aquello que se había
-          decidido dejar fuera.}
-  \item \textcolor{borrador2}{\textbf{La estructura de las tablas tampoco es estable.} Dos
-          titulaciones intercalaron una columna nueva y las titulaciones dobles rotulan y abrevian
-          esa misma columna de otra manera. En ambos casos la titulación entera desaparecía de la
-          extracción sin producir ningún error, solo un aviso en el registro.}
-  \item \textcolor{borrador2}{\textbf{Hay contenido publicado que está vacío.} Cinco guías
-          se publican con el esqueleto de la plantilla y las secciones de contenido sin rellenar.
-          No es un fallo de la extracción ---el documento se lee perfectamente--- y por eso la
-          colección no puede decir que ha fallado ella cuando el hueco es del origen.}
-\end{itemize}
 
 \begin{borrador}
-  \item \textbf{Fase:} ---DQA-0002 el cambio a PDF, DQA-0003 las
-  tablas, DQA-0004 las guías vacías y DQA-0005 los planes de las titulaciones dobles---.
-  \item Hay que eliminar la parte de HTML, nombrarla que cuando se cambie al inicio diciendo que se empezó el proyecto con esa versión y luego hubo que cambiarla a pdf, Obviamente solo lo de las guías, todo lo demás de HTML sí.
+  \item Rehacer este apartado por completo, hay que ponerlo directamente en PDF, aunque el desarrollo empezara con HTML.
 \end{borrador}
 
 
@@ -568,15 +491,10 @@ La figura que viene a continuación ~\ref{fig:anatomia_guia} muestra un caso rea
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cuál se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
+uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cual se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
 
-A continuación se muestra la Figura~\ref{fig:estructura_salidas} la cuál recoge la estructura de uno de estos objetos de información sobre un caso real. 
 
-\textcolor{borrador2}{La Figura~\ref{fig:estructura_salidas} recoge la estructura de uno de
-  esos bloques sobre un caso real. Es el más simple de los cuatro tipos de ítem de la
-  colección: un único campo de texto corrido, sin estructura interna que aprovechar, y como
-  único dato de identificación el nombre de la titulación. No lleva código de asignatura
-  porque la unidad de la que habla es la titulación entera.}
+  La Figura~\ref{fig:estructura_salidas} muestra la estructura de este tipo de elemento a partir de un caso real (las salidas profesionales del Grado en Ingeniería Informática). Consta de un solo bloque de texto continuo y se indeza únicamente con el nombre de la titulación.
 
 \input{diagramas/DiagramaEstructuraSalidas.tex}
 
@@ -813,7 +731,7 @@ Primero se introducirá el instrumento con el que se mide, que es el conjunto de
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
 
-Para la experimentación se ha usado el conjunto de datos extraídos y \sout{50} \textcolor{borrador2}{66} preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
+Para la experimentación se ha usado el conjunto de datos extraídos y 66 preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de
 la aplicación podría querer saber.
 
 Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
@@ -891,7 +809,7 @@ La unión de fragmentos solo ocurre cuando la unión resultante cabe dentro del 
 
 La Figura~\ref{fig:secuencia_chunking} recoge este proceso completo sobre el conjunto de datos ya extraído. Antes de trocear nada, se agrupan las guías por su nombre y su contenido, para deduplicar las que se comparten entre titulaciones, según se explica más adelante. Después, por cada grupo de guía, se decide el encabezado del fragmento: si se encuentran los datos de la asignatura, el encabezado incluye su nombre, tipo, créditos ECTS y titulaciones, y si no se encuentran, se usa un encabezado más genérico con solo el nombre. El texto completo de la guía se divide y se empaqueta hasta el tamaño objetivo, y los fragmentos que quedan por debajo del mínimo se fusionan con su vecino y se reequilibran. Cada unidad devuelve así sus fragmentos numerados.
 
-El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los \sout{33} \textcolor{borrador2}{56} fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
+El diagrama recoge además las tres ramas que no siguen ese camino principal. Las salidas profesionales de cada grado se trocean igual que una guía, pero con un encabezado propio. Las asignaturas sin guía docente no se descartan en silencio, sino que cada una genera un único fragmento informativo que recoge sus datos básicos, de modo que el sistema pueda al menos nombrarla y situarla en su titulación en lugar de comportarse como si no existiera. La tercera rama no trocea nada, por cada titulación y tipo de asignatura se genera un fragmento con el listado ya agregado, y de ahí salen los 56 fragmentos de plan de estudios de la colección. Es la única parte del corpus que no es una copia de la fuente, sino un texto compuesto a partir de datos que sí se extrajeron de ella. Esto se hace principalmente para las preguntas de tipo listado.
 
 \textcolor{borrador2}{Esa tercera rama dejó de ser la única. El
 Apartado~\ref{secc:fragmentos_derivados} recoge los demás fragmentos compuestos por el
@@ -1141,55 +1059,40 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
 \label{secc:fase2_pipeline}
 
-Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle.
+Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle. Los fundamentos teóricos de la recuperación semántica y del paradigma \gl{RAG} se introdujeron en el Capítulo~\ref{cap:antecedentes}
+  (Apartado~\ref{subsec:busqueda_semantica_concepto}), aquí se detalla su implementación concreta en la arquitectura del asistente.
 
-\textcolor{borrador2}{Con la colección indexada y el modelo
-  generativo elegido, este apartado describe el recorrido completo de una
-  pregunta: qué se recupera, qué se le entrega al modelo y qué se hace cuando no
-  hay nada que entregarle. Los conceptos de recuperación semántica y de
-  \gl{RAG} se explican en el Capítulo~\ref{cap:antecedentes}
-  (Apartado~\ref{subsec:busqueda_semantica_concepto}); aquí se detalla cómo los
-  aplica este sistema.}
+  La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada sin que llegue siquiera a llamar al modelo, ahorrando mucha capacidad de cómputo.
 
-\textcolor{borrador2}{La Figura~\ref{fig:secuencia_rag} resume ese recorrido.
-  Lo que conviene mirar en ella no es la sucesión de llamadas, sino los tres
-  desvíos dibujados con trazo discontinuo: son las tres formas en las que una
-  pregunta termina \textbf{sin que se llegue a llamar al modelo}, y dos de ellas
-  ocurren antes de recuperar nada. Esa es la diferencia entre pedirle al modelo
-  que no invente y no darle ocasión de hacerlo.}
 
 \input{diagramas/DiagramaSecuenciaRAG.tex}
 
-\subsubsection{\textcolor{borrador2}{Cuántos fragmentos se recuperan}}
+\subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación adaptativa y filtrado de fragmentos}
 
-\textcolor{borrador2}{El número de fragmentos que se entregan al modelo no es
-  fijo, y no serlo es una decisión y no un descuido. Las preguntas que recibe el
-  sistema no piden todas lo mismo: cuántas asignaturas tiene una titulación se
-  contesta con un solo fragmento, mientras que enumerar las obligatorias de un
-  grado necesita todos los de su plan. Un K fijo obliga a elegir entre traer
-  ruido en el primer caso o quedarse corto en el segundo.}
+El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, haciendo que si solo se necesita unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite.
 
-\textcolor{borrador2}{En su lugar se combinan tres mecanismos. El primero es una
-  \textbf{banda}: nunca menos de tres fragmentos ni más de veinte. El segundo es
-  un \textbf{corte relativo}: dentro de esa banda se conservan los fragmentos
-  cuya distancia no se aleje más de un factor dado de la del mejor, de modo que
-  una pregunta con una respuesta muy concreta se queda con pocos y una de
-  listado arrastra a todo su grupo. El tercero es un \textbf{suelo absoluto de
-  pertinencia}: por debajo de cierta calidad no se entrega nada, aunque fuera lo
-  mejor que había.}
+Para plantear esta solución, el sistema utiliza una política de recuperación dinámica que combina tres mecanismos complementarios:
 
-\subsubsection{\textcolor{borrador2}{Qué se le entrega al modelo}}
+\begin{itemize}
+  \item \textbf{Banda de seguridad:} Acota el número de fragmentos a un rango admisible, garantizando un mínimo de 3 y un máximo de 20 fragmentos por consulta.
+  \item \textbf{Corte relativo por distancia:} Dentro de dicha banda, se conservan únicamente aquellos fragmentos cuya distancia semántica no supere un factor proporcional respecto al mejor fragmento recuperado. De este modo, las consultas con una respuesta muy unívoca retienen muy pocos elementos, mientras que las de listado arrastran a todo su grupo semántico.
+  \item \textbf{Suelo absoluto de pertinencia:} Establece un umbral de similitud mínima por debajo del cual no se entrega ningún fragmento, descartando información de baja calidad incluso si constituye el mejor resultado disponible.
+\end{itemize}
 
-\textcolor{borrador2}{El texto que recibe el modelo se compone de cuatro piezas,
-  que recoge la Figura~\ref{fig:prompt_despiezado}.
-  El \textbf{mensaje de sistema} fija quién es el asistente y para quién
-  escribe. Las \textbf{instrucciones} enumeran las reglas de la respuesta: usar
-  solo el contexto, decirlo cuando el contexto no baste, distinguir una guía sin
-  publicar de una asignatura que no existe, y citar de dónde sale cada dato. El
-  \textbf{contexto} son los fragmentos recuperados, cada uno con su encabezado,
-  que dice de qué asignatura y de qué titulación procede. Y las \textbf{preguntas
-  anteriores} de la conversación, que sirven solo para entender a qué se refiere
-  la pregunta actual y nunca como fuente de datos.}
+
+Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
+
+
+\subsubsection{Estructura y composición del \textit{prompt}}
+
+La instrucción de entrada que el generador ensambla y transmite al modelo de lenguaje se estructura en cuatro bloques diferenciados:
+
+\begin{itemize}
+  \item \textbf{Mensaje de sistema:} Fija el rol del asistente como orientador académico de la Escuela, definiendo el tono formal y a quién va dirigida la respuesta.
+  \item \textbf{Instrucciones y directivas:} Establecen las reglas operativas de la generación como emplear únicamente la información del contexto, declarar explícitamente cuándo este sea insuficiente, distinguir una guía docente no publicada de una asignatura inexistente y citar de dónde procede cada dato.
+  \item \textbf{Contexto documental:} Agrupa los fragmentos seleccionados por el recuperador, cada uno precedido por un encabezado que identifica la titulación y asignatura de procedencia.
+  \item \textbf{Historial conversacional:} Incorpora las tres últimas preguntas del usuario para resolver el contexto y posibles anáforas de la consulta actual, sin actuar nunca como fuente de datos factuales.
+\end{itemize}
 
 \input{diagramas/DiagramaPromptDespiezado.tex}
 
@@ -1202,123 +1105,259 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
   ---lo que no está en el \textit{prompt} no se puede copiar---, que es la misma
   idea que gobierna el apartado siguiente.}
 
-\subsubsection{\textcolor{borrador2}{Qué ocurre cuando no se recupera nada}}
-
-\textcolor{borrador2}{El contexto vacío es el estado más peligroso de un sistema
-  de este tipo, porque el modelo responde con la misma seguridad que cuando ha
-  leído algo. Medido sobre el sistema de este trabajo: con las instrucciones
-  diciendo ya explícitamente que no añadiera datos ausentes del contexto, un
-  modelo de 7B respondió a una pregunta sin fragmentos recuperados fabricando un
-  plan de estudios completo de Ingeniería Informática, repartido por cursos, del
-  que trece de los catorce nombres no existen en la Escuela.}
-
-\textcolor{borrador2}{La solución que adopta el sistema no es reforzar la
-  instrucción, que ya estaba escrita, sino no llegar a preguntar: sin fragmentos
-  recuperados no se llama al modelo y se devuelve una respuesta fija. Esta
-  distinción atraviesa todo el capítulo y conviene enunciarla aquí, porque
-  reaparece en el apartado siguiente y en el tratamiento del dato ausente:
-  \textbf{una instrucción no es un control}. Lo que el sistema no puede permitir
-  no se pide, se impide.}
-
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
 
-\textcolor{borrador2}{El asistente informa sobre la oferta de la
-  Escuela y no debe hablar de otra cosa. El problema que motiva este apartado se
-  midió probando el sistema como lo usaría un estudiante de bachillerato: al
-  pedirle titulaciones para alguien interesado en la electricidad, recomendó
-  seis, y dos de ellas no existen en el centro. Las instrucciones ya prohibían
-  entonces añadir información ausente del contexto.}
+El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debería irse de este tema. La necesidad de acotar el dominio radica en el riesgo de que el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para evitar que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en \sout{dos}\textcolor{borrador2}{tres} capas complementarias.
 
-\textcolor{borrador2}{La restricción se resuelve con dos capas, y ninguna de las
-  dos basta por sí sola. La primera es el suelo de pertinencia descrito en el
-  apartado anterior, que rechaza la mitad de las preguntas ajenas al dominio
-  cuando estas no han intervenido en su ajuste. Las que deja pasar tienen todas
-  la misma forma: usan el vocabulario del centro para preguntar por algo que no
-  le pertenece ---si se puede estudiar Medicina en la Escuela, qué asignaturas
-  tiene un grado de otra facultad---, y la distancia entre vectores mide
-  precisamente parecido de vocabulario. Por eso el suelo no es un filtro de
-  dominio fiable, y este trabajo no lo presenta como tal.}
+La primera capa es el suelo de pertinencia explicado en el apartado anterior. Si bien este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas preguntas que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras facultades) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
 
-\textcolor{borrador2}{La segunda capa actúa \textbf{después} de generar la
-  respuesta, no antes: se extraen de ella los nombres con forma de titulación y
-  se comprueba que todos estén en el catálogo de la colección. El catálogo se lee
-  del propio corpus y no se escribe en el código, de manera que si la Escuela
-  abre una titulación nueva la comprobación no se queda obsoleta en silencio.}
+\textcolor{borrador2}{La segunda capa actúa también antes de generar, y cubre
+  justamente lo que el suelo deja pasar: reconoce cuándo la pregunta nombra un
+  centro que no es este. No se hace con una lista de universidades, que nunca
+  estaría completa, sino comprobando lo único que se sabe con certeza ---de qué
+  centro informa este asistente---, de modo que cualquier otro nombre que siga
+  la fórmula «Universidad de \textit{X}» detiene la consulta antes de llamar al
+  modelo.}
 
-\textcolor{borrador2}{Cuando la comprobación falla se retira la respuesta
-  entera, y no solo el nombre inventado. La razón es el lector: un
-  preuniversitario lee una lista de recomendaciones, no una nota al pie, y una
-  titulación falsa entre tres verdaderas se lee con la misma confianza que las
-  otras tres. La respuesta retirada queda registrada, porque una barrera que
-  descarta en silencio no se puede auditar y su número de activaciones es lo que
-  dice si está haciendo algo o estorbando.}
+\textcolor{borrador2}{Dos casos reales obligaron a ensanchar ese
+  reconocimiento, y los dos vienen del conjunto de preguntas ajenas de
+  validación. El primero es «Universidad Politécnica de Valencia», donde detrás
+  de la palabra «universidad» viene un adjetivo y no la preposición. El segundo
+  es más incómodo: «Escuela Politécnica Superior de Linares» no contiene la
+  palabra «universidad» en absoluto, y además es un centro real de esta misma
+  universidad cuyo nombre se distingue del de la Escuela de Jaén en una sola
+  palabra. Un estudiante de la provincia puede confundirlas sin ninguna mala
+  intención, y el sistema tiene que decírselo en lugar de responderle sobre el
+  centro equivocado.}
 
-\textcolor{borrador2}{El límite de esta comprobación conviene decirlo con
-  claridad: cubre las titulaciones, que son doce y están enumeradas en la
-  colección, pero no las asignaturas ni las salidas profesionales. Un modelo que
-  se invente el contenido de una guía no queda atrapado por ella.}
+Por ello, la \sout{segunda}\textcolor{borrador2}{tercera} capa opera después de generar la respuesta, y en ella se extraen todas las entidades con estructura de titulación y se verifica que pertenezcan al catálogo oficial de la Escuela.
+
+Cuando esta validación detecta una titulación inexistente, se descarta la respuesta en su totalidad en lugar de suprimir únicamente el nombre erróneo. Conviene señalar que este mecanismo cubre de forma exhaustiva las doce titulaciones oficiales del centro, pero no previene alucinaciones sobre el contenido interno de las asignaturas o las salidas profesionales.
+
+\textcolor{borrador2}{Conviene precisar qué detiene cada capa, porque las tres
+  juntas aciertan las quince preguntas ajenas del banco de evaluación y esa
+  cifra puede leerse de más. De esas quince, el suelo de pertinencia detiene
+  ocho, la comprobación de centro ajeno detiene tres y la retirada de la
+  respuesta detiene una. Las tres restantes las rechaza \textbf{el propio
+    modelo por su cuenta}, y eso no es un control del sistema: cambiar de
+  modelo bastaría para perderlo. El trabajo no lo presenta como una garantía,
+  sino como lo que es, un comportamiento observado en el modelo elegido.}
 
 
-\section[\textcolor{borrador2}{Fase 3: la aplicación web}]{\textcolor{borrador2}{Fase 3: la aplicación web}}
+
+\section[Fase 3: la aplicación web]{Fase 3: la aplicación web}
 \label{secc:fase3}
 
-\subsection[\textcolor{borrador2}{Arquitectura de la aplicación}]{\textcolor{borrador2}{Arquitectura de la aplicación}}
+\subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-\textcolor{borrador2}{La aplicación se resuelve con un solo proceso de servidor
-  que atiende las preguntas y sirve la interfaz, y que importa como biblioteca
-  el \textit{pipeline} descrito en la Sección~\ref{secc:fase2_pipeline}. La
-  Figura~\ref{fig:arquitectura_web} recoge esa estructura: lo único que queda
-  fuera del proceso es el servidor de inferencia y el fichero del índice.}
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice.
+
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
 
-\textcolor{borrador2}{La razón de que el \textit{pipeline} se importe en lugar
-  de invocarse aparte es que hay dos cosas que se cargan una sola vez al
-  arrancar y conviene que sigan cargadas: el modelo de incrustaciones y la
-  conexión con el índice. Un diseño que lanzase el \textit{pipeline} como
-  programa independiente en cada pregunta pagaría esa carga en todas ellas, y
-  el usuario al que va dirigido el sistema está esperando delante de un cuadro
-  de texto. La segunda razón es la memoria: en el equipo descrito en la
-  Sección~\ref{secc:equipo_ejecucion} el modelo generativo ya ocupa la mayor
-  parte de la disponible, y cada proceso adicional compite con él por lo que
-  queda.}
 
-\textcolor{borrador2}{La alternativa considerada fue repartir el sistema en
-  servicios independientes ---uno de recuperación, otro de generación y una
-  pasarela por delante---, que es la forma habitual de organizar una aplicación
-  de este tipo cuando se despliega en varias máquinas. Se descarta porque los
-  servicios independientes resuelven dos problemas que aquí no existen: escalar
-  cada parte por separado y desplegarlas por separado. Hay un solo equipo y un
-  solo despliegue, de modo que lo que aportaría no es capacidad sino una copia
-  más del modelo de incrustaciones en memoria, o comunicación entre procesos
-  para evitarla.}
 
-\textcolor{borrador2}{Conviene precisar que no se está rechazando separar
-  procesos como principio, porque el sistema ya tiene un límite de proceso: el
-  del servidor de inferencia, que se dibuja con borde discontinuo en la figura.
-  Ese corte sí está justificado, y por una razón concreta ---cargar el modelo
-  generativo cuesta decenas de segundos, y mantenerlo residente entre peticiones
-  es exactamente lo que hace ese proceso---. El criterio que se ha seguido es
-  admitir un límite de proceso cuando exista una razón así, y no encontrarla
-  para ningún otro corte es lo que deja la arquitectura en un solo proceso
-  propio.}
+Para integrar el flujo de procesamiento en el servidor web existían dos opciones: ejecutarlo como un programa independiente en cada consulta o importarlo directamente como biblioteca dentro del servidor. Se eligió la segunda opción por dos motivos fundamentales:
+\begin{itemize}
+  \item \textbf{Latencia:} ejecutarlo de forma independiente obligaría a cargar el modelo de incrustaciones y el índice vectorial desde cero en cada pregunta, haciendo esperar al usuario varios segundos en cada mensaje. Al importarlo como biblioteca, ambos se cargan una sola vez al arrancar y quedan listos para responder de inmediato.
+  \item \textbf{Gestión de memoria:} en un equipo doméstico donde el modelo generativo ya ocupa gran parte de la memoria disponible, crear procesos adicionales por cada petición competiría por los recursos restantes.
+\end{itemize}
 
-\subsection[\textcolor{borrador2}{La interfaz}]{\textcolor{borrador2}{La interfaz}}
+Una alternativa que se barajó fue repartir el sistema en microservicios (uno de recuperación, otro de generación y una pasarela). Se descartó porque esta arquitectura está pensada para escalar y desplegar componentes por separado en múltiples máquinas, problemas que este trabajo no presenta. Al ejecutarse todo en un único equipo, añadir procesos solo generaría sobrecarga de comunicación y un mayor consumo de memoria. Por ello, la única separación de procesos que se mantiene es la del servidor de inferencia, justificada para conservar el modelo generativo residente en memoria y evitar tiempos de recarga en cada consulta.
+
+\subsection[\textcolor{borrador2}{El punto de entrada}]{\textcolor{borrador2}{El punto de entrada}}
+\label{secc:fase3_punto_entrada}
+
+\textcolor{borrador2}{El proceso que atiende las peticiones se monta sobre el
+  módulo \texttt{http.server} de la biblioteca estándar de Python, sin
+  ningún marco de trabajo. La alternativa era cualquiera de los que se usan
+  habitualmente para esto, y lo que las separa se puede medir: contando los
+  paquetes nuevos que cada candidato obligaría a instalar sobre lo que el
+  sistema ya necesita para funcionar, \texttt{http.server} no añade ninguno,
+  \textit{Starlette} con su servidor añade dos, \textit{FastAPI} con el suyo
+  tres y \textit{Flask} cuatro. Conviene decir que la cuenta no es la que se
+  esperaría: \textit{Flask}, que tiene fama de ser el ligero, es el que más
+  añade, porque los otros comparten dependencias con piezas que el sistema ya
+  arrastra por otros motivos.}
+
+\textcolor{borrador2}{Lo que decide, en todo caso, no es esa cuenta sino qué
+  hay que atender: un único punto de entrada y unos ficheros estáticos. Ninguna
+  de las capacidades por las que se elige un marco de trabajo ---validación
+  declarativa de peticiones, documentación automática de la interfaz de
+  programación, inyección de dependencias--- resuelve aquí un problema que
+  exista, y el tiempo de respuesta tampoco puede mejorarlo ninguna de ellas,
+  porque lo fija el modelo generativo y no la capa \sig{HTTP}.}
+
+\textcolor{borrador2}{Esta decisión no se documenta en un registro de
+  arquitectura, y la razón es la misma que ordena el resto del capítulo: el
+  rigor se reparte en proporción a lo que está en juego. Este trabajo es sobre
+  recuperación aumentada, y montar una comparación formal para elegir entre dos
+  micro-marcos de trabajo desplazaría el énfasis hacia lo que no es su
+  aportación. La justificación queda en el cuerpo del \textit{commit} y en este
+  apartado.}
+
+\textcolor{borrador2}{Y hay que decir lo que hay: \texttt{http.server} no está
+  preparado para un despliegue en producción. Atiende las peticiones de una en
+  una, no ofrece HTTPS y la propia documentación de Python desaconseja
+  ese uso. Nada de eso afecta a este trabajo, porque el despliegue en producción
+  está declarado fuera de alcance en el reparto \sig{MoSCoW} de la
+  Sección~\ref{secc:moscow} y el sistema se ejecuta en el equipo de quien
+  pregunta; pero llevarlo a producción no sería cambiar de servidor, sino
+  resolver antes que el modelo generativo también atiende de uno en uno.}
+
+\textcolor{borrador2}{La consecuencia de diseño más importante de este apartado
+  es la que permite que la elección anterior sea reversible sin coste. La lógica
+  no vive en el manejador de peticiones: vive en una función que recibe la
+  pregunta y va devolviendo las partes de la respuesta ya comprobadas, y que no
+  sabe nada de \sig{HTTP}. El manejador se limita a volcar por la red lo
+  que esa función va devolviendo.
+  Eso tiene dos efectos: el recorrido completo se prueba sin abrir un socket y
+  sin llamar al modelo, con un flujo de fichas inyectado, y sustituir la capa
+  \sig{HTTP} por otra distinta afectaría a unas treinta líneas.}
+
+\subsection[\textcolor{borrador2}{La emisión de la respuesta}]{\textcolor{borrador2}{La emisión de la respuesta}}
+\label{secc:fase3_emision}
+
+\textcolor{borrador2}{Queda por decidir cómo llega la respuesta al navegador, y
+  no es una cuestión de presentación. Medido sobre el registro del banco del
+  sistema, contando solo las preguntas de un turno que llegan a llamar al modelo
+  ($n = 34$), la mediana es de 62,7 segundos y el percentil 90 de 125,3. Una
+  respuesta entregada de una sola vez deja al estudiante mirando una pantalla
+  sin cambios durante ese tiempo, que es indistinguible de una aplicación
+  colgada.}
+
+\textcolor{borrador2}{Lo que impide resolverlo sin más es que una de las tres
+  barreras de la Sección~\ref{secc:fase2_dominio} actúa después de generar: la
+  respuesta completa se comprueba contra el catálogo de titulaciones y, si
+  nombra una que no existe, se retira entera. Ir soltando el texto a medida que
+  el modelo lo produce haría imposible retirar lo que ya se ha leído, de modo
+  que ganar en respuesta se pagaría con una garantía. Las otras dos barreras no
+  se ven afectadas, porque actúan antes de llamar al modelo.}
+
+\textcolor{borrador2}{Se emite por partes, pero cada parte sale ya comprobada.
+  El servidor acumula la salida del modelo hasta el final de una frase o de una
+  línea de lista, pasa por la comprobación el texto acumulado hasta ese punto y
+  solo entonces lo suelta; si la comprobación falla, corta la emisión, retira lo
+  emitido y entrega la respuesta fija. Detecta exactamente los mismos casos que
+  antes, porque es la misma comprobación sobre el mismo texto.}
+
+\textcolor{borrador2}{Que el corte sea en final de frase no es un detalle de
+  implementación. La comprobación admite que lo dicho sea un subconjunto de las
+  palabras de una titulación real, para no retirar respuestas que abrevian el
+  nombre oficial; esa tolerancia obliga a no comprobar nunca un trozo cortado a
+  mitad de palabra, porque «Grado en Ingeniería» es subconjunto de una
+  titulación que existe y pasa, mientras que «Grado en Ingeniería Infor» no es
+  subconjunto de nada y retiraría una respuesta correcta.}
+
+\textcolor{borrador2}{Lo que se pierde no es capacidad de detección, sino
+  discreción: hasta ahora una retirada era invisible y ahora el estudiante puede
+  ver desaparecer texto que ya había leído. Se acepta porque el suceso es raro
+  ---ninguna titulación inventada en las 320 respuestas del cribado de modelos y
+  una sola retirada en las 57 entradas del banco del sistema---, y porque la
+  alternativa era perder la barrera. Conviene además no confundir lo que esto
+  mejora: el tiempo total de respuesta es exactamente el mismo, y lo único que
+  cambia es cuándo se ve lo primero. La decisión, con las tres alternativas
+  comparadas, queda registrada en el ADR-0006\cite{repo_tfg}.}
+
+\subsection[La interfaz]{La interfaz}
 \label{secc:fase3_interfaz}
 
-\textcolor{borrador2}{La interfaz es una única página servida por el mismo
-  proceso, escrita en \sig{HTML}, hojas de estilo y \textit{JavaScript} sin
-  marco de trabajo ni paso de compilación previo. Se accede sin registro, que
-  es el requisito RU-05 de la Tabla~\ref{tab:requisitos_usuario}, y por tanto
-  no hay cuentas de usuario, ni sesiones persistentes, ni base de datos de
-  usuarios que proteger.}
+Dado el enfoque experimental del trabajo centrado en las tecnologías de generación aumentada por recuperación, se ha buscado que la interfaz sea lo más sencilla posible, siendo una única página servida por un único proceso y escrita en \sig{HTML}, hojas de estilo y \textit{JavaScript} sin marco de trabajo (\textit{framework}) ni paso de compilación previo. A la aplicación web se puede acceder sin registro, como ya se anunciaba en el requisito de usuario RU-05 de la Tabla~\ref{tab:requisitos_usuario}. Por tanto, no hay cuentas de usuario, ni sesiones persistentes, ni base de datos de usuarios que proteger.
 
-\textcolor{borrador2}{La alternativa era construirla con uno de los marcos de
-  trabajo habituales para interfaces web. Se descarta porque lo que hay que
-  dibujar es un cuadro de texto y una lista de mensajes, y adoptar un marco de
-  trabajo obligaría a añadir una cadena de construcción y sus dependencias para
-  una pantalla que no las necesita. Esa decisión no cierra ninguna puerta: la
-  interfaz habla con el servidor por peticiones \sig{HTTP} corrientes, así que
-  sustituirla más adelante no obligaría a tocar nada de lo que hay detrás.}
+La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
+
+
+\subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
+\label{secc:fase3_fuentes}
+
+\textcolor{borrador2}{El requisito RF-09 pide mostrar junto a la respuesta las
+  fuentes de la colección de las que sale. Se resuelve con un enlace en el pie
+  de cada respuesta que abre un cuadro con la lista, y no con una lista siempre
+  desplegada, porque el recuperador llega a entregar veinte fragmentos y veinte
+  líneas de procedencia debajo de cada respuesta esconden la respuesta que se
+  ha pedido.}
+
+\textcolor{borrador2}{Lo que se lista son \textbf{unidades y no fragmentos}. Una
+  guía docente larga se trocea en varios, y enumerarlos uno a uno repetiría tres
+  veces la misma línea dando a entender tres respaldos distintos donde hay uno.
+  Se agrupan con la misma identidad que usa el resto del sistema ---el nombre de
+  la unidad junto a las titulaciones en las que se imparte---, porque una guía
+  compartida se imparte en varias y el nombre a solas no la identifica.}
+
+\textcolor{borrador2}{Y hay que decir con precisión qué es esa lista, porque el
+  rótulo obvio sería falso. El sistema sabe qué fragmentos \textbf{le entregó}
+  al modelo; no sabe cuáles usó al redactar. La diferencia no es teórica: una
+  pregunta ajena al dominio ---cómo se cocina un plato--- recupera diecisiete
+  fragmentos y aun así se responde que no hay información sobre eso. Con el
+  rótulo «fuentes de la respuesta», esa negativa vendría acompañada de
+  diecisiete fuentes. Por eso el cuadro se titula «fuentes consultadas» y una
+  nota debajo dice que de ahí salió el contexto que se entregó.}
+
+\subsection[\textcolor{borrador2}{Las preguntas que se sugieren}]{\textcolor{borrador2}{Las preguntas que se sugieren}}
+\label{secc:fase3_sugerencias}
+
+\textcolor{borrador2}{Bajo la conversación se ofrecen cuatro preguntas como
+  atajo. No están escritas en la interfaz ni se le piden al modelo: las compone
+  el servidor preguntándole al índice si existe el fragmento que respalda cada
+  una. Las dos alternativas fallan cada una por su lado. Una lista fija ofrece
+  «¿qué menciones tiene?» en las siete titulaciones que no tienen ninguna, y lo
+  que llega al modelo entonces no es contexto vacío sino contexto de otro
+  asunto. Pedírselas al modelo las inventa, que es justo lo que las tres
+  barreras de la Sección~\ref{secc:fase2_dominio} existen para impedir.}
+
+\textcolor{borrador2}{El banco son diez plantillas y cada una lleva la
+  condición que la respalda. Sobre la colección descrita en este capítulo,
+  las diez juntas pueden formular \textbf{92 preguntas distintas}: la ficha de
+  la titulación existe en las doce, el plan de estudios en once y las menciones
+  solo en cinco. Ese reparto es el motivo de que la comprobación se haga contra
+  el índice en lugar de fiarse de que todas las titulaciones tengan lo mismo.}
+
+\textcolor{borrador2}{De los cuatro huecos, dos se reservan para la titulación
+  de la que se está hablando y \textbf{dos para otras}. La primera versión daba
+  los cuatro a la titulación en curso, y el efecto se vio a la primera prueba:
+  tras nombrar una, las cuatro sugerencias eran suyas y el asistente parecía
+  conocer solo esa. Encerrar en la primera titulación que nombra a quien
+  todavía está decidiendo qué estudiar es lo contrario de lo que este sistema
+  pretende.}
+
+\subsection[\textcolor{borrador2}{La espera y el registro de las sesiones}]{\textcolor{borrador2}{La espera y el registro de las sesiones}}
+\label{secc:fase3_espera}
+
+\textcolor{borrador2}{La emisión por partes de la Sección~\ref{secc:fase3_emision}
+  resuelve el minuto de pantalla en blanco, pero abre otro hueco: entre una
+  frase y la siguiente no hay forma de distinguir «está redactando» de «ya ha
+  terminado». Medido sobre una respuesta real, esos huecos llegan a los
+  \textbf{31 segundos} con texto ya escrito delante, que es tiempo de sobra
+  para darla por acabada y marcharse. La interfaz marca por tanto mientras
+  redacta, y retira la marca al llegar el último aviso del servidor.}
+
+\textcolor{borrador2}{Esa marca no es solo visual, y la razón es el RNF-07: una
+  señal que solo se ve deja fuera a quien usa un lector de pantalla, y una que
+  solo se anuncia deja fuera a todos los demás. Las dos cuelgan del mismo
+  atributo del documento, de modo que no existe la posibilidad de que una se
+  retire y la otra se quede puesta.}
+
+\textcolor{borrador2}{Por último, cada turno que atiende el servidor queda
+  anotado en un registro en bruto, una línea por turno, con la pregunta, la
+  consulta con la que de verdad se buscó, las titulaciones de las que se venía
+  hablando, los fragmentos recuperados con su distancia y el tiempo que tardó.
+  Sirve para analizar después una sesión de pruebas sin volver a ejecutarla, que
+  con respuestas de un minuto no es un detalle menor.}
+
+\textcolor{borrador2}{Dos condiciones lo acotan. La primera es que anotar es una
+  tarea auxiliar y se comporta como tal: si el registro no se puede escribir, se
+  pierde la línea y la respuesta se entrega igual. La segunda es que no se
+  guarda nada que identifique a quien pregunta ---ni dirección de red, ni
+  cabeceras del navegador---, porque el RNF-03 lo prohíbe y un registro de
+  conversaciones es precisamente donde ese dato se colaría sin que nadie lo
+  hubiera decidido.}
+
+\textcolor{borrador2}{El registro distingue además dos situaciones que se
+  confundirían al analizarlo, porque las dos aparecen como cero fragmentos
+  recuperados: que no se buscara nada ---la pregunta era un saludo y se
+  contestó sin llegar al índice--- y que se buscara y el suelo de pertinencia lo
+  descartara todo. No se puede deducir de la respuesta, porque un saludo
+  reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
+  el segundo pasa por el índice.}

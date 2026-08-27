@@ -53,11 +53,7 @@
       (nav.north |- 0,2.4) -- (nav.north);
     \end{tikzpicture}%
   }
-  \caption[Arquitectura de la aplicación web]{\textcolor{borrador2}{Arquitectura
-      de la aplicación web. El borde discontinuo marca lo que es otro proceso y
-      no otro módulo: el servidor de inferencia ya existía antes de la
-      aplicación, y es el único límite de proceso que atraviesa una pregunta.
-      El desglose interno del \textit{pipeline} está en la
-      Figura~\ref{fig:secuencia_rag}. Fuente: Elaboración propia.}}
+  \caption[Arquitectura de la aplicación web]{Arquitectura de la aplicación web. Las líneas discontinuas señalan la comunicación con procesos independientes (servidor de inferencia local). El desglose interno del flujo de procesamiento se detalla en la Figura~\ref{fig:secuencia_rag}. Fuente: Elaboración propia.}
+
   \label{fig:arquitectura_web}
 \end{figure}
