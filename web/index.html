@@ -24,9 +24,16 @@
 </head>
 
 <body>
+  <!--
+    D2 (RNF-07): cada region lleva su rotulo para que se pueda saltar de una a
+    otra con un lector de pantalla en vez de recorrer la pagina entera. Los
+    elementos ya eran los correctos ---`header`, `main`, `nav`, `form`---, lo
+    que faltaba era el nombre: dos regiones sin rotular se anuncian las dos
+    como «region» y no hay forma de saber cual es cual.
+  -->
   <div class="aplicacion">
 
-    <header class="cabecera">
+    <header class="cabecera" aria-label="Escuela Politécnica Superior de Jaén">
       <img class="cabecera__escudo" src="logo-uja.png" alt="Universidad de Jaén">
       <div class="cabecera__textos">
         <p class="cabecera__titulo">Escuela Politécnica Superior</p>
@@ -40,7 +47,8 @@
       la respuesta se completa a lo largo de un minuto y quien no ve la pantalla
       no tiene otra forma de saber que sigue llegando texto.
     -->
-    <main class="conversacion" id="conversacion" aria-live="polite" aria-atomic="false">
+    <main class="conversacion" id="conversacion" aria-label="Conversación con el asistente"
+      aria-live="polite" aria-atomic="false">
       <img class="conversacion__marca" src="logo-uja.png" alt="" aria-hidden="true">
       <div class="conversacion__mensajes" id="mensajes"></div>
     </main>
@@ -54,7 +62,8 @@
     -->
     <nav class="sugerencias" id="sugerencias" aria-label="Preguntas sugeridas"></nav>
 
-    <form class="redaccion" id="redaccion" autocomplete="off">
+    <form class="redaccion" id="redaccion" autocomplete="off"
+      aria-label="Escribir una consulta">
       <div class="redaccion__caja">
         <label class="visualmente-oculto" for="entrada">Escribe tu consulta</label>
         <textarea id="entrada" class="redaccion__entrada" rows="1"
@@ -76,7 +85,7 @@
       quien redacta la respuesta y que puede equivocarse---. Fundirlos en uno
       solo dejaria una de las dos cosas sin decir.
     -->
-    <p class="aviso-ia">
+    <p class="aviso-ia" role="note">
       Las respuestas las redacta un modelo de lenguaje a partir de la información
       publicada por la Escuela, y pueden contener errores. Comprueba en la web
       oficial del centro cualquier dato del que dependa una decisión.
