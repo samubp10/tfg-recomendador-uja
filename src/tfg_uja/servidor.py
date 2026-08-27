@@ -34,7 +34,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Final
 
-from tfg_uja.conversacion import Conversacion
+from tfg_uja.ambito import decisor_con_modelo
+from tfg_uja.conversacion import Consulta, Conversacion
 from tfg_uja.generador import (
     ErrorDelModelo,
     respuesta_fija,
@@ -167,11 +168,21 @@ def partes_de_la_respuesta(
     # pero anotar sí, y lo que interesa del registro es precisamente en qué
     # turno cambió de titulación.
     ambito_antes = list(conversacion.ambito)
-    consulta = conversacion.preparar(pregunta)
     # Reproducido contra el sistema real: «Hola» anunciaba **16 fuentes**,
     # las dieciséis de la misma titulación, porque se recuperaba primero y se
     # decidía después. Preguntarlo aquí es lo que lo corta.
     fija = respuesta_fija(pregunta)
+    # Y ahora la respuesta fija se resuelve **antes** de preparar la consulta,
+    # no después, porque preparar le pregunta al modelo de qué titulación se
+    # habla. A un «hola» ese modelo contesta, con razón, que de ninguna: el
+    # ámbito se soltaría y la pregunta de seguimiento que viniera detrás se
+    # quedaría sin sujeto. Un saludo en mitad de una conversación no cambia de
+    # tema, y además así no cuesta los dos segundos y medio de la decisión.
+    consulta = (
+        conversacion.preparar(pregunta)
+        if fija is None
+        else Consulta(texto=pregunta, ambito=list(conversacion.ambito))
+    )
     fragmentos: list[Any] = []
     if fija is None:
         fragmentos = contexto_para(
@@ -179,6 +190,7 @@ def partes_de_la_respuesta(
             tabla,
             incrustar,
             respaldo=consulta.respaldo,
+            abierta=consulta.abierta,
             distancia=distancia,
             k=K_MAXIMO,
             catalogo=catalogo,
@@ -280,7 +292,15 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: La conversación vive en el proceso, no en el cliente: es lo que
         #: desbloquea IT-106. Con un solo visitante ---que es el alcance
         #: declarado--- una sola instancia basta.
-        conversacion = Conversacion(sistema[2])
+        #:
+        #: De qué titulación se habla lo decide el modelo en cada turno
+        #: (:mod:`tfg_uja.ambito`). Las reglas deterministas sabían fijar el
+        #: sujeto pero no soltarlo, y eso apagaba además el rechazo de
+        #: preguntas ajenas: medido sobre las diez del conjunto de validación,
+        #: el recuperador rechaza 5 en el primer turno y **0 en el noveno**.
+        conversacion = Conversacion(
+            sistema[2], decisor=decisor_con_modelo(sistema[2], MODELO_GENERATIVO)
+        )
 
         #: Preguntas atendidas. Solo desplaza las sugerencias, y por eso no
         #: vale ``len(conversacion.preguntas())``: esa lista es una ventana de

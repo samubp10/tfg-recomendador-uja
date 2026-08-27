@@ -1145,6 +1145,36 @@ def test_el_saludo_de_respaldo_no_se_estira_a_una_frase():
     assert cortesia_sin_contexto("resumeme la guerra") is None
 
 
+def test_un_agradecimiento_no_tapa_la_pregunta_que_viene_detras():
+    """Regresión del turno 22, medido el 27/08/2026 sobre la aplicación.
+
+    «Vale, gracias, me podrías decir cómo se harían unas costillas
+    topográficas?» no recuperaba nada, la fórmula «gracias» ganaba, y el
+    estudiante recibía «¡De nada!» con su pregunta sin contestar. La condición
+    que faltaba no es nueva: es la que :func:`cierre_de_conversacion` ya exige
+    ---fórmula presente y ninguna pregunta--- y que se perdió al relajar esta
+    función para que a la fórmula le bastara con aparecer.
+    """
+    assert (
+        cortesia_sin_contexto(
+            "Vale, gracias, me podrias decir como se harian unas costillas "
+            "topograficas?"
+        )
+        is None
+    )
+
+
+def test_un_saludo_si_puede_traer_una_pregunta_detras():
+    """La interrogación desactiva la despedida, no el saludo.
+
+    Un agradecimiento cierra algo, así que si el mensaje sigue preguntando, la
+    fórmula era el preámbulo. Un saludo abre: a quien entra preguntando si se
+    le puede ayudar se le da la bienvenida, que es lo que invita a preguntar, y
+    no un «no he encontrado información sobre eso».
+    """
+    assert cortesia_sin_contexto("hola, me puedes ayudar?") == RESPUESTA_SALUDO
+
+
 # --- IT-44: emisión por partes (ADR-0006) ---
 
 

@@ -734,3 +734,53 @@ def test_sin_respaldo_una_pregunta_sin_contexto_se_queda_sin_contexto(monkeypatc
 
     assert contexto_para("¿y cuántas son?", None, incrustador_falso) == []
     assert len(llamadas) == 1
+
+
+# --- La consulta abierta se busca como una petición de consejo ---
+
+
+def incrustador_lejano(textos: list[str]) -> list[list[float]]:
+    """Incrustador falso que deja la consulta perpendicular a todo el corpus.
+
+    Los fragmentos se indexan con :func:`incrustador_falso`, que los coloca
+    todos sobre el primer eje; devolviendo el segundo, la distancia coseno con
+    cada uno de ellos sale 1,0, muy por encima del suelo de pertinencia. Así se
+    ve si el recorte se aplica o no sin depender de qué texto se busque.
+    """
+    return [[0.0, 1.0] + [0.0] * (DIMENSION - 2) for _ in textos]
+
+
+def test_una_consulta_abierta_no_se_recorta(indice):
+    """Es el camino de la petición de consejo, y por el mismo motivo.
+
+    «Enséñame todas las titulaciones» no se parece a ninguna unidad del corpus
+    ---su mejor fragmento se queda en 0,156, por encima del suelo--- porque se
+    responde con el catálogo entero y no con la unidad más próxima. Recortarla
+    la dejaría sin contexto, y dar poco contexto a una pregunta abierta produce
+    invención igual que no darle ninguno.
+    """
+    tabla = abrir_indice(indice, MODELO)
+    fragmentos = contexto_para(
+        "¿qué titulaciones ofrece la escuela?",
+        tabla,
+        incrustador_lejano,
+        abierta=True,
+    )
+    assert len(fragmentos) == 4
+
+
+def test_sin_ser_abierta_la_misma_pregunta_sigue_recortandose(indice):
+    """El suelo sigue mandando en todo lo demás.
+
+    Es la diferencia que introduce `abierta`: misma pregunta, mismo índice y
+    mismas distancias, y la única razón por la que aquí no se devuelve nada es
+    que nadie ha dicho que se pregunte por la oferta en general.
+    """
+    tabla = abrir_indice(indice, MODELO)
+    fragmentos = contexto_para(
+        "¿qué titulaciones ofrece la escuela?",
+        tabla,
+        incrustador_lejano,
+        abierta=False,
+    )
+    assert fragmentos == []

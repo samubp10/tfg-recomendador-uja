@@ -17,7 +17,7 @@ from typing import Any
 import pytest
 
 from tfg_uja import registro_chat, servidor
-from tfg_uja.conversacion import Conversacion
+from tfg_uja.conversacion import Consulta, Conversacion
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.generador import (
     ErrorDelModelo,
@@ -33,8 +33,12 @@ class ConversacionFalsa:
         self.anotado: list[tuple[str, str]] = []
         self.ambito: list[str] = []
 
-    def preparar(self, texto: str) -> Any:
-        return type("Consulta", (), {"texto": texto, "respaldo": None, "ambito": []})()
+    def preparar(self, texto: str) -> Consulta:
+        # Se devuelve la `Consulta` de verdad y no un objeto inventado al
+        # vuelo: el falso no tenía el campo `abierta`, así que al añadirlo al
+        # tipo real estas pruebas seguían en verde midiendo una forma de
+        # consulta que ya no existía.
+        return Consulta(texto=texto, ambito=[])
 
     def preguntas(self) -> list[str]:
         return [p for p, _ in self.anotado]

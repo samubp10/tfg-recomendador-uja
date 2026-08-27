@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import pytest
 
+from tfg_uja.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decision, Decisor
 from tfg_uja.conversacion import (
     Conversacion,
     contenido,
@@ -409,3 +410,261 @@ def test_el_respaldo_no_repite_la_misma_pregunta():
     c = Conversacion(CATALOGO)
     c.anotar("¿Qué optativas tiene Informática?", "Diecisiete.")
     assert c.preparar("¿Qué optativas tiene Informática?").respaldo == ""
+
+
+# --- Cuando el ámbito lo decide el modelo ---
+
+MECANICA = "Grado en Ingeniería Mecánica"
+
+#: Con qué se llama al decisor en cada turno: pregunta, ámbito de partida y
+#: turno anterior completo.
+Llamada = tuple[str, list[str], "tuple[str, str] | None"]
+
+
+def decisor_de_guion(*decisiones: Decision | None) -> Decisor:
+    """Decisor falso que devuelve decisiones escritas de antemano.
+
+    Ninguna prueba de este fichero habla con un modelo: lo que se comprueba
+    aquí es qué hace la conversación **con** la decisión, no cómo se toma.
+
+    Args:
+        *decisiones: Lo que devuelve, una por turno y en orden. Agotadas, se
+            devuelve ``None``, que es lo que significa no haber podido decidir.
+
+    Returns:
+        La función que espera :class:`Conversacion`.
+    """
+    guion = list(decisiones)
+
+    def decidir(
+        pregunta: str, ambito: list[str], ultimo_turno: tuple[str, str] | None
+    ) -> Decision | None:
+        return guion.pop(0) if guion else None
+
+    return decidir
+
+
+def decisor_espia(llamadas: list[Llamada]) -> Decisor:
+    """Decisor falso que anota con qué se le llama y no cambia el ámbito.
+
+    Args:
+        llamadas: Lista donde se dejan los argumentos de cada llamada.
+
+    Returns:
+        La función que espera :class:`Conversacion`.
+    """
+
+    def decidir(
+        pregunta: str, ambito: list[str], ultimo_turno: tuple[str, str] | None
+    ) -> Decision | None:
+        llamadas.append((pregunta, list(ambito), ultimo_turno))
+        return Decision(SIGUE, [])
+
+    return decidir
+
+
+def test_al_cambiar_de_titulacion_se_acota_a_la_nueva():
+    """Es lo que el mecanismo determinista no sabe hacer: soltar el sujeto.
+
+    La pregunta del segundo turno no nombra ninguna titulación, así que sin
+    decisor se seguiría hablando de la primera para siempre.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(
+            Decision(CAMBIA, [INFORMATICA]), Decision(CAMBIA, [MECANICA])
+        ),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    consulta = c.preparar("¿y qué optativas tiene?")
+    assert consulta.ambito == [MECANICA]
+
+
+def test_al_cambiar_de_titulacion_se_pega_el_nombre_nuevo():
+    """El nombre que se le pega detrás a la consulta es el de ahora.
+
+    Pegar el anterior sería peor que no pegar ninguno: acercaría la consulta a
+    los fragmentos de una titulación de la que ya no se está hablando.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(
+            Decision(CAMBIA, [INFORMATICA]), Decision(CAMBIA, [MECANICA])
+        ),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    consulta = c.preparar("¿y qué optativas tiene?")
+    assert MECANICA in consulta.texto
+    assert INFORMATICA not in consulta.texto
+
+
+def test_una_pregunta_por_la_oferta_entera_no_se_acota_y_va_abierta():
+    """«Enséñame todas» no habla de ninguna titulación, sino de las doce.
+
+    Se responde con el catálogo, así que ni se filtra por la titulación
+    anterior ni se busca como una pregunta por una unidad concreta.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(Decision(CAMBIA, [INFORMATICA]), Decision(TODAS, [])),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    consulta = c.preparar("¿qué titulaciones ofrece la escuela?")
+    assert consulta.ambito == []
+    assert consulta.abierta is True
+
+
+def test_un_mensaje_ajeno_suelta_el_ambito_pero_no_abre_la_consulta():
+    """`NINGUNA` deja la consulta desnuda y sin filtro: es el estado neutro."""
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(
+            Decision(CAMBIA, [INFORMATICA]), Decision(NINGUNA, [])
+        ),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    consulta = c.preparar("¿cuál es la capital de Francia?")
+    assert consulta.ambito == []
+    assert consulta.abierta is False
+
+
+def test_un_mensaje_ajeno_no_arrastra_ningun_nombre_de_titulacion():
+    """La otra mitad del arreglo, y la que se midió.
+
+    Al ámbito se le pega su nombre detrás de la consulta antes de incrustarla,
+    y ese texto añadido acerca al corpus **todo** lo que se pregunte. Sin él la
+    pregunta vuelve a medirse desnuda, que es la única condición en la que el
+    suelo de pertinencia rechaza lo ajeno.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(
+            Decision(CAMBIA, [INFORMATICA]), Decision(NINGUNA, [])
+        ),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    consulta = c.preparar("¿cuál es la capital de Francia?")
+    assert all(titulacion not in consulta.texto for titulacion in CATALOGO)
+
+
+def test_seguir_hablando_de_lo_mismo_conserva_el_ambito():
+    """`SIGUE` no toca nada: la pregunta de seguimiento es el caso normal."""
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(Decision(CAMBIA, [INFORMATICA]), Decision(SIGUE, [])),
+    )
+    c.preparar("háblame del Grado en Ingeniería Informática")
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    assert c.preparar("¿y las optativas?").ambito == [INFORMATICA]
+
+
+def test_si_el_decisor_falla_se_responde_igual_que_sin_el():
+    """Un fallo del servidor no puede perder el turno.
+
+    Una decisión de ámbito no merece tumbar una consulta que aún se puede
+    responder: lo que promete `decisor_con_modelo` cuando devuelve ``None`` es
+    que la conversación se queda con su mecanismo determinista.
+
+    Es una prueba de regresión. La primera versión se saltaba la deducción por
+    reglas mirando **si hay decisor** en vez de si ha decidido, y con el
+    servidor caído nadie fijaba el sujeto: la pregunta de seguimiento se buscaba
+    en las doce titulaciones, que es el defecto 1 de IT-106 de vuelta y encima
+    en el momento en que nada podía avisar.
+    """
+    turnos = [
+        (
+            "Soy de bachillerato y me gustan los videojuegos",
+            "Te encaja el Grado en Ingeniería Informática.",
+        ),
+        ("¿Y qué asignaturas tiene en primero?", "Álgebra, Cálculo y Programación."),
+    ]
+    con_decisor = Conversacion(CATALOGO, decisor=decisor_de_guion(None))
+    sin_decisor = Conversacion(CATALOGO)
+    for pregunta, respuesta in turnos:
+        con_decisor.anotar(pregunta, respuesta)
+        sin_decisor.anotar(pregunta, respuesta)
+    fallada = con_decisor.preparar("¿Y en segundo?")
+    normal = sin_decisor.preparar("¿Y en segundo?")
+    # Se comparan los tres campos que deciden dónde se busca. El cuarto, la
+    # decisión, tiene que ser justamente distinto: es lo único que deja
+    # constancia de que hubo un decisor y no pudo.
+    assert (fallada.texto, fallada.ambito, fallada.respaldo) == (
+        normal.texto,
+        normal.ambito,
+        normal.respaldo,
+    )
+    assert (fallada.decision, normal.decision) == (FALLO, "")
+
+
+def test_sin_decisor_la_consulta_nunca_es_abierta():
+    """Que lo de antes siga funcionando igual: si nadie decide, nada se abre."""
+    c = Conversacion(CATALOGO)
+    c.anotar("háblame del Grado en Ingeniería Informática", "...")
+    assert c.preparar("¿qué titulaciones hay?").abierta is False
+    assert c.preparar("¿y las optativas?").abierta is False
+
+
+def test_sin_decisor_la_respuesta_sigue_fijando_el_ambito():
+    """El caso de IT-106: la titulación la nombró el asistente, no el alumno."""
+    c = Conversacion(CATALOGO)
+    c.anotar("¿me lo recomiendas?", f"Te encaja el {MECANICA}.")
+    assert c.ambito == [MECANICA]
+
+
+def test_con_decisor_la_respuesta_ya_no_fija_el_ambito():
+    """Dos mecanismos apuntando al mismo dato se acaban contradiciendo.
+
+    Con decisor puesto manda él, que ve el último turno entero y por tanto la
+    titulación que nombró el asistente. Es la diferencia con la prueba
+    anterior, y es deliberada.
+
+    El turno se monta entero ---`preparar` y luego `anotar`--- porque es lo que
+    manda: la regla no es «hay decisor» sino «ha decidido alguien en este
+    turno», y así un fallo del servidor sigue cayendo en la deducción por
+    reglas en vez de dejar la conversación sin ningún mecanismo.
+    """
+    c = Conversacion(CATALOGO, decisor=decisor_de_guion(Decision(SIGUE, [])))
+    c.preparar("¿me lo recomiendas?")
+    c.anotar("¿me lo recomiendas?", f"Te encaja el {MECANICA}.")
+    assert c.ambito == []
+
+
+def test_en_el_primer_mensaje_el_decisor_no_recibe_turno_anterior():
+    """No hay nada que enseñarle: la conversación acaba de empezar."""
+    llamadas: list[Llamada] = []
+    c = Conversacion(CATALOGO, decisor=decisor_espia(llamadas))
+    c.preparar("hola, buenas tardes")
+    assert llamadas == [("hola, buenas tardes", [], None)]
+
+
+def test_al_decisor_le_llega_el_ultimo_turno_completo():
+    """Con la respuesta dentro, que es lo que sostiene el sujeto heredado.
+
+    Si solo se le enseñaran las preguntas, no podría saber de qué se habla
+    cuando la titulación la nombró el asistente.
+    """
+    llamadas: list[Llamada] = []
+    c = Conversacion(CATALOGO, decisor=decisor_espia(llamadas))
+    c.preparar("¿me lo recomiendas?")
+    c.anotar("¿me lo recomiendas?", f"Te encaja el {MECANICA}.")
+    c.preparar("¿y las optativas?")
+    assert llamadas[-1] == (
+        "¿y las optativas?",
+        [],
+        ("¿me lo recomiendas?", f"Te encaja el {MECANICA}."),
+    )
+
+
+def test_al_olvidar_el_decisor_vuelve_a_empezar_de_cero():
+    """`olvidar` deja el objeto como recién creado, también para el decisor."""
+    llamadas: list[Llamada] = []
+    c = Conversacion(CATALOGO, decisor=decisor_espia(llamadas))
+    c.anotar("¿me lo recomiendas?", f"Te encaja el {MECANICA}.")
+    c.olvidar()
+    c.preparar("¿y las optativas?")
+    assert llamadas[-1] == ("¿y las optativas?", [], None)
