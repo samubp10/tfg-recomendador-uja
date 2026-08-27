@@ -83,6 +83,8 @@ def test_la_pregunta_y_la_consulta_se_guardan_por_separado() -> None:
         "texto": "asignaturas en segundo",
         "ambito": [INFORMATICA],
         "respaldo": "",
+        "decision": "",
+        "abierta": False,
     }
 
 
