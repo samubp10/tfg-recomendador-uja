@@ -193,6 +193,11 @@ function abrirRespuesta() {
 /**
  * Mantiene informada a la persona mientras no llega nada.
  *
+ * Son **dos fases con nombre**, y cuál toca no lo decide un cronómetro sino el
+ * propio sistema: mientras no han llegado las fuentes se está buscando, y en
+ * cuanto llegan es que la recuperación terminó y quien tarda es el modelo. Un
+ * umbral de segundos habría dicho «redactando» aunque la búsqueda siguiera.
+ *
  * Medido el 24/08/2026 sobre el banco del sistema: una pregunta de un turno que
  * llega al modelo tarda 62,7 s de mediana y el percentil 90 pasa de los dos
  * minutos. Un minuto sin ninguna senal es indistinguible de una aplicacion
@@ -208,20 +213,33 @@ function contarLaEspera(cuerpo) {
   aviso.className = "espera__aviso";
   cuerpo.appendChild(aviso);
 
+  let redactando = false;
+
   const pintar = () => {
     const segundos = Math.round((Date.now() - inicio) / 1000);
-    aviso.textContent =
-      segundos < SEGUNDOS_PARA_EXPLICAR
-        ? `Buscando en las guías docentes… ${segundos} s`
-        : `Redactando la respuesta… ${segundos} s. El modelo se ejecuta en este ` +
-          `mismo equipo, así que tarda más que un servicio en la nube.`;
+    const fase = redactando
+      ? "Redactando la respuesta"
+      : "Buscando en la información de la Escuela";
+    const tarda =
+      segundos >= SEGUNDOS_PARA_EXPLICAR
+        ? " El modelo se ejecuta en este mismo equipo, así que tarda más que un" +
+          " servicio en la nube."
+        : "";
+    aviso.textContent = `${fase}… ${segundos} s.${tarda}`;
   };
 
   pintar();
   const reloj = setInterval(pintar, 1000);
-  return () => {
-    clearInterval(reloj);
-    aviso.remove();
+  return {
+    /** El servidor ya ha recuperado: de aquí en adelante escribe el modelo. */
+    redactando() {
+      redactando = true;
+      pintar();
+    },
+    parar() {
+      clearInterval(reloj);
+      aviso.remove();
+    },
   };
 }
 
@@ -261,16 +279,51 @@ function pintarSugerencias(lista) {
  * @param {{nombre: string, titulacion: string, origen: string}[]} lista
  */
 function abrirFuentes(lista) {
-  listaFuentes.innerHTML = lista
+  listaFuentes.innerHTML = agruparFuentes(lista)
     .map(
-      (f) =>
-        `<li>${escapar(f.nombre)}` +
-        `<span class="fuentes__titulacion">${escapar(f.origen)}` +
-        (f.titulacion ? ` · ${escapar(f.titulacion)}` : "") +
-        `</span></li>`
+      ([titulacion, unidades]) =>
+        `<li class="fuentes__grupo">` +
+        `<p class="fuentes__titulacion">${escapar(titulacion)}</p>` +
+        `<ul class="fuentes__unidades">` +
+        unidades
+          .map(
+            (u) =>
+              `<li>${escapar(u.nombre)}` +
+              `<span class="fuentes__origen">${escapar(u.origen)}</span></li>`
+          )
+          .join("") +
+        `</ul></li>`
     )
     .join("");
   cuadroFuentes.showModal();
+}
+
+/**
+ * Agrupa las unidades por la titulación en la que se imparten.
+ *
+ * Con veinte unidades de tres titulaciones, la lista plana obliga a leerlas
+ * todas para ver de dónde sale la respuesta. Agrupadas se ve de un vistazo.
+ *
+ * Se conserva el orden en que llegaron ---que es el de proximidad a la
+ * pregunta--- tanto entre grupos como dentro de cada uno: reordenarlos
+ * alfabéticamente escondería cuál se pareció más a lo que se preguntó.
+ *
+ * La titulación llega ya compuesta por el servidor, y cuando una unidad se
+ * imparte en varias viene con todas separadas por un punto medio. No se parte
+ * aquí: esa cadena es una sola clave, y una asignatura compartida por cuatro
+ * titulaciones es un caso distinto de la misma asignatura en una sola.
+ *
+ * @param {{nombre: string, titulacion: string, origen: string}[]} lista
+ * @returns {[string, {nombre: string, origen: string}[]][]}
+ */
+function agruparFuentes(lista) {
+  const grupos = new Map();
+  for (const fuente of lista) {
+    const clave = fuente.titulacion || "Sin titulación asociada";
+    if (!grupos.has(clave)) grupos.set(clave, []);
+    grupos.get(clave).push(fuente);
+  }
+  return [...grupos];
 }
 
 /**
@@ -306,7 +359,7 @@ async function preguntar(pregunta, silenciosa = false) {
 
   if (!silenciosa) pintarPregunta(pregunta.trim());
   const { fila, burbuja, cuerpo, pie } = abrirRespuesta();
-  const pararContador = contarLaEspera(cuerpo);
+  const espera = contarLaEspera(cuerpo);
   const inicio = Date.now();
 
   let acumulado = "";
@@ -317,7 +370,7 @@ async function preguntar(pregunta, silenciosa = false) {
   /** Vuelca lo acumulado, sustituyendo la espera la primera vez. */
   const repintar = () => {
     if (primeraParte) {
-      pararContador();
+      espera.parar();
       cuerpo.innerHTML = "";
       primeraParte = false;
     }
@@ -367,6 +420,7 @@ async function preguntar(pregunta, silenciosa = false) {
           // Llegan antes que el texto: se conocen al terminar la recuperación
           // y el modelo tarda un minuto en dar la primera frase.
           fuentes = suceso.fuentes;
+          espera.redactando();
         }
         if (typeof suceso.parte === "string") {
           acumulado += suceso.parte;
@@ -376,7 +430,7 @@ async function preguntar(pregunta, silenciosa = false) {
     }
 
     if (!acumulado.trim()) throw new Error("el servidor no devolvió ninguna respuesta");
-    pararContador();
+    espera.parar();
 
     const segundos = (Date.now() - inicio) / 1000;
     if (segundos < SEGUNDOS_RESPUESTA_INMEDIATA) {
@@ -393,7 +447,7 @@ async function preguntar(pregunta, silenciosa = false) {
     ponerBotonDeFuentes(pie, fuentes);
     if (propuestas) pintarSugerencias(propuestas);
   } catch (fallo) {
-    pararContador();
+    espera.parar();
     fila.classList.add("mensaje--fallo");
     cuerpo.innerHTML = formatear(
       "No he podido contactar con el asistente: " +
