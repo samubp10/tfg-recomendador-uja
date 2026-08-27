@@ -10,6 +10,12 @@ que recuerda de qué titulación se habla ---también si la nombró el asistente
 no el estudiante--- y acota la búsqueda con un filtro exacto. Sin eso, «¿y qué
 asignaturas tiene en primero?» recuperaba fragmentos de las doce titulaciones.
 
+De qué titulación se habla lo decide el modelo en cada turno
+(:mod:`tfg_uja.ambito`), porque las reglas deterministas sabían fijar el sujeto
+pero no soltarlo: una vez dentro de una titulación no se salía de ella ni
+escribiendo «olvídalo, cuéntame de topografía». Con ``--ambito-determinista`` se
+vuelve al mecanismo anterior, que es con lo que se comparan los dos.
+
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
 poder releer después qué se preguntó y qué se respondió sin que las pruebas
 acaben versionadas.
@@ -20,6 +26,7 @@ Uso::
     py scripts/chat_rag.py --modelo ministral-3:3b
     py scripts/chat_rag.py --k 5 --grado "Grado en Ingeniería Informática"
     py scripts/chat_rag.py --sin-registro        # no escribe el fichero
+    py scripts/chat_rag.py --ambito-determinista # el mecanismo de antes
 
 Dentro del chat:
 
@@ -46,6 +53,7 @@ from typing import Any
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+from tfg_uja.ambito import Decisor, decisor_con_modelo  # noqa: E402
 from tfg_uja.conversacion import Conversacion  # noqa: E402
 from tfg_uja.generador import (  # noqa: E402
     ErrorDelModelo,
@@ -131,6 +139,33 @@ def _uno_solo(ambito: list[str]) -> str | None:
         La única titulación, o ``None`` si hay cero o más de una.
     """
     return ambito[0] if len(ambito) == 1 else None
+
+
+def _decisor_del_chat(indice: Indice, ajustes: Ajustes) -> Decisor:
+    """Decisor de ámbito que respeta el modelo que esté puesto en la sesión.
+
+    Se compone en cada llamada, y no una vez al arrancar, porque ``/modelo``
+    cambia el generativo sin reiniciar: con el decisor construido de antemano se
+    seguiría decidiendo con el modelo anterior y la sesión estaría comparando
+    dos cosas a la vez sin decirlo.
+
+    Args:
+        indice: Índice abierto, de donde sale el catálogo.
+        ajustes: Opciones de la sesión, que dicen qué modelo está puesto.
+
+    Returns:
+        El decisor que se le pasa a la conversación.
+    """
+
+    def decidir(
+        pregunta: str,
+        ambito: list[str],
+        ultimo_turno: tuple[str, str] | None,
+    ) -> Any:
+        elegir = decisor_con_modelo(indice.catalogo, ajustes.modelo)
+        return elegir(pregunta, ambito, ultimo_turno)
+
+    return decidir
 
 
 def formatear_fuentes(fragmentos: list[Fragmento]) -> str:
@@ -241,6 +276,15 @@ def _analizar_argumentos(argumentos: list[str]) -> argparse.Namespace:
         action="store_true",
         help="trae siempre K fragmentos, sin recortar por distancia",
     )
+    analizador.add_argument(
+        "--ambito-determinista",
+        action="store_true",
+        help=(
+            "no le pregunta al modelo de qué titulación se habla; usa las "
+            "reglas de IT-106, que aciertan el seguimiento pero no sueltan "
+            "el sujeto"
+        ),
+    )
     analizador.add_argument("--registro", default=str(CARPETA_REGISTRO))
     analizador.add_argument("--sin-registro", action="store_true")
     return analizador.parse_args(argumentos)
@@ -292,6 +336,7 @@ def _imprimir_cabecera(
     ajustes: Ajustes,
     k_fijo: bool,
     registro: Path | None,
+    decide_el_modelo: bool,
 ) -> None:
     """Escribe en pantalla contra qué se está probando.
 
@@ -301,6 +346,7 @@ def _imprimir_cabecera(
         ajustes: Opciones con las que arranca la sesión.
         k_fijo: Si se traen siempre K fragmentos, sin recortar por distancia.
         registro: Fichero de la sesión, o ``None`` si no se registra.
+        decide_el_modelo: Si el ámbito lo decide el modelo en cada turno.
     """
     fragmentos = indice.tabla.count_rows()
     print(f"\nÍndice:  {ruta_indice}  ({fragmentos} fragmentos, {indice.distancia})")
@@ -309,6 +355,14 @@ def _imprimir_cabecera(
         + (f"   ·   acotado a «{ajustes.grado}»" if ajustes.grado else "")
     )
     print(f"Memoria: {TURNOS_RECORDADOS} turnos")
+    print(
+        "Ámbito:  "
+        + (
+            "lo decide el modelo en cada turno (+2-3 s, van en «recuperar»)"
+            if decide_el_modelo
+            else "reglas deterministas, no se suelta solo"
+        )
+    )
     print(
         "Fragmentos: "
         + (f"K fijo = {ajustes.k}" if k_fijo else f"dinámicos, hasta {ajustes.k}")
@@ -406,6 +460,7 @@ def _recuperar_contexto(
                 indice.tabla,
                 indice.incrustar,
                 respaldo=consulta.respaldo,
+                abierta=consulta.abierta,
                 **opciones,
             )
     except TitulacionDesconocida as error:
@@ -507,7 +562,13 @@ def main(argumentos: list[str]) -> None:
         curso=opciones.curso,
     )
     ultimos: list[Fragmento] = []
-    conversacion = Conversacion(indice.catalogo, turnos_recordados=TURNOS_RECORDADOS)
+    conversacion = Conversacion(
+        indice.catalogo,
+        turnos_recordados=TURNOS_RECORDADOS,
+        decisor=(
+            None if opciones.ambito_determinista else _decisor_del_chat(indice, ajustes)
+        ),
+    )
     # Contador propio: el historial se recorta a los últimos turnos, así que su
     # longitud deja de servir para numerarlos en cuanto se pasa del tercero.
     turno = 0
@@ -522,7 +583,14 @@ def main(argumentos: list[str]) -> None:
             indice.tabla.count_rows(),
         )
     )
-    _imprimir_cabecera(ruta_indice, indice, ajustes, opciones.k_fijo, registro)
+    _imprimir_cabecera(
+        ruta_indice,
+        indice,
+        ajustes,
+        opciones.k_fijo,
+        registro,
+        conversacion.decisor is not None,
+    )
 
     while True:
         try:

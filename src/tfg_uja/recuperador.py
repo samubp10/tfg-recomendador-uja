@@ -538,6 +538,7 @@ def contexto_para(
     tabla: Any,
     incrustar: Incrustador,
     respaldo: str = "",
+    abierta: bool = False,
     **opciones: Any,
 ) -> list[Fragmento]:
     """Recupera el contexto con el que se va a responder, ya acotado.
@@ -566,12 +567,19 @@ def contexto_para(
         incrustar: Incrustador de consultas.
         respaldo: Con qué volver a buscar si la primera búsqueda vuelve vacía.
             Lo compone :class:`tfg_uja.conversacion.Consulta`.
+        abierta: Si la consulta pregunta por la oferta de la Escuela en general.
+            Se trata igual que una petición de consejo, y por el mismo motivo:
+            «enséñame todas las titulaciones» tampoco se parece a ninguna unidad
+            del corpus, así que su mejor fragmento se queda en 0,156 ---por
+            encima del suelo--- y se responde con el catálogo, no con la unidad
+            más próxima. Lo dice quien decide el ámbito; ``pide_recomendacion``
+            sigue reconociendo por su cuenta las peticiones de consejo.
         **opciones: El resto de argumentos de :func:`recuperar`.
 
     Returns:
         Los fragmentos que se le entregan al modelo.
     """
-    consejo = pide_recomendacion(pregunta)
+    consejo = abierta or pide_recomendacion(pregunta)
     traidos = recuperar(
         expandir(pregunta) if consejo else pregunta, tabla, incrustar, **opciones
     )

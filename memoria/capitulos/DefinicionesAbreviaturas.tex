@@ -31,25 +31,24 @@ a lo largo de la memoria, ordenados alfabéticamente.
         un modelo de lenguaje. En este trabajo, el término se usa también para la
         colección documental extraída de la web de la EPSJ.
         
-  \item[\gldestino{exhaustividad}Exhaustividad (\textit{Recall@K})] \textcolor{borrador2}{Métrica de
-        recuperación que mide qué proporción de los fragmentos que hacían falta
-        para responder aparecen entre los $K$ primeros resultados. No juzga la
-        respuesta, sino el material con el que el modelo va a contar para
-        redactarla. Su definición formal es la Ecuación~\ref{eq:recall_at_k}.}
+    \item[\gldestino{exhaustividad}Exhaustividad (\textit{Recall@K})] Métrica que mide 
+        qué porcentaje de la información necesaria para responder se logra encontrar 
+        entre los $K$ primeros resultados. No evalúa cómo redacta el modelo, sino si 
+        el buscador ha sido capaz de entregarle los datos correctos. Su definición formal 
+        se detalla en la Ecuación~\ref{eq:recall_at_k}.
 
-  \item[\gldestino{fidelidad del índice}Fidelidad del índice] \textcolor{borrador2}{Grado en que una base de
-        datos vectorial devuelve exactamente los mismos vecinos que la búsqueda
-        exacta sobre los mismos vectores. Es una propiedad de la herramienta de
-        almacenamiento, y se comprueba comparándola con una búsqueda por fuerza
-        bruta que sirve de referencia.}
 
-  \item[\gldestino{fidelidad de la respuesta}Fidelidad de la respuesta (\textit{faithfulness})]
-        \textcolor{borrador2}{Grado en que lo que afirma una respuesta generada
-        está respaldado por los fragmentos que se le entregaron como contexto.
-        Es una propiedad del modelo de lenguaje, no del almacenamiento, y es lo
-        que se mide para detectar alucinaciones. Conviene no confundirla con la
-        fidelidad del índice: son medidas distintas, sobre piezas distintas del
-        sistema y en momentos distintos.}
+  \item[\gldestino{fidelidad del índice}Fidelidad del índice] Medida que comprueba si 
+        la base de datos vectorial devuelve los mismos resultados más cercanos que una 
+        búsqueda exacta (por fuerza bruta). Permite verificar que el índice de búsqueda 
+        rápida no comete errores ni pierde fragmentos relevantes al consultar los vectores.
+
+
+   \item[\gldestino{fidelidad de la respuesta}Fidelidad de la respuesta (\textit{faithfulness})] Medida que evalúa 
+        si todo lo que afirma el asistente se apoya estrictamente en los fragmentos entregados 
+        como contexto. Sirve para comprobar si el modelo de lenguaje se ciñe a la información 
+        oficial o si añade datos inventados (alucinaciones).
+
 
   \item[\gldestino{chunking}Fragmentación (\textit{chunking})] Proceso de dividir cada documento
         de la colección en fragmentos de un tamaño manejable para el modelo de
@@ -73,13 +72,12 @@ a lo largo de la memoria, ordenados alfabéticamente.
         parecidos queden próximos entre sí. Es lo que permite buscar por
         significado y no solo por palabras literales.
         
-  \item[\gldestino{Minería de textos y datos}Minería de textos y datos] \textcolor{borrador2}{Toda técnica analítica
-        automatizada destinada a analizar textos y datos en formato digital con
-        el fin de generar información, ya sean pautas, tendencias o
-        correlaciones. La definición es la que recoge el artículo 66.1 del Real
-        Decreto-ley 24/2021\cite{rdl24_2021}, y se adopta por ser la que fija su
-        alcance legal: es el supuesto bajo el que se ampara la extracción
-        automatizada realizada en este trabajo (Sección~\ref{secc:marcolegal}).}
+    \item[\gldestino{Minería de textos y datos}Minería de textos y datos] Conjunto de técnicas 
+        automatizadas para analizar textos y datos digitales con el fin de extraer 
+        información, patrones o estructuras. Se recoge la definición legal del 
+        Real Decreto-ley 24/2021\cite{rdl24_2021} (artículo 66.1), marco jurídico bajo 
+        el que se ampara la extracción automatizada de este trabajo (Sección~\ref{secc:marcolegal}).
+
 
   \item[\gldestino{integración continua}Integración Continua] Práctica de ingeniería que ejecuta de forma
         automática la batería de pruebas cada vez que se sube código al
@@ -94,11 +92,11 @@ a lo largo de la memoria, ordenados alfabéticamente.
         partir del contexto anterior, capacidad de la que emergen la generación y
         la comprensión de lenguaje natural que exhiben estos modelos.
         
-  \item[\gldestino{rango recíproco medio}Rango recíproco medio (\textit{Mean Reciprocal Rank}, MRR)]
-        \textcolor{borrador2}{Métrica de recuperación que premia colocar el
-        primer resultado correcto lo más arriba posible, y no solo colocarlo:
-        toma el inverso de la posición en que aparece y lo promedia sobre todas
-        las preguntas. Su definición formal es la Ecuación~\ref{eq:mrr}.}
+    \item[\gldestino{rango recíproco medio}Rango recíproco medio (\textit{Mean Reciprocal Rank}, MRR)] Métrica 
+        de búsqueda que evalúa lo arriba que aparece el primer resultado correcto. Calcula el 
+        inverso de su posición ($1$ si aparece el primero, $1/2$ si es el segundo, $1/3$ si es el tercero...) 
+        y promedia el valor de todas las preguntas (Ecuación~\ref{eq:mrr}).
+
 
   \item[\gldestino{spider}Rastreador web (\textit{spider})] Programa que recorre de forma
         automática las páginas de un sitio web siguiendo sus enlaces, para extraer
@@ -158,15 +156,15 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[\gldestino{EPSJ}EPSJ] Escuela Politécnica Superior de Jaén.
   \item[\gldestino{HTML}HTML] Lenguaje de marcado de hipertexto, en el que se publican las
         páginas web de las que se extraen los datos.
-  \item[\gldestino{HTTP}HTTP] \textcolor{borrador2}{Protocolo de transferencia de
-          hipertexto (\textit{Hypertext Transfer Protocol}), con el que se
-        comunican entre sí las piezas de la aplicación web.}
+    \item[\gldestino{HTTP}HTTP] Protocolo de transferencia de hipertexto (\textit{Hypertext Transfer Protocol}), 
+        utilizado para la comunicación entre el cliente y el servidor de la aplicación web.
+
   \item[\gldestino{IA}IA] Inteligencia Artificial.
   \item[\gldestino{LLM}LLM] Modelo de lenguaje grande (\textit{Large Language Model}).
   \item[\gldestino{MoSCoW}MoSCoW] Técnica de priorización que clasifica las tareas en
         \textit{Must}, \textit{Should}, \textit{Could} y \textit{Won't}.
-  \item[\gldestino{MRR}MRR] \textcolor{borrador2}{Rango recíproco medio (\textit{Mean
-          Reciprocal Rank}).}
+  \item[\gldestino{MRR}MRR] Rango recíproco medio (\textit{Mean
+          Reciprocal Rank}).
   \item[\gldestino{NLG}NLG] Generación de lenguaje natural (\textit{Natural Language
           Generation}), la vertiente del PLN dedicada a producir texto.
   \item[\gldestino{NLP}NLP] Procesamiento del lenguaje natural (\textit{Natural Language
@@ -178,9 +176,10 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[\gldestino{TGNA}TGNA] Tasa Global Neta de Abandono.
   \item[\gldestino{UJA}UJA] Universidad de Jaén.
   \item[\gldestino{URL}URL] Localizador uniforme de recursos; la dirección de una página web.
-  \item[\gldestino{WCAG}WCAG] \textcolor{borrador2}{Pautas de accesibilidad para
-          el contenido web (\textit{Web Content Accessibility Guidelines}), la
-        norma con la que se comprueba que una página pueda usarla alguien que
-        no ve la pantalla o no maneja el ratón.}
+    \item[\gldestino{WCAG}WCAG] Pautas de accesibilidad para el contenido web (\textit{Web Content 
+        Accessibility Guidelines}), estándar técnico internacional que establece los criterios 
+        para garantizar que una aplicación web sea accesible a personas con diversidad funcional 
+        (navegación por teclado, lectores de pantalla, contrastes, etc.).
+
   \item[\gldestino{WIP}WIP] Trabajo en curso (\textit{Work In Progress}).
 \end{description}
