@@ -13,6 +13,14 @@
     `&`, `<` y `>`, que es lo que hace un navegador con un nodo de texto. Las
     pruebas de `escapar` comprueban por tanto **el contrato**, no el navegador.
   - **La maquetación.** No hay `scrollHeight` de verdad, ni estilos, ni foco.
+  - **La igualdad de tipos entre contextos.** `chat.js` se ejecuta en un
+    contexto propio, con su propio `Array` y su propio `Object`. Un array que
+    devuelva `chat.js` **no** es del mismo tipo que uno escrito en la prueba, y
+    `assert.deepEqual` ---que en `node:assert/strict` compara también el
+    prototipo--- los da por distintos aunque tengan el mismo contenido. Se
+    resuelve copiando al contexto de la prueba con `Array.from(...)` antes de
+    comparar; con `.map(...)` no basta, porque el resultado lo sigue creando el
+    `Array` del otro lado.
   - **La red.** `fetch` siempre falla, así que la llamada de arranque
     (`preguntar("Hola")`) y la de sugerencias caen por su rama de error, que es
     justo lo que se quiere: cargar el fichero sin salir a ninguna parte.
