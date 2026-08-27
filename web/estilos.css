@@ -716,30 +716,22 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* -------------------------------------------- IT-45: el escudo no estorba
+/* --------------------------- IT-45: la bienvenida, centrada en la pantalla
 
-   La marca de agua da la bienvenida, pero en cuanto hay conversacion queda
-   detras del texto y se lee como un artefacto. Se retira al primer mensaje
-   *del estudiante*: mientras solo esta la bienvenida, sigue puesta.
+   Mientras no hay conversacion, la bienvenida se centra en vez de dejar un
+   vacio de media pantalla entre ella y el cuadro de escribir.
 
-   `:has()` no lo entienden los navegadores antiguos; ahi el escudo se queda
-   como estaba, que es el comportamiento de antes y no una pagina rota. */
-.conversacion:has(.mensaje--propio) .conversacion__marca {
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
+   El escudo del fondo NO se toca aqui: se queda puesto durante toda la
+   conversacion, con la opacidad y el tamano que tiene declarados arriba. Se
+   probo retirarlo al llegar el primer mensaje del estudiante y se descarto:
+   la marca de agua dice de que centro es lo que se esta leyendo, y eso hace
+   mas falta con una respuesta delante que con la pantalla vacia.
 
-/* Y mientras no hay conversacion, la bienvenida se centra en vez de dejar un
-   vacio de media pantalla entre ella y el cuadro de escribir. */
+   `:has()` no lo entienden los navegadores antiguos; ahi la bienvenida se
+   queda arriba, que es el comportamiento de antes y no una pagina rota. */
 .conversacion:not(:has(.mensaje--propio)) .conversacion__mensajes {
   min-height: 100%;
   justify-content: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .conversacion:has(.mensaje--propio) .conversacion__marca {
-    transition: none;
-  }
 }
 
 /* ------------------------------------- IT-45: la procedencia se ve o no esta
