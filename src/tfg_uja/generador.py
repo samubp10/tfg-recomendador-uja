@@ -516,11 +516,29 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
     nada--- y recibía «no he encontrado información sobre eso», que a un
     agradecimiento le sienta igual de mal que a un saludo.
 
-    Aquí la condición se relaja a que la fórmula **aparezca**, y puede hacerse
-    porque esta función solo se consulta cuando la recuperación ha vuelto
-    vacía: si el mensaje preguntaba algo del dominio, no llega hasta aquí. Es
-    también lo que hace que la respuesta a un mismo mensaje no dependa de en
-    qué turno se escriba.
+    Aquí la condición se relaja a que la fórmula **aparezca**. Es también lo
+    que hace que la respuesta a un mismo mensaje no dependa de en qué turno se
+    escriba.
+
+    Lo que **no** se puede relajar es la otra mitad de la regla de
+    :func:`cierre_de_conversacion`: que el mensaje no pregunte nada. Al
+    relajar la primera se perdió la segunda, y la despedida pasó a ganarle a
+    la pregunta que venía detrás. Fallo medido el 27/08/2026: «Vale, gracias,
+    me podrías decir cómo se harían unas costillas topográficas?» recibió «¡De
+    nada!» y la pregunta se quedó sin contestar. Se creía que no podía pasar
+    porque esta función solo se consulta con la recuperación vacía, y de ahí
+    se dedujo que el mensaje no preguntaba nada del dominio; volver vacía
+    significa que no se ha encontrado, no que no se haya preguntado.
+
+    El signo de interrogación solo desactiva la **despedida**, no el saludo. Un
+    agradecimiento cierra algo, así que si el mensaje sigue preguntando, la
+    fórmula era el preámbulo y lo que hay que contestar es que eso no se ha
+    encontrado. Un saludo abre, y a «hola, ¿me puedes ayudar?» se le da la
+    bienvenida aunque no se recupere nada, que es justo lo que invita a
+    preguntar. Queda fuera del arreglo el mismo mensaje **sin** interrogación
+    escrita: no hay forma de separarlo de «buenas, quiero información» sin
+    perseguir casos, y perseguir casos es lo que ya falló con el vocabulario
+    interrogativo.
 
     Y cuando no trae fórmula ninguna se mira si **pregunta algo**. Sin
     interrogación ni palabra interrogativa, y sin nada que recuperar, no hay
@@ -547,7 +565,7 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
         algo que no se ha encontrado.
     """
     dichas = palabras(pregunta)
-    if dichas & _DESPEDIDA:
+    if dichas & _DESPEDIDA and "?" not in pregunta:
         return RESPUESTA_DESPEDIDA
     if dichas & _SALUDO:
         return RESPUESTA_SALUDO
