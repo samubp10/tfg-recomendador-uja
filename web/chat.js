@@ -397,7 +397,12 @@ async function preguntar(pregunta, silenciosa = false) {
       if (done) break;
       resto += decodificador.decode(value, { stream: true });
       const lineas = resto.split("\n");
-      resto = lineas.pop() ?? "";
+      // Sin respaldo a proposito: `split` devuelve siempre al menos un
+      // elemento ---`"".split("\n")` es `[""]`---, asi que `pop()` no
+      // puede dar `undefined`. El `?? ""` que habia aqui era una rama que
+      // ninguna prueba podia alcanzar, y una rama inalcanzable ensucia la
+      // medida de cobertura sin proteger de nada.
+      resto = lineas.pop();
       for (const linea of lineas) {
         if (!linea.trim()) continue;
         const suceso = JSON.parse(linea);
