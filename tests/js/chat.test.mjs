@@ -239,3 +239,525 @@ test("al parar, el aviso deja de refrescarse", () => {
   espera.parar();
   assert.ok(true);
 });
+
+// ===========================================================================
+//  El recorrido completo: pregunta, emisión por partes y pie de la respuesta
+// ===========================================================================
+/*
+  Hasta aquí se probaban las funciones puras. Lo que sigue prueba `preguntar()`,
+  que es la que de verdad usa el estudiante: manda la consulta, va pintando lo
+  que llega línea a línea y compone el pie. Sin estas pruebas, más de la mitad
+  del fichero ---toda la lectura del flujo NDJSON--- no la ejecutaba nadie.
+
+  Nunca se sale a la red: el `fetch` del contexto es un doble que devuelve un
+  cuerpo ya escrito. El servidor de inferencia no interviene en ningún momento.
+*/
+
+/** Reloj que se puede adelantar, para llegar a los umbrales sin esperarlos. */
+function relojFalso() {
+  let ahora = Date.now();
+  const F = function (...args) {
+    return new Date(...args);
+  };
+  F.now = () => ahora;
+  F.avanzar = (segundos) => {
+    ahora += segundos * 1000;
+  };
+  return F;
+}
+
+/**
+ * Arma una respuesta con el mismo formato que emite el servidor: una línea
+ * JSON por unidad verificada.
+ *
+ * `trozos` permite partir el cuerpo por donde se quiera, incluso a mitad de una
+ * línea, que es el caso que obliga a `preguntar` a guardar el resto.
+ */
+function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = {}) {
+  const partes = trozos ?? [sucesos.map((s) => JSON.stringify(s) + "\n").join("")];
+  const codificador = new TextEncoder();
+  let i = 0;
+  return {
+    ok,
+    status,
+    body: {
+      getReader: () => ({
+        read() {
+          if (alLeer) alLeer();
+          if (i >= partes.length) return Promise.resolve({ value: undefined, done: true });
+          return Promise.resolve({ value: codificador.encode(partes[i++]), done: false });
+        },
+      }),
+    },
+  };
+}
+
+/**
+ * Carga el cliente con un servidor de mentira detrás.
+ *
+ * `responder` cambia lo que contestará la SIGUIENTE consulta: la primera se la
+ * lleva siempre el saludo de arranque, que `chat.js` pide solo al cargarse.
+ */
+function montar({ sugerencias = [], sugerenciasFallan = false, reloj } = {}) {
+  let siguiente = () => respuestaNdjson([{ parte: "Hola." }, { fin: true }]);
+  const peticiones = [];
+  const fetchDoble = (url, opciones) => {
+    peticiones.push({ url, opciones });
+    if (url === "/api/sugerencias") {
+      return sugerenciasFallan
+        ? Promise.resolve({ ok: false, status: 500 })
+        : Promise.resolve({ ok: true, json: () => sugerencias });
+    }
+    return Promise.resolve(siguiente());
+  };
+  const contexto = cargarChat({ fetch: fetchDoble, reloj });
+  return {
+    chat: contexto,
+    peticiones,
+    el: (id) => contexto._elementos.get(id),
+    responder: (fn) => {
+      siguiente = fn;
+    },
+  };
+}
+
+/** Deja que terminen el saludo de arranque y la petición de sugerencias. */
+async function reposar() {
+  for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
+}
+
+/** La última burbuja del asistente, con las piezas que `chat.js` rellenó. */
+function ultimaRespuesta(montaje) {
+  const fila = montaje.el("mensajes").hijos.at(-1);
+  return {
+    fila,
+    burbuja: fila.querySelector(".mensaje__burbuja"),
+    cuerpo: fila.querySelector(".mensaje__cuerpo"),
+    pie: fila.querySelector(".mensaje__pie"),
+  };
+}
+
+test("el saludo de arranque se pide al servidor y no se pinta como pregunta", async () => {
+  /*
+    El texto del saludo no está en `chat.js` a propósito: se le pide al
+    servidor para no tener dos copias que se desincronicen. Lo que sí tiene que
+    cumplir el cliente es que esa consulta sea silenciosa, porque la persona no
+    ha escrito «Hola» y verlo en su lado de la conversación sería mentira.
+  */
+  const m = montar();
+  await reposar();
+
+  const propias = m.el("mensajes").hijos.filter((f) => f.classList.contains("mensaje--propio"));
+  assert.equal(propias.length, 0);
+  assert.deepEqual(
+    m.peticiones.map((p) => p.url),
+    ["/api/chat", "/api/sugerencias"]
+  );
+  assert.equal(JSON.parse(m.peticiones[0].opciones.body).pregunta, "Hola");
+});
+
+test("la pregunta de la persona sí se pinta, y escapada", async () => {
+  const m = montar();
+  await reposar();
+  await m.chat.preguntar("¿Tiene <b>Informática</b> mención en videojuegos?");
+
+  const propia = m.el("mensajes").hijos.filter((f) => f.classList.contains("mensaje--propio"));
+  assert.equal(propia.length, 1);
+  assert.ok(propia[0].innerHTML.includes("&lt;b&gt;Informática&lt;/b&gt;"), propia[0].innerHTML);
+  assert.ok(!propia[0].innerHTML.includes("<b>"), propia[0].innerHTML);
+});
+
+test("una pregunta en blanco no llega a salir", async () => {
+  const m = montar();
+  await reposar();
+  const antes = m.peticiones.length;
+
+  await m.chat.preguntar("   \n  ");
+
+  assert.equal(m.peticiones.length, antes);
+});
+
+test("mientras hay una consulta en curso no se admite otra", async () => {
+  /*
+    El modelo atiende en serie: encolar una segunda consulta solo consigue que
+    las dos tarden más. La segunda tiene que caerse en la primera línea de
+    `preguntar`, antes de gastar ninguna petición.
+  */
+  const m = montar();
+  await reposar();
+  const antes = m.peticiones.length;
+
+  await Promise.all([m.chat.preguntar("Primera"), m.chat.preguntar("Segunda")]);
+
+  assert.equal(m.peticiones.length, antes + 1);
+});
+
+test("el texto se acumula trozo a trozo aunque una línea llegue partida", async () => {
+  /*
+    El servidor emite una línea JSON por unidad, pero el flujo se corta por
+    donde quiere la red: una línea puede llegar a mitad. Si el resto no se
+    guardara, `JSON.parse` reventaría y la respuesta se quedaría a medias.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson(null, {
+      trozos: ['{"parte":"Primera frase. "}\n{"parte":"Segun', 'da frase."}\n\n{"fin":true}\n'],
+    })
+  );
+
+  await m.chat.preguntar("¿Qué se estudia?");
+
+  assert.equal(ultimaRespuesta(m).cuerpo.innerHTML, "<p>Primera frase. Segunda frase.</p>");
+});
+
+test("al terminar se retira la marca de «escribiendo»", async () => {
+  /*
+    De `aria-busy` cuelga lo que un lector de pantalla anuncia mientras la
+    respuesta se escribe. Dejarla puesta diría para siempre que sigue llegando
+    texto que ya no va a llegar.
+  */
+  const m = montar();
+  await reposar();
+  await m.chat.preguntar("¿Cuántos créditos son?");
+
+  assert.ok(ultimaRespuesta(m).burbuja.atributosQuitados.includes("aria-busy"));
+});
+
+test("una respuesta retirada borra lo pintado en vez de añadir debajo", async () => {
+  /*
+    El servidor retira la respuesta a media emisión cuando nombra una
+    titulación que no existe, y lo que manda después la sustituye entera. Si el
+    cliente añadiera debajo, el estudiante leería las dos: la retirada y la
+    buena.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      { parte: "En el Grado en Astrofísica" },
+      { borrar: true },
+      { parte: "No tengo esa información." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Hay Grado en Astrofísica?");
+
+  const { cuerpo } = ultimaRespuesta(m);
+  assert.equal(cuerpo.innerHTML, "<p>No tengo esa información.</p>");
+  assert.ok(!cuerpo.innerHTML.includes("Astrofísica"), cuerpo.innerHTML);
+});
+
+test("una respuesta que no llega a consultar al modelo se marca como inmediata", async () => {
+  /*
+    Las respuestas fijas ---cortesía, contexto vacío, otro centro--- vuelven en
+    décimas de segundo. Sin marcarlas, esa rapidez se lee como un error.
+  */
+  const m = montar();
+  await reposar();
+  await m.chat.preguntar("Gracias, adiós");
+
+  const { fila, pie } = ultimaRespuesta(m);
+  assert.ok(fila.classList.contains("mensaje--inmediato"), fila.className);
+  assert.ok(pie.innerHTML.includes("respuesta inmediata"), pie.innerHTML);
+  assert.ok(pie.innerHTML.includes("Respuesta completa."), pie.innerHTML);
+});
+
+test("una respuesta que sí llega al modelo dice cuánto ha tardado", async () => {
+  const reloj = relojFalso();
+  const m = montar({ reloj });
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([{ parte: "Son 240 ECTS." }, { fin: true }], {
+      alLeer: () => reloj.avanzar(3),
+    })
+  );
+
+  await m.chat.preguntar("¿Cuántos créditos tiene el grado?");
+
+  const { fila, pie } = ultimaRespuesta(m);
+  assert.ok(!fila.classList.contains("mensaje--inmediato"), fila.className);
+  // La coma decimal, no el punto: la interfaz está en español.
+  assert.ok(pie.innerHTML.includes("6,0 s"), pie.innerHTML);
+});
+
+// --------------------------------------------------------- cuando algo falla
+
+test("un error del servidor se cuenta en la burbuja en vez de perderse", async () => {
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([], { ok: false, status: 503 }));
+
+  await m.chat.preguntar("¿Qué salidas tiene?");
+
+  const { fila, cuerpo } = ultimaRespuesta(m);
+  assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(cuerpo.innerHTML.includes("el servidor respondió 503"), cuerpo.innerHTML);
+});
+
+test("un error emitido a media respuesta también se cuenta", async () => {
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([{ error: "el modelo no respondió" }]));
+
+  await m.chat.preguntar("¿Qué salidas tiene?");
+
+  const { fila, cuerpo } = ultimaRespuesta(m);
+  assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(cuerpo.innerHTML.includes("el modelo no respondió"), cuerpo.innerHTML);
+});
+
+test("un flujo sin texto ninguno no se da por respuesta buena", async () => {
+  /*
+    Un flujo que termina sin una sola parte dejaría la burbuja vacía y con la
+    espera dentro para siempre. Se trata como fallo, que es lo que es.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([{ fin: true }]));
+
+  await m.chat.preguntar("¿Y esto?");
+
+  const { fila, burbuja } = ultimaRespuesta(m);
+  assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
+  // Aun fallando, la marca de «escribiendo» se retira: es la red de seguridad
+  // del `finally`, sin la cual una caída la dejaría puesta indefinidamente.
+  assert.ok(burbuja.atributosQuitados.includes("aria-busy"));
+});
+
+// ------------------------------------------------------------- sugerencias
+
+test("las sugerencias de arranque las decide el servidor", async () => {
+  const m = montar({ sugerencias: ["¿Qué grados hay?", "¿Qué salidas tiene Mecánica?"] });
+  await reposar();
+
+  assert.deepEqual(
+    Array.from(m.el("sugerencias").hijos, (b) => b.textContent),
+    ["¿Qué grados hay?", "¿Qué salidas tiene Mecánica?"]
+  );
+  assert.ok(m.el("sugerencias").hijos.every((b) => b.classList.contains("sugerencia")));
+});
+
+test("las sugerencias se repintan con las que manda cada turno", async () => {
+  const m = montar({ sugerencias: ["La vieja"] });
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      { parte: "Informática tiene tres menciones." },
+      { sugerencias: ["¿Cuáles son?"] },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Tiene menciones?");
+
+  assert.deepEqual(
+    Array.from(m.el("sugerencias").hijos, (b) => b.textContent),
+    ["¿Cuáles son?"]
+  );
+});
+
+test("si el servidor no da sugerencias, no se pinta ninguna", async () => {
+  /*
+    Un botón con una pregunta que el índice no respalda es peor que ningún
+    botón: promete una respuesta que el sistema no tiene. Sin sugerencias la
+    conversación funciona igual, escribiendo.
+  */
+  const m = montar({ sugerenciasFallan: true });
+  await reposar();
+
+  assert.equal(m.el("sugerencias").hijos.length, 0);
+});
+
+test("pulsar una sugerencia pregunta lo que pone en el botón", async () => {
+  const m = montar({ sugerencias: ["¿Qué grados hay?"] });
+  await reposar();
+  const boton = m.el("sugerencias").hijos[0];
+
+  m.el("sugerencias").disparar("click", { target: boton });
+  await reposar();
+
+  assert.equal(
+    JSON.parse(m.peticiones.at(-1).opciones.body).pregunta,
+    "¿Qué grados hay?"
+  );
+});
+
+test("un clic fuera de una sugerencia no pregunta nada", async () => {
+  const m = montar({ sugerencias: ["¿Qué grados hay?"] });
+  await reposar();
+  const antes = m.peticiones.length;
+
+  m.el("sugerencias").disparar("click", { target: m.chat.document.createElement("div") });
+  await reposar();
+
+  assert.equal(m.peticiones.length, antes);
+});
+
+test("mientras se responde, las sugerencias quedan deshabilitadas", async () => {
+  /*
+    De poco sirve bloquear el cuadro de texto si los atajos siguen vivos: son
+    la vía más fácil de encolar una segunda consulta sin querer.
+  */
+  const m = montar({ sugerencias: ["¿Qué grados hay?"] });
+  await reposar();
+  const boton = m.el("sugerencias").hijos[0];
+
+  const enCurso = m.chat.preguntar("¿Y las prácticas?");
+  assert.equal(boton.disabled, true);
+  assert.equal(m.el("entrada").disabled, true);
+
+  await enCurso;
+  assert.equal(m.el("entrada").disabled, false);
+});
+
+// ----------------------------------------------------- las fuentes, el cuadro
+
+test("el pie ofrece las fuentes y el botón abre el cuadro agrupado", async () => {
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      {
+        fuentes: [
+          { nombre: "Álgebra", titulacion: "G. Informática", origen: "Guía docente" },
+          { nombre: "Cálculo", titulacion: "G. Informática", origen: "Guía docente" },
+          { nombre: "Física", titulacion: "G. Mecánica", origen: "Guía docente" },
+        ],
+      },
+      { parte: "Álgebra y Cálculo son de primero." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Qué asignaturas hay en primero?");
+
+  const boton = ultimaRespuesta(m).pie.hijos.at(-1);
+  assert.equal(boton.textContent, "Fuentes (3)");
+
+  boton.disparar("click");
+  assert.equal(m.el("fuentes").vecesAbierto, 1);
+  const html = m.el("fuentes-lista").innerHTML;
+  assert.equal((html.match(/fuentes__grupo/g) ?? []).length, 2);
+  assert.ok(html.includes("G. Informática"), html);
+  assert.ok(html.includes("Guía docente"), html);
+});
+
+test("sin fuentes no se ofrece el botón", async () => {
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([{ fuentes: [] }, { parte: "Hola." }, { fin: true }]));
+
+  await m.chat.preguntar("Buenos días");
+
+  assert.equal(ultimaRespuesta(m).pie.hijos.length, 0);
+});
+
+test("el cuadro de fuentes se cierra desde su propio botón", async () => {
+  const m = montar();
+  await reposar();
+
+  m.el("fuentes-cerrar").disparar("click");
+
+  assert.equal(m.el("fuentes").vecesCerrado, 1);
+});
+
+// --------------------------------------------------------- el cuadro de texto
+
+test("enviar el formulario vacía el cuadro y manda lo escrito", async () => {
+  const m = montar();
+  await reposar();
+  m.el("entrada").value = "¿Qué es Geomática?";
+
+  m.el("redaccion").disparar("submit");
+  await reposar();
+
+  assert.equal(m.el("entrada").value, "");
+  assert.equal(
+    JSON.parse(m.peticiones.at(-1).opciones.body).pregunta,
+    "¿Qué es Geomática?"
+  );
+});
+
+test("Intro envía y Mayúsculas+Intro no", async () => {
+  /*
+    El cuadro admite varias líneas, así que Mayúsculas+Intro tiene que seguir
+    sirviendo para saltar de línea; si enviara, no habría forma de escribir una
+    pregunta de dos renglones.
+  */
+  const m = montar();
+  await reposar();
+  const antes = m.peticiones.length;
+
+  m.el("entrada").value = "Una línea";
+  m.el("entrada").disparar("keydown", { key: "Enter", shiftKey: true });
+  await reposar();
+  assert.equal(m.peticiones.length, antes);
+
+  m.el("entrada").disparar("keydown", { key: "Enter", shiftKey: false });
+  await reposar();
+  assert.equal(m.peticiones.length, antes + 1);
+});
+
+test("cualquier otra tecla no envía", async () => {
+  const m = montar();
+  await reposar();
+  const antes = m.peticiones.length;
+
+  m.el("entrada").value = "a";
+  m.el("entrada").disparar("keydown", { key: "a", shiftKey: false });
+  await reposar();
+
+  assert.equal(m.peticiones.length, antes);
+});
+
+test("el cuadro de texto crece con lo escrito, hasta un tope", async () => {
+  const m = montar();
+  await reposar();
+  const entrada = m.el("entrada");
+
+  entrada.scrollHeight = 40;
+  entrada.disparar("input");
+  assert.equal(entrada.style.height, "40px");
+
+  entrada.scrollHeight = 900;
+  entrada.disparar("input");
+  assert.equal(entrada.style.height, "160px");
+});
+
+// ------------------------------------------- la espera, pasado el umbral
+
+test("pasados los segundos del umbral, la espera explica por qué tarda", async () => {
+  /*
+    Medido sobre el banco del sistema: una pregunta que llega al modelo tarda
+    62,7 s de mediana. Un minuto sin explicación es indistinguible de una
+    aplicación colgada.
+  */
+  const reloj = relojFalso();
+  const chat = cargarChat({ reloj });
+  const cuerpo = chat.document.createElement("div");
+  const espera = chat.contarLaEspera(cuerpo);
+  try {
+    const aviso = cuerpo.hijos.at(-1);
+    assert.ok(!aviso.textContent.includes("este mismo equipo"), aviso.textContent);
+
+    reloj.avanzar(12);
+    espera.redactando();
+
+    assert.ok(aviso.textContent.includes("este mismo equipo"), aviso.textContent);
+  } finally {
+    espera.parar();
+  }
+});
+
+test("al parar, el aviso se retira del documento", async () => {
+  const chat = cargarChat();
+  const cuerpo = chat.document.createElement("div");
+  const espera = chat.contarLaEspera(cuerpo);
+  assert.equal(cuerpo.hijos.length, 1);
+
+  espera.parar();
+
+  assert.equal(cuerpo.hijos.length, 0);
+});
