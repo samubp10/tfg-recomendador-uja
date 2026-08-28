@@ -21,7 +21,11 @@
   --superficie: #f4f4f5;
   --superficie-alta: #ffffff;
   --borde: #ececed;
-  --borde-fuerte: #b0b1b3;
+  /* Medido el 27/08/2026: sobre `--superficie` daba 1,95 y la WCAG pide
+     3,0 para el borde de un control (1.4.11). Con #8c8d8f sube a 3,02.
+     Lo usan la sugerencia y el cuadro de escribir, los dos bordes de
+     control que hay. */
+  --borde-fuerte: #8c8d8f;
   --texto: #231f20;
   --texto-suave: #696a6c;
 
@@ -652,4 +656,225 @@ body {
   font-size: 0.76rem;
   line-height: 1.5;
   color: var(--texto-suave);
+}
+
+/* --------------------------------------------- IT-45: leerlo como un plan
+
+   Las preguntas de listado son las mas frecuentes del banco de evaluacion
+   (20 de temario y 14 de listado sobre 56 de dominio) y son las que peor se
+   leian: veinte asignaturas seguidas en una sola lista, con el rotulo de curso
+   como un parrafo mas en negrita. La respuesta ya venia agrupada por curso
+   ---se lo pide la instruccion al modelo---, pero eso no se veia.
+
+   Todo lo que sigue es presentacion. No se toca `chat.js`, que no tiene
+   pruebas: cualquier logica nueva ahi entraria sin red. */
+
+/* El rotulo de curso deja de ser un parrafo en negrita y pasa a comportarse
+   como lo que es: el encabezado de una seccion del plan.
+
+   Se reconoce por la forma, no por el texto: un parrafo cuyo unico contenido
+   es una negrita. Es lo que produce `formatear()` con la linea
+   `**Primer curso:**` que escribe el modelo. Un parrafo entero en negrita
+   escrito por otro motivo tambien lo recibiria; es raro y el resultado seguiria
+   siendo un enfasis, asi que no se persigue el caso. */
+.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) {
+  margin: 1.1em 0 0.5em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--borde);
+  color: var(--epsj-verdeazul);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) strong {
+  font-weight: 600;
+}
+
+/* El primero no separa de nada: sin esto abre la burbuja con un hueco. */
+.mensaje--asistente .mensaje__cuerpo p:first-child:has(> strong:only-child) {
+  margin-top: 0;
+}
+
+/* Con el rotulo ya marcado, el punto de cada asignatura sobra: lo que ordena
+   la lectura es la seccion, no la vinneta. Se quitan y se alinea el texto con
+   el rotulo, que es como se imprime un plan de estudios. */
+.mensaje--asistente .mensaje__cuerpo ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+.mensaje--asistente .mensaje__cuerpo li {
+  padding: 0.22em 0;
+  /* Sangria francesa: en el movil el nombre de una asignatura ocupa dos
+     lineas, y sin ella la continuacion empieza donde empieza la siguiente
+     asignatura, de modo que no se ve donde acaba cada una. */
+  padding-left: 1em;
+  text-indent: -1em;
+  /* Cifras de ancho fijo: los creditos se repiten en cada linea y con la letra
+     proporcional bailan de un renglon a otro. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------- IT-45: la bienvenida, centrada en la pantalla
+
+   Mientras no hay conversacion, la bienvenida se centra en vez de dejar un
+   vacio de media pantalla entre ella y el cuadro de escribir.
+
+   El escudo del fondo NO se toca aqui: se queda puesto durante toda la
+   conversacion, con la opacidad y el tamano que tiene declarados arriba. Se
+   probo retirarlo al llegar el primer mensaje del estudiante y se descarto:
+   la marca de agua dice de que centro es lo que se esta leyendo, y eso hace
+   mas falta con una respuesta delante que con la pantalla vacia.
+
+   `:has()` no lo entienden los navegadores antiguos; ahi la bienvenida se
+   queda arriba, que es el comportamiento de antes y no una pagina rota. */
+.conversacion:not(:has(.mensaje--propio)) .conversacion__mensajes {
+  min-height: 100%;
+  justify-content: center;
+}
+
+/* ------------------------------------- IT-45: la procedencia se ve o no esta
+
+   RF-09 y el argumento central del trabajo: la respuesta sale de lo que la
+   Escuela publica y se puede comprobar. Ese boton era un enlace subrayado de
+   11 px perdido entre la hora y los segundos, o sea el dato mas importante de
+   la pantalla con el aspecto de una nota al pie.
+
+   Se separa de la metadata ---la hora y la duracion informan, esto se pulsa---
+   y se le da forma de control. Sigue siendo discreto: no compite con la
+   respuesta, que es lo que se ha venido a leer. */
+.mensaje__pie {
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.mensaje__fuentes {
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--uja-verde) 35%, transparent);
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mensaje__fuentes:hover {
+  background: var(--uja-verde);
+  border-color: var(--uja-verde);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mensaje__fuentes {
+    transition: none;
+  }
+}
+
+/* ------------------------------- IT-45 · E1: la respuesta no es un mensaje
+
+   La tarjeta blanca con esquinas redondeadas sobre fondo gris es el aspecto
+   por omision de cualquier aplicacion de mensajeria, y aqui no describe lo que
+   pasa: lo que el asistente devuelve no es un mensaje de alguien, es un
+   informe compuesto a partir de documentos de la Escuela.
+
+   La pregunta del estudiante SI se queda como burbuja ---la escribe una
+   persona--- y el contraste entre las dos formas es lo que separa quien habla
+   de que se responde, sin necesidad de dos colores de tarjeta.
+
+   El filete de la izquierda hace ademas el trabajo que antes hacia el borde
+   del recuadro: marca donde empieza y acaba la respuesta cuando hay varias
+   seguidas. Y sigue distinguiendo la respuesta fija de la elaborada, ahora por
+   color y no por presencia. */
+.mensaje--asistente .mensaje__burbuja {
+  background: none;
+  border: 0;
+  border-left: 2px solid var(--borde-fuerte);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 2px 0 2px 16px;
+  /* Sin recuadro, la linea puede respirar mas sin volverse incomoda de leer. */
+  max-width: min(92%, 72ch);
+}
+
+/* Una respuesta que no llego a consultar al modelo tarda decimas de segundo y
+   una elaborada mas de un minuto. Sin distinguirlas, la rapida parece un fallo. */
+.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
+  border-left-color: var(--epsj-verdeazul);
+}
+
+/* El fallo si conserva el recuadro: es la unica respuesta que hay que poder
+   distinguir de un vistazo entre varias, y el color solo no basta para quien
+   no lo percibe. */
+.mensaje--fallo .mensaje__burbuja {
+  border: 1px solid #b06a6a;
+  border-radius: var(--radio);
+  padding: 11px 16px;
+  background: #fdf6f6;
+  color: #6d2c2c;
+}
+
+/* ------------------------- IT-45 · C1: las fuentes, agrupadas por titulacion
+
+   Con veinte unidades de tres titulaciones, la lista plana obliga a leerlas
+   todas para ver de donde sale la respuesta. */
+.fuentes__grupo {
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--uja-verde-claro);
+}
+
+.fuentes__titulacion {
+  margin: 0 0 4px;
+  color: var(--uja-verde-oscuro);
+  font-size: 0.78rem;
+  font-weight: 600;
+  /* Una unidad compartida trae varias titulaciones en la misma cadena y puede
+     ser larga: que parta donde haga falta en vez de desbordar el cuadro. */
+  overflow-wrap: anywhere;
+}
+
+.fuentes__unidades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fuentes__unidades li {
+  padding: 3px 0;
+  border-left: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.fuentes__unidades li + li {
+  margin-top: 0;
+}
+
+.fuentes__origen {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 0.74rem;
+}
+
+/* ------------------------------------ IT-45 · D3: cuando se pide mas contraste
+
+   `prefers-contrast: more` lo activa quien lo necesita desde su sistema. Se
+   endurecen los bordes y se oscurecen los grises: no cambia ninguna decision de
+   diseno, solo deja de apoyarse en matices que esa persona no distingue. */
+@media (prefers-contrast: more) {
+  :root {
+    --texto-suave: #4a4b4d;
+    --borde: #9a9b9d;
+    --borde-fuerte: #5c5d5f;
+  }
+
+  .mensaje--asistente .mensaje__burbuja {
+    border-left-width: 3px;
+  }
+
+  .sugerencia {
+    border-width: 2px;
+  }
 }

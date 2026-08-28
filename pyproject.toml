@@ -102,6 +102,12 @@ where = ["src"]
 # Longitud máxima de línea (88 es el valor estándar que usa Black por defecto)
 line-length = 88
 
+# Sin esto Black supone la versión más nueva que conoce y **se salta la
+# comprobación de AST**: avisa de que no puede verificar la equivalencia y
+# devuelve 0 igualmente, o sea que da por bueno un formateo que no ha
+# comprobado. Fijándolo a la versión que declara el proyecto, comprueba.
+target-version = ["py313"]
+
 # --- Pytest (Framework de pruebas) ---
 [tool.pytest.ini_options]
 # Directorio donde pytest buscará los archivos de pruebas automáticamente
