@@ -17,8 +17,9 @@ name = "tfg-recomendador-uja"
 version = "0.1.0"
 description = "Recomendador de titulaciones de la Universidad de Jaén basado en RAG"
 readme = "README.md"
-# Versión mínima de Python requerida para ejecutar el código
-requires-python = ">=3.10"
+# El proyecto se desarrolla, prueba y ejecuta con una sola versión menor.
+# El límite superior evita prometer compatibilidad con una 3.14 no verificada.
+requires-python = ">=3.13,<3.14"
 authors = [
     {name = "Samuel Blanco Palmero"}
 ]
@@ -107,6 +108,10 @@ line-length = 88
 # devuelve 0 igualmente, o sea que da por bueno un formateo que no ha
 # comprobado. Fijándolo a la versión que declara el proyecto, comprueba.
 target-version = ["py313"]
+
+# Mypy analiza con la misma versión menor que ejecutan el entorno y el CI.
+[tool.mypy]
+python_version = "3.13"
 
 # --- Pytest (Framework de pruebas) ---
 [tool.pytest.ini_options]
