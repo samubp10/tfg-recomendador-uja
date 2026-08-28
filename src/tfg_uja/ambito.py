@@ -219,23 +219,36 @@ def construir_peticion(
     """
     lista = "\n".join(f"- {t}" for t in catalogo)
     if ambito:
-        encabezado = f"Se está hablando con un estudiante sobre el {ambito[0]}."
-        opcion_sigue = f"- SIGUE  si su mensaje se sigue refiriendo al {ambito[0]}\n"
+        if len(ambito) == 1:
+            actual = ambito[0]
+            encabezado = f"Se está hablando con un estudiante sobre el {actual}."
+            opcion_sigue = f"- SIGUE  si su mensaje se sigue refiriendo al {actual}\n"
+        else:
+            actual = "; ".join(ambito)
+            encabezado = (
+                "Se está hablando con un estudiante sobre estas titulaciones: "
+                f"{actual}."
+            )
+            opcion_sigue = (
+                "- SIGUE  si su mensaje se sigue refiriendo a estas titulaciones: "
+                f"{actual}\n"
+            )
         opcion_nombre = (
-            "- el nombre exacto de UNA titulación de la lista, si trata de otra\n"
+            "- uno o varios nombres exactos de la lista, separados por punto y "
+            "coma, si trata de otras titulaciones o las compara\n"
         )
     else:
         encabezado = "Se está hablando con un estudiante."
         opcion_sigue = ""
         opcion_nombre = (
-            "- el nombre exacto de UNA titulación de la lista, si su mensaje "
-            "trata de ella\n"
+            "- uno o varios nombres exactos de la lista, separados por punto y "
+            "coma, si su mensaje trata de esas titulaciones o las compara\n"
         )
     return (
         f"Titulaciones de la Escuela Politécnica Superior de Jaén:\n{lista}\n\n"
         f"{encabezado}{_bloque_ultimo_turno(ultimo_turno)}\n\n"
         f"Y ahora el estudiante escribe: «{pregunta}»\n\n"
-        "¿De qué hay que buscar información para responderle? Contesta con UNA "
+        "¿De qué hay que buscar información para responderle? Contesta con una "
         "sola línea:\n"
         f"{opcion_sigue}"
         f"{opcion_nombre}"
