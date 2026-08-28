@@ -262,6 +262,37 @@ def test_las_peticiones_mal_formadas_no_llegan_al_modelo(
     assert m.wfile.getvalue() == b""
 
 
+def test_el_ambito_multiple_llega_entero_al_generador(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
+) -> None:
+    """RU-04 perdería una titulación si el servidor redujera la lista a una."""
+    informatica = "Grado en Ingeniería Informática"
+    mecanica = "Grado en Ingeniería Mecánica"
+    recibidos: list[list[str]] = []
+
+    class ConversacionComparativa(ConversacionFalsa):
+        """Devuelve la consulta múltiple que produce la conversación real."""
+
+        def preparar(self, texto: str) -> Consulta:
+            return Consulta(texto=texto, ambito=[informatica, mecanica])
+
+    def responder_falso(*args: Any, **opciones: Any):
+        recibidos.append(opciones["ambito"])
+        yield "Comparación."
+
+    monkeypatch.setattr(servidor, "responder_por_partes", responder_falso)
+
+    list(
+        servidor.partes_de_la_respuesta(
+            "Compara Informática y Mecánica",
+            SISTEMA_FALSO,
+            ConversacionComparativa(),
+        )
+    )
+
+    assert recibidos == [[informatica, mecanica]]
+
+
 def test_sin_indice_el_arranque_avisa_en_vez_de_reventar(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
