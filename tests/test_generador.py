@@ -420,6 +420,24 @@ def test_sin_ambito_el_prompt_no_lo_menciona():
     assert "ÁMBITO:" not in prompt
 
 
+def test_un_ambito_multiple_declara_todas_las_titulaciones():
+    """RU-04 no puede presentar una comparación como si fuera de un grado."""
+    titulaciones = [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+    ]
+
+    prompt = construir_prompt(
+        "¿En qué se diferencian?",
+        [fragmento("Datos generales", "Texto.")],
+        ambito=titulaciones,
+    )
+
+    assert "ÁMBITO: la consulta abarca estas titulaciones:" in prompt
+    assert all(f"- {titulacion}" in prompt for titulacion in titulaciones)
+    assert prompt.index("ÁMBITO") < prompt.index("CONTEXTO:")
+
+
 # --- Sin contexto no se llama al modelo ---
 
 
