@@ -136,6 +136,14 @@ function crearElemento(etiqueta = "div") {
       contains(c) {
         return this._clases.has(c);
       },
+      //: Con el segundo argumento no alterna: pone o quita segun se le diga,
+      //: que es como lo usa `bloquear` para marcar el boton de cancelar.
+      toggle(c, fuerza) {
+        const poner = fuerza === undefined ? !this._clases.has(c) : Boolean(fuerza);
+        if (poner) this._clases.add(c);
+        else this._clases.delete(c);
+        return poner;
+      },
     },
     addEventListener(tipo, fn) {
       if (!this.oyentes.has(tipo)) this.oyentes.set(tipo, []);
@@ -199,6 +207,12 @@ function crearElemento(etiqueta = "div") {
     },
     setAttribute(nombre, valor) {
       this.dataset[nombre] = String(valor);
+    },
+    getAttribute(nombre) {
+      //: `null` y no `undefined`: es lo que devuelve un navegador cuando el
+      //: atributo no esta puesto, y una prueba que compare con `null` tiene
+      //: que valer igual aqui que alli.
+      return nombre in this.dataset ? this.dataset[nombre] : null;
     },
     removeAttribute(nombre) {
       this.atributosQuitados.push(nombre);

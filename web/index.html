@@ -9,16 +9,14 @@
     content="Asistente que responde sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.">
 
   <!--
-    Las tipografías se piden a Google Fonts, pero la página NO depende de que
-    lleguen: cada familia declara su respaldo del sistema en la hoja de estilo.
-    Sin red ---y la defensa puede ser sin red--- se ve con Georgia y la de
-    sistema, que es exactamente el mismo diseño con otra letra.
+    NO se pide ninguna tipografía a un servidor externo, y es una decisión, no
+    un olvido. Se pedían a Google Fonts con respaldo del sistema, de modo que
+    la página se veía bien sin red; pero pedirlas manda a un tercero la
+    dirección de red y la identificación del navegador de quien abre el
+    asistente cada vez, y eso contradice lo que el RNF-02 afirma sobre que el
+    sistema funciona entero en local. El precio es la letra: se usa la del
+    sistema operativo, que en Windows y en macOS es distinta.
   -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap">
-
   <link rel="icon" href="logo-uja.png">
   <link rel="stylesheet" href="estilos.css">
 </head>
@@ -36,7 +34,15 @@
     <header class="cabecera" aria-label="Escuela Politécnica Superior de Jaén">
       <img class="cabecera__escudo" src="logo-uja.png" alt="Universidad de Jaén">
       <div class="cabecera__textos">
-        <p class="cabecera__titulo">Escuela Politécnica Superior</p>
+        <!--
+          `h1` y no un párrafo: es el único encabezado de nivel uno de la
+          página. Antes el único encabezado del documento era el `h2` del
+          diálogo de fuentes, que está oculto mientras el diálogo está
+          cerrado, así que navegar por encabezados con un lector de pantalla
+          no llevaba a ninguna parte (WCAG 1.3.1 y 2.4.6). El aspecto no
+          cambia: la hoja de estilo ya le daba tamaño propio.
+        -->
+        <h1 class="cabecera__titulo">Escuela Politécnica Superior</h1>
         <p class="cabecera__subtitulo">Universidad de Jaén · Asistente Virtual</p>
       </div>
     </header>
