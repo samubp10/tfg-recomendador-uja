@@ -10,6 +10,7 @@ señal de que la lógica está en el sitio equivocado.
 from __future__ import annotations
 
 import io
+from http.server import SimpleHTTPRequestHandler
 import json
 from pathlib import Path
 from typing import Any
@@ -300,6 +301,136 @@ def test_el_ambito_multiple_llega_entero_al_generador(
     )
 
     assert recibidos == [[informatica, mecanica]]
+
+
+def test_la_cabecera_server_no_dice_la_version() -> None:
+    """Anunciaba «SimpleHTTP/0.6 Python/3.13.5».
+
+    Eso le dice a quien pregunte qué biblioteca y qué intérprete hay detrás, y
+    solo le sirve a quien busca por dónde entrar. El servicio se sigue
+    identificando: lo que desaparece es la versión.
+    """
+    m = manejador_falso(b"{}")
+
+    firma = m.version_string()
+
+    assert firma == "asistente-epsj"
+    assert not any(c.isdigit() for c in firma), firma
+
+
+def test_toda_respuesta_lleva_las_cabeceras_defensivas(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Se ponen en ``end_headers`` y no en cada punto de salida.
+
+    Hay cinco sitios distintos donde el manejador termina una respuesta. Una
+    cabecera que se olvide en uno de ellos no falla: sirve la respuesta sin
+    protección, y eso no se ve mirando la aplicación.
+    """
+    puestas: list[tuple[str, str]] = []
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.send_header = lambda nombre, valor: puestas.append((nombre, valor))
+    # La de la clase base escribe en un socket que aquí no existe.
+    monkeypatch.setattr(SimpleHTTPRequestHandler, "end_headers", lambda self: None)
+
+    m.end_headers()
+
+    assert dict(puestas) == servidor.CABECERAS_DEFENSIVAS
+
+
+def test_la_politica_de_contenido_no_admite_nada_en_linea() -> None:
+    """Si admitiera ``'unsafe-inline'`` no protegería de una inyección.
+
+    Puede ser estricta porque la página no tiene ``<script>`` ni ``style=`` en
+    el marcado y no carga nada de fuera: todo lo que pide es suyo.
+    """
+    politica = servidor.CABECERAS_DEFENSIVAS["Content-Security-Policy"]
+
+    assert "unsafe-inline" not in politica
+    assert "unsafe-eval" not in politica
+    assert "frame-ancestors 'none'" in politica
+    assert "default-src 'self'" in politica
+
+
+def test_un_error_de_la_api_se_responde_en_json() -> None:
+    """El endpoint operaba en JSON y fallaba en HTML, y además en inglés.
+
+    Un cliente tenía que saber distinguir dos formatos según le fuera bien o
+    mal, cuando la interfaz y el atributo ``lang`` están en español.
+    """
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.path = "/api/chat"
+    m.command = "POST"
+    m.wfile = io.BytesIO()
+    m.send_response = lambda *a, **k: None
+    m.send_header = lambda *a, **k: None
+    m.end_headers = lambda: None
+
+    m.send_error(400, "falta la pregunta")
+
+    assert json.loads(m.wfile.getvalue()) == {
+        "error": "falta la pregunta",
+        "codigo": 400,
+    }
+
+
+def test_un_error_fuera_de_la_api_sigue_siendo_una_pagina(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Quien se equivoca de dirección es un navegador, no un cliente de la API.
+
+    Una página de error se lee; un objeto JSON en pantalla, no.
+    """
+    recibidos: list[int] = []
+    monkeypatch.setattr(
+        SimpleHTTPRequestHandler,
+        "send_error",
+        lambda self, code, message=None, explain=None: recibidos.append(code),
+    )
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.path = "/pagina-que-no-existe"
+
+    m.send_error(404)
+
+    assert recibidos == [404]
+
+
+def test_un_error_de_la_api_sin_mensaje_usa_el_de_la_biblioteca() -> None:
+    """``send_error(413)`` se llama sin motivo cuando el cuerpo es enorme."""
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.path = "/api/chat"
+    m.command = "POST"
+    m.wfile = io.BytesIO()
+    m.send_response = lambda *a, **k: None
+    m.send_header = lambda *a, **k: None
+    m.end_headers = lambda: None
+
+    m.send_error(413)
+
+    devuelto = json.loads(m.wfile.getvalue())
+    assert devuelto["codigo"] == 413
+    assert devuelto["error"]
+
+
+def test_una_peticion_head_a_la_api_no_lleva_cuerpo() -> None:
+    """Lo exige HTTP: una respuesta a HEAD no tiene cuerpo, tenga el código
+    que tenga."""
+    Clase = servidor.manejador(SISTEMA_FALSO)
+    m = Clase.__new__(Clase)
+    m.path = "/api/chat"
+    m.command = "HEAD"
+    m.wfile = io.BytesIO()
+    m.send_response = lambda *a, **k: None
+    m.send_header = lambda *a, **k: None
+    m.end_headers = lambda: None
+
+    m.send_error(404)
+
+    assert m.wfile.getvalue() == b""
 
 
 def test_sin_indice_el_arranque_avisa_en_vez_de_reventar(
