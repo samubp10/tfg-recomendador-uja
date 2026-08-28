@@ -184,7 +184,7 @@ def test_si_el_modelo_no_responde_sale_un_error_y_no_un_cuelgue(
 def manejador_falso(
     cuerpo: bytes,
     ruta: str = "/api/chat",
-    largo: int | None = None,
+    largo: int | str | None = None,
     Clase: type | None = None,
 ):
     """Crea un manejador sin socket, con la petición ya puesta dentro.
@@ -242,8 +242,17 @@ def test_el_manejador_emite_una_linea_json_por_parte(
     [
         (b'{"pregunta":"x"}', "/otra", None, 404),
         (b"no soy json", "/api/chat", None, 400),
+        # JSON válido no significa contrato válido: las tres formas siguientes
+        # no tienen ``.get`` y antes derribaban el manejador con AttributeError.
+        (b"[]", "/api/chat", None, 400),
+        (b'"pregunta"', "/api/chat", None, 400),
+        (b"null", "/api/chat", None, 400),
         (b'{"pregunta":"   "}', "/api/chat", None, 400),
         (b'{"otra":"cosa"}', "/api/chat", None, 400),
+        # El encabezado lo controla el cliente. Convertirlo sin comprobarlo
+        # soltaba ValueError; admitir uno negativo pediría leer hasta EOF.
+        (b"{}", "/api/chat", "no-es-un-entero", 400),
+        (b"{}", "/api/chat", -1, 400),
         (b"{}", "/api/chat", servidor.MAXIMO_CUERPO + 1, 413),
         # Regresion: un cuerpo que no viene en UTF-8 reventaba el manejador con
         # una traza en vez de contestar 400, y el cliente se quedaba sin nada.
@@ -251,7 +260,7 @@ def test_el_manejador_emite_una_linea_json_por_parte(
     ],
 )
 def test_las_peticiones_mal_formadas_no_llegan_al_modelo(
-    cuerpo: bytes, ruta: str, largo: int | None, codigo: int
+    cuerpo: bytes, ruta: str, largo: int | str | None, codigo: int
 ) -> None:
     """Se rechazan antes de gastar un minuto de modelo en ellas."""
     m = manejador_falso(cuerpo, ruta, largo)
