@@ -66,6 +66,34 @@ MODELO_GENERATIVO: Final[str] = "gemma3:12b"
 
 PUERTO: Final[int] = 8000
 
+#: Cabeceras que acompañan a toda respuesta. Ninguna hace falta para que la
+#: aplicación funcione en local; están porque el día que este servidor deje de
+#: escuchar solo en ``127.0.0.1`` ya no habría que acordarse de ponerlas.
+#:
+#: La política de contenido es estricta a propósito: la página no tiene nada en
+#: línea y no carga nada de fuera, así que ``'self'` a secas basta y no hace
+#: falta ``'unsafe-inline'``. Modificar ``element.style`` desde el guion no la
+#: infringe: lo que la política gobierna es el atributo ``style`` del marcado,
+#: no el modelo de objetos.
+CABECERAS_DEFENSIVAS: Final[dict[str, str]] = {
+    "Content-Security-Policy": (
+        "default-src 'self'; img-src 'self' data:; style-src 'self'; "
+        "script-src 'self'; connect-src 'self'; base-uri 'none'; "
+        "form-action 'self'; frame-ancestors 'none'"
+    ),
+    # Impide que el navegador adivine el tipo de un fichero y lo trate como
+    # algo distinto de lo que se declara.
+    "X-Content-Type-Options": "nosniff",
+    # `frame-ancestors` ya lo cubre en los navegadores actuales; esto vale para
+    # los que no entienden esa directiva.
+    "X-Frame-Options": "DENY",
+    # Que la dirección de esta página no viaje a ningún sitio al salir de ella.
+    "Referrer-Policy": "no-referrer",
+    # La aplicación no usa cámara, ni micrófono, ni ubicación. Decirlo evita
+    # que un guion inyectado pueda pedirlas.
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+}
+
 #: Tope del cuerpo de la petición. Una pregunta no ocupa esto ni de lejos; está
 #: para que un cuerpo enorme no se lea entero en memoria.
 MAXIMO_CUERPO: Final[int] = 8 * 1024
@@ -292,6 +320,72 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
 
     class Manejador(SimpleHTTPRequestHandler):
         """Sirve ``web/`` y atiende ``POST /api/chat``."""
+
+        def version_string(self) -> str:
+            """Cabecera ``Server`` sin número de versión.
+
+            Se anunciaba ``SimpleHTTP/0.6 Python/3.13.5``, que le dice a quien
+            pregunte qué biblioteca y qué intérprete hay detrás. No es una
+            vulnerabilidad por sí sola, pero es información que solo sirve a
+            quien busca por dónde entrar. El servicio se sigue identificando:
+            lo que se calla es la versión.
+
+            Returns:
+                Nombre del servicio, sin versión.
+            """
+            return "asistente-epsj"
+
+        def end_headers(self) -> None:
+            """Añade las cabeceras defensivas a **todas** las respuestas.
+
+            Se hace aquí y no en cada punto de salida porque hay cinco, y una
+            que se olvide no falla: simplemente sirve una respuesta sin
+            protección, y eso no se nota mirando la aplicación.
+
+            La política de contenido puede ser estricta porque la página no
+            tiene nada en línea ---ni ``<script>`` ni ``style=``--- y desde
+            IT-118 tampoco pide tipografías fuera: todo lo que carga es suyo.
+            """
+            for nombre, valor in CABECERAS_DEFENSIVAS.items():
+                self.send_header(nombre, valor)
+            super().end_headers()
+
+        def send_error(  # type: ignore[override]
+            self,
+            code: int,
+            message: str | None = None,
+            explain: str | None = None,
+        ) -> None:
+            """Responde en JSON cuando el fallo es de la API.
+
+            El endpoint operaba en JSON y fallaba en HTML, y además en inglés,
+            mientras la interfaz y el atributo ``lang`` están en español. Un
+            cliente que consuma la API tenía que saber distinguir dos formatos
+            según le fuera bien o mal.
+
+            Fuera de ``/api/`` se mantiene el HTML de la biblioteca: ahí quien
+            se equivoca de dirección es un navegador, y una página de error se
+            lee mejor que un objeto JSON.
+
+            Args:
+                code: Código HTTP.
+                message: Motivo breve, el que se le devuelve al cliente.
+                explain: Explicación larga de la clase base; no se usa en JSON.
+            """
+            if not self.path.startswith("/api/"):
+                super().send_error(code, message, explain)
+                return
+            cuerpo = json.dumps(
+                {"error": message or self.responses[code][0], "codigo": code},
+                ensure_ascii=False,
+            ).encode("utf-8")
+            self.send_response(code, message)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(cuerpo)))
+            self.send_header("Connection", "close")
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(cuerpo)
 
         #: La conversación vive en el proceso, no en el cliente: es lo que
         #: desbloquea IT-106. Con un solo visitante ---que es el alcance
