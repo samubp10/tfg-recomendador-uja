@@ -228,7 +228,11 @@ def partes_de_la_respuesta(
             fragmentos,
             MODELO_GENERATIVO,
             historial=[(p, "") for p in conversacion.preguntas()],
-            ambito=consulta.ambito[0] if len(consulta.ambito) == 1 else None,
+            ambito=(
+                consulta.ambito[0]
+                if len(consulta.ambito) == 1
+                else consulta.ambito or None
+            ),
             catalogo=catalogo,
         )
         for parte in partes:
