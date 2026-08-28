@@ -337,7 +337,17 @@ class Conversacion:
         # «mecánica», y con ella acotaría y le pegaría ese nombre a la consulta,
         # que es justo lo que hunde a las ajenas por debajo del suelo.
         ambito = self._ambito if decidio else (mencionadas or self._ambito)
-        abierta = decidida == TODAS
+        # Dos nombres oficiales escritos por el estudiante son una señal más
+        # fuerte que la clasificación del decisor. Este se diseñó para elegir
+        # una titulación y, ante una comparación, puede devolver solo la
+        # primera. La misma comprobación de nombres completos que se aplica a
+        # las respuestas evita además que el grado simple se dé por mencionado
+        # solo porque su nombre está contenido dentro de un doble grado.
+        exactas = titulaciones_de_la_respuesta(pregunta, self.catalogo)
+        if len(exactas) >= 2:
+            self._ambito = list(exactas)
+            ambito = exactas
+        abierta = decidida == TODAS and len(exactas) < 2
 
         texto = pregunta
         if not contenido(pregunta, self.catalogo) and self._predicado:
