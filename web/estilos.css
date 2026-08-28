@@ -31,8 +31,16 @@
 
   --degradado-uja: linear-gradient(135deg, var(--uja-verde) 0%, var(--uja-verde-oscuro) 100%);
 
-  --letra-titulo: "Lora", Georgia, "Times New Roman", serif;
-  --letra-texto: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /*
+    Solo tipografias del sistema. Antes encabezaban «Lora» e «Inter»,
+    servidas por Google, y aunque la pagina no dependia de que llegaran,
+    pedirlas mandaba a un tercero la direccion de red y el navegador de
+    quien abre el asistente. El sistema se defiende como local: no puede
+    hacer una peticion externa solo por la letra.
+  */
+  --letra-titulo: Georgia, "Times New Roman", "Nimbus Roman", serif;
+  --letra-texto: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 
   --radio: 16px;
 
@@ -407,30 +415,40 @@ body {
 
 /* ------------------------------------------------------------ sugerencias */
 
+/*
+   Se envuelven en vez de correr en un carril horizontal sin barra. Medido a
+   320 px: los botones ocupaban entre 479 y 655 px, asi que no se leia ni la
+   primera sugerencia entera y nada indicaba que hubiera mas. Con teclado si
+   se alcanzaban ---el navegador desplaza el contenedor al enfocar---, de modo
+   que el problema era de raton y de dedo, no de accesibilidad por teclado.
+
+   El tope de altura evita el efecto contrario: cuatro preguntas largas
+   envueltas empujarian el cuadro de escribir fuera de la pantalla en un
+   movil. Cuando se pasa, la barra SI se ve, que es lo que faltaba antes. */
 .sugerencias {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding-block: 6px 8px;
-  overflow-x: auto;
   flex-shrink: 0;
-  scrollbar-width: none;
-}
-
-.sugerencias::-webkit-scrollbar {
-  display: none;
+  max-height: 30vh;
+  overflow-y: auto;
 }
 
 .sugerencia {
-  flex-shrink: 0;
   padding: 6px 14px;
-  border-radius: 999px;
+  border-radius: 16px;
   border: 1px solid var(--borde-fuerte);
   background: #f0f7f3;
   color: var(--uja-verde);
   font-family: inherit;
   font-size: 0.78rem;
   cursor: pointer;
-  white-space: nowrap;
+  /* El texto parte donde haga falta y el boton no pasa del ancho util: una
+     pregunta de 655 px dejaba de caber en cualquier telefono. */
+  white-space: normal;
+  text-align: left;
+  max-width: 100%;
   transition: background-color 0.15s, color 0.15s;
 }
 
@@ -484,6 +502,17 @@ body {
 
 .redaccion__entrada::placeholder {
   color: var(--texto-suave);
+}
+
+/* El cuadro tiene `outline: 0` para que no le salga un recuadro dentro de la
+   caja, y lo unico que marcaba el foco era que la caja de fuera cambiaba de
+   color de borde: un cambio que apenas se distingue del estado normal. Los
+   botones si tenian foco visible, asi que el unico control sin marca clara
+   era justo el principal (WCAG 2.4.7). Se marca la caja entera, que es lo que
+   la persona percibe como «el cuadro de escribir». */
+.redaccion__caja:has(.redaccion__entrada:focus-visible) {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
 }
 
 .redaccion__enviar {
