@@ -298,8 +298,14 @@ function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = 
  * `responder` cambia lo que contestará la SIGUIENTE consulta: la primera se la
  * lleva siempre el saludo de arranque, que `chat.js` pide solo al cargarse.
  */
-function montar({ sugerencias = [], sugerenciasFallan = false, reloj } = {}) {
+function montar({
+  sugerencias = [],
+  sugerenciasFallan = false,
+  reloj,
+  saludoFallaAlArrancar = false,
+} = {}) {
   let siguiente = () => respuestaNdjson([{ parte: "Hola." }, { fin: true }]);
+  let saludoFalla = false;
   const peticiones = [];
   const fetchDoble = (url, opciones) => {
     peticiones.push({ url, opciones });
@@ -308,8 +314,16 @@ function montar({ sugerencias = [], sugerenciasFallan = false, reloj } = {}) {
         ? Promise.resolve({ ok: false, status: 500 })
         : Promise.resolve({ ok: true, json: () => sugerencias });
     }
-    return Promise.resolve(siguiente());
+    // Se le pasan las opciones para que una prueba pueda mirar la senal de
+    // cancelacion; las que no la necesitan simplemente ignoran el argumento.
+    return Promise.resolve(siguiente(opciones));
   };
+  saludoFalla = saludoFallaAlArrancar;
+  if (saludoFalla) {
+    siguiente = () => {
+      throw new Error("Failed to fetch");
+    };
+  }
   const contexto = cargarChat({ fetch: fetchDoble, reloj });
   return {
     chat: contexto,
@@ -324,6 +338,23 @@ function montar({ sugerencias = [], sugerenciasFallan = false, reloj } = {}) {
 /** Deja que terminen el saludo de arranque y la petición de sugerencias. */
 async function reposar() {
   for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
+}
+
+/**
+ * Una respuesta que no llega nunca y que se rompe al cancelarla.
+ *
+ * Es lo que hace `fetch` de verdad con una señal de `AbortController`: la
+ * promesa se rechaza con un error cuyo `name` es `AbortError`, y de ese nombre
+ * depende que el cliente distinga cancelar de fallar.
+ */
+function prometeAbortable(opciones) {
+  return new Promise((_, rechazar) => {
+    opciones.signal.addEventListener("abort", () => {
+      const fallo = new Error("The user aborted a request.");
+      fallo.name = "AbortError";
+      rechazar(fallo);
+    });
+  });
 }
 
 /** La última burbuja del asistente, con las piezas que `chat.js` rellenó. */
@@ -493,7 +524,23 @@ test("un error del servidor se cuenta en la burbuja en vez de perderse", async (
 
   const { fila, cuerpo } = ultimaRespuesta(m);
   assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
-  assert.ok(cuerpo.innerHTML.includes("el servidor respondió 503"), cuerpo.innerHTML);
+  assert.ok(cuerpo.innerHTML.includes("No se ha podido obtener"), cuerpo.innerHTML);
+});
+
+test("el error no enseña el detalle técnico del navegador", async () => {
+  // Se veia el mensaje que compone el navegador, en ingles, y la palabra
+  // «servidor de inferencia», que es vocabulario de dentro del proyecto.
+  const m = montar();
+  await reposar();
+  m.responder(() => {
+    throw new Error("Failed to fetch");
+  });
+
+  await m.chat.preguntar("¿Qué salidas tiene?");
+
+  const { cuerpo } = ultimaRespuesta(m);
+  assert.ok(!cuerpo.innerHTML.includes("Failed to fetch"), cuerpo.innerHTML);
+  assert.ok(!cuerpo.innerHTML.includes("inferencia"), cuerpo.innerHTML);
 });
 
 test("un error emitido a media respuesta también se cuenta", async () => {
@@ -505,7 +552,97 @@ test("un error emitido a media respuesta también se cuenta", async () => {
 
   const { fila, cuerpo } = ultimaRespuesta(m);
   assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
-  assert.ok(cuerpo.innerHTML.includes("el modelo no respondió"), cuerpo.innerHTML);
+  assert.ok(cuerpo.innerHTML.includes("No se ha podido obtener"), cuerpo.innerHTML);
+});
+
+test("una consulta fallida deja UN solo mensaje de error, no dos", async () => {
+  // El saludo de arranque usa la misma funcion que una pregunta normal. Con
+  // la red caida pintaba su propio error nada mas abrir la pagina, y al
+  // preguntar aparecia el segundo: dos mensajes identicos para una sola
+  // accion de la persona. Una llamada silenciosa tiene que fallar en silencio.
+  const m = montar({ saludoFallaAlArrancar: true });
+  await reposar();
+  assert.equal(m.el("mensajes").hijos.length, 0, "el saludo no debe dejar rastro");
+
+  m.responder(() => {
+    throw new Error("Failed to fetch");
+  });
+  await m.chat.preguntar("¿Qué salidas tiene?");
+
+  const fallos = m
+    .el("mensajes")
+    .hijos.filter((f) => f.classList.contains("mensaje--fallo"));
+  assert.equal(fallos.length, 1, `mensajes de error: ${fallos.length}`);
+});
+
+// ------------------------------------------------ el envio vacio y cancelar
+
+test("el envío nace apagado y se enciende al escribir", async () => {
+  const m = montar();
+  // Hay que dejar terminar el saludo de arranque: mientras esta en marcha el
+  // boton no esta apagado, esta en modo cancelar, que es otra cosa.
+  await reposar();
+  const boton = m.el("enviar");
+  const entrada = m.el("entrada");
+  assert.equal(boton.disabled, true, "con el cuadro vacio no hace nada");
+
+  entrada.value = "¿Qué salidas tiene?";
+  entrada.disparar("input");
+  assert.equal(boton.disabled, false);
+
+  entrada.value = "   ";
+  entrada.disparar("input");
+  assert.equal(boton.disabled, true, "solo espacios sigue siendo vacio");
+});
+
+test("enviar con el cuadro vacío no llega al servidor", async () => {
+  const m = montar();
+  await reposar();
+  const antes = m.peticiones.filter((p) => p.url === "/api/chat").length;
+
+  m.el("entrada").value = "   ";
+  m.el("redaccion").disparar("submit");
+  await reposar();
+
+  const despues = m.peticiones.filter((p) => p.url === "/api/chat").length;
+  assert.equal(despues, antes, "no debe salir ninguna consulta");
+});
+
+test("mientras se responde, el envío se convierte en cancelar", async () => {
+  const m = montar();
+  await reposar();
+  m.responder((opciones) => prometeAbortable(opciones));
+
+  const enMarcha = m.chat.preguntar("¿Qué salidas tiene?");
+  await reposar();
+
+  const boton = m.el("enviar");
+  assert.equal(boton.disabled, false, "cancelar tiene que poder pulsarse");
+  assert.equal(boton.getAttribute("aria-label"), "Cancelar la consulta en curso");
+  assert.ok(boton.classList.contains("redaccion__enviar--cancelar"));
+
+  m.el("redaccion").disparar("submit");
+  await enMarcha;
+
+  assert.equal(boton.getAttribute("aria-label"), "Enviar consulta");
+  assert.ok(!boton.classList.contains("redaccion__enviar--cancelar"));
+});
+
+test("cancelar devuelve la pregunta al cuadro para poder corregirla", async () => {
+  const m = montar();
+  await reposar();
+  m.responder((opciones) => prometeAbortable(opciones));
+
+  const pregunta = "¿Qué salidas tiene Mecánica?";
+  const enMarcha = m.chat.preguntar(pregunta);
+  await reposar();
+  m.el("redaccion").disparar("submit");
+  await enMarcha;
+
+  const { fila, cuerpo } = ultimaRespuesta(m);
+  assert.ok(cuerpo.innerHTML.includes("Consulta cancelada"), cuerpo.innerHTML);
+  assert.ok(!fila.classList.contains("mensaje--fallo"), "cancelar no es un fallo");
+  assert.equal(m.el("entrada").value, pregunta);
 });
 
 test("un flujo sin texto ninguno no se da por respuesta buena", async () => {
