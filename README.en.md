@@ -76,7 +76,7 @@ table, it is only as fresh as the last time someone edited it.
 
 ## Requirements
 
-- Python 3.13 (3.10 minimum).
+- Python 3.13.
 - To run the actual indexing: the `[index]` extra (see below), which pulls in
   PyTorch through `sentence-transformers`.
 
