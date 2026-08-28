@@ -284,10 +284,10 @@ def sugerencias_para(
     el catálogo y la petición de consejo--- y el resto para titulaciones de
     fuera del ámbito.
 
-    Lo que **no** se ofrece nunca es una comparación entre dos titulaciones
-    («¿en qué se diferencian X e Y?»): no la respalda ningún fragmento, porque
-    en el corpus no hay ningún texto que compare dos, y la respuesta saldría
-    de que el modelo las junte por su cuenta.
+    Los botones no proponen comparaciones de forma automática. RU-04 sí las
+    atiende cuando el estudiante las pide: el recuperador trae evidencia de
+    cada titulación por separado y el generador las contrasta. Elegir aquí dos
+    grados al azar produciría una sugerencia poco relacionada con el diálogo.
 
     Args:
         tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.

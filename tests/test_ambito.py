@@ -209,6 +209,19 @@ def test_con_ambito_la_opcion_de_seguir_nombra_la_titulacion():
     assert f"se sigue refiriendo al {INFORMATICA}" in peticion
 
 
+def test_con_varias_titulaciones_el_decisor_puede_conservarlas():
+    """RU-04 exige que SIGUE no reduzca una comparación a su primer grado."""
+    mecanica = "Grado en Ingeniería Mecánica"
+
+    peticion = construir_peticion(
+        "¿y cuál tiene más optativas?", [INFORMATICA, mecanica], None, CATALOGO
+    )
+
+    assert "se sigue refiriendo a estas titulaciones" in peticion
+    assert INFORMATICA in peticion
+    assert mecanica in peticion
+
+
 def test_sin_ambito_no_se_ofrece_la_opcion_de_seguir():
     """Sin titulación anterior no hay nada a lo que seguir.
 

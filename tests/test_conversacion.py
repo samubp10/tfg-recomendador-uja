@@ -463,6 +463,32 @@ def decisor_espia(llamadas: list[Llamada]) -> Decisor:
     return decidir
 
 
+@pytest.mark.parametrize(
+    "decision",
+    [Decision(CAMBIA, [INFORMATICA]), Decision(TODAS, [])],
+    ids=["pierde-una", "las-trata-como-oferta-entera"],
+)
+def test_dos_nombres_oficiales_mandan_sobre_una_decision_incompleta(
+    decision: Decision,
+):
+    """RU-04 conserva las dos titulaciones escritas por el estudiante.
+
+    El decisor se diseñó cuando solo había que escoger un ámbito y puede
+    contestar con una sola titulación. Los dos nombres oficiales de la
+    pregunta son evidencia más fuerte y comprobable que esa clasificación.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(decision),
+    )
+
+    consulta = c.preparar(f"Compara el {INFORMATICA} y el {MECANICA}")
+
+    assert consulta.ambito == [INFORMATICA, MECANICA]
+    assert consulta.abierta is False
+    assert c.ambito == [INFORMATICA, MECANICA]
+
+
 def test_al_cambiar_de_titulacion_se_acota_a_la_nueva():
     """Es lo que el mecanismo determinista no sabe hacer: soltar el sujeto.
 

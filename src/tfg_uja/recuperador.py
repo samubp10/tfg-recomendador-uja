@@ -580,12 +580,13 @@ def contexto_para(
         Los fragmentos que se le entregan al modelo.
     """
     consejo = abierta or pide_recomendacion(pregunta)
-    traidos = recuperar(
-        expandir(pregunta) if consejo else pregunta, tabla, incrustar, **opciones
+    consulta = expandir(pregunta) if consejo else pregunta
+    traidos = _contexto_recuperado(
+        consulta, tabla, incrustar, sin_recorte=consejo, opciones=opciones
     )
     if consejo:
-        return traidos[:K_MAXIMO]
-    fragmentos = acotar_por_distancia(traidos)
+        return traidos
+    fragmentos = traidos
     if fragmentos or not respaldo:
         return fragmentos
     # Segundo intento con la pregunta anterior delante. Medido el 20/08/2026:
@@ -598,4 +599,72 @@ def contexto_para(
     # comprobado y no una conjetura sobre la frase, y cuesta una búsqueda de
     # cinco centésimas de segundo en el único caso en que la alternativa es no
     # responder.
-    return acotar_por_distancia(recuperar(respaldo, tabla, incrustar, **opciones))
+    return _contexto_recuperado(
+        respaldo, tabla, incrustar, sin_recorte=False, opciones=opciones
+    )
+
+
+def _contexto_recuperado(
+    pregunta: str,
+    tabla: Any,
+    incrustar: Incrustador,
+    *,
+    sin_recorte: bool,
+    opciones: dict[str, Any],
+) -> list[Fragmento]:
+    """Busca y acota una consulta sin ocultar ninguno de sus ámbitos.
+
+    Una consulta filtrada por varias titulaciones produce un único ranking.
+    Eso no garantiza que todas estén representadas: una puede ocupar los
+    veinte vecinos aunque la pregunta pida compararla con otra. Para RU-04 se
+    hace la misma búsqueda con un filtro exacto por titulación y se alternan
+    los resultados. No se añade otro *scorer*: dentro de cada grupo siguen
+    mandando la distancia y el corte ya medidos en IT-49.
+
+    Args:
+        pregunta: Texto que se incrusta.
+        tabla: Tabla vectorial abierta.
+        incrustar: Incrustador de consultas.
+        sin_recorte: Si se conservan los vecinos sin suelo ni corte relativo.
+        opciones: Argumentos que recibe :func:`recuperar`.
+
+    Returns:
+        Hasta :data:`K_MAXIMO` fragmentos, alternados por titulación cuando el
+        ámbito contiene varias.
+    """
+    ambito = opciones.get("ambito")
+    if not isinstance(ambito, list) or len(ambito) < 2:
+        recuperados = recuperar(pregunta, tabla, incrustar, **opciones)
+        return (
+            recuperados[:K_MAXIMO] if sin_recorte else acotar_por_distancia(recuperados)
+        )
+
+    por_titulacion: list[list[Fragmento]] = []
+    for titulacion in ambito:
+        propias = dict(opciones)
+        propias["ambito"] = [titulacion]
+        recuperados = recuperar(pregunta, tabla, incrustar, **propias)
+        por_titulacion.append(
+            recuperados[:K_MAXIMO] if sin_recorte else acotar_por_distancia(recuperados)
+        )
+    return _intercalar(por_titulacion)
+
+
+def _intercalar(grupos: list[list[Fragmento]]) -> list[Fragmento]:
+    """Alterna rankings conservando el orden interno de cada uno.
+
+    Args:
+        grupos: Fragmentos ya ordenados y acotados de cada titulación.
+
+    Returns:
+        Como máximo :data:`K_MAXIMO` fragmentos.
+    """
+    mezclados: list[Fragmento] = []
+    mayor = max((len(grupo) for grupo in grupos), default=0)
+    for posicion in range(mayor):
+        for grupo in grupos:
+            if posicion < len(grupo):
+                mezclados.append(grupo[posicion])
+                if len(mezclados) == K_MAXIMO:
+                    return mezclados
+    return mezclados

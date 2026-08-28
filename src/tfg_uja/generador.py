@@ -117,9 +117,13 @@ INSTRUCCIONES: Final[str] = (
     "publicada; no es lo mismo que no exista la asignatura.\n"
     "- Al enumerar asignaturas, agrúpalas por curso y termina siempre con las "
     "optativas, que no tienen curso asignado. No te dejes ningún grupo.\n"
-    "- Si hay un ÁMBITO declarado, responde sobre esa titulación. Varias "
-    "asignaturas se imparten en más de una, y el contexto las nombra todas; "
-    "menciónalo si viene al caso, pero no cambies de titulación.\n"
+    "- Si hay un ÁMBITO declarado, responde sobre la titulación o las "
+    "titulaciones que enumera. Varias asignaturas se imparten en más de una, "
+    "y el contexto las nombra todas; menciónalo si viene al caso, pero no "
+    "introduzcas otra titulación.\n"
+    "- Si la pregunta compara varias titulaciones, deja claro a cuál "
+    "corresponde cada dato y no declares una diferencia que el CONTEXTO no "
+    "muestre.\n"
     "- Las PREGUNTAS ANTERIORES sirven solo para entender a qué se refiere la "
     "pregunta actual. Todos los datos salen del CONTEXTO.\n"
     "- Cita la asignatura o la titulación de la que sale cada dato.\n"
@@ -606,7 +610,7 @@ def responder(
     fragmentos: list[Fragmento],
     modelo: str,
     historial: list[tuple[str, str]] | None = None,
-    ambito: str | None = None,
+    ambito: str | list[str] | None = None,
     catalogo: list[str] | None = None,
     traza: dict[str, object] | None = None,
 ) -> str:
@@ -638,7 +642,7 @@ def responder(
         fragmentos: Fragmentos recuperados, ya acotados.
         modelo: Nombre del modelo en el servidor local.
         historial: Turnos anteriores de la conversación, si los hay.
-        ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        ambito: Titulación o titulaciones a las que está acotada la búsqueda.
         catalogo: Titulaciones que declara el índice, para que el prompt las
             enumere.
         traza: Diccionario donde dejar constancia de lo que la barrera retira.
@@ -728,7 +732,7 @@ def construir_prompt(
     pregunta: str,
     fragmentos: list[Fragmento],
     historial: list[tuple[str, str]] | None = None,
-    ambito: str | None = None,
+    ambito: str | list[str] | None = None,
     catalogo: list[str] | None = None,
 ) -> str:
     """Arma el texto que lee el modelo.
@@ -758,7 +762,7 @@ def construir_prompt(
         pregunta: Pregunta del usuario, tal cual la escribe.
         fragmentos: Fragmentos recuperados, de más a menos próximo.
         historial: Turnos anteriores de la conversación, si los hay.
-        ambito: Titulación a la que está acotada la búsqueda, si lo está.
+        ambito: Titulación o titulaciones a las que está acotada la búsqueda.
         catalogo: Titulaciones que declara el índice. Si no se pasa, el prompt
             no las enumera y el modelo solo cuenta con el contexto.
 
@@ -783,7 +787,7 @@ def construir_prompt(
     # todas, así que acotar la búsqueda a una no impide que el modelo hable de
     # las otras: medido, con el filtro puesto en Informática respondió con un
     # apartado entero sobre Inteligencia Artificial y Ciberseguridad.
-    encabezado = f"ÁMBITO: la consulta es sobre el {ambito}.\n\n" if ambito else ""
+    encabezado = _encabezado_de_ambito(ambito)
     return (
         f"{INSTRUCCIONES}\n\n"
         f"{oferta}"
@@ -793,6 +797,24 @@ def construir_prompt(
         f"PREGUNTA: {pregunta}\n\n"
         f"RESPUESTA:"
     )
+
+
+def _encabezado_de_ambito(ambito: str | list[str] | None) -> str:
+    """Declara el sujeto de la consulta sin perder un ámbito comparativo.
+
+    Args:
+        ambito: Una titulación, varias o ninguna.
+
+    Returns:
+        Bloque que precede al contexto, o cadena vacía sin ámbito.
+    """
+    if not ambito:
+        return ""
+    titulaciones = [ambito] if isinstance(ambito, str) else list(ambito)
+    if len(titulaciones) == 1:
+        return f"ÁMBITO: la consulta es sobre el {titulaciones[0]}.\n\n"
+    lista = "\n".join(f"- {titulacion}" for titulacion in titulaciones)
+    return f"ÁMBITO: la consulta abarca estas titulaciones:\n{lista}\n\n"
 
 
 #: Con lo que se cierra una respuesta que el modelo no llegó a terminar. Se
@@ -1020,7 +1042,7 @@ def responder_por_partes(
     fragmentos: list[Fragmento],
     modelo: str,
     historial: list[tuple[str, str]] | None = None,
-    ambito: str | None = None,
+    ambito: str | list[str] | None = None,
     catalogo: list[str] | None = None,
 ) -> Iterator[str | None]:
     """Devuelve la respuesta por partes, **cada una ya verificada** (ADR-0006).
@@ -1043,7 +1065,7 @@ def responder_por_partes(
         fragmentos: Los que ha traido el recuperador.
         modelo: Nombre del modelo en el servidor local.
         historial: Preguntas de los turnos anteriores.
-        ambito: Titulacion de la que se viene hablando, si hay una sola.
+        ambito: Titulacion o titulaciones de las que se viene hablando.
         catalogo: Titulaciones que declara el indice. Sin el no se comprueba.
 
     Yields:
