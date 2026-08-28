@@ -736,6 +736,77 @@ def test_sin_respaldo_una_pregunta_sin_contexto_se_queda_sin_contexto(monkeypatc
     assert len(llamadas) == 1
 
 
+def test_varias_titulaciones_se_buscan_por_separado_y_se_intercalan(monkeypatch):
+    """RU-04 necesita evidencia de cada titulación, no un único top global.
+
+    En una búsqueda conjunta una titulación puede ocupar todos los vecinos.
+    Buscar cada filtro por separado y alternar los resultados conserva la
+    relevancia dentro de cada grado sin dejar al otro fuera del contexto.
+    """
+    llamadas: list[list[str]] = []
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        (titulacion,) = opciones["ambito"]
+        llamadas.append(opciones["ambito"])
+        return [
+            Fragmento(
+                texto=f"Dato {indice} de {titulacion}",
+                nombre=f"Unidad {indice} de {titulacion}",
+                grados=[titulacion],
+                origen="ficha_titulacion",
+                distancia=0.05 + indice / 1000,
+                chunk_index=0,
+                total_chunks=1,
+            )
+            for indice in range(K_MAXIMO)
+        ]
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    fragmentos = contexto_para(
+        "Compara Ingeniería Eléctrica e Informática",
+        tabla=None,
+        incrustar=incrustador_falso,
+        ambito=[SIMPLE, INFORMATICA],
+    )
+
+    assert llamadas == [[SIMPLE], [INFORMATICA]]
+    assert len(fragmentos) == K_MAXIMO
+    assert [f.grados[0] for f in fragmentos] == [
+        SIMPLE,
+        INFORMATICA,
+    ] * (K_MAXIMO // 2)
+
+
+def test_un_ambito_multiple_devuelve_solo_la_evidencia_disponible(monkeypatch):
+    """El intercalado no rellena hasta veinte si solo existen dos resultados."""
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        (titulacion,) = opciones["ambito"]
+        return [
+            Fragmento(
+                texto=f"Dato de {titulacion}",
+                nombre=f"Ficha de {titulacion}",
+                grados=[titulacion],
+                origen="ficha_titulacion",
+                distancia=0.05,
+                chunk_index=0,
+                total_chunks=1,
+            )
+        ]
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    fragmentos = contexto_para(
+        "Compara Ingeniería Eléctrica e Informática",
+        tabla=None,
+        incrustar=incrustador_falso,
+        ambito=[SIMPLE, INFORMATICA],
+    )
+
+    assert [f.grados[0] for f in fragmentos] == [SIMPLE, INFORMATICA]
+
+
 # --- La consulta abierta se busca como una petición de consejo ---
 
 
