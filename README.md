@@ -46,7 +46,7 @@ universidad, por lo que solo se hace cuando cambia la fuente.
 
 ## Requisitos
 
-- Python 3.13 (mínimo 3.10).
+- Python 3.13.
 - Para ejecutar la indexación real: el extra `[index]` (véase abajo), que
   instala PyTorch a través de `sentence-transformers`.
 
