@@ -327,18 +327,32 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
             if self.path != "/api/chat":
                 self.send_error(404)
                 return
-            largo = int(self.headers.get("Content-Length") or 0)
+            try:
+                largo = int(self.headers.get("Content-Length") or 0)
+            except ValueError:
+                self.send_error(400, "Content-Length no es válido")
+                return
+            if largo < 0:
+                self.send_error(400, "Content-Length no puede ser negativo")
+                return
             if largo > MAXIMO_CUERPO:
                 self.send_error(413)
                 return
             try:
-                pregunta = json.loads(self.rfile.read(largo) or b"{}").get("pregunta")
+                cuerpo = json.loads(self.rfile.read(largo) or b"{}")
             except (json.JSONDecodeError, UnicodeDecodeError):
                 # UnicodeDecodeError no es hija de JSONDecodeError: un cuerpo
                 # que no venga en UTF-8 se colaba y reventaba el manejador con
                 # una traza, dejando al cliente sin respuesta ninguna.
                 self.send_error(400, "el cuerpo no es JSON válido")
                 return
+            if not isinstance(cuerpo, dict):
+                # Una lista, una cadena y ``null`` son JSON válido, pero no el
+                # objeto que define el contrato del endpoint. Llamar a ``get``
+                # sin comprobarlo soltaba AttributeError y cerraba la conexión.
+                self.send_error(400, "el cuerpo JSON debe ser un objeto")
+                return
+            pregunta = cuerpo.get("pregunta")
             if not isinstance(pregunta, str) or not pregunta.strip():
                 self.send_error(400, "falta la pregunta")
                 return
