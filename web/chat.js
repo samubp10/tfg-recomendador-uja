@@ -49,6 +49,18 @@ const cerrarFuentes = document.getElementById("fuentes-cerrar");
 
 let ocupado = false;
 
+/** Peticion en curso, o `null`. Es lo que permite cancelarla. */
+let enCurso = null;
+
+/** Texto del boton de enviar tal y como viene del HTML, para restaurarlo. */
+const ICONO_ENVIAR = botonEnviar.innerHTML;
+
+/** Cuadrado de «parar», que sustituye a la flecha mientras se responde. */
+const ICONO_CANCELAR =
+  '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" ' +
+  'focusable="false"><rect fill="currentColor" x="5" y="5" width="14" ' +
+  'height="14" rx="2" /></svg>';
+
 // --------------------------------------------------------------- utilidades
 
 /**
@@ -379,10 +391,12 @@ async function preguntar(pregunta, silenciosa = false) {
   };
 
   try {
+    enCurso = new AbortController();
     const respuesta = await fetch(RUTA_CHAT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pregunta: pregunta.trim() }),
+      signal: enCurso.signal,
     });
     if (!respuesta.ok) throw new Error(`el servidor respondió ${respuesta.status}`);
 
@@ -453,19 +467,39 @@ async function preguntar(pregunta, silenciosa = false) {
     if (propuestas) pintarSugerencias(propuestas);
   } catch (fallo) {
     espera.parar();
-    fila.classList.add("mensaje--fallo");
-    cuerpo.innerHTML = formatear(
-      "No he podido contactar con el asistente: " +
-        fallo.message +
-        "\n\nComprueba que el servidor está en marcha y que el servidor de " +
-        "inferencia responde."
-    );
-    pie.innerHTML = `<span>${horaActual()}</span>`;
+    // El detalle tecnico va a la consola y no a la pantalla: lo que se veia
+    // era el mensaje del navegador, en ingles («Failed to fetch»), y la
+    // palabra «servidor de inferencia», que es vocabulario de dentro.
+    console.error("La consulta ha fallado:", fallo);
+
+    if (silenciosa) {
+      // El saludo de arranque no lo ha pedido nadie. Si falla, se retira la
+      // fila y no se dice nada: con la red caida se pintaba un error nada mas
+      // abrir la pagina y otro al preguntar, dos mensajes identicos para una
+      // sola accion de la persona. La peticion de sugerencias ya fallaba en
+      // silencio; esta hace ahora lo mismo.
+      fila.remove();
+    } else if (fallo.name === "AbortError") {
+      cuerpo.innerHTML = formatear("Consulta cancelada.");
+      pie.innerHTML = `<span>${horaActual()}</span>`;
+      // Se devuelve la pregunta al cuadro para poder corregirla en vez de
+      // volver a escribirla entera.
+      entrada.value = pregunta;
+      ajustarAltura();
+    } else {
+      fila.classList.add("mensaje--fallo");
+      cuerpo.innerHTML = formatear(
+        "No se ha podido obtener una respuesta. Comprueba que el asistente " +
+          "sigue en marcha e inténtalo de nuevo."
+      );
+      pie.innerHTML = `<span>${horaActual()}</span>`;
+    }
   } finally {
     // Red de seguridad: si la conexion se corta o el modelo falla, el suceso
     // `fin` no llega nunca y la marca se quedaria puesta para siempre,
     // diciendo que se esta escribiendo algo que ya no va a llegar.
     burbuja.removeAttribute("aria-busy");
+    enCurso = null;
     ocupado = false;
     bloquear(false);
     bajarDelTodo();
@@ -482,11 +516,36 @@ async function preguntar(pregunta, silenciosa = false) {
  */
 function bloquear(bloqueado) {
   entrada.disabled = bloqueado;
-  botonEnviar.disabled = bloqueado;
   for (const boton of sugerencias.querySelectorAll(".sugerencia")) {
     boton.disabled = bloqueado;
   }
+  // El envio NO se apaga mientras se responde: se convierte en cancelar. Una
+  // respuesta tarda alrededor de un minuto ---medido: 56,6 s, 63,2 s y
+  // 65,4 s--- y hasta ahora no habia forma de salir de una pregunta escrita
+  // por error. Es el mismo control, asi que no aparece nada nuevo en el
+  // recorrido de teclado ni hay que colocar otro boton.
+  botonEnviar.innerHTML = bloqueado ? ICONO_CANCELAR : ICONO_ENVIAR;
+  botonEnviar.setAttribute(
+    "aria-label",
+    bloqueado ? "Cancelar la consulta en curso" : "Enviar consulta"
+  );
+  botonEnviar.classList.toggle("redaccion__enviar--cancelar", bloqueado);
+  actualizarEnviar();
   if (!bloqueado) entrada.focus();
+}
+
+/**
+ * Deja el boton de enviar habilitado solo cuando pulsarlo hace algo.
+ *
+ * Con el cuadro vacio no se enviaba nada, pero el boton seguia habilitado y
+ * al pulsarlo no pasaba absolutamente nada: ni mensaje, ni cambio de foco, ni
+ * estado invalido. Quien use un lector de pantalla no tenia ninguna senal de
+ * por que (WCAG 3.3.1, 3.3.2 y 4.1.3). Impedir el envio es mas simple que
+ * explicar un error que no hace falta cometer. El servidor sigue rechazando
+ * la peticion vacia por su cuenta: esto es la primera barrera, no la unica.
+ */
+function actualizarEnviar() {
+  botonEnviar.disabled = !ocupado && entrada.value.trim() === "";
 }
 
 /** Ajusta la altura del cuadro de texto a lo que se ha escrito. */
@@ -499,13 +558,21 @@ function ajustarAltura() {
 
 formulario.addEventListener("submit", (suceso) => {
   suceso.preventDefault();
+  if (ocupado) {
+    if (enCurso) enCurso.abort();
+    return;
+  }
   const texto = entrada.value;
   entrada.value = "";
   ajustarAltura();
+  actualizarEnviar();
   preguntar(texto);
 });
 
-entrada.addEventListener("input", ajustarAltura);
+entrada.addEventListener("input", () => {
+  ajustarAltura();
+  actualizarEnviar();
+});
 
 entrada.addEventListener("keydown", (suceso) => {
   if (suceso.key === "Enter" && !suceso.shiftKey) {
@@ -518,6 +585,9 @@ sugerencias.addEventListener("click", (suceso) => {
   const boton = suceso.target.closest(".sugerencia");
   if (boton) preguntar(boton.textContent.trim());
 });
+
+// Al arrancar el cuadro esta vacio, asi que el envio nace apagado.
+actualizarEnviar();
 
 // El saludo se le pide al servidor en vez de escribirlo aqui. Vuelve en
 // decimas de segundo porque es una respuesta fija que no llega al modelo.
