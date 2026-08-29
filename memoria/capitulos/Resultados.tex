@@ -50,9 +50,6 @@ La cuarta anomalía afecta a las guías docentes, ya que de las 288 publicadas, 
 La quinta son irregularidades menores, como tablas que mezclan asignaturas troncales con optativas, el Trabajo Fin de Grado declarado con tipo propio en unos planes y como obligatoria en otros, filas de relleno sin código que no corresponden a ninguna asignatura, entre otras.
 
 
-
-
-
 \input{tablas/TablaCaracterizacionCorpus.tex}
 
 \begin{borrador}
@@ -140,72 +137,17 @@ Con las cifras arrojadas por el experimento, se elige LanceDB, por las razones q
 Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta que se pedía en el umbral número 1 (U1), mientras que las otras dos opciones no fallan ninguna. 
 
 
-\section[Evaluación del \textit{pipeline} RAG]{\textcolor{borrador2}{Evaluación del \textit{pipeline} RAG}}
+\section[Comparativa de modelos de generación]{\textcolor{borrador2}{Comparativa de modelos de generación}}
 \label{secc:resultados_rag}
-\textcolor{borrador2}{Esta sección recoge lo que el sistema completo hace con
-  una pregunta. Se separa en dos partes porque son dos preguntas distintas: si
-  el recuperador trae los fragmentos que hacen falta, y si el modelo generativo
-  redacta con ellos una respuesta fiel. El diseño de ambas mediciones ---qué se
-  compara, con qué instrumento y por qué--- está en el
-  Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.}
 
-\subsection{\textcolor{borrador2}{La recuperación}}
-\label{secc:resultados_rag_recuperacion}
+\textcolor{borrador2}{Elegido el modelo que convierte el texto en vectores y la
+  base que los guarda, queda el último de los componentes que hay que decidir
+  por experimentación: el modelo de lenguaje que redacta la respuesta. Se
+  compara igual que los anteriores ---mismos datos, mismo instrumento para
+  todos, criterio de descarte fijado antes de medir--- y el diseño de la
+  medición está en el Apartado~\ref{secc:fase2_llm} del
+  Capítulo~\ref{cap:materialesymetodos}.}
 
-\textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
-  conjunto de evaluación anota, para cada pregunta, las unidades que la
-  responden, y algunas se responden con más fragmentos de los que el sistema
-  entrega: la lista de asignaturas de una titulación ocupa varios. En esas
-  preguntas la exhaustividad por fragmento no puede llegar a uno por perfecto
-  que sea el orden, y el máximo alcanzable sobre esta colección es 0,754 para
-  tres fragmentos, 0,906 para cinco y 0,966 para diez. Leer una cifra contra
-  uno en vez de contra su techo haría parecer al recuperador peor de lo que
-  es.}
-
-\input{tablas/TablaRecuperacion.tex}
-
-\textcolor{borrador2}{La lectura de la Tabla~\ref{tab:recuperacion} depende de
-  qué se le pregunte a los datos. Por \textbf{unidad}, el recuperador encuentra
-  la asignatura correcta en el 90,6\,\% de las preguntas con solo tres
-  fragmentos y en el 99,1\,\% con diez: para la pregunta que un estudiante hace
-  de verdad ---qué se estudia en tal asignatura--- la unidad que la responde
-  entra casi siempre. Por \textbf{fragmento} las cifras son más bajas, y no
-  miden lo mismo: 0,652 con tres fragmentos sobre un techo de 0,754 significa
-  que se recupera el 86\,\% de lo alcanzable, no que se falle una de cada tres
-  veces.}
-
-\textcolor{borrador2}{El MRR de 0,926 dice que el primer fragmento útil aparece
-  casi siempre en la primera posición. Es la cifra que más importa para la
-  generación, porque el modelo lee el contexto en el orden en que se le
-  entrega.}
-
-\textcolor{borrador2}{Las preguntas ajenas al dominio no entran en esa tabla, y
-  no por descuido: su criterio de acierto es el contrario. Una pregunta ajena se
-  responde bien cuando el recuperador \textbf{no} entrega nada, de modo que su
-  lista de unidades relevantes está vacía y aportaría un cero fijo a las dos
-  métricas. Se miden aparte, y lo que se mide aquí es solo el suelo de
-  pertinencia, que es la primera de las tres barreras y la única que actúa
-  durante la recuperación.}
-
-\textcolor{borrador2}{El suelo detiene \textbf{cinco de las diez} preguntas del
-  conjunto de validación. Esa es la cifra que se informa, y no la del conjunto
-  con el que se eligió el valor del suelo ---donde detiene seis de diez---,
-  porque medir sobre las mismas preguntas con las que se ajustó un parámetro
-  informa de lo bien que se ajustó, no de lo bien que rechaza. De las cinco que
-  lo atraviesan, dos son peticiones de consejo, a las que se les entrega
-  contexto \textbf{a propósito}; dos nombran otro centro y las recoge la
-  comprobación que actúa después; y queda \textbf{una} que a esta altura del
-  recorrido no tiene nada debajo.}
-
-\textcolor{borrador2}{Ese uno es la medida honesta del hueco que deja un umbral
-  de distancia, y conviene enunciarlo sin adornos: \textbf{el suelo de
-  pertinencia no es un filtro de dominio}. Mide parecido de vocabulario, y una
-  pregunta ajena escrita con las palabras del centro se le parece. Lo que ocurre
-  con esa pregunta cuando se la deja seguir hasta el final ---y con las otras
-  cuatro--- se ve en la Subsección~\ref{secc:resultados_rag_sistema}, que mide el
-  sistema entero en lugar de esta primera barrera.}
-
-\subsection{\textcolor{borrador2}{La generación}}
 
 \begin{borrador}
   \item El registro en bruto de esta tanda ya no existe, de modo que los fallos
@@ -294,12 +236,78 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   prelación, y el Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede
   leerse.}
 
-\subsection{\textcolor{borrador2}{El sistema completo}}
+\section[Evaluación del sistema completo]{\textcolor{borrador2}{Evaluación del sistema completo}}
+\label{secc:resultados_sistema}
+
+\textcolor{borrador2}{Las cuatro secciones anteriores miden piezas por separado
+  y cada una decide una elección. Esta mide lo que el estudiante encuentra: el
+  recorrido entero, con las piezas ya elegidas y montadas. Se separa en dos
+  partes porque son dos preguntas distintas, y la segunda no tiene sentido sin
+  la primera: si el recuperador trae los fragmentos que hacen falta, y si el
+  sistema entero responde con ellos lo que se le pregunta.}
+
+\subsection{\textcolor{borrador2}{La recuperación}}
+\label{secc:resultados_rag_recuperacion}
+
+\textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
+  conjunto de evaluación anota, para cada pregunta, las unidades que la
+  responden, y algunas se responden con más fragmentos de los que el sistema
+  entrega: la lista de asignaturas de una titulación ocupa varios. En esas
+  preguntas la exhaustividad por fragmento no puede llegar a uno por perfecto
+  que sea el orden, y el máximo alcanzable sobre esta colección es 0,754 para
+  tres fragmentos, 0,906 para cinco y 0,966 para diez. Leer una cifra contra
+  uno en vez de contra su techo haría parecer al recuperador peor de lo que
+  es.}
+
+\input{tablas/TablaRecuperacion.tex}
+
+\textcolor{borrador2}{La lectura de la Tabla~\ref{tab:recuperacion} depende de
+  qué se le pregunte a los datos. Por \textbf{unidad}, el recuperador encuentra
+  la asignatura correcta en el 90,6\,\% de las preguntas con solo tres
+  fragmentos y en el 99,1\,\% con diez: para la pregunta que un estudiante hace
+  de verdad ---qué se estudia en tal asignatura--- la unidad que la responde
+  entra casi siempre. Por \textbf{fragmento} las cifras son más bajas, y no
+  miden lo mismo: 0,652 con tres fragmentos sobre un techo de 0,754 significa
+  que se recupera el 86\,\% de lo alcanzable, no que se falle una de cada tres
+  veces.}
+
+\textcolor{borrador2}{El MRR de 0,926 dice que el primer fragmento útil aparece
+  casi siempre en la primera posición. Es la cifra que más importa para la
+  generación, porque el modelo lee el contexto en el orden en que se le
+  entrega.}
+
+\textcolor{borrador2}{Las preguntas ajenas al dominio no entran en esa tabla, y
+  no por descuido: su criterio de acierto es el contrario. Una pregunta ajena se
+  responde bien cuando el recuperador \textbf{no} entrega nada, de modo que su
+  lista de unidades relevantes está vacía y aportaría un cero fijo a las dos
+  métricas. Se miden aparte, y lo que se mide aquí es solo el suelo de
+  pertinencia, que es la primera de las tres barreras y la única que actúa
+  durante la recuperación.}
+
+\textcolor{borrador2}{El suelo detiene \textbf{cinco de las diez} preguntas del
+  conjunto de validación. Esa es la cifra que se informa, y no la del conjunto
+  con el que se eligió el valor del suelo ---donde detiene seis de diez---,
+  porque medir sobre las mismas preguntas con las que se ajustó un parámetro
+  informa de lo bien que se ajustó, no de lo bien que rechaza. De las cinco que
+  lo atraviesan, dos son peticiones de consejo, a las que se les entrega
+  contexto \textbf{a propósito}; dos nombran otro centro y las recoge la
+  comprobación que actúa después; y queda \textbf{una} que a esta altura del
+  recorrido no tiene nada debajo.}
+
+\textcolor{borrador2}{Ese uno es la medida honesta del hueco que deja un umbral
+  de distancia, y conviene enunciarlo sin adornos: \textbf{el suelo de
+  pertinencia no es un filtro de dominio}. Mide parecido de vocabulario, y una
+  pregunta ajena escrita con las palabras del centro se le parece. Lo que ocurre
+  con esa pregunta cuando se la deja seguir hasta el final ---y con las otras
+  cuatro--- se ve en la Subsección~\ref{secc:resultados_rag_sistema}, que mide el
+  sistema entero en lugar de esta primera barrera.}
+
+\subsection{\textcolor{borrador2}{El recorrido completo}}
 \label{secc:resultados_rag_sistema}
 
-\textcolor{borrador2}{Las dos subsecciones anteriores miden piezas: el
-  recuperador por un lado y el modelo generativo por otro, cada uno con
-  preguntas sueltas. Lo que un usuario encuentra no es ninguna de las dos, sino
+\textcolor{borrador2}{La subsección anterior mide el recuperador a
+  solas, y la sección anterior midió el modelo generativo a solas, cada uno con
+  preguntas sueltas. Lo que un usuario encuentra no es ninguno de los dos, sino
   el recorrido entero, y ahí aparecen situaciones que las preguntas sueltas no
   contienen: turnos encadenados que se refieren a lo dicho antes, mensajes que
   piden consejo en vez de un dato, mensajes que no preguntan nada y preguntas
@@ -368,8 +376,8 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   se resuelven en centésimas sin encenderlo. Las preguntas de dato sueltas se
   mueven entre los 11,3 segundos de una de créditos y los 109,4 de una de
   optativas, y los diálogos de varios turnos acumulan el tiempo de todos ellos.
-  La cifra que describe el coste de una respuesta es la del apartado anterior, no
-  esta.}
+  La cifra que describe el coste de una respuesta es la mediana sobre las
+  entradas que sí encienden el modelo, 62,7 segundos, y no esta.}
 
 \subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
 
