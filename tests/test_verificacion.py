@@ -747,3 +747,34 @@ def test_una_asignatura_con_curso_y_sin_cuatrimestre() -> None:
     )
     assert "cuarto curso" in corregida
     assert len(avisos) == 1
+
+
+def test_la_asignatura_escrita_como_vineta_pelada_tambien_cuenta() -> None:
+    """Es la forma más común, y al principio no se reconocía.
+
+    Medido sobre las 29 respuestas del registro que afirman curso, cuatrimestre
+    o ECTS: reconociendo solo la negrita y las comillas, 4 tenían una
+    afirmación comprobable; añadiendo la viñeta, 25.
+    """
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    corregida, avisos = corregir_atributos(
+        "*   Fotogrametría y teledetección III (6 ECTS) — segundo cuatrimestre",
+        atributos,
+    )
+
+    assert "primer cuatrimestre" in corregida
+    assert len(avisos) == 1
+
+
+def test_una_vineta_que_encabeza_una_sublista_no_es_una_asignatura() -> None:
+    # «* Primer curso:» introduce las asignaturas de debajo. Tomarlo por una
+    # asignatura ya produjo una invención en la comprobación de listados, y
+    # aquí haría que un rótulo arrastrase los atributos de otra cosa.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    encabezado = "*   **Segundo curso:**"
+    corregida, avisos = corregir_atributos(encabezado, atributos)
+
+    assert corregida == encabezado
+    assert avisos == []
