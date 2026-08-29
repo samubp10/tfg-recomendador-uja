@@ -792,11 +792,16 @@ def test_si_todas_existen_la_respuesta_pasa(monkeypatch):
 
 
 def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
-    """Comportamiento declarado: sin catálogo la barrera no actúa."""
+    """Comportamiento declarado: sin catálogo la barrera no actúa.
+
+    Se compara con el texto sin espacios de cierre porque eso es lo que el
+    sistema entrega de verdad: `generar` ya devuelve la respuesta «sin espacios
+    sobrantes», y este doble se los salta al inyectar el texto a mano.
+    """
     _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
     assert (
         generador.responder("una pregunta", [fragmento("A", "texto")], "un-modelo")
-        == _RESPUESTA_CON_INVENTADA
+        == _RESPUESTA_CON_INVENTADA.strip()
     )
 
 
@@ -988,7 +993,9 @@ def test_la_traza_recoge_lo_que_la_barrera_retira(monkeypatch):
     )
     assert respuesta == generador.RESPUESTA_TITULACION_INVENTADA
     assert traza["inventadas"] == ["Grado en Ingeniería de Edificación"]
-    assert traza["retirada"] == _RESPUESTA_CON_INVENTADA
+    # Sin los espacios de cierre, por el mismo motivo que en la prueba de
+    # arriba: se retira lo que se iba a entregar, no el texto en bruto.
+    assert traza["retirada"] == _RESPUESTA_CON_INVENTADA.strip()
 
 
 def test_la_traza_queda_vacia_si_la_barrera_no_salta(monkeypatch):
@@ -1471,28 +1478,37 @@ def test_el_atributo_corregido_queda_registrado(monkeypatch, caplog):
     assert "primer cuatrimestre" in caplog.text
 
 
-def test_el_experimento_y_la_aplicacion_corrigen_igual(monkeypatch):
-    """`responder` y `responder_por_partes` son el mismo contrato.
-
-    Una bloqueante y otra por partes: el experimento del sistema usa la
-    primera y la aplicación web la segunda. Una barrera que solo estuviera en
-    una haría que se midiera un sistema distinto del que se entrega, y eso no
-    se ve desde fuera hasta que alguien compara las dos salidas.
-    """
-    mala = (
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Una corrección de atributo.
         "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
-        "segundo cuatrimestre."
-    )
+        "segundo cuatrimestre.",
+        # Una respuesta que no hay que tocar.
+        "Fotogrametría y teledetección III es obligatoria y son 6 ECTS.",
+        # Varias frases, para que el troceado en unidades tenga trabajo.
+        "Primera frase. Segunda frase.\nY una tercera en otra línea.",
+    ],
+)
+def test_las_dos_formas_de_entregar_dan_exactamente_el_mismo_texto(monkeypatch, texto):
+    """`responder` es una envoltura de `responder_por_partes`, no una copia.
+
+    Eran dos implementaciones del mismo contrato y las barreras vivían
+    duplicadas. Como el experimento del sistema llama a la primera y la
+    aplicación web a la segunda, una barrera puesta solo en una hacía que las
+    cifras describieran un sistema distinto del que se entrega. Pasó el
+    29/08/2026 con la corrección de atributos, así que la igualdad se
+    comprueba en vez de suponerse.
+    """
     contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
 
-    _con_respuesta(monkeypatch, mala)
+    _con_respuesta(monkeypatch, texto)
     entera = generador.responder("¿Cuándo?", contexto, "un-modelo")
 
-    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([mala]))
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([texto]))
     por_partes = "".join(
         p or ""
         for p in generador.responder_por_partes("¿Cuándo?", contexto, "un-modelo")
-    )
+    ).strip()
 
-    assert "primer cuatrimestre" in entera
-    assert "primer cuatrimestre" in por_partes
+    assert entera == por_partes
