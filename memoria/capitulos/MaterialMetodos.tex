@@ -1083,7 +1083,7 @@ Cuando esta validación detecta una titulación inexistente, se descarta la resp
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura \sout{de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{ por capas, separadas por lo que hace cada una}.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge \sout{la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{el recorrido que hace una pregunta por la aplicación, paso a paso}.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
@@ -1091,16 +1091,19 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
 \begin{borrador}
   \item \textbf{Figura rehecha.} Era un grafo de componentes con las
   dependencias colgando a la derecha y había que seguir seis flechas para saber
-  por dónde entra una pregunta. Ahora es una pila: se lee de arriba abajo y no
-  hay ni un cruce.
-  \item \textbf{La coletilla tachada del párrafo de arriba ya era falsa con la
-  figura nueva}, porque ahora sí aparecen el servidor de inferencia y el
-  fichero del índice. Reescribe la frase con tus palabras y quita el tachado y
+  por dónde entra una pregunta. Ahora se sigue por los números.
+  \item \textbf{La coletilla tachada del párrafo de arriba hay que reescribirla.}
+  Ya no describe lo que la figura enseña. Pon tus palabras y quita el tachado y
   el turquesa.
   \item \textbf{Algo que la figura anterior escondía:} al modelo se le llama
   \emph{dos} veces por turno, una para fijar de qué titulación se habla y otra
   para redactar. Es la mitad de lo que tarda una respuesta, y engancha con la
   condición temporal de los objetivos.
+  \item \textbf{Lo que esta figura ya no dice, y conviene que lo diga el texto:}
+  al contar el recorrido en vez de la estructura, no se ve que todo eso ocurre
+  en \emph{un solo} proceso, ni aparecen el servidor de inferencia ni el índice
+  como piezas aparte. El párrafo de arriba sí afirma lo del proceso único, así
+  que esa frase carga ahora sola con el argumento.
 \end{borrador}
 
 
