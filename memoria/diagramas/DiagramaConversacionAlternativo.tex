@@ -1,0 +1,46 @@
+\begingroup
+\color{borrador2}
+\textcolor{borrador2}{La siguiente figura propone una alternativa ajustada al mecanismo actual de resolución del ámbito conversacional.}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    nodo/.style={draw=borrador2, thick, rounded corners=3pt, fill=white,
+                 text=borrador2, align=center, font=\small,
+                 minimum width=3.8cm, minimum height=1.05cm},
+    dato/.style={nodo, fill=borrador2!8, font=\footnotesize},
+    decision/.style={diamond, draw=borrador2, thick, fill=borrador2!7,
+                     text=borrador2, align=center, font=\footnotesize,
+                     aspect=2.0, inner sep=2pt},
+    flecha/.style={-{Latex[length=2.2mm]}, thick, draw=borrador2},
+    etiqueta/.style={font=\scriptsize, text=borrador2, fill=white, inner sep=1pt},
+  ]
+    \node[dato, minimum width=4.5cm] (entradas) at (-4.8,1.6)
+      {Pregunta actual\\Catálogo de titulaciones\\Último turno completo};
+    \node[nodo, minimum width=4.5cm] (decisor) at (0,1.6)
+      {Decidir el ámbito con el modelo\\{\scriptsize SIGUE · CAMBIA · TODAS · NINGUNA}};
+    \node[decision] (valida) at (5.0,1.6) {¿La salida es\\válida y pertenece\\al catálogo?};
+
+    \node[nodo] (fallback) at (0,-1.4) {Regla determinista\\de respaldo};
+    \node[dato, minimum width=4.2cm] (consulta) at (5.0,-1.4)
+      {Consulta preparada\\{\scriptsize texto · ámbito · uso de respaldo}};
+    \node[nodo] (pipeline) at (5.0,-4.1) {Recuperación y\\generación};
+    \node[dato] (memoria) at (0,-4.1) {Guardar el último\\turno completo};
+
+    \draw[flecha] (entradas) -- (decisor);
+    \draw[flecha] (decisor) -- (valida);
+    \draw[flecha] (valida) -- node[etiqueta, right]{sí} (consulta);
+    \draw[flecha] (valida) -- node[etiqueta, sloped]{no o fallo} (fallback);
+    \draw[flecha] (fallback) -- (consulta);
+    \draw[flecha] (consulta) -- (pipeline);
+    \draw[flecha] (pipeline) -- (memoria);
+    \draw[flecha] (memoria.west) -| node[etiqueta, near start]{siguiente turno} (entradas.south);
+
+    \node[font=\footnotesize, text=borrador2, align=left, text width=2.8cm,
+          anchor=north west] at (-4.8,-0.35)
+      {Las respuestas anteriores ayudan a decidir el ámbito, pero no se insertan como hechos en el mensaje generativo.};
+  \end{tikzpicture}
+  \caption[Alternativa del estado conversacional]{\textcolor{borrador2}{Versión alternativa del estado conversacional. El ámbito se decide con la pregunta actual, el catálogo y el último turno completo; la salida se valida y existe un respaldo determinista si el modelo falla. Fuente: Elaboración propia.}}
+  \label{fig:conversacion_tres_turnos_alt}
+\end{figure}
+\endgroup
