@@ -573,6 +573,17 @@ def _asignatura_del_segmento(
     nombrados = {
         _sin_adornos(m.group(1) or m.group(2)) for m in _MENCION.finditer(segmento)
     }
+    # Y la forma mas comun de todas, que no lleva ningun adorno: la asignatura
+    # como elemento de lista. Se reutiliza la vineta que ya reconoce
+    # `elementos_de_lista`, para que las dos comprobaciones entiendan por
+    # «elemento» exactamente lo mismo.
+    vineta = _VINETA.match(segmento)
+    if vineta:
+        crudo = _ENFASIS.sub("", vineta.group(1)).strip()
+        # Una vineta terminada en dos puntos encabeza la sublista de debajo, no
+        # enumera: «* Primer curso:» no es una asignatura.
+        if not crudo.endswith(":"):
+            nombrados.add(_sin_adornos(_COLA.sub("", crudo)))
     conocidos = {n for n in nombrados if n in atributos}
     if len(conocidos) != 1:
         return None
