@@ -20,9 +20,10 @@ htmlcov/
 # Datos generados (no se versionan)
 data/
 
-# Editores
+# Editores e IDE
 .vscode/
 .idea/
+graphify-out/
 
 # Sistema operativo
 .DS_Store

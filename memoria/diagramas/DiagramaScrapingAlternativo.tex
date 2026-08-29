@@ -1,0 +1,58 @@
+\begingroup
+\color{borrador2}
+\textcolor{borrador2}{La siguiente figura ofrece una alternativa más compacta del rastreo, destacando las decisiones que protegen la fidelidad a la fuente.}
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.96\textwidth}{!}{%
+    \begin{tikzpicture}[
+      proceso/.style={draw=borrador2, thick, rounded corners=3pt, fill=white,
+                      text=borrador2, align=center, font=\small,
+                      minimum width=3.1cm, minimum height=1.05cm},
+      decision/.style={diamond, draw=borrador2, thick, fill=borrador2!7,
+                       text=borrador2, align=center, font=\footnotesize,
+                       aspect=2.2, inner sep=2pt},
+      dato/.style={proceso, fill=borrador2!9},
+      nota/.style={draw=borrador2, densely dashed, rounded corners=3pt,
+                   text=borrador2, align=left, font=\footnotesize, inner sep=5pt},
+      flecha/.style={-{Latex[length=2.2mm]}, thick, draw=borrador2},
+      etiqueta/.style={font=\scriptsize, text=borrador2, fill=white, inner sep=1pt},
+    ]
+      \node[proceso] (lista) at (0,0) {Listado oficial\\de titulaciones};
+      \node[proceso] (hrefgrado) at (4.0,0) {Seguir el \texttt{href}\\real del grado};
+      \node[decision] (extincion) at (8.1,0) {¿Está en\\extinción?};
+      \node[proceso] (descarta) at (8.1,-2.2) {Descartar antes\\de rastrear};
+      \node[proceso] (plan) at (12.1,0) {Localizar columnas\\por su rótulo};
+      \node[dato] (asig) at (16.0,0) {Emitir asignatura};
+
+      \node[decision] (guia) at (16.0,-2.5) {¿Existe un\\\texttt{href} de guía?};
+      \node[proceso] (seguirguia) at (12.1,-4.7) {Seguir la URL real\\HTML o PDF};
+      \node[decision] (contenido) at (8.1,-4.7) {¿Hay contenido\\permitido?};
+      \node[dato] (emitirguia) at (4.0,-4.7) {Emitir guía\\resumen y temario};
+      \node[proceso] (vacia) at (8.1,-6.8) {Conservar motivo\\de contenido vacío};
+      \node[decision] (salida) at (16.0,-6.8) {¿Existe un\\\texttt{href} de salidas?};
+      \node[dato] (emitirsalida) at (12.1,-6.8) {Seguir URL y\\emitir salidas};
+
+      \draw[flecha] (lista) -- (hrefgrado);
+      \draw[flecha] (hrefgrado) -- (extincion);
+      \draw[flecha] (extincion) -- node[etiqueta, right]{sí} (descarta);
+      \draw[flecha] (extincion) -- node[etiqueta]{no} (plan);
+      \draw[flecha] (plan) -- (asig);
+      \draw[flecha] (asig) -- (guia);
+      \draw[flecha] (guia) -| node[etiqueta, near start]{sí} (seguirguia);
+      \draw[flecha] (seguirguia) -- (contenido);
+      \draw[flecha] (contenido) -- node[etiqueta]{sí} (emitirguia);
+      \draw[flecha] (contenido) -- node[etiqueta, right]{no} (vacia);
+      \draw[flecha] (guia) -- node[etiqueta, right]{no} (salida);
+      \draw[flecha] (emitirguia) |- (salida.west);
+      \draw[flecha] (vacia) -- (salida);
+      \draw[flecha] (salida) -- node[etiqueta]{sí} (emitirsalida);
+
+      \node[nota, text width=14.8cm, anchor=north west] at (0,-8.2)
+        {Reglas transversales: no construir direcciones por patrón; permitir en PDF solo «Resumen» y «Descripción de contenidos»; y conservar los datos ausentes sin imputarlos.};
+    \end{tikzpicture}%
+  }
+  \caption[Alternativa del proceso de rastreo]{\textcolor{borrador2}{Versión alternativa del proceso de rastreo. Resume el recorrido sin perder las decisiones críticas: exclusión temprana de titulaciones en extinción, localización de columnas por rótulo, seguimiento de enlaces reales y lista de secciones permitidas para PDF. Fuente: Elaboración propia.}}
+  \label{fig:secuencia_scraping_alt}
+\end{figure}
+\endgroup

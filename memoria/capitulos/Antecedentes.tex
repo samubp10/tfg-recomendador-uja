@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter{ANTECEDENTES Y ESTADO DEL ARTE}
 \label{cap:antecedentes}
 
@@ -76,6 +77,18 @@ Las decisiones concretas de cada tecnología junto con las alternativas descarta
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
 
 El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}.
+
+\textcolor{borrador2}{No es una disciplina reciente. Su primera forma
+  trataba el lenguaje como un sistema de reglas: la gramática generativa de
+  Chomsky\cite{chomsky1957syntactic} describía las frases válidas de una lengua
+  mediante reglas de reescritura, y de ahí salieron los analizadores sintácticos
+  que dominaron el campo durante décadas. El cambio a métodos estadísticos, y
+  después a redes neuronales, es lo que llevó a los sistemas actuales; Hirschberg
+  y Manning\cite{hirschberg2015advances} recogen ese recorrido y señalan la
+  disponibilidad de datos y de cómputo como el factor que lo hizo posible, por
+  encima de los avances en los propios algoritmos. Delso et
+  al.\cite{delso2024evolucion} continúan esa revisión hasta la etapa de los
+  modelos preentrenados de gran tamaño, que es la que da pie a este trabajo.}
 
 Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM). Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
 
@@ -247,6 +260,18 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
 
 \subsubsection{Las métricas de generación}
 
+\textcolor{borrador2}{Medir la generación es más difícil que medir la
+  recuperación, porque no hay una lista de respuestas correctas contra la que
+  comparar: hay un texto. La propuesta más extendida para resolverlo es
+  \textit{RAGAS}\cite{es2023ragas}, que evalúa la fidelidad de la respuesta al
+  contexto y la pertinencia de lo recuperado \textbf{usando un modelo de lenguaje
+  como juez}: otro modelo lee la respuesta y decide si cada afirmación se apoya en
+  el contexto. Este trabajo no la emplea, y conviene decir por qué, porque es la
+  vía habitual. Un juez que es a su vez un modelo generativo tiene el mismo defecto
+  que se está midiendo, no da una cifra reproducible y traslada la confianza a una
+  pieza que nadie ha evaluado. Aquí se mide con comprobaciones deterministas sobre
+  cadenas, que abarcan menos pero no dependen de nada que haya que creerse.}
+
 
 
 
@@ -413,6 +438,24 @@ Este sistema trabaja con dos categorías de información sensible. Por un lado, 
 Con respecto a la extracción automatizada de información de la web, actualmente el \textit{scraper} se descarga los PDF de las guías docentes (previamente en formato HTML) que contienen datos como direcciones de correo, nombres y teléfonos. De cada documento se extrae únicamente el resumen y la descripción de contenidos mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, ningún dato personal llega a la colección indexada. Gracias a esta actividad, el trabajo puede apoyarse en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
 
 Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga se ampara en el artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021}, cuyo apartado 1 establece que <<no será precisa la autorización del titular de los derechos de propiedad intelectual para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minería de textos y datos>>. Y precisamente esta forma legítima se respeta aquí puesto que el rastreador respeta el fichero \texttt{robots.txt}, espacia sus peticiones y en ningún momento se elude una medida de protección.
+
+\textcolor{borrador2}{Ese mismo artículo condiciona la excepción a que el
+  titular no se haya reservado expresamente el uso de sus contenidos para minería
+  de textos y datos, así que hubo que ir a mirarlo. El aviso legal de la
+  Universidad de Jaén\cite{uja_avisolegal} prohíbe con carácter general extraer el
+  contenido del sitio, pero no formula ninguna reserva expresa frente a la minería
+  de textos y datos, que es la figura concreta que la ley exige reservar. La
+  distinción no es un tecnicismo: de ella depende que la excepción se aplique o no.}
+
+\textcolor{borrador2}{Al margen de la propiedad intelectual, la extracción
+  automatizada ha llegado a los tribunales españoles. La Sentencia 572/2012 del
+  Tribunal Supremo\cite{sts572_2012}, en el litigio entre una aerolínea y una
+  agencia de viajes en línea, desestimó las pretensiones de la primera sobre el
+  derecho \textit{sui generis} de bases de datos frente a la extracción
+  automatizada de sus contenidos. El caso no es equiparable a este ---allí había
+  explotación comercial de los datos ajenos, y aquí un uso académico sin ánimo de
+  lucro---, pero fija que la extracción no es ilícita por sí misma y que lo que
+  decide son las condiciones concretas en que se hace.}
 
 
 \subsection{Protección de datos y usuarios menores de edad}

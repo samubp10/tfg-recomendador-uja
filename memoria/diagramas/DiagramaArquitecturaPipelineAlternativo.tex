@@ -1,0 +1,55 @@
+\begingroup
+\color{borrador2}
+\textcolor{borrador2}{La siguiente figura separa como alternativa el procesamiento fuera de línea del recorrido de cada consulta, para evitar mezclar fases de construcción y de ejecución.}
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    nodo/.style={draw=borrador2, thick, rounded corners=3pt, fill=white,
+                 text=borrador2, align=center, font=\footnotesize,
+                 minimum width=2.55cm, minimum height=1.05cm},
+    dato/.style={nodo, fill=borrador2!8, font=\footnotesize\ttfamily},
+    grupo/.style={draw=borrador2, densely dashed, rounded corners=5pt,
+                  inner sep=9pt},
+    titulo/.style={font=\small\bfseries, text=borrador2},
+    flecha/.style={-{Latex[length=2.2mm]}, thick, draw=borrador2},
+    doble/.style={{Latex[length=2.2mm]}-{Latex[length=2.2mm]}, thick, draw=borrador2},
+  ]
+    \node[nodo] (web) at (-6.0,2.1) {Web oficial\\de la EPSJ};
+    \node[nodo] (spider) at (-3.0,2.1) {\textit{Spider} Scrapy};
+    \node[dato] (grados) at (0,2.1) {grados.json};
+    \node[nodo] (chunker) at (3.0,2.1) {Fragmentación y\\deduplicación};
+    \node[dato] (chunks) at (6.0,2.1) {chunks.json};
+
+    \node[nodo] (indexer) at (3.0,0) {Incrustación e\\indexación};
+    \node[nodo, cylinder, shape border rotate=90, aspect=0.18] (lance) at (6.0,0) {LanceDB};
+
+    \draw[flecha] (web) -- (spider);
+    \draw[flecha] (spider) -- (grados);
+    \draw[flecha] (grados) -- (chunker);
+    \draw[flecha] (chunker) -- (chunks);
+    \draw[flecha] (chunks) -- (indexer);
+    \draw[flecha] (indexer) -- (lance);
+
+    \node[nodo] (navegador) at (-5.2,-3.2) {Navegador\\{\scriptsize sin cuenta de usuario}};
+    \node[nodo, minimum width=5.8cm] (servidor) at (0,-3.2)
+      {Servidor web\\{\scriptsize conversación y ámbito}\\{\scriptsize recuperación, generación y verificación}};
+    \node[nodo] (ollama) at (5.2,-3.2) {Servidor local\\de inferencia};
+    \node[dato, minimum width=3.7cm] (registro) at (5.2,-5.0) {registro\_chat.jsonl};
+
+    \draw[doble] (navegador) -- node[above, font=\scriptsize, text=borrador2]{flujo de eventos} (servidor);
+    \draw[doble] (servidor) -- (ollama);
+    \draw[doble] (servidor.north east) -- node[above, sloped, font=\scriptsize, text=borrador2]{búsqueda} (lance.south west);
+    \draw[flecha] (servidor.south east) -- node[right, font=\scriptsize, text=borrador2]{traza} (registro.west);
+
+    \begin{scope}[on background layer]
+      \node[grupo, fit=(web)(spider)(grados)(chunker)(chunks)(indexer)(lance),
+            label={[titulo]north:Construcción reproducible del corpus y del índice}] {};
+      \node[grupo, fit=(navegador)(servidor)(ollama)(registro),
+            label={[titulo]south:Ejecución de una consulta}] {};
+    \end{scope}
+  \end{tikzpicture}
+  \caption[Alternativa de la arquitectura general]{\textcolor{borrador2}{Versión alternativa de la arquitectura general. La parte superior se ejecuta para construir el índice; la inferior se ejecuta al atender cada consulta. La ausencia de cuenta de usuario no implica ausencia de registro técnico. Fuente: Elaboración propia.}}
+  \label{fig:arquitectura_pipeline_alt}
+\end{figure}
+\endgroup

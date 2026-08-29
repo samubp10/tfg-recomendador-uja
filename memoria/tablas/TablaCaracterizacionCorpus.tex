@@ -1,0 +1,44 @@
+% !TEX root = ../main.tex
+\begin{table}[htbp]
+  \centering
+  \caption[Caracterización de la colección documental]{Caracterización de la colección documental extraída de la EPSJ para el curso 2026-27. Fuente: elaboración propia.}
+  \label{tab:caracterizacion_corpus}
+  \small
+  \begin{tabular}{@{}l r@{}}
+    \toprule
+    \textbf{Magnitud}                              & \textbf{Valor}           \\
+    \midrule
+    Titulaciones                                   & 12                       \\
+    \quad grados simples                           & 7                        \\
+    \quad dobles grados                            & 5                        \\
+    \midrule
+    Asignaturas                                    & 528                      \\
+    \quad con guía docente                         & 442                      \\
+    \quad sin contenido de guía                    & 86                       \\
+    \quad no ofertadas este curso                  & 10                       \\
+    \quad sin créditos publicados                  & 1                        \\
+    \midrule
+    Guías docentes                                 & 288                      \\
+    Bloques de salidas profesionales               & 8                        \\
+    \midrule
+    Fragmentos                                     & 1\,499                   \\
+    Unidades documentales                          & 398                      \\
+    \quad compartidas entre titulaciones           & 81                       \\
+    \midrule
+    Tamaño mínimo de fragmento (caracteres)        & 96                       \\
+    Tamaño mediano                                 & 836                      \\
+    Percentil 90                                   & 895                      \\
+    Tamaño máximo                                  & 900                      \\
+    Fragmentos por debajo del mínimo de 200        & 12 (0,80\,\%)            \\
+    \bottomrule
+  \end{tabular}
+    \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textbf{Notas:}
+      \textbf{Unidad documental}: entidad lógica de origen (guía docente, salidas profesionales o ficha sin guía; ver Sección~\ref{secc:estructura_fragmento}).
+      \textbf{Sin contenido de guía}: 81 asignaturas no publicadas por el centro y 5 con plantilla vacía (anomalías detalladas en la Sección~\ref{secc:resultados_coleccion}).
+      \textbf{Mínimo de 200 caracteres}: preferencia de reequilibrio, no restricción dura (Sección~\ref{secc:troceado_algoritmo}); de los 12 fragmentos, 2 son colas no fusionables sin rebasar el máximo y 10 son unidades completas breves.
+      \textbf{Procedencia}: curso 2026-27 (extracción del 16/08/2026, troceado del 19/08/2026) verificado con \texttt{check\_chunks.py} (Sección~\ref{secc:verificacion_fase0}).
+  \end{minipage}
+\end{table}

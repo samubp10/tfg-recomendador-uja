@@ -1,0 +1,90 @@
+% !TEX root = ../main.tex
+% Diagrama de bloques del conjunto del TFG (IT-74), para la Introduccion.
+%
+% NO repite el de la Figura de arquitectura del Capitulo 4. Aquel muestra el
+% SISTEMA: por donde pasa un dato desde la web hasta la respuesta. Este muestra
+% el TRABAJO: de que problema se parte, que se construye, que decide cada
+% eleccion y con que se comprueba. Si algun dia los dos dicen lo mismo, sobra
+% uno de ellos.
+%
+% Todo lo que hay aqui esta implementado y medido; no hay ninguna caja de «por
+% decidir», que es lo que pedia la tarjeta.
+\begingroup
+\color{borrador2}
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[node distance=0.6cm and 1.5cm]
+
+      % --- La cadena de construccion, que es el eje del dibujo ---------------
+      \node[nodoDiag] (extraer) {Extraer\\{\scriptsize Scrapy, por \texttt{href} real}};
+      \node[nodoDiag, right=of extraer] (trocear) {Trocear\\{\scriptsize 900 caracteres}};
+      \node[nodoDiag, right=of trocear] (indexar) {Indexar\\{\scriptsize LanceDB}};
+      \node[nodoDiag, right=of indexar] (recuperar) {Recuperar\\{\scriptsize banda 3--20}};
+      \node[nodoDiag, right=of recuperar] (generar) {Generar\\{\scriptsize gemma3:12b}};
+      \node[nodoDiag, right=of generar] (interfaz) {Responder\\{\scriptsize web sin registro}};
+
+      % --- De donde se parte y a donde se llega -----------------------------
+      \node[nodoDiag, left=1.3cm of extraer, fill=diagGrupo, draw=diagGrupoBorde]
+      (problema) {El estudiante\\preuniversitario\\no sabe donde\\mirar};
+      \node[nodoDiag, right=1.3cm of interfaz, fill=diagGrupo, draw=diagGrupoBorde]
+      (respuesta) {Respuesta\\apoyada en la\\informacion\\oficial};
+
+      % --- Lo que fija cada eleccion, encima --------------------------------
+      \node[nodoDiag, above=1.6cm of trocear] (adrTrocear) {ADR-0001\\{\scriptsize 45 configuraciones}};
+      \node[nodoDiag, above=1.6cm of indexar] (adrIndexar) {ADR-0003 y 0004\\{\scriptsize incrustaciones y base}};
+      \node[nodoDiag, above=1.6cm of generar] (adrGenerar) {ADR-0005 y 0006\\{\scriptsize modelo y emision}};
+
+      % --- Con que se comprueba, debajo -------------------------------------
+      \node[nodoDiag, below=1.6cm of trocear] (verificadores)
+      {Verificadores\\{\scriptsize sobre el corpus entero}};
+      \node[nodoDiag, below=1.6cm of recuperar] (banco)
+      {Banco de evaluacion\\{\scriptsize 66 preguntas}};
+      \node[nodoDiag, below=1.6cm of interfaz] (sistema)
+      {Banco del sistema\\{\scriptsize 57 entradas}};
+
+      % --- Las tres barreras, que no son parte de la cadena sino un freno ----
+      \node[nodoDiag, above=1.6cm of interfaz, fill=diagGrupo, draw=diagGrupoBorde]
+      (barreras) {Tres barreras\\de dominio};
+
+      % Medidas invisibles para que el titulo del grupo entre en la caja.
+      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of adrIndexar]
+      (mDecide) {Lo que fija cada eleccion};
+      \node[font=\small, inner sep=0pt, text opacity=0, below=1pt of banco]
+      (mMide) {Lo que comprueba que funciona};
+
+      \begin{scope}[on background layer]
+        \node[grupoDiag, inner xsep=16pt, inner ysep=14pt,
+        fit=(adrTrocear)(adrIndexar)(adrGenerar)(barreras)(mDecide),
+        label={[tituloGrupo]north:Lo que fija cada eleccion}] {};
+        \node[grupoDiag, inner xsep=16pt, inner ysep=14pt,
+        fit=(verificadores)(banco)(sistema)(mMide),
+        label={[tituloGrupo]south:Lo que comprueba que funciona}] {};
+      \end{scope}
+
+      % --- La cadena -------------------------------------------------------
+      \draw[flechaDiag] (problema) -- (extraer);
+      \draw[flechaDiag] (extraer) -- (trocear);
+      \draw[flechaDiag] (trocear) -- (indexar);
+      \draw[flechaDiag] (indexar) -- (recuperar);
+      \draw[flechaDiag] (recuperar) -- (generar);
+      \draw[flechaDiag] (generar) -- (interfaz);
+      \draw[flechaDiag] (interfaz) -- (respuesta);
+
+      % --- Lo que gobierna baja; lo que mide, sube --------------------------
+      \draw[flechaDiag, dashed] (adrTrocear) -- (trocear);
+      \draw[flechaDiag, dashed] (adrIndexar) -- (indexar);
+      \draw[flechaDiag, dashed] (adrGenerar) -- (generar);
+      \draw[flechaDiag, dashed] (barreras) -- (interfaz);
+      \draw[flechaDiag, dashed] (verificadores) -- (trocear);
+      \draw[flechaDiag, dashed] (banco) -- (recuperar);
+      \draw[flechaDiag, dashed] (sistema) -- (interfaz);
+    \end{tikzpicture}%
+  }
+  \caption[Conjunto del trabajo]{Conjunto del trabajo. La fila central es la
+    cadena que lleva de la web de la Escuela a la respuesta; encima, la decision
+    documentada que fija cada eslabon; debajo, el instrumento con el que se
+    comprueba. Fuente: Elaboracion propia.}
+  \label{fig:conjunto_tfg}
+\end{figure}
+\endgroup

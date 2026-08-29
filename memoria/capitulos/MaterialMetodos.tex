@@ -1,7 +1,8 @@
+% !TEX root = ../main.tex
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
-Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
+Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente\textcolor{borrador2}{, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias}. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Revisar introducción en la Fase 5 cuando se hayan cerrados las fases anteriores}
@@ -57,6 +58,14 @@ Para clasificar semánticamente los cambios, los tipos de confirmación (\textit
 
 Cada entrega de código exige no solo el título estandarizado que describe \textit{qué} se ha modificado, sino un cuerpo explicativo obligatorio que documenta con claridad \textit{por qué} se ha tomado dicha decisión técnica frente a otras alternativas.
 
+\textcolor{borrador2}{Esa taxonomía no es arbitraria: \textit{Conventional
+  Commits} está pensado para encajar con el versionado
+  semántico\cite{semver}, de modo que el tipo de cada confirmación diga por sí
+  solo si el cambio rompe algo, añade capacidad o corrige un defecto. Este
+  proyecto no publica versiones numeradas ---no es una biblioteca que nadie
+  instale---, así que de esa correspondencia se aprovecha solo la mitad útil
+  aquí: que el historial se pueda leer por tipos sin abrir cada cambio.}
+
 Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la rama principal (\texttt{main}) se realizan exclusivamente mediante confirmaciones de fusión explícitas (\textit{Merge Commits}). Se ha descartado la técnica de aplastamiento (\textit{Squash}) al fusionar las ramas efímeras, garantizando que todo el historial y el razonamiento de cada paso del desarrollo se conserven de manera inmutable.
 
 \subsection{Integración Continua (CI) y automatización de pruebas}
@@ -66,6 +75,16 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+
+\textcolor{borrador2}{Junto a las pruebas, la integración continua comprueba
+  también el estilo del código, para que la discusión sobre cómo se escribe no
+  vuelva en cada revisión. Cada función se documenta según la
+  PEP~257\cite{pep257} y con el formato de la guía de estilo de
+  Google\cite{googlestyle}, que separa la descripción de los argumentos y del
+  valor devuelto; el código se formatea con \texttt{black}, se comprueba con
+  \texttt{flake8} y sus anotaciones de tipo con \texttt{mypy}. Las tres
+  herramientas son deterministas, de modo que su resultado no depende de quién
+  las ejecute.}
 
 \subsection{Tipos de pruebas del proyecto}
 \label{secc:niveles_de_prueba}
@@ -123,7 +142,9 @@ Los otros cinco tipos de tarjetas con sus criterios de finalización son:
         que sostiene la elegida y sus limitaciones.
   \item \textbf{Memoria.} El documento compila, no queda texto de
         borrador de la sección sin reescribir en la parte afectada, y toda cifra que se dé procede de la
-        salida de un experimento o un verificador.
+        salida de un experimento o un verificador\textcolor{borrador2}{, además de
+        respetar la estructura y el estilo que fija la Escuela para los Trabajos Fin
+        de Grado\cite{epsj_criterios}}.
   \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
 \end{itemize}
 
@@ -275,9 +296,17 @@ Los cinco tipos de historias son los siguientes:
 
 \input{tablas/TablaResumenBacklog.tex}
 
-\begin{borrador}                                                                                                                                                    
-  \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
-  \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-83). La tabla está recontada con \texttt{gh} el
+  29/08/2026: 116 historias, y la Fase 3 pasa a 17 al asignarle la auditoría de la
+  interfaz, que estaba sin fase. El enlace al repositorio ya lo da el párrafo de
+  arriba con \texttt{\textbackslash cite\{repo\_tfg\}}.
+  \item La duda de si la Fase 0 tenía experimentos queda contestada contando: no
+  tiene ninguno. Los experimentos empiezan en la Fase 1, cuando ya hay colección
+  sobre la que medir; en la Fase 0 lo que se construía era esa colección.
+  \item Queda una decisión tuya: el repositorio está privado hasta la entrega, así
+  que ni ese enlace ni las citas funcionan todavía para un tercero. O se dice en el
+  texto, o se da por hecho que para entonces será público.
 \end{borrador}
 
 
@@ -342,6 +371,8 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
 
+{\color{borrador2}\input{diagramas/DiagramaArquitecturaPipelineAlternativo.tex}}
+
 \begin{borrador}
   \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
   \item Rehacer la figura
@@ -353,6 +384,8 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
 \input{diagramas/DiagramaModeloDatos.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaModeloDatosAlternativo.tex}}
 
 \begin{borrador}
   \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
@@ -371,6 +404,18 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \subsection{Situación de partida}
 
+Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (sobre todo HTML) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
+
+Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
+
+\begin{itemize}
+  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \glr{slugs}{slug} inconsistentes en el cuerpo de las páginas.
+  \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
+  \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
+  \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
+\end{itemize}
+
+Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
 
 \begin{borrador}
   \item Rehacer este apartado por completo, hay que ponerlo directamente en PDF, aunque el desarrollo empezara con HTML.
@@ -467,6 +512,8 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
   \label{fig:secuencia_scraping}
 \end{figure}
 
+{\color{borrador2}\input{diagramas/DiagramaScrapingAlternativo.tex}}
+
 \subsection{Extracción de las guías docentes}
 
 La extracción de las guías docentes es la etapa donde se concentran las anomalías en el contenido aportado por el servidor.
@@ -498,48 +545,18 @@ uno por cada uno de los siete grados simples. En el caso de los dobles grados, s
 
 \input{diagramas/DiagramaEstructuraSalidas.tex}
 
-\begin{borrador}                                                                                                                                                    
-  \item El párrafo en turquesa está comprobado sobre \texttt{data/grados.json} (rastreo del
-  05/08/2026): de las catorce líneas del bloque del Doble Grado en Ingeniería Eléctrica y
-  Mecánica, doce aparecen literalmente en Eléctrica o en Mecánica y dos no están en ninguno
-  de los dos. Queda registrado en el DQA-0005, así que es comprobable: si alguien del
-  tribunal abre la página de la doble titulación, ve esos dos párrafos.
-  \item Se perdió también, al reescribir, el hallazgo de que la extracción recogía solo los
-  elementos de la lista y descartaba los párrafos del cuerpo, con lo que ese texto se venía
-  perdiendo en las siete titulaciones. Es el quinto caso de la serie <<un dato desaparece
-  sin que nada falle>>, y el más ilustrativo: la prueba automática daba por buenas dieciséis
-  líneas sobre una página que traía dieciocho, porque comprobaba lo que el código producía y
-  no lo que la fuente contenía. Si no lo quieres aquí, llévalo a las amenazas a la validez,
-  pero no lo dejes fuera de la memoria.
-\end{borrador}
-
-\subsection[Deduplicación de la colección]{\textcolor{borrador2}{Deduplicación de la colección}}
+\subsection[Deduplicación de la colección]{Deduplicación de la colección}
 \label{subsec:deduplicacion}
 
-\begin{borrador}                                                                                                                  
-  
+\begin{borrador}
   \item \textbf{El troceado se ha movido a la Fase~1 el 07/08/2026} y la deduplicación se
   queda aquí, que es la opción que elegiste. El criterio: el troceado existe por la ventana
   del modelo de incrustaciones, así que pertenece a la fase donde está ese modelo; la
   deduplicación existe porque la fuente publica la misma guía en varias titulaciones, que es
   una propiedad del dato y no del índice.
-  \item \textbf{El título de esta subsección era tuyo} (<<Troceado y deduplicación de la
-  colección>>) y he tenido que cambiarlo, porque ya no hay troceado dentro. Está en turquesa:
-  ponle el nombre que prefieras y quítale el color.
-  \item \textbf{Lo que queda por arreglar fuera de la memoria.} El hito del \textit{backlog}
-  ya se llama <<Fase 0 · Cimientos y extracción web>> y el punto del Gantt ya no menciona el
-  troceado, pero de ese hito siguen colgando IT-08 e IT-09 (código del fragmentador) e IT-11
-  (el ADR-0001 de la estrategia). Solo IT-56, la deduplicación, corresponde a lo que este
-  apartado cuenta. Muévelas de hito o explica en una frase por qué no coinciden; con el
-  repositorio abierto se ve.
-  \item \textbf{Queda una remisión hacia adelante} que conviene mirar: el párrafo de la
-  identidad de la asignatura habla de <<los metadatos del encabezado>>, y el encabezado se
-  explica ahora en la Fase~1. Es una frase, pero o la explicas aquí en media línea o la
-  anuncias.
-  \item \textbf{La figura del proceso completo se ha ido con el troceado}, aunque su primer
-  paso sea la deduplicación. Me pareció que pesa más el troceado, pero es discutible:
-  míralo y, si la quieres aquí, dímelo.
 \end{borrador}
+
+Al revisar los datos extraídos 
 
 \textcolor{borrador2}{Al revisar la colección extraída apareció una redundancia que no venía
   del sistema sino de la fuente, y que obliga a decidir cuándo dos guías docentes son la
@@ -577,57 +594,20 @@ positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: f
 idénticas solo deja el índice ligeramente más grande.
 
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
-  con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
-  \texttt{check\_chunks.py} sobre la extracción del 16/08/2026 (curso 2026-27), tiene
-  \textbf{1.499 fragmentos}: 1.296 de guía, 86 informativos de asignaturas sin contenido,
-  56 de plan de estudios, 24 de mención, 22 de salidas, 12 de ficha de titulación y 3 de
-  catálogo, en \textbf{398 unidades} de las que 81 se comparten entre titulaciones. Los
-  tamaños van de \textbf{96 a 900} caracteres, con mediana de 836 y percentil 90 de 895.
-  \item Los tres últimos tipos ---mención, ficha de titulación y catálogo--- no existían
-  en el corpus de IT-16: los introduce IT-107 y se explican en el
-  Apartado~\ref{secc:fragmentos_derivados}. Al citar el tamaño del corpus hay que decir de
-  qué extracción es, porque la fuente ha cambiado tres veces este verano.
-  \item \textbf{Ojo al porcentaje de reducción}, que no se puede copiar del de abajo: al
-  bajar el máximo, una misma unidad produce más fragmentos, de modo que cambian tanto el
-  número del que se parte como aquel al que se llega. Sácalo de la salida del verificador
-  en vez de ajustarlo a mano.
-  \item Cifras anteriores, del 30/07/2026, que son las que hay que sustituir:
-  \item Reducción de \textbf{1\,134 a 781 fragmentos}, un \textbf{31~\%} menos. De
-  esos 781: \textbf{711} de guías, \textbf{62} informativos de asignaturas
-  sin guía y \textbf{8} de salidas.
-  \item Los \textbf{353} fragmentos eliminados son el \textbf{33~\%} de los
-  \textbf{1\,064} que las guías generaban antes de deduplicar.
-  \item Agrupación: \textbf{116 de las 288} guías caen en \textbf{38} conjuntos,
-  de modo que \textbf{78} son copias de otra.
-  \item Tamaños de 227 a 1\,499 caracteres, mediana \textbf{1\,128}, y ningún
-  fragmento por encima del máximo.
-  \item \textbf{Cifras del 06/08/2026, que sustituyen a las de arriba} tras incorporar los
-  planes de los dobles grados (IT-101) y bajar el máximo de fragmento a 900 (IT-16):
-  \textbf{1\,334 fragmentos}, repartidos en \textbf{1\,193} de guía, \textbf{86}
-  informativos de asignaturas sin guía, \textbf{33} de plan de estudios y \textbf{22} de
-  salidas. Las guías siguen agrupándose en \textbf{210} unidades y \textbf{78} de ellas se
-  comparten entre titulaciones: fragmentar más fino reparte dentro de la unidad, no crea
-  unidades nuevas. Tamaños de \textbf{171} a \textbf{900} caracteres, mediana \textbf{838} y
-  percentil 90 de \textbf{894}; ninguno por encima del máximo.
-  \item \textbf{Seis fragmentos quedan por debajo del mínimo} de 200 caracteres, entre 171 y
-  196. Son colas irreducibles: unirlas a su vecino habría desbordado el máximo, y el mínimo
-  es una preferencia mientras que el máximo es una restricción dura. Conviene decirlo en el
-  cuerpo del capítulo, porque si no la tabla de tamaños se contradice sola.
-  \item \textbf{Falta volver a medir el corpus sin deduplicar} sobre esta colección, que
-  es de donde salen los porcentajes de reducción. Los del 30/07 son de 781 fragmentos y no
-  valen ya; no los conviertas por regla de tres, ejecútalo.
-  \item \textbf{Y estas cifras van a cambiar otra vez}: la rejilla de IT-16 recomienda
-  bajar el tamaño máximo, y con él cambia el número de fragmentos. No las vuelques en el
-  texto hasta que esa decisión esté cerrada.
-  \item \textbf{Vale la pena decir algo que antes no se podía decir:} el efecto de
-  la deduplicación ha \emph{crecido} (del 25~\% al 33~\% de los fragmentos de
-  guía) porque las unidades compartidas han pasado de 28 a 38. La Escuela
-  publica cada curso más guías comunes entre titulaciones, así que el
-  argumento que sostiene esta decisión se refuerza con el tiempo en lugar de
-  desgastarse. Recogido en la adenda del ADR-0001.
+\begin{borrador}
+  \item \textbf{Cifras vigentes (16/08/2026, curso 2026-27):} \textbf{1\,499
+  fragmentos} en \textbf{398 unidades} (81 compartidas). Tamaños: 96--900
+  caracteres, mediana 836, P90 895. Desglose: 1\,296 guía, 86 informativos,
+  56 plan, 24 mención, 22 salidas, 12 ficha, 3 catálogo. Los tres últimos
+  tipos vienen de IT-107 (Apartado~\ref{secc:fragmentos_derivados}).
+  \item Porcentaje de reducción y fragmentos bajo el mínimo de 200: sacarlos
+  de \texttt{check\_chunks.py}, no copiar cifras anteriores. Las colas cortas
+  son irreducibles (mínimo = preferencia, máximo = restricción dura); decirlo
+  en el texto.
+  \item La deduplicación crece con cada extracción (más guías compartidas);
+  adenda del ADR-0001.
 \end{borrador}
+
 
 \subsubsection[La identidad de una asignatura dentro del fragmentador]{\textcolor{borrador2}{La identidad de una asignatura dentro del fragmentador}}
 \label{secc:identidad_asignatura}
@@ -649,75 +629,20 @@ idénticas solo deja el índice ligeramente más grande.
   fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
   asignatura de la misma manera.}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Cifras del 30/07/2026:} son \textbf{48} asignaturas sin código
-  publicado --- 29 en Geomática (plan 2025), 18 en IA y Ciberseguridad y
-  \textbf{1 en Ingeniería Electrónica Industrial}. El reparto se ha dado la
-  vuelta respecto a lo que decía el texto (era 18 y 38).
-  \item Ojo a esa tercera titulación: \textbf{aparece una asignatura sin código en
-    un grado que NO es de implantación reciente}. La frase <<de los planes de
-  implantación reciente>> deja de ser exacta, y ese caso suelto es
-  precisamente el que un tribunal usaría para preguntar si el criterio está
-  bien planteado. Merece comprobarse de dónde sale antes de reescribir el
-  párrafo.
-\end{borrador}
 
-\subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
+\subsection[Verificación y reproducibilidad de la colección]{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
-La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
+La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. La primera es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
-Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
+Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
-\textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
-  Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
-  respondía que el corpus era correcto aun teniendo los encabezados cruzados: lo que comparaba eran
-  las claves que relacionan cada fragmento con su asignatura, y esas sí cuadraban, mientras que el
-  error estaba en el texto del encabezado, que no revisaba nadie. La comprobación que faltaba --- que
-  cada fragmento empiece por el nombre de su propia unidad --- se añadió junto con la corrección. El
-  patrón es el mismo que el de los defectos descritos más arriba, y conviene enunciarlo así de claro:
-  un verificador puede estar midiendo algo distinto de lo que se cree que mide, y mientras tanto
-  devuelve un resultado correcto.}
+Para garantizar la trazabilidad del conjunto de datos, el rastreador web guarda automáticamente la fecha en la que realizó la extracción y cada guía docente incluye su curso académico, el cual se extrae de la propia URL de la ficha en el catálogo de la Universidad. 
 
-\textcolor{borrador2}{Para poder afirmar algo sobre el conjunto de datos hace falta saber de cuándo
-  es. Hasta IT-90 no había ninguna fecha dentro de los ficheros: la única constancia era una nota
-  escrita a mano y no versionada, de modo que copiar el conjunto de datos a otro sitio hacía perder
-  su procedencia y olvidar actualizar la nota la falseaba. El rastreador registra ahora la fecha de
-  extracción, y cada guía docente lleva el curso académico al que pertenece. Ese curso no se escribe
-  a mano en ninguna parte: se deduce de la propia dirección de la ficha en el catálogo de la
-  Universidad, que lo incluye en su ruta, con lo que un dato tomado de la fuente no puede quedarse
-  obsoleto sin que nadie lo advierta. Cuando la dirección no lo indica, el campo queda vacío en lugar
-  de suponer un curso, con el mismo criterio que se aplica al crédito ausente. Los cursos presentes
-  se enumeran todos y no se resumen a uno solo, porque la Escuela publica las guías del curso nuevo a
-  medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
-  dejar implícito.}
-
-La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a GitHub), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
-
+El conjunto de datos no se incluye en el repositorio en GitHub debido al tamaño actual y al que pudiera obtener en un futuro, la reproducibilidad se apoya en la capacidad de regenerarlo cuando sea y en el equipo que sea con el propio flujo de procesamiento del trabajo. Por ello, el rastreador y el fragmentador son módulos independientes, ya que el primero es lento y debe de dosificarse para no sobrecargar el servidor de la universidad, mientras que el segundo es rápido y se repite con frecuencia en los diferentes experimentos del proyecto.
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 0 (IT-19). Aquí \textbf{no} van cifras de caracterización de la
-  colección ni amenazas a la validez: eso es IT-58 y va al Capítulo~\ref{cap:resultados}.
-  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos.} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
-  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
-  deduplicación, que sí se queda aquí, comprueba la otra mitad.
-  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
-  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
-  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
-  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
-  respetar el reparto de fases es peor remedio que la enfermedad.
-  \item \textbf{Matiz honesto sobre la reproducibilidad, para adelantarse al tribunal}
-  (IT-58): re-rastrear la web \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
-  (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
-  titulaciones de Geomática con la tabla de asignaturas reestructurada,
-  resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
-  actual de la fuente>>, que no es lo mismo que <<el corpus sobre el que se
-  hicieron los experimentos>>: eso es una limitación de la reproducibilidad
-  que conviene enunciar, no un defecto que se pueda corregir.
-  \item Lo que sí se ha corregido es la mitad que dependía del proyecto: desde
-  IT-90 el propio conjunto de datos lleva dentro su fecha de extracción y
-  su curso, así que ya no hace falta acordarse de decirlo por fuera. Queda
-  pendiente para IT-58 dar esa fecha y ese curso al caracterizar el corpus,
-  en vez de presentarlo como atemporal.
+  \item \textbf{Matiz de reproducibilidad ante el tribunal (IT-58):} Re-rastrear la web reproduce el \emph{estado actual de la fuente}, no necesariamente el corpus exacto sobre el que se hicieron los experimentos (debido a mutaciones externas de la web de la EPSJ, como el paso de guías a PDF o reestructuraciones de tablas). Debe enunciarse en las limitaciones como una amenaza a la validez de la fuente externa, no como un fallo del pipeline.
+  \item \textbf{Caracterización del corpus (IT-58):} En el Capítulo~\ref{cap:resultados}, aportar la fecha concreta de extracción y el curso académico de los datos experimentales, aprovechando que ahora quedan registrados automáticamente en los metadatos.
 \end{borrador}
 
 \section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
@@ -827,6 +752,8 @@ mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
   \label{fig:secuencia_chunking}
 \end{figure}
 
+{\color{borrador2}\input{diagramas/DiagramaChunkingAlternativo.tex}}
+
 La Figura~\ref{fig:estructura_chunk} desglosa esa estructura sobre un fragmento real de la colección. La distinción
 importante es la de la izquierda frente a la derecha: solo el campo \texttt{texto} (encabezado más cuerpo) se convierte en
 vector, mientras que el resto de campos acompañan al fragmento sin intervenir en la búsqueda, y sirven para saber de dónde
@@ -895,7 +822,7 @@ Para este experimento, se cogen las incrustaciones que se generan mediante el mo
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
-Las tres candidatas tienen una licencia que casa con la de este proyecto y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
+Las tres candidatas tienen una licencia que casa con la de este proyecto\textcolor{borrador2}{, que es la GPL versión 3\cite{gpl3}} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
 
 Se barajaron otras opciones pero se descartaron por estar en un estado de desarrollo muy prematuro, o por estar pensadas para corpus enormes.
 
@@ -1019,41 +946,17 @@ Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para
 
 La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador. Al seleccionar un modelo más capaz y por ende más grande, se excede la memoria de la tarjeta gráfica disponible y parte de su ejecución se traslada a la memoria principal, por lo que los tiempos medidos reflejan las limitaciones del hardware de desarrollo del proyecto más que la eficiencia intrínseca de cada modelo. Ambas magnitudes se documentan y analizan como una amenaza a la validez en el Apartado~\ref{secc:amenazas_validez}.
 
-\subsubsection[\textcolor{borrador2}{Elección final}]{\textcolor{borrador2}{Elección final}}
+\subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_gemma3}
 
-\textcolor{borrador2}{El umbral eliminatorio no resuelve esta elección, y conviene
-  decirlo antes que nada: los cuatro candidatos lo cumplen. Ninguno nombró una
-  titulación inexistente en las trescientas veinte respuestas y a ninguno se le
-  quedó una pregunta sin contexto, de modo que el criterio que se escribió para
-  descartar no descarta a nadie. Que un umbral no separe no lo invalida ---sigue
-  diciendo que los cuatro son admisibles, que era su cometido--- pero obliga a
-  decidir con lo que queda, que son las medidas descriptivas del
-  Apartado~\ref{secc:resultados_rag}.}
+Los cuatros candidatos finalmente elegidos después de una criba de múltiples modelos, superaron los umbrales eliminatorios, ninguno inventó titulaciones inexistentes en las 320 respuestas evaluadas y todos dispusieron del contexto necesario. Al no existir descartes directos, la decisión se fundamentó en las métricas de rendimiento del Apartado~\ref{secc:resultados_rag}.
 
-\textcolor{borrador2}{Sobre ellas se adopta \texttt{gemma3:12b}, porque es el
-  único que no queda por detrás en ninguna: precisión 1,000, cobertura 1,000 y
-  acierto escalar 0,978, el más alto de los cuatro. \texttt{ministral-8b} y
-  \texttt{qwen3.5:9b} pierden en cobertura y en acierto escalar, que son
-  precisamente las dos que dicen si la respuesta contiene lo que debía contener,
-  y \texttt{salamandra-7b} pierde en las dos por bastante más margen.}
+A partir de los resultados del experimento se adopta \texttt{gemma3:12b}, al ser el único modelo que no queda por detrás en ninguna métrica, sin embargo, \texttt{ministral-8b} y \texttt{qwen3.5:9b} obtienen valores menores en cobertura y acierto escalar, mientras que el modelo español, \texttt{salamandra-7b} queda más rezagado.
 
-\textcolor{borrador2}{La contrapartida es que se adopta el más lento de los
-  cuatro: 21,6 segundos de mediana frente a los 12,1 de \texttt{ministral-8b}.
-  Se acepta a sabiendas y no por descuido, porque el orden entre las dos cosas
-  no se decide aquí sino que está fijado de antemano en el RNF-04 de la
-  Tabla~\ref{tab:requisitos_no_funcionales}: antes que responder deprisa, no
-  inventar. Invertir ese orden habría llevado a \texttt{ministral-8b}, que es el
-  mismo candidato al que se vio salirse del dominio en las sesiones a mano
-  recomendando cursos de una plataforma comercial que no está en el corpus.}
+Lo peor del mejor modelo es su tiempo mediano de respuesta obteniendo 21,6 segundo frente a los 12,1 del segundo más lento. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
 
-\textcolor{borrador2}{Hay además una razón para no dejar que el tiempo decida
-  que no tiene que ver con las prioridades sino con lo que la cifra mide. De los
-  8,92~GB que \texttt{gemma3:12b} ocupa en memoria solo caben 3,28 en la tarjeta
-  gráfica del equipo descrito en la Sección~\ref{secc:equipo_ejecucion}, así que
-  esos 21,6 segundos describen este portátil antes que al modelo. Un criterio
-  construido sobre ellos sería un criterio sobre el ordenador de desarrollo. La
-  decisión queda registrada en el ADR-0005\cite{repo_tfg}.}
+Asímismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca del la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
+
 
 
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
@@ -1095,6 +998,8 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 \end{itemize}
 
 \input{diagramas/DiagramaPromptDespiezado.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaPromptAlternativo.tex}}
 
 \textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
   las mismas siempre; las dos últimas cambian con cada una, y por eso en la
@@ -1156,6 +1061,8 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaArquitecturaWebAlternativo.tex}}
 
 
 
@@ -1269,6 +1176,87 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
+\subsection[\textcolor{borrador2}{El diseño de la página}]{\textcolor{borrador2}{El diseño de la página}}
+\label{secc:fase3_diseno}
+
+\textcolor{borrador2}{El boceto de la Figura~\ref{fig:wireframe} se dibujó al
+  formular los objetivos, antes de que existiera nada del sistema, y conviene
+  cotejarlo con lo que se entrega en la Figura~\ref{fig:app_inicio}. Se mantiene
+  el reparto de la pantalla: la conversación ocupa el centro, las preguntas
+  sugeridas van encima del cuadro de escribir y el cuadro de escribir cierra la
+  página. Cambian tres cosas, y ninguna es un cambio de gusto: las tres salen de
+  probar el sistema y no de dibujarlo.}
+
+\textcolor{borrador2}{La primera es que el logotipo sube a una cabecera con el
+  nombre del centro, en lugar de quedarse en medio de la conversación como marca
+  de agua. El motivo es que una marca de agua no dice de quién es la página, y
+  quien llega desde la web de la Escuela tiene que reconocer que sigue en el
+  mismo sitio. La segunda es que la procedencia de la respuesta no cabía debajo
+  de cada mensaje y se recogió en un cuadro aparte
+  (Apartado~\ref{secc:fase3_fuentes}). Y la tercera es que el boceto no tenía
+  dónde poner la espera, porque cuando se dibujó todavía no se sabía que una
+  respuesta iba a tardar más de un minuto (Apartado~\ref{secc:fase3_espera}).}
+
+\textcolor{borrador2}{Hay una cuarta diferencia que no está en la distribución
+  sino en el color, y merece decirse porque es la única decisión de diseño que
+  hubo que deshacer. La primera hoja de estilo llevaba un dorado que no venía de
+  ninguna parte: se había elegido por parecer institucional. La Escuela no tiene
+  dorado en su identidad, así que se retiró. Los colores que quedan son los de la
+  hoja de estilo del propio centro ---el verde \texttt{\#006d38} y su versión
+  oscura, que forman el degradado de la cabecera, y el verde azulado
+  \texttt{\#3c726b} de su portada---, y no una paleta escogida por gusto. La
+  razón tampoco es estética: un asistente que se parece a la institución de la
+  que habla se lee como parte de ella y no como la página de un tercero.}
+
+\textcolor{borrador2}{Venir de la identidad del centro no basta para dar un
+  color por bueno. El requisito RNF-07 pide accesibilidad, y eso se traduce en
+  contrastes medidos: el texto de la página va de 4,92:1 a 14,83:1 sobre su
+  fondo, por encima del 4,5:1 que exige el nivel AA de las \sig{WCAG}. Un caso
+  obligó a apartarse del gris que traía el diseño. El borde de los controles
+  daba 1,95:1 contra el fondo y el criterio 1.4.11 pide 3,0:1 para el contorno
+  de algo con lo que se interactúa, así que ese gris se oscureció hasta el
+  3,02:1. Es la clase de detalle que no se ve mirando la pantalla y solo aparece
+  al medirlo.}
+
+\textcolor{borrador2}{La tipografía es la del sistema operativo de quien abre la
+  página y no una servida por un tercero. Al principio no era así, y el motivo
+  del cambio es el mismo que ordena todo este apartado: pedir la letra a un
+  servidor externo le manda la dirección de red y el navegador de quien
+  pregunta. No sale de ahí ni una palabra de la conversación, pero el RNF-02
+  sostiene que el sistema funciona entero en local, y una petición a un tercero
+  nada más abrir la página lo desmiente. Es también lo que explica que las
+  capturas de este apartado no lleven la misma letra que la web de la Escuela.}
+
+\textcolor{borrador2}{La estructura de la página son cinco piezas y no más: la
+  cabecera con el nombre del centro, la conversación, las preguntas sugeridas,
+  el formulario de escribir y el cuadro de fuentes. Cada una es el elemento de
+  \sig{HTML} que le corresponde ---la conversación es el contenido principal,
+  las sugerencias son navegación y el cuadro de fuentes es un diálogo del propio
+  navegador---, y no una capa neutra con un nombre de clase. Eso no es purismo:
+  quien usa un lector de pantalla recorre la página por esas piezas, de modo que
+  usar el elemento correcto es lo que permite saltar de una a otra sin verlas.
+  El cuadro de fuentes, además, por venir del navegador trae ya resueltos el
+  cierre con la tecla de escape y la devolución del foco al botón que lo abrió,
+  que es trabajo que no hay que escribir ni mantener.}
+
+\textcolor{borrador2}{Dentro de la conversación, la respuesta no se dibuja como
+  una burbuja de mensajería sino como texto corrido con una línea vertical al
+  margen. La diferencia importa porque lo que el sistema devuelve no son
+  mensajes cortos: son listados de asignaturas y descripciones de guías
+  docentes, y una burbuja obliga a leerlos en una columna estrecha dentro de una
+  página que ya es estrecha. El estilo de la respuesta de listado
+  ---Figura~\ref{fig:app_listado}--- sigue la misma idea: los cursos se componen
+  como encabezados y las asignaturas pierden la viñeta, de modo que se lea como
+  un plan de estudios y no como una conversación.}
+
+\textcolor{borrador2}{Por último, el ancho. Las bandas de color ocupan la
+  ventana entera pero el texto se detiene en una columna de lectura, porque las
+  dos alternativas se veían mal: una aplicación estrecha encogida en medio de
+  una pantalla ancha, o una línea de mil píxeles que no hay quien siga. En un
+  teléfono no queda nada fuera ---la Figura~\ref{fig:app_movil} es la misma
+  pantalla a 390 píxeles---, que es la comprobación que de verdad importa,
+  porque ese es el aparato con el que un preuniversitario va a entrar.}
+
 \subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
 \label{secc:fase3_fuentes}
 
@@ -1361,3 +1349,61 @@ La alternativa de emplear marcos de trabajo habituales (como React o Vue) se des
   descartara todo. No se puede deducir de la respuesta, porque un saludo
   reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
   el segundo pasa por el índice.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-46). Las cuatro figuras de abajo son capturas
+  \emph{reales} de la aplicación respondiendo, no maquetas: se escribió en el campo y
+  se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
+  figura y el párrafo que las presenta.
+  \item \textbf{Las decisiones de diseño están en el
+  Apartado~\ref{secc:fase3_diseno}}, que es lo que faltaba de la Definición de Hecho:
+  el cotejo con el boceto de los objetivos, de dónde salen los colores y por qué se
+  retiró el dorado, los contrastes medidos, la tipografía del sistema, las cinco
+  piezas de la página y por qué la respuesta no es una burbuja. Todo en turquesa,
+  para que lo reescribas.
+  \item \textbf{Una advertencia sobre estas capturas:} llevan la tipografía del
+  sistema, no la de la web original. Es la corrección de una auditoría: la página ya no
+  pide tipografías a un servidor externo, y eso es lo que sostiene que el sistema
+  funcione entero sin conexión.
+\end{borrador}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{imagenes/app_inicio.png}
+  \caption[\textcolor{borrador2}{Pantalla inicial del asistente}]{\textcolor{borrador2}{Pantalla
+      inicial. El saludo y las preguntas sugeridas no están escritos en el cliente: se
+      le piden al servidor, para que no existan dos listas que puedan
+      desincronizarse. Fuente: Elaboración propia.}}
+  \label{fig:app_inicio}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{imagenes/app_listado.png}
+  \caption[\textcolor{borrador2}{Respuesta de listado}]{\textcolor{borrador2}{Respuesta
+      a la pregunta más frecuente del banco. El rótulo de cada curso se compone como
+      encabezado de sección y las asignaturas pierden la viñeta, de modo que la
+      respuesta se lee como un plan de estudios impreso y no como una lista de chat.
+      Fuente: Elaboración propia.}}
+  \label{fig:app_listado}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
+  \caption[\textcolor{borrador2}{Procedencia de la respuesta}]{\textcolor{borrador2}{El
+      cuadro de fuentes, agrupadas por titulación. El rótulo dice «consultadas» a
+      propósito: es lo que se le entregó al modelo, no lo que el modelo llegó a usar.
+      Fuente: Elaboración propia.}}
+  \label{fig:app_fuentes}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.42\textwidth]{imagenes/app_movil.png}
+  \caption[\textcolor{borrador2}{La aplicación en un teléfono}]{\textcolor{borrador2}{La
+      misma pantalla en 390~píxeles de ancho, que es el aparato con el que un
+      estudiante preuniversitario va a entrar. Fuente: Elaboración propia.}}
+  \label{fig:app_movil}
+\end{figure}
+

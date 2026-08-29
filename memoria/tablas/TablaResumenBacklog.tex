@@ -1,46 +1,14 @@
+% !TEX root = ../main.tex
 % Resumen del backlog por fase y naturaleza del trabajo. Sustituye a la antigua
-% TablaBacklog.tex, que listaba las historias una a una (tutoría del 04/08/2026:
-% demasiado específica para un lector que no conoce el proyecto por dentro).
-% Cifras contadas con `gh issue list` sobre el repositorio el 14/08/2026. El
-% 13/08 se reequilibro el reparto por fases: la Fase 2 acumulaba veinte tarjetas
-% abiertas frente a las veinte del resto de fases juntas, y se llevaron a fases
-% posteriores seis que no dependen del pipeline RAG (IT-59 a la Fase 3; IT-73 e
-% IT-86 a la Fase 4; IT-72, IT-82 e IT-89 a la Fase 5). El 14/08 la Fase 2 gana
-% dos tarjetas nuevas (IT-103, migracion del indexador a la base elegida; IT-104,
-% cierre de la introduccion de la fase), de ahi que el total suba de 100 a 102.
+% TablaBacklog.tex, que listaba las historias una a una (tutoria del 04/08/2026:
+% demasiado especifica para un lector que no conoce el proyecto por dentro).
 %
-% Segundo reequilibrio de la Fase 2: se llevan a fases posteriores tres tarjetas
-% que no hacen falta para que el sistema responda, que es lo unico que esa fase
-% tiene que dejar cerrado. IT-87 (guardarrail de dominio) va a la Fase 4, junto a
-% las preguntas fuera de dominio contra las que se mide; IT-41 (diagrama de
-% secuencia) a la Fase 3, porque el recorrido completo no queda fijado hasta que
-% existe la aplicacion web y dibujarlo antes obligaria a rehacerlo; e IT-81
-% (teoria del Cap. 2) a la Fase 5, porque no depende de ninguna pieza del sistema.
-% El total sigue en 102: son mudanzas, no altas ni bajas.
+% Las cifras NO se escriben a mano: se cuentan sobre el repositorio con
+% `gh issue list --state all` filtrando los titulos que empiezan por «IT-», que
+% es lo unico que distingue una historia del proyecto de una incidencia suelta.
 %
-% En ese mismo recuento se alinearon las etiquetas `fase:N` con los hitos: ocho
-% tarjetas conservaban la etiqueta de su fase anterior después de mudanzas
-% previas, así que contar por hito y contar por etiqueta daban tablas distintas.
-% Ahora las dos coinciden en las cien.
-%
-% El 16/08 se abren dos tarjetas de codigo y el total sube de 102 a 104: IT-105
-% (metadato de curso, Fase 2) e IT-106 (gestion de la conversacion, Fase 3). La
-% primera sale de probar el sistema a mano: preguntado por las asignaturas de
-% primer año, respondia con el plan entero, porque el corpus no tenia ese campo.
-%
-% El 17/08 se abren otras dos tarjetas de codigo en la Fase 2 y el total sube de
-% 104 a 106: IT-107 (fragmentos derivados que responden a las preguntas de
-% agregacion) e IT-108 (defectos de la conversacion). Las dos salen de la misma
-% sesion de pruebas manuales del sistema completo.
-%
-% El 23/08 se abren dos tarjetas de codigo mas en la Fase 2 y el total sube de
-% 106 a 108: IT-109 (el reconocimiento de otro centro no cubre los nombres que
-% no llevan la formula «universidad de X») e IT-110 (la precision del cribado
-% puntuaba con cero las respuestas redactadas en prosa). Las dos salen de
-% revisar por que las cifras medidas no decian lo que parecian decir.
-%
-% Las naturalezas del repositorio son siete y la tabla muestra cinco: tipo:test
-% cuenta como Código, y tipo:adr y tipo:dqa cuentan como Decisión.
+% Las naturalezas del repositorio son siete y la tabla muestra cinco:
+% tipo:test cuenta como Codigo, y tipo:adr y tipo:dqa cuentan como Decision.
 \begin{table}[htbp]
   \centering
   \caption{Reparto de las historias de usuario del proyecto por fase y por
@@ -54,11 +22,11 @@
     Fase 0         & 11              & 15               & ---                  & 3                 & 4                & 33             \\
     Fase 1         & 15              & 5                & 2                    & 2                 & 1                & 25             \\
     Fase 2         & 9               & 5                & 4                    & 2                 & ---              & 20             \\
-    Fase 3         & 4               & 9                & ---                  & 1                 & ---              & 14             \\
+    Fase 3         & 7               & 9                & ---                  & 1                 & ---              & 17             \\
     Fase 4         & 2               & 2                & 4                    & ---               & ---              & 8              \\
     Fase 5         & 2               & 8                & ---                  & ---               & 3                & 13             \\
     \midrule
-    \textbf{Total} & \textbf{43}     & \textbf{44}      & \textbf{10}          & \textbf{8}        & \textbf{8}       & \textbf{113}   \\
+    \textbf{Total} & \textbf{46}     & \textbf{44}      & \textbf{10}          & \textbf{8}        & \textbf{8}       & \textbf{116}   \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
@@ -70,6 +38,6 @@
     una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA);
     \textbf{Gestión}: infraestructura del propio proyecto. Un guion indica que esa fase no
     tiene ninguna historia de esa naturaleza. \textcolor{borrador2}{Cifras contadas sobre el
-      repositorio el 24/08/2026; cambian cada vez que se abre o se reasigna una tarjeta.}
+      repositorio el 29/08/2026; cambian cada vez que se abre o se reasigna una tarjeta.}
   \end{minipage}
 \end{table}
