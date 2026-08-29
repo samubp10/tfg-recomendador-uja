@@ -1,11 +1,18 @@
+% !TEX root = ../main.tex
 % Los tres estados de la pantalla de chat (IT-43).
 %
 % NADA de lo que se dibuja aqui esta inventado:
 %   - Las preguntas y las respuestas salen de una conversacion ejecutada contra
 %     el sistema el 24/08/2026, con sus tiempos medidos.
 %   - Los textos de la espera son literalmente los que compone `contarLaEspera`
-%     en la interfaz, incluido el umbral a partir del cual explica por que
-%     tarda.
+%     en la interfaz.
+%
+% Corregido el 29/08/2026: la nota decia que la primera fase se llamaba
+% «Buscando en las guias docentes» y que el cambio de texto ocurria a los 12 s.
+% Las dos cosas dejaron de ser ciertas en IT-45. El rotulo es ahora «Buscando en
+% la informacion de la Escuela», y la fase la marca la LLEGADA DE LAS FUENTES,
+% que es el suceso real que cierra la recuperacion; con el cronometro anterior
+% podia anunciar «redactando» con la busqueda todavia en marcha.
 %   - El pie «respuesta inmediata» es la marca que la interfaz pone cuando la
 %     respuesta no llego a consultar al modelo.
 %
@@ -61,8 +68,9 @@
         {Redactando la respuesta\ldots\ 47 s. El modelo se ejecuta en este mismo
           equipo, así que tarda más que un servicio en la nube.};
         \node[nota, text width=5.6cm, anchor=north west] at (0.4,5.4)
-        {La cuenta empieza en «Buscando en las guías docentes» y cambia a este
-          texto a los 12 s. Mediana medida: 62,7 s; percentil 90: 125,3 s.};
+        {La cuenta empieza en «Buscando en la información de la Escuela» y cambia
+          a este texto cuando llegan las fuentes, no al cabo de un tiempo fijo.
+          Mediana medida: 62,7 s; percentil 90: 125,3 s.};
         \node[entrada, text width=6.5cm, anchor=north west] at (0.3,1.5)
         {Escribe tu pregunta\ldots};
         \node[rotulo] at (3.8,-0.2) {2 · La espera};
@@ -93,11 +101,7 @@
       \end{scope}
     \end{tikzpicture}%
   }
-  \caption[\textcolor{borrador2}{Los tres estados de la pantalla de chat}]{\textcolor{borrador2}{Los
-      tres estados que el diseño de la pantalla tiene que resolver, además del
-      caso corriente. Las preguntas y las respuestas proceden de una
-      conversación ejecutada contra el sistema, y los tiempos son los que tardó
-      en darlas; los textos de la espera son los que compone la propia interfaz.
-      Fuente: Elaboración propia.}}
+   \caption[Estados de interacción de la pantalla de conversación]{Comportamiento de la interfaz ante respuestas elaboradas, tiempos de espera, respuestas inmediatas y rechazo de consultas. Fuente: Elaboración propia.}
+
   \label{fig:estados_chat}
 \end{figure}
