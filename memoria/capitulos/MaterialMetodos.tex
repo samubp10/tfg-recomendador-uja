@@ -371,11 +371,18 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaArquitecturaPipelineAlternativo.tex}}
-
 \begin{borrador}
   \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
-  \item Rehacer la figura
+  \item \textbf{Figura rehecha.} Ya no agrupa por fase de desarrollo sino por
+  cuándo se ejecuta cada cosa: arriba lo que corre una sola vez para dejar el índice
+  construido, abajo lo que corre en cada pregunta. Agrupar por fase mezclaba dos ejes
+  ---cuándo se programó y cuándo se ejecuta--- y dejaba el índice, que es lo único que
+  une las dos mitades, metido dentro de una de ellas.
+  \item \textbf{Consecuencia que hay que mirar:} el párrafo de arriba todavía presenta
+  el sistema recorriendo las fases, y la figura ya no las nombra. O se reescribe ese
+  párrafo con el nuevo corte, o se dice en él que las fases están en la sección de planificación temporal y que la figura enseña otra cosa.
+  \item El pie y los rótulos de la figura los he escrito yo: están en turquesa para
+  que los reescribas.
 \end{borrador}
 
 \section{Diseño de los datos}
@@ -1176,16 +1183,10 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
-\subsection[\textcolor{borrador2}{El diseño de la página}]{\textcolor{borrador2}{El diseño de la página}}
-\label{secc:fase3_diseno}
+\subsection[Diseño visual y accesibilidad de la interfaz]{Diseño visual y accesibilidad y accesibilidad de la interfaz}
+\label{secc:fase3_diseno_interfaz}
 
-\textcolor{borrador2}{El boceto de la Figura~\ref{fig:wireframe} se dibujó al
-  formular los objetivos, antes de que existiera nada del sistema, y conviene
-  cotejarlo con lo que se entrega en la Figura~\ref{fig:app_inicio}. Se mantiene
-  el reparto de la pantalla: la conversación ocupa el centro, las preguntas
-  sugeridas van encima del cuadro de escribir y el cuadro de escribir cierra la
-  página. Cambian tres cosas, y ninguna es un cambio de gusto: las tres salen de
-  probar el sistema y no de dibujarlo.}
+El diseño final (Figura~\ref{fig:app_inicio}) mantiene la distribución planteada en el boceto inicial de los objetivos (Figura~\ref{fig:wireframe}).
 
 \textcolor{borrador2}{La primera es que el logotipo sube a una cabecera con el
   nombre del centro, en lugar de quedarse en medio de la conversación como marca
@@ -1356,7 +1357,7 @@ La alternativa de emplear marcos de trabajo habituales (como React o Vue) se des
   se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
   figura y el párrafo que las presenta.
   \item \textbf{Las decisiones de diseño están en el
-  Apartado~\ref{secc:fase3_diseno}}, que es lo que faltaba de la Definición de Hecho:
+  Apartado~\ref{secc:fase3_diseno_interfaz}}, que es lo que faltaba de la Definición de Hecho:
   el cotejo con el boceto de los objetivos, de dónde salen los colores y por qué se
   retiró el dorado, los contrastes medidos, la tipografía del sistema, las cinco
   piezas de la página y por qué la respuesta no es una burbuja. Todo en turquesa,
