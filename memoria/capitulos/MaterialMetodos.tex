@@ -2,7 +2,7 @@
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
-Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
+Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente\textcolor{borrador2}{, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias}. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 \begin{borrador}                                                                                                                                                    
   \item \textbf{Revisar introducción en la Fase 5 cuando se hayan cerrados las fases anteriores}
@@ -58,6 +58,14 @@ Para clasificar semánticamente los cambios, los tipos de confirmación (\textit
 
 Cada entrega de código exige no solo el título estandarizado que describe \textit{qué} se ha modificado, sino un cuerpo explicativo obligatorio que documenta con claridad \textit{por qué} se ha tomado dicha decisión técnica frente a otras alternativas.
 
+\textcolor{borrador2}{Esa taxonomía no es arbitraria: \textit{Conventional
+  Commits} está pensado para encajar con el versionado
+  semántico\cite{semver}, de modo que el tipo de cada confirmación diga por sí
+  solo si el cambio rompe algo, añade capacidad o corrige un defecto. Este
+  proyecto no publica versiones numeradas ---no es una biblioteca que nadie
+  instale---, así que de esa correspondencia se aprovecha solo la mitad útil
+  aquí: que el historial se pueda leer por tipos sin abrir cada cambio.}
+
 Asimismo, para proteger la integridad de esta trazabilidad, las fusiones a la rama principal (\texttt{main}) se realizan exclusivamente mediante confirmaciones de fusión explícitas (\textit{Merge Commits}). Se ha descartado la técnica de aplastamiento (\textit{Squash}) al fusionar las ramas efímeras, garantizando que todo el historial y el razonamiento de cada paso del desarrollo se conserven de manera inmutable.
 
 \subsection{Integración Continua (CI) y automatización de pruebas}
@@ -67,6 +75,16 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
 Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+
+\textcolor{borrador2}{Junto a las pruebas, la integración continua comprueba
+  también el estilo del código, para que la discusión sobre cómo se escribe no
+  vuelva en cada revisión. Cada función se documenta según la
+  PEP~257\cite{pep257} y con el formato de la guía de estilo de
+  Google\cite{googlestyle}, que separa la descripción de los argumentos y del
+  valor devuelto; el código se formatea con \texttt{black}, se comprueba con
+  \texttt{flake8} y sus anotaciones de tipo con \texttt{mypy}. Las tres
+  herramientas son deterministas, de modo que su resultado no depende de quién
+  las ejecute.}
 
 \subsection{Tipos de pruebas del proyecto}
 \label{secc:niveles_de_prueba}
@@ -124,7 +142,9 @@ Los otros cinco tipos de tarjetas con sus criterios de finalización son:
         que sostiene la elegida y sus limitaciones.
   \item \textbf{Memoria.} El documento compila, no queda texto de
         borrador de la sección sin reescribir en la parte afectada, y toda cifra que se dé procede de la
-        salida de un experimento o un verificador.
+        salida de un experimento o un verificador\textcolor{borrador2}{, además de
+        respetar la estructura y el estilo que fija la Escuela para los Trabajos Fin
+        de Grado\cite{epsj_criterios}}.
   \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
 \end{itemize}
 
@@ -802,7 +822,7 @@ Para este experimento, se cogen las incrustaciones que se generan mediante el mo
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
-Las tres candidatas tienen una licencia que casa con la de este proyecto y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
+Las tres candidatas tienen una licencia que casa con la de este proyecto\textcolor{borrador2}{, que es la GPL versión 3\cite{gpl3}} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
 
 Se barajaron otras opciones pero se descartaron por estar en un estado de desarrollo muy prematuro, o por estar pensadas para corpus enormes.
 
