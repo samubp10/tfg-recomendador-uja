@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
@@ -275,6 +276,18 @@ Los cinco tipos de historias son los siguientes:
 
 \input{tablas/TablaResumenBacklog.tex}
 
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-83). La tabla ya está reagrupada y recontada con
+  \texttt{gh} (115 historias el 28/08/2026). Quedan dos cosas de la Definición de
+  Hecho: el enlace al repositorio para quien quiera el detalle historia por historia, y
+  repasar que ninguna cifra del texto de alrededor se haya quedado atrás ---el recuento
+  cambia cada vez que se abre o se cierra una tarjeta---.
+  \item El repositorio está privado hasta la entrega, así que ese enlace y las citas
+  \texttt{\textbackslash cite\{repo\_tfg\}} no funcionarán para un tercero hasta
+  entonces. Conviene decidir si se dice en el texto o se da por hecho.
+\end{borrador}
+
+
 \begin{borrador}                                                                                                                                                    
   \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
   \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
@@ -371,6 +384,18 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \subsection{Situación de partida}
 
+Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (sobre todo HTML) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
+
+Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
+
+\begin{itemize}
+  \item \textbf{Inconsistencia en la estructura de navegación:} Las rutas (URLs) de acceso a las distintas titulaciones presentan patrones irregulares y \glr{slugs}{slug} inconsistentes en el cuerpo de las páginas.
+  \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
+  \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
+  \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
+\end{itemize}
+
+Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en el registro DQA-0001\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
 
 \begin{borrador}
   \item Rehacer este apartado por completo, hay que ponerlo directamente en PDF, aunque el desarrollo empezara con HTML.
@@ -498,7 +523,7 @@ uno por cada uno de los siete grados simples. En el caso de los dobles grados, s
 
 \input{diagramas/DiagramaEstructuraSalidas.tex}
 
-\subsection[Deduplicación de la colección]{\textcolor{borrador2}{Deduplicación de la colección}}
+\subsection[Deduplicación de la colección]{Deduplicación de la colección}
 \label{subsec:deduplicacion}
 
 \begin{borrador}
@@ -547,57 +572,20 @@ positivo, y se acepta a propósito porque los dos errores no cuestan lo mismo: f
 idénticas solo deja el índice ligeramente más grande.
 
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{ESTAS CIFRAS ESTAN CADUCADAS (IT-16).} Son del corpus del 30/07/2026,
-  con el máximo de fragmento todavía en 1.500 caracteres. La colección vigente, medida con
-  \texttt{check\_chunks.py} sobre la extracción del 16/08/2026 (curso 2026-27), tiene
-  \textbf{1.499 fragmentos}: 1.296 de guía, 86 informativos de asignaturas sin contenido,
-  56 de plan de estudios, 24 de mención, 22 de salidas, 12 de ficha de titulación y 3 de
-  catálogo, en \textbf{398 unidades} de las que 81 se comparten entre titulaciones. Los
-  tamaños van de \textbf{96 a 900} caracteres, con mediana de 836 y percentil 90 de 895.
-  \item Los tres últimos tipos ---mención, ficha de titulación y catálogo--- no existían
-  en el corpus de IT-16: los introduce IT-107 y se explican en el
-  Apartado~\ref{secc:fragmentos_derivados}. Al citar el tamaño del corpus hay que decir de
-  qué extracción es, porque la fuente ha cambiado tres veces este verano.
-  \item \textbf{Ojo al porcentaje de reducción}, que no se puede copiar del de abajo: al
-  bajar el máximo, una misma unidad produce más fragmentos, de modo que cambian tanto el
-  número del que se parte como aquel al que se llega. Sácalo de la salida del verificador
-  en vez de ajustarlo a mano.
-  \item Cifras anteriores, del 30/07/2026, que son las que hay que sustituir:
-  \item Reducción de \textbf{1\,134 a 781 fragmentos}, un \textbf{31~\%} menos. De
-  esos 781: \textbf{711} de guías, \textbf{62} informativos de asignaturas
-  sin guía y \textbf{8} de salidas.
-  \item Los \textbf{353} fragmentos eliminados son el \textbf{33~\%} de los
-  \textbf{1\,064} que las guías generaban antes de deduplicar.
-  \item Agrupación: \textbf{116 de las 288} guías caen en \textbf{38} conjuntos,
-  de modo que \textbf{78} son copias de otra.
-  \item Tamaños de 227 a 1\,499 caracteres, mediana \textbf{1\,128}, y ningún
-  fragmento por encima del máximo.
-  \item \textbf{Cifras del 06/08/2026, que sustituyen a las de arriba} tras incorporar los
-  planes de los dobles grados (IT-101) y bajar el máximo de fragmento a 900 (IT-16):
-  \textbf{1\,334 fragmentos}, repartidos en \textbf{1\,193} de guía, \textbf{86}
-  informativos de asignaturas sin guía, \textbf{33} de plan de estudios y \textbf{22} de
-  salidas. Las guías siguen agrupándose en \textbf{210} unidades y \textbf{78} de ellas se
-  comparten entre titulaciones: fragmentar más fino reparte dentro de la unidad, no crea
-  unidades nuevas. Tamaños de \textbf{171} a \textbf{900} caracteres, mediana \textbf{838} y
-  percentil 90 de \textbf{894}; ninguno por encima del máximo.
-  \item \textbf{Seis fragmentos quedan por debajo del mínimo} de 200 caracteres, entre 171 y
-  196. Son colas irreducibles: unirlas a su vecino habría desbordado el máximo, y el mínimo
-  es una preferencia mientras que el máximo es una restricción dura. Conviene decirlo en el
-  cuerpo del capítulo, porque si no la tabla de tamaños se contradice sola.
-  \item \textbf{Falta volver a medir el corpus sin deduplicar} sobre esta colección, que
-  es de donde salen los porcentajes de reducción. Los del 30/07 son de 781 fragmentos y no
-  valen ya; no los conviertas por regla de tres, ejecútalo.
-  \item \textbf{Y estas cifras van a cambiar otra vez}: la rejilla de IT-16 recomienda
-  bajar el tamaño máximo, y con él cambia el número de fragmentos. No las vuelques en el
-  texto hasta que esa decisión esté cerrada.
-  \item \textbf{Vale la pena decir algo que antes no se podía decir:} el efecto de
-  la deduplicación ha \emph{crecido} (del 25~\% al 33~\% de los fragmentos de
-  guía) porque las unidades compartidas han pasado de 28 a 38. La Escuela
-  publica cada curso más guías comunes entre titulaciones, así que el
-  argumento que sostiene esta decisión se refuerza con el tiempo en lugar de
-  desgastarse. Recogido en la adenda del ADR-0001.
+\begin{borrador}
+  \item \textbf{Cifras vigentes (16/08/2026, curso 2026-27):} \textbf{1\,499
+  fragmentos} en \textbf{398 unidades} (81 compartidas). Tamaños: 96--900
+  caracteres, mediana 836, P90 895. Desglose: 1\,296 guía, 86 informativos,
+  56 plan, 24 mención, 22 salidas, 12 ficha, 3 catálogo. Los tres últimos
+  tipos vienen de IT-107 (Apartado~\ref{secc:fragmentos_derivados}).
+  \item Porcentaje de reducción y fragmentos bajo el mínimo de 200: sacarlos
+  de \texttt{check\_chunks.py}, no copiar cifras anteriores. Las colas cortas
+  son irreducibles (mínimo = preferencia, máximo = restricción dura); decirlo
+  en el texto.
+  \item La deduplicación crece con cada extracción (más guías compartidas);
+  adenda del ADR-0001.
 \end{borrador}
+
 
 \subsubsection[La identidad de una asignatura dentro del fragmentador]{\textcolor{borrador2}{La identidad de una asignatura dentro del fragmentador}}
 \label{secc:identidad_asignatura}
@@ -619,75 +607,20 @@ idénticas solo deja el índice ligeramente más grande.
   fragmentos --- y se recogió en una única función para que los tres módulos identifiquen una
   asignatura de la misma manera.}
 
-\begin{borrador}                                                                                                                                                    
-  \item \textbf{Cifras del 30/07/2026:} son \textbf{48} asignaturas sin código
-  publicado --- 29 en Geomática (plan 2025), 18 en IA y Ciberseguridad y
-  \textbf{1 en Ingeniería Electrónica Industrial}. El reparto se ha dado la
-  vuelta respecto a lo que decía el texto (era 18 y 38).
-  \item Ojo a esa tercera titulación: \textbf{aparece una asignatura sin código en
-    un grado que NO es de implantación reciente}. La frase <<de los planes de
-  implantación reciente>> deja de ser exacta, y ese caso suelto es
-  precisamente el que un tribunal usaría para preguntar si el criterio está
-  bien planteado. Merece comprobarse de dónde sale antes de reescribir el
-  párrafo.
-\end{borrador}
 
-\subsection[Verificación y reproducibilidad de la colección]{\textcolor{borrador2}{Verificación y reproducibilidad de la colección}}
+\subsection[Verificación y reproducibilidad de la colección]{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
-La fiabilidad de la Fase 0 recae en dos verificadores que se ejecutan sobre el conjunto de datos completo. El primero, \texttt{check\_dataset.py}, comprueba la integridad de grados, asignaturas, guías y salidas: el número de entidades, la presencia de los campos obligatorios y la validez de los tipos de asignatura. El segundo, \texttt{check\_chunks.py}, verifica los tamaños de los fragmentos y la corrección de la deduplicación. Ambos se ejecutan en local antes de cada subida al repositorio, mientras que la integración continua en la nube ejecuta la batería de pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
+La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. La primera es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
-Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada: los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
+Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
-\textcolor{borrador2}{Los verificadores, sin embargo, solo protegen de aquello que efectivamente miran.
-  Al revisar el criterio de identidad del fragmentador se comprobó que \texttt{check\_chunks.py}
-  respondía que el corpus era correcto aun teniendo los encabezados cruzados: lo que comparaba eran
-  las claves que relacionan cada fragmento con su asignatura, y esas sí cuadraban, mientras que el
-  error estaba en el texto del encabezado, que no revisaba nadie. La comprobación que faltaba --- que
-  cada fragmento empiece por el nombre de su propia unidad --- se añadió junto con la corrección. El
-  patrón es el mismo que el de los defectos descritos más arriba, y conviene enunciarlo así de claro:
-  un verificador puede estar midiendo algo distinto de lo que se cree que mide, y mientras tanto
-  devuelve un resultado correcto.}
+Para garantizar la trazabilidad del conjunto de datos, el rastreador web guarda automáticamente la fecha en la que realizó la extracción y cada guía docente incluye su curso académico, el cual se extrae de la propia URL de la ficha en el catálogo de la Universidad. 
 
-\textcolor{borrador2}{Para poder afirmar algo sobre el conjunto de datos hace falta saber de cuándo
-  es. Hasta IT-90 no había ninguna fecha dentro de los ficheros: la única constancia era una nota
-  escrita a mano y no versionada, de modo que copiar el conjunto de datos a otro sitio hacía perder
-  su procedencia y olvidar actualizar la nota la falseaba. El rastreador registra ahora la fecha de
-  extracción, y cada guía docente lleva el curso académico al que pertenece. Ese curso no se escribe
-  a mano en ninguna parte: se deduce de la propia dirección de la ficha en el catálogo de la
-  Universidad, que lo incluye en su ruta, con lo que un dato tomado de la fuente no puede quedarse
-  obsoleto sin que nadie lo advierta. Cuando la dirección no lo indica, el campo queda vacío en lugar
-  de suponer un curso, con el mismo criterio que se aplica al crédito ausente. Los cursos presentes
-  se enumeran todos y no se resumen a uno solo, porque la Escuela publica las guías del curso nuevo a
-  medida que las tiene y un mismo rastreo puede recoger dos, algo que conviene declarar antes que
-  dejar implícito.}
-
-La reproducibilidad del sistema no se apoya en una copia versionada de los datos (no está subida a GitHub), sino en el propio pipeline: el conjunto de datos no se versiona y se regenera bajo demanda ejecutando el rastreador y, a continuación, el fragmentador. La separación entre rastreador (\textit{spider}) y fragmentador (\textit{chunker}) es intencionada: volver a fragmentar es barato y se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y poco respetuoso con el servidor de la universidad. Por eso ambos son módulos independientes, como se argumenta en el ADR-0001.
-
+El conjunto de datos no se incluye en el repositorio en GitHub debido al tamaño actual y al que pudiera obtener en un futuro, la reproducibilidad se apoya en la capacidad de regenerarlo cuando sea y en el equipo que sea con el propio flujo de procesamiento del trabajo. Por ello, el rastreador y el fragmentador son módulos independientes, ya que el primero es lento y debe de dosificarse para no sobrecargar el servidor de la universidad, mientras que el segundo es rápido y se repite con frecuencia en los diferentes experimentos del proyecto.
 \begin{borrador}                                                                                                                                                    
-  \item \textbf{Fase:} 0 (IT-19). Aquí \textbf{no} van cifras de caracterización de la
-  colección ni amenazas a la validez: eso es IT-58 y va al Capítulo~\ref{cap:resultados}.
-  \item \textbf{Este apartado atribuye a la Fase~0 la verificación de los fragmentos.} \texttt{check\_chunks.py} comprueba <<los tamaños de los fragmentos>>, y
-  los tamaños son ahora cosa de la Fase~1 (Sección~\ref{subsec:chunking}); de la
-  deduplicación, que sí se queda aquí, comprueba la otra mitad.
-  \item \textbf{Dos salidas, y la segunda me parece mejor:} o partes la descripción del
-  verificador entre las dos fases, o dices aquí que los dos verificadores se describen juntos
-  porque forman el mismo mecanismo de control y que uno de ellos comprueba además una
-  decisión que se toma más adelante. Partir un guion de verificación en dos apartados por
-  respetar el reparto de fases es peor remedio que la enfermedad.
-  \item \textbf{Matiz honesto sobre la reproducibilidad, para adelantarse al tribunal}
-  (IT-58): re-rastrear la web \emph{no} reproduce el mismo corpus: la fuente había cambiado dos veces
-  (guías del curso 2026-27 servidas en PDF, resuelto en IT-67; y dos
-  titulaciones de Geomática con la tabla de asignaturas reestructurada,
-  resuelto en IT-76 e IT-77). Es decir, el pipeline reproduce <<el estado
-  actual de la fuente>>, que no es lo mismo que <<el corpus sobre el que se
-  hicieron los experimentos>>: eso es una limitación de la reproducibilidad
-  que conviene enunciar, no un defecto que se pueda corregir.
-  \item Lo que sí se ha corregido es la mitad que dependía del proyecto: desde
-  IT-90 el propio conjunto de datos lleva dentro su fecha de extracción y
-  su curso, así que ya no hace falta acordarse de decirlo por fuera. Queda
-  pendiente para IT-58 dar esa fecha y ese curso al caracterizar el corpus,
-  en vez de presentarlo como atemporal.
+  \item \textbf{Matiz de reproducibilidad ante el tribunal (IT-58):} Re-rastrear la web reproduce el \emph{estado actual de la fuente}, no necesariamente el corpus exacto sobre el que se hicieron los experimentos (debido a mutaciones externas de la web de la EPSJ, como el paso de guías a PDF o reestructuraciones de tablas). Debe enunciarse en las limitaciones como una amenaza a la validez de la fuente externa, no como un fallo del pipeline.
+  \item \textbf{Caracterización del corpus (IT-58):} En el Capítulo~\ref{cap:resultados}, aportar la fecha concreta de extracción y el curso académico de los datos experimentales, aprovechando que ahora quedan registrados automáticamente en los metadatos.
 \end{borrador}
 
 \section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
@@ -989,41 +922,17 @@ Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para
 
 La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador. Al seleccionar un modelo más capaz y por ende más grande, se excede la memoria de la tarjeta gráfica disponible y parte de su ejecución se traslada a la memoria principal, por lo que los tiempos medidos reflejan las limitaciones del hardware de desarrollo del proyecto más que la eficiencia intrínseca de cada modelo. Ambas magnitudes se documentan y analizan como una amenaza a la validez en el Apartado~\ref{secc:amenazas_validez}.
 
-\subsubsection[\textcolor{borrador2}{Elección final}]{\textcolor{borrador2}{Elección final}}
+\subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_gemma3}
 
-\textcolor{borrador2}{El umbral eliminatorio no resuelve esta elección, y conviene
-  decirlo antes que nada: los cuatro candidatos lo cumplen. Ninguno nombró una
-  titulación inexistente en las trescientas veinte respuestas y a ninguno se le
-  quedó una pregunta sin contexto, de modo que el criterio que se escribió para
-  descartar no descarta a nadie. Que un umbral no separe no lo invalida ---sigue
-  diciendo que los cuatro son admisibles, que era su cometido--- pero obliga a
-  decidir con lo que queda, que son las medidas descriptivas del
-  Apartado~\ref{secc:resultados_rag}.}
+Los cuatros candidatos finalmente elegidos después de una criba de múltiples modelos, superaron los umbrales eliminatorios, ninguno inventó titulaciones inexistentes en las 320 respuestas evaluadas y todos dispusieron del contexto necesario. Al no existir descartes directos, la decisión se fundamentó en las métricas de rendimiento del Apartado~\ref{secc:resultados_rag}.
 
-\textcolor{borrador2}{Sobre ellas se adopta \texttt{gemma3:12b}, porque es el
-  único que no queda por detrás en ninguna: precisión 1,000, cobertura 1,000 y
-  acierto escalar 0,978, el más alto de los cuatro. \texttt{ministral-8b} y
-  \texttt{qwen3.5:9b} pierden en cobertura y en acierto escalar, que son
-  precisamente las dos que dicen si la respuesta contiene lo que debía contener,
-  y \texttt{salamandra-7b} pierde en las dos por bastante más margen.}
+A partir de los resultados del experimento se adopta \texttt{gemma3:12b}, al ser el único modelo que no queda por detrás en ninguna métrica, sin embargo, \texttt{ministral-8b} y \texttt{qwen3.5:9b} obtienen valores menores en cobertura y acierto escalar, mientras que el modelo español, \texttt{salamandra-7b} queda más rezagado.
 
-\textcolor{borrador2}{La contrapartida es que se adopta el más lento de los
-  cuatro: 21,6 segundos de mediana frente a los 12,1 de \texttt{ministral-8b}.
-  Se acepta a sabiendas y no por descuido, porque el orden entre las dos cosas
-  no se decide aquí sino que está fijado de antemano en el RNF-04 de la
-  Tabla~\ref{tab:requisitos_no_funcionales}: antes que responder deprisa, no
-  inventar. Invertir ese orden habría llevado a \texttt{ministral-8b}, que es el
-  mismo candidato al que se vio salirse del dominio en las sesiones a mano
-  recomendando cursos de una plataforma comercial que no está en el corpus.}
+Lo peor del mejor modelo es su tiempo mediano de respuesta obteniendo 21,6 segundo frente a los 12,1 del segundo más lento. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
 
-\textcolor{borrador2}{Hay además una razón para no dejar que el tiempo decida
-  que no tiene que ver con las prioridades sino con lo que la cifra mide. De los
-  8,92~GB que \texttt{gemma3:12b} ocupa en memoria solo caben 3,28 en la tarjeta
-  gráfica del equipo descrito en la Sección~\ref{secc:equipo_ejecucion}, así que
-  esos 21,6 segundos describen este portátil antes que al modelo. Un criterio
-  construido sobre ellos sería un criterio sobre el ordenador de desarrollo. La
-  decisión queda registrada en el ADR-0005\cite{repo_tfg}.}
+Asímismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca del la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
+
 
 
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
@@ -1331,3 +1240,59 @@ La alternativa de emplear marcos de trabajo habituales (como React o Vue) se des
   descartara todo. No se puede deducir de la respuesta, porque un saludo
   reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
   el segundo pasa por el índice.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-46). Las cuatro figuras de abajo son capturas
+  \emph{reales} de la aplicación respondiendo, no maquetas: se escribió en el campo y
+  se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
+  figura y el párrafo que las presenta.
+  \item \textbf{Lo que la DoD pide y todavía no está escrito:} las decisiones de
+  diseño ---por qué la respuesta no es una burbuja de mensajería, por qué los colores
+  son los de la identidad del centro y qué estructura tiene la página---. Está todo en
+  el código y en las tarjetas; hay que contarlo.
+  \item \textbf{Una advertencia sobre estas capturas:} llevan la tipografía del
+  sistema, no la de la web original. Es la corrección de una auditoría: la página ya no
+  pide tipografías a un servidor externo, y eso es lo que sostiene que el sistema
+  funcione entero sin conexión.
+\end{borrador}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{imagenes/app_inicio.png}
+  \caption[\textcolor{borrador2}{Pantalla inicial del asistente}]{\textcolor{borrador2}{Pantalla
+      inicial. El saludo y las preguntas sugeridas no están escritos en el cliente: se
+      le piden al servidor, para que no existan dos listas que puedan
+      desincronizarse. Fuente: Elaboración propia.}}
+  \label{fig:app_inicio}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{imagenes/app_listado.png}
+  \caption[\textcolor{borrador2}{Respuesta de listado}]{\textcolor{borrador2}{Respuesta
+      a la pregunta más frecuente del banco. El rótulo de cada curso se compone como
+      encabezado de sección y las asignaturas pierden la viñeta, de modo que la
+      respuesta se lee como un plan de estudios impreso y no como una lista de chat.
+      Fuente: Elaboración propia.}}
+  \label{fig:app_listado}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
+  \caption[\textcolor{borrador2}{Procedencia de la respuesta}]{\textcolor{borrador2}{El
+      cuadro de fuentes, agrupadas por titulación. El rótulo dice «consultadas» a
+      propósito: es lo que se le entregó al modelo, no lo que el modelo llegó a usar.
+      Fuente: Elaboración propia.}}
+  \label{fig:app_fuentes}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.42\textwidth]{imagenes/app_movil.png}
+  \caption[\textcolor{borrador2}{La aplicación en un teléfono}]{\textcolor{borrador2}{La
+      misma pantalla en 390~píxeles de ancho, que es el aparato con el que un
+      estudiante preuniversitario va a entrar. Fuente: Elaboración propia.}}
+  \label{fig:app_movil}
+\end{figure}
+
