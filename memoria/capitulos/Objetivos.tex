@@ -40,7 +40,6 @@ sobre un modelo de lenguaje de pesos abiertos ejecutado en local.
 \section{Hipótesis de trabajo}
 \label{secc:hipotesis}
 
-% La hipótesis debe ser falsable: al evaluar el sistema se confirma o se refuta.
 
 Es posible construir, con hardware doméstico y modelos de pesos abiertos, un sistema RAG que responda preguntas
 sobre la oferta académica de la EPSJ apoyando cada respuesta en la documentación oficial del
@@ -49,9 +48,7 @@ La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro c
 
 \begin{enumerate}                                      
   \item El recuperador del RAG deberá situar la unidad de la cual sacar la información entre
-        los cinco primeros resultados en al menos el 90\,\% de las preguntas, medido con
-        \textit{Recall@5} por unidad sobre un conjunto de 50
-        preguntas de prueba.
+        los fragmentos que el recuperador entrega.
         
   \item Ninguna respuesta del sistema tiene que contener información sobre un dato de una
         asignatura, sus créditos, su carácter o la titulación en que se imparte que no aparezca
@@ -114,6 +111,7 @@ Los requisitos descritos anteriormente determinan qué debe de hacer el sistema,
   \caption[Boceto de la pantalla de conversación]{Boceto de la pantalla de conversación. Fuente: Elaboración propia.}
   \label{fig:wireframe}
 \end{figure}
+
 
 El boceto establece una pantalla sin registro ni instalación previa, dando cumplimiento al requisito RU-05, un cuadro de texto dando un saludo al usuario (RU-01) y el historial de mensajes sobre él. Se evitó sobrecargar la estética de funcionalidades innecesarias para hacer más sencillo su uso.
 
