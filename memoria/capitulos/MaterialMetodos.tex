@@ -277,20 +277,16 @@ Los cinco tipos de historias son los siguientes:
 \input{tablas/TablaResumenBacklog.tex}
 
 \begin{borrador}
-  \item \textbf{Fase:} 3 (IT-83). La tabla ya está reagrupada y recontada con
-  \texttt{gh} (115 historias el 28/08/2026). Quedan dos cosas de la Definición de
-  Hecho: el enlace al repositorio para quien quiera el detalle historia por historia, y
-  repasar que ninguna cifra del texto de alrededor se haya quedado atrás ---el recuento
-  cambia cada vez que se abre o se cierra una tarjeta---.
-  \item El repositorio está privado hasta la entrega, así que ese enlace y las citas
-  \texttt{\textbackslash cite\{repo\_tfg\}} no funcionarán para un tercero hasta
-  entonces. Conviene decidir si se dice en el texto o se da por hecho.
-\end{borrador}
-
-
-\begin{borrador}                                                                                                                                                    
-  \item Volver a actualizar la tabla antes de cerrar la fase 1 y después.
-  \item Revisar si verdaderamente la fase 0 no tiene ninguna tarjeta de Experimento, porque me parece raro.
+  \item \textbf{Fase:} 3 (IT-83). La tabla está recontada con \texttt{gh} el
+  29/08/2026: 116 historias, y la Fase 3 pasa a 17 al asignarle la auditoría de la
+  interfaz, que estaba sin fase. El enlace al repositorio ya lo da el párrafo de
+  arriba con \texttt{\textbackslash cite\{repo\_tfg\}}.
+  \item La duda de si la Fase 0 tenía experimentos queda contestada contando: no
+  tiene ninguno. Los experimentos empiezan en la Fase 1, cuando ya hay colección
+  sobre la que medir; en la Fase 0 lo que se construía era esa colección.
+  \item Queda una decisión tuya: el repositorio está privado hasta la entrega, así
+  que ni ese enlace ni las citas funcionan todavía para un tercero. O se dice en el
+  texto, o se da por hecho que para entonces será público.
 \end{borrador}
 
 
@@ -1160,6 +1156,87 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
+\subsection[\textcolor{borrador2}{El diseño de la página}]{\textcolor{borrador2}{El diseño de la página}}
+\label{secc:fase3_diseno}
+
+\textcolor{borrador2}{El boceto de la Figura~\ref{fig:wireframe} se dibujó al
+  formular los objetivos, antes de que existiera nada del sistema, y conviene
+  cotejarlo con lo que se entrega en la Figura~\ref{fig:app_inicio}. Se mantiene
+  el reparto de la pantalla: la conversación ocupa el centro, las preguntas
+  sugeridas van encima del cuadro de escribir y el cuadro de escribir cierra la
+  página. Cambian tres cosas, y ninguna es un cambio de gusto: las tres salen de
+  probar el sistema y no de dibujarlo.}
+
+\textcolor{borrador2}{La primera es que el logotipo sube a una cabecera con el
+  nombre del centro, en lugar de quedarse en medio de la conversación como marca
+  de agua. El motivo es que una marca de agua no dice de quién es la página, y
+  quien llega desde la web de la Escuela tiene que reconocer que sigue en el
+  mismo sitio. La segunda es que la procedencia de la respuesta no cabía debajo
+  de cada mensaje y se recogió en un cuadro aparte
+  (Apartado~\ref{secc:fase3_fuentes}). Y la tercera es que el boceto no tenía
+  dónde poner la espera, porque cuando se dibujó todavía no se sabía que una
+  respuesta iba a tardar más de un minuto (Apartado~\ref{secc:fase3_espera}).}
+
+\textcolor{borrador2}{Hay una cuarta diferencia que no está en la distribución
+  sino en el color, y merece decirse porque es la única decisión de diseño que
+  hubo que deshacer. La primera hoja de estilo llevaba un dorado que no venía de
+  ninguna parte: se había elegido por parecer institucional. La Escuela no tiene
+  dorado en su identidad, así que se retiró. Los colores que quedan son los de la
+  hoja de estilo del propio centro ---el verde \texttt{\#006d38} y su versión
+  oscura, que forman el degradado de la cabecera, y el verde azulado
+  \texttt{\#3c726b} de su portada---, y no una paleta escogida por gusto. La
+  razón tampoco es estética: un asistente que se parece a la institución de la
+  que habla se lee como parte de ella y no como la página de un tercero.}
+
+\textcolor{borrador2}{Venir de la identidad del centro no basta para dar un
+  color por bueno. El requisito RNF-07 pide accesibilidad, y eso se traduce en
+  contrastes medidos: el texto de la página va de 4,92:1 a 14,83:1 sobre su
+  fondo, por encima del 4,5:1 que exige el nivel AA de las \sig{WCAG}. Un caso
+  obligó a apartarse del gris que traía el diseño. El borde de los controles
+  daba 1,95:1 contra el fondo y el criterio 1.4.11 pide 3,0:1 para el contorno
+  de algo con lo que se interactúa, así que ese gris se oscureció hasta el
+  3,02:1. Es la clase de detalle que no se ve mirando la pantalla y solo aparece
+  al medirlo.}
+
+\textcolor{borrador2}{La tipografía es la del sistema operativo de quien abre la
+  página y no una servida por un tercero. Al principio no era así, y el motivo
+  del cambio es el mismo que ordena todo este apartado: pedir la letra a un
+  servidor externo le manda la dirección de red y el navegador de quien
+  pregunta. No sale de ahí ni una palabra de la conversación, pero el RNF-02
+  sostiene que el sistema funciona entero en local, y una petición a un tercero
+  nada más abrir la página lo desmiente. Es también lo que explica que las
+  capturas de este apartado no lleven la misma letra que la web de la Escuela.}
+
+\textcolor{borrador2}{La estructura de la página son cinco piezas y no más: la
+  cabecera con el nombre del centro, la conversación, las preguntas sugeridas,
+  el formulario de escribir y el cuadro de fuentes. Cada una es el elemento de
+  \sig{HTML} que le corresponde ---la conversación es el contenido principal,
+  las sugerencias son navegación y el cuadro de fuentes es un diálogo del propio
+  navegador---, y no una capa neutra con un nombre de clase. Eso no es purismo:
+  quien usa un lector de pantalla recorre la página por esas piezas, de modo que
+  usar el elemento correcto es lo que permite saltar de una a otra sin verlas.
+  El cuadro de fuentes, además, por venir del navegador trae ya resueltos el
+  cierre con la tecla de escape y la devolución del foco al botón que lo abrió,
+  que es trabajo que no hay que escribir ni mantener.}
+
+\textcolor{borrador2}{Dentro de la conversación, la respuesta no se dibuja como
+  una burbuja de mensajería sino como texto corrido con una línea vertical al
+  margen. La diferencia importa porque lo que el sistema devuelve no son
+  mensajes cortos: son listados de asignaturas y descripciones de guías
+  docentes, y una burbuja obliga a leerlos en una columna estrecha dentro de una
+  página que ya es estrecha. El estilo de la respuesta de listado
+  ---Figura~\ref{fig:app_listado}--- sigue la misma idea: los cursos se componen
+  como encabezados y las asignaturas pierden la viñeta, de modo que se lea como
+  un plan de estudios y no como una conversación.}
+
+\textcolor{borrador2}{Por último, el ancho. Las bandas de color ocupan la
+  ventana entera pero el texto se detiene en una columna de lectura, porque las
+  dos alternativas se veían mal: una aplicación estrecha encogida en medio de
+  una pantalla ancha, o una línea de mil píxeles que no hay quien siga. En un
+  teléfono no queda nada fuera ---la Figura~\ref{fig:app_movil} es la misma
+  pantalla a 390 píxeles---, que es la comprobación que de verdad importa,
+  porque ese es el aparato con el que un preuniversitario va a entrar.}
+
 \subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
 \label{secc:fase3_fuentes}
 
@@ -1258,10 +1335,12 @@ La alternativa de emplear marcos de trabajo habituales (como React o Vue) se des
   \emph{reales} de la aplicación respondiendo, no maquetas: se escribió en el campo y
   se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
   figura y el párrafo que las presenta.
-  \item \textbf{Lo que la DoD pide y todavía no está escrito:} las decisiones de
-  diseño ---por qué la respuesta no es una burbuja de mensajería, por qué los colores
-  son los de la identidad del centro y qué estructura tiene la página---. Está todo en
-  el código y en las tarjetas; hay que contarlo.
+  \item \textbf{Las decisiones de diseño están en el
+  Apartado~\ref{secc:fase3_diseno}}, que es lo que faltaba de la Definición de Hecho:
+  el cotejo con el boceto de los objetivos, de dónde salen los colores y por qué se
+  retiró el dorado, los contrastes medidos, la tipografía del sistema, las cinco
+  piezas de la página y por qué la respuesta no es una burbuja. Todo en turquesa,
+  para que lo reescribas.
   \item \textbf{Una advertencia sobre estas capturas:} llevan la tipografía del
   sistema, no la de la web original. Es la corrección de una auditoría: la página ya no
   pide tipografías a un servidor externo, y eso es lo que sostiene que el sistema
