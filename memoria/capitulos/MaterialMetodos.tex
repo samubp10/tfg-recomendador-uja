@@ -513,13 +513,23 @@ Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramient
 
 
 En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones entre el
-rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
+rastreador (\textit{spider}) y la página web\sout{, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple}.
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\begin{borrador}                                                                                                                                                    
+\begin{borrador}
   \item Revisar este apartado que ha cambiado en las fases posteriores.
-  \item Hay que simplificar o hacer varios diagramas puesto que no se ve bien de cara al lector del tfg, hay muchos contenidos y todo es muy pequeño, que ocupe una página no es el problema, que se vea mal sí.
+  \item \textbf{Figura rehecha.} Ya no es un diagrama de secuencia ocupando
+  toda la página, sino el recorrido con sus bifurcaciones, y el texto se lee
+  sin acercarse. Es lo que pedían tu nota y la del tutor.
+  \item \textbf{Lo que se ha perdido, dicho claro.} La figura anterior dibujaba
+  \emph{cuatro} bifurcaciones y esta dibuja \emph{dos}. Se quedan fuera «guía
+  con contenido frente a guía publicada vacía» y «grado simple frente a doble
+  grado»: no caben sin volver a la letra pequeña. Si esas dos tienen que
+  aparecer, van en una segunda figura, no en esta.
+  \item \textbf{Por eso está tachada la coletilla del párrafo de arriba}, que
+  anunciaba justo la bifurcación del doble grado. Reescribe la frase con tus
+  palabras y quita el tachado.
 \end{borrador}
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
@@ -527,14 +537,7 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 \textcolor{blue}{[sbp] Corregido}
 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[height=0.9\textheight]{imagenes/Diagrama_secuencia_scraping.pdf}
-  \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{\textcolor{borrador2}{Diagrama de secuencia del \textit{scraping}. Recoge las cuatro bifurcaciones del recorrido: titulación vigente frente a titulación en extinción, asignatura con guía publicada frente a sin ella, guía con contenido frente a guía publicada vacía, y grado simple frente a doble grado.} Fuente: Elaboración propia.}
-  \label{fig:secuencia_scraping}
-\end{figure}
-
-{\color{borrador2}\input{diagramas/DiagramaScrapingAlternativo.tex}}
+\input{diagramas/DiagramaScraping.tex}
 
 \subsection{Extracción de las guías docentes}
 
@@ -1021,16 +1024,17 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 
 \input{diagramas/DiagramaPromptDespiezado.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaPromptAlternativo.tex}}
-
-\textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
-  las mismas siempre; las dos últimas cambian con cada una, y por eso en la
-  figura solo esas dos tienen dibujado de dónde salen. La distinción que importa
-  está en la última: de la conversación viajan las \textbf{preguntas} y no las
-  respuestas. Es lo que impide que una respuesta equivocada en un turno se
-  convierta en fuente del siguiente, y es un control y no una recomendación
-  ---lo que no está en el \textit{prompt} no se puede copiar---, que es la misma
-  idea que gobierna el apartado siguiente.}
+\textcolor{borrador2}{El mensaje de sistema viaja en un campo aparte y no se
+  concatena con el resto, de modo que el modelo no lo puede confundir con los
+  datos. De las piezas del mensaje de usuario, las dos primeras no dependen de
+  la consulta y son las mismas siempre; las cuatro últimas cambian con cada una,
+  y por eso en la figura solo tienen dibujado de dónde salen las que no se
+  explican solas. La distinción que importa está en las preguntas anteriores:
+  de la conversación viajan las \textbf{preguntas} y no las respuestas. Es lo
+  que impide que una respuesta equivocada en un turno se convierta en fuente del
+  siguiente, y es un control y no una recomendación ---lo que no está en el
+  \textit{prompt} no se puede copiar---, que es la misma idea que gobierna el
+  apartado siguiente.}
 
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
@@ -1079,12 +1083,25 @@ Cuando esta validación detecta una titulación inexistente, se descarta la resp
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura \sout{de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{ por capas, separadas por lo que hace cada una}.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaArquitecturaWebAlternativo.tex}}
+\begin{borrador}
+  \item \textbf{Figura rehecha.} Era un grafo de componentes con las
+  dependencias colgando a la derecha y había que seguir seis flechas para saber
+  por dónde entra una pregunta. Ahora es una pila: se lee de arriba abajo y no
+  hay ni un cruce.
+  \item \textbf{La coletilla tachada del párrafo de arriba ya era falsa con la
+  figura nueva}, porque ahora sí aparecen el servidor de inferencia y el
+  fichero del índice. Reescribe la frase con tus palabras y quita el tachado y
+  el turquesa.
+  \item \textbf{Algo que la figura anterior escondía:} al modelo se le llama
+  \emph{dos} veces por turno, una para fijar de qué titulación se habla y otra
+  para redactar. Es la mitad de lo que tarda una respuesta, y engancha con la
+  condición temporal de los objetivos.
+\end{borrador}
 
 
 
