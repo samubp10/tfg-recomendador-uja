@@ -25,7 +25,7 @@ Dos límites que hay que tener presentes al leer estas cifras:
 from __future__ import annotations
 
 import re
-from typing import Final
+from typing import Final, NamedTuple
 
 from tfg_uja.text_cleaner import normalizar, palabras
 
@@ -388,3 +388,290 @@ def cotejar_listado(
     precision = (len(dichas) - len(inventadas)) / len(dichas) if dichas else None
     cobertura = len(aciertos) / len(esperadas_norm) if esperadas_norm else 0.0
     return precision, cobertura, inventadas, esperadas_norm - aciertos
+
+
+# --------------------------------------------------------- atributos de plan
+
+#: Ordinales de curso y de cuatrimestre tal y como los escribe el troceador,
+#: mas las formas en las que el modelo generativo los suele reescribir. La
+#: clave es el numero; el valor, todo lo que significa ese numero.
+_ORDINALES: Final[dict[str, int]] = {
+    "primer": 1,
+    "primero": 1,
+    "1": 1,
+    "1o": 1,
+    "1er": 1,
+    "segundo": 2,
+    "2": 2,
+    "2o": 2,
+    "tercer": 3,
+    "tercero": 3,
+    "3": 3,
+    "3o": 3,
+    "cuarto": 4,
+    "4": 4,
+    "4o": 4,
+}
+
+#: Como se escribe cada ordinal al corregir. Se usa la forma del troceador,
+#: que es la que ya aparece en el corpus.
+_ORDINAL_ESCRITO: Final[dict[int, str]] = {
+    1: "primer",
+    2: "segundo",
+    3: "tercer",
+    4: "cuarto",
+}
+
+_ORDINAL: Final[str] = "|".join(sorted(_ORDINALES, key=len, reverse=True))
+
+#: «Se imparte en el primer cuatrimestre de tercer curso», que es como lo
+#: escribe `chunker._situacion_en_el_plan`. El curso puede faltar.
+_SITUACION: Final[re.Pattern[str]] = re.compile(
+    rf"\bse imparte en el ({_ORDINAL})\s+cuatrimestre"
+    rf"(?:\s+de\s+({_ORDINAL})\s+curso)?",
+    re.IGNORECASE,
+)
+
+#: «Se imparte en el tercer curso», cuando la fuente no publica cuatrimestre.
+_SITUACION_SOLO_CURSO: Final[re.Pattern[str]] = re.compile(
+    rf"\bse imparte en el ({_ORDINAL})\s+curso\b", re.IGNORECASE
+)
+
+#: «de 6 ECTS», que es como lo escribe el encabezado del troceador.
+_ECTS_CONTEXTO: Final[re.Pattern[str]] = re.compile(
+    r"\bde\s+(\d+(?:[.,]\d+)?)\s+ECTS\b", re.IGNORECASE
+)
+
+#: El nombre de la unidad, entre comillas angulares, al principio del
+#: encabezado. Es lo que ata los atributos a una asignatura y no a otra.
+_NOMBRE_ENCABEZADO: Final[re.Pattern[str]] = re.compile(r"^\s*[«\"]([^»\"]+)[»\"]")
+
+#: Como nombra el modelo una asignatura al responder: entre comillas de
+#: cualquier tipo o en negrita de Markdown.
+_MENCION: Final[re.Pattern[str]] = re.compile(
+    r"\*\*([^*\n]+?)\*\*|[«\"\u201c]([^»\"\u201d\n]+)[»\"\u201d]"
+)
+
+#: Lo que el modelo afirma sobre el cuatrimestre de una asignatura. Mas suelto
+#: que la plantilla del corpus porque el modelo parafrasea: «se imparte en el
+#: segundo cuatrimestre», «(2º cuatrimestre)», «del primer cuatrimestre».
+_AFIRMA_CUATRIMESTRE: Final[re.Pattern[str]] = re.compile(
+    rf"\b({_ORDINAL})\s+cuatrimestre\b", re.IGNORECASE
+)
+
+#: Lo mismo para el curso.
+_AFIRMA_CURSO: Final[re.Pattern[str]] = re.compile(
+    rf"\b({_ORDINAL})\s+curso\b", re.IGNORECASE
+)
+
+#: Y para los creditos, que el modelo escribe con «ECTS» o con «creditos».
+_AFIRMA_ECTS: Final[re.Pattern[str]] = re.compile(
+    r"\b(\d+(?:[.,]\d+)?)\s*(?:ECTS|cr[eé]ditos?)\b", re.IGNORECASE
+)
+
+
+class Atributos(NamedTuple):
+    """Lo que el contexto dice de una asignatura, o ``None`` si no lo dice.
+
+    Attributes:
+        cuatrimestre: 1 o 2, o ``None`` si el fragmento no lo enuncia.
+        curso: De 1 a 4, o ``None``.
+        ects: Creditos tal y como vienen escritos, o ``None``.
+    """
+
+    cuatrimestre: int | None = None
+    curso: int | None = None
+    ects: str | None = None
+
+
+def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
+    """Saca de los fragmentos lo que dicen del plan de cada asignatura.
+
+    Se leen los fragmentos y no ``grados.json`` a proposito. Lo que interesa
+    comprobar es la **fidelidad al contexto**: si la respuesta contradice algo
+    que estaba escrito, con esas palabras, en lo que se le entrego al modelo.
+    Cotejar contra el dataset mediria otra cosa ---si el sistema acierta---, y
+    ademas obligaria a este modulo a abrir un fichero, cuando hasta ahora solo
+    compara cadenas.
+
+    Se aprovecha que el encabezado lo redacta ``chunker`` con una plantilla:
+    «Fotogrametria y teledeteccion III», asignatura obligatoria de 6 ECTS del
+    Grado en... Se imparte en el primer cuatrimestre de tercer curso. Al ser
+    texto generado y no prosa de la fuente, se puede leer sin ambiguedad.
+
+    Args:
+        textos: Textos de los fragmentos entregados al modelo.
+
+    Returns:
+        Nombre normalizado de la asignatura -> lo que el contexto afirma. Si
+        dos fragmentos discrepan sobre una asignatura, se descarta: un
+        contexto que se contradice a si mismo no puede corregir a nadie.
+    """
+    encontrados: dict[str, set[Atributos]] = {}
+    for texto in textos:
+        cabeza = _NOMBRE_ENCABEZADO.match(texto)
+        if not cabeza:
+            continue
+        nombre = normalizar(cabeza.group(1))
+        primera = texto.split("\n", 1)[0]
+
+        cuatrimestre = curso = None
+        situacion = _SITUACION.search(primera)
+        if situacion:
+            cuatrimestre = _ORDINALES[normalizar(situacion.group(1))]
+            if situacion.group(2):
+                curso = _ORDINALES[normalizar(situacion.group(2))]
+        else:
+            solo_curso = _SITUACION_SOLO_CURSO.search(primera)
+            if solo_curso:
+                curso = _ORDINALES[normalizar(solo_curso.group(1))]
+
+        creditos = _ECTS_CONTEXTO.search(primera)
+        atributos = Atributos(
+            cuatrimestre, curso, creditos.group(1) if creditos else None
+        )
+        if atributos != Atributos():
+            encontrados.setdefault(nombre, set()).add(atributos)
+
+    return {n: next(iter(a)) for n, a in encontrados.items() if len(a) == 1}
+
+
+def _sin_adornos(nombre: str) -> str:
+    """Deja el nombre de una asignatura como para poder compararlo.
+
+    El modelo no lo escribe pelado: lo envuelve en negrita y le cuelga lo que
+    haga falta ---«**Fotogrametria y teledeteccion III (6 ECTS):**»---. Sin
+    quitar el calificador entre parentesis y los dos puntos finales, el nombre
+    no casa con el del contexto y la comprobacion no llega ni a intentarse.
+
+    Args:
+        nombre: Lo que el modelo escribio entre comillas o en negrita.
+
+    Returns:
+        El nombre normalizado, sin calificadores ni puntuacion de cierre.
+    """
+    return normalizar(_CALIFICADOR.sub("", nombre).strip(" :.,;-"))
+
+
+def _asignatura_del_segmento(
+    segmento: str, atributos: dict[str, Atributos]
+) -> str | None:
+    """De que asignatura habla un segmento, si habla de una sola.
+
+    Con dos o mas nombres no se devuelve ninguno, y eso es deliberado: el error
+    que se persigue nace precisamente de mezclar asignaturas de nombre casi
+    igual, asi que atribuir a ciegas seria repetirlo desde el otro lado. Ante
+    la duda no se corrige nada.
+
+    Args:
+        segmento: Un trozo de la respuesta.
+        atributos: Lo que el contexto dice de cada asignatura.
+
+    Returns:
+        El nombre normalizado, o ``None`` si hay cero o mas de uno.
+    """
+    nombrados = {
+        _sin_adornos(m.group(1) or m.group(2)) for m in _MENCION.finditer(segmento)
+    }
+    conocidos = {n for n in nombrados if n in atributos}
+    if len(conocidos) != 1:
+        return None
+    return conocidos.pop()
+
+
+def _corrige_ordinal(
+    segmento: str,
+    patron: re.Pattern[str],
+    esperado: int | None,
+    sustantivo: str,
+    asignatura: str,
+    avisos: list[str],
+) -> str:
+    """Reescribe un ordinal que contradiga al contexto."""
+    if esperado is None:
+        return segmento
+
+    def cambia(m: re.Match[str]) -> str:
+        dicho = _ORDINALES[normalizar(m.group(1))]
+        if dicho == esperado:
+            return m.group(0)
+        avisos.append(
+            f"«{asignatura}»: el contexto dice {_ORDINAL_ESCRITO[esperado]} "
+            f"{sustantivo} y la respuesta decia {_ORDINAL_ESCRITO.get(dicho, dicho)}"
+        )
+        return f"{_ORDINAL_ESCRITO[esperado]} {sustantivo}"
+
+    return patron.sub(cambia, segmento)
+
+
+def corregir_atributos(
+    texto: str, atributos: dict[str, Atributos]
+) -> tuple[str, list[str]]:
+    """Devuelve el texto con curso, cuatrimestre y ECTS puestos al del contexto.
+
+    Es la respuesta a un fallo real: preguntado por Topografia, el sistema dijo
+    que «Fotogrametria y teledeteccion III se imparte en el segundo
+    cuatrimestre» cuando su fragmento decia, con esas palabras, «primer
+    cuatrimestre». La asignatura existia, los creditos eran correctos y las
+    tres barreras de dominio la dejaron pasar, porque **comprueban identidades
+    y no afirmaciones**: lo unico falso era un atributo.
+
+    No hay ningun modelo juzgando a otro. Los tres atributos existen como dato
+    estructurado y el encabezado del fragmento los enuncia con una plantilla,
+    asi que la comprobacion es una comparacion de cadenas.
+
+    Se corrige por segmentos, y solo cuando el segmento nombra **una sola**
+    asignatura conocida. Un segmento que mezcle dos se deja intacto: el defecto
+    nace de confundir asignaturas casi homonimas y arriesgarse a atribuir mal
+    seria cometerlo al reves.
+
+    Args:
+        texto: Lo que ha redactado el modelo.
+        atributos: Lo que dice el contexto, de :func:`atributos_del_contexto`.
+
+    Returns:
+        ``(texto corregido, avisos)``. Los avisos describen cada cambio, para
+        que quede registrado que se corrigio y por que.
+    """
+    if not atributos:
+        return texto, []
+
+    avisos: list[str] = []
+    corregidos = []
+    for segmento in texto.split("\n"):
+        nombre = _asignatura_del_segmento(segmento, atributos)
+        if nombre is None:
+            corregidos.append(segmento)
+            continue
+        dice = atributos[nombre]
+        segmento = _corrige_ordinal(
+            segmento,
+            _AFIRMA_CUATRIMESTRE,
+            dice.cuatrimestre,
+            "cuatrimestre",
+            nombre,
+            avisos,
+        )
+        segmento = _corrige_ordinal(
+            segmento,
+            _AFIRMA_CURSO,
+            dice.curso,
+            "curso",
+            nombre,
+            avisos,
+        )
+        if dice.ects is not None:
+
+            def cambia_ects(m: re.Match[str], esperado: str = dice.ects) -> str:
+                if m.group(1).replace(",", ".") == esperado.replace(",", "."):
+                    return m.group(0)
+                avisos.append(
+                    f"«{nombre}»: el contexto dice {esperado} ECTS y la "
+                    f"respuesta decia {m.group(1)}"
+                )
+                return m.group(0).replace(m.group(1), esperado, 1)
+
+            segmento = _AFIRMA_ECTS.sub(cambia_ects, segmento)
+        corregidos.append(segmento)
+
+    return "\n".join(corregidos), avisos
