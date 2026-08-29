@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter[RESULTADOS Y DISCUSIÓN]{RESULTADOS Y DISCUSIÓN}
 \label{cap:resultados}
 
@@ -50,6 +51,34 @@ La quinta son irregularidades menores, como tablas que mezclan asignaturas tronc
 
 
 
+
+
+\input{tablas/TablaCaracterizacionCorpus.tex}
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-58). La tabla ya está con las cifras que imprimió
+  \texttt{check\_chunks.py}. Falta que la presentes en una frase y que remates las dos
+  amenazas de abajo con tu redacción.
+  \item \textbf{Si regeneras el corpus, vuelve a ejecutar el verificador y rehaz la
+  tabla.} No ajustes un número a mano: una diferencia puede ser un cambio legítimo de la
+  fuente \emph{o} una pérdida silenciosa, y a simple vista son idénticas.
+  \item \textbf{Lo que falta y la DoD pide explícitamente:} el sesgo de la cobertura y
+  la limitación de las asignaturas de tercero y cuarto del Grado en Inteligencia
+  Artificial y Ciberseguridad.
+\end{borrador}
+
+\textcolor{borrador2}{La cobertura de guías no está repartida por igual, y conviene
+  decirlo antes de que el lector saque la conclusión contraria: las 86 asignaturas sin
+  contenido se concentran en las titulaciones de implantación reciente, cuyos cursos
+  superiores todavía no tienen guía publicada. El corpus, por tanto, describe mejor las
+  titulaciones veteranas que las nuevas, y toda conclusión sobre la evaluación hereda
+  ese desequilibrio.}
+
+\textcolor{borrador2}{Estas cifras son una foto con fecha, no una constante del
+  proyecto. La fuente cambió tres veces durante el desarrollo, así que volver a
+  ejecutar el proceso reproduce \emph{el estado actual de la web}, que no es lo mismo
+  que el corpus sobre el que se midió. Es una limitación de la reproducibilidad que se
+  enuncia, no un defecto que se pueda corregir.}
 
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
@@ -406,6 +435,111 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   que este trabajo todavía no ha medido, y que la base de datos vectorial no gana en
   velocidad a la búsqueda exacta a esta escala.
 \end{borrador}
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-71). Lo que sigue es \emph{andamiaje}: la estructura, los
+  punteros a la evidencia y el veredicto de cada objetivo. La prosa la escribes tú;
+  cada bloque en turquesa se sustituye por tu redacción y se le quita el color.
+  \item \textbf{Regla de oro de esta sección:} arriba, en las secciones de resultados,
+  va \emph{qué salió}. Aquí va \emph{qué significa}, \emph{qué no permite afirmar} y
+  \emph{qué decisión se deriva}. Si una frase de aquí se puede mover hacia arriba sin
+  que se note, es que no es discusión, es resultado repetido.
+  \item \textbf{No introduzcas ninguna cifra nueva.} Toda la que aparezca aquí tiene
+  que estar ya medida arriba o en un ADR citado.
+\end{borrador}
+
+\subsection{Cumplimiento y discusión de objetivos específicos}
+\label{secc:discusion_objetivos}
+
+En esta subsección se analiza y discute si se han cumplido cada uno de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ello las evidencia que se han obtenidos a lo largo del desarrollo del proyecto.
+
+\begin{itemize}
+  \item \textbf{OE1 --- Construcción de la colección de datos: }
+        \textit{Cumplido.} Se ha generado un corpus estructurado y verificado a partir de la página web de la EPSJ, donde cada documento u objeto conserva su procedencia y metadatos de extracción. Ha de decirse que la colección es solo una instantánea temporal de una fuente de datos en continuo cambio la cuál llegó a verso modificada hasta 3 veces durante el desarrollo de este proyecto. Por tanto, cualquier rastreo futuro reproducirá el estado vigente de la página y no necesariamente el conjunto exacto sobre el que se realizaron las mediciones y pruebas.
+
+  \item \textbf{OE2 --- Estrategia de fragmentación de textos:}
+        \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros más óptimos de tamañó. Los resultados de esto evidenció que a igualdad de longitud, las diferencias de recuperación entre estrategias era mínima, y por ello se adoptó la estrategia de partición semántica-estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
+
+  \item \textbf{OE3 --- Selección del modelo de incrustaciones y base vectorial: }
+        \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscado por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que actualmente dado con el tamaño de la colección actual, no hay ninguna opción en el mercado que gane a la fuerza bruta.
+
+  \item \textbf{OE4 --- mplementación del flujo de procesamiento RAG en local:}
+      \textit{Cumplido.} El sistema opera de extremo a extremo sobre hardware doméstico integrando una arquitectura de tres barreras de control desacopladas (filtro léxico, suelo de pertinencia vectorial y directivas de contexto).
+
+  \item \textbf{OE5 --- Evaluación cuantitativa del sistema:} 
+        \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre bancos de prueba estandarizados en la industria.
+
+  \item \textbf{OE6 --- Desarrollo de la interfaz web accesible:} 
+        \textit{Cumplido.} Se ha desarrollado un prototipo y la posterior página web funcional sin dependencias de servicios externos ni registros de usuarios. En materia de accesibilidad, se han verificado aspectos clave como la navegación completa por teclado, los contrastes cromáticos y la adaptación a pantallas estrechas.
+\end{itemize}
+
+\subsection{\textcolor{borrador2}{La hipótesis, condición por condición}}
+
+\textcolor{borrador2}{La hipótesis del Apartado~\ref{secc:hipotesis} se dio por válida
+  \emph{si y solo si} se cumplían cuatro condiciones. Se resuelven aquí una a una, y el
+  veredicto global es de \textbf{confirmación parcial}.}
+
+\begin{borrador}
+  \item \textbf{Las tres primeras las tienes que resolver tú} con las cifras que ya
+  están arriba: Recall@5 frente al 90\,\% pedido, datos inventados, y porcentaje de
+  respuestas sustantivas. Aquí solo queda el hueco y el aviso de que hacen falta.
+  \item \textbf{La cuarta ya está decidida} (28/08/2026) y se declara \textbf{refutada}.
+  La cifra que hay que citar es la de las preguntas que \emph{sí} llegan al modelo, no
+  la del banco entero: esa segunda sale diluida por las entradas que se contestan con
+  texto fijo, y darla haría parecer que se roza el umbral cuando se dobla.
+\end{borrador}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Condición 1 --- recuperación.} La condición se
+        enunció sobre un \textit{Recall@5}, es decir, sobre un número fijo de cinco
+        fragmentos. \textbf{El sistema no funciona así:} el recuperador decide cuántos
+        fragmentos entrega en cada consulta dentro de una banda, de modo que una cifra
+        medida con la $k$ clavada en cinco no describe al sistema que se ha construido.
+        Sobre las 56 preguntas de dominio el \textit{Recall@5} por fragmento es de
+        \textbf{0,789}, por debajo del 90\,\% exigido, y el techo alcanzable con este
+        corpus a esa profundidad es de 0,906.}
+
+        \textcolor{borrador2}{Hay que decidir cómo se resuelve, y las dos salidas
+        honestas son: declararla \textbf{no cumplida} con la cifra de arriba, o
+        declararla \textbf{no evaluable tal y como se enunció} porque mide una
+        configuración que el sistema no usa. Lo que no vale es reescribir la condición
+        con la profundidad que sí sale bien.}
+
+  \item \textcolor{borrador2}{\textbf{Condición 2 --- ningún dato inventado:
+        \textbf{SE CUMPLE}}, con el alcance acotado. En las 320 respuestas del cribado
+        de modelos y en las 57 del banco del sistema no hay ninguna titulación
+        inventada. Conviene decir con qué se ha comprobado: la verificación coteja los
+        nombres de titulación contra el catálogo del índice, así que lo demostrado es
+        que el sistema no habla de titulaciones que no existen. Cotejar dato a dato
+        cada crédito y cada carácter de asignatura contra su fragmento exigiría una
+        revisión manual que no se ha hecho, y decirlo es más defendible que dar por
+        cubierto lo que no se midió.}
+
+  \item \textcolor{borrador2}{\textbf{Condición 3 --- 90\,\% de respuestas
+        sustantivas: \textbf{SE CUMPLE}}. Sobre las 38 preguntas de dominio del banco
+        del sistema ---las 57 entradas menos las 15 ajenas al centro y las 4 de
+        cortesía, que la propia condición deja fuera--- las 38 responden con contenido
+        y ninguna es evasiva: una proporción de \textbf{1,000} frente al 90\,\%
+        exigido. La comprobación es una búsqueda de fórmulas de «no tengo
+        información» sobre las respuestas guardadas, descontando el caso que la
+        condición exceptúa expresamente, que es responder que una asignatura no tiene
+        guía docente publicada.}
+
+  \item \textcolor{borrador2}{\textbf{Condición 4 --- mediana por debajo de treinta
+        segundos: \textbf{NO SE CUMPLE}}. Sobre las preguntas de un turno que llegan al
+        modelo la mediana medida es de \textbf{62,7 segundos} (percentil 90 de 125,3),
+        más del doble del umbral. Se declara refutada y no se reescribe la condición
+        después de ver el resultado.}
+\end{itemize}
+
+\textcolor{borrador2}{El incumplimiento de la cuarta condición no es un accidente del
+  sistema: es la consecuencia directa del RNF-04 de la
+  Tabla~\ref{tab:requisitos_no_funcionales}, que fija por escrito y \emph{antes} de
+  medir que la fidelidad va por delante de la rapidez. Por eso se adopta a propósito el
+  más lento de los cuatro modelos comparados. A esos segundos hay que añadir además que
+  describen tanto al equipo como al modelo: en la máquina del
+  Apartado~\ref{secc:equipo_ejecucion} el modelo no cabe entero en la tarjeta gráfica.}
+
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
