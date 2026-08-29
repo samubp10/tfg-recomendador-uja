@@ -610,6 +610,41 @@ def respuesta_fija(pregunta: str) -> str | None:
     )
 
 
+def _con_el_plan_corregido(
+    unidad: str, del_plan: dict[str, Atributos], pregunta: str
+) -> str:
+    """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota.
+
+    Aqui **no se retira** la respuesta, a diferencia de lo que pasa con una
+    titulacion inventada, y la razon es que los dos fallos no se parecen.
+    Nombrar una titulacion que no existe invalida la respuesta entera: no hay
+    nada que salvar. Equivocar el cuatrimestre de una asignatura entre diez
+    correctas deja una respuesta que sigue siendo util, y tirarla completa
+    castigaria al estudiante por un fallo de una linea.
+
+    Lo que se corrige sale del propio contexto que se le entrego al modelo, no
+    de un criterio nuestro: si el fragmento decia «primer cuatrimestre», eso es
+    lo que se escribe. Cada cambio se registra, porque un sistema que corrige
+    en silencio no se puede auditar despues.
+
+    Args:
+        unidad: Trozo de respuesta ya cerrado por una frontera segura.
+        del_plan: Lo que el contexto dice de cada asignatura.
+        pregunta: Solo para el registro, si hay algo que anotar.
+
+    Returns:
+        La unidad, con los atributos que contradecian al contexto corregidos.
+    """
+    corregida, avisos = corregir_atributos(unidad, del_plan)
+    for aviso in avisos:
+        _registro.warning(
+            "Atributo corregido contra el contexto. Pregunta: %r. %s",
+            pregunta,
+            aviso,
+        )
+    return corregida
+
+
 def responder(
     pregunta: str,
     fragmentos: list[Fragmento],
@@ -680,6 +715,14 @@ def responder(
         return cortesia_sin_contexto(pregunta) or RESPUESTA_SIN_CONTEXTO
     respuesta = generar(
         construir_prompt(pregunta, fragmentos, historial, ambito, catalogo), modelo
+    )
+    # Curso, cuatrimestre y ECTS se ponen a lo que dice el contexto antes de
+    # comprobar nada más. Va aquí y no solo en `responder_por_partes` porque
+    # las dos son implementaciones del mismo contrato ---una bloqueante y otra
+    # por partes--- y el experimento del sistema usa esta: una barrera que solo
+    # estuviera en la otra mediría un sistema distinto del que se entrega.
+    respuesta = _con_el_plan_corregido(
+        respuesta, atributos_del_contexto([f.texto for f in fragmentos]), pregunta
     )
     # La comprobación va DESPUÉS de generar y no en las instrucciones, que es
     # lo que distingue un mecanismo de una petición. El prompt ya prohíbe
@@ -1040,41 +1083,6 @@ def generar_por_partes(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
         ) from error
-
-
-def _con_el_plan_corregido(
-    unidad: str, del_plan: dict[str, Atributos], pregunta: str
-) -> str:
-    """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota.
-
-    Aqui **no se retira** la respuesta, a diferencia de lo que pasa con una
-    titulacion inventada, y la razon es que los dos fallos no se parecen.
-    Nombrar una titulacion que no existe invalida la respuesta entera: no hay
-    nada que salvar. Equivocar el cuatrimestre de una asignatura entre diez
-    correctas deja una respuesta que sigue siendo util, y tirarla completa
-    castigaria al estudiante por un fallo de una linea.
-
-    Lo que se corrige sale del propio contexto que se le entrego al modelo, no
-    de un criterio nuestro: si el fragmento decia «primer cuatrimestre», eso es
-    lo que se escribe. Cada cambio se registra, porque un sistema que corrige
-    en silencio no se puede auditar despues.
-
-    Args:
-        unidad: Trozo de respuesta ya cerrado por una frontera segura.
-        del_plan: Lo que el contexto dice de cada asignatura.
-        pregunta: Solo para el registro, si hay algo que anotar.
-
-    Returns:
-        La unidad, con los atributos que contradecian al contexto corregidos.
-    """
-    corregida, avisos = corregir_atributos(unidad, del_plan)
-    for aviso in avisos:
-        _registro.warning(
-            "Atributo corregido contra el contexto. Pregunta: %r. %s",
-            pregunta,
-            aviso,
-        )
-    return corregida
 
 
 def responder_por_partes(
