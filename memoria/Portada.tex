@@ -1,3 +1,4 @@
+% !TEX root = main.tex
 % ============================================================|
 %                                                             |
 % Plantilla para TFG del Dpto. de Informática de la EPSJ v1.1 |
@@ -39,6 +40,14 @@
 \usepackage[numbers]{natbib}
 \usepackage{csquotes}
 
+% Los once avisos de «destination with the same identifier» NO se arreglan
+% con `plainpages=false` ni con `pdfpagelabels`: se probaron los dos en una
+% copia aislada del documento y siguen saliendo once. La causa es que
+% main.tex reinicia la numeracion romana para la bibliografia, de modo que
+% las paginas I a VII existen dos veces dentro del mismo PDF. Quitar ese
+% reinicio cambiaria los numeros de pagina que se VEN, asi que es una
+% decision de maquetacion y no un ajuste tecnico. Los avisos no afectan a
+% como se imprime el documento, solo a los anclajes internos del PDF.
 \usepackage{hyperref}  % Para URL como enlaces
 \hypersetup{
   colorlinks=true,
