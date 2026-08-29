@@ -442,6 +442,13 @@ _ECTS_CONTEXTO: Final[re.Pattern[str]] = re.compile(
     r"\bde\s+(\d+(?:[.,]\d+)?)\s+ECTS\b", re.IGNORECASE
 )
 
+#: Marca que el troceador pone cuando una unidad se imparte en mas de una
+#: titulacion: «impartida en 4 titulaciones: ...». Es la senal de que la frase
+#: «Se imparte en...» que viene detras vale para UNA de ellas y no se sabe cual.
+_UNIDAD_COMPARTIDA: Final[re.Pattern[str]] = re.compile(
+    r"\bimpartida en \d+ titulaciones\b", re.IGNORECASE
+)
+
 #: El nombre de la unidad, entre comillas angulares, al principio del
 #: encabezado. Es lo que ata los atributos a una asignatura y no a otra.
 _NOMBRE_ENCABEZADO: Final[re.Pattern[str]] = re.compile(r"^\s*[«\"]([^»\"]+)[»\"]")
@@ -502,18 +509,39 @@ def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
     Args:
         textos: Textos de los fragmentos entregados al modelo.
 
+    **Una unidad compartida no suministra el valor, pero si lo contradice.** Son
+    dos reglas y hacen falta las dos:
+
+    * La unidad compartida enuncia un solo curso para varias titulaciones y no
+      siempre coinciden ---medido: el curso cambia segun la titulacion en 26
+      asignaturas, el cuatrimestre en 2 y los ECTS en 1---, asi que no puede
+      ser la fuente del dato.
+    * Pero tiene que poder vetarlo, porque **dos asignaturas distintas pueden
+      llamarse igual**: hay una «Electronica digital» de 9 ECTS en Electronica
+      Industrial y otra de 6 en Informatica y en IAyC. Mirando solo las
+      unidades propias sobreviviria la de 9 y se reescribirian a 9 los 6
+      correctos.
+
+    Es la misma leccion que la clave de deduplicacion del troceador: el nombre
+    a solas no identifica una asignatura.
+
     Returns:
         Nombre normalizado de la asignatura -> lo que el contexto afirma. Si
         dos fragmentos discrepan sobre una asignatura, se descarta: un
         contexto que se contradice a si mismo no puede corregir a nadie.
     """
-    encontrados: dict[str, set[Atributos]] = {}
+    # `dichos` recoge lo que dice CUALQUIER unidad; `propios`, solo lo que
+    # dicen las de una sola titulacion. La diferencia entre los dos es lo que
+    # hace segura la correccion, y se explica arriba.
+    dichos: dict[str, set[Atributos]] = {}
+    propios: dict[str, set[Atributos]] = {}
     for texto in textos:
         cabeza = _NOMBRE_ENCABEZADO.match(texto)
         if not cabeza:
             continue
-        nombre = normalizar(cabeza.group(1))
         primera = texto.split("\n", 1)[0]
+        compartida = bool(_UNIDAD_COMPARTIDA.search(primera))
+        nombre = normalizar(cabeza.group(1))
 
         cuatrimestre = curso = None
         situacion = _SITUACION.search(primera)
@@ -530,10 +558,17 @@ def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
         atributos = Atributos(
             cuatrimestre, curso, creditos.group(1) if creditos else None
         )
-        if atributos != Atributos():
-            encontrados.setdefault(nombre, set()).add(atributos)
+        if atributos == Atributos():
+            continue
+        dichos.setdefault(nombre, set()).add(atributos)
+        if not compartida:
+            propios.setdefault(nombre, set()).add(atributos)
 
-    return {n: next(iter(a)) for n, a in encontrados.items() if len(a) == 1}
+    return {
+        nombre: next(iter(unico))
+        for nombre, unico in propios.items()
+        if len(unico) == 1 and len(dichos[nombre]) == 1
+    }
 
 
 def _sin_adornos(nombre: str) -> str:
