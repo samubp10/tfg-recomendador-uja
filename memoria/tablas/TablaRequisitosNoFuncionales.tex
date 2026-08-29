@@ -6,6 +6,20 @@
 % gobierna la eleccion del modelo generativo. Fijar en su lugar un umbral de
 % latencia habria descartado por norma el modelo que se eligio, y lo habria
 % hecho midiendo el equipo en vez del sistema.
+%
+% RNF-06 y RNF-07 dicen menos de lo que decian, y a proposito.
+%
+% El RNF-06 prometia seguir siendo correcto ante CUALQUIER cambio de la oferta
+% sin tocar el codigo, y el propio capitulo 4 cuenta dos veces que hubo que
+% tocarlo: cuando la Escuela intercalo una columna en el plan de Geomatica
+% (IT-76) y cuando las guias pasaron de HTML a PDF (IT-67). Lo que el sistema
+% si absorbe solo es el CONTENIDO --otra asignatura, otra guia, otro plan--;
+% lo que no absorbe es que cambie la ESTRUCTURA de la fuente.
+%
+% El RNF-07 declaraba conformidad con el nivel AA. Una conformidad no se
+% declara sin comprobarla, y el lector de pantalla no se ha probado con
+% ninguno real. El teclado si esta comprobado y se afirma; el resto queda como
+% objetivo, que es lo que de verdad se puede sostener.
 \begin{table}[htbp]
   \centering
   \small
@@ -21,8 +35,8 @@
     RNF-03 & No incorporar datos personales a la colección, ni siquiera los que la fuente publica junto a los datos que sí se usan             & OE1         & Sección~\ref{secc:alcance} \\
     RNF-04 & Anteponer la fidelidad de la respuesta al tiempo que tarde en darla cuando ambas cosas entren en conflicto                        & OE5         & ADR-0005 \\
     RNF-05 & Poder reproducirse el índice construyéndose de nuevo y todo experimento fija su semilla y sus versiones                            & OE5         & ADR-0004 \\
-    RNF-06 & Seguir siendo correcto cuando la Escuela cambie su oferta, sin tocar el código  & OE1 · RU-02 & Sección~\ref{secc:fase2_dominio} \\
-    RNF-07 & Poder usarse con el teclado y con un lector de pantalla, conforme al nivel AA de las \sig{WCAG} 2.2                               & OE6 · RU-05 & Sección~\ref{secc:fase3_interfaz} \\
+    RNF-06 & \textcolor{borrador2}{Absorber los cambios de contenido de la oferta ---altas, bajas y modificaciones de asignaturas y guías--- regenerando la colección, sin tocar el código} & OE1 · RU-02 & Sección~\ref{secc:fase2_dominio} \\
+    RNF-07 & \textcolor{borrador2}{Poder manejarse por completo con el teclado, tomando el nivel AA de las \sig{WCAG} 2.2 como objetivo de diseño} & OE6 · RU-05 & Sección~\ref{secc:fase3_interfaz} \\
     \bottomrule
   \end{tabularx}
   \begin{minipage}{0.95\textwidth}
