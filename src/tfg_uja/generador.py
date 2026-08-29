@@ -42,7 +42,12 @@ from typing import Final
 from tfg_uja.chunker import ORDEN_CURSOS
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.text_cleaner import normalizar, palabras
-from tfg_uja.verificacion import titulaciones_inventadas
+from tfg_uja.verificacion import (
+    Atributos,
+    atributos_del_contexto,
+    corregir_atributos,
+    titulaciones_inventadas,
+)
 
 #: Registro del módulo. Existe solo para dejar constancia de las respuestas
 #: retiradas: una barrera que descarta en silencio no se puede auditar, y la
@@ -1037,6 +1042,41 @@ def generar_por_partes(
         ) from error
 
 
+def _con_el_plan_corregido(
+    unidad: str, del_plan: dict[str, Atributos], pregunta: str
+) -> str:
+    """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota.
+
+    Aqui **no se retira** la respuesta, a diferencia de lo que pasa con una
+    titulacion inventada, y la razon es que los dos fallos no se parecen.
+    Nombrar una titulacion que no existe invalida la respuesta entera: no hay
+    nada que salvar. Equivocar el cuatrimestre de una asignatura entre diez
+    correctas deja una respuesta que sigue siendo util, y tirarla completa
+    castigaria al estudiante por un fallo de una linea.
+
+    Lo que se corrige sale del propio contexto que se le entrego al modelo, no
+    de un criterio nuestro: si el fragmento decia «primer cuatrimestre», eso es
+    lo que se escribe. Cada cambio se registra, porque un sistema que corrige
+    en silencio no se puede auditar despues.
+
+    Args:
+        unidad: Trozo de respuesta ya cerrado por una frontera segura.
+        del_plan: Lo que el contexto dice de cada asignatura.
+        pregunta: Solo para el registro, si hay algo que anotar.
+
+    Returns:
+        La unidad, con los atributos que contradecian al contexto corregidos.
+    """
+    corregida, avisos = corregir_atributos(unidad, del_plan)
+    for aviso in avisos:
+        _registro.warning(
+            "Atributo corregido contra el contexto. Pregunta: %r. %s",
+            pregunta,
+            aviso,
+        )
+    return corregida
+
+
 def responder_por_partes(
     pregunta: str,
     fragmentos: list[Fragmento],
@@ -1081,12 +1121,16 @@ def responder_por_partes(
         return
 
     prompt = construir_prompt(pregunta, fragmentos, historial, ambito, catalogo)
+    # Lo que el contexto afirma del plan de cada asignatura. Se calcula una vez
+    # por turno: son los mismos fragmentos para todas las partes.
+    del_plan = atributos_del_contexto([f.texto for f in fragmentos])
     acumulado = ""
     pendiente = ""
     for trozo in generar_por_partes(prompt, modelo):
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
         for unidad in unidades:
+            unidad = _con_el_plan_corregido(unidad, del_plan, pregunta)
             acumulado += unidad
             if catalogo and titulaciones_inventadas(acumulado, catalogo):
                 _registro.warning(
@@ -1102,6 +1146,7 @@ def responder_por_partes(
 
     # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
     if pendiente:
+        pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta)
         acumulado += pendiente
         if catalogo and titulaciones_inventadas(acumulado, catalogo):
             yield None
