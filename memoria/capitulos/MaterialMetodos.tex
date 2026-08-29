@@ -371,6 +371,8 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
 
+
+
 \begin{borrador}
   \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
   \item \textbf{Figura rehecha.} Ya no agrupa por fase de desarrollo sino por
@@ -392,11 +394,24 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \input{diagramas/DiagramaModeloDatos.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaModeloDatosAlternativo.tex}}
-
 \begin{borrador}
-  \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
-  \item La próxima vez hacerla sin turqueda
+  \item \textbf{Figura rehecha.} El espacio entre cajas ya no se da a mano: se
+  encadenan y cada una ocupa lo que ocupan sus campos. Y el cuerpo de la figura va
+  con los colores de siempre; solo el pie está en turquesa, porque lo he escrito yo.
+  \item \textbf{Dos errores de la versión anterior, corregidos.} Dibujaba
+  \emph{cuatro} orígenes de fragmento y hay \emph{siete}: faltaban
+  \texttt{mencion} (24), \texttt{ficha\_titulacion} (12) y \texttt{catalogo} (3),
+  o sea 39 fragmentos que existen en la colección y que la figura negaba. Y la caja
+  de procedencia juntaba en una sola los campos de dos cabeceras distintas: la de
+  \texttt{grados.json} trae dos y la de \texttt{chunks.json} trae cinco, y no son
+  los mismos.
+  \item \textbf{Campos y recuentos comprobados} el 29/08/2026 leyendo los ficheros
+  reales, no copiados de la versión anterior.
+  \item \textbf{Consecuencia que hay que mirar:} el párrafo de arriba dice que la
+  información «converge y se trocea», y ahora la figura enseña que no toda converge
+  igual. De los 1.499 fragmentos, 1.318 llevan texto publicado por la Escuela, 95 los
+  compone el fragmentador contando, y 86 son el aviso de que no hay guía. Ese reparto
+  ya está en la sección de amenazas a la validez; decide si lo adelantas aquí.
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
@@ -1183,228 +1198,60 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
-\subsection[Diseño visual y accesibilidad de la interfaz]{Diseño visual y accesibilidad y accesibilidad de la interfaz}
-\label{secc:fase3_diseno_interfaz}
+\subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
+\label{secc:fase3_accesibilidad}
 
-El diseño final (Figura~\ref{fig:app_inicio}) mantiene la distribución planteada en el boceto inicial de los objetivos (Figura~\ref{fig:wireframe}).
+La interfaz se diseñó para cumplir con el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
 
-\textcolor{borrador2}{La primera es que el logotipo sube a una cabecera con el
-  nombre del centro, en lugar de quedarse en medio de la conversación como marca
-  de agua. El motivo es que una marca de agua no dice de quién es la página, y
-  quien llega desde la web de la Escuela tiene que reconocer que sigue en el
-  mismo sitio. La segunda es que la procedencia de la respuesta no cabía debajo
-  de cada mensaje y se recogió en un cuadro aparte
-  (Apartado~\ref{secc:fase3_fuentes}). Y la tercera es que el boceto no tenía
-  dónde poner la espera, porque cuando se dibujó todavía no se sabía que una
-  respuesta iba a tardar más de un minuto (Apartado~\ref{secc:fase3_espera}).}
 
-\textcolor{borrador2}{Hay una cuarta diferencia que no está en la distribución
-  sino en el color, y merece decirse porque es la única decisión de diseño que
-  hubo que deshacer. La primera hoja de estilo llevaba un dorado que no venía de
-  ninguna parte: se había elegido por parecer institucional. La Escuela no tiene
-  dorado en su identidad, así que se retiró. Los colores que quedan son los de la
-  hoja de estilo del propio centro ---el verde \texttt{\#006d38} y su versión
-  oscura, que forman el degradado de la cabecera, y el verde azulado
-  \texttt{\#3c726b} de su portada---, y no una paleta escogida por gusto. La
-  razón tampoco es estética: un asistente que se parece a la institución de la
-  que habla se lee como parte de ella y no como la página de un tercero.}
+\subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
+\label{secc:fase3_interaccion}
 
-\textcolor{borrador2}{Venir de la identidad del centro no basta para dar un
-  color por bueno. El requisito RNF-07 pide accesibilidad, y eso se traduce en
-  contrastes medidos: el texto de la página va de 4,92:1 a 14,83:1 sobre su
-  fondo, por encima del 4,5:1 que exige el nivel AA de las \sig{WCAG}. Un caso
-  obligó a apartarse del gris que traía el diseño. El borde de los controles
-  daba 1,95:1 contra el fondo y el criterio 1.4.11 pide 3,0:1 para el contorno
-  de algo con lo que se interactúa, así que ese gris se oscureció hasta el
-  3,02:1. Es la clase de detalle que no se ve mirando la pantalla y solo aparece
-  al medirlo.}
+El requisito RF-09 sobre trazabilidad pide mostrar junto a las respuestas las fuentes de la colección de las que sale. Esto se ha resuelto con una ventana emergente en lugar de un listado siempre visible para no saturar la interfaz de lectura (Figura~\ref{fig:app_fuentes}).
 
-\textcolor{borrador2}{La tipografía es la del sistema operativo de quien abre la
-  página y no una servida por un tercero. Al principio no era así, y el motivo
-  del cambio es el mismo que ordena todo este apartado: pedir la letra a un
-  servidor externo le manda la dirección de red y el navegador de quien
-  pregunta. No sale de ahí ni una palabra de la conversación, pero el RNF-02
-  sostiene que el sistema funciona entero en local, y una petición a un tercero
-  nada más abrir la página lo desmiente. Es también lo que explica que las
-  capturas de este apartado no lleven la misma letra que la web de la Escuela.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
+ \caption[Cuadro de fuentes consultadas]{Ventana modal con el listado de fuentes documentales recuperadas del índice para la respuesta activa, agrupadas por titulación. Fuente: Elaboración propia.}
 
-\textcolor{borrador2}{La estructura de la página son cinco piezas y no más: la
-  cabecera con el nombre del centro, la conversación, las preguntas sugeridas,
-  el formulario de escribir y el cuadro de fuentes. Cada una es el elemento de
-  \sig{HTML} que le corresponde ---la conversación es el contenido principal,
-  las sugerencias son navegación y el cuadro de fuentes es un diálogo del propio
-  navegador---, y no una capa neutra con un nombre de clase. Eso no es purismo:
-  quien usa un lector de pantalla recorre la página por esas piezas, de modo que
-  usar el elemento correcto es lo que permite saltar de una a otra sin verlas.
-  El cuadro de fuentes, además, por venir del navegador trae ya resueltos el
-  cierre con la tecla de escape y la devolución del foco al botón que lo abrió,
-  que es trabajo que no hay que escribir ni mantener.}
+  \label{fig:app_fuentes}
+\end{figure}
 
-\textcolor{borrador2}{Dentro de la conversación, la respuesta no se dibuja como
-  una burbuja de mensajería sino como texto corrido con una línea vertical al
-  margen. La diferencia importa porque lo que el sistema devuelve no son
-  mensajes cortos: son listados de asignaturas y descripciones de guías
-  docentes, y una burbuja obliga a leerlos en una columna estrecha dentro de una
-  página que ya es estrecha. El estilo de la respuesta de listado
-  ---Figura~\ref{fig:app_listado}--- sigue la misma idea: los cursos se componen
-  como encabezados y las asignaturas pierden la viñeta, de modo que se lea como
-  un plan de estudios y no como una conversación.}
+Bajo el área de conversación se ofrecen cuatro posibles preguntas sugeridas a modo de atajo por si no sabes qué preguntar. Esta idea surgió de las aplicaciones web de las grandes compañías de la IA, como ChatGPT o Google Gemini que contienen funcionalidades parecidas. El servidor las genera comprobando previamente contra el índice vectorial la existencia de los fragmentos que las respaldan.
 
-\textcolor{borrador2}{Por último, el ancho. Las bandas de color ocupan la
-  ventana entera pero el texto se detiene en una columna de lectura, porque las
-  dos alternativas se veían mal: una aplicación estrecha encogida en medio de
-  una pantalla ancha, o una línea de mil píxeles que no hay quien siga. En un
-  teléfono no queda nada fuera ---la Figura~\ref{fig:app_movil} es la misma
-  pantalla a 390 píxeles---, que es la comprobación que de verdad importa,
-  porque ese es el aparato con el que un preuniversitario va a entrar.}
+El sistema genera 10 plantillas parametrizadas con más de noventa preguntas válidas sobre el corpus. De las cuatro sugerencias mostradas, dos se reservan a la titulación tratada en la conversación actual y dos a otras titulaciones del catálogo. 
 
-\subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
-\label{secc:fase3_fuentes}
+Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar que el usuario asuma que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
 
-\textcolor{borrador2}{El requisito RF-09 pide mostrar junto a la respuesta las
-  fuentes de la colección de las que sale. Se resuelve con un enlace en el pie
-  de cada respuesta que abre un cuadro con la lista, y no con una lista siempre
-  desplegada, porque el recuperador llega a entregar veinte fragmentos y veinte
-  líneas de procedencia debajo de cada respuesta esconden la respuesta que se
-  ha pedido.}
+\subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
+\label{secc:fase3_registro}
 
-\textcolor{borrador2}{Lo que se lista son \textbf{unidades y no fragmentos}. Una
-  guía docente larga se trocea en varios, y enumerarlos uno a uno repetiría tres
-  veces la misma línea dando a entender tres respaldos distintos donde hay uno.
-  Se agrupan con la misma identidad que usa el resto del sistema ---el nombre de
-  la unidad junto a las titulaciones en las que se imparte---, porque una guía
-  compartida se imparte en varias y el nombre a solas no la identifica.}
+Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
 
-\textcolor{borrador2}{Y hay que decir con precisión qué es esa lista, porque el
-  rótulo obvio sería falso. El sistema sabe qué fragmentos \textbf{le entregó}
-  al modelo; no sabe cuáles usó al redactar. La diferencia no es teórica: una
-  pregunta ajena al dominio ---cómo se cocina un plato--- recupera diecisiete
-  fragmentos y aun así se responde que no hay información sobre eso. Con el
-  rótulo «fuentes de la respuesta», esa negativa vendría acompañada de
-  diecisiete fuentes. Por eso el cuadro se titula «fuentes consultadas» y una
-  nota debajo dice que de ahí salió el contexto que se entregó.}
 
-\subsection[\textcolor{borrador2}{Las preguntas que se sugieren}]{\textcolor{borrador2}{Las preguntas que se sugieren}}
-\label{secc:fase3_sugerencias}
-
-\textcolor{borrador2}{Bajo la conversación se ofrecen cuatro preguntas como
-  atajo. No están escritas en la interfaz ni se le piden al modelo: las compone
-  el servidor preguntándole al índice si existe el fragmento que respalda cada
-  una. Las dos alternativas fallan cada una por su lado. Una lista fija ofrece
-  «¿qué menciones tiene?» en las siete titulaciones que no tienen ninguna, y lo
-  que llega al modelo entonces no es contexto vacío sino contexto de otro
-  asunto. Pedírselas al modelo las inventa, que es justo lo que las tres
-  barreras de la Sección~\ref{secc:fase2_dominio} existen para impedir.}
-
-\textcolor{borrador2}{El banco son diez plantillas y cada una lleva la
-  condición que la respalda. Sobre la colección descrita en este capítulo,
-  las diez juntas pueden formular \textbf{92 preguntas distintas}: la ficha de
-  la titulación existe en las doce, el plan de estudios en once y las menciones
-  solo en cinco. Ese reparto es el motivo de que la comprobación se haga contra
-  el índice en lugar de fiarse de que todas las titulaciones tengan lo mismo.}
-
-\textcolor{borrador2}{De los cuatro huecos, dos se reservan para la titulación
-  de la que se está hablando y \textbf{dos para otras}. La primera versión daba
-  los cuatro a la titulación en curso, y el efecto se vio a la primera prueba:
-  tras nombrar una, las cuatro sugerencias eran suyas y el asistente parecía
-  conocer solo esa. Encerrar en la primera titulación que nombra a quien
-  todavía está decidiendo qué estudiar es lo contrario de lo que este sistema
-  pretende.}
-
-\subsection[\textcolor{borrador2}{La espera y el registro de las sesiones}]{\textcolor{borrador2}{La espera y el registro de las sesiones}}
-\label{secc:fase3_espera}
-
-\textcolor{borrador2}{La emisión por partes de la Sección~\ref{secc:fase3_emision}
-  resuelve el minuto de pantalla en blanco, pero abre otro hueco: entre una
-  frase y la siguiente no hay forma de distinguir «está redactando» de «ya ha
-  terminado». Medido sobre una respuesta real, esos huecos llegan a los
-  \textbf{31 segundos} con texto ya escrito delante, que es tiempo de sobra
-  para darla por acabada y marcharse. La interfaz marca por tanto mientras
-  redacta, y retira la marca al llegar el último aviso del servidor.}
-
-\textcolor{borrador2}{Esa marca no es solo visual, y la razón es el RNF-07: una
-  señal que solo se ve deja fuera a quien usa un lector de pantalla, y una que
-  solo se anuncia deja fuera a todos los demás. Las dos cuelgan del mismo
-  atributo del documento, de modo que no existe la posibilidad de que una se
-  retire y la otra se quede puesta.}
-
-\textcolor{borrador2}{Por último, cada turno que atiende el servidor queda
-  anotado en un registro en bruto, una línea por turno, con la pregunta, la
-  consulta con la que de verdad se buscó, las titulaciones de las que se venía
-  hablando, los fragmentos recuperados con su distancia y el tiempo que tardó.
-  Sirve para analizar después una sesión de pruebas sin volver a ejecutarla, que
-  con respuestas de un minuto no es un detalle menor.}
-
-\textcolor{borrador2}{Dos condiciones lo acotan. La primera es que anotar es una
-  tarea auxiliar y se comporta como tal: si el registro no se puede escribir, se
-  pierde la línea y la respuesta se entrega igual. La segunda es que no se
-  guarda nada que identifique a quien pregunta ---ni dirección de red, ni
-  cabeceras del navegador---, porque el RNF-03 lo prohíbe y un registro de
-  conversaciones es precisamente donde ese dato se colaría sin que nadie lo
-  hubiera decidido.}
-
-\textcolor{borrador2}{El registro distingue además dos situaciones que se
-  confundirían al analizarlo, porque las dos aparecen como cero fragmentos
-  recuperados: que no se buscara nada ---la pregunta era un saludo y se
-  contestó sin llegar al índice--- y que se buscara y el suelo de pertinencia lo
-  descartara todo. No se puede deducir de la respuesta, porque un saludo
-  reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
-  el segundo pasa por el índice.}
-
-\begin{borrador}
-  \item \textbf{Fase:} 3 (IT-46). Las cuatro figuras de abajo son capturas
-  \emph{reales} de la aplicación respondiendo, no maquetas: se escribió en el campo y
-  se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
-  figura y el párrafo que las presenta.
-  \item \textbf{Las decisiones de diseño están en el
-  Apartado~\ref{secc:fase3_diseno_interfaz}}, que es lo que faltaba de la Definición de Hecho:
-  el cotejo con el boceto de los objetivos, de dónde salen los colores y por qué se
-  retiró el dorado, los contrastes medidos, la tipografía del sistema, las cinco
-  piezas de la página y por qué la respuesta no es una burbuja. Todo en turquesa,
-  para que lo reescribas.
-  \item \textbf{Una advertencia sobre estas capturas:} llevan la tipografía del
-  sistema, no la de la web original. Es la corrección de una auditoría: la página ya no
-  pide tipografías a un servidor externo, y eso es lo que sostiene que el sistema
-  funcione entero sin conexión.
-\end{borrador}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_inicio.png}
-  \caption[\textcolor{borrador2}{Pantalla inicial del asistente}]{\textcolor{borrador2}{Pantalla
-      inicial. El saludo y las preguntas sugeridas no están escritos en el cliente: se
-      le piden al servidor, para que no existan dos listas que puedan
-      desincronizarse. Fuente: Elaboración propia.}}
+\caption[Pantalla inicial de la aplicación web]{Vista inicial del asistente con la cabecera institucional, el mensaje de bienvenida y el bloque de preguntas sugeridas. Fuente: Elaboración propia.}
+
   \label{fig:app_inicio}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_listado.png}
-  \caption[\textcolor{borrador2}{Respuesta de listado}]{\textcolor{borrador2}{Respuesta
-      a la pregunta más frecuente del banco. El rótulo de cada curso se compone como
-      encabezado de sección y las asignaturas pierden la viñeta, de modo que la
-      respuesta se lee como un plan de estudios impreso y no como una lista de chat.
-      Fuente: Elaboración propia.}}
+  \caption[Visualización de asignaturas por curso]{Ejemplo de respuesta del asistente estructurando el plan de estudios de una titulación organizado por cursos académicos. Fuente: Elaboración propia.}
+
   \label{fig:app_listado}
 \end{figure}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
-  \caption[\textcolor{borrador2}{Procedencia de la respuesta}]{\textcolor{borrador2}{El
-      cuadro de fuentes, agrupadas por titulación. El rótulo dice «consultadas» a
-      propósito: es lo que se le entregó al modelo, no lo que el modelo llegó a usar.
-      Fuente: Elaboración propia.}}
-  \label{fig:app_fuentes}
-\end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.42\textwidth]{imagenes/app_movil.png}
-  \caption[\textcolor{borrador2}{La aplicación en un teléfono}]{\textcolor{borrador2}{La
-      misma pantalla en 390~píxeles de ancho, que es el aparato con el que un
-      estudiante preuniversitario va a entrar. Fuente: Elaboración propia.}}
+  \caption[Adaptabilidad de la interfaz en dispositivos móviles]{Vista de la aplicación web adaptada a pantallas de dispositivos móviles (resolución de 390~píxeles de ancho). Fuente: Elaboración propia.}
+
   \label{fig:app_movil}
 \end{figure}
 
