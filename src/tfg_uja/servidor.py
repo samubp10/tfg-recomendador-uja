@@ -37,6 +37,7 @@ from typing import Any, Final
 from tfg_uja.ambito import decisor_con_modelo
 from tfg_uja.conversacion import Consulta, Conversacion
 from tfg_uja.generador import (
+    RESPUESTA_SALUDO,
     ErrorDelModelo,
     respuesta_fija,
     responder_por_partes,
@@ -406,19 +407,36 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: volvería a proponer siempre lo mismo.
         turno = 0
 
-        def do_GET(self) -> None:  # noqa: N802 (el nombre lo impone la base)
-            """Sirve la interfaz, y las sugerencias con las que arranca."""
-            if self.path != "/api/sugerencias":
-                super().do_GET()
-                return
-            propuestas = sugerencias_para(sistema[0], [], sistema[2])
-            cuerpo = json.dumps(propuestas, ensure_ascii=False).encode("utf-8")
+        def responder_json(self, dato: object) -> None:
+            """Manda ``dato`` como JSON, sin guardar copia en la caché."""
+            cuerpo = json.dumps(dato, ensure_ascii=False).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(cuerpo)))
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(cuerpo)
+
+        def do_GET(self) -> None:  # noqa: N802 (el nombre lo impone la base)
+            """Sirve la interfaz, el saludo y las sugerencias del arranque."""
+            if self.path == "/api/saludo":
+                # El saludo NO pasa por ``/api/chat``, y esa es toda la razón
+                # de que esta ruta exista. Cuando el navegador lo pedía como
+                # una consulta cualquiera, el servidor anotaba un turno en el
+                # registro por cada apertura de la página: una pregunta que
+                # nadie había escrito. Cualquier recuento sobre el registro
+                # salía inflado, y esconderlo solo en la interfaz habría
+                # dejado el dato igual de sucio.
+                #
+                # El texto sigue viniendo del servidor, que era el motivo de
+                # pedírselo: si el cliente lo escribiera, habría dos copias
+                # que pueden separarse.
+                self.responder_json({"respuesta": RESPUESTA_SALUDO})
+                return
+            if self.path != "/api/sugerencias":
+                super().do_GET()
+                return
+            self.responder_json(sugerencias_para(sistema[0], [], sistema[2]))
 
         def do_POST(self) -> None:  # noqa: N802 (el nombre lo impone la base)
             """Atiende la consulta y emite la respuesta por partes."""
