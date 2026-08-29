@@ -18,6 +18,12 @@ from typing import Any
 import pytest
 
 from tfg_uja import registro_chat, servidor
+
+# Se enlazan al importar, ANTES de que la fixture de aislamiento sustituya
+# los atributos del modulo: las cuatro pruebas de enlaces necesitan la
+# implementacion de verdad y no el sustituto vacio.
+from tfg_uja.servidor import enlaces_oficiales as _ENLACES_REALES
+from tfg_uja.servidor import paginas_de_titulacion as _PAGINAS_REALES
 from tfg_uja.conversacion import Consulta, Conversacion
 from tfg_uja.recuperador import Fragmento
 from tfg_uja.generador import (
@@ -129,6 +135,9 @@ def test_cada_unidad_verificada_sale_como_una_linea(
             "nombre": "Fundamentos de la programación",
             "titulacion": "Grado en Ingeniería Informática",
             "origen": "Guía docente",
+            # Vacía porque esta prueba corre sin dataset: lo que se comprueba
+            # aquí es la forma del suceso, no de dónde sale la dirección.
+            "url": "",
         }
     ]
     assert sucesos[1:] == [
@@ -563,6 +572,19 @@ def test_sin_fragmentos_recuperados_no_se_anuncian_fuentes(
 # ------------------------------------------------------------ las sugerencias
 
 
+@pytest.fixture(autouse=True)
+def sin_enlaces_del_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Desconecta las fuentes del ``grados.json`` real.
+
+    Las direcciones oficiales se resuelven leyendo el dataset, que no se
+    versiona y cuyo contenido cambia cada vez que se rastrea la web. Una prueba
+    que dependiera de él afirmaría cosas distintas segun el dia. Las pruebas
+    que sí miran los enlaces se traen su propio fichero.
+    """
+    monkeypatch.setattr(servidor, "enlaces_oficiales", lambda *a, **k: {})
+    monkeypatch.setattr(servidor, "paginas_de_titulacion", lambda *a, **k: {})
+
+
 def manejador_get(ruta: str):
     """Un manejador preparado para una petición GET, también sin socket."""
     Clase = servidor.manejador(SISTEMA_FALSO)
@@ -812,3 +834,168 @@ def test_dos_turnos_seguidos_no_proponen_lo_mismo(
     manejador_falso(cuerpo, Clase=Clase).do_POST()
 
     assert pedidos == [1, 2]
+
+
+# ------------------------------------------- los enlaces oficiales (IT-118)
+
+
+def test_cada_fuente_lleva_la_direccion_oficial_de_su_unidad(
+    tmp_path: Path,
+) -> None:
+    """El cuadro decía de dónde salía cada cosa pero no dejaba llegar hasta ella.
+
+    Para comprobar un dato había que buscarlo a mano en la web de la Escuela,
+    lo que convertía la trazabilidad en una promesa y no en algo que el lector
+    pudiera ejercer.
+    """
+    datos = tmp_path / "grados.json"
+    datos.write_text(
+        json.dumps(
+            [
+                {
+                    "tipo": "asignatura",
+                    "grado": "Grado en Ingeniería Informática",
+                    "nombre": "Álgebra",
+                    "codigo": "13011009",
+                    "url_guia": "https://uvirtual.ujaen.es/ficha/13011009",
+                },
+                {
+                    "tipo": "asignatura",
+                    "grado": "Grado en Ingeniería Informática",
+                    "nombre": "Estadística",
+                    "codigo": "",
+                    "url_guia": None,
+                },
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    enlaces = _ENLACES_REALES.__wrapped__(datos)
+
+    assert enlaces == {
+        ("Grado en Ingeniería Informática", "Álgebra"): (
+            "https://uvirtual.ujaen.es/ficha/13011009"
+        )
+    }
+    # La que no tiene guía publicada no aparece, y eso es lo correcto: no hay
+    # documento al que enlazar y fabricar uno sería mentir.
+    assert ("Grado en Ingeniería Informática", "Estadística") not in enlaces
+
+
+def test_dos_asignaturas_homonimas_se_quedan_sin_enlace(tmp_path: Path) -> None:
+    """Es mejor sin enlace que mandando a alguien a la guía equivocada.
+
+    Hoy no hay dos asignaturas con el mismo nombre dentro de una titulación
+    ---comprobado sobre las 528---, pero la clave canónica del proyecto es
+    ``(grado, codigo or nombre)`` y aquí solo se dispone del nombre. Si la
+    fuente cambiara, la ambigüedad no puede resolverse eligiendo una.
+    """
+    datos = tmp_path / "grados.json"
+    datos.write_text(
+        json.dumps(
+            [
+                {
+                    "tipo": "asignatura",
+                    "grado": "G",
+                    "nombre": "Prácticas externas",
+                    "url_guia": "https://ejemplo/1",
+                },
+                {
+                    "tipo": "asignatura",
+                    "grado": "G",
+                    "nombre": "Prácticas externas",
+                    "url_guia": "https://ejemplo/2",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    assert _ENLACES_REALES.__wrapped__(datos) == {}
+
+
+def test_sin_dataset_las_fuentes_se_quedan_sin_enlace(tmp_path: Path) -> None:
+    # El dataset no se versiona: en un clon recién hecho no existe todavía. La
+    # aplicación tiene que seguir dando las fuentes, solo que sin enlazarlas.
+    assert _ENLACES_REALES.__wrapped__(tmp_path / "no_esta.json") == {}
+    assert _PAGINAS_REALES.__wrapped__(tmp_path / "no_esta.json") == {}
+
+
+def test_las_unidades_que_no_son_asignatura_enlazan_a_la_titulacion(
+    tmp_path: Path,
+) -> None:
+    # El plan, las menciones y la ficha no tienen guía docente, pero sí tienen
+    # la página de la Escuela de la que se extrajeron.
+    datos = tmp_path / "grados.json"
+    datos.write_text(
+        json.dumps(
+            [
+                {
+                    "tipo": "grado",
+                    "nombre": "Grado en Ingeniería Informática",
+                    "url_asignaturas": "https://eps.ujaen.es/informatica/plan",
+                    "url_salidas": "https://eps.ujaen.es/informatica/salidas",
+                },
+                {
+                    "tipo": "grado",
+                    "nombre": "Doble Grado Internacional",
+                    "url_asignaturas": None,
+                    "url_salidas": None,
+                },
+            ],
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    paginas = _PAGINAS_REALES.__wrapped__(datos)
+
+    assert paginas[("Grado en Ingeniería Informática", "url_salidas")] == (
+        "https://eps.ujaen.es/informatica/salidas"
+    )
+    # La titulación internacional con Schmalkalden no publica ninguna de las
+    # dos: no aparece en vez de aparecer con una dirección vacía.
+    assert not any(t == "Doble Grado Internacional" for t, _ in paginas)
+
+
+def test_la_fuente_de_una_unidad_compartida_toma_el_enlace_que_encuentra(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Una guía compartida por varias titulaciones tiene una URL por cada una.
+
+    Son el mismo documento ---81 de las 398 unidades del corpus se comparten---
+    así que vale la primera que se encuentre. Lo que no vale es quedarse sin
+    enlace porque la primera titulación de la lista no sea la que lo publica.
+    """
+    monkeypatch.setattr(
+        servidor,
+        "enlaces_oficiales",
+        lambda *a, **k: {("G. Mecánica", "Física"): "https://ejemplo/fisica"},
+    )
+    monkeypatch.setattr(
+        servidor,
+        "paginas_de_titulacion",
+        lambda *a, **k: {("G. Mecánica", "url_salidas"): "https://ejemplo/salidas"},
+    )
+    compartida = Fragmento(
+        texto="x",
+        nombre="Física",
+        grados=["G. Eléctrica", "G. Mecánica"],
+        origen="guia",
+        distancia=0.1,
+        chunk_index=0,
+        total_chunks=1,
+    )
+    salidas = Fragmento(
+        texto="x",
+        nombre="G. Mecánica",
+        grados=["G. Eléctrica", "G. Mecánica"],
+        origen="salidas",
+        distancia=0.1,
+        chunk_index=0,
+        total_chunks=1,
+    )
+
+    fuentes = servidor.fuentes_de([compartida, salidas])
+
+    assert fuentes[0]["url"] == "https://ejemplo/fisica"
+    assert fuentes[1]["url"] == "https://ejemplo/salidas"
