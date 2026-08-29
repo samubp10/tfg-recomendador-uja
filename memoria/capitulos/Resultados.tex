@@ -402,11 +402,12 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \label{secc:discusion}
 
 \begin{borrador}
-  \item \textbf{Sección nueva, y esta no es opcional (07/08/2026).} La normativa de la EPSJ
-  nombra el capítulo <<Resultados \textbf{y Discusión}>> como una sola unidad, y entre los
+  \item \textbf{Por qué existe esta sección.} La normativa de la EPSJ nombra el
+  capítulo <<Resultados \textbf{y Discusión}>> como una sola unidad, y entre los
   criterios con los que se evalúa el trabajo está la \emph{correspondencia entre los
-    objetivos de la propuesta original y la discusión de resultados}. Hoy el capítulo tiene
-  resultados y no tiene discusión.
+    objetivos de la propuesta original y la discusión de resultados}. El capítulo ya
+  se llama así y la correspondencia está en la
+  Tabla~\ref{tab:trazabilidad_enunciado}.
   \item Qué la separa de las secciones anteriores: allí va \emph{qué salió}; aquí, \emph{qué
     significa}. Y sobre todo, qué objetivo queda respondido con cada resultado.
   \item La forma más directa de escribirla, y la que el tribunal puede cotejar de un
@@ -431,6 +432,38 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   que se note, es que no es discusión, es resultado repetido.
   \item \textbf{No introduzcas ninguna cifra nueva.} Toda la que aparezca aquí tiene
   que estar ya medida arriba o en un ADR citado.
+\end{borrador}
+
+\subsection[\textcolor{borrador2}{Trazabilidad con la propuesta original}]{\textcolor{borrador2}{Trazabilidad con la propuesta original}}
+\label{secc:discusion_trazabilidad}
+
+\textcolor{borrador2}{Antes de discutir qué se ha cumplido conviene decir
+  respecto a qué. Los objetivos específicos OE1--OE6 del
+  Capítulo~\ref{cap:objetivos} son una redacción posterior a la propuesta que
+  aprobó la Comisión de Trabajos Fin de Grado, que enunciaba cinco. Los dos
+  conjuntos se corresponden, pero esa correspondencia no estaba escrita en
+  ninguna parte y reconstruirla quedaba en manos de quien leyera. La
+  Tabla~\ref{tab:trazabilidad_enunciado} la fija.}
+
+\textcolor{borrador2}{La correspondencia no es uno a uno en los dos sentidos.
+  El segundo objetivo de la propuesta ---estudiar los sistemas de generación
+  aumentada por recuperación--- se desdobla en dos objetivos específicos, porque
+  la fragmentación y la elección del modelo de incrustaciones acabaron
+  decidiéndose con experimentos independientes y con criterios distintos. Y el
+  primero pedía recoger, además de las titulaciones y las guías, datos
+  estadísticos del centro, que no forman parte de la colección construida.}
+
+\input{tablas/TablaTrazabilidadEnunciado.tex}
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-71). La tabla y estos dos párrafos son andamiaje: la
+  correspondencia sale de la propuesta aprobada, pero la prosa la escribes tú.
+  \item \textbf{Decide qué hacer con los datos estadísticos.} El punto 1 de la
+  propuesta los pedía y OE1 no los recoge. Está abierto como IT-73 en la Fase 4, así
+  que hay tres salidas: recogerlos y que deje de ser un hueco, declararlo aquí como
+  desviación respecto a la propuesta, o declararlo en la sección de amenazas. Lo que
+  no vale es dejarlo sin decir, porque el tribunal coteja la memoria con la propuesta
+  y ese punto está a la vista.
 \end{borrador}
 
 \subsection{Cumplimiento y discusión de objetivos específicos}
