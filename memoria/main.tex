@@ -111,9 +111,16 @@
 \setlength{\headheight}{14.5pt}
 
 
+% \sloppy solo aqui dentro: estos bloques llevan nombres de fichero y de
+% funcion en \texttt que no se pueden partir, y en una lista con sangria se
+% salian del margen. Cuatro de los siete desbordamientos visibles del
+% documento eran de aqui. Aflojando el ajuste de linea dentro del entorno
+% ---y solo dentro--- los desbordamientos que queden en el log son ya del
+% documento de verdad, en vez de ruido de texto que se va a borrar. El texto
+% del autor no se ve afectado: \sloppy muere con el entorno.
 \newenvironment{borrador}{%
     \par\noindent\textcolor{violet}{\footnotesize\textbf{BORRADOR  --- ideas a desarrollar, no es texto final:}}\par
-    \begin{itemize}\setlength{\itemsep}{1pt}\small\color{violet!70!black}
+    \begin{itemize}\sloppy\setlength{\itemsep}{1pt}\small\color{violet!70!black}
 }{%
     \end{itemize}\normalsize
 }
