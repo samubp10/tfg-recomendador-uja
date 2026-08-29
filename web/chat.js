@@ -285,13 +285,66 @@ function pintarSugerencias(lista) {
 // ------------------------------------------------- las fuentes de la respuesta
 
 /**
+ * Escapa un valor para meterlo DENTRO de un atributo HTML.
+ *
+ * `escapar` no sirve aqui: se apoya en `textContent`, que escapa lo que hace
+ * falta para un nodo de texto pero deja pasar las comillas. Dentro de un
+ * atributo entrecomillado, una comilla cierra el atributo y lo que venga
+ * detras se lee como marcado.
+ *
+ * @param {string} valor
+ * @returns {string}
+ */
+function escaparAtributo(valor) {
+  return escapar(valor).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+/**
+ * Si una direccion se puede poner en un `href` sin riesgo.
+ *
+ * Solo `http` y `https`. Las direcciones vienen del dataset, que se extrae de
+ * la web de la EPSJ por su `href` real: son datos de fuera, y la fuente ya ha
+ * servido URL mal formadas (guias con el sufijo duplicado). Un `javascript:`
+ * en un `href` se ejecuta al pulsarlo, asi que se comprueba el esquema en vez
+ * de confiar en que el dataset venga limpio.
+ *
+ * @param {string | undefined} url
+ * @returns {boolean}
+ */
+function esDireccionWeb(url) {
+  return typeof url === "string" && /^https?:\/\//i.test(url);
+}
+
+/**
+ * Nombre de la unidad, enlazado a su pagina oficial si la EPSJ la publica.
+ *
+ * Las 81 asignaturas sin guia publicada no tienen a donde apuntar, y entonces
+ * el nombre va sin enlace. Inventarle uno seria mandar a alguien a una pagina
+ * que no existe para aparentar que todo esta respaldado.
+ *
+ * `rel="noopener noreferrer"` va con `target="_blank"`: sin `noopener` la
+ * pagina que se abre puede manipular a la que la abrio.
+ *
+ * @param {{nombre: string, url?: string}} unidad
+ * @returns {string} HTML ya escapado.
+ */
+function nombreDeLaFuente(unidad) {
+  const nombre = escapar(unidad.nombre);
+  if (!esDireccionWeb(unidad.url)) return nombre;
+  return (
+    `<a class="fuentes__enlace" href="${escaparAtributo(unidad.url)}"` +
+    ` target="_blank" rel="noopener noreferrer">${nombre}</a>`
+  );
+}
+
+/**
  * Enseña de qué unidades de la colección salió una respuesta.
  *
  * Va en un cuadro y no debajo de cada respuesta porque el recuperador llega a
  * traer veinte fragmentos, y veinte líneas de procedencia esconden la respuesta
  * que se ha pedido.
  *
- * @param {{nombre: string, titulacion: string, origen: string}[]} lista
+ * @param {{nombre: string, titulacion: string, origen: string, url?: string}[]} lista
  */
 function abrirFuentes(lista) {
   listaFuentes.innerHTML = agruparFuentes(lista)
@@ -303,7 +356,7 @@ function abrirFuentes(lista) {
         unidades
           .map(
             (u) =>
-              `<li>${escapar(u.nombre)}` +
+              `<li>${nombreDeLaFuente(u)}` +
               `<span class="fuentes__origen">${escapar(u.origen)}</span></li>`
           )
           .join("") +
