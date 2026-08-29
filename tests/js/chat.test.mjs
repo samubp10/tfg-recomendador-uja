@@ -295,20 +295,27 @@ function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = 
 /**
  * Carga el cliente con un servidor de mentira detrás.
  *
- * `responder` cambia lo que contestará la SIGUIENTE consulta: la primera se la
- * lleva siempre el saludo de arranque, que `chat.js` pide solo al cargarse.
+ * `responder` cambia lo que contestará la SIGUIENTE consulta a `/api/chat`.
+ * El saludo ya no entra por ahí: tiene su propia ruta, que es justo lo que
+ * evita que el arranque quede anotado en el registro como una pregunta.
  */
 function montar({
   sugerencias = [],
   sugerenciasFallan = false,
   reloj,
   saludoFallaAlArrancar = false,
+  saludoNoOk = false,
+  saludo = "Hola, soy el asistente.",
 } = {}) {
   let siguiente = () => respuestaNdjson([{ parte: "Hola." }, { fin: true }]);
-  let saludoFalla = false;
   const peticiones = [];
   const fetchDoble = (url, opciones) => {
     peticiones.push({ url, opciones });
+    if (url === "/api/saludo") {
+      if (saludoFallaAlArrancar) return Promise.reject(new Error("Failed to fetch"));
+      if (saludoNoOk) return Promise.resolve({ ok: false, status: 500 });
+      return Promise.resolve({ ok: true, json: () => ({ respuesta: saludo }) });
+    }
     if (url === "/api/sugerencias") {
       return sugerenciasFallan
         ? Promise.resolve({ ok: false, status: 500 })
@@ -318,12 +325,6 @@ function montar({
     // cancelacion; las que no la necesitan simplemente ignoran el argumento.
     return Promise.resolve(siguiente(opciones));
   };
-  saludoFalla = saludoFallaAlArrancar;
-  if (saludoFalla) {
-    siguiente = () => {
-      throw new Error("Failed to fetch");
-    };
-  }
   const contexto = cargarChat({ fetch: fetchDoble, reloj });
   return {
     chat: contexto,
@@ -368,23 +369,54 @@ function ultimaRespuesta(montaje) {
   };
 }
 
-test("el saludo de arranque se pide al servidor y no se pinta como pregunta", async () => {
+test("al arrancar NO se toca /api/chat: el saludo tiene su propia ruta", async () => {
   /*
-    El texto del saludo no está en `chat.js` a propósito: se le pide al
-    servidor para no tener dos copias que se desincronicen. Lo que sí tiene que
-    cumplir el cliente es que esa consulta sea silenciosa, porque la persona no
-    ha escrito «Hola» y verlo en su lado de la conversación sería mentira.
+    Prueba de regresión del defecto que destapó la auditoría del 29/08/2026.
+    El saludo se pedía a `/api/chat` con la palabra «Hola», y el servidor anota
+    en el registro todo lo que entra por ahí: cada apertura de la página metía
+    un turno que nadie había escrito, así que cualquier recuento sobre el
+    registro salía inflado. Lo que hay que guardar no es que el saludo se pinte
+    ---eso ya se veía--- sino que la consulta no llegue a existir.
   */
   const m = montar();
   await reposar();
 
-  const propias = m.el("mensajes").hijos.filter((f) => f.classList.contains("mensaje--propio"));
-  assert.equal(propias.length, 0);
   assert.deepEqual(
     m.peticiones.map((p) => p.url),
-    ["/api/chat", "/api/sugerencias"]
+    ["/api/saludo", "/api/sugerencias"]
   );
-  assert.equal(JSON.parse(m.peticiones[0].opciones.body).pregunta, "Hola");
+});
+
+test("el texto del saludo lo pone el servidor, no el cliente", async () => {
+  // Se le pide al servidor para que no haya dos copias que puedan separarse.
+  // Si alguien lo escribe en `chat.js` «para ahorrarse una petición», esta
+  // prueba lo dice: el cliente pinta lo que le manden, sea lo que sea.
+  const m = montar({ saludo: "Buenas, esto lo decide el servidor." });
+  await reposar();
+
+  const { burbuja, cuerpo } = ultimaRespuesta(m);
+  assert.ok(cuerpo.innerHTML.includes("esto lo decide el servidor"), cuerpo.innerHTML);
+  // Y sin la marca de «escribiendo»: el saludo llega entero de una vez, no
+  // por partes, así que dejarla puesta anunciaría un texto que no va a venir.
+  assert.equal(burbuja.getAttribute("aria-busy"), null);
+  // Y la persona no ha escrito nada, así que su lado sigue vacío.
+  const propias = m.el("mensajes").hijos.filter((f) => f.classList.contains("mensaje--propio"));
+  assert.equal(propias.length, 0);
+});
+
+test("si el saludo falla no se pinta nada y no se avisa", async () => {
+  /*
+    Nadie ha pedido este saludo, así que un fallo suyo no es un fallo de la
+    persona: se calla, igual que hace la petición de sugerencias. Se comprueban
+    las dos formas de fallar, porque no pasan por el mismo sitio: que la red no
+    llegue a responder y que el servidor conteste con un error.
+  */
+  for (const averia of [{ saludoFallaAlArrancar: true }, { saludoNoOk: true }]) {
+    const m = montar(averia);
+    await reposar();
+
+    assert.equal(m.el("mensajes").hijos.length, 0, JSON.stringify(averia));
+  }
 });
 
 test("la pregunta de la persona sí se pinta, y escapada", async () => {
