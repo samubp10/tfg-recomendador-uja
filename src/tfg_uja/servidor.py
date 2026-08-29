@@ -29,7 +29,7 @@ import json
 import sys
 import time
 from collections.abc import Iterator
-from functools import partial
+from functools import cache, partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Final
@@ -62,6 +62,11 @@ WEB: Final[Path] = RAIZ / "web"
 
 #: Índice vectorial. No se versiona: se construye con ``py -m tfg_uja.indexer``.
 INDICE: Final[Path] = RAIZ / "data" / "indice_lance"
+
+#: Dataset del que salen las direcciones oficiales de cada unidad. Es el
+#: mismo fichero del que se construye la colección, así que si hay índice
+#: lo hay a él.
+DATASET: Final[Path] = RAIZ / "data" / "grados.json"
 
 MODELO_GENERATIVO: Final[str] = "gemma3:12b"
 
@@ -118,6 +123,122 @@ ROTULOS_DE_ORIGEN: Final[dict[str, str]] = {
 }
 
 
+#: De donde sale el enlace de cada tipo de unidad. Las de asignatura apuntan a
+#: su guia docente; las que describen la titulacion entera, a la pagina del
+#: plan; las salidas, a la suya. El catalogo no tiene pagina propia.
+_ENLACE_DE_LA_TITULACION: Final[dict[str, str]] = {
+    "plan_de_estudios": "url_asignaturas",
+    "mencion": "url_asignaturas",
+    "ficha_titulacion": "url_asignaturas",
+    "salidas": "url_salidas",
+}
+
+
+@cache
+def enlaces_oficiales(datos: Path = DATASET) -> dict[tuple[str, str], str]:
+    """Direccion oficial de la EPSJ para cada unidad de la coleccion.
+
+    El cuadro de fuentes decia de donde salia cada cosa pero no dejaba llegar
+    hasta ella, asi que para comprobar un dato habia que buscarlo a mano en la
+    web de la Escuela. La direccion ya estaba en el dataset ---la extrae el
+    spider por su ``href`` real, nunca por patron--- y solo faltaba traerla.
+
+    Se resuelve aqui y no en el indice a proposito: es un dato de presentacion
+    y meterlo en la coleccion obligaria a reconstruirla entera para una columna
+    que el recuperador no usa para nada.
+
+    La clave es ``(titulacion, nombre de la unidad)``. La regla del proyecto es
+    identificar una asignatura por ``(grado, codigo or nombre)``, y aqui solo
+    se dispone del nombre; se ha comprobado que en las 528 asignaturas no hay
+    dos con el mismo nombre dentro de una titulacion, pero por si algun dia las
+    hubiera, una colision **retira** el enlace en vez de elegir uno: es mejor
+    quedarse sin enlace que mandar a alguien a la guia equivocada.
+
+    Args:
+        datos: Fichero del dataset, ``data/grados.json``.
+
+    Returns:
+        ``(titulacion, unidad) -> URL``. Solo las unidades que tienen una; las
+        235 asignaturas sin guia publicada no aparecen, y eso es correcto: no
+        hay documento al que enlazar y fabricar uno seria mentir.
+    """
+    if not datos.exists():
+        return {}
+    items = json.loads(datos.read_text(encoding="utf-8"))
+
+    enlaces: dict[tuple[str, str], str] = {}
+    chocadas: set[tuple[str, str]] = set()
+    for item in items:
+        if item.get("tipo") != "asignatura" or not item.get("url_guia"):
+            continue
+        clave = (item["grado"], item["nombre"])
+        if clave in enlaces and enlaces[clave] != item["url_guia"]:
+            chocadas.add(clave)
+        enlaces[clave] = item["url_guia"]
+    for clave in chocadas:
+        del enlaces[clave]
+
+    return enlaces
+
+
+@cache
+def paginas_de_titulacion(datos: Path = DATASET) -> dict[tuple[str, str], str]:
+    """Pagina del plan y de las salidas de cada titulacion.
+
+    Las unidades que no son de asignatura ---el plan, las menciones, la ficha,
+    las salidas--- no tienen guia docente, pero si tienen la pagina de la
+    Escuela de la que se extrajeron.
+
+    Args:
+        datos: Fichero del dataset, ``data/grados.json``.
+
+    Returns:
+        ``(titulacion, campo) -> URL``, con ``campo`` uno de
+        ``url_asignaturas`` o ``url_salidas``. La titulacion internacional con
+        Schmalkalden no publica ninguna de las dos y no aparece.
+    """
+    if not datos.exists():
+        return {}
+    items = json.loads(datos.read_text(encoding="utf-8"))
+
+    return {
+        (item["nombre"], campo): item[campo]
+        for item in items
+        if item.get("tipo") == "grado"
+        for campo in ("url_asignaturas", "url_salidas")
+        if item.get(campo)
+    }
+
+
+def _enlace_de(fragmento: Any) -> str:
+    """Direccion oficial de la unidad de un fragmento, o cadena vacia.
+
+    Una unidad compartida por varias titulaciones tiene una guia por cada una,
+    y son la misma: se toma la de la primera que la imparta. Si no hay ninguna
+    se devuelve cadena vacia, que la interfaz muestra como texto sin enlace en
+    lugar de fabricar uno.
+
+    Args:
+        fragmento: Uno de los que trajo el recuperador.
+
+    Returns:
+        La URL, o ``""`` si esa unidad no tiene documento publicado.
+    """
+    campo = _ENLACE_DE_LA_TITULACION.get(fragmento.origen)
+    if campo:
+        paginas = paginas_de_titulacion()
+        for grado in fragmento.grados:
+            if (grado, campo) in paginas:
+                return paginas[(grado, campo)]
+        return ""
+
+    guias = enlaces_oficiales()
+    for grado in fragmento.grados:
+        if (grado, fragmento.nombre) in guias:
+            return guias[(grado, fragmento.nombre)]
+    return ""
+
+
 def fuentes_de(fragmentos: list[Any]) -> list[dict[str, str]]:
     """Unidades de la colección que se le entregaron al modelo para responder.
 
@@ -147,6 +268,7 @@ def fuentes_de(fragmentos: list[Any]) -> list[dict[str, str]]:
                 "nombre": fragmento.nombre,
                 "titulacion": titulacion,
                 "origen": ROTULOS_DE_ORIGEN.get(fragmento.origen, fragmento.origen),
+                "url": _enlace_de(fragmento),
             }
     return list(vistas.values())
 
