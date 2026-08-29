@@ -589,6 +589,37 @@ def test_las_sugerencias_de_arranque_salen_por_su_propia_ruta(
     assert ("Cache-Control", "no-store") in m.cabeceras
 
 
+def test_el_saludo_sale_por_una_ruta_que_no_anota_nada(registro: Path) -> None:
+    """Regresión del defecto que destapó la auditoría del 29/08/2026.
+
+    El saludo se pedía a ``/api/chat`` con la palabra «Hola», y el servidor
+    anota en el registro todo lo que entra por ahí: cada apertura de la página
+    dejaba un turno que nadie había escrito, así que cualquier recuento sobre
+    el registro salía inflado. Lo que hay que proteger no es que el saludo se
+    devuelva ---eso ya pasaba--- sino que devolverlo no escriba nada.
+    """
+    m = manejador_get("/api/saludo")
+
+    m.do_GET()
+
+    assert json.loads(m.wfile.getvalue().decode("utf-8")) == {
+        "respuesta": RESPUESTA_SALUDO
+    }
+    assert not registro.exists(), registro.read_text(encoding="utf-8")
+
+
+def test_el_texto_del_saludo_es_el_del_generador() -> None:
+    # Deliberadamente rígida. La ruta existe para que el texto viva en un solo
+    # sitio: si alguien lo copia aquí «para no importar el generador», vuelve a
+    # haber dos versiones que pueden separarse sin que nada avise.
+    m = manejador_get("/api/saludo")
+
+    m.do_GET()
+
+    devuelto = json.loads(m.wfile.getvalue().decode("utf-8"))["respuesta"]
+    assert devuelto == RESPUESTA_SALUDO
+
+
 def test_cualquier_otra_ruta_la_sirve_el_manejador_de_ficheros(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
