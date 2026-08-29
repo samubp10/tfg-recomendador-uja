@@ -1436,3 +1436,63 @@ def test_las_dos_formas_de_responder_toman_el_mismo_desvio() -> None:
     )
 
     assert por_partes == [entera]
+
+
+_CONTEXTO_FOTOGRAMETRIA = (
+    "«Fotogrametría y teledetección III», asignatura obligatoria de 6 ECTS "
+    "del Grado en Ingeniería Geomática y Topográfica (plan 2025). Se imparte "
+    "en el primer cuatrimestre de tercer curso.\n"
+    "La guía docente de esta asignatura no está publicada en la web de la "
+    "EPSJ, por lo que solo se dispone de sus datos básicos."
+)
+
+
+def test_el_atributo_corregido_queda_registrado(monkeypatch, caplog):
+    """Un sistema que corrige en silencio no se puede auditar después.
+
+    Es la contrapartida de haber elegido corregir en vez de retirar: si la
+    respuesta que se entrega no es literalmente la que dio el modelo, tiene
+    que quedar dicho en algún sitio qué se cambió y con qué autoridad.
+    """
+    _con_respuesta(
+        monkeypatch,
+        "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
+        "segundo cuatrimestre.",
+    )
+    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+        respuesta = generador.responder(
+            "¿Cuándo se da Fotogrametría III?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+        )
+
+    assert "primer cuatrimestre" in respuesta
+    assert "Atributo corregido" in caplog.text
+    assert "primer cuatrimestre" in caplog.text
+
+
+def test_el_experimento_y_la_aplicacion_corrigen_igual(monkeypatch):
+    """`responder` y `responder_por_partes` son el mismo contrato.
+
+    Una bloqueante y otra por partes: el experimento del sistema usa la
+    primera y la aplicación web la segunda. Una barrera que solo estuviera en
+    una haría que se midiera un sistema distinto del que se entrega, y eso no
+    se ve desde fuera hasta que alguien compara las dos salidas.
+    """
+    mala = (
+        "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
+        "segundo cuatrimestre."
+    )
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+
+    _con_respuesta(monkeypatch, mala)
+    entera = generador.responder("¿Cuándo?", contexto, "un-modelo")
+
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([mala]))
+    por_partes = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Cuándo?", contexto, "un-modelo")
+    )
+
+    assert "primer cuatrimestre" in entera
+    assert "primer cuatrimestre" in por_partes
