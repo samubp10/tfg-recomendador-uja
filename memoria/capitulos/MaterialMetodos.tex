@@ -767,17 +767,21 @@ mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
 
 \begin{borrador}
   \item Reescribir si algo está mal, no parchear en un nuevo texto.
+  \item \textbf{Figura rehecha.} Sigue siendo un diagrama de secuencia, pero
+  con la mitad de detalle y el doble de letra. Y con cifras: las \textbf{288
+  guías se quedan en 210 unidades} al deduplicar, 78 copias que no se vuelven a
+  indexar. Comprobado el 29/08/2026 contra los ficheros reales.
+  \item \textbf{Lo que la figura ya no dibuja como paso propio}, y sí está en
+  tu párrafo de arriba: que un fragmento corto solo se fusiona con su vecino
+  \emph{si la unión sigue cabiendo} en 900. Queda dentro del mensaje que el
+  troceador se manda a sí mismo. Si crees que se pierde, va en el pie.
+  \item \textbf{El orden que dibuja es una simplificación:} en el código, los
+  listados se componen y se trocean dentro de la misma llamada, no en dos fases
+  separadas como aparecen aquí. Está anotado en la cabecera del fichero.
 \end{borrador}
 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{imagenes/Diagrama_secuencia_chunking.pdf}
-  \caption[Secuencia del proceso de troceado y deduplicación]{Diagrama de secuencia del troceado y la deduplicación de la colección, con las ramas de salidas profesionales y de asignaturas sin guía docente. Fuente: Elaboración propia.}
-  \label{fig:secuencia_chunking}
-\end{figure}
-
-{\color{borrador2}\input{diagramas/DiagramaChunkingAlternativo.tex}}
+\input{diagramas/DiagramaChunking.tex}
 
 La Figura~\ref{fig:estructura_chunk} desglosa esa estructura sobre un fragmento real de la colección. La distinción
 importante es la de la izquierda frente a la derecha: solo el campo \texttt{texto} (encabezado más cuerpo) se convierte en
