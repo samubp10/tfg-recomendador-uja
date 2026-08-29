@@ -887,6 +887,29 @@ body {
   font-size: 0.74rem;
 }
 
+/* El nombre de la unidad enlaza a su pagina oficial en la web de la EPSJ,
+   cuando la hay. Las asignaturas sin guia publicada salen sin enlace y por eso
+   el subrayado va aqui y no en el `li`: distingue a simple vista lo que se
+   puede comprobar de lo que no.
+
+   Se subraya en vez de solo cambiar el color porque el color por si solo no
+   basta para senalar un enlace (WCAG 1.4.1, «uso del color»). */
+.fuentes__enlace {
+  color: var(--uja-verde);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fuentes__enlace:hover {
+  text-decoration-thickness: 2px;
+}
+
+.fuentes__enlace:focus-visible {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* ------------------------------------ IT-45 · D3: cuando se pide mas contraste
 
    `prefers-contrast: more` lo activa quien lo necesita desde su sistema. Se
