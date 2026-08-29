@@ -25,7 +25,18 @@ recordar, porque los prefijos no se pueden omitir desde fuera.
 
 from __future__ import annotations
 
+import os
 from typing import Callable, Final
+
+#: Variable de entorno que autoriza la descarga del modelo desde el Hub.
+#: Puesta a ``"1"``, :func:`cargar_modelo` deja que ``sentence_transformers``
+#: salga a la red; sin ella, el modelo se carga solo desde la caché local.
+#:
+#: Es una lista de permitidos y no de prohibidos, por el mismo motivo que en
+#: las guías en PDF: lo que el sistema no puede permitirse ---salir a la red
+#: sin que nadie lo haya pedido--- no se desaconseja, se impide, y hay que
+#: pedirlo a propósito para que ocurra.
+VARIABLE_DESCARGA: Final[str] = "TFG_DESCARGAR_MODELO"
 
 #: Modelo de incrustaciones del sistema. Elegido en el **ADR-0003** con los
 #: resultados de IT-28 sobre dos corpus distintos (892 y 781 fragmentos), en
@@ -83,15 +94,39 @@ def cargar_modelo(nombre: str = MODELO) -> Incrustador:
     Queda pública porque el experimento comparativo sí necesita incrustar
     sin prefijo, al evaluar modelos que no usan esa convención.
 
+    El modelo se carga **solo desde la caché local**. El sistema promete
+    funcionar entero sin conexión, y sin esta restricción no lo cumplía:
+    ``SentenceTransformer`` consulta el Hub aunque el modelo ya esté
+    descargado, así que en un equipo sin red el servidor no llegaba a
+    levantar. Para la primera descarga está :data:`VARIABLE_DESCARGA`, que es
+    una decisión explícita de quien instala y no algo que ocurra a espaldas
+    de quien solo quiere ejecutar el sistema.
+
     Args:
         nombre: Nombre del modelo en el Hub de Hugging Face.
 
     Returns:
         Función que incrusta lotes de textos tal cual se le pasan.
+
+    Raises:
+        RuntimeError: Si el modelo no está en la caché y no se ha autorizado
+            la descarga. El mensaje dice cómo autorizarla, para que la falta
+            del modelo no se confunda con una avería del sistema.
     """
     from sentence_transformers import SentenceTransformer
 
-    modelo = SentenceTransformer(nombre)
+    descargar = os.environ.get(VARIABLE_DESCARGA) == "1"
+    try:
+        modelo = SentenceTransformer(nombre, local_files_only=not descargar)
+    except Exception as error:  # noqa: BLE001 - se reetiqueta y se relanza
+        if descargar:
+            raise
+        raise RuntimeError(
+            f"El modelo de incrustaciones «{nombre}» no está en la caché "
+            f"local y no se ha autorizado descargarlo. Para traerlo una "
+            f"sola vez: {VARIABLE_DESCARGA}=1 con conexión a internet. "
+            f"Después el sistema vuelve a funcionar sin red."
+        ) from error
 
     def incrustar(textos: list[str]) -> list[list[float]]:
         return modelo.encode(textos, show_progress_bar=False).tolist()
