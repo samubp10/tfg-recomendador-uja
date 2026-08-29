@@ -1,0 +1,119 @@
+% !TEX root = ../main.tex
+% Secuencia del troceado de la coleccion (Fase 1).
+%
+% Sustituye al diagrama de secuencia generado con Mermaid, que tenia la misma
+% forma pero mucho mas detalle del que se puede leer en una pagina.
+%
+% CIFRAS COMPROBADAS el 29/08/2026 contra los ficheros reales:
+%   - grados.json trae 837 registros: 12 grado, 528 asignatura, 288 guia,
+%     8 salidas y 1 procedencia.
+%   - las 288 guias se agrupan en 210 unidades por (nombre, contenido); es
+%     decir, 78 copias que no se vuelven a indexar.
+%   - de los 1.499 fragmentos, 1.413 pasan por el troceador y 86 no.
+% No se escriben a mano: salen de leer los dos JSON.
+%
+% Lo que esta figura ensena y el diagrama de flujo no: la DEDUPLICACION (que
+% las guias compartidas no se trocean dos veces) y que los 86 avisos de «sin
+% guia» son el unico mensaje que NO pasa por el troceador. No hay texto que
+% cortar, pero se escriben igual para que esas asignaturas no desaparezcan del
+% corpus.
+%
+% Lo que se pierde respecto al diagrama de flujo, y conviene tenerlo escrito:
+% la condicion de que un fragmento corto solo se fusiona con su vecino SI LA
+% UNION SIGUE CABIENDO en 900. Aqui queda dentro del mensaje que el troceador
+% se manda a si mismo. Esta en la prosa del apartado y en el ADR-0001.
+%
+% El orden de la figura es una simplificacion honesta: en el codigo la
+% composicion de los listados y su troceado ocurren dentro de la misma llamada,
+% no en dos fases separadas. Una secuencia abstrae eso a proposito.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      actor/.style={nodoDiag, text width=3.4cm, minimum height=1.4cm, font=\small},
+      actorFin/.style={actor, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
+      vida/.style={draw=diagNodoBorde, densely dashed, opacity=0.7},
+      barra/.style={draw=diagNodoBorde, fill=diagNodo, line width=0.4pt},
+      msg/.style={-{Latex[length=2.2mm]}, thick},
+      ret/.style={msg, densely dashed},
+      msgFin/.style={-{Latex[length=2.2mm]}, very thick, draw=diagFocoBorde},
+      rot/.style={font=\footnotesize, inner sep=2pt, fill=white},
+      marco/.style={draw=diagNodoBorde, fill=diagNodo, opacity=0.35},
+      pestana/.style={draw=diagNodoBorde, fill=white, font=\scriptsize,
+        inner sep=3pt, anchor=north west},
+      ]
+
+      % ── Los cinco participantes ────────────────────────────────────────────
+      \node[actor]    (a1) at (0,-0.7)    {\textbf{El fragmentador}\\{\scriptsize \texttt{chunker.py}}};
+      \node[actor]    (a2) at (3.8,-0.7)  {\textbf{La colección}\\{\scriptsize \texttt{grados.json}}};
+      \node[actor]    (a3) at (7.6,-0.7)  {\textbf{El agrupador}\\{\scriptsize deduplicación}};
+      \node[actor]    (a4) at (11.4,-0.7) {\textbf{El troceador}\\{\scriptsize 900 duro · 200 blando}};
+      \node[actorFin] (a5) at (15.2,-0.7) {\textbf{Lo que se indexa}\\{\scriptsize \texttt{chunks.json} · 1.499}};
+
+      % ── Líneas de vida ─────────────────────────────────────────────────────
+      \foreach \x in {0, 3.8, 7.6, 11.4, 15.2}{
+        \draw[vida] (\x,-1.4) -- (\x,-16.2);
+      }
+
+      % ── El marco del bucle, al fondo para no tapar nada ────────────────────
+      \begin{scope}[on background layer]
+        \fill[marco] (-1.1,-9.2) rectangle (13.6,-13.8);
+        \draw[draw=diagNodoBorde] (-1.1,-9.2) rectangle (13.6,-13.8);
+      \end{scope}
+      \node[pestana] at (-1.1,-9.2) {\textbf{BUCLE}};
+      % La guarda lleva relleno blanco: si no, las líneas de vida la atraviesan.
+      \node[font=\footnotesize, fill=white, inner sep=2pt, anchor=north west]
+      at (-0.9,-9.95)
+      {[por cada unidad: 210 guías, 8 salidas y los listados compuestos]};
+
+      % ── Barras de actividad ────────────────────────────────────────────────
+      % Cada una marca el tramo en el que ese participante tiene el control.
+      \foreach \x/\arriba/\abajo in {%
+        0/-2.3/-16.0, 3.8/-2.4/-3.2, 7.6/-4.4/-6.6, 11.4/-10.9/-13.2, 15.2/-14.8/-15.7}{
+        \draw[barra] (\x-0.09,\arriba) rectangle (\x+0.09,\abajo);
+      }
+
+      % ── Los mensajes, en el orden en que ocurren ───────────────────────────
+      \draw[msg] (0.09,-2.4) -- node[rot]{lee 837 registros} (3.71,-2.4);
+      \draw[ret] (3.71,-3.2) -- node[rot]{la colección} (0.09,-3.2);
+
+      \draw[msg] (0.09,-4.4) -- node[rot]{las 288 guías} (7.51,-4.4);
+      % Autollamada: el rótulo va ENCIMA del lazo y no a su derecha, porque a
+      % la derecha se salía del marco del bucle o pisaba la línea de al lado.
+      \node[rot, anchor=south] at (8.15,-5.25) {agrupa por (nombre, contenido)};
+      \draw[msg] (7.69,-5.4) -- (8.6,-5.4) -- (8.6,-6.1) -- (7.69,-6.1);
+      \draw[ret] (7.51,-6.6) -- node[rot]{210 unidades: 78 copias que no se repiten} (0.09,-6.6);
+
+      % Anclado por su esquina y no centrado: centrado sobre el lazo, un rótulo
+      % de este largo se sale de la figura por la izquierda.
+      \node[rot, anchor=south west] at (1.2,-7.65) {compone los listados: plan, catálogo, ficha y mención};
+      \draw[msg] (0.09,-7.8) -- (1.0,-7.8) -- (1.0,-8.5) -- (0.09,-8.5);
+
+      \draw[msg] (0.09,-10.9) -- node[rot]{encabezado + texto} (11.31,-10.9);
+      % Hacia la izquierda: centrado se salía del marco del bucle por la derecha.
+      \node[rot, anchor=south east] at (12.4,-11.75) {corta, empaqueta y fusiona lo corto};
+      \draw[msg] (11.49,-11.9) -- (12.4,-11.9) -- (12.4,-12.6) -- (11.49,-12.6);
+      \draw[ret] (11.31,-13.2) -- node[rot]{fragmentos numerados} (0.09,-13.2);
+
+      % ── Lo que se escribe, y lo que se escribe sin pasar por el troceador ──
+      \draw[msgFin] (0.09,-14.8) -- node[rot]{1.413 fragmentos} (15.11,-14.8);
+      \draw[msg] (0.09,-15.6) -- node[rot]{86 avisos de «sin guía»} (15.11,-15.6);
+
+      % ── Lo que el esquema por sí solo no dice ──────────────────────────────
+      \node[font=\footnotesize, anchor=north, text width=13cm, align=center]
+      at (7.6,-16.8)
+      {Los 86 avisos de «sin guía» son el único mensaje que no pasa por el
+        troceador: no hay texto que cortar. Se escriben igual para que esas
+        asignaturas no desaparezcan del corpus, que es lo que ocurriría si se
+        descartaran en silencio.};
+    \end{tikzpicture}%
+  }
+  \caption[Secuencia del troceado de la colección]{\textcolor{borrador2}{Secuencia
+      del troceado. El fragmentador lee la colección extraída, manda las guías
+      al agrupador ---que reduce las 288 a 210 unidades, sin volver a indexar
+      el texto que se repite--- y llama al troceador una vez por unidad. La
+      flecha gruesa es lo que se indexa. La última no pasa por el troceador:
+      una asignatura sin guía no tiene texto que cortar, pero deja igualmente
+      su fragmento. Fuente: Elaboración propia.}}
+  \label{fig:secuencia_chunking}
+\end{figure}
