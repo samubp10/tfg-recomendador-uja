@@ -778,3 +778,71 @@ def test_una_vineta_que_encabeza_una_sublista_no_es_una_asignatura() -> None:
 
     assert corregida == encabezado
     assert avisos == []
+
+
+# Las dos reglas de abajo se descubrieron al reejecutar el banco del sistema, y
+# cada una tapa un agujero que la otra deja abierto. Los dos casos son reales.
+
+
+def test_una_unidad_compartida_no_puede_suministrar_el_dato() -> None:
+    """`Simulación de flujos industriales` se imparte en cuatro titulaciones.
+
+    Es de **cuarto** curso en el Grado en Ingeniería Mecánica y de **quinto**
+    en los dobles grados, pero el troceador escribe una sola frase «Se imparte
+    en...» por unidad. Imponer el curso que tocó escribir convertiría una
+    respuesta correcta sobre un doble grado en una incorrecta: el mismo fallo
+    que este módulo viene a evitar, cometido del revés.
+    """
+    compartida = (
+        "«Simulación de flujos industriales», asignatura obligatoria de 6 ECTS "
+        "impartida en 4 titulaciones: Grado en Ingeniería Mecánica; Doble "
+        "Grado en Ingeniería Electrónica Industrial y Mecánica. Se imparte en "
+        "el primer cuatrimestre de cuarto curso."
+    )
+
+    assert atributos_del_contexto([compartida]) == {}
+
+    # Y por tanto una respuesta que diga «quinto» sobre el doble grado no se
+    # toca, que es justo lo que hay que conseguir.
+    dicho = "**Simulación de flujos industriales** se da en el cuarto curso."
+    assert corregir_atributos(dicho, atributos_del_contexto([compartida])) == (
+        dicho,
+        [],
+    )
+
+
+def test_pero_si_puede_contradecir_a_una_unidad_propia() -> None:
+    """Dos asignaturas distintas pueden llamarse igual.
+
+    Hay una «Electrónica digital» de 9 ECTS en Electrónica Industrial y otra de
+    6 en Informática y en IAyC. Descartando las unidades compartidas sin más,
+    sobrevive la de 9 y el corrector reescribe a 9 los 6 correctos: trece veces
+    sobre las respuestas reales del registro. El nombre a solas no identifica
+    una asignatura, que es la misma lección que la clave de deduplicación.
+    """
+    propia = (
+        "«Electrónica digital», asignatura obligatoria de 9 ECTS del Grado en "
+        "Ingeniería Electrónica Industrial. Se imparte en el primer "
+        "cuatrimestre de tercer curso."
+    )
+    compartida = (
+        "«Electrónica digital», asignatura de formación básica de 6 ECTS "
+        "impartida en 2 titulaciones: Grado en Ingeniería Informática; Grado "
+        "en Inteligencia Artificial y Ciberseguridad. Se imparte en el segundo "
+        "cuatrimestre de primer curso."
+    )
+
+    # Sola, la propia sí valdría.
+    assert "electronica digital" in atributos_del_contexto([propia])
+    # Con la compartida delante, ya no: el contexto no habla de una sola cosa.
+    assert atributos_del_contexto([propia, compartida]) == {}
+
+
+def test_un_encabezado_sin_ningun_dato_del_plan_no_aporta_nada() -> None:
+    # `_encabezado_sin_metadatos` del troceador escribe esto cuando la guía no
+    # tiene asignatura asociada: no hay ECTS, ni curso, ni cuatrimestre. Anotar
+    # un registro vacío lo haría chocar con el bueno de otro fragmento de la
+    # misma unidad y la descartaría sin motivo.
+    sin_datos = "«Una guía suelta», guía docente del Grado en Ingeniería Informática."
+
+    assert atributos_del_contexto([sin_datos]) == {}
