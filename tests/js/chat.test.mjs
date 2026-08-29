@@ -813,6 +813,123 @@ test("el pie ofrece las fuentes y el botón abre el cuadro agrupado", async () =
   assert.ok(html.includes("Guía docente"), html);
 });
 
+test("la fuente enlaza a su página oficial, y sin ella va sin enlace", async () => {
+  /*
+    El cuadro decía de dónde salía cada cosa pero no dejaba llegar hasta ella:
+    para comprobar un dato había que buscarlo a mano en la web de la Escuela.
+    Las 81 asignaturas sin guía publicada no tienen a dónde apuntar y van sin
+    enlace, que es lo correcto: fabricar uno mandaría a una página inexistente
+    para aparentar que todo está respaldado.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      {
+        fuentes: [
+          {
+            nombre: "Álgebra",
+            titulacion: "G. Informática",
+            origen: "Guía docente",
+            url: "https://uvirtual.ujaen.es/pub/es/ficha/13011009",
+          },
+          {
+            nombre: "Estadística",
+            titulacion: "G. Informática",
+            origen: "Asignatura sin guía publicada",
+            url: "",
+          },
+        ],
+      },
+      { parte: "Ahí van." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Qué se da en primero?");
+  ultimaRespuesta(m).pie.hijos.at(-1).disparar("click");
+  const html = m.el("fuentes-lista").innerHTML;
+
+  assert.ok(html.includes('href="https://uvirtual.ujaen.es/pub/es/ficha/13011009"'), html);
+  // Sin `noopener`, la página que se abre puede manipular a la que la abrió.
+  assert.ok(html.includes('rel="noopener noreferrer"'), html);
+  // La que no tiene guía aparece, pero como texto: ni <a> ni href vacío.
+  assert.ok(html.includes("Estadística"), html);
+  assert.equal((html.match(/<a /g) ?? []).length, 1, html);
+});
+
+test("una dirección que no es web no llega a ser enlace", async () => {
+  // Las direcciones vienen del dataset, que se extrae de la web de la EPSJ por
+  // su `href` real: son datos de fuera. Un `javascript:` en un `href` se
+  // ejecuta al pulsarlo, así que se comprueba el esquema en vez de confiar en
+  // que el dataset venga limpio. Sin enlace la unidad se sigue viendo.
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      {
+        fuentes: [
+          {
+            nombre: "Álgebra",
+            titulacion: "G. Informática",
+            origen: "Guía docente",
+            url: '" onmouseover="alert(1)',
+          },
+          {
+            nombre: "Cálculo",
+            titulacion: "G. Informática",
+            origen: "Guía docente",
+            url: "javascript:alert(1)",
+          },
+        ],
+      },
+      { parte: "Ya está." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Y esto?");
+  ultimaRespuesta(m).pie.hijos.at(-1).disparar("click");
+  const html = m.el("fuentes-lista").innerHTML;
+
+  assert.equal((html.match(/<a /g) ?? []).length, 0, html);
+  assert.ok(!html.includes("onmouseover"), html);
+  assert.ok(!html.includes("javascript:"), html);
+  // Y las dos unidades se siguen viendo, solo que sin enlace.
+  assert.ok(html.includes("Álgebra") && html.includes("Cálculo"), html);
+});
+
+test("una URL válida con comillas se escapa dentro del atributo", async () => {
+  // `escapar` se apoya en `textContent`, que escapa lo que hace falta para un
+  // nodo de texto pero deja pasar las comillas. Dentro de un atributo, una
+  // comilla lo cierra y lo que venga detrás se lee como marcado.
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      {
+        fuentes: [
+          {
+            nombre: "Álgebra",
+            titulacion: "G. Informática",
+            origen: "Guía docente",
+            url: 'https://eps.ujaen.es/a?b="&x=1',
+          },
+        ],
+      },
+      { parte: "Ya está." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Y esto?");
+  ultimaRespuesta(m).pie.hijos.at(-1).disparar("click");
+  const html = m.el("fuentes-lista").innerHTML;
+
+  assert.equal((html.match(/<a /g) ?? []).length, 1, html);
+  assert.ok(html.includes("&quot;"), html);
+});
+
 test("sin fuentes no se ofrece el botón", async () => {
   const m = montar();
   await reposar();
