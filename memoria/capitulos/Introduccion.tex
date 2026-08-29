@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter{INTRODUCCIÓN}
 \label{cap:introduccion}
 
@@ -67,20 +68,32 @@ Para garantizar la viabilidad, el rigor científico y la completitud del proyect
 Por lo tanto, se persigue fundamentalmente cumplir con las obligaciones académicas de la realización de un Trabajo Fin de Grado aunque, de manera secundaria, sí se pretende que este pueda servir de ejemplo de una solución posible e interesante que los centros universitarios podrían implementar.
 
 \subsection{Delimitación del dominio de datos}
+
 El ámbito de conocimiento del sistema se restringe de forma exclusiva a la oferta académica de la Escuela Politécnica Superior de Jaén (EPSJ). Esto engloba la totalidad de sus grados simples y dobles grados oficiales. El sistema no abarcará la oferta de másteres o títulos propios de la EPSJ, así como tampoco el de las titulaciones, oficiales o no, del resto de facultades y escuelas de la Universidad de Jaén (UJA), si bien la arquitectura de retroalimentación de datos se ha diseñado de forma modular para ser fácilmente escalable a otros centros en trabajos futuros.
 
 Dentro de esta delimitación, se excluirá además del \gl{corpus} la modalidad en extinción de una titulación cuando coexista con un plan de estudios vigente que la sustituye, como pasa con la titulación de Ingeniería Geomática y Topográfica, en la que un estudiante preuniversitario no puede matricularse en un plan que ya no admite nuevo alumnado, por lo que incluirlo entre las recomendaciones del sistema induciría a error.
 
-\textcolor{borrador2}{Delimitar el dominio obliga a decir también qué ocurre
-  cuando la pregunta cae fuera de él, porque un estudiante no tiene por qué
-  saber dónde está esa frontera y va a cruzarla: preguntará por una carrera de
-  otra facultad, por otra universidad o por algo que no es académico. El sistema
-  debe reconocer esos casos y decirlo, nunca improvisar una respuesta, y ese
-  comportamiento se recoge como requisito de usuario en el
-  Capítulo~\ref{cap:objetivos}. Es la contrapartida necesaria de la
-  restricción anterior: un sistema acotado que no sepa avisar de su propio
-  límite es más peligroso que uno sin acotar, porque responde con la misma
-  seguridad dentro que fuera.}
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-85). Casi toda la tarjeta está hecha ya: RU-06 existe en
+  la Tabla~\ref{tab:requisitos_usuario} y RF-07 lo traduce en la
+  Tabla~\ref{tab:requisitos_funcionales}, trazado a OE4. Lo único que faltaba era que
+  el alcance del Capítulo~\ref{cap:introduccion} lo dijera, y ese es el párrafo de
+  abajo.
+  \item Cuando lo reescribas, cuida una cosa: aquí se declara \emph{qué} hace el
+  sistema fuera de su dominio. \emph{Cómo} lo consigue es del
+  Capítulo~\ref{cap:materialesymetodos}, y \emph{cuánto} acierta, del
+  Capítulo~\ref{cap:resultados}. Si este párrafo empieza a hablar de umbrales, se ha
+  ido de capítulo.
+\end{borrador}
+
+\textcolor{borrador2}{Esta delimitación no solo dice de qué habla el sistema: dice
+  también qué hace cuando le preguntan otra cosa. Ante una pregunta ajena a la oferta
+  de la Escuela, el asistente avisa de que queda fuera de su ámbito en lugar de
+  improvisar una respuesta. No es una recomendación de estilo sino un requisito, RU-06,
+  y se sostiene sobre tres barreras independientes descritas en el
+  Capítulo~\ref{cap:materialesymetodos}; ninguna de ellas es una instrucción al modelo,
+  porque lo que el sistema no puede permitirse no se le pide, se le impide.}
+
 
 \subsection{Público objetivo y profundidad de la información}
 El sistema está diseñado para orientar a estudiantes preuniversitarios (Educación Secundaria, Bachillerato y Formación Profesional) que se encuentran en fase de búsqueda y decisión sobre su futura carrera universitaria. Por este motivo, la extracción de datos de las \glr{guías docentes}{guía docente} se ha acotado a:
