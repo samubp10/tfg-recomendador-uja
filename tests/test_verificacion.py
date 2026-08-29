@@ -8,7 +8,13 @@ en que fallan de verdad los modelos.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from tfg_uja.verificacion import (
+    Atributos,
+    atributos_del_contexto,
+    corregir_atributos,
     cotejar_listado,
     elementos_de_lista,
     nucleo,
@@ -16,6 +22,8 @@ from tfg_uja.verificacion import (
     titulaciones_inventadas,
     titulaciones_nombradas,
 )
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 CATALOGO = [
     "Grado en Ingeniería Informática",
@@ -546,3 +554,295 @@ def test_elementos_en_prosa_sin_ninguna_mayuscula_se_dejan_enteros():
         "se cursan álgebra",
         "y física aplicada",
     ]
+
+
+# ------------------------------------------- los atributos de plan (IT-118)
+#
+# El defecto que da origen a todo esto es real y esta fechado. Preguntado por
+# Topografia el 29/08/2026, el sistema contesto:
+#
+#     **Fotogrametria y teledeteccion III (6 ECTS):** Se imparte en el segundo
+#     cuatrimestre.
+#
+# y el fragmento que se le habia entregado decia, con esas palabras, «Se
+# imparte en el primer cuatrimestre de tercer curso». La asignatura existia,
+# los creditos eran correctos y las tres barreras de dominio la dejaron pasar,
+# porque comprueban identidades y no afirmaciones.
+#
+# El porque no es que el modelo se inventara un dato de la nada: Fotogrametria
+# III tiene UN fragmento (no hay guia publicada) frente a los siete de I y los
+# seis de II, y el de II dice literalmente «segundo cuatrimestre». Se lo presto
+# el hermano.
+
+
+def _contexto_real(nombre_parcial: str) -> list[str]:
+    """Textos reales del corpus, no cadenas escritas para la ocasion."""
+    chunks = json.loads(
+        (FIXTURES / "chunks_atributos_real.json").read_text(encoding="utf-8")
+    )
+    return [c["texto"] for c in chunks if nombre_parcial in c["nombre"]]
+
+
+def test_el_contexto_se_lee_con_la_plantilla_del_troceador() -> None:
+    # El encabezado lo redacta `chunker`, no la fuente, asi que se puede leer
+    # sin ambiguedad. Si alguien cambia esa plantilla, esta prueba lo dice
+    # antes de que la correccion deje de encontrar nada y falle en silencio.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    assert atributos["fotogrametria y teledeteccion iii"] == Atributos(
+        cuatrimestre=1, curso=3, ects="6"
+    )
+    assert atributos["fotogrametria y teledeteccion ii"] == Atributos(
+        cuatrimestre=2, curso=2, ects="6"
+    )
+
+
+def test_regresion_el_cuatrimestre_prestado_por_la_asignatura_hermana() -> None:
+    # La respuesta literal del 29/08/2026, contra el contexto literal que se le
+    # dio. Es el caso que justifica el modulo entero.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    corregida, avisos = corregir_atributos(
+        "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
+        "segundo cuatrimestre.",
+        atributos,
+    )
+
+    assert "primer cuatrimestre" in corregida
+    assert "segundo cuatrimestre" not in corregida
+    assert len(avisos) == 1
+    assert "primer cuatrimestre" in avisos[0]
+
+
+def test_una_respuesta_correcta_no_se_toca() -> None:
+    # Lo que mas caro sale de un corrector es que corrija de mas: reescribir
+    # una respuesta buena es peor que dejar pasar una mala, porque destruye
+    # informacion que era cierta.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    buena = (
+        "**Fotogrametría y teledetección II** se imparte en el segundo "
+        "cuatrimestre de segundo curso y son 6 ECTS."
+    )
+
+    corregida, avisos = corregir_atributos(buena, atributos)
+
+    assert corregida == buena
+    assert avisos == []
+
+
+def test_un_segmento_con_dos_asignaturas_se_deja_intacto() -> None:
+    # El defecto nace de confundir asignaturas de nombre casi igual. Atribuir a
+    # ciegas un atributo cuando la frase nombra dos seria cometerlo del reves,
+    # asi que ante la duda no se corrige nada.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    ambigua = (
+        "Tanto **Fotogrametría y teledetección II** como **Fotogrametría y "
+        "teledetección III** se imparten en el primer cuatrimestre."
+    )
+
+    corregida, avisos = corregir_atributos(ambigua, atributos)
+
+    assert corregida == ambigua
+    assert avisos == []
+
+
+def test_se_corrigen_los_tres_atributos_a_la_vez() -> None:
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    corregida, avisos = corregir_atributos(
+        'La asignatura "Fotogrametría y teledetección III" es obligatoria, de '
+        "9 ECTS y se imparte en el primer cuatrimestre de segundo curso.",
+        atributos,
+    )
+
+    assert "6 ECTS" in corregida
+    assert "tercer curso" in corregida
+    assert "primer cuatrimestre" in corregida  # este ya estaba bien
+    assert len(avisos) == 2
+
+
+def test_lo_que_el_contexto_no_dice_no_se_corrige() -> None:
+    # Fotogrametria de objeto cercano es optativa y la fuente no le publica
+    # curso. Decision 9 del proyecto: lo que falta se refleja, no se imputa.
+    # Un corrector que rellenara el hueco estaria inventando.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    assert atributos["fotogrametria de objeto cercano"].curso is None
+
+    dicho = "**Fotogrametría de objeto cercano** se imparte en el cuarto curso."
+    corregida, avisos = corregir_atributos(dicho, atributos)
+
+    assert corregida == dicho
+    assert avisos == []
+
+
+def test_un_contexto_que_se_contradice_no_corrige_a_nadie() -> None:
+    # Si dos fragmentos de la misma unidad dijeran cosas distintas, no hay
+    # nada con lo que corregir: el contexto no seria una autoridad. Se
+    # descarta esa asignatura en vez de elegir uno de los dos al azar.
+    atributos = atributos_del_contexto(
+        [
+            "«Una asignatura», asignatura obligatoria de 6 ECTS del Grado. "
+            "Se imparte en el primer cuatrimestre de primer curso.",
+            "«Una asignatura», asignatura obligatoria de 6 ECTS del Grado. "
+            "Se imparte en el segundo cuatrimestre de primer curso.",
+        ]
+    )
+
+    assert "una asignatura" not in atributos
+
+
+def test_sin_contexto_util_el_texto_sale_como_entro() -> None:
+    texto = "Se imparte en el segundo cuatrimestre."
+    assert corregir_atributos(texto, {}) == (texto, [])
+
+
+def test_las_asignaturas_sin_curso_publicado_conservan_su_cuatrimestre() -> None:
+    # El troceador escribe «el segundo cuatrimestre, sin curso asignado en el
+    # plan» cuando la fuente publica uno y no el otro. Hay que leer el
+    # cuatrimestre igual, o media coleccion se quedaria sin comprobar.
+    atributos = atributos_del_contexto(
+        [
+            "«Optativa suelta», asignatura optativa de 6 ECTS del Grado. "
+            "Se imparte en el segundo cuatrimestre, sin curso asignado en "
+            "el plan."
+        ]
+    )
+
+    assert atributos["optativa suelta"] == Atributos(
+        cuatrimestre=2, curso=None, ects="6"
+    )
+
+
+def test_lo_que_no_es_un_encabezado_de_asignatura_se_ignora() -> None:
+    # El contexto de un turno trae de todo: salidas profesionales, planes de
+    # estudios, catálogo. Solo los encabezados de asignatura enuncian el plan,
+    # y son los únicos que empiezan por el nombre entre comillas angulares.
+    salidas = (
+        "Salidas profesionales del Doble Grado en Ingeniería Eléctrica y "
+        "Mecánica: la doble titulación se imparte en el primer cuatrimestre "
+        "de primer curso, dice esta frase tramposa a propósito."
+    )
+
+    assert atributos_del_contexto([salidas]) == {}
+
+
+def test_una_asignatura_con_curso_y_sin_cuatrimestre() -> None:
+    # No hay ninguna hoy en el corpus, pero `chunker._situacion_en_el_plan`
+    # escribe esta forma cuando la fuente publica el curso y no el otro dato.
+    # Si algún día la EPSJ publica así ---y ya ha cambiado tres veces este
+    # verano--- el curso tiene que seguir comprobándose.
+    atributos = atributos_del_contexto(
+        [
+            "«Trabajo fin de grado», asignatura de TFG de 12 ECTS del Grado. "
+            "Se imparte en el cuarto curso."
+        ]
+    )
+
+    assert atributos["trabajo fin de grado"] == Atributos(
+        cuatrimestre=None, curso=4, ects="12"
+    )
+
+    corregida, avisos = corregir_atributos(
+        "**Trabajo fin de grado** se hace en el tercer curso.", atributos
+    )
+    assert "cuarto curso" in corregida
+    assert len(avisos) == 1
+
+
+def test_la_asignatura_escrita_como_vineta_pelada_tambien_cuenta() -> None:
+    """Es la forma más común, y al principio no se reconocía.
+
+    Medido sobre las 29 respuestas del registro que afirman curso, cuatrimestre
+    o ECTS: reconociendo solo la negrita y las comillas, 4 tenían una
+    afirmación comprobable; añadiendo la viñeta, 25.
+    """
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    corregida, avisos = corregir_atributos(
+        "*   Fotogrametría y teledetección III (6 ECTS) — segundo cuatrimestre",
+        atributos,
+    )
+
+    assert "primer cuatrimestre" in corregida
+    assert len(avisos) == 1
+
+
+def test_una_vineta_que_encabeza_una_sublista_no_es_una_asignatura() -> None:
+    # «* Primer curso:» introduce las asignaturas de debajo. Tomarlo por una
+    # asignatura ya produjo una invención en la comprobación de listados, y
+    # aquí haría que un rótulo arrastrase los atributos de otra cosa.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    encabezado = "*   **Segundo curso:**"
+    corregida, avisos = corregir_atributos(encabezado, atributos)
+
+    assert corregida == encabezado
+    assert avisos == []
+
+
+# Las dos reglas de abajo se descubrieron al reejecutar el banco del sistema, y
+# cada una tapa un agujero que la otra deja abierto. Los dos casos son reales.
+
+
+def test_una_unidad_compartida_no_puede_suministrar_el_dato() -> None:
+    """`Simulación de flujos industriales` se imparte en cuatro titulaciones.
+
+    Es de **cuarto** curso en el Grado en Ingeniería Mecánica y de **quinto**
+    en los dobles grados, pero el troceador escribe una sola frase «Se imparte
+    en...» por unidad. Imponer el curso que tocó escribir convertiría una
+    respuesta correcta sobre un doble grado en una incorrecta: el mismo fallo
+    que este módulo viene a evitar, cometido del revés.
+    """
+    compartida = (
+        "«Simulación de flujos industriales», asignatura obligatoria de 6 ECTS "
+        "impartida en 4 titulaciones: Grado en Ingeniería Mecánica; Doble "
+        "Grado en Ingeniería Electrónica Industrial y Mecánica. Se imparte en "
+        "el primer cuatrimestre de cuarto curso."
+    )
+
+    assert atributos_del_contexto([compartida]) == {}
+
+    # Y por tanto una respuesta que diga «quinto» sobre el doble grado no se
+    # toca, que es justo lo que hay que conseguir.
+    dicho = "**Simulación de flujos industriales** se da en el cuarto curso."
+    assert corregir_atributos(dicho, atributos_del_contexto([compartida])) == (
+        dicho,
+        [],
+    )
+
+
+def test_pero_si_puede_contradecir_a_una_unidad_propia() -> None:
+    """Dos asignaturas distintas pueden llamarse igual.
+
+    Hay una «Electrónica digital» de 9 ECTS en Electrónica Industrial y otra de
+    6 en Informática y en IAyC. Descartando las unidades compartidas sin más,
+    sobrevive la de 9 y el corrector reescribe a 9 los 6 correctos: trece veces
+    sobre las respuestas reales del registro. El nombre a solas no identifica
+    una asignatura, que es la misma lección que la clave de deduplicación.
+    """
+    propia = (
+        "«Electrónica digital», asignatura obligatoria de 9 ECTS del Grado en "
+        "Ingeniería Electrónica Industrial. Se imparte en el primer "
+        "cuatrimestre de tercer curso."
+    )
+    compartida = (
+        "«Electrónica digital», asignatura de formación básica de 6 ECTS "
+        "impartida en 2 titulaciones: Grado en Ingeniería Informática; Grado "
+        "en Inteligencia Artificial y Ciberseguridad. Se imparte en el segundo "
+        "cuatrimestre de primer curso."
+    )
+
+    # Sola, la propia sí valdría.
+    assert "electronica digital" in atributos_del_contexto([propia])
+    # Con la compartida delante, ya no: el contexto no habla de una sola cosa.
+    assert atributos_del_contexto([propia, compartida]) == {}
+
+
+def test_un_encabezado_sin_ningun_dato_del_plan_no_aporta_nada() -> None:
+    # `_encabezado_sin_metadatos` del troceador escribe esto cuando la guía no
+    # tiene asignatura asociada: no hay ECTS, ni curso, ni cuatrimestre. Anotar
+    # un registro vacío lo haría chocar con el bueno de otro fragmento de la
+    # misma unidad y la descartaría sin motivo.
+    sin_datos = "«Una guía suelta», guía docente del Grado en Ingeniería Informática."
+
+    assert atributos_del_contexto([sin_datos]) == {}

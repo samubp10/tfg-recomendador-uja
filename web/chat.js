@@ -22,6 +22,9 @@
 /** Direccion del punto de entrada que implementa IT-44. */
 const RUTA_CHAT = "/api/chat";
 
+/** Saludo de arranque. Ruta aparte porque esta NO anota nada. */
+const RUTA_SALUDO = "/api/saludo";
+
 /** Segundos tras los cuales la espera explica por que tarda tanto. */
 const SEGUNDOS_PARA_EXPLICAR = 12;
 
@@ -282,13 +285,66 @@ function pintarSugerencias(lista) {
 // ------------------------------------------------- las fuentes de la respuesta
 
 /**
+ * Escapa un valor para meterlo DENTRO de un atributo HTML.
+ *
+ * `escapar` no sirve aqui: se apoya en `textContent`, que escapa lo que hace
+ * falta para un nodo de texto pero deja pasar las comillas. Dentro de un
+ * atributo entrecomillado, una comilla cierra el atributo y lo que venga
+ * detras se lee como marcado.
+ *
+ * @param {string} valor
+ * @returns {string}
+ */
+function escaparAtributo(valor) {
+  return escapar(valor).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+/**
+ * Si una direccion se puede poner en un `href` sin riesgo.
+ *
+ * Solo `http` y `https`. Las direcciones vienen del dataset, que se extrae de
+ * la web de la EPSJ por su `href` real: son datos de fuera, y la fuente ya ha
+ * servido URL mal formadas (guias con el sufijo duplicado). Un `javascript:`
+ * en un `href` se ejecuta al pulsarlo, asi que se comprueba el esquema en vez
+ * de confiar en que el dataset venga limpio.
+ *
+ * @param {string | undefined} url
+ * @returns {boolean}
+ */
+function esDireccionWeb(url) {
+  return typeof url === "string" && /^https?:\/\//i.test(url);
+}
+
+/**
+ * Nombre de la unidad, enlazado a su pagina oficial si la EPSJ la publica.
+ *
+ * Las 81 asignaturas sin guia publicada no tienen a donde apuntar, y entonces
+ * el nombre va sin enlace. Inventarle uno seria mandar a alguien a una pagina
+ * que no existe para aparentar que todo esta respaldado.
+ *
+ * `rel="noopener noreferrer"` va con `target="_blank"`: sin `noopener` la
+ * pagina que se abre puede manipular a la que la abrio.
+ *
+ * @param {{nombre: string, url?: string}} unidad
+ * @returns {string} HTML ya escapado.
+ */
+function nombreDeLaFuente(unidad) {
+  const nombre = escapar(unidad.nombre);
+  if (!esDireccionWeb(unidad.url)) return nombre;
+  return (
+    `<a class="fuentes__enlace" href="${escaparAtributo(unidad.url)}"` +
+    ` target="_blank" rel="noopener noreferrer">${nombre}</a>`
+  );
+}
+
+/**
  * Enseña de qué unidades de la colección salió una respuesta.
  *
  * Va en un cuadro y no debajo de cada respuesta porque el recuperador llega a
  * traer veinte fragmentos, y veinte líneas de procedencia esconden la respuesta
  * que se ha pedido.
  *
- * @param {{nombre: string, titulacion: string, origen: string}[]} lista
+ * @param {{nombre: string, titulacion: string, origen: string, url?: string}[]} lista
  */
 function abrirFuentes(lista) {
   listaFuentes.innerHTML = agruparFuentes(lista)
@@ -300,7 +356,7 @@ function abrirFuentes(lista) {
         unidades
           .map(
             (u) =>
-              `<li>${escapar(u.nombre)}` +
+              `<li>${nombreDeLaFuente(u)}` +
               `<span class="fuentes__origen">${escapar(u.origen)}</span></li>`
           )
           .join("") +
@@ -360,16 +416,14 @@ function ponerBotonDeFuentes(pie, lista) {
  * Manda la consulta y va pintando la respuesta segun llega.
  *
  * @param {string} pregunta Lo que se pregunta.
- * @param {boolean} silenciosa Si es true no se pinta la pregunta: se usa para
- *   el saludo de arranque, que la persona no ha escrito.
  * @returns {Promise<void>}
  */
-async function preguntar(pregunta, silenciosa = false) {
+async function preguntar(pregunta) {
   if (ocupado || !pregunta.trim()) return;
   ocupado = true;
   bloquear(true);
 
-  if (!silenciosa) pintarPregunta(pregunta.trim());
+  pintarPregunta(pregunta.trim());
   const { fila, burbuja, cuerpo, pie } = abrirRespuesta();
   const espera = contarLaEspera(cuerpo);
   const inicio = Date.now();
@@ -472,14 +526,7 @@ async function preguntar(pregunta, silenciosa = false) {
     // palabra «servidor de inferencia», que es vocabulario de dentro.
     console.error("La consulta ha fallado:", fallo);
 
-    if (silenciosa) {
-      // El saludo de arranque no lo ha pedido nadie. Si falla, se retira la
-      // fila y no se dice nada: con la red caida se pintaba un error nada mas
-      // abrir la pagina y otro al preguntar, dos mensajes identicos para una
-      // sola accion de la persona. La peticion de sugerencias ya fallaba en
-      // silencio; esta hace ahora lo mismo.
-      fila.remove();
-    } else if (fallo.name === "AbortError") {
+    if (fallo.name === "AbortError") {
       cuerpo.innerHTML = formatear("Consulta cancelada.");
       pie.innerHTML = `<span>${horaActual()}</span>`;
       // Se devuelve la pregunta al cuadro para poder corregirla en vez de
@@ -586,12 +633,41 @@ sugerencias.addEventListener("click", (suceso) => {
   if (boton) preguntar(boton.textContent.trim());
 });
 
+/**
+ * Pinta el saludo con el que arranca la conversacion.
+ *
+ * Se le pide al servidor, que es donde vive el texto: escribirlo aqui daria
+ * dos copias que pueden separarse. Pero se pide por `/api/saludo` y no como
+ * una consulta normal, porque el servidor anota en el registro todo lo que
+ * entra por `/api/chat`: cada apertura de la pagina metia un turno con la
+ * palabra «Hola» que nadie habia escrito, y eso inflaba cualquier recuento
+ * que se hiciera despues sobre el registro.
+ *
+ * Si falla no se pinta nada y no se avisa. Es deliberado: nadie ha pedido
+ * este saludo, asi que un error suyo no es un error de la persona, y la
+ * conversacion funciona igual escribiendo la primera pregunta.
+ *
+ * @returns {Promise<void>}
+ */
+async function saludar() {
+  let texto;
+  try {
+    const respuesta = await fetch(RUTA_SALUDO);
+    if (!respuesta.ok) return;
+    texto = (await respuesta.json()).respuesta;
+  } catch {
+    return;
+  }
+  const { burbuja, cuerpo } = abrirRespuesta();
+  cuerpo.innerHTML = formatear(texto);
+  burbuja.removeAttribute("aria-busy");
+  bajarDelTodo();
+}
+
 // Al arrancar el cuadro esta vacio, asi que el envio nace apagado.
 actualizarEnviar();
 
-// El saludo se le pide al servidor en vez de escribirlo aqui. Vuelve en
-// decimas de segundo porque es una respuesta fija que no llega al modelo.
-preguntar("Hola", true);
+saludar();
 
 cerrarFuentes.addEventListener("click", () => cuadroFuentes.close());
 
