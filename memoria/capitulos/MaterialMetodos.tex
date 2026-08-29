@@ -355,6 +355,8 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
 
+{\color{borrador2}\input{diagramas/DiagramaArquitecturaPipelineAlternativo.tex}}
+
 \begin{borrador}
   \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
   \item Rehacer la figura
@@ -366,6 +368,8 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
 \input{diagramas/DiagramaModeloDatos.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaModeloDatosAlternativo.tex}}
 
 \begin{borrador}
   \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
@@ -491,6 +495,8 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
   \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{\textcolor{borrador2}{Diagrama de secuencia del \textit{scraping}. Recoge las cuatro bifurcaciones del recorrido: titulación vigente frente a titulación en extinción, asignatura con guía publicada frente a sin ella, guía con contenido frente a guía publicada vacía, y grado simple frente a doble grado.} Fuente: Elaboración propia.}
   \label{fig:secuencia_scraping}
 \end{figure}
+
+{\color{borrador2}\input{diagramas/DiagramaScrapingAlternativo.tex}}
 
 \subsection{Extracción de las guías docentes}
 
@@ -730,6 +736,8 @@ mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
   \label{fig:secuencia_chunking}
 \end{figure}
 
+{\color{borrador2}\input{diagramas/DiagramaChunkingAlternativo.tex}}
+
 La Figura~\ref{fig:estructura_chunk} desglosa esa estructura sobre un fragmento real de la colección. La distinción
 importante es la de la izquierda frente a la derecha: solo el campo \texttt{texto} (encabezado más cuerpo) se convierte en
 vector, mientras que el resto de campos acompañan al fragmento sin intervenir en la búsqueda, y sirven para saber de dónde
@@ -874,6 +882,8 @@ Este contexto conversacional se mantiene por un conjunto de reglas deterministas
 
 \input{diagramas/DiagramaConversacion.tex}
 
+{\color{borrador2}\input{diagramas/DiagramaConversacionAlternativo.tex}}
+
 
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
@@ -946,6 +956,8 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
 
 \input{diagramas/DiagramaSecuenciaRAG.tex}
 
+{\color{borrador2}\input{diagramas/DiagramaSecuenciaRAGAlternativo.tex}}
+
 \subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación adaptativa y filtrado de fragmentos}
 
 El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, haciendo que si solo se necesita unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite.
@@ -974,6 +986,8 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 \end{itemize}
 
 \input{diagramas/DiagramaPromptDespiezado.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaPromptAlternativo.tex}}
 
 \textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
   las mismas siempre; las dos últimas cambian con cada una, y por eso en la
@@ -1035,6 +1049,8 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
+
+{\color{borrador2}\input{diagramas/DiagramaArquitecturaWebAlternativo.tex}}
 
 
 
