@@ -1,0 +1,58 @@
+% !TEX root = ../main.tex
+% Caracterizacion del corpus (IT-58).
+%
+% Las cifras las imprime `scripts/verificadores/check_chunks.py` sobre
+% `data/chunks.json`. Se copiaron de su salida del 29/08/2026, NO se estimaron.
+% Si se regenera el corpus hay que volver a ejecutarlo y rehacer esta tabla: no
+% ajustar un numero a mano, porque una diferencia puede ser un cambio legitimo
+% de la fuente o una perdida silenciosa.
+\begin{table}[htbp]
+  \centering
+  \caption{\textcolor{borrador2}{Caracterización de la colección documental
+      sobre la que se han hecho los experimentos de la Fase~2.}}
+  \label{tab:caracterizacion_corpus}
+  \small
+  \begin{tabular}{@{}l r@{}}
+    \toprule
+    \textbf{Magnitud}                              & \textbf{Valor}           \\
+    \midrule
+    Titulaciones                                   & 12                       \\
+    \quad grados simples                           & 7                        \\
+    \quad dobles grados                            & 5                        \\
+    \midrule
+    Asignaturas                                    & 528                      \\
+    \quad con guía docente                         & 442                      \\
+    \quad sin contenido de guía                    & 86                       \\
+    \quad no ofertadas este curso                  & 10                       \\
+    \quad sin créditos publicados                  & 1                        \\
+    \midrule
+    Guías docentes                                 & 288                      \\
+    Bloques de salidas profesionales               & 8                        \\
+    \midrule
+    Fragmentos                                     & 1\,499                   \\
+    Unidades documentales                          & 398                      \\
+    \quad compartidas entre titulaciones           & 81                       \\
+    \midrule
+    Tamaño mínimo de fragmento (caracteres)        & 96                       \\
+    Tamaño mediano                                 & 836                      \\
+    Percentil 90                                   & 895                      \\
+    Tamaño máximo                                  & 900                      \\
+    Fragmentos por debajo del mínimo de 200        & 12 (0,80\,\%)            \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textcolor{borrador2}{\textbf{Notas:} \textbf{Unidad documental}: la guía de
+      una asignatura, el bloque de salidas de una titulación o la ficha de una
+      asignatura sin guía; una misma unidad puede producir varios fragmentos y
+      pertenecer a varias titulaciones. \textbf{Sin contenido de guía}: 81
+      asignaturas cuya guía la Escuela no ha publicado y 5 que la publican con
+      la plantilla vacía. \textbf{El mínimo de 200 caracteres es una
+      preferencia, no una restricción}: de los 12 fragmentos que no lo alcanzan,
+      2 son colas que no cabían junto a su vecino sin pasarse del máximo y 10
+      son unidades enteras más cortas que el mínimo. Procedencia: extracción del
+      16/08/2026, troceado del 19/08/2026, curso 2026-27; las tres viajan dentro
+      de los propios ficheros. Cifras de \texttt{check\_chunks.py}.}
+  \end{minipage}
+\end{table}
