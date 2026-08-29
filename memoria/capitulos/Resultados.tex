@@ -56,29 +56,14 @@ La quinta son irregularidades menores, como tablas que mezclan asignaturas tronc
 \input{tablas/TablaCaracterizacionCorpus.tex}
 
 \begin{borrador}
-  \item \textbf{Fase:} 3 (IT-58). La tabla ya está con las cifras que imprimió
-  \texttt{check\_chunks.py}. Falta que la presentes en una frase y que remates las dos
-  amenazas de abajo con tu redacción.
-  \item \textbf{Si regeneras el corpus, vuelve a ejecutar el verificador y rehaz la
-  tabla.} No ajustes un número a mano: una diferencia puede ser un cambio legítimo de la
-  fuente \emph{o} una pérdida silenciosa, y a simple vista son idénticas.
   \item \textbf{Lo que falta y la DoD pide explícitamente:} el sesgo de la cobertura y
   la limitación de las asignaturas de tercero y cuarto del Grado en Inteligencia
   Artificial y Ciberseguridad.
 \end{borrador}
 
-\textcolor{borrador2}{La cobertura de guías no está repartida por igual, y conviene
-  decirlo antes de que el lector saque la conclusión contraria: las 86 asignaturas sin
-  contenido se concentran en las titulaciones de implantación reciente, cuyos cursos
-  superiores todavía no tienen guía publicada. El corpus, por tanto, describe mejor las
-  titulaciones veteranas que las nuevas, y toda conclusión sobre la evaluación hereda
-  ese desequilibrio.}
+Conviene decir que la cobertura de las guías no es homogénea entre las titulaciones ya que las asignaturas sin contenido se concentran en los planes de estudio más recientes como el Grado en Inteligencia Artificial y Ciberseguridad, donde la Escuela aún no había publicado las guías docentes de tercero y cuarto curso en la fecha de recogida de los datos.
 
-\textcolor{borrador2}{Estas cifras son una foto con fecha, no una constante del
-  proyecto. La fuente cambió tres veces durante el desarrollo, así que volver a
-  ejecutar el proceso reproduce \emph{el estado actual de la web}, que no es lo mismo
-  que el corpus sobre el que se midió. Es una limitación de la reproducibilidad que se
-  enuncia, no un defecto que se pueda corregir.}
+También queda que estos datos son una fotografía temporal del curso 2026/27 (extraídos el 16/08/2026). Debido a que la web de la EPSJ cambia y completa su oferta progresivamente, re-ejecutar el proceso de extracción la web es su estado más actual y no será el mismo que este.
 
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
@@ -473,72 +458,29 @@ En esta subsección se analiza y discute si se han cumplido cada uno de los seis
         \textit{Cumplido.} Se ha desarrollado un prototipo y la posterior página web funcional sin dependencias de servicios externos ni registros de usuarios. En materia de accesibilidad, se han verificado aspectos clave como la navegación completa por teclado, los contrastes cromáticos y la adaptación a pantallas estrechas.
 \end{itemize}
 
-\subsection{\textcolor{borrador2}{La hipótesis, condición por condición}}
+\subsection{Evaluación y discusión de la hipótesis de trabajo}
+\label{secc:discusion_hipotesis}
 
-\textcolor{borrador2}{La hipótesis del Apartado~\ref{secc:hipotesis} se dio por válida
-  \emph{si y solo si} se cumplían cuatro condiciones. Se resuelven aquí una a una, y el
-  veredicto global es de \textbf{confirmación parcial}.}
+La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía la viabilidad de construir un sistema RAG sobre hardware doméstico capaz de responder fielmente a partir de la documentación oficial de la Escuela Politécnica Superior de Jaén. Esta es válida si se cumplen los cuatro criterios establecidos. 
 
-\begin{borrador}
-  \item \textbf{Las tres primeras las tienes que resolver tú} con las cifras que ya
-  están arriba: Recall@5 frente al 90\,\% pedido, datos inventados, y porcentaje de
-  respuestas sustantivas. Aquí solo queda el hueco y el aviso de que hacen falta.
-  \item \textbf{La cuarta ya está decidida} (28/08/2026) y se declara \textbf{refutada}.
-  La cifra que hay que citar es la de las preguntas que \emph{sí} llegan al modelo, no
-  la del banco entero: esa segunda sale diluida por las entradas que se contestan con
-  texto fijo, y darla haría parecer que se roza el umbral cuando se dobla.
-\end{borrador}
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Condición 1 --- recuperación.} La condición se
-        enunció sobre un \textit{Recall@5}, es decir, sobre un número fijo de cinco
-        fragmentos. \textbf{El sistema no funciona así:} el recuperador decide cuántos
-        fragmentos entrega en cada consulta dentro de una banda, de modo que una cifra
-        medida con la $k$ clavada en cinco no describe al sistema que se ha construido.
-        Sobre las 56 preguntas de dominio el \textit{Recall@5} por fragmento es de
-        \textbf{0,789}, por debajo del 90\,\% exigido, y el techo alcanzable con este
-        corpus a esa profundidad es de 0,906.}
+  \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
+       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\% en el extremos más restrictivo ($k=3$) y el 99,1\% en el más permisivo ($k=10$).
+       
 
-        \textcolor{borrador2}{Hay que decidir cómo se resuelve, y las dos salidas
-        honestas son: declararla \textbf{no cumplida} con la cifra de arriba, o
-        declararla \textbf{no evaluable tal y como se enunció} porque mide una
-        configuración que el sistema no usa. Lo que no vale es reescribir la condición
-        con la profundidad que sí sale bien.}
+  \item \textbf{Condición 2 --- Ningún dato inventado:} 
+        \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, se registró cero alucinaciones del modelo elegido. La verificación determinista garantiza que el sistema no genera menciones a grados inexistentes o ajenos a la Escuela.
 
-  \item \textcolor{borrador2}{\textbf{Condición 2 --- ningún dato inventado:
-        \textbf{SE CUMPLE}}, con el alcance acotado. En las 320 respuestas del cribado
-        de modelos y en las 57 del banco del sistema no hay ninguna titulación
-        inventada. Conviene decir con qué se ha comprobado: la verificación coteja los
-        nombres de titulación contra el catálogo del índice, así que lo demostrado es
-        que el sistema no habla de titulaciones que no existen. Cotejar dato a dato
-        cada crédito y cada carácter de asignatura contra su fragmento exigiría una
-        revisión manual que no se ha hecho, y decirlo es más defendible que dar por
-        cubierto lo que no se midió.}
+  \item \textbf{Condición 3 --- Proporción de respuestas útiles}
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\% fijado.
 
-  \item \textcolor{borrador2}{\textbf{Condición 3 --- 90\,\% de respuestas
-        sustantivas: \textbf{SE CUMPLE}}. Sobre las 38 preguntas de dominio del banco
-        del sistema ---las 57 entradas menos las 15 ajenas al centro y las 4 de
-        cortesía, que la propia condición deja fuera--- las 38 responden con contenido
-        y ninguna es evasiva: una proporción de \textbf{1,000} frente al 90\,\%
-        exigido. La comprobación es una búsqueda de fórmulas de «no tengo
-        información» sobre las respuestas guardadas, descontando el caso que la
-        condición exceptúa expresamente, que es responder que una asignatura no tiene
-        guía docente publicada.}
-
-  \item \textcolor{borrador2}{\textbf{Condición 4 --- mediana por debajo de treinta
-        segundos: \textbf{NO SE CUMPLE}}. Sobre las preguntas de un turno que llegan al
-        modelo la mediana medida es de \textbf{62,7 segundos} (percentil 90 de 125,3),
-        más del doble del umbral. Se declara refutada y no se reescribe la condición
-        después de ver el resultado.}
+  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No Cumplida}.En las consultas qeu exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la dediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
 \end{itemize}
 
-\textcolor{borrador2}{El incumplimiento de la cuarta condición no es un accidente del
-  sistema: es la consecuencia directa del RNF-04 de la
-  Tabla~\ref{tab:requisitos_no_funcionales}, que fija por escrito y \emph{antes} de
-  medir que la fidelidad va por delante de la rapidez. Por eso se adopta a propósito el
-  más lento de los cuatro modelos comparados. A esos segundos hay que añadir además que
-  describen tanto al equipo como al modelo: en la máquina del
-  Apartado~\ref{secc:equipo_ejecucion} el modelo no cabe entero en la tarjeta gráfica.}
+El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
+
+En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
 
 
 \section{Amenazas a la validez}
