@@ -14,11 +14,39 @@
   los desgloses; y las lecturas erróneas que conviene desactivar antes de que las haga otro.
 \end{borrador}
 
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- este capítulo es el que más turquesa tiene
+  de toda la memoria: el 59\,\%.} Es decir, más de la mitad de lo que dice el
+  capítulo que sostiene la parte científica del trabajo lo he escrito yo y está
+  pendiente de que lo hagas tuyo. Aquí está el reparto, de más a menos, para
+  que decidas por dónde empezar y no por dónde caiga:
+  \begin{enumerate}
+    \item \textbf{Comparativa de modelos de generación} (5.5) --- unos 5.400
+    caracteres, la sección entera. Es la más grande.
+    \item \textbf{El recorrido completo} (dentro de 5.6) --- unos 4.900.
+    \item \textbf{La recuperación} (dentro de 5.6) --- unos 3.100.
+    \item \textbf{Qué haría falta para levantarlas} (dentro de 5.9) --- unos 2.850.
+    \item \textbf{Comparación con los asistentes revisados} (5.8) --- unos 1.900.
+    \item Las cuatro validez (constructo, interna, externa, de conclusión) ---
+    entre 580 y 1.660 cada una.
+    \item \textbf{Trazabilidad con la propuesta original} (5.8) --- unos 1.000.
+  \end{enumerate}
+  \item \textbf{Lo que no está en turquesa y por tanto ya es tuyo:} la
+  colección construida (5.1), la fragmentación (5.2), las incrustaciones (5.3),
+  la base vectorial (5.4), el cumplimiento de objetivos y la hipótesis. Esas
+  seis no hay que tocarlas.
+  \item \textbf{Un atajo que quizá te sirva:} las secciones 5.3 y 5.4 ya están
+  escritas por ti y tratan lo mismo que 5.5 ---una comparativa con umbrales
+  fijados de antemano---. Si te atascas con 5.5, mira cómo resolviste esas dos
+  y sigue el mismo patrón; no hace falta inventar una forma nueva.
+\end{borrador}
+
 \textcolor{borrador2}{Este capítulo recoge lo que el sistema produce y lo que se ha medido
   sobre él. Se organiza siguiendo los objetivos específicos enunciados en el
   Capítulo~\ref{cap:objetivos}: la colección documental que se construye, la fragmentación
   con la que se parte, el modelo de incrustaciones y la base de datos vectorial con los que
-  se representa y se indexa, la evaluación del sistema completo y su validación con usuarios.
+  se representa y se indexa, y la evaluación del sistema completo con el alcance que tiene,
+  que no llega a incluir pruebas con usuarios.
   La última sección discute qué responde cada resultado a cada objetivo y con qué alcance.}
 
 \textcolor{borrador2}{Todas las cifras proceden de la ejecución de los verificadores y de los
@@ -31,7 +59,7 @@
 
 La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
 Sobre esta recopilación de información, el fragmentador produce 1.499 fragmentos repartidos en 398 unidades, de las cuales 81 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.296 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 a 900 caracteres, con una mediana de 836 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
@@ -402,8 +430,44 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Validación con usuarios}
 
-\begin{borrador}      
-  \item \textbf{Fase:} 4 Validación de usuarios reales (los tengo que buscar aún y no sé si será posible)
+\textcolor{borrador2}{\textbf{No se ha realizado validación con usuarios
+    reales.} Reunir una muestra de estudiantes preuniversitarios exige
+  coordinarse con un centro de secundaria y disponer de un calendario que el de
+  este trabajo no permitía, y el esfuerzo de las fases anteriores se destinó a
+  construir y medir el sistema. Se enuncia aquí, en la sección que le
+  corresponde, y no se disimula omitiendo el apartado del índice.}
+
+\textcolor{borrador2}{Conviene ser preciso sobre qué queda sin comprobar,
+  porque la evaluación de los apartados anteriores no es un sustituto. El banco
+  del sistema comprueba que la respuesta sea correcta y esté apoyada en la
+  documentación oficial, y eso sigue siendo cierto sin usuarios. Lo que no
+  comprueba es nada de lo que solo aparece cuando pregunta una persona: si un
+  estudiante de secundaria formula sus dudas con el vocabulario con el que están
+  escritas las preguntas del banco, si entiende la respuesta que recibe, si le
+  resulta útil para decidir, y si la espera del modelo ---cuya mediana se mide
+  en el Apartado~\ref{secc:resultados_sistema}--- le hace abandonar antes de
+  leerla. Ninguna de esas cuatro cosas se puede deducir de las métricas de este
+  capítulo.}
+
+\textcolor{borrador2}{Por eso la ausencia se declara como limitación en el
+  Apartado~\ref{secc:limitaciones} y la validación se sitúa como el paso previo
+  a cualquier puesta en producción en el
+  Apartado~\ref{secc:trabajo_futuro}: un sistema pensado para orientar a
+  estudiantes no debería abrirse a estudiantes sin haberlo probado antes con
+  ellos.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 4 (IT-48, IT-50, IT-51 --- las tres pasan a
+  \emph{won't}). Decisión del 31/08/2026: no se hace la validación con
+  usuarios, y así se escribe.
+  \item \textbf{Esta sección tiene que quedarse}, aunque sea para decir que no
+  se hizo. El capítulo la anuncia en su párrafo de entrada y el índice la
+  lista; quitarla obligaría a tocar las dos cosas y dejaría al lector sin saber
+  si se olvidó o se decidió.
+  \item \textbf{Lo que la hace defendible es el segundo párrafo}, no el primero:
+  enumera las cuatro cosas concretas que quedan sin comprobar. Una limitación
+  declarada en abstracto ---«no se ha validado con usuarios»--- suena a excusa;
+  una que dice exactamente qué no se sabe, no.
 \end{borrador}
 
 \section[Discusión]{\textcolor{borrador2}{Discusión}}
@@ -507,14 +571,14 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
 
 \begin{itemize}
   \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
-       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\% en el extremos más restrictivo ($k=3$) y el 99,1\% en el más permisivo ($k=10$).
+       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\,\% en el extremos más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$).
        
 
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
         \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, se registró cero alucinaciones del modelo elegido. La verificación determinista garantiza que el sistema no genera menciones a grados inexistentes o ajenos a la Escuela.
 
   \item \textbf{Condición 3 --- Proporción de respuestas útiles}
-        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\% fijado.
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\,\% fijado.
 
   \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No Cumplida}.En las consultas qeu exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la dediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
 \end{itemize}
@@ -522,6 +586,18 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
 
 En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
+
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-58). \textbf{Dos erratas en la Condición 4}, que es
+  prosa tuya y por eso no la he tocado: «las consultas \emph{qeu} exigen» y «la
+  \emph{dediana} de tiempo de respuesta». Están en la única condición que se
+  declara incumplida, que es justo la que el tribunal va a leer con lupa.
+  \item \textbf{El veredicto de la Condición 4 aguanta} con la amenaza
+  reescrita en el Apartado~\ref{secc:amenazas_validez}: la mediana se mide sobre
+  el equipo doméstico que impone el RNF-01, que es donde el sistema tiene que
+  responder. La limitación es que la cifra no se puede llevar a otra máquina, no
+  que aquí no valga.
+\end{borrador}
 
 
 \subsection[\textcolor{borrador2}{Comparación con los asistentes revisados}]{\textcolor{borrador2}{Comparación con los asistentes revisados}}
@@ -623,13 +699,27 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   de distancia tiene su límite.}
 
 \textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
-  que se desarrolla el proyecto, no en un equipo dedicado, y con el autor
-  trabajando durante las mediciones. El mismo modelo sobre la misma muestra ha
+  que se desarrolla el proyecto, bajo un sistema operativo de propósito general
+  y con la sesión del usuario abierta. El mismo modelo sobre la misma muestra ha
   dado medianas muy distintas según la carga, y ninguna de las cifras de
-  latencia de este capítulo es extrapolable a otro equipo. La limitación no
-  contamina ninguna conclusión porque, como se justifica en el
-  Apartado~\ref{secc:fase2_llm}, el tiempo no interviene en la elección del
-  modelo.}
+  latencia de este capítulo es extrapolable a otro equipo.}
+
+\textcolor{borrador2}{Esta amenaza \textbf{no es corregible dentro de este
+    trabajo}, y conviene decir por qué antes de que se lea como un descuido. El
+  equipo es el ordenador personal del autor y no hay ninguno dedicado
+  disponible: dejarlo una noche sin nadie delante no produce un entorno
+  controlado, sino uno algo menos cargado, porque los servicios propios del
+  sistema siguen ejecutándose y no se pueden retirar sin dejar de ser el equipo
+  sobre el que el sistema está pensado para funcionar. Medir en condiciones de
+  laboratorio exigiría hardware del que este trabajo no dispone, y no una noche
+  más de cómputo.}
+
+\textcolor{borrador2}{Lo que sí acota es el alcance de la cifra, no su validez
+  aquí. La elección del modelo no la usa, como se justifica en el
+  Apartado~\ref{secc:fase2_llm}, y la condición temporal de la hipótesis se
+  declara incumplida sobre el equipo doméstico que el propio requisito
+  \textbf{RNF-01} impone, que es donde el sistema tiene que responder. Lo que no
+  puede afirmarse a partir de estos números es cuánto tardaría en otra máquina.}
 
 \subsection{\textcolor{borrador2}{Validez externa}}
 
@@ -669,11 +759,11 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
 \subsection{\textcolor{borrador2}{Qué haría falta para levantarlas}}
 \label{secc:levantar_amenazas}
 
-\textcolor{borrador2}{Ninguna de las cuatro se declara como un límite
-  insalvable, y conviene decir de cada una qué haría falta para quitarla de en
-  medio. Las que se podían corregir con lo que hay aquí no están en esta
-  sección: se corrigieron, y una limitación corregida no es una limitación del
-  trabajo.}
+\textcolor{borrador2}{De cada una conviene decir qué haría falta para quitarla
+  de en medio, y si eso está o no al alcance de este trabajo. Las que se podían
+  corregir con lo que hay aquí no aparecen en esta sección: se corrigieron, y
+  una limitación corregida no es una limitación del trabajo. Las que quedan
+  piden datos, equipo o alcance que este trabajo no tiene.}
 
 \textcolor{borrador2}{Para la \textbf{validez de constructo}, lo que separa al
   suelo de pertinencia de un filtro de dominio es que el suelo mide parecido de
@@ -693,8 +783,10 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   conjunto es el coste real, porque las preguntas ajenas no se pueden derivar de
   la colección ---no hay en ella ninguna columna que diga qué es ajeno--- y son
   las únicas del trabajo que hay que redactar una a una. La parte de los tiempos
-  se levanta sola en cuanto se mida en un equipo dedicado y sin nadie
-  trabajando en él.}
+  no se levanta con más mediciones: pide un equipo dedicado, y el único
+  disponible es el ordenador personal sobre el que se ha desarrollado todo.
+  Repetir la tanda en él, con más o menos carga, sigue midiendo la misma
+  máquina.}
 
 \textcolor{borrador2}{Para la \textbf{validez externa} hay dos cosas distintas.
   El sesgo de cobertura no lo puede arreglar este trabajo, porque depende de que
@@ -714,9 +806,25 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   correctas las escribiera alguien distinto de quien escribe el corrector.}
 
 \begin{borrador}
-  \item Fase: 2 (IT-39). Apartado vivo hasta cerrar la memoria: comprobar
-    entonces que ninguna de las cuatro se ha vuelto corregible con lo que haya
-    para entonces.
+  \item \textbf{Fase:} 2 (IT-39). Apartado vivo hasta cerrar la memoria:
+  comprobar entonces que ninguna de las cuatro se ha vuelto corregible con lo
+  que haya para entonces.
+  \item \textbf{Los tiempos pasan a declararse como amenaza no evitable}
+  (decisión del 30/08, cierre de IT-58). Antes decían «se levanta sola en cuanto
+  se mida en un equipo dedicado», que es exactamente lo que el cuarto criterio
+  de la tarjeta prohíbe: una amenaza corregible declarada en vez de corregida.
+  El argumento que la hace no evitable es que el equipo de medida \emph{es} el
+  equipo de destino ---lo impone el RNF-01--- y no hay ninguno dedicado
+  disponible, así que dejarlo libre una noche no da un entorno controlado.
+  \item \textbf{Si el tribunal pregunta, la respuesta es esta:} lo que no se
+  puede afirmar es cuánto tardaría en otra máquina; lo que sí se afirma es que
+  en la máquina sobre la que el sistema debe funcionar la mediana dobla el
+  umbral. Son dos cosas distintas y solo la segunda entra en la hipótesis.
+  \item \textbf{Decisión tuya:} este párrafo está en \emph{validez interna} y
+  tiene una mitad que es de \emph{validez externa} (que no generaliza a otro
+  equipo). Se puede dejar así, porque las dos mitades se leen seguidas, o
+  partirlo. No lo he movido para no reordenar la sección a tres días de la
+  entrega.
 \end{borrador}
 
 

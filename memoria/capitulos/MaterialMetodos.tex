@@ -14,6 +14,25 @@ Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- dónde condensar, si decides condensar.}
+  Este capítulo ocupa \textbf{60 de las 135 páginas} del cuerpo, el 44\,\%,
+  frente a las 24 de Resultados. Solo las secciones 4.1 a 4.3 ---metodología,
+  planificación temporal y priorización--- se llevan \textbf{12 páginas} antes
+  de que el documento hable del sistema. No digo que sobren: un TFG las pide y
+  el tutor pidió expresamente el Gantt y el reparto del \emph{backlog}. Digo
+  que la proporción se ve desde el índice.
+  \item Los tres sitios donde más se puede recortar sin perder nada que se
+  evalúe, por si te hace falta espacio o tiempo: la \emph{estrategia de control
+  de versiones} (unos 3.800 caracteres sobre ramas y convenciones de
+  \emph{commit}, que se defienden igual en la mitad), los \emph{tipos de
+  pruebas} (2.600) y la \emph{estimación por tallas de camiseta} (1.500, que
+  además no vuelve a usarse en ninguna parte del documento).
+  \item \textbf{Antes de recortar nada, léete el apartado~6 de la auditoría en
+  la Introducción:} hay 23 páginas en turquesa por reescribir. Condensar es
+  opcional; eso no.
+\end{borrador}
+
 
 
 \subsection{Gestión del trabajo y priorización}
@@ -237,6 +256,13 @@ proyecto:
   \item \textbf{\textit{Won't have} (descartado):} queda explícitamente fuera
         del alcance, como el despliegue en producción o la extensión al resto de
         facultades de la Universidad de Jaén.
+        \textcolor{borrador2}{La validación con usuarios reales acabó también en
+        esta categoría, y es el caso que mejor ilustra para qué sirve: no se
+        descartó al planificar sino durante el desarrollo, cuando quedó claro
+        que reunir la muestra exigía un calendario del que no se disponía. La
+        decisión queda registrada en la tarjeta y declarada como limitación en
+        el Capítulo~\ref{cap:conclusiones}, en lugar de dejar la tarea abierta
+        hasta el final.}
 \end{itemize}
 
 Esta clasificación tiene una consecuencia práctica: ante un retraso, se sacrifica
@@ -314,11 +340,25 @@ Los cinco tipos de historias son los siguientes:
 
 \section{Tecnologías y herramientas}
 
-\begin{borrador}                                                                                                                                                    
-  \item Falta el párrafo que abre la
-  sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.
-  \item Aquí también encaja la tabla herramienta--papel que ya está apuntada en
-  un comentario del código fuente, si al final se hace.
+\textcolor{borrador2}{Antes de describir cómo se construye el sistema conviene
+  fijar las dos condiciones que enmarcan todo lo que viene después. La primera
+  es de enfoque: qué estrategia se sigue para que un modelo de lenguaje
+  responda con información oficial del centro, y por qué se descarta la
+  alternativa más evidente, que es reentrenarlo. La segunda es material: sobre
+  qué máquina se ejecuta el sistema, porque de la memoria disponible en ella
+  dependen la mayoría de las elecciones de los apartados siguientes.}
+
+\textcolor{borrador2}{Las dos se enuncian aquí y no en el apartado donde se
+  usan porque ninguna es una decisión aislada: la primera gobierna la
+  arquitectura entera y la segunda reaparece como restricción en la elección
+  del modelo de incrustaciones, en la de la base vectorial y en la del modelo
+  generativo.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 5 (IT-82). Párrafo de entrada de la sección, que antes
+  saltaba del título 4.4 al 4.4.1 sin decir nada. Reescríbelo con tus palabras.
+  \item \textbf{Está escrito para que empiece por la decisión}, que es lo que
+  pide IT-82: primero qué se decide aquí, después el porqué en cada subapartado.
 \end{borrador}
 
 \subsection{RAG frente al ajuste fino}
@@ -365,17 +405,26 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
-\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
+\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\,\% al 90\,\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
 
 
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaArquitecturaPipelineAlternativo.tex}}
+
 
 \begin{borrador}
   \item Revisar en Fase 5, pero hay que rehacerla, y evitar explicar cosas que ya se recojan en otros capítulos o en otros apartados ya que puede ser redundante, se podría nombrar cosas y poner enlace a donde se explique con más detenimiento.
-  \item Rehacer la figura
+  \item \textbf{Figura rehecha.} Ya no agrupa por fase de desarrollo sino por
+  cuándo se ejecuta cada cosa: arriba lo que corre una sola vez para dejar el índice
+  construido, abajo lo que corre en cada pregunta. Agrupar por fase mezclaba dos ejes
+  ---cuándo se programó y cuándo se ejecuta--- y dejaba el índice, que es lo único que
+  une las dos mitades, metido dentro de una de ellas.
+  \item \textbf{Consecuencia que hay que mirar:} el párrafo de arriba todavía presenta
+  el sistema recorriendo las fases, y la figura ya no las nombra. O se reescribe ese
+  párrafo con el nuevo corte, o se dice en él que las fases están en la sección de planificación temporal y que la figura enseña otra cosa.
+  \item El pie y los rótulos de la figura los he escrito yo: están en turquesa para
+  que los reescribas.
 \end{borrador}
 
 \section{Diseño de los datos}
@@ -385,11 +434,24 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 
 \input{diagramas/DiagramaModeloDatos.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaModeloDatosAlternativo.tex}}
-
 \begin{borrador}
-  \item Revisar y rehacer el diagrama, hay poco espacio entre las cajas
-  \item La próxima vez hacerla sin turqueda
+  \item \textbf{Figura rehecha.} El espacio entre cajas ya no se da a mano: se
+  encadenan y cada una ocupa lo que ocupan sus campos. Y el cuerpo de la figura va
+  con los colores de siempre; solo el pie está en turquesa, porque lo he escrito yo.
+  \item \textbf{Dos errores de la versión anterior, corregidos.} Dibujaba
+  \emph{cuatro} orígenes de fragmento y hay \emph{siete}: faltaban
+  \texttt{mencion} (24), \texttt{ficha\_titulacion} (12) y \texttt{catalogo} (3),
+  o sea 39 fragmentos que existen en la colección y que la figura negaba. Y la caja
+  de procedencia juntaba en una sola los campos de dos cabeceras distintas: la de
+  \texttt{grados.json} trae dos y la de \texttt{chunks.json} trae cinco, y no son
+  los mismos.
+  \item \textbf{Campos y recuentos comprobados} el 29/08/2026 leyendo los ficheros
+  reales, no copiados de la versión anterior.
+  \item \textbf{Consecuencia que hay que mirar:} el párrafo de arriba dice que la
+  información «converge y se trocea», y ahora la figura enseña que no toda converge
+  igual. De los 1.499 fragmentos, 1.318 llevan texto publicado por la Escuela, 95 los
+  compone el fragmentador contando, y 86 son el aviso de que no hay guía. Ese reparto
+  ya está en la sección de amenazas a la validez; decide si lo adelantas aquí.
 \end{borrador}
 
 \section{Fase 0: construcción de la colección documental}
@@ -485,19 +547,39 @@ Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramient
 
 \begin{borrador}
 \item Hay que revisar este apartado para que tenga más sentido con los otros ADR que están en las otras fases.
+  \item \textbf{AUDITORÍA 30/08 --- y aquí está la parte concreta de esa nota:
+  este apartado es el único que decide algo y no cita su ADR.} El
+  \texttt{ADR-0002} existe, se llama «Scrapy frente a alternativas para la
+  extracción de datos» y está aceptado en \texttt{docs/adr/}, pero la memoria
+  no lo nombra en ninguna parte. Los demás sí: el troceado cita el ADR-0001,
+  las incrustaciones el ADR-0003, la base vectorial el ADR-0004, el modelo
+  generativo el ADR-0005 y la emisión por partes el ADR-0006.
+  \item Se arregla con media frase al final del párrafo de arriba, del mismo
+  estilo que las otras cinco. Es lo que hace que la decisión sea trazable, que
+  es justo lo que el tribunal comprueba.
 \end{borrador}
 
 \subsection{Extracción del catálogo de titulaciones y asignaturas}
 
 
 En la Figura~\ref{fig:secuencia_scraping} se detalla la secuencia de peticiones entre el
-rastreador (\textit{spider}) y la página web, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple.
+rastreador (\textit{spider}) y la página web\sout{, así como las posibles alteraciones que puede tener este flujo dependiendo de si el objeto actual es un doble grado o uno simple}.
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\begin{borrador}                                                                                                                                                    
+\begin{borrador}
   \item Revisar este apartado que ha cambiado en las fases posteriores.
-  \item Hay que simplificar o hacer varios diagramas puesto que no se ve bien de cara al lector del tfg, hay muchos contenidos y todo es muy pequeño, que ocupe una página no es el problema, que se vea mal sí.
+  \item \textbf{Figura rehecha.} Ya no es un diagrama de secuencia ocupando
+  toda la página, sino el recorrido con sus bifurcaciones, y el texto se lee
+  sin acercarse. Es lo que pedían tu nota y la del tutor.
+  \item \textbf{Lo que se ha perdido, dicho claro.} La figura anterior dibujaba
+  \emph{cuatro} bifurcaciones y esta dibuja \emph{dos}. Se quedan fuera «guía
+  con contenido frente a guía publicada vacía» y «grado simple frente a doble
+  grado»: no caben sin volver a la letra pequeña. Si esas dos tienen que
+  aparecer, van en una segunda figura, no en esta.
+  \item \textbf{Por eso está tachada la coletilla del párrafo de arriba}, que
+  anunciaba justo la bifurcación del doble grado. Reescribe la frase con tus
+  palabras y quita el tachado.
 \end{borrador}
 
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
@@ -505,14 +587,7 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 \textcolor{blue}{[sbp] Corregido}
 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[height=0.9\textheight]{imagenes/Diagrama_secuencia_scraping.pdf}
-  \caption[Secuencia del proceso de \textit{scraping} de una guía docente]{\textcolor{borrador2}{Diagrama de secuencia del \textit{scraping}. Recoge las cuatro bifurcaciones del recorrido: titulación vigente frente a titulación en extinción, asignatura con guía publicada frente a sin ella, guía con contenido frente a guía publicada vacía, y grado simple frente a doble grado.} Fuente: Elaboración propia.}
-  \label{fig:secuencia_scraping}
-\end{figure}
-
-{\color{borrador2}\input{diagramas/DiagramaScrapingAlternativo.tex}}
+\input{diagramas/DiagramaScraping.tex}
 
 \subsection{Extracción de las guías docentes}
 
@@ -521,7 +596,7 @@ La extracción de las guías docentes es la etapa donde se concentran las anomal
 En el curso 2026/2027, la Escuela Politécnica Superior de Jaén ofrece la completitud de las guías docentes de las asignaturas en formato PDF, una nueva medida introducida para este curso puesto que anteriormente se servía en formato HTML.
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
-  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
+  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7\,\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
@@ -595,6 +670,14 @@ idénticas solo deja el índice ligeramente más grande.
 
 
 \begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- ojo con la palabra «unidad», que en esta
+  memoria significa dos cosas.} Comprobado hoy contra los ficheros:
+  \textbf{398 unidades} es el corpus entero (210 de guía, 86 de asignatura sin
+  guía, 55 de plan, 24 de mención, 12 de ficha, 8 de salidas y 3 de catálogo),
+  y \textbf{210 unidades} es lo que queda de las 288 guías tras deduplicar,
+  que es la cifra que cita la Figura~\ref{fig:secuencia_chunking}. Las dos son
+  correctas y las dos aparecen; cada vez que se escriba hay que decir cuál de
+  las dos, o parecen contradecirse.
   \item \textbf{Cifras vigentes (16/08/2026, curso 2026-27):} \textbf{1\,499
   fragmentos} en \textbf{398 unidades} (81 compartidas). Tamaños: 96--900
   caracteres, mediana 836, P90 895. Desglose: 1\,296 guía, 86 informativos,
@@ -660,7 +743,7 @@ Para la experimentación se ha usado el conjunto de datos extraídos y 66 pregun
 la aplicación podría querer saber.
 
 Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
-titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por nuestra institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por \sout{nuestra}\textcolor{borrador2}{esta} institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
 
 \input{tablas/TablaConjuntoEvaluacion.tex}
 
@@ -674,7 +757,7 @@ Los datos o corpus se tienen que trocear debido a la ventana de contexto explica
 \subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
+El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\,\% de las guías no caben en un fragmento de 900 caracteres y el 83\,\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
 
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
@@ -742,17 +825,21 @@ mismo procedimiento, y el criterio que decide qué puede componerse y qué no.}
 
 \begin{borrador}
   \item Reescribir si algo está mal, no parchear en un nuevo texto.
+  \item \textbf{Figura rehecha.} Sigue siendo un diagrama de secuencia, pero
+  con la mitad de detalle y el doble de letra. Y con cifras: las \textbf{288
+  guías se quedan en 210 unidades} al deduplicar, 78 copias que no se vuelven a
+  indexar. Comprobado el 29/08/2026 contra los ficheros reales.
+  \item \textbf{Lo que la figura ya no dibuja como paso propio}, y sí está en
+  tu párrafo de arriba: que un fragmento corto solo se fusiona con su vecino
+  \emph{si la unión sigue cabiendo} en 900. Queda dentro del mensaje que el
+  troceador se manda a sí mismo. Si crees que se pierde, va en el pie.
+  \item \textbf{El orden que dibuja es una simplificación:} en el código, los
+  listados se componen y se trocean dentro de la misma llamada, no en dos fases
+  separadas como aparecen aquí. Está anotado en la cabecera del fichero.
 \end{borrador}
 
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{imagenes/Diagrama_secuencia_chunking.pdf}
-  \caption[Secuencia del proceso de troceado y deduplicación]{Diagrama de secuencia del troceado y la deduplicación de la colección, con las ramas de salidas profesionales y de asignaturas sin guía docente. Fuente: Elaboración propia.}
-  \label{fig:secuencia_chunking}
-\end{figure}
-
-{\color{borrador2}\input{diagramas/DiagramaChunkingAlternativo.tex}}
+\input{diagramas/DiagramaChunking.tex}
 
 La Figura~\ref{fig:estructura_chunk} desglosa esa estructura sobre un fragmento real de la colección. La distinción
 importante es la de la izquierda frente a la derecha: solo el campo \texttt{texto} (encabezado más cuerpo) se convierte en
@@ -816,7 +903,7 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 
 \subsubsection[Diseño de la comparación]{Diseño de la comparación}
 
-Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con nuestros datos, es la opción más rápida.
+Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con \sout{nuestros datos}\textcolor{borrador2}{los datos de este trabajo}, es la opción más rápida.
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
@@ -847,11 +934,11 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
 
 De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta, y esto ocurre en cuatro de cada veinte reconstrucciones del índice. A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error es fatal.
 
-Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, no nos podemos fijar en esto para establecer la decisión.
+Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, \sout{no nos podemos fijar}\textcolor{borrador2}{no cabe fijarse} en esto para establecer la decisión.
 
 Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. También ayuda que LanceDB es la opción que menos pesa de las tres.
 
-La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque que vemos este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
+La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque \sout{que vemos este caso}\textcolor{borrador2}{con el que se aborda este caso}, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
 
 \input{diagramas/DiagramaComparativaVectorDB.tex}
@@ -889,11 +976,46 @@ No obstante, la última respuesta del modelo no se descarta por completo, sino q
 Este contexto conversacional se mantiene por un conjunto de reglas deterministas de persistencia y reemplazo. Cuando una nueva pregunta nombra explícitamente una titulación del corpus, el sujeto activo (la titulación actual) se actualiza, mientras que si la consulta omite el grado, se hereda automáticamente el sujeto del turno previo.
 
 
+\textcolor{borrador2}{Las tres formas de resolver una pregunta de seguimiento
+  ---no mirar la conversación, pegar delante la pregunta anterior, o deducir el
+  sujeto y acotar la búsqueda con él--- se han medido sobre las mismas 39
+  conversaciones y el mismo índice, con $K = 20$. Las conversaciones no están
+  escritas a mano: se derivan de la propia colección, de modo que para cada una
+  se sabe por construcción qué unidad debería recuperarse y no hace falta que
+  nadie juzgue el resultado. La Tabla~\ref{tab:conversacion} recoge la
+  comparación.}
+
+\input{tablas/TablaConversacion.tex}
+
+\textcolor{borrador2}{Sin mirar la conversación, el sistema recupera la unidad
+  correcta en el 35,9\,\% de los casos. Pegar delante la pregunta anterior sube
+  esa cifra al 94,9\,\%, pero deja sin resolver el caso en el que la pregunta
+  cambia de titulación: ahí se queda en 0,333, porque arrastra el sujeto viejo.
+  Deducir el sujeto y filtrar con él acierta las 39, y es además la única de las
+  tres que ordena bien lo recuperado, con un MRR de 0,877 frente a 0,498.}
+
 \begin{borrador}
   \item Fase: 2 (IT-106). Falta decir que el estado de la conversación vive hoy
     en el proceso del asistente. Cuando exista la aplicación web habrá que
     sostener que sigue viviendo en el servidor y no en el navegador, y ese
     razonamiento todavía no se puede escribir porque el servidor no existe.
+  \item \textbf{AUDITORÍA 30/08 --- esa nota ya se puede escribir:} el servidor
+  existe desde la Fase~3 y está documentado en la
+  Sección~\ref{secc:fase3_arquitectura}. El estado de la conversación vive en
+  su proceso, no en el navegador, y el motivo es que el sujeto lo decide el
+  modelo en cada turno.
+  \item \textbf{Y el hallazgo gordo de la auditoría:} la tabla y los dos
+  párrafos en turquesa de arriba \textbf{no estaban en la memoria}. La tabla
+  llevaba escrita desde IT-106 en \texttt{tablas/TablaConversacion.tex}, con
+  sus cifras y sus notas, pero nadie le hacía \texttt{\textbackslash input}.
+  Es decir: el apartado contaba en prosa que se descartaron dos alternativas
+  ---«se pensó inicialmente\dots{} sin embargo\dots{} por ello se optó por»---
+  sin enseñar la medida que las descarta, que sí existía. La he traído y he
+  escrito el andamiaje; reescribe los dos párrafos con tus palabras.
+  \item \textbf{Compruébalo antes de darlo por bueno:} las cifras las produce
+  \texttt{scripts/experimentos/experimento\_conversacion.py} sobre el corpus
+  del 16/08/2026. Yo no he vuelto a ejecutarlo, solo he leído la tabla que ya
+  estaba escrita.
 \end{borrador}
 
 \input{diagramas/DiagramaConversacion.tex}
@@ -999,16 +1121,17 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
 
 \input{diagramas/DiagramaPromptDespiezado.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaPromptAlternativo.tex}}
-
-\textcolor{borrador2}{Las dos primeras piezas no dependen de la consulta y son
-  las mismas siempre; las dos últimas cambian con cada una, y por eso en la
-  figura solo esas dos tienen dibujado de dónde salen. La distinción que importa
-  está en la última: de la conversación viajan las \textbf{preguntas} y no las
-  respuestas. Es lo que impide que una respuesta equivocada en un turno se
-  convierta en fuente del siguiente, y es un control y no una recomendación
-  ---lo que no está en el \textit{prompt} no se puede copiar---, que es la misma
-  idea que gobierna el apartado siguiente.}
+\textcolor{borrador2}{El mensaje de sistema viaja en un campo aparte y no se
+  concatena con el resto, de modo que el modelo no lo puede confundir con los
+  datos. De las piezas del mensaje de usuario, las dos primeras no dependen de
+  la consulta y son las mismas siempre; las cuatro últimas cambian con cada una,
+  y por eso en la figura solo tienen dibujado de dónde salen las que no se
+  explican solas. La distinción que importa está en las preguntas anteriores:
+  de la conversación viajan las \textbf{preguntas} y no las respuestas. Es lo
+  que impide que una respuesta equivocada en un turno se convierta en fuente del
+  siguiente, y es un control y no una recomendación ---lo que no está en el
+  \textit{prompt} no se puede copiar---, que es la misma idea que gobierna el
+  apartado siguiente.}
 
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
@@ -1057,12 +1180,28 @@ Cuando esta validación detecta una titulación inexistente, se descarta la resp
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge \sout{la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{la arquitectura por capas: separa qué hace cada una, deja fuera el servidor de inferencia por ser lo único que corre en otro proceso, y sitúa el índice y el resto de ficheros en la capa de persistencia}.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
 
-{\color{borrador2}\input{diagramas/DiagramaArquitecturaWebAlternativo.tex}}
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-72). \textbf{Duplicidad resuelta: esta figura pasa
+  a ser la de capas.} La versión de ocho pasos numerados contaba lo mismo que la
+  Figura~\ref{fig:secuencia_rag} ---las dos respondían a «¿por dónde pasa una
+  pregunta?»---, así que ahora esta dibuja la \emph{estructura} y aquella el
+  \emph{recorrido}. Cada una responde a una pregunta distinta y ya no se pisan.
+  \item \textbf{La coletilla tachada del párrafo de arriba hay que reescribirla.}
+  La original decía que la figura deja fuera el servidor de inferencia y el
+  índice, y esta figura sí los dibuja: el servidor aparte, con trazo
+  discontinuo, y el índice en la capa de persistencia. Pon tus palabras y quita
+  el tachado y el turquesa.
+  \item \textbf{Lo que la figura enseña y conviene que el texto recoja:} al
+  modelo se le llama \emph{dos} veces por turno ---por eso le llegan dos
+  flechas---, una para fijar de qué titulación se habla y otra para redactar. Es
+  la mitad de lo que tarda una respuesta, y engancha con la condición temporal
+  de los objetivos.
+\end{borrador}
 
 
 
@@ -1176,234 +1315,78 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
 
 
-\subsection[\textcolor{borrador2}{El diseño de la página}]{\textcolor{borrador2}{El diseño de la página}}
-\label{secc:fase3_diseno}
+\subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
+\label{secc:fase3_accesibilidad}
 
-\textcolor{borrador2}{El boceto de la Figura~\ref{fig:wireframe} se dibujó al
-  formular los objetivos, antes de que existiera nada del sistema, y conviene
-  cotejarlo con lo que se entrega en la Figura~\ref{fig:app_inicio}. Se mantiene
-  el reparto de la pantalla: la conversación ocupa el centro, las preguntas
-  sugeridas van encima del cuadro de escribir y el cuadro de escribir cierra la
-  página. Cambian tres cosas, y ninguna es un cambio de gusto: las tres salen de
-  probar el sistema y no de dibujarlo.}
+La interfaz se diseñó para cumplir con el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
 
-\textcolor{borrador2}{La primera es que el logotipo sube a una cabecera con el
-  nombre del centro, en lugar de quedarse en medio de la conversación como marca
-  de agua. El motivo es que una marca de agua no dice de quién es la página, y
-  quien llega desde la web de la Escuela tiene que reconocer que sigue en el
-  mismo sitio. La segunda es que la procedencia de la respuesta no cabía debajo
-  de cada mensaje y se recogió en un cuadro aparte
-  (Apartado~\ref{secc:fase3_fuentes}). Y la tercera es que el boceto no tenía
-  dónde poner la espera, porque cuando se dibujó todavía no se sabía que una
-  respuesta iba a tardar más de un minuto (Apartado~\ref{secc:fase3_espera}).}
 
-\textcolor{borrador2}{Hay una cuarta diferencia que no está en la distribución
-  sino en el color, y merece decirse porque es la única decisión de diseño que
-  hubo que deshacer. La primera hoja de estilo llevaba un dorado que no venía de
-  ninguna parte: se había elegido por parecer institucional. La Escuela no tiene
-  dorado en su identidad, así que se retiró. Los colores que quedan son los de la
-  hoja de estilo del propio centro ---el verde \texttt{\#006d38} y su versión
-  oscura, que forman el degradado de la cabecera, y el verde azulado
-  \texttt{\#3c726b} de su portada---, y no una paleta escogida por gusto. La
-  razón tampoco es estética: un asistente que se parece a la institución de la
-  que habla se lee como parte de ella y no como la página de un tercero.}
+\subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
+\label{secc:fase3_interaccion}
 
-\textcolor{borrador2}{Venir de la identidad del centro no basta para dar un
-  color por bueno. El requisito RNF-07 pide accesibilidad, y eso se traduce en
-  contrastes medidos: el texto de la página va de 4,92:1 a 14,83:1 sobre su
-  fondo, por encima del 4,5:1 que exige el nivel AA de las \sig{WCAG}. Un caso
-  obligó a apartarse del gris que traía el diseño. El borde de los controles
-  daba 1,95:1 contra el fondo y el criterio 1.4.11 pide 3,0:1 para el contorno
-  de algo con lo que se interactúa, así que ese gris se oscureció hasta el
-  3,02:1. Es la clase de detalle que no se ve mirando la pantalla y solo aparece
-  al medirlo.}
+El requisito RF-09 sobre trazabilidad pide mostrar junto a las respuestas las fuentes de la colección de las que sale. Esto se ha resuelto con una ventana emergente en lugar de un listado siempre visible para no saturar la interfaz de lectura (Figura~\ref{fig:app_fuentes}).
 
-\textcolor{borrador2}{La tipografía es la del sistema operativo de quien abre la
-  página y no una servida por un tercero. Al principio no era así, y el motivo
-  del cambio es el mismo que ordena todo este apartado: pedir la letra a un
-  servidor externo le manda la dirección de red y el navegador de quien
-  pregunta. No sale de ahí ni una palabra de la conversación, pero el RNF-02
-  sostiene que el sistema funciona entero en local, y una petición a un tercero
-  nada más abrir la página lo desmiente. Es también lo que explica que las
-  capturas de este apartado no lleven la misma letra que la web de la Escuela.}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
+ \caption[Cuadro de fuentes consultadas]{Ventana modal con el listado de fuentes documentales recuperadas del índice para la respuesta activa, agrupadas por titulación. Fuente: Elaboración propia.}
 
-\textcolor{borrador2}{La estructura de la página son cinco piezas y no más: la
-  cabecera con el nombre del centro, la conversación, las preguntas sugeridas,
-  el formulario de escribir y el cuadro de fuentes. Cada una es el elemento de
-  \sig{HTML} que le corresponde ---la conversación es el contenido principal,
-  las sugerencias son navegación y el cuadro de fuentes es un diálogo del propio
-  navegador---, y no una capa neutra con un nombre de clase. Eso no es purismo:
-  quien usa un lector de pantalla recorre la página por esas piezas, de modo que
-  usar el elemento correcto es lo que permite saltar de una a otra sin verlas.
-  El cuadro de fuentes, además, por venir del navegador trae ya resueltos el
-  cierre con la tecla de escape y la devolución del foco al botón que lo abrió,
-  que es trabajo que no hay que escribir ni mantener.}
+  \label{fig:app_fuentes}
+\end{figure}
 
-\textcolor{borrador2}{Dentro de la conversación, la respuesta no se dibuja como
-  una burbuja de mensajería sino como texto corrido con una línea vertical al
-  margen. La diferencia importa porque lo que el sistema devuelve no son
-  mensajes cortos: son listados de asignaturas y descripciones de guías
-  docentes, y una burbuja obliga a leerlos en una columna estrecha dentro de una
-  página que ya es estrecha. El estilo de la respuesta de listado
-  ---Figura~\ref{fig:app_listado}--- sigue la misma idea: los cursos se componen
-  como encabezados y las asignaturas pierden la viñeta, de modo que se lea como
-  un plan de estudios y no como una conversación.}
+Bajo el área de conversación se ofrecen cuatro posibles preguntas sugeridas a modo de atajo por si no sabes qué preguntar. Esta idea surgió de las aplicaciones web de las grandes compañías de la IA, como ChatGPT o Google Gemini que contienen funcionalidades parecidas. El servidor las genera comprobando previamente contra el índice vectorial la existencia de los fragmentos que las respaldan.
 
-\textcolor{borrador2}{Por último, el ancho. Las bandas de color ocupan la
-  ventana entera pero el texto se detiene en una columna de lectura, porque las
-  dos alternativas se veían mal: una aplicación estrecha encogida en medio de
-  una pantalla ancha, o una línea de mil píxeles que no hay quien siga. En un
-  teléfono no queda nada fuera ---la Figura~\ref{fig:app_movil} es la misma
-  pantalla a 390 píxeles---, que es la comprobación que de verdad importa,
-  porque ese es el aparato con el que un preuniversitario va a entrar.}
+El sistema genera 10 plantillas parametrizadas con más de noventa preguntas válidas sobre el corpus. De las cuatro sugerencias mostradas, dos se reservan a la titulación tratada en la conversación actual y dos a otras titulaciones del catálogo. 
 
-\subsection[\textcolor{borrador2}{Qué se enseña además de la respuesta}]{\textcolor{borrador2}{Qué se enseña además de la respuesta}}
-\label{secc:fase3_fuentes}
+Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar que el usuario asuma que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
 
-\textcolor{borrador2}{El requisito RF-09 pide mostrar junto a la respuesta las
-  fuentes de la colección de las que sale. Se resuelve con un enlace en el pie
-  de cada respuesta que abre un cuadro con la lista, y no con una lista siempre
-  desplegada, porque el recuperador llega a entregar veinte fragmentos y veinte
-  líneas de procedencia debajo de cada respuesta esconden la respuesta que se
-  ha pedido.}
+\subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
+\label{secc:fase3_registro}
 
-\textcolor{borrador2}{Lo que se lista son \textbf{unidades y no fragmentos}. Una
-  guía docente larga se trocea en varios, y enumerarlos uno a uno repetiría tres
-  veces la misma línea dando a entender tres respaldos distintos donde hay uno.
-  Se agrupan con la misma identidad que usa el resto del sistema ---el nombre de
-  la unidad junto a las titulaciones en las que se imparte---, porque una guía
-  compartida se imparte en varias y el nombre a solas no la identifica.}
-
-\textcolor{borrador2}{Y hay que decir con precisión qué es esa lista, porque el
-  rótulo obvio sería falso. El sistema sabe qué fragmentos \textbf{le entregó}
-  al modelo; no sabe cuáles usó al redactar. La diferencia no es teórica: una
-  pregunta ajena al dominio ---cómo se cocina un plato--- recupera diecisiete
-  fragmentos y aun así se responde que no hay información sobre eso. Con el
-  rótulo «fuentes de la respuesta», esa negativa vendría acompañada de
-  diecisiete fuentes. Por eso el cuadro se titula «fuentes consultadas» y una
-  nota debajo dice que de ahí salió el contexto que se entregó.}
-
-\subsection[\textcolor{borrador2}{Las preguntas que se sugieren}]{\textcolor{borrador2}{Las preguntas que se sugieren}}
-\label{secc:fase3_sugerencias}
-
-\textcolor{borrador2}{Bajo la conversación se ofrecen cuatro preguntas como
-  atajo. No están escritas en la interfaz ni se le piden al modelo: las compone
-  el servidor preguntándole al índice si existe el fragmento que respalda cada
-  una. Las dos alternativas fallan cada una por su lado. Una lista fija ofrece
-  «¿qué menciones tiene?» en las siete titulaciones que no tienen ninguna, y lo
-  que llega al modelo entonces no es contexto vacío sino contexto de otro
-  asunto. Pedírselas al modelo las inventa, que es justo lo que las tres
-  barreras de la Sección~\ref{secc:fase2_dominio} existen para impedir.}
-
-\textcolor{borrador2}{El banco son diez plantillas y cada una lleva la
-  condición que la respalda. Sobre la colección descrita en este capítulo,
-  las diez juntas pueden formular \textbf{92 preguntas distintas}: la ficha de
-  la titulación existe en las doce, el plan de estudios en once y las menciones
-  solo en cinco. Ese reparto es el motivo de que la comprobación se haga contra
-  el índice en lugar de fiarse de que todas las titulaciones tengan lo mismo.}
-
-\textcolor{borrador2}{De los cuatro huecos, dos se reservan para la titulación
-  de la que se está hablando y \textbf{dos para otras}. La primera versión daba
-  los cuatro a la titulación en curso, y el efecto se vio a la primera prueba:
-  tras nombrar una, las cuatro sugerencias eran suyas y el asistente parecía
-  conocer solo esa. Encerrar en la primera titulación que nombra a quien
-  todavía está decidiendo qué estudiar es lo contrario de lo que este sistema
-  pretende.}
-
-\subsection[\textcolor{borrador2}{La espera y el registro de las sesiones}]{\textcolor{borrador2}{La espera y el registro de las sesiones}}
-\label{secc:fase3_espera}
-
-\textcolor{borrador2}{La emisión por partes de la Sección~\ref{secc:fase3_emision}
-  resuelve el minuto de pantalla en blanco, pero abre otro hueco: entre una
-  frase y la siguiente no hay forma de distinguir «está redactando» de «ya ha
-  terminado». Medido sobre una respuesta real, esos huecos llegan a los
-  \textbf{31 segundos} con texto ya escrito delante, que es tiempo de sobra
-  para darla por acabada y marcharse. La interfaz marca por tanto mientras
-  redacta, y retira la marca al llegar el último aviso del servidor.}
-
-\textcolor{borrador2}{Esa marca no es solo visual, y la razón es el RNF-07: una
-  señal que solo se ve deja fuera a quien usa un lector de pantalla, y una que
-  solo se anuncia deja fuera a todos los demás. Las dos cuelgan del mismo
-  atributo del documento, de modo que no existe la posibilidad de que una se
-  retire y la otra se quede puesta.}
-
-\textcolor{borrador2}{Por último, cada turno que atiende el servidor queda
-  anotado en un registro en bruto, una línea por turno, con la pregunta, la
-  consulta con la que de verdad se buscó, las titulaciones de las que se venía
-  hablando, los fragmentos recuperados con su distancia y el tiempo que tardó.
-  Sirve para analizar después una sesión de pruebas sin volver a ejecutarla, que
-  con respuestas de un minuto no es un detalle menor.}
-
-\textcolor{borrador2}{Dos condiciones lo acotan. La primera es que anotar es una
-  tarea auxiliar y se comporta como tal: si el registro no se puede escribir, se
-  pierde la línea y la respuesta se entrega igual. La segunda es que no se
-  guarda nada que identifique a quien pregunta ---ni dirección de red, ni
-  cabeceras del navegador---, porque el RNF-03 lo prohíbe y un registro de
-  conversaciones es precisamente donde ese dato se colaría sin que nadie lo
-  hubiera decidido.}
-
-\textcolor{borrador2}{El registro distingue además dos situaciones que se
-  confundirían al analizarlo, porque las dos aparecen como cero fragmentos
-  recuperados: que no se buscara nada ---la pregunta era un saludo y se
-  contestó sin llegar al índice--- y que se buscara y el suelo de pertinencia lo
-  descartara todo. No se puede deducir de la respuesta, porque un saludo
-  reconocido y otro que no lo es acaban en el mismo texto de bienvenida y solo
-  el segundo pasa por el índice.}
+Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
 
 \begin{borrador}
-  \item \textbf{Fase:} 3 (IT-46). Las cuatro figuras de abajo son capturas
-  \emph{reales} de la aplicación respondiendo, no maquetas: se escribió en el campo y
-  se envió el formulario, con el índice real y el modelo generativo. Faltan tus pies de
-  figura y el párrafo que las presenta.
-  \item \textbf{Las decisiones de diseño están en el
-  Apartado~\ref{secc:fase3_diseno}}, que es lo que faltaba de la Definición de Hecho:
-  el cotejo con el boceto de los objetivos, de dónde salen los colores y por qué se
-  retiró el dorado, los contrastes medidos, la tipografía del sistema, las cinco
-  piezas de la página y por qué la respuesta no es una burbuja. Todo en turquesa,
-  para que lo reescribas.
-  \item \textbf{Una advertencia sobre estas capturas:} llevan la tipografía del
-  sistema, no la de la web original. Es la corrección de una auditoría: la página ya no
-  pide tipografías a un servidor externo, y eso es lo que sostiene que el sistema
-  funcione entero sin conexión.
+  \item \textbf{AUDITORÍA 30/08 --- las tres capturas que vienen debajo no las
+  presenta nadie.} Las Figuras~\ref{fig:app_inicio}, \ref{fig:app_listado}
+  y~\ref{fig:app_movil} caen aquí seguidas sin que ningún párrafo las anuncie,
+  y el tutor pidió por escrito lo contrario: «no se debe poner una imagen, de
+  ningún tipo, que no aparezca comentada previamente en el texto».
+  \item Fíjate en cómo está resuelta la
+  Figura~\ref{fig:app_fuentes} unas líneas más arriba ---una frase que dice
+  qué requisito resuelve y cómo, y la referencia entre paréntesis---: con tres
+  frases del mismo estilo, una por captura, queda cerrado. Y así de paso este
+  apartado deja de acabar en seco.
+  \item \textbf{Ojo, que esta misma nota engaña al comprobador:} como aquí las
+  tres figuras aparecen citadas, un buscador automático de «figuras sin citar»
+  dice ahora que no hay ninguna. Pero las citas están \emph{dentro de un
+  borrador}, que se va a borrar. Las tres frases hay que escribirlas en el
+  texto de verdad; si no, el problema vuelve el día que retires estas notas.
 \end{borrador}
+
+
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_inicio.png}
-  \caption[\textcolor{borrador2}{Pantalla inicial del asistente}]{\textcolor{borrador2}{Pantalla
-      inicial. El saludo y las preguntas sugeridas no están escritos en el cliente: se
-      le piden al servidor, para que no existan dos listas que puedan
-      desincronizarse. Fuente: Elaboración propia.}}
+\caption[Pantalla inicial de la aplicación web]{Vista inicial del asistente con la cabecera institucional, el mensaje de bienvenida y el bloque de preguntas sugeridas. Fuente: Elaboración propia.}
+
   \label{fig:app_inicio}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_listado.png}
-  \caption[\textcolor{borrador2}{Respuesta de listado}]{\textcolor{borrador2}{Respuesta
-      a la pregunta más frecuente del banco. El rótulo de cada curso se compone como
-      encabezado de sección y las asignaturas pierden la viñeta, de modo que la
-      respuesta se lee como un plan de estudios impreso y no como una lista de chat.
-      Fuente: Elaboración propia.}}
+  \caption[Visualización de asignaturas por curso]{Ejemplo de respuesta del asistente estructurando el plan de estudios de una titulación organizado por cursos académicos. Fuente: Elaboración propia.}
+
   \label{fig:app_listado}
 \end{figure}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.75\textwidth]{imagenes/app_fuentes.png}
-  \caption[\textcolor{borrador2}{Procedencia de la respuesta}]{\textcolor{borrador2}{El
-      cuadro de fuentes, agrupadas por titulación. El rótulo dice «consultadas» a
-      propósito: es lo que se le entregó al modelo, no lo que el modelo llegó a usar.
-      Fuente: Elaboración propia.}}
-  \label{fig:app_fuentes}
-\end{figure}
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.42\textwidth]{imagenes/app_movil.png}
-  \caption[\textcolor{borrador2}{La aplicación en un teléfono}]{\textcolor{borrador2}{La
-      misma pantalla en 390~píxeles de ancho, que es el aparato con el que un
-      estudiante preuniversitario va a entrar. Fuente: Elaboración propia.}}
+  \caption[Adaptabilidad de la interfaz en dispositivos móviles]{Vista de la aplicación web adaptada a pantallas de dispositivos móviles (resolución de 390~píxeles de ancho). Fuente: Elaboración propia.}
+
   \label{fig:app_movil}
 \end{figure}
 

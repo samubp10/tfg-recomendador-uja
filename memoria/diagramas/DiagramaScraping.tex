@@ -1,0 +1,97 @@
+% !TEX root = ../main.tex
+% El recorrido del rastreador (Fase 1).
+%
+% Sustituye al diagrama de secuencia que habia antes, que ocupaba 0,9 de la
+% altura de la pagina y aun asi habia que acercarse para leerlo. El tutor lo
+% marco dos veces por eso mismo.
+%
+% El cambio no es solo de tamano: deja de ser una secuencia y pasa a ser el
+% recorrido con sus bifurcaciones. Se gana legibilidad y se pierde detalle, y
+% conviene tenerlo escrito: de las CUATRO bifurcaciones que dibujaba la
+% version anterior aqui hay DOS. Se quedan fuera «guia con contenido frente a
+% guia publicada vacia» y «grado simple frente a doble grado». No caben sin
+% volver a la letra pequena que se queria evitar.
+%
+% El recuadro con borde grueso es la guia en PDF, que es donde se concentran
+% las anomalias de la fuente: es la unica pieza que se sirve como binario y la
+% unica con lista de secciones permitidas.
+%
+% Las cajas se encadenan con `below=of` y `left=of`: dar las alturas a mano ya
+% provoco solapes en otras dos figuras, porque una caja crece con su texto y
+% `minimum height` solo fija el minimo.
+\begin{figure}[H]
+  \centering
+  % La nota va DEBAJO y no al lado a propósito. Puesta a la derecha estiraba el
+  % dibujo hasta 19\,cm de ancho, y como `resizebox` conserva la proporción,
+  % eso encogía toda la figura un 38\,\%: la letra volvía a quedarse pequeña,
+  % que es justo lo que había que evitar.
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      paso/.style={nodoDiag, text width=5.0cm, minimum height=1.3cm},
+      pasoFoco/.style={paso, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
+      rama/.style={nodoDiag, fill=white, densely dashed,
+        text width=4.2cm, minimum height=1.3cm},
+      decision/.style={diamond, draw=diagNodoBorde, fill=white, aspect=2.4,
+        align=center, font=\small, inner sep=2pt},
+      rotulo/.style={font=\scriptsize, inner sep=2pt},
+      ]
+
+      % ── La cadena de peticiones ────────────────────────────────────────────
+      \node[paso] (n1)
+      {Listado oficial de titulaciones\\{\scriptsize una sola petición}};
+
+      \node[decision, below=0.7cm of n1] (d1)
+      {¿Está en extinción?\\{\scriptsize se mira en el nombre}};
+
+      \node[paso, below=0.7cm of d1] (n2)
+      {Portada del grado\\{\scriptsize \emph{emite} \texttt{grado}}};
+
+      \node[paso, below=0.7cm of n2] (n3)
+      {Tabla de asignaturas\\{\scriptsize columnas por rótulo}\\{\scriptsize \emph{emite} \texttt{asignatura}}};
+
+      \node[decision, below=0.7cm of n3] (d2)
+      {¿Enlaza a su guía?\\{\scriptsize \texttt{href} real, nunca patrón}};
+
+      \node[pasoFoco, below=0.7cm of d2] (n4)
+      % El salto va a mano: sin él, «Descripción» parte en dos por la mitad.
+      {Guía docente en PDF\\{\scriptsize solo «Resumen»}\\{\scriptsize y «Descripción de contenidos»}\\{\scriptsize \emph{emite} \texttt{guia}}};
+
+      % ── Las ramas que no continúan ─────────────────────────────────────────
+      \node[rama, left=1.4cm of d1] (n5)
+      {Se descarta sin pedirla\\{\scriptsize no gasta una petición}};
+
+      \node[rama, left=1.4cm of d2] (n6)
+      {Queda anotada sin guía\\{\scriptsize \texttt{tiene\_guia: false}}};
+
+      % ── La rama que sí continúa, y que sale de la portada ──────────────────
+      \node[paso, right=1.4cm of n2] (n7)
+      {Salidas profesionales\\{\scriptsize \emph{emite} \texttt{salidas}}};
+
+      % ── Flechas ────────────────────────────────────────────────────────────
+      % `(a) -- (b)` entre nodos recorta solo hasta sus bordes, así que no hace
+      % falta calcular ni un punto.
+      \draw[flechaDiag] (n1) -- (d1);
+      \draw[flechaDiag] (d1) -- node[rotulo, above=2pt]{sí} (n5);
+      \draw[flechaDiag] (d1) -- node[rotulo, right=2pt]{no} (n2);
+      \draw[flechaDiag] (n2) -- (n7);
+      \draw[flechaDiag] (n2) -- node[rotulo, right=2pt]{por cada grado} (n3);
+      \draw[flechaDiag] (n3) -- node[rotulo, right=2pt]{por cada asignatura} (d2);
+      \draw[flechaDiag] (d2) -- node[rotulo, above=2pt]{no} (n6);
+      \draw[flechaDiag] (d2) -- node[rotulo, right=2pt]{sí} (n4);
+
+      % ── Lo que el esquema por sí solo no dice ──────────────────────────────
+      \node[rotulo, anchor=north, text width=12cm, align=center]
+      at ([yshift=-0.8cm]n4.south)
+      {Cada flecha hacia abajo es otra petición. Doce titulaciones,
+        528 asignaturas y 288 guías: el recorrido se repite entero.};
+    \end{tikzpicture}%
+  }
+  \caption[El recorrido del rastreador]{\textcolor{borrador2}{El recorrido del
+      rastreador. No hace una única petición, sino que encadena una por cada
+      tipo de página, y en cada caja está escrito qué registro emite. Las dos
+      bifurcaciones son las que evitan trabajo inútil: una titulación en
+      extinción se descarta \emph{antes} de pedirla, y una asignatura sin
+      enlace de guía queda anotada como tal en lugar de desaparecer. Fuente:
+      Elaboración propia.}}
+  \label{fig:secuencia_scraping}
+\end{figure}

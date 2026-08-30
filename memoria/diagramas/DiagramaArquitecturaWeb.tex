@@ -1,60 +1,143 @@
 % !TEX root = ../main.tex
-% Arquitectura de la aplicacion web (IT-42).
+% Arquitectura de la aplicacion web (IT-42), dibujada por CAPAS.
 %
-% Lo que esta figura existe para ensenar no es el recorrido de una pregunta
-% ---eso ya esta en el diagrama de secuencia--- sino DONDE ESTAN LOS LIMITES DE
-% PROCESO. De ahi que el pipeline aparezca como una sola caja y no desglosado:
-% desglosarlo repetiria la otra figura y obligaria a encoger la letra, que es
-% justo lo que se ha pedido evitar.
+% La version anterior era un grafo de componentes con las dependencias
+% externas colgando a la derecha, y no se entendia: habia que seguir seis
+% flechas para saber por donde entra una pregunta. Una pila no tiene ese
+% problema porque no tiene flechas que cruzarse: se lee de arriba abajo y ya.
 %
-% El servidor de inferencia va con borde discontinuo porque es lo unico que
-% corre en OTRO PROCESO, y ya existia antes de la aplicacion web.
+% Lo que la pila separa es LO QUE HACE CADA CAPA, no donde corre. Las cuatro
+% de dentro son un solo proceso de Python, y eso lo dice el pie y la nota, no
+% el dibujo: dibujar ademas el limite de proceso obligaba a meter una caja
+% envolvente mas y volviamos al problema anterior.
 %
-% El indice y el modelo de incrustaciones se cargan UNA VEZ al arrancar, no en
-% cada peticion; esa es la razon de que el pipeline se importe como biblioteca
-% y no se invoque como programa aparte.
+% El servidor de inferencia va FUERA de la pila y con borde discontinuo
+% porque es lo unico que corre en otro proceso. Le llegan dos flechas y no
+% una: se le llama dos veces por turno, una para fijar de que titulacion se
+% habla y otra para redactar. La figura anterior escondia ese detalle, que es
+% la mitad de lo que tarda una respuesta.
 %
-% Ojo al salto de linea dentro de un grupo: el \\ va FUERA de las llaves del
-% \scriptsize, o TikZ rompe el alineado con errores ilegibles.
+% No se dibujan las flechas de vuelta. La respuesta sube por el mismo camino
+% por el que bajo la pregunta, y duplicar las cuatro flechas para decirlo
+% habria doblado el numero de trazos sin anadir informacion.
+%
+% Las capas se encadenan con `below=of` y todo lo demas se coloca RELATIVO a
+% ellas: dar las alturas a mano ya provoco solapes en otra figura.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
-      procesoAparte/.style={nodoDiag, densely dashed, thick},
-      rotulo/.style={font=\footnotesize, inner sep=2pt},
+      capa/.style={draw=diagNodoBorde, fill=diagNodo, rounded corners=3pt,
+        minimum width=13cm, minimum height=2.3cm, inner sep=0pt},
+      capaCliente/.style={capa, fill=white, draw=black!45},
+      capaFoco/.style={capa, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
+      capaDisco/.style={capa, fill=diagNodo!45},
+      externo/.style={draw=diagNodoBorde, fill=white, densely dashed, thick,
+        rounded corners=3pt, align=center, font=\small,
+        text width=3.2cm, minimum height=5.3cm},
+      rotuloCapa/.style={font=\scriptsize\bfseries, text=diagNodoBorde},
+      tituloCapa/.style={font=\normalsize\bfseries},
+      % El detalle va en \footnotesize y no en \scriptsize porque `resizebox`
+      % encoge la figura hasta el ancho de la caja de texto: a \scriptsize la
+      % letra acababa a 5\,pt en la página, que es la queja que hay que evitar.
+      detalle/.style={font=\footnotesize, align=right},
+      rotulo/.style={font=\scriptsize, inner sep=2pt},
+      flechaDoble/.style={{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick},
       ]
-      % --- Cliente ---
-      \node[nodoDiag] (nav) at (0,0) {Navegador\\{\scriptsize interfaz de chat}};
-      % --- Lo que vive dentro del proceso del servidor ---
-      \node[nodoDiag] (ent) at (4.8,0) {Punto de entrada\\{\scriptsize HTTP}};
-      \node[nodoDiag, minimum width=5.2cm, minimum height=1.6cm] (pipe) at (10.4,0)
-      {\textit{Pipeline} RAG\\{\scriptsize \texttt{conversacion.py} · \texttt{recuperador.py}}\\{\scriptsize \texttt{generador.py} · \texttt{verificacion.py}}};
-      % --- Lo que queda fuera del proceso ---
-      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15]
-      (bd) at (8.3,-3.6) {Índice vectorial\\{\scriptsize LanceDB, en disco}};
-      \node[procesoAparte] (ollama) at (12.9,-3.6)
-      {Servidor de inferencia\\{\scriptsize Ollama · gemma3:12b}};
-      % --- Caja del proceso, en el fondo para no tapar los nodos ---
-      \begin{scope}[on background layer]
-        \node[grupoDiag, inner xsep=18pt, inner ysep=16pt, fit=(ent)(pipe),
-        label={[tituloGrupo]north:Un solo proceso de Python}] (proc) {};
-      \end{scope}
-      % --- Ida ---
-      \draw[flechaDiag] (nav) -- node[rotulo, above]{pregunta} (ent);
-      \draw[flechaDiag] (ent) -- (pipe);
-      \draw[{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick]
-      ([xshift=-1.9cm]pipe.south) -- node[rotulo, left, pos=0.62]{búsqueda vectorial} (bd.north);
-      \draw[{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick, densely dashed]
-      ([xshift=1.9cm]pipe.south) -- node[rotulo, right, pos=0.62]{HTTP local} (ollama.north);
-      % --- Vuelta al navegador, por encima de la caja del proceso. Sube por el
-      % borde derecho de la caja y no por su centro, para no cruzar el rotulo
-      % "Un solo proceso de Python".
-      \draw[flechaDiag] ([xshift=2.2cm]pipe.north) -- ([xshift=2.2cm]pipe.north |- 0,2.4)
-      -- node[rotulo, above]{respuesta, y fuentes de las que sale}
-      (nav.north |- 0,2.4) -- (nav.north);
+
+      % ── Las cinco capas ────────────────────────────────────────────────────
+      \node[capaCliente] (l1) {};
+      \node[capa,     below=0.7cm of l1] (l2) {};
+      \node[capa,     below=0.7cm of l2] (l3) {};
+      \node[capaFoco, below=0.7cm of l3] (l4) {};
+      \node[capaDisco,below=0.7cm of l4] (l5) {};
+
+      % El contenido va anclado a cada banda, no colocado a mano: el rótulo
+      % arriba a la izquierda, el nombre abajo a la izquierda y el detalle
+      % técnico a la derecha, alineado por su margen derecho. Se escribe banda
+      % a banda y no con un bucle: los títulos llevan comas, y el bucle las
+      % toma por separadores de su propia lista.
+      \node[rotuloCapa, anchor=north west]
+      at ([xshift=5mm, yshift=-4mm]l1.north west) {QUIÉN PREGUNTA};
+      \node[tituloCapa, anchor=south west]
+      at ([xshift=5mm, yshift=4mm]l1.south west) {Navegador};
+      \node[detalle, anchor=east] at ([xshift=-5mm]l1.east)
+      {\texttt{HTML} · \texttt{CSS} · \texttt{JavaScript}\\sin cuenta ni sesión};
+
+      \node[rotuloCapa, anchor=north west]
+      at ([xshift=5mm, yshift=-4mm]l2.north west) {TRANSPORTE};
+      \node[tituloCapa, anchor=south west]
+      at ([xshift=5mm, yshift=4mm]l2.south west) {Rutas y ficheros estáticos};
+      \node[detalle, anchor=east] at ([xshift=-5mm]l2.east)
+      {\texttt{/api/chat} · \texttt{/api/saludo}\\
+        \texttt{/api/sugerencias}\\
+        la respuesta se entrega por partes};
+
+      \node[rotuloCapa, anchor=north west]
+      at ([xshift=5mm, yshift=-4mm]l3.north west) {DIÁLOGO};
+      \node[tituloCapa, anchor=south west]
+      at ([xshift=5mm, yshift=4mm]l3.south west) {Conversación y ámbito};
+      \node[detalle, anchor=east] at ([xshift=-5mm]l3.east)
+      % Cada línea del detalle se queda por debajo de 5,5\,cm: el título está
+      % anclado a la misma altura por la izquierda, y una línea más larga se le
+      % sienta encima.
+      {ventana de tres turnos\\
+        el sujeto lo decide el modelo};
+
+      \node[rotuloCapa, anchor=north west]
+      at ([xshift=5mm, yshift=-4mm]l4.north west) {CONOCIMIENTO};
+      \node[tituloCapa, anchor=south west]
+      at ([xshift=5mm, yshift=4mm]l4.south west) {Recuperar, generar y verificar};
+      \node[detalle, anchor=east] at ([xshift=-5mm]l4.east)
+      {es el flujo de la Fase 2,\\
+        importado como biblioteca\\
+        y sin modificar};
+
+      \node[rotuloCapa, anchor=north west]
+      at ([xshift=5mm, yshift=-4mm]l5.north west) {PERSISTENCIA};
+      \node[tituloCapa, anchor=south west]
+      at ([xshift=5mm, yshift=4mm]l5.south west) {Ficheros en disco};
+      \node[detalle, anchor=east] at ([xshift=-5mm]l5.east)
+      {índice \texttt{LanceDB} y \texttt{grados.json}\\
+        se leen al arrancar\\
+        \texttt{registro\_chat.jsonl} se escribe};
+
+      % ── Lo único que corre en otro proceso ─────────────────────────────────
+      % Se centra entre las dos capas que lo llaman; el punto medio sale de un
+      % `midway` sobre un camino invisible, sin necesitar la librería `calc`.
+      % Ojo a la abscisa: una banda de 13\,cm colocada sin `at` queda CENTRADA
+      % en el origen, así que su borde derecho está en 6,5 y no en 13. Contando
+      % desde 13 el servidor se iba a 8,6\,cm de la pila y las dos flechas
+      % salían más largas que media figura.
+      \path (l3.north east) -- (l4.south east) node[midway] (medio) {};
+      \node[externo] (ollama) at (9.7,0 |- medio)
+      {\textbf{Servidor de inferencia}\\[2pt]
+        {\scriptsize \texttt{Ollama} · \texttt{gemma3:12b}}\\[2pt]
+        {\scriptsize otro proceso}\\[2pt]
+        {\scriptsize dos llamadas por turno}};
+
+      % ── La pregunta baja por la pila ───────────────────────────────────────
+      \draw[flechaDiag] (l1) -- (l2);
+      \draw[flechaDiag] (l2) -- (l3);
+      \draw[flechaDiag] (l3) -- (l4);
+      \draw[flechaDiag] (l4) -- (l5);
+
+      % ── Las dos llamadas al modelo ─────────────────────────────────────────
+      % `(a -| b)` da el punto con la altura de `a` y la abscisa de `b`: así
+      % las dos flechas salen horizontales y no en diagonal.
+      \draw[flechaDoble] (l3.east) -- node[rotulo, above=2pt]{ámbito}
+      (l3.east -| ollama.west);
+      \draw[flechaDoble] (l4.east) -- node[rotulo, above=2pt]{redacta}
+      (l4.east -| ollama.west);
     \end{tikzpicture}%
   }
-  \caption[Arquitectura de la aplicación web]{Arquitectura de la aplicación web. Las líneas discontinuas señalan la comunicación con procesos independientes (servidor de inferencia local). El desglose interno del flujo de procesamiento se detalla en la Figura~\ref{fig:secuencia_rag}. Fuente: Elaboración propia.}
-
+  \caption[Arquitectura de la aplicación web]{\textcolor{borrador2}{Arquitectura
+      de la aplicación web. Las cuatro capas centrales son un solo proceso de
+      Python: la pila las separa por lo que hace cada una, no por dónde corre.
+      El servidor de inferencia queda fuera porque es lo único que corre
+      aparte, y le llegan dos flechas porque se le llama dos veces en cada
+      turno. La respuesta sube por el mismo camino por el que bajó la pregunta,
+      y por eso no se dibujan las flechas de vuelta. Fuente: Elaboración
+      propia.}}
   \label{fig:arquitectura_web}
 \end{figure}
