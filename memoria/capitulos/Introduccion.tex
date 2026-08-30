@@ -2,6 +2,87 @@
 \chapter{INTRODUCCIÓN}
 \label{cap:introduccion}
 
+\begin{borrador}
+  \item \textbf{AUDITORÍA DE LA MEMORIA --- 30/08/2026.} Lo que sigue es el
+  resumen; cada hallazgo está además anotado en su sitio. Este bloque se
+  retira entero cuando se hayan atendido.
+
+  \item \textbf{1. Lo que más pesa: quedan unas 23 páginas en turquesa por
+  reescribir.} Son \textbf{42.194 caracteres} de texto que no es tuyo todavía.
+  El reparto por capítulos, medido sobre el fuente:
+  Introducción 12\,\%, Antecedentes 8\,\%, Objetivos 1\,\%,
+  Material y Métodos 13\,\%, \textbf{Resultados 59\,\%} y
+  \textbf{Conclusiones 100\,\%}. Es decir: el capítulo que sostiene la parte
+  científica está escrito más por mí que por ti, y el de conclusiones no tiene
+  todavía ni una línea tuya. Con la entrega el 03/09, esto manda sobre todo lo
+  demás de esta lista.
+
+  \item \textbf{2. Cuatro secciones están vacías de verdad}, no a medias:
+  \emph{4.4 Tecnologías y herramientas} (se salta del título al 4.4.1),
+  \emph{5.7 Validación con usuarios}, \emph{6.2 Limitaciones} y
+  \emph{6.3 Trabajo futuro}. Una sección vacía con título es peor que no
+  tenerla: el tribunal lee el índice y va a buscarla. La de validación con
+  usuarios es la que urge decidir, porque a cuatro días de la entrega o se
+  hace con dos o tres personas o se retira y se declara como limitación.
+
+  \item \textbf{3. Material y Métodos ocupa 60 de las 135 páginas del cuerpo}
+  ---el 44\,\%--- frente a las 24 de Resultados. Dentro de esas 60, las
+  secciones 4.1 a 4.3 (metodología, planificación y priorización) se llevan
+  12 páginas antes de que se hable del sistema. No digo que sobren, digo que
+  la proporción se ve desde el índice y conviene que sea una decisión tuya y
+  no un accidente.
+
+  \item \textbf{4. Hay dos figuras que cuentan lo mismo, y la culpa es mía.}
+  La Figura~\ref{fig:secuencia_rag} (recorrido completo de una consulta,
+  Fase~2) y la Figura~\ref{fig:arquitectura_web} (la que elegiste ayer para la
+  Fase~3) dibujan las dos el viaje de una pregunta por el sistema. Está
+  explicado con las salidas posibles en el borrador de la
+  Sección~\ref{secc:fase3_arquitectura}.
+
+  \item \textbf{5. Lo que sí está bien}, para no dedicar tiempo a revisarlo:
+  los 16 diagramas se usan todos, no hay ninguna referencia ni cita sin
+  resolver, y buscando frases repetidas entre capítulos solo salen tres, todas
+  legítimas (el alcance del corpus y la hipótesis, que se repiten a propósito).
+  El texto no está duplicado; lo que está sin escribir es otra cosa.
+
+  \item \textbf{6. Arreglado ya en esta pasada:} el símbolo de porcentaje se
+  escribía de cuatro formas distintas y ahora son 25 de 25 con espacio fino
+  (\texttt{\textbackslash,\textbackslash\%}), que es la norma que fijaste; y
+  se han borrado ocho imágenes que no usaba nadie.
+\end{borrador}
+
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- lo que incumple las reglas que dejó
+  escritas el tutor}, arriba en rojo. Estas las va a mirar seguro, porque las
+  escribió él. Ninguna se toca sin ti: la primera persona es prosa tuya y las
+  capturas necesitan una frase tuya que las presente.
+
+  \item \textbf{Su regla 3 (toda imagen se comenta en el texto \emph{antes} de
+  aparecer): tres figuras no se citan en ninguna parte.} Son las tres capturas
+  finales de la aplicación ---pantalla inicial, listado por curso y vista
+  móvil---, que aparecen seguidas al final del Capítulo~\ref{cap:materialesymetodos}
+  sin que ningún párrafo las anuncie. La cuarta captura, la de las fuentes, sí
+  está bien presentada y sirve de modelo. Es literalmente lo que su comentario
+  prohíbe, y se arregla con tres frases.
+
+  \item \textbf{Su regla 2 (nunca primera persona): siete frases.} Las dejo
+  localizadas para que las busques, porque reescribirlas es tuyo:
+  \begin{itemize}
+    \item Antecedentes: «ahora \emph{tenemos} que encontrar los vecinos más
+    próximos», «la exhaustividad \emph{podemos} verla de dos maneras» y
+    «cuando \emph{tenemos} una colección grande».
+    \item Material y Métodos: «un sexto tipo que no pregunta por
+    \emph{nuestra} institución», «dado que con \emph{nuestros} datos», «no
+    \emph{nos podemos} fijar en esto» y «es precisamente con este enfoque que
+    \emph{vemos} este caso».
+  \end{itemize}
+
+  \item \textbf{Sus reglas 6 y 7 (anglicismos y monoespaciado): diez sueltos},
+  sin cursiva ni \texttt{\textbackslash texttt}: \emph{chunking} (3),
+  \emph{chunks} (2), \emph{test} (2), \emph{tests}, \emph{scraping} y
+  \emph{spider}. Es lo más leve de la lista, pero es una pasada de búsqueda.
+\end{borrador}
+
 \textcolor{red}{[jccuevas] Mis comentarios aparecerán en rojo con mi id de correo para que puedas encontrarlos. Respondelos debajo en AZUL con tus iniciales. Las inserciones de texto, que tú luego puedeas ajsutar, no llevarán lo de [jccuevas]. Si elimino algo de la estructura le pongo comentario y también lo marco con [jccuevas]}
 
 \textcolor{blue}{[sbp] - respuesta}
@@ -34,8 +115,13 @@ El sistema se fundamenta en una arquitectura de Generación Aumentada por Recupe
 
 El desarrollo del proyecto abarca un flujo completo de ingeniería de datos e inteligencia artificial conteniendo este desde la \glr{minería de textos y datos}{Minería de textos y datos} mediante técnicas de \textit{web scraping} y la división semántica de la información (\glr{chunking}{chunking}), hasta la generación de representaciones vectoriales (\glr{embeddings}{incrustacion}), su indexación en una \glr{base de datos vectorial}{base de datos vectorial} y la integración final con el LLM a través de una interfaz web accesible. Todo ello se somete a una evaluación experimental con métricas objetivas de fidelidad (\glr{faithfulness}{fidelidad de la respuesta}) y relevancia de las respuestas para asegurar que el sistema no incurra en la invención de datos (alucinaciones).
 
-\begin{borrador}                      
+\begin{borrador}
   \item El resumen ya está redactado. Queda únicamente el diagrama de bloques del conjunto del TFG, que lo dejaré para más adelante.
+  \item \textbf{AUDITORÍA 30/08 --- esta nota ya está resuelta.} El diagrama
+  del conjunto del trabajo existe y es la Figura~\ref{fig:conjunto_tfg}, unas
+  páginas más abajo. Puedes tachar el punto anterior y, sobre todo, responder
+  al comentario del tutor de arriba, porque tu respuesta en azul sigue
+  diciendo que el diagrama está pendiente.
 \end{borrador}
 
 \textcolor{red}{[jccuevas] ¿La plantilla LaTex es de la EPSJ? Si no lo es, reduce un poco el espacio de los títulos con el texto anterior y el posterior, como a la mitad.}
