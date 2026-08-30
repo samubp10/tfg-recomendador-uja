@@ -726,7 +726,7 @@ Para la experimentación se ha usado el conjunto de datos extraídos y 66 pregun
 la aplicación podría querer saber.
 
 Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
-titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por nuestra institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
+titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por \sout{nuestra}\textcolor{borrador2}{esta} institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
 
 \input{tablas/TablaConjuntoEvaluacion.tex}
 
@@ -886,7 +886,7 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 
 \subsubsection[Diseño de la comparación]{Diseño de la comparación}
 
-Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con nuestros datos, es la opción más rápida.
+Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con \sout{nuestros datos}\textcolor{borrador2}{los datos de este trabajo}, es la opción más rápida.
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
@@ -917,11 +917,11 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
 
 De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta, y esto ocurre en cuatro de cada veinte reconstrucciones del índice. A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error es fatal.
 
-Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, no nos podemos fijar en esto para establecer la decisión.
+Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, \sout{no nos podemos fijar}\textcolor{borrador2}{no cabe fijarse} en esto para establecer la decisión.
 
 Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. También ayuda que LanceDB es la opción que menos pesa de las tres.
 
-La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque que vemos este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
+La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque \sout{que vemos este caso}\textcolor{borrador2}{con el que se aborda este caso}, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
 
 \input{diagramas/DiagramaComparativaVectorDB.tex}
@@ -1163,48 +1163,27 @@ Cuando esta validación detecta una titulación inexistente, se descarta la resp
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge \sout{la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{el recorrido que hace una pregunta por la aplicación, paso a paso}.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge \sout{la arquitectura de manera genérica, dejando fuera el servidor de inferencia y el fichero del índice}\textcolor{borrador2}{la arquitectura por capas: separa qué hace cada una, deja fuera el servidor de inferencia por ser lo único que corre en otro proceso, y sitúa el índice y el resto de ficheros en la capa de persistencia}.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
 
 \begin{borrador}
-  \item \textbf{Figura rehecha.} Era un grafo de componentes con las
-  dependencias colgando a la derecha y había que seguir seis flechas para saber
-  por dónde entra una pregunta. Ahora se sigue por los números.
+  \item \textbf{Fase:} 3 (IT-72). \textbf{Duplicidad resuelta: esta figura pasa
+  a ser la de capas.} La versión de ocho pasos numerados contaba lo mismo que la
+  Figura~\ref{fig:secuencia_rag} ---las dos respondían a «¿por dónde pasa una
+  pregunta?»---, así que ahora esta dibuja la \emph{estructura} y aquella el
+  \emph{recorrido}. Cada una responde a una pregunta distinta y ya no se pisan.
   \item \textbf{La coletilla tachada del párrafo de arriba hay que reescribirla.}
-  Ya no describe lo que la figura enseña. Pon tus palabras y quita el tachado y
-  el turquesa.
-  \item \textbf{Algo que la figura anterior escondía:} al modelo se le llama
-  \emph{dos} veces por turno, una para fijar de qué titulación se habla y otra
-  para redactar. Es la mitad de lo que tarda una respuesta, y engancha con la
-  condición temporal de los objetivos.
-  \item \textbf{Lo que esta figura ya no dice, y conviene que lo diga el texto:}
-  al contar el recorrido en vez de la estructura, no se ve que todo eso ocurre
-  en \emph{un solo} proceso, ni aparecen el servidor de inferencia ni el índice
-  como piezas aparte. El párrafo de arriba sí afirma lo del proceso único, así
-  que esa frase carga ahora sola con el argumento.
-
-  \item \textbf{AUDITORÍA 30/08 --- esta figura y la
-  Figura~\ref{fig:secuencia_rag} cuentan lo mismo, y es culpa mía.} Aquella
-  dibuja el recorrido de una consulta con cinco líneas de vida y sus tres
-  salidas anticipadas; esta lo dibuja con ocho pasos numerados. Cambian la
-  forma y el detalle, no el contenido: las dos responden a «¿por dónde pasa
-  una pregunta?». Al proponerte las tres opciones no caí en que la Fase~2 ya
-  tenía su figura del recorrido, y elegiste sobre una comparación incompleta.
-  Tres salidas, y la decisión es tuya:
-  \begin{enumerate}
-    \item \textbf{Volver a la versión en capas} que descarté (está en
-    \texttt{Notas\_TFG/diagramas/arquitectura-web-b.png}). Dibuja la
-    \emph{estructura}, que es lo que ninguna otra figura dibuja, y con eso
-    desaparece el solape. Es lo que yo haría.
-    \item \textbf{Quedarte con esta y recortar la de la Fase~2} a lo que solo
-    ella enseña, que son las salidas anticipadas.
-    \item \textbf{Dejar las dos} y decir en el texto por qué hay dos: aquella
-    es el recorrido \emph{dentro} del flujo de procesamiento y esta es el
-    recorrido \emph{visto desde el navegador}. Se sostiene, pero hay que
-    escribirlo o el tribunal preguntará.
-  \end{enumerate}
+  La original decía que la figura deja fuera el servidor de inferencia y el
+  índice, y esta figura sí los dibuja: el servidor aparte, con trazo
+  discontinuo, y el índice en la capa de persistencia. Pon tus palabras y quita
+  el tachado y el turquesa.
+  \item \textbf{Lo que la figura enseña y conviene que el texto recoja:} al
+  modelo se le llama \emph{dos} veces por turno ---por eso le llegan dos
+  flechas---, una para fijar de qué titulación se habla y otra para redactar. Es
+  la mitad de lo que tarda una respuesta, y engancha con la condición temporal
+  de los objetivos.
 \end{borrador}
 
 
