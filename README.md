@@ -60,9 +60,14 @@ biblioteca. Lo único que corre aparte es el servidor de inferencia.
 
 | Qué | Versión probada | Para qué |
 | --- | --- | --- |
-| **Python** | 3.13.5 (mínimo 3.10) | todo el código |
+| **Python** | 3.13 | todo el código |
 | **[Ollama](https://ollama.com/)** | 0.32.14 | servidor de inferencia local, en `http://127.0.0.1:11434` |
 | Docker | — | **opcional**, solo para el experimento que compara bases vectoriales (Qdrant) |
+
+El proyecto exige **Python 3.13.** y no admite otras versiones: así lo declaran
+`pyproject.toml`, `mypy`, `black`, el fichero `.python-version` y el CI, y hay
+una prueba que falla si alguno de ellos se desalinea. Se ha desarrollado sobre
+la 3.13.5.
 
 ### Modelos
 
