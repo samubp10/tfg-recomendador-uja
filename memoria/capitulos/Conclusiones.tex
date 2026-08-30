@@ -59,23 +59,95 @@
   de antemano, no de un descuido.}
 
 \section{Limitaciones}
+\label{secc:limitaciones}
 
-\begin{borrador}
-  \item \textbf{Fase:} 5 (IT-52). Reparto acordado con la discusión: lo \emph{razonado}
-  ---por qué el sistema no puede hacer algo y qué haría falta--- va allí, junto al
-  resultado que lo provoca. Aquí queda la lista corta, sin argumentar.
-  \item Las cuatro que no pueden faltar, porque un tribunal las va a buscar: lo que las
-  métricas no comprueban, el alcance del banco de evaluación, la ausencia de validación
-  con usuarios y el tiempo de respuesta.
-\end{borrador}
+\textcolor{borrador2}{Lo que sigue es la lista de lo que este trabajo no
+  cubre. Cada una se razona donde se produce, junto al resultado que la provoca
+  ---en el Apartado~\ref{secc:amenazas_validez} del capítulo anterior---; aquí
+  se enuncian juntas para que el lector no tenga que reconstruirlas.}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{El sistema no se ha probado con
+      usuarios.} Se evalúa con un banco de preguntas escrito para este trabajo,
+    lo que deja sin comprobar si un estudiante formula sus dudas como están
+    escritas esas preguntas, si entiende la respuesta y si le sirve para
+    decidir.}
+
+  \item \textcolor{borrador2}{\textbf{Lo que se comprueba de cada respuesta es
+      que no invente y que nombre lo que debía}, no que sea buena. Una respuesta
+    correcta, fundamentada y poco útil pasa todas las comprobaciones.}
+
+  \item \textcolor{borrador2}{\textbf{El banco de evaluación es propio y lo ha
+      escrito la misma persona que escribió el corrector.} Es el límite del
+    instrumento, y a lo largo del desarrollo produjo varias veces cifras
+    verosímiles que solo se descubrieron leyendo respuestas a mano.}
+
+  \item \textcolor{borrador2}{\textbf{Los tiempos de respuesta no son
+      extrapolables a otro equipo.} Se miden sobre el ordenador personal en el
+    que se desarrolla el trabajo, que es también el equipo doméstico que impone
+    el requisito RNF-01, y ahí la mediana dobla el umbral fijado.}
+
+  \item \textcolor{borrador2}{\textbf{La colección cubre un solo centro y no
+      todas sus titulaciones por igual.} Las asignaturas sin guía publicada se
+    concentran en las titulaciones en implantación, de modo que el sistema sabe
+    menos precisamente de las más nuevas.}
+
+  \item \textcolor{borrador2}{\textbf{La aplicación web no está en condiciones
+      de producción.} Sirve para demostrar y para probar el sistema, no para
+    abrirla a usuarios: atiende las peticiones de una en una, no cifra el tráfico
+    y escucha solo en la máquina local.}
+\end{itemize}
 
 \section{Trabajo futuro}
+\label{secc:trabajo_futuro}
+
+\textcolor{borrador2}{Cada línea que sigue responde a una limitación de la
+  lista anterior, y por ese orden. No se enuncia ninguna que no se siga de algo
+  que este trabajo haya encontrado.}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Probar el sistema con estudiantes de
+      secundaria, antes que cualquier otra cosa.} Es el paso que falta para
+    saber si el sistema sirve para lo que se construyó, y el que debería
+    preceder a ponerlo en producción.}
+
+  \item \textcolor{borrador2}{\textbf{Medir la utilidad de la respuesta y no
+      solo su fidelidad}, que es lo que exige a su vez la validación con
+    usuarios: sin alguien que juzgue si una respuesta le resolvió la duda, no
+    hay forma de puntuar eso de manera determinista.}
+
+  \item \textcolor{borrador2}{\textbf{Que el banco de preguntas y sus
+      respuestas correctas los escriba alguien distinto de quien escribe el
+    corrector.} Es lo único que levanta de verdad la duda sobre el instrumento;
+    repetir las mediciones no la levanta.}
+
+  \item \textcolor{borrador2}{\textbf{Reducir el tiempo de respuesta} hasta el
+    umbral que la hipótesis fijaba y que no se cumple. Hay dos caminos que este
+    trabajo no ha explorado: aprovechar la tarjeta gráfica para la inferencia, y
+    reducir el número de llamadas al modelo por turno, que hoy son dos.}
+
+  \item \textcolor{borrador2}{\textbf{Extender la colección al resto de centros
+      de la Universidad.} El diseño lo admite ---basta añadir fuentes a la
+    extracción, sin tocar el núcleo de recuperación y generación---, pero que el
+    sistema mantenga su rendimiento con una colección varias veces mayor
+    \textbf{no está medido}, y es lo que habría que comprobar antes de
+    prometerlo.}
+
+  \item \textcolor{borrador2}{\textbf{Llevar la aplicación a condiciones de
+      producción}: un servidor preparado para atender en paralelo, tráfico
+    cifrado y límites de tamaño y de frecuencia por cliente.}
+\end{itemize}
 
 \begin{borrador}
-  \item \textbf{Fase:} 5 (IT-52). Solo lo que se sigue de una limitación ya enunciada.
-  Una línea de trabajo futuro que no responde a ninguna limitación del texto es un
-  deseo, y se nota.
-  \item \textbf{Sobre la escalabilidad, con cuidado:} lo que puede afirmarse es que el
-  diseño \emph{admite} crecer; que el sistema \emph{escale} no está medido, y esa es la
-  frontera exacta de lo que se puede decir.
+  \item \textbf{Fase:} 5 (IT-52). Andamiaje de las dos secciones, escrito el
+  31/08/2026. Reescríbelo con tus palabras y quita el turquesa.
+  \item \textbf{El reparto que acordamos:} lo \emph{razonado} ---por qué el
+  sistema no puede hacer algo y qué haría falta--- vive en las amenazas a la
+  validez del capítulo anterior; aquí va la lista corta, sin argumentar. Si al
+  releerlo ves que un punto se explica dos veces, el que sobra es este.
+  \item \textbf{Cuidado con la última de trabajo futuro y con la de extender la
+  colección:} están escritas para no prometer escalabilidad. Lo que se puede
+  afirmar es que el diseño \emph{admite} crecer; que el sistema \emph{escale} no
+  está medido. Si suavizas esa frase, se convierte en una afirmación que el
+  trabajo no sostiene.
 \end{borrador}
