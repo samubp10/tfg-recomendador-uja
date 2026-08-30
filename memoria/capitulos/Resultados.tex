@@ -45,7 +45,8 @@
   sobre él. Se organiza siguiendo los objetivos específicos enunciados en el
   Capítulo~\ref{cap:objetivos}: la colección documental que se construye, la fragmentación
   con la que se parte, el modelo de incrustaciones y la base de datos vectorial con los que
-  se representa y se indexa, la evaluación del sistema completo y su validación con usuarios.
+  se representa y se indexa, y la evaluación del sistema completo con el alcance que tiene,
+  que no llega a incluir pruebas con usuarios.
   La última sección discute qué responde cada resultado a cada objetivo y con qué alcance.}
 
 \textcolor{borrador2}{Todas las cifras proceden de la ejecución de los verificadores y de los
@@ -429,25 +430,44 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Validación con usuarios}
 
+\textcolor{borrador2}{\textbf{No se ha realizado validación con usuarios
+    reales.} Reunir una muestra de estudiantes preuniversitarios exige
+  coordinarse con un centro de secundaria y disponer de un calendario que el de
+  este trabajo no permitía, y el esfuerzo de las fases anteriores se destinó a
+  construir y medir el sistema. Se enuncia aquí, en la sección que le
+  corresponde, y no se disimula omitiendo el apartado del índice.}
+
+\textcolor{borrador2}{Conviene ser preciso sobre qué queda sin comprobar,
+  porque la evaluación de los apartados anteriores no es un sustituto. El banco
+  del sistema comprueba que la respuesta sea correcta y esté apoyada en la
+  documentación oficial, y eso sigue siendo cierto sin usuarios. Lo que no
+  comprueba es nada de lo que solo aparece cuando pregunta una persona: si un
+  estudiante de secundaria formula sus dudas con el vocabulario con el que están
+  escritas las preguntas del banco, si entiende la respuesta que recibe, si le
+  resulta útil para decidir, y si la espera del modelo ---cuya mediana se mide
+  en el Apartado~\ref{secc:resultados_sistema}--- le hace abandonar antes de
+  leerla. Ninguna de esas cuatro cosas se puede deducir de las métricas de este
+  capítulo.}
+
+\textcolor{borrador2}{Por eso la ausencia se declara como limitación en el
+  Apartado~\ref{secc:limitaciones} y la validación se sitúa como el paso previo
+  a cualquier puesta en producción en el
+  Apartado~\ref{secc:trabajo_futuro}: un sistema pensado para orientar a
+  estudiantes no debería abrirse a estudiantes sin haberlo probado antes con
+  ellos.}
+
 \begin{borrador}
-  \item \textbf{Fase:} 4 Validación de usuarios reales (los tengo que buscar aún y no sé si será posible)
-  \item \textbf{AUDITORÍA 30/08 --- esta sección está vacía y hay que decidirla
-  ya.} Quedan cuatro días para la entrega, así que «no sé si será posible» ya
-  no es una posición sostenible: o se hace esta semana o no se hace. Las dos
-  salidas honestas son estas, y las dos son defendibles:
-  \begin{enumerate}
-    \item \textbf{Hacerla en pequeño y decir que es pequeña.} Tres o cuatro
-    personas, un guion de cinco preguntas, y se reporta como lo que es: una
-    prueba de usabilidad exploratoria, no una validación con potencia
-    estadística. Un $n$ pequeño declarado vale; un $n$ pequeño presentado como
-    validación, no.
-    \item \textbf{Retirar la sección y declararlo como limitación} en el
-    Capítulo~\ref{cap:conclusiones}, enlazándolo con el trabajo futuro. El
-    sistema se ha evaluado con un banco de preguntas, no con usuarios, y eso
-    se puede decir sin que reste.
-  \end{enumerate}
-  Lo que no vale es entregar el título con la sección vacía debajo: el
-  tribunal lee el índice, la busca y no encuentra nada.
+  \item \textbf{Fase:} 4 (IT-48, IT-50, IT-51 --- las tres pasan a
+  \emph{won't}). Decisión del 31/08/2026: no se hace la validación con
+  usuarios, y así se escribe.
+  \item \textbf{Esta sección tiene que quedarse}, aunque sea para decir que no
+  se hizo. El capítulo la anuncia en su párrafo de entrada y el índice la
+  lista; quitarla obligaría a tocar las dos cosas y dejaría al lector sin saber
+  si se olvidó o se decidió.
+  \item \textbf{Lo que la hace defendible es el segundo párrafo}, no el primero:
+  enumera las cuatro cosas concretas que quedan sin comprobar. Una limitación
+  declarada en abstracto ---«no se ha validado con usuarios»--- suena a excusa;
+  una que dice exactamente qué no se sabe, no.
 \end{borrador}
 
 \section[Discusión]{\textcolor{borrador2}{Discusión}}
