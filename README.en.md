@@ -91,9 +91,13 @@ table, it is only as fresh as the last time someone edited it.
 
 | What | Tested version | What for |
 | --- | --- | --- |
-| **Python** | 3.13.5 (3.10 minimum) | all the code |
+| **Python** | 3.13 | all the code |
 | **[Ollama](https://ollama.com/)** | 0.32.14 | local inference server, on `http://127.0.0.1:11434` |
 | Docker | — | **optional**, only for the experiment comparing vector databases (Qdrant) |
+
+The project requires **Python 3.13.** and admits no other version: that is what
+`pyproject.toml`, `mypy`, `black`, the `.python-version` file and CI all declare,
+and a test fails if any of them drifts. Development happened on 3.13.5.
 
 ### Models
 
