@@ -50,6 +50,3 @@ memoria/main.pdf
 # README que exporta Overleaf junto a la plantilla; el README real del
 # proyecto es el de la raíz del repo, no el de memoria/
 memoria/README.md
-# Carpeta de trabajo para compilar una figura suelta sin recompilar la
-# memoria entera. Es andamiaje, no forma parte del documento.
-memoria/_compila_diag/
