@@ -256,6 +256,13 @@ proyecto:
   \item \textbf{\textit{Won't have} (descartado):} queda explícitamente fuera
         del alcance, como el despliegue en producción o la extensión al resto de
         facultades de la Universidad de Jaén.
+        \textcolor{borrador2}{La validación con usuarios reales acabó también en
+        esta categoría, y es el caso que mejor ilustra para qué sirve: no se
+        descartó al planificar sino durante el desarrollo, cuando quedó claro
+        que reunir la muestra exigía un calendario del que no se disponía. La
+        decisión queda registrada en la tarjeta y declarada como limitación en
+        el Capítulo~\ref{cap:conclusiones}, en lugar de dejar la tarea abierta
+        hasta el final.}
 \end{itemize}
 
 Esta clasificación tiene una consecuencia práctica: ante un retraso, se sacrifica
@@ -333,15 +340,25 @@ Los cinco tipos de historias son los siguientes:
 
 \section{Tecnologías y herramientas}
 
-\begin{borrador}                                                                                                                                                    
-  \item Falta el párrafo que abre la
-  sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.
-  \item Aquí también encaja la tabla herramienta--papel que ya está apuntada en
-  un comentario del código fuente, si al final se hace.
-  \item \textbf{AUDITORÍA 30/08.} Sigue igual, y es la única sección de nivel~1
-  del capítulo sin una sola frase propia. Con dos o tres líneas que digan qué
-  se decide aquí ---la tecnología y el equipo--- basta para que el salto de
-  título a título deje de verse. No hace falta la tabla.
+\textcolor{borrador2}{Antes de describir cómo se construye el sistema conviene
+  fijar las dos condiciones que enmarcan todo lo que viene después. La primera
+  es de enfoque: qué estrategia se sigue para que un modelo de lenguaje
+  responda con información oficial del centro, y por qué se descarta la
+  alternativa más evidente, que es reentrenarlo. La segunda es material: sobre
+  qué máquina se ejecuta el sistema, porque de la memoria disponible en ella
+  dependen la mayoría de las elecciones de los apartados siguientes.}
+
+\textcolor{borrador2}{Las dos se enuncian aquí y no en el apartado donde se
+  usan porque ninguna es una decisión aislada: la primera gobierna la
+  arquitectura entera y la segunda reaparece como restricción en la elección
+  del modelo de incrustaciones, en la de la base vectorial y en la del modelo
+  generativo.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 5 (IT-82). Párrafo de entrada de la sección, que antes
+  saltaba del título 4.4 al 4.4.1 sin decir nada. Reescríbelo con tus palabras.
+  \item \textbf{Está escrito para que empiece por la decisión}, que es lo que
+  pide IT-82: primero qué se decide aquí, después el porqué en cada subapartado.
 \end{borrador}
 
 \subsection{RAG frente al ajuste fino}
