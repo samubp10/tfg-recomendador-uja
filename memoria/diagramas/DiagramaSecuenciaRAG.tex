@@ -1,10 +1,16 @@
 % !TEX root = ../main.tex
 % Diagrama de secuencia del recorrido completo de una pregunta (IT-41).
 %
-% Refleja la implementacion de IT-37, no un diseno previo: los tres desvios
-% que se marcan son las tres salidas reales del codigo, y dos de ellas
-% terminan SIN llamar al modelo, que es la decision de arquitectura que este
-% diagrama existe para ensenar.
+% Comparte convenciones con la figura del troceado, para que las dos
+% secuencias del documento se lean igual: cabecera de una linea, sin barras de
+% actividad, bloques en amarillo con el rotulo en negrita arriba a la
+% izquierda, y flecha gruesa para el camino que llega hasta el final.
+%
+% Refleja la implementacion de IT-37, no un diseno previo: los tres bloques
+% son las tres salidas reales del codigo, y dos de ellas terminan SIN llamar
+% al modelo, que es la decision de arquitectura que este diagrama existe para
+% ensenar. Por eso el foco esta en el modelo local: se lee bien cuando se ve
+% que dos de las tres salidas no llegan hasta el.
 %
 % La comprobacion de titulaciones NO tiene linea de vida propia y aparece como
 % llamada del generador sobre si mismo, que es donde vive en el codigo. Darsela
@@ -14,77 +20,92 @@
   \centering
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
+      % Sin `text width`: el nodo se ajusta a su rotulo y asi ninguno se parte
+      % con guion. Con 3,7 cm entre lineas de vida caben todos holgados.
+      papel/.style={nodoDiag, minimum height=0.9cm, font=\small},
+      papelFin/.style={papel, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
       lineaVida/.style={densely dotted, thick, draw=diagNodoBorde},
       mensaje/.style={-{Latex[length=2mm]}, semithick},
       devuelve/.style={-{Latex[length=2mm]}, semithick, densely dashed},
-      etiqueta/.style={font=\small, midway, above, inner sep=1.5pt},
-      propia/.style={font=\small, anchor=west, inner sep=1.5pt},
-      desvio/.style={draw=diagGrupoBorde, semithick, densely dashed,
-                     fill=diagGrupo, fill opacity=0.4, text opacity=1,
-                     rounded corners=2pt},
-      rotuloDesvio/.style={font=\small\bfseries, anchor=north west,
-                           inner sep=2.5pt, text=diagGrupoBorde!65!black},
+      devuelveFin/.style={-{Latex[length=2mm]}, very thick, draw=diagFocoBorde},
+      % Relleno opaco: sin el, las lineas de vida punteadas atraviesan los
+      % rotulos largos y los vuelven ilegibles.
+      etiqueta/.style={font=\small, midway, above, inner sep=1.5pt, fill=white},
+      propia/.style={font=\small, anchor=west, inner sep=1.5pt, fill=white},
+      bloque/.style={draw=diagGrupoBorde, semithick, densely dashed,
+        fill=diagGrupo, fill opacity=0.4, text opacity=1,
+        rounded corners=2pt},
+      rotuloBloque/.style={font=\small\bfseries, anchor=north west,
+        inner sep=2.5pt, text=diagGrupoBorde!65!black, fill=white},
       apunte/.style={font=\small, align=center, draw=diagNodoBorde,
-                     fill=white, inner sep=3pt, rounded corners=2pt},
-    ]
-      % --- Lineas de vida ---
-      \foreach \x/\rotulo in {0/Estudiante, 3.4/Conversación, 7.2/Recuperador,
-                              10.8/Generador, 14.4/Modelo local}{%
-        \node[nodoDiag, minimum width=2.4cm, minimum height=0.8cm] at (\x,0) {\rotulo};
-        \draw[lineaVida] (\x,-0.5) -- (\x,-15.2);
+        fill=white, inner sep=3pt, rounded corners=2pt},
+      ]
+
+      % --- Participantes y lineas de vida ---
+      % Centrados en -1,3 para que su borde inferior quede justo encima del
+      % arranque de las lineas de vida, sin tener que mover ningun mensaje.
+      \node[papel]    at (0,-1.3)    {El estudiante};
+      \node[papel]    at (3.7,-1.3)  {La conversación};
+      \node[papel]    at (7.4,-1.3)  {El recuperador};
+      \node[papel]    at (11.1,-1.3) {El generador};
+      \node[papelFin] at (14.8,-1.3) {El modelo local};
+      \foreach \x in {0, 3.7, 7.4, 11.1, 14.8}{
+        \draw[lineaVida] (\x,-1.75) -- (\x,-16.4);
       }
 
-      \draw[mensaje] (0,-1.1) -- node[etiqueta]{pregunta} (3.4,-1.1);
-      \draw[mensaje] (3.4,-1.7) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
-      \node[propia] at (4.3,-1.95) {resolver el ámbito y la anáfora};
+      \draw[mensaje] (0,-2.3) -- node[etiqueta]{pregunta} (3.7,-2.3);
+      \draw[mensaje] (3.7,-2.9) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (4.6,-3.15) {resolver el ámbito y la anáfora};
 
-      % --- Desvio 1: el mensaje no pide ningun dato ---
-      \node[desvio, fit={(-1.3,-2.7) (15.7,-4.1)}] (d1) {};
-      \node[rotuloDesvio] at (d1.north west) {el mensaje no pide un dato};
-      \draw[devuelve] (3.4,-3.7) -- node[etiqueta]{respuesta fija} (0,-3.7);
-      \node[apunte] at (10.4,-3.6)
-        {un saludo, una despedida o preguntar por otro centro}
-        [anchor=center];
+      % --- Salida 1: el mensaje no pide ningun dato ---
+      \node[bloque, fit={(-1.4,-3.9) (16.2,-5.3)}] (b1) {};
+      \node[rotuloBloque] at (b1.north west) {el mensaje no pide un dato};
+      \draw[devuelve] (3.7,-4.9) -- node[etiqueta]{respuesta fija} (0,-4.9);
+      \node[apunte] at (10.6,-4.8)
+      {un saludo, una despedida o preguntar por otro centro};
 
       % --- Recuperacion ---
-      \draw[mensaje] (3.4,-4.8) -- node[etiqueta]{consulta} (7.2,-4.8);
-      \draw[mensaje] (7.2,-5.4) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
-      \node[propia] at (8.1,-5.65) {incrustar y buscar los veinte más próximos};
-      \draw[mensaje] (7.2,-6.4) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
-      \node[propia] at (8.1,-6.65) {acotar: banda, corte relativo y suelo};
-      \draw[devuelve] (7.2,-7.4) -- node[etiqueta]{fragmentos} (3.4,-7.4);
+      \draw[mensaje] (3.7,-6.0) -- node[etiqueta]{consulta} (7.4,-6.0);
+      \draw[mensaje] (7.4,-6.6) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (8.3,-6.85) {incrustar y buscar los veinte más próximos};
+      \draw[mensaje] (7.4,-7.6) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (8.3,-7.85) {acotar: banda, corte relativo y suelo};
+      \draw[devuelve] (7.4,-8.6) -- node[etiqueta]{fragmentos} (3.7,-8.6);
 
-      % --- Desvio 2: no queda ningun fragmento ---
-      \node[desvio, fit={(-1.3,-8.0) (15.7,-9.4)}] (d2) {};
-      \node[rotuloDesvio] at (d2.north west) {no queda ningún fragmento};
-      \draw[devuelve] (3.4,-9.0) -- node[etiqueta]{respuesta fija} (0,-9.0);
-      \node[apunte] at (10.4,-8.9)
-        {es el estado en el que un modelo inventa};
+      % --- Salida 2: no queda ningun fragmento ---
+      \node[bloque, fit={(-1.4,-9.2) (16.2,-10.6)}] (b2) {};
+      \node[rotuloBloque] at (b2.north west) {no queda ningún fragmento};
+      \draw[devuelve] (3.7,-10.2) -- node[etiqueta]{respuesta fija} (0,-10.2);
+      \node[apunte] at (10.6,-10.1)
+      {sin contexto no se llama al modelo:\\es el estado en el que inventa};
 
       % --- Generacion ---
-      \draw[mensaje] (3.4,-10.1)
-        -- node[etiqueta]{pregunta, fragmentos y turnos} (10.8,-10.1);
-      \draw[mensaje] (10.8,-10.7) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
-      \node[propia] at (11.7,-10.95) {armar el \textit{prompt}};
-      \draw[mensaje] (10.8,-11.7) -- node[etiqueta]{\textit{prompt}} (14.4,-11.7);
-      \draw[devuelve] (14.4,-12.3) -- node[etiqueta]{respuesta} (10.8,-12.3);
-      \draw[mensaje] (10.8,-12.9) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
-      \node[propia] at (11.7,-13.15)
-        {comprobar cada titulación contra el catálogo};
+      \draw[mensaje] (3.7,-11.3)
+      -- node[etiqueta]{pregunta, fragmentos y turnos} (11.1,-11.3);
+      \draw[mensaje] (11.1,-11.9) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (12.0,-12.15) {armar el \textit{prompt}};
+      \draw[mensaje] (11.1,-12.9) -- node[etiqueta]{\textit{prompt}} (14.8,-12.9);
+      \draw[devuelve] (14.8,-13.5) -- node[etiqueta]{respuesta} (11.1,-13.5);
+      \draw[mensaje] (11.1,-14.1) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (12.0,-14.35)
+      {comprobar cada titulación contra el catálogo};
 
-      % --- Desvio 3: la barrera ---
-      \node[desvio, fit={(-1.3,-13.8) (15.7,-15.2)}] (d3) {};
-      \node[rotuloDesvio] at (d3.north west) {nombra alguna que no existe};
-      \draw[devuelve] (10.8,-14.8)
-        -- node[etiqueta]{respuesta retirada entera} (0,-14.8);
+      % --- Salida 3: la barrera ---
+      \node[bloque, fit={(-1.4,-15.0) (16.2,-16.4)}] (b3) {};
+      \node[rotuloBloque] at (b3.north west) {nombra alguna que no existe};
+      \draw[devuelve] (11.1,-16.0)
+      -- node[etiqueta]{respuesta retirada entera} (0,-16.0);
 
-      % --- Salida por el camino feliz ---
-      \draw[lineaVida] (0,-15.2) -- (0,-16.3);
-      \draw[lineaVida] (10.8,-15.2) -- (10.8,-16.3);
-      \draw[devuelve] (10.8,-15.9) -- node[etiqueta]{respuesta} (0,-15.9);
+      % --- Salida por el camino que si llega hasta el final ---
+      \draw[lineaVida] (0,-16.4) -- (0,-17.5);
+      \draw[lineaVida] (11.1,-16.4) -- (11.1,-17.5);
+      \draw[devuelveFin] (11.1,-17.1) -- node[etiqueta]{respuesta} (0,-17.1);
     \end{tikzpicture}%
   }
-    \caption{Recorrido completo de una consulta en el sistema. Los bloques discontinuos representan las salidas anticipadas, resolviendo la respuesta sin invocar al modelo generativo en las dos primeras.}
-
+  \caption[Recorrido completo de una consulta]{\textcolor{borrador2}{Recorrido
+      completo de una consulta. Los tres bloques son las salidas anticipadas, y
+      las dos primeras resuelven la respuesta sin invocar al modelo generativo.
+      La flecha gruesa es el único camino que llega hasta él y vuelve. Fuente:
+      Elaboración propia.}}
   \label{fig:secuencia_rag}
 \end{figure}
