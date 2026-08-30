@@ -567,6 +567,18 @@ El incumplimiento de la cuarta condición es la consecuencia directa del requisi
 
 En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
 
+\begin{borrador}
+  \item \textbf{Fase:} 3 (IT-58). \textbf{Dos erratas en la Condición 4}, que es
+  prosa tuya y por eso no la he tocado: «las consultas \emph{qeu} exigen» y «la
+  \emph{dediana} de tiempo de respuesta». Están en la única condición que se
+  declara incumplida, que es justo la que el tribunal va a leer con lupa.
+  \item \textbf{El veredicto de la Condición 4 aguanta} con la amenaza
+  reescrita en el Apartado~\ref{secc:amenazas_validez}: la mediana se mide sobre
+  el equipo doméstico que impone el RNF-01, que es donde el sistema tiene que
+  responder. La limitación es que la cifra no se puede llevar a otra máquina, no
+  que aquí no valga.
+\end{borrador}
+
 
 \subsection[\textcolor{borrador2}{Comparación con los asistentes revisados}]{\textcolor{borrador2}{Comparación con los asistentes revisados}}
 \label{secc:discusion_estado_arte}
@@ -667,13 +679,27 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   de distancia tiene su límite.}
 
 \textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
-  que se desarrolla el proyecto, no en un equipo dedicado, y con el autor
-  trabajando durante las mediciones. El mismo modelo sobre la misma muestra ha
+  que se desarrolla el proyecto, bajo un sistema operativo de propósito general
+  y con la sesión del usuario abierta. El mismo modelo sobre la misma muestra ha
   dado medianas muy distintas según la carga, y ninguna de las cifras de
-  latencia de este capítulo es extrapolable a otro equipo. La limitación no
-  contamina ninguna conclusión porque, como se justifica en el
-  Apartado~\ref{secc:fase2_llm}, el tiempo no interviene en la elección del
-  modelo.}
+  latencia de este capítulo es extrapolable a otro equipo.}
+
+\textcolor{borrador2}{Esta amenaza \textbf{no es corregible dentro de este
+    trabajo}, y conviene decir por qué antes de que se lea como un descuido. El
+  equipo es el ordenador personal del autor y no hay ninguno dedicado
+  disponible: dejarlo una noche sin nadie delante no produce un entorno
+  controlado, sino uno algo menos cargado, porque los servicios propios del
+  sistema siguen ejecutándose y no se pueden retirar sin dejar de ser el equipo
+  sobre el que el sistema está pensado para funcionar. Medir en condiciones de
+  laboratorio exigiría hardware del que este trabajo no dispone, y no una noche
+  más de cómputo.}
+
+\textcolor{borrador2}{Lo que sí acota es el alcance de la cifra, no su validez
+  aquí. La elección del modelo no la usa, como se justifica en el
+  Apartado~\ref{secc:fase2_llm}, y la condición temporal de la hipótesis se
+  declara incumplida sobre el equipo doméstico que el propio requisito
+  \textbf{RNF-01} impone, que es donde el sistema tiene que responder. Lo que no
+  puede afirmarse a partir de estos números es cuánto tardaría en otra máquina.}
 
 \subsection{\textcolor{borrador2}{Validez externa}}
 
@@ -713,11 +739,11 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
 \subsection{\textcolor{borrador2}{Qué haría falta para levantarlas}}
 \label{secc:levantar_amenazas}
 
-\textcolor{borrador2}{Ninguna de las cuatro se declara como un límite
-  insalvable, y conviene decir de cada una qué haría falta para quitarla de en
-  medio. Las que se podían corregir con lo que hay aquí no están en esta
-  sección: se corrigieron, y una limitación corregida no es una limitación del
-  trabajo.}
+\textcolor{borrador2}{De cada una conviene decir qué haría falta para quitarla
+  de en medio, y si eso está o no al alcance de este trabajo. Las que se podían
+  corregir con lo que hay aquí no aparecen en esta sección: se corrigieron, y
+  una limitación corregida no es una limitación del trabajo. Las que quedan
+  piden datos, equipo o alcance que este trabajo no tiene.}
 
 \textcolor{borrador2}{Para la \textbf{validez de constructo}, lo que separa al
   suelo de pertinencia de un filtro de dominio es que el suelo mide parecido de
@@ -737,8 +763,10 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   conjunto es el coste real, porque las preguntas ajenas no se pueden derivar de
   la colección ---no hay en ella ninguna columna que diga qué es ajeno--- y son
   las únicas del trabajo que hay que redactar una a una. La parte de los tiempos
-  se levanta sola en cuanto se mida en un equipo dedicado y sin nadie
-  trabajando en él.}
+  no se levanta con más mediciones: pide un equipo dedicado, y el único
+  disponible es el ordenador personal sobre el que se ha desarrollado todo.
+  Repetir la tanda en él, con más o menos carga, sigue midiendo la misma
+  máquina.}
 
 \textcolor{borrador2}{Para la \textbf{validez externa} hay dos cosas distintas.
   El sesgo de cobertura no lo puede arreglar este trabajo, porque depende de que
@@ -758,9 +786,25 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
   correctas las escribiera alguien distinto de quien escribe el corrector.}
 
 \begin{borrador}
-  \item Fase: 2 (IT-39). Apartado vivo hasta cerrar la memoria: comprobar
-    entonces que ninguna de las cuatro se ha vuelto corregible con lo que haya
-    para entonces.
+  \item \textbf{Fase:} 2 (IT-39). Apartado vivo hasta cerrar la memoria:
+  comprobar entonces que ninguna de las cuatro se ha vuelto corregible con lo
+  que haya para entonces.
+  \item \textbf{Los tiempos pasan a declararse como amenaza no evitable}
+  (decisión del 30/08, cierre de IT-58). Antes decían «se levanta sola en cuanto
+  se mida en un equipo dedicado», que es exactamente lo que el cuarto criterio
+  de la tarjeta prohíbe: una amenaza corregible declarada en vez de corregida.
+  El argumento que la hace no evitable es que el equipo de medida \emph{es} el
+  equipo de destino ---lo impone el RNF-01--- y no hay ninguno dedicado
+  disponible, así que dejarlo libre una noche no da un entorno controlado.
+  \item \textbf{Si el tribunal pregunta, la respuesta es esta:} lo que no se
+  puede afirmar es cuánto tardaría en otra máquina; lo que sí se afirma es que
+  en la máquina sobre la que el sistema debe funcionar la mediana dobla el
+  umbral. Son dos cosas distintas y solo la segunda entra en la hipótesis.
+  \item \textbf{Decisión tuya:} este párrafo está en \emph{validez interna} y
+  tiene una mitad que es de \emph{validez externa} (que no generaliza a otro
+  equipo). Se puede dejar así, porque las dos mitades se leen seguidas, o
+  partirlo. No lo he movido para no reordenar la sección a tres días de la
+  entrega.
 \end{borrador}
 
 
