@@ -14,6 +14,25 @@ Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- dónde condensar, si decides condensar.}
+  Este capítulo ocupa \textbf{60 de las 135 páginas} del cuerpo, el 44\,\%,
+  frente a las 24 de Resultados. Solo las secciones 4.1 a 4.3 ---metodología,
+  planificación temporal y priorización--- se llevan \textbf{12 páginas} antes
+  de que el documento hable del sistema. No digo que sobren: un TFG las pide y
+  el tutor pidió expresamente el Gantt y el reparto del \emph{backlog}. Digo
+  que la proporción se ve desde el índice.
+  \item Los tres sitios donde más se puede recortar sin perder nada que se
+  evalúe, por si te hace falta espacio o tiempo: la \emph{estrategia de control
+  de versiones} (unos 3.800 caracteres sobre ramas y convenciones de
+  \emph{commit}, que se defienden igual en la mitad), los \emph{tipos de
+  pruebas} (2.600) y la \emph{estimación por tallas de camiseta} (1.500, que
+  además no vuelve a usarse en ninguna parte del documento).
+  \item \textbf{Antes de recortar nada, léete el apartado~6 de la auditoría en
+  la Introducción:} hay 23 páginas en turquesa por reescribir. Condensar es
+  opcional; eso no.
+\end{borrador}
+
 
 
 \subsection{Gestión del trabajo y priorización}
@@ -319,6 +338,10 @@ Los cinco tipos de historias son los siguientes:
   sección: ahora mismo se salta del título 4.4 al 4.4.1 sin decir nada.
   \item Aquí también encaja la tabla herramienta--papel que ya está apuntada en
   un comentario del código fuente, si al final se hace.
+  \item \textbf{AUDITORÍA 30/08.} Sigue igual, y es la única sección de nivel~1
+  del capítulo sin una sola frase propia. Con dos o tres líneas que digan qué
+  se decide aquí ---la tecnología y el equipo--- basta para que el salto de
+  título a título deje de verse. No hace falta la tabla.
 \end{borrador}
 
 \subsection{RAG frente al ajuste fino}
@@ -365,7 +388,7 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 
 \textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
 
-\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\% al 90\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
+\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\,\% al 90\,\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
 
 
 
@@ -507,6 +530,16 @@ Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramient
 
 \begin{borrador}
 \item Hay que revisar este apartado para que tenga más sentido con los otros ADR que están en las otras fases.
+  \item \textbf{AUDITORÍA 30/08 --- y aquí está la parte concreta de esa nota:
+  este apartado es el único que decide algo y no cita su ADR.} El
+  \texttt{ADR-0002} existe, se llama «Scrapy frente a alternativas para la
+  extracción de datos» y está aceptado en \texttt{docs/adr/}, pero la memoria
+  no lo nombra en ninguna parte. Los demás sí: el troceado cita el ADR-0001,
+  las incrustaciones el ADR-0003, la base vectorial el ADR-0004, el modelo
+  generativo el ADR-0005 y la emisión por partes el ADR-0006.
+  \item Se arregla con media frase al final del párrafo de arriba, del mismo
+  estilo que las otras cinco. Es lo que hace que la decisión sea trazable, que
+  es justo lo que el tribunal comprueba.
 \end{borrador}
 
 \subsection{Extracción del catálogo de titulaciones y asignaturas}
@@ -546,7 +579,7 @@ La extracción de las guías docentes es la etapa donde se concentran las anomal
 En el curso 2026/2027, la Escuela Politécnica Superior de Jaén ofrece la completitud de las guías docentes de las asignaturas en formato PDF, una nueva medida introducida para este curso puesto que anteriormente se servía en formato HTML.
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
-  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7~\%.
+  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7\,\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
@@ -620,6 +653,14 @@ idénticas solo deja el índice ligeramente más grande.
 
 
 \begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- ojo con la palabra «unidad», que en esta
+  memoria significa dos cosas.} Comprobado hoy contra los ficheros:
+  \textbf{398 unidades} es el corpus entero (210 de guía, 86 de asignatura sin
+  guía, 55 de plan, 24 de mención, 12 de ficha, 8 de salidas y 3 de catálogo),
+  y \textbf{210 unidades} es lo que queda de las 288 guías tras deduplicar,
+  que es la cifra que cita la Figura~\ref{fig:secuencia_chunking}. Las dos son
+  correctas y las dos aparecen; cada vez que se escriba hay que decir cuál de
+  las dos, o parecen contradecirse.
   \item \textbf{Cifras vigentes (16/08/2026, curso 2026-27):} \textbf{1\,499
   fragmentos} en \textbf{398 unidades} (81 compartidas). Tamaños: 96--900
   caracteres, mediana 836, P90 895. Desglose: 1\,296 guía, 86 informativos,
@@ -699,7 +740,7 @@ Los datos o corpus se tienen que trocear debido a la ventana de contexto explica
 \subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\% de las guías no caben en un fragmento de 900 caracteres y el 83\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
+El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\,\% de las guías no caben en un fragmento de 900 caracteres y el 83\,\% tampoco en uno de 1.500. Si se dejaran tal cual, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas perdiendo información en el camino.
 
 A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede saltar,
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
@@ -918,11 +959,46 @@ No obstante, la última respuesta del modelo no se descarta por completo, sino q
 Este contexto conversacional se mantiene por un conjunto de reglas deterministas de persistencia y reemplazo. Cuando una nueva pregunta nombra explícitamente una titulación del corpus, el sujeto activo (la titulación actual) se actualiza, mientras que si la consulta omite el grado, se hereda automáticamente el sujeto del turno previo.
 
 
+\textcolor{borrador2}{Las tres formas de resolver una pregunta de seguimiento
+  ---no mirar la conversación, pegar delante la pregunta anterior, o deducir el
+  sujeto y acotar la búsqueda con él--- se han medido sobre las mismas 39
+  conversaciones y el mismo índice, con $K = 20$. Las conversaciones no están
+  escritas a mano: se derivan de la propia colección, de modo que para cada una
+  se sabe por construcción qué unidad debería recuperarse y no hace falta que
+  nadie juzgue el resultado. La Tabla~\ref{tab:conversacion} recoge la
+  comparación.}
+
+\input{tablas/TablaConversacion.tex}
+
+\textcolor{borrador2}{Sin mirar la conversación, el sistema recupera la unidad
+  correcta en el 35,9\,\% de los casos. Pegar delante la pregunta anterior sube
+  esa cifra al 94,9\,\%, pero deja sin resolver el caso en el que la pregunta
+  cambia de titulación: ahí se queda en 0,333, porque arrastra el sujeto viejo.
+  Deducir el sujeto y filtrar con él acierta las 39, y es además la única de las
+  tres que ordena bien lo recuperado, con un MRR de 0,877 frente a 0,498.}
+
 \begin{borrador}
   \item Fase: 2 (IT-106). Falta decir que el estado de la conversación vive hoy
     en el proceso del asistente. Cuando exista la aplicación web habrá que
     sostener que sigue viviendo en el servidor y no en el navegador, y ese
     razonamiento todavía no se puede escribir porque el servidor no existe.
+  \item \textbf{AUDITORÍA 30/08 --- esa nota ya se puede escribir:} el servidor
+  existe desde la Fase~3 y está documentado en la
+  Sección~\ref{secc:fase3_arquitectura}. El estado de la conversación vive en
+  su proceso, no en el navegador, y el motivo es que el sujeto lo decide el
+  modelo en cada turno.
+  \item \textbf{Y el hallazgo gordo de la auditoría:} la tabla y los dos
+  párrafos en turquesa de arriba \textbf{no estaban en la memoria}. La tabla
+  llevaba escrita desde IT-106 en \texttt{tablas/TablaConversacion.tex}, con
+  sus cifras y sus notas, pero nadie le hacía \texttt{\textbackslash input}.
+  Es decir: el apartado contaba en prosa que se descartaron dos alternativas
+  ---«se pensó inicialmente\dots{} sin embargo\dots{} por ello se optó por»---
+  sin enseñar la medida que las descarta, que sí existía. La he traído y he
+  escrito el andamiaje; reescribe los dos párrafos con tus palabras.
+  \item \textbf{Compruébalo antes de darlo por bueno:} las cifras las produce
+  \texttt{scripts/experimentos/experimento\_conversacion.py} sobre el corpus
+  del 16/08/2026. Yo no he vuelto a ejecutarlo, solo he leído la tabla que ya
+  estaba escrita.
 \end{borrador}
 
 \input{diagramas/DiagramaConversacion.tex}
@@ -1108,6 +1184,27 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
   en \emph{un solo} proceso, ni aparecen el servidor de inferencia ni el índice
   como piezas aparte. El párrafo de arriba sí afirma lo del proceso único, así
   que esa frase carga ahora sola con el argumento.
+
+  \item \textbf{AUDITORÍA 30/08 --- esta figura y la
+  Figura~\ref{fig:secuencia_rag} cuentan lo mismo, y es culpa mía.} Aquella
+  dibuja el recorrido de una consulta con cinco líneas de vida y sus tres
+  salidas anticipadas; esta lo dibuja con ocho pasos numerados. Cambian la
+  forma y el detalle, no el contenido: las dos responden a «¿por dónde pasa
+  una pregunta?». Al proponerte las tres opciones no caí en que la Fase~2 ya
+  tenía su figura del recorrido, y elegiste sobre una comparación incompleta.
+  Tres salidas, y la decisión es tuya:
+  \begin{enumerate}
+    \item \textbf{Volver a la versión en capas} que descarté (está en
+    \texttt{Notas\_TFG/diagramas/arquitectura-web-b.png}). Dibuja la
+    \emph{estructura}, que es lo que ninguna otra figura dibuja, y con eso
+    desaparece el solape. Es lo que yo haría.
+    \item \textbf{Quedarte con esta y recortar la de la Fase~2} a lo que solo
+    ella enseña, que son las salidas anticipadas.
+    \item \textbf{Dejar las dos} y decir en el texto por qué hay dos: aquella
+    es el recorrido \emph{dentro} del flujo de procesamiento y esta es el
+    recorrido \emph{visto desde el navegador}. Se sostiene, pero hay que
+    escribirlo o el tribunal preguntará.
+  \end{enumerate}
 \end{borrador}
 
 
@@ -1251,6 +1348,24 @@ Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}
 \label{secc:fase3_registro}
 
 Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
+
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- las tres capturas que vienen debajo no las
+  presenta nadie.} Las Figuras~\ref{fig:app_inicio}, \ref{fig:app_listado}
+  y~\ref{fig:app_movil} caen aquí seguidas sin que ningún párrafo las anuncie,
+  y el tutor pidió por escrito lo contrario: «no se debe poner una imagen, de
+  ningún tipo, que no aparezca comentada previamente en el texto».
+  \item Fíjate en cómo está resuelta la
+  Figura~\ref{fig:app_fuentes} unas líneas más arriba ---una frase que dice
+  qué requisito resuelve y cómo, y la referencia entre paréntesis---: con tres
+  frases del mismo estilo, una por captura, queda cerrado. Y así de paso este
+  apartado deja de acabar en seco.
+  \item \textbf{Ojo, que esta misma nota engaña al comprobador:} como aquí las
+  tres figuras aparecen citadas, un buscador automático de «figuras sin citar»
+  dice ahora que no hay ninguna. Pero las citas están \emph{dentro de un
+  borrador}, que se va a borrar. Las tres frases hay que escribirlas en el
+  texto de verdad; si no, el problema vuelve el día que retires estas notas.
+\end{borrador}
 
 
 
