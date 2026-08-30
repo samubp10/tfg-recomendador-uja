@@ -14,6 +14,33 @@
   los desgloses; y las lecturas erróneas que conviene desactivar antes de que las haga otro.
 \end{borrador}
 
+\begin{borrador}
+  \item \textbf{AUDITORÍA 30/08 --- este capítulo es el que más turquesa tiene
+  de toda la memoria: el 59\,\%.} Es decir, más de la mitad de lo que dice el
+  capítulo que sostiene la parte científica del trabajo lo he escrito yo y está
+  pendiente de que lo hagas tuyo. Aquí está el reparto, de más a menos, para
+  que decidas por dónde empezar y no por dónde caiga:
+  \begin{enumerate}
+    \item \textbf{Comparativa de modelos de generación} (5.5) --- unos 5.400
+    caracteres, la sección entera. Es la más grande.
+    \item \textbf{El recorrido completo} (dentro de 5.6) --- unos 4.900.
+    \item \textbf{La recuperación} (dentro de 5.6) --- unos 3.100.
+    \item \textbf{Qué haría falta para levantarlas} (dentro de 5.9) --- unos 2.850.
+    \item \textbf{Comparación con los asistentes revisados} (5.8) --- unos 1.900.
+    \item Las cuatro validez (constructo, interna, externa, de conclusión) ---
+    entre 580 y 1.660 cada una.
+    \item \textbf{Trazabilidad con la propuesta original} (5.8) --- unos 1.000.
+  \end{enumerate}
+  \item \textbf{Lo que no está en turquesa y por tanto ya es tuyo:} la
+  colección construida (5.1), la fragmentación (5.2), las incrustaciones (5.3),
+  la base vectorial (5.4), el cumplimiento de objetivos y la hipótesis. Esas
+  seis no hay que tocarlas.
+  \item \textbf{Un atajo que quizá te sirva:} las secciones 5.3 y 5.4 ya están
+  escritas por ti y tratan lo mismo que 5.5 ---una comparativa con umbrales
+  fijados de antemano---. Si te atascas con 5.5, mira cómo resolviste esas dos
+  y sigue el mismo patrón; no hace falta inventar una forma nueva.
+\end{borrador}
+
 \textcolor{borrador2}{Este capítulo recoge lo que el sistema produce y lo que se ha medido
   sobre él. Se organiza siguiendo los objetivos específicos enunciados en el
   Capítulo~\ref{cap:objetivos}: la colección documental que se construye, la fragmentación
@@ -31,7 +58,7 @@
 
 La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
 Sobre esta recopilación de información, el fragmentador produce 1.499 fragmentos repartidos en 398 unidades, de las cuales 81 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.296 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 a 900 caracteres, con una mediana de 836 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
@@ -402,8 +429,25 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 
 \section{Validación con usuarios}
 
-\begin{borrador}      
+\begin{borrador}
   \item \textbf{Fase:} 4 Validación de usuarios reales (los tengo que buscar aún y no sé si será posible)
+  \item \textbf{AUDITORÍA 30/08 --- esta sección está vacía y hay que decidirla
+  ya.} Quedan cuatro días para la entrega, así que «no sé si será posible» ya
+  no es una posición sostenible: o se hace esta semana o no se hace. Las dos
+  salidas honestas son estas, y las dos son defendibles:
+  \begin{enumerate}
+    \item \textbf{Hacerla en pequeño y decir que es pequeña.} Tres o cuatro
+    personas, un guion de cinco preguntas, y se reporta como lo que es: una
+    prueba de usabilidad exploratoria, no una validación con potencia
+    estadística. Un $n$ pequeño declarado vale; un $n$ pequeño presentado como
+    validación, no.
+    \item \textbf{Retirar la sección y declararlo como limitación} en el
+    Capítulo~\ref{cap:conclusiones}, enlazándolo con el trabajo futuro. El
+    sistema se ha evaluado con un banco de preguntas, no con usuarios, y eso
+    se puede decir sin que reste.
+  \end{enumerate}
+  Lo que no vale es entregar el título con la sección vacía debajo: el
+  tribunal lee el índice, la busca y no encuentra nada.
 \end{borrador}
 
 \section[Discusión]{\textcolor{borrador2}{Discusión}}
@@ -507,14 +551,14 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
 
 \begin{itemize}
   \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
-       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\% en el extremos más restrictivo ($k=3$) y el 99,1\% en el más permisivo ($k=10$).
+       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\,\% en el extremos más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$).
        
 
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
         \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, se registró cero alucinaciones del modelo elegido. La verificación determinista garantiza que el sistema no genera menciones a grados inexistentes o ajenos a la Escuela.
 
   \item \textbf{Condición 3 --- Proporción de respuestas útiles}
-        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\% fijado.
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\,\% fijado.
 
   \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No Cumplida}.En las consultas qeu exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la dediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
 \end{itemize}
