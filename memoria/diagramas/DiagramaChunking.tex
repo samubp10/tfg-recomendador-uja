@@ -8,7 +8,12 @@
 %   - grados.json trae 837 registros: 12 grado, 528 asignatura, 288 guia,
 %     8 salidas y 1 procedencia.
 %   - las 288 guias se agrupan en 210 unidades por (nombre, contenido); es
-%     decir, 78 copias que no se vuelven a indexar.
+%     decir, 78 copias que no se vuelven a indexar. OJO: son 210 unidades DE
+%     GUIA. El corpus entero tiene 398 unidades ---210 de guia, 86 de
+%     asignatura sin guia, 55 de plan, 24 de mencion, 12 de ficha, 8 de
+%     salidas y 3 de catalogo---, de las que 81 se imparten en varias
+%     titulaciones. Las dos cifras conviven en la memoria y hay que decir
+%     siempre cual de las dos se esta citando.
 %   - de los 1.499 fragmentos, 1.413 pasan por el troceador y 86 no.
 % No se escriben a mano: salen de leer los dos JSON.
 %
@@ -64,7 +69,7 @@
       % La guarda lleva relleno blanco: si no, las líneas de vida la atraviesan.
       \node[font=\footnotesize, fill=white, inner sep=2pt, anchor=north west]
       at (-0.9,-9.95)
-      {[por cada unidad: 210 guías, 8 salidas y los listados compuestos]};
+      {[por cada unidad: 210 de guía, 8 de salidas y los listados compuestos]};
 
       % ── Barras de actividad ────────────────────────────────────────────────
       % Cada una marca el tramo en el que ese participante tiene el control.
@@ -82,7 +87,9 @@
       % la derecha se salía del marco del bucle o pisaba la línea de al lado.
       \node[rot, anchor=south] at (8.15,-5.25) {agrupa por (nombre, contenido)};
       \draw[msg] (7.69,-5.4) -- (8.6,-5.4) -- (8.6,-6.1) -- (7.69,-6.1);
-      \draw[ret] (7.51,-6.6) -- node[rot]{210 unidades: 78 copias que no se repiten} (0.09,-6.6);
+      % «de guía» no sobra: el corpus entero tiene 398 unidades, de las que 210
+      % son de guía. Sin el matiz, esta cifra parece contradecir la otra.
+      \draw[ret] (7.51,-6.6) -- node[rot]{210 unidades de guía: 78 copias que no se repiten} (0.09,-6.6);
 
       % Anclado por su esquina y no centrado: centrado sobre el lazo, un rótulo
       % de este largo se sale de la figura por la izquierda.
