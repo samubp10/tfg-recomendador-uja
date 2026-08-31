@@ -41,6 +41,10 @@ graphify-out/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+# El fichero que synctex deja a medias mientras compila; si el editor recompila
+# a menudo, aparece y desaparece solo y ensucia el estado del repositorio.
+*.synctex(busy)
+*.synctex
 *.run.xml
 *.bcf
 
