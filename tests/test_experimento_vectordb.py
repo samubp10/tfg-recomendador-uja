@@ -462,43 +462,47 @@ def test_escribir_resultados_solo_sustituye_entre_las_marcas(
     assert "viejo" not in resultado
 
 
-def test_escribir_resultados_anade_al_final_si_faltan_las_marcas(
+def test_escribir_resultados_falla_si_faltan_las_marcas(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Si alguien borra las marcas a mano, se añade al final sin perder nada.
+    """Sin las marcas no se escribe: se avisa y no se toca el fichero.
 
-    Es la tercera rama de la función, y la que decide si un descuido cuesta la
-    prosa del ADR o solo deja el bloque en un sitio raro.
+    Antes el bloque se añadía al final, que es la manera de dejar el ADR
+    desordenado sin que nadie se entere. Un ADR al que le faltan las marcas es
+    un ADR que alguien ha editado mal, y eso hay que verlo, no absorberlo.
     """
     adr = tmp_path / "adr-0004.md"
-    adr.write_text("# ADR\n\nProsa del autor, sin marcas.\n", encoding="utf-8")
+    original = "# ADR\n\nProsa del autor, sin marcas.\n"
+    adr.write_text(original, encoding="utf-8")
     monkeypatch.setattr(experimento, "RUTA_ADR", adr)
 
-    experimento.escribir_resultados(
-        f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
-    )
+    with pytest.raises(SystemExit, match="marcas"):
+        experimento.escribir_resultados(
+            f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
+        )
 
-    resultado = adr.read_text(encoding="utf-8")
-    assert "Prosa del autor, sin marcas." in resultado
-    assert "resultados" in resultado
-    assert resultado.index("Prosa del autor") < resultado.index("resultados")
+    assert adr.read_text(encoding="utf-8") == original
 
 
-def test_escribir_resultados_crea_el_esqueleto_si_no_existe(
+def test_escribir_resultados_falla_si_el_adr_no_existe(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """La primera vez se crea el ADR con los huecos de IT-32 marcados."""
+    """El ADR lo abre su tarjeta, no el guion que le mete las cifras.
+
+    Crear el fichero desde aquí obligaba a mantener una plantilla de ADR
+    dentro del experimento, que además envejecía por su cuenta: llevaba un
+    campo de fecha y un apartado de amenazas que la plantilla vigente ya no
+    tiene.
+    """
     adr = tmp_path / "adr-0004.md"
     monkeypatch.setattr(experimento, "RUTA_ADR", adr)
 
-    experimento.escribir_resultados(
-        f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
-    )
+    with pytest.raises(SystemExit, match="No existe"):
+        experimento.escribir_resultados(
+            f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
+        )
 
-    resultado = adr.read_text(encoding="utf-8")
-    assert "# ADR-0004: Base de datos vectorial" in resultado
-    assert "resultados" in resultado
-    assert "IT-32" in resultado
+    assert not adr.exists()
 
 
 # --- Que estas pruebas se puedan recoger en CI (IT-31) ---------------------
