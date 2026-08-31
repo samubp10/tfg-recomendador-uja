@@ -35,7 +35,7 @@
 | 1 | 10 | 1.30 | 0.137 | 1.000 | 0.800 | 7.2 | 0 |
 | 3 | 20 | 1.20 | 0.137 | 1.000 | 0.800 | 7.2 | 0 |
 
-**Unidad** es la proporción de preguntas de dominio en las que se recupera al menos un fragmento de la unidad que las responde. **Rechazo** es la proporción de preguntas ajenas al dominio que se quedan sin contexto, que es el acierto en esa familia. **Frag.** es la media de fragmentos por pregunta, que se paga en tiempo y en ventana. **Sin ctx.** son las preguntas de dominio que se quedan sin nada, que es el peor fallo posible del recuperador.
+**Unidad** es la proporción de preguntas de dominio en las que se recupera al menos un fragmento de la unidad que las responde. **Rechazo** es la proporción de preguntas ajenas al dominio que se quedan sin contexto **aplicando solo el corte por distancia**, que es lo que esta rejilla varía. **No es el rechazo del sistema** y no debe leerse como tal, por dos razones: se mide sobre el mismo conjunto con el que se ajustó el suelo, así que informa de lo bien que se ajustó; y el recuperador completo entrega contexto a las peticiones de consejo a propósito, de modo que sobre estas mismas preguntas rechaza menos. **Frag.** es la media de fragmentos por pregunta, que se paga en tiempo y en ventana. **Sin ctx.** son las preguntas de dominio que se quedan sin nada, que es el peor fallo posible del recuperador.
 
 ## Las que no pierden ninguna pregunta de dominio
 

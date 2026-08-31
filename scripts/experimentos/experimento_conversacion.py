@@ -25,8 +25,8 @@ metería su variabilidad en un experimento que no va de eso.
 
 Uso::
 
-    py scripts/experimento_conversacion.py
-    py scripts/experimento_conversacion.py --k 10
+    py scripts/experimentos/experimento_conversacion.py
+    py scripts/experimentos/experimento_conversacion.py --k 10
 """
 
 from __future__ import annotations

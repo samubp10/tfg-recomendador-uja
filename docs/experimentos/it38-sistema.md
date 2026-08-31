@@ -1,6 +1,6 @@
 # Evaluación del sistema completo (IT-37)
 
-> Lo escribe `scripts/experimento_sistema.py`. **No editar a mano.**
+> Lo escribe `scripts/experimentos/experimento_sistema.py`. **No editar a mano.**
 
 - Entradas del banco: **57**
 - Servidor de inferencia: 0.32.14

@@ -12,11 +12,11 @@ Compara lo que hay en ``data/grados.json`` con los PDF originales que el
 rastreo deja en ``data/guias_pdf/``::
 
     scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
-    py scripts/check_guias_pdf.py
+    py scripts/verificadores/check_guias_pdf.py
 
 Acepta rutas alternativas como argumentos::
 
-    py scripts/check_guias_pdf.py otra/ruta/grados.json otra/carpeta_pdf
+    py scripts/verificadores/check_guias_pdf.py otra/ruta/grados.json otra/carpeta_pdf
 
 """
 

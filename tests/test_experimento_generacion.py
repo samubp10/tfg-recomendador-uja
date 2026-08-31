@@ -642,3 +642,388 @@ def test_escribir_el_adr_falla_si_faltan_las_marcas(tmp_path, monkeypatch):
     with pytest.raises(SystemExit, match="marcas"):
         experimento.escribir_adr("da igual")
     assert adr.read_text(encoding="utf-8") == "# ADR-0005\n\nSin marcas.\n"
+
+
+# --- Responder, ejecutar y el recorrido entero (IT-113) ---------------------
+
+import urllib.error  # noqa: E402
+
+
+class _ConsultaFalsa:
+    """Lo que la conversación entrega al recuperador."""
+
+    def __init__(self, texto, ambito):
+        self.texto = texto
+        self.ambito = ambito
+        self.respaldo = None
+        self.abierta = False
+
+
+def _sin_recuperador(monkeypatch, fragmentos, respuesta="Una respuesta."):
+    """Sustituye la recuperación y la generación, que son lo caro."""
+    monkeypatch.setattr(experimento, "contexto_para", lambda *a, **kw: fragmentos)
+    monkeypatch.setattr(
+        experimento, "construir_prompt", lambda *a, **kw: "prompt de mentira"
+    )
+    monkeypatch.setattr(experimento, "generar", lambda prompt, modelo: respuesta)
+
+
+def test_sin_fragmentos_no_se_llama_al_modelo(monkeypatch):
+    """Una instrucción no es un control: lo que no se puede permitir, se impide.
+
+    Sin contexto recuperado no hay nada que resumir, así que ni se pregunta.
+    """
+    llamadas = []
+    _sin_recuperador(monkeypatch, [])
+    monkeypatch.setattr(
+        experimento, "generar", lambda p, m: llamadas.append(m) or "no debería"
+    )
+
+    texto, _rec, gen, n = experimento.responder_una(
+        "¿y el temario?", "gemma3:12b", None, None, "cosine", CATALOGO
+    )
+
+    assert (texto, gen, n) == ("", 0.0, 0)
+    assert llamadas == []
+
+
+def test_con_fragmentos_se_responde_y_se_cronometra(monkeypatch):
+    _sin_recuperador(monkeypatch, ["f1", "f2"], respuesta="Pues esto.")
+
+    texto, t_rec, t_gen, n = experimento.responder_una(
+        "¿y el temario?", "gemma3:12b", None, None, "cosine", CATALOGO
+    )
+
+    assert (texto, n) == ("Pues esto.", 2)
+    assert t_rec >= 0.0 and t_gen >= 0.0
+
+
+# --- La versión del servidor ------------------------------------------------
+
+
+def test_la_version_del_servidor_se_anota(monkeypatch):
+    """Va en cada fila del registro: sin ella no se sabe contra qué se midió."""
+
+    class _Respuesta:
+        def read(self):
+            return json.dumps({"version": "0.32.14"}).encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    monkeypatch.setattr(
+        experimento.urllib.request, "urlopen", lambda u, timeout: _Respuesta()
+    )
+
+    assert experimento.version_del_servidor("http://x") == "0.32.14"
+
+
+def test_si_el_servidor_no_dice_su_version_no_se_aborta(monkeypatch):
+    """Quedarse sin cribado por no saber la versión sería peor que anotarla así."""
+
+    def cae(url, timeout):
+        raise urllib.error.URLError("sin servidor")
+
+    monkeypatch.setattr(experimento.urllib.request, "urlopen", cae)
+
+    assert experimento.version_del_servidor("http://x") == "desconocida"
+
+
+# --- La tanda ---------------------------------------------------------------
+
+
+def _pregunta_banco(identificador="G-CAT-001", familia="catalogo"):
+    return {
+        "id": identificador,
+        "familia": familia,
+        "pregunta": "¿qué titulaciones hay?",
+        "respuesta": "conjunto",
+        "esperado": [],
+    }
+
+
+def _preparar_tanda(monkeypatch, respuesta="Pues esto."):
+    monkeypatch.setattr(experimento, "version_del_servidor", lambda *a: "0.32.14")
+    monkeypatch.setattr(
+        experimento,
+        "responder_una",
+        lambda *a, **kw: (respuesta, 0.5, 1.5, 3),
+    )
+    monkeypatch.setattr(
+        experimento, "medir", lambda *a, **kw: {"titulaciones_inventadas": []}
+    )
+
+
+def test_ejecutar_escribe_una_linea_por_respuesta(tmp_path, monkeypatch, capsys):
+    """El registro va a disco turno a turno: una tanda cortada no se pierde."""
+    _preparar_tanda(monkeypatch)
+    registro = tmp_path / "registro.jsonl"
+
+    experimento.ejecutar(
+        ["gemma3:12b"],
+        [_pregunta_banco()],
+        None,
+        None,
+        "cosine",
+        CATALOGO,
+        set(),
+        set(),
+        registro,
+    )
+
+    lineas = registro.read_text(encoding="utf-8").strip().split("\n")
+    fila = json.loads(lineas[0])
+    assert len(lineas) == 1
+    assert fila["modelo"] == "gemma3:12b"
+    assert fila["servidor"] == "0.32.14"
+    assert "1 pendientes de 1" in capsys.readouterr().out
+
+
+def test_ejecutar_no_repite_lo_ya_medido(tmp_path, monkeypatch, capsys):
+    """Reanudar una tanda de dos horas no puede volver a pagar lo hecho."""
+    _preparar_tanda(monkeypatch)
+    registro = tmp_path / "registro.jsonl"
+    registro.write_text(
+        json.dumps({"modelo": "gemma3:12b", "id": "G-CAT-001"}) + "\n", encoding="utf-8"
+    )
+
+    experimento.ejecutar(
+        ["gemma3:12b"],
+        [_pregunta_banco()],
+        None,
+        None,
+        "cosine",
+        CATALOGO,
+        set(),
+        set(),
+        registro,
+    )
+
+    assert "0 pendientes de 1" in capsys.readouterr().out
+    assert len(registro.read_text(encoding="utf-8").strip().split("\n")) == 1
+
+
+def test_un_fallo_del_modelo_no_corta_la_tanda(tmp_path, monkeypatch, capsys):
+    _preparar_tanda(monkeypatch)
+
+    def cae(*a, **kw):
+        raise experimento.ErrorDelModelo("500 del servidor")
+
+    monkeypatch.setattr(experimento, "responder_una", cae)
+    registro = tmp_path / "registro.jsonl"
+
+    experimento.ejecutar(
+        ["gemma3:12b"],
+        [_pregunta_banco()],
+        None,
+        None,
+        "cosine",
+        CATALOGO,
+        set(),
+        set(),
+        registro,
+    )
+
+    assert "FALLO" in capsys.readouterr().out
+    assert not registro.exists() or registro.read_text(encoding="utf-8") == ""
+
+
+def test_una_titulacion_inventada_se_marca_en_pantalla(tmp_path, monkeypatch, capsys):
+    """Es el umbral eliminatorio del ADR-0005: se ve mientras corre la tanda."""
+    _preparar_tanda(monkeypatch)
+    monkeypatch.setattr(
+        experimento,
+        "medir",
+        lambda *a, **kw: {"titulaciones_inventadas": ["Grado en Magia"]},
+    )
+    registro = tmp_path / "registro.jsonl"
+
+    experimento.ejecutar(
+        ["gemma3:12b"],
+        [_pregunta_banco()],
+        None,
+        None,
+        "cosine",
+        CATALOGO,
+        set(),
+        set(),
+        registro,
+    )
+
+    assert "!G-CAT-001" in capsys.readouterr().out
+
+
+# --- El recorrido entero ----------------------------------------------------
+
+
+def _preparar_main(tmp_path, monkeypatch, con_registro=True):
+    banco = tmp_path / "banco.json"
+    banco.write_text(
+        json.dumps({"preguntas": [_pregunta_banco(), _pregunta_banco("G-CAT-002")]}),
+        encoding="utf-8",
+    )
+    datos = tmp_path / "grados.json"
+    datos.write_text(json.dumps([_CON_MENCION]), encoding="utf-8")
+    registro = tmp_path / "registro.jsonl"
+    if con_registro:
+        registro.write_text(
+            json.dumps(
+                {
+                    "modelo": "gemma3:12b",
+                    "servidor": "0.32.14",
+                    "id": "G-CAT-001",
+                    "familia": "catalogo",
+                    "pregunta": "¿qué titulaciones hay?",
+                    "respuesta": "Pues esto.",
+                    "fragmentos": 3,
+                    "segundos_recuperar": 0.5,
+                    "segundos_generar": 1.5,
+                    "titulaciones_inventadas": [],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    monkeypatch.setattr(experimento, "catalogo_del_indice", lambda ruta: CATALOGO)
+    monkeypatch.setattr(experimento, "informe", lambda *a, **kw: None)
+    return banco, datos, registro
+
+
+def test_main_solo_informe_no_llama_a_ningun_modelo(tmp_path, monkeypatch):
+    """`--solo-informe` reescribe el .md sobre lo ya medido."""
+    banco, datos, registro = _preparar_main(tmp_path, monkeypatch)
+    llamadas = []
+    monkeypatch.setattr(experimento, "ejecutar", lambda *a, **kw: llamadas.append(1))
+
+    experimento.main(
+        [
+            "--banco",
+            str(banco),
+            "--datos",
+            str(datos),
+            "--registro",
+            str(registro),
+            "--salida",
+            str(tmp_path / "s.md"),
+            "--indice",
+            str(tmp_path),
+            "--solo-informe",
+        ]
+    )
+
+    assert llamadas == []
+
+
+def test_main_ejecuta_la_tanda_cuando_no_se_le_dice_lo_contrario(tmp_path, monkeypatch):
+    banco, datos, registro = _preparar_main(tmp_path, monkeypatch)
+    llamadas = []
+    monkeypatch.setattr(experimento, "ejecutar", lambda *a, **kw: llamadas.append(1))
+    monkeypatch.setattr(experimento, "abrir_indice", lambda ruta, modelo: None)
+    monkeypatch.setattr(experimento, "incrustador_de_consultas", lambda modelo: None)
+    monkeypatch.setattr(experimento, "distancia_del_indice", lambda ruta: "cosine")
+
+    experimento.main(
+        [
+            "--banco",
+            str(banco),
+            "--datos",
+            str(datos),
+            "--registro",
+            str(registro),
+            "--salida",
+            str(tmp_path / "s.md"),
+            "--indice",
+            str(tmp_path),
+            "--modelos",
+            "gemma3:12b",
+        ]
+    )
+
+    assert llamadas == [1]
+
+
+def test_main_con_limite_recorta_el_banco(tmp_path, monkeypatch):
+    banco, datos, registro = _preparar_main(tmp_path, monkeypatch)
+    recibidas = []
+    monkeypatch.setattr(
+        experimento,
+        "ejecutar",
+        lambda modelos, preguntas, *a: recibidas.append(len(preguntas)),
+    )
+    monkeypatch.setattr(experimento, "abrir_indice", lambda ruta, modelo: None)
+    monkeypatch.setattr(experimento, "incrustador_de_consultas", lambda modelo: None)
+    monkeypatch.setattr(experimento, "distancia_del_indice", lambda ruta: "cosine")
+
+    experimento.main(
+        [
+            "--banco",
+            str(banco),
+            "--datos",
+            str(datos),
+            "--registro",
+            str(registro),
+            "--salida",
+            str(tmp_path / "s.md"),
+            "--indice",
+            str(tmp_path),
+            "--limite",
+            "1",
+        ]
+    )
+
+    assert recibidas == [1]
+
+
+def test_main_recalcular_repuntua_sin_llamar_a_nadie(tmp_path, monkeypatch, capsys):
+    """Si cambia un corrector, se repuntúa lo guardado en vez de repetir la tanda."""
+    banco, datos, registro = _preparar_main(tmp_path, monkeypatch)
+    monkeypatch.setattr(experimento, "recalcular", lambda filas, *a: filas)
+
+    experimento.main(
+        [
+            "--banco",
+            str(banco),
+            "--datos",
+            str(datos),
+            "--registro",
+            str(registro),
+            "--salida",
+            str(tmp_path / "s.md"),
+            "--indice",
+            str(tmp_path),
+            "--recalcular",
+        ]
+    )
+
+    assert "Repuntuadas 1 respuestas" in capsys.readouterr().out
+
+
+def test_main_con_adr_escribe_el_bloque_de_datos_brutos(tmp_path, monkeypatch):
+    banco, datos, registro = _preparar_main(tmp_path, monkeypatch)
+    escritos = []
+    monkeypatch.setattr(experimento, "bloque_adr", lambda filas, banco: "BLOQUE")
+    monkeypatch.setattr(
+        experimento, "escribir_adr", lambda bloque: escritos.append(bloque)
+    )
+
+    experimento.main(
+        [
+            "--banco",
+            str(banco),
+            "--datos",
+            str(datos),
+            "--registro",
+            str(registro),
+            "--salida",
+            str(tmp_path / "s.md"),
+            "--indice",
+            str(tmp_path),
+            "--solo-informe",
+            "--adr",
+        ]
+    )
+
+    assert escritos == ["BLOQUE"]

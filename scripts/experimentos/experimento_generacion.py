@@ -39,11 +39,15 @@ cuántos fragmentos recibió cada respuesta.
 
 Uso::
 
-    py scripts/experimento_generacion.py --modelos ministral-8b:latest gemma3:12b
-    py scripts/experimento_generacion.py --limite 10          # prueba corta
-    py scripts/experimento_generacion.py --solo-informe       # solo reescribe el .md
-    py scripts/experimento_generacion.py --recalcular         # repuntúa lo guardado
-    py scripts/experimento_generacion.py --adr                # datos brutos al ADR-0005
+    py scripts/experimentos/experimento_generacion.py [opciones]
+
+Opciones habituales::
+
+    --modelos ministral-8b:latest gemma3:12b
+    --limite 10          # prueba corta
+    --solo-informe       # solo reescribe el .md
+    --recalcular         # repuntúa lo guardado
+    --adr                # datos brutos al ADR-0005
 
 Las respuestas se van guardando según se producen y una ejecución nueva **no
 repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
@@ -85,14 +89,19 @@ NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
 #: ADR-0001, el ADR-0003 y el ADR-0004.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0005-modelo-de-generacion.md"
 
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
+
 #: Marcas entre las que escribe este guion. Existen para poder volver a
 #: ejecutarlo sin pisar lo que el autor haya redactado en el resto del ADR: la
 #: Decisión y las Consecuencias son suyas y el guion no las toca.
-MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
-    "(scripts/experimentos/experimento_generacion.py) -->"
+MARCA_INICIO: Final[str] = _adr.marca_inicio(
+    "scripts/experimentos/experimento_generacion.py"
 )
-MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 sys.path.insert(0, str(RAIZ / "src"))
 
@@ -662,7 +671,10 @@ def informe(
     escribir = lineas.append
     escribir("# Cribado de modelos generativos (IT-35)")
     escribir("")
-    escribir("> Lo escribe `scripts/experimento_generacion.py`. **No editar a mano.**")
+    escribir(
+        "> Lo escribe `scripts/experimentos/experimento_generacion.py`. "
+        "**No editar a mano.**"
+    )
     escribir("")
     escribir(f"- Preguntas del banco usadas: **{len({f['id'] for f in filas})}**")
     escribir(f"- Respuestas medidas: **{len(filas)}**")
@@ -796,7 +808,7 @@ def bloque_adr(filas: list[dict[str, Any]], banco: dict[str, Any]) -> str:
     lineas: list[str] = [
         MARCA_INICIO,
         "",
-        "> Lo escribe `scripts/experimento_generacion.py --adr`. "
+        "> Lo escribe `scripts/experimentos/experimento_generacion.py --adr`. "
         "**No editar a mano.**",
         "",
         f"- Preguntas del banco: **{preguntas}** · "
@@ -885,17 +897,7 @@ def escribir_adr(bloque: str) -> None:
             forma ruidosa a propósito: escribir el bloque al final de un
             fichero que no lo esperaba deja el ADR desordenado sin avisar.
     """
-    if not RUTA_ADR.exists():
-        raise SystemExit(f"No existe {RUTA_ADR}: el ADR lo abre IT-36, no este guion.")
-    contenido = RUTA_ADR.read_text(encoding="utf-8")
-    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
-        raise SystemExit(
-            f"{RUTA_ADR} no lleva las marcas de resultados automáticos. "
-            "Añádelas donde deba ir el bloque."
-        )
-    antes, resto = contenido.split(MARCA_INICIO, 1)
-    _, despues = resto.split(MARCA_FIN, 1)
-    RUTA_ADR.write_text(antes + bloque + despues, encoding="utf-8")
+    _adr.sustituir(RUTA_ADR, MARCA_INICIO, bloque)
     print(f"Resultados escritos en {RUTA_ADR}")
 
 

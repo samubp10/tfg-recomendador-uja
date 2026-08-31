@@ -6,11 +6,11 @@ detectar regresiones cada vez que se regenera el dataset. Debe ejecutarse
 tras cada regeneración::
 
     py -m tfg_uja.chunker data/grados.json data/chunks.json
-    py scripts/check_chunks.py
+    py scripts/verificadores/check_chunks.py
 
 Acepta rutas alternativas como argumentos::
 
-    py scripts/check_chunks.py otra/ruta/chunks.json otra/ruta/grados.json
+    py scripts/verificadores/check_chunks.py otra/ruta/chunks.json otra/ruta/grados.json
 """
 
 from __future__ import annotations
