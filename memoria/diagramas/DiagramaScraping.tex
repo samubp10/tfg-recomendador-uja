@@ -1,30 +1,7 @@
 % !TEX root = ../main.tex
-% El recorrido del rastreador (Fase 1).
-%
-% Sustituye al diagrama de secuencia que habia antes, que ocupaba 0,9 de la
-% altura de la pagina y aun asi habia que acercarse para leerlo. El tutor lo
-% marco dos veces por eso mismo.
-%
-% El cambio no es solo de tamano: deja de ser una secuencia y pasa a ser el
-% recorrido con sus bifurcaciones. Se gana legibilidad y se pierde detalle, y
-% conviene tenerlo escrito: de las CUATRO bifurcaciones que dibujaba la
-% version anterior aqui hay DOS. Se quedan fuera «guia con contenido frente a
-% guia publicada vacia» y «grado simple frente a doble grado». No caben sin
-% volver a la letra pequena que se queria evitar.
-%
-% El recuadro con borde grueso es la guia en PDF, que es donde se concentran
-% las anomalias de la fuente: es la unica pieza que se sirve como binario y la
-% unica con lista de secciones permitidas.
-%
-% Las cajas se encadenan con `below=of` y `left=of`: dar las alturas a mano ya
-% provoco solapes en otras dos figuras, porque una caja crece con su texto y
-% `minimum height` solo fija el minimo.
+
 \begin{figure}[H]
   \centering
-  % La nota va DEBAJO y no al lado a propósito. Puesta a la derecha estiraba el
-  % dibujo hasta 19\,cm de ancho, y como `resizebox` conserva la proporción,
-  % eso encogía toda la figura un 38\,\%: la letra volvía a quedarse pequeña,
-  % que es justo lo que había que evitar.
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
       paso/.style={nodoDiag, text width=5.0cm, minimum height=1.3cm},
@@ -86,12 +63,6 @@
         528 asignaturas y 288 guías: el recorrido se repite entero.};
     \end{tikzpicture}%
   }
-  \caption[El recorrido del rastreador]{\textcolor{borrador2}{El recorrido del
-      rastreador. No hace una única petición, sino que encadena una por cada
-      tipo de página, y en cada caja está escrito qué registro emite. Las dos
-      bifurcaciones son las que evitan trabajo inútil: una titulación en
-      extinción se descarta \emph{antes} de pedirla, y una asignatura sin
-      enlace de guía queda anotada como tal en lugar de desaparecer. Fuente:
-      Elaboración propia.}}
+  \caption[El recorrido del rastreador]{Flujo de navegación y extracción del rastreador web. Muestra el encadenamiento de peticiones por nivel jerárquico (titulación, grado, asignatura y guía), junto con el descarte previo de planes en extinción y el registro explícito de materias sin guía docente publicada. Fuente: Elaboración propia.}
   \label{fig:secuencia_scraping}
 \end{figure}
