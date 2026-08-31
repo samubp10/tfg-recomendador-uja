@@ -1202,3 +1202,316 @@ def test_main_dice_cuando_el_corpus_no_permite_la_comprobacion(
     experimento.main()
 
     assert "la comprobación se omite" in capsys.readouterr().out
+
+
+# --- Qdrant, que además exige el contenedor levantado -----------------------
+
+
+class _Punto:
+    """Un punto de Qdrant: identificador numérico y su carga."""
+
+    def __init__(self, identificador, payload=None):
+        self.id = identificador
+        self.payload = payload or {}
+
+
+def _modelos_qdrant_falsos():
+    """El submódulo `models` con las cinco clases que usa el experimento."""
+    modelos = types.ModuleType("qdrant_client.models")
+
+    class _PointStruct:
+        def __init__(self, id, vector, payload):
+            self.id = id
+            self.vector = vector
+            self.payload = payload
+
+    class _MatchValue:
+        def __init__(self, value):
+            self.value = value
+
+    class _FieldCondition:
+        def __init__(self, key, match):
+            self.key = key
+            self.match = match
+
+    class _Filter:
+        def __init__(self, must):
+            self.must = list(must)
+
+    class _VectorParams:
+        def __init__(self, size, distance):
+            self.size = size
+            self.distance = distance
+
+    modelos.PointStruct = _PointStruct
+    modelos.MatchValue = _MatchValue
+    modelos.FieldCondition = _FieldCondition
+    modelos.Filter = _Filter
+    modelos.VectorParams = _VectorParams
+    modelos.Distance = types.SimpleNamespace(COSINE="Cosine")
+    modelos.PayloadSchemaType = types.SimpleNamespace(KEYWORD="keyword")
+    return modelos
+
+
+class _ClienteQdrant:
+    """Servidor de mentira: guarda los puntos en memoria y los filtra."""
+
+    def __init__(self, url=None, paginas=1):
+        self.puntos: list[Any] = []
+        self.colecciones: set[str] = set()
+        self.indices: list[tuple[str, str]] = []
+        self.paginas = paginas
+
+    def collection_exists(self, nombre):
+        return nombre in self.colecciones
+
+    def delete_collection(self, nombre):
+        self.colecciones.discard(nombre)
+
+    def create_collection(self, collection_name, vectors_config):
+        self.colecciones.add(collection_name)
+
+    def create_payload_index(self, nombre, campo, field_schema=None):
+        self.indices.append((nombre, campo))
+
+    def upsert(self, collection_name, points):
+        self.puntos.extend(points)
+
+    def _cumplen(self, filtro):
+        if filtro is None:
+            return list(self.puntos)
+        elegidos = []
+        for punto in self.puntos:
+            if all(
+                (
+                    c.match.value in punto.payload.get(c.key, [])
+                    if isinstance(punto.payload.get(c.key), list)
+                    else punto.payload.get(c.key) == c.match.value
+                )
+                for c in filtro.must
+            ):
+                elegidos.append(punto)
+        return elegidos
+
+    def query_points(self, collection_name, query, limit, query_filter=None):
+        elegidos = self._cumplen(query_filter)
+        return types.SimpleNamespace(points=[_Punto(p.id) for p in elegidos[:limit]])
+
+    def scroll(self, collection_name, scroll_filter, limit, offset, with_payload):
+        elegidos = self._cumplen(scroll_filter)
+        # Se parte en varias paginas para ejercitar el cursor: quedarse con la
+        # primera contaria menos fragmentos de los que cumplen el filtro.
+        trozo = max(len(elegidos) // self.paginas, 1)
+        inicio = offset or 0
+        pagina = elegidos[inicio : inicio + trozo]
+        siguiente = inicio + trozo
+        return (
+            [_Punto(p.id) for p in pagina],
+            siguiente if siguiente < len(elegidos) else None,
+        )
+
+    def get_collection(self, nombre):
+        return _info_qdrant(indexados=0, puntos=len(self.puntos))
+
+
+@pytest.fixture
+def qdrant_falso(monkeypatch):
+    """Inyecta un `qdrant_client` de mentira y su `models`."""
+    modelos = _modelos_qdrant_falsos()
+    modulo = types.ModuleType("qdrant_client")
+    modulo.QdrantClient = _ClienteQdrant  # type: ignore[attr-defined]
+    modulo.models = modelos  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "qdrant_client", modulo)
+    monkeypatch.setitem(sys.modules, "qdrant_client.models", modelos)
+    monkeypatch.setattr(experimento, "version_instalada", lambda n: "1.19.0")
+    monkeypatch.setattr(experimento, "memoria_contenedor_mb", lambda n: 149.1)
+    return modulo
+
+
+def test_los_indices_de_carga_se_crean_antes_de_insertar(qdrant_falso):
+    """Son los que generan las aristas extra del HNSW filtrable."""
+    cliente = _ClienteQdrant()
+
+    experimento._crear_coleccion_qdrant(cliente, "chunks_epsj", 4)
+
+    assert ("chunks_epsj", "grados") in cliente.indices
+    assert ("chunks_epsj", "tipo_asignatura") in cliente.indices
+
+
+def test_una_coleccion_previa_se_borra_antes_de_recrearla(qdrant_falso):
+    """Se pregunta si existe en vez de tragarse la excepcion del borrado.
+
+    Ese patrón se traga también un Qdrant caído, y el error aparecería después
+    con un mensaje que no dice cuál era el problema.
+    """
+    cliente = _ClienteQdrant()
+    cliente.colecciones.add("chunks_epsj")
+
+    experimento._crear_coleccion_qdrant(cliente, "chunks_epsj", 4)
+
+    assert "chunks_epsj" in cliente.colecciones
+
+
+def test_qdrant_se_construye_y_se_mide(qdrant_falso):
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    consultas = vectores[:1]
+    _base, exactos = experimento.medir_numpy(vectores, consultas)
+
+    medida = experimento.medir_qdrant(chunks, vectores, consultas, exactos)
+
+    assert medida.nombre == "Qdrant"
+    assert medida.memoria_mb == 149.1
+    assert "escaneo completo" in medida.modo
+
+
+def test_el_filtro_de_qdrant_agota_el_cursor(qdrant_falso, monkeypatch):
+    """Quedarse con la primera página haría que U2 dijera que Qdrant pierde.
+
+    El que se los dejaría es el guion, no la candidata.
+    """
+    cliente = _ClienteQdrant(paginas=3)
+    modelos = sys.modules["qdrant_client.models"]
+    for i in range(6):
+        cliente.puntos.append(
+            modelos.PointStruct(
+                id=i,
+                vector=[0.0],
+                payload={"grados": ["Grado en Ingeniería Informática"]},
+            )
+        )
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.filtro("Grado en Ingeniería Informática", None) == set(range(6))
+
+
+def test_el_filtro_de_qdrant_combina_grado_y_tipo(qdrant_falso):
+    cliente = _ClienteQdrant()
+    modelos = sys.modules["qdrant_client.models"]
+    cliente.puntos = [
+        modelos.PointStruct(
+            id=0, vector=[0.0], payload={"grados": ["G"], "tipo_asignatura": "OB"}
+        ),
+        modelos.PointStruct(
+            id=1, vector=[0.0], payload={"grados": ["G"], "tipo_asignatura": "OP"}
+        ),
+    ]
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.filtro("G", "OB") == {0}
+
+
+def test_los_vecinos_filtrados_de_qdrant_solo_traen_los_de_su_grado(qdrant_falso):
+    cliente = _ClienteQdrant()
+    modelos = sys.modules["qdrant_client.models"]
+    cliente.puntos = [
+        modelos.PointStruct(id=0, vector=[0.0], payload={"grados": ["A"]}),
+        modelos.PointStruct(id=1, vector=[0.0], payload={"grados": ["B"]}),
+    ]
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.vecinos_filtrados(np.array([0.0]), 5, "B") == [1]
+
+
+def test_los_vecinos_de_chroma_filtrados_por_grado(chroma_falso, tmp_path):
+    """El adaptador tiene que devolver solo los de la titulación pedida."""
+    almacen = experimento.crear_almacen_chroma(tmp_path / "i", {})
+    almacen.anadir(
+        ["chunk-000000", "chunk-000001"],
+        [[0.0], [0.0]],
+        ["a", "b"],
+        [{"grados": "A"}, {"grados": "B"}],
+    )
+
+    consultador = experimento._consultador_chroma(almacen.coleccion)
+
+    assert consultador.vecinos_filtrados(np.array([0.0]), 5, "B") == [1]
+
+
+# --- Las unidades de docker stats -------------------------------------------
+
+
+def test_una_salida_de_docker_que_no_se_entiende_falla(monkeypatch):
+    """Confundir una unidad daría una memoria mil veces mayor sin fallar nada."""
+    monkeypatch.setattr(
+        experimento.subprocess,
+        "run",
+        lambda *a, **kw: types.SimpleNamespace(stdout="ochenta megas / 2GiB"),
+    )
+
+    with pytest.raises(ValueError, match="docker stats"):
+        experimento.memoria_contenedor_mb("qdrant-tfg")
+
+
+# --- Las cuatro ramas que quedaban ------------------------------------------
+
+
+def test_sin_datos_de_esfuerzo_la_tabla_lo_dice():
+    """U7 se deja en blanco antes que inventarse un coste de operacion."""
+    assert (
+        experimento._tabla_esfuerzo({"a": _medida(esfuerzo={})}) == "_(sin registrar)_"
+    )
+
+
+def test_la_tabla_de_prefiltrado_salta_a_quien_no_lo_midio():
+    """Una candidata sin caso no aparece: no es que posfiltre, es que no se midio."""
+    tabla = experimento._tabla_prefiltrado(
+        {"a": _medida(prefiltrado=None), "b": _medida()},
+        (0, "Grado en Ingeniería Informática", 40),
+        ["¿?"],
+    )
+
+    assert tabla.count("LanceDB") == 1
+
+
+def test_los_veredictos_arrastran_las_notas_de_cada_candidata():
+    """Las notas dicen como se midio; sin ellas, la cifra queda sin contexto."""
+    medidas = {"a": _medida(notas=["Memoria del contenedor, no del proceso."])}
+
+    partes = experimento._seccion_veredictos(medidas, {"a": ["U1: CUMPLE"]})
+
+    assert any("Nota: Memoria del contenedor" in p for p in partes)
+
+
+def test_main_dice_con_que_caso_comprueba_el_prefiltrado(tmp_path, monkeypatch, capsys):
+    """El caso se elige del corpus real, no se escribe a mano: hay que verlo."""
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    monkeypatch.setattr(experimento, "cargar_corpus", lambda: chunks)
+    monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?"])
+    monkeypatch.setattr(
+        experimento,
+        "elegir_caso_prefiltrado",
+        lambda *a: (0, "Grado en Ingeniería Informática", 40),
+    )
+
+    from tfg_uja import incrustaciones
+
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_documentos",
+        lambda: (lambda t: vectores.tolist()),
+    )
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_consultas",
+        lambda: (lambda t: vectores[:1].tolist()),
+    )
+    for nombre in ("medir_chroma", "medir_lancedb", "medir_qdrant"):
+        monkeypatch.setattr(experimento, nombre, lambda *a, **kw: _medida())
+
+    adr = tmp_path / "adr-0004.md"
+    adr.write_text(
+        f"# ADR\n\n{experimento.MARCA_INICIO}\nviejo\n{experimento.MARCA_FIN}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+
+    experimento.main()
+
+    salida = capsys.readouterr().out
+    assert "pregunta 0 filtrando por «Grado en Ingeniería Informática»" in salida
+    assert "40 fragmentos" in salida
