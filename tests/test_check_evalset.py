@@ -265,3 +265,90 @@ def test_un_conjunto_por_debajo_del_minimo_se_denuncia(
 
     assert codigo == 1
     assert f"mínimo {MINIMO_REAL}" in salida
+
+
+# --- Los últimos caminos sin cubrir (IT-113) --------------------------------
+
+
+def test_un_selector_al_que_le_falta_una_clave_obligatoria_se_denuncia(
+    tmp_path, capsys
+) -> None:
+    """Sin `origen` y `nombre` no hay a qué unidad apuntar."""
+    preguntas = [_pregunta("p1", [{"grado": INFORMATICA}])]
+
+    codigo, salida = _correr(tmp_path, preguntas, capsys)
+
+    assert codigo == 1
+    assert "no trae" in salida
+
+
+def test_una_pregunta_ajena_que_anota_unidades_relevantes_se_denuncia(
+    tmp_path, capsys
+) -> None:
+    """Si hay algo que recuperar, la pregunta no es de fuera de dominio.
+
+    Las ajenas quedan fuera de Recall@K y de MRR porque su criterio es el
+    contrario: rechazar es acertar.
+    """
+    preguntas = [
+        _pregunta(
+            "p1",
+            [{"origen": "guia", "nombre": "Minería web"}],
+            tipo=check_evalset.FUERA_DE_DOMINIO,
+        )
+    ]
+
+    codigo, salida = _correr(tmp_path, preguntas, capsys)
+
+    assert codigo == 1
+    assert "no es de fuera de dominio" in salida
+
+
+def test_una_pregunta_ajena_sin_unidades_es_correcta(tmp_path, capsys) -> None:
+    preguntas = [
+        _pregunta("p1", [], tipo=check_evalset.FUERA_DE_DOMINIO),
+        _pregunta("p2", [{"origen": "guia", "nombre": "Minería web"}]),
+    ]
+
+    codigo, salida = _correr(tmp_path, preguntas, capsys)
+
+    assert codigo == 0
+    assert "1 son de fuera de dominio" in salida
+
+
+def test_dos_preguntas_con_el_mismo_id_se_denuncian(tmp_path, capsys) -> None:
+    """Un id repetido rompe cualquier cotejo posterior por identificador."""
+    relevantes = [{"origen": "guia", "nombre": "Minería web"}]
+    preguntas = [_pregunta("p1", relevantes), _pregunta("p1", relevantes)]
+
+    codigo, salida = _correr(tmp_path, preguntas, capsys)
+
+    assert codigo == 1
+    assert "ids de pregunta duplicados" in salida
+
+
+def test_la_procedencia_del_corpus_se_informa(tmp_path, capsys) -> None:
+    """Leer «66 preguntas» sin saber contra qué corpus se resolvieron no vale."""
+    corpus = [
+        {
+            "tipo": "procedencia",
+            "fecha_extraccion": "2026-08-16",
+            "cursos": ["2026-27"],
+        }
+    ] + CORPUS
+    preguntas = [_pregunta("p1", [{"origen": "guia", "nombre": "Minería web"}])]
+
+    codigo, salida = _correr(tmp_path, preguntas, capsys, corpus=corpus)
+
+    assert codigo == 0
+    assert "2026-08-16" in salida
+    assert "2026-27" in salida
+
+
+def test_un_corpus_con_procedencia_sin_cursos_lo_dice(tmp_path, capsys) -> None:
+    corpus = [{"tipo": "procedencia", "fecha_extraccion": "2026-08-16"}] + CORPUS
+    preguntas = [_pregunta("p1", [{"origen": "guia", "nombre": "Minería web"}])]
+
+    _, salida = _correr(tmp_path, preguntas, capsys, corpus=corpus)
+
+    assert "sin determinar" in salida
