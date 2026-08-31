@@ -264,3 +264,152 @@ def test_si_el_suelo_las_rechaza_todas_el_resumen_lo_dice():
     medidas = [("V-001", 0, False, False), ("V-002", 0, False, False)]
     frase = recuperacion._resumen_de_las_que_pasan(medidas)
     assert frase == "No pasa ninguna: el suelo las rechaza todas."
+
+
+# --- Las ajenas contra el índice y el recorrido entero (IT-113) -------------
+
+
+def _ajena(identificador, texto="¿dónde estudio medicina?"):
+    """Una pregunta declarada fuera de dominio."""
+    return {"id": identificador, "tipo": "fuera_de_dominio", "pregunta": texto}
+
+
+def _sin_indice(monkeypatch, traidos_por_pregunta):
+    """Sustituye todo lo que toca el índice real.
+
+    Args:
+        monkeypatch: Parcheador de pytest.
+        traidos_por_pregunta: Cuántos fragmentos devuelve cada llamada, en orden.
+    """
+    pendientes = list(traidos_por_pregunta)
+    monkeypatch.setattr(recuperacion, "abrir_indice", lambda ruta, modelo: None)
+    monkeypatch.setattr(recuperacion, "incrustador_de_consultas", lambda modelo: None)
+    monkeypatch.setattr(recuperacion, "distancia_del_indice", lambda ruta: "cosine")
+    monkeypatch.setattr(recuperacion, "catalogo_del_indice", lambda ruta: ["G"])
+    monkeypatch.setattr(
+        recuperacion, "contexto_para", lambda *a, **kw: [None] * pendientes.pop(0)
+    )
+
+
+def test_medir_ajenas_cuenta_cuantos_fragmentos_pasan(tmp_path, monkeypatch):
+    """Rechazar es acertar: lo que se cuenta es que no llegue contexto."""
+    _sin_indice(monkeypatch, [0, 4])
+
+    medidas = recuperacion.medir_ajenas([_ajena("a1"), _ajena("a2")], tmp_path)
+
+    assert [(i, n) for i, n, _c, _o in medidas] == [("a1", 0), ("a2", 4)]
+
+
+def test_medir_ajenas_marca_las_peticiones_de_consejo(tmp_path, monkeypatch):
+    """El recuperador les entrega contexto a propósito, así que no son un fallo."""
+    _sin_indice(monkeypatch, [5])
+
+    medidas = recuperacion.medir_ajenas(
+        [_ajena("a1", "¿qué carrera me recomiendas si me gusta la biología?")], tmp_path
+    )
+
+    assert medidas[0][2] is True
+
+
+def test_medir_ajenas_marca_las_que_nombran_otro_centro(tmp_path, monkeypatch):
+    """La comprobación de centro ajeno es una barrera distinta del suelo."""
+    _sin_indice(monkeypatch, [3])
+
+    medidas = recuperacion.medir_ajenas(
+        [_ajena("a1", "¿se estudia Medicina en la Facultad de Ciencias de la Salud?")],
+        tmp_path,
+    )
+
+    assert medidas[0][3] is True
+
+
+def _preparar_main(monkeypatch, tmp_path, ajenas_traidas, con_validacion):
+    """Deja `main` listo para recorrerse sin índice ni incrustaciones.
+
+    Returns:
+        Los argumentos con los que llamarlo.
+    """
+    corpus = tmp_path / "chunks.json"
+    corpus.write_text(
+        json.dumps([chunk("guia", "A"), chunk("guia", "B")]), encoding="utf-8"
+    )
+
+    evalset = tmp_path / "evalset.json"
+    evalset.write_text(
+        json.dumps(
+            {
+                "preguntas": [
+                    {
+                        "id": "d1",
+                        "tipo": "listado",
+                        "pregunta": "¿y el temario?",
+                        "relevantes": [{"origen": "guia", "nombre": "A"}],
+                    },
+                    _ajena("a1"),
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(recuperacion, "RUTA_EVAL", evalset)
+
+    validacion = tmp_path / "validacion.json"
+    if con_validacion:
+        validacion.write_text(
+            json.dumps({"preguntas": [_ajena("v1"), _ajena("v2")]}), encoding="utf-8"
+        )
+
+    agregados = {"mrr": 0.926}
+    for k in recuperacion.KS:
+        agregados[f"recall@{k}"] = 0.8
+        agregados[f"recall_unidad@{k}"] = 0.9
+    monkeypatch.setattr(
+        recuperacion, "evaluar_modelo", lambda *a, **kw: {"agregados": agregados}
+    )
+    monkeypatch.setattr(recuperacion, "incrustador_de_documentos", lambda modelo: None)
+    _sin_indice(monkeypatch, ajenas_traidas)
+
+    salida = tmp_path / "sub" / "it38.md"
+    return [
+        "--chunks",
+        str(corpus),
+        "--indice",
+        str(tmp_path),
+        "--validacion",
+        str(validacion),
+        "--salida",
+        str(salida),
+    ], salida
+
+
+def test_main_mide_dominio_y_ajenas_y_escribe_el_informe(tmp_path, monkeypatch, capsys):
+    args, salida = _preparar_main(monkeypatch, tmp_path, [0], con_validacion=False)
+
+    recuperacion.main(args)
+
+    texto = capsys.readouterr().out
+    assert "Corpus: 2 fragmentos | dominio: 1 preguntas" in texto
+    assert "MRR = 0.926" in texto
+    assert "rechazadas: 1 de 1" in texto
+    assert salida.exists()
+
+
+def test_main_mide_aparte_el_conjunto_que_no_ajusto_el_suelo(
+    tmp_path, monkeypatch, capsys
+):
+    """Es el que sostiene la conclusión sobre el rechazo; el otro mide el ajuste."""
+    args, _ = _preparar_main(monkeypatch, tmp_path, [0, 0, 3], con_validacion=True)
+
+    recuperacion.main(args)
+
+    texto = capsys.readouterr().out
+    assert "que no intervino en el ajuste" in texto
+    assert "rechazadas: 1 de 2" in texto
+
+
+def test_main_sin_fichero_de_validacion_no_lo_inventa(tmp_path, monkeypatch, capsys):
+    args, _ = _preparar_main(monkeypatch, tmp_path, [0], con_validacion=False)
+
+    recuperacion.main(args)
+
+    assert "que no intervino en el ajuste" not in capsys.readouterr().out
