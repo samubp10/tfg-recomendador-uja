@@ -694,7 +694,8 @@ def _cabecera_del_informe(
     """
     return [
         f"Generado el {date.today():%d/%m/%Y} con "
-        "`py -u scripts/experimentos/experimento_fragmentacion.py` sobre `data/grados.json`, "
+        "`py -u scripts/experimentos/experimento_fragmentacion.py` sobre "
+        "`data/grados.json`, "
         f"con {n_preguntas} preguntas de `eval/preguntas_evaluacion.json` y el "
         f"modelo `{MODELO}` (ventana de {ventana} tokens), en CPU.",
         "",
