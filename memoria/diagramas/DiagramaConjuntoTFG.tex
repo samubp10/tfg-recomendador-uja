@@ -1,0 +1,116 @@
+% !TEX root = ../main.tex
+% Diagrama de bloques del conjunto del TFG (IT-74), para la Introduccion.
+%
+% NO repite el de la Figura de arquitectura del Capitulo 4. Aquel muestra el
+% SISTEMA: por donde pasa un dato desde la web hasta la respuesta. Este muestra
+% el TRABAJO: de que se parte, que se construye, que decide cada eleccion y con
+% que se comprueba. Si algun dia los dos dicen lo mismo, sobra uno de ellos.
+%
+% Sin cajas: cada eslabon es un ICONO con su rotulo debajo. Los nodos existen
+% igualmente ---son nodos sin trazo ni relleno--- para que las flechas tengan
+% de donde salir y a donde llegar, pero no se ven. Es lo que separa esta figura
+% de las demas del documento, que si son cajas: esta se lee de un vistazo y no
+% palabra por palabra.
+%
+% Los ADR llevan SU RESULTADO y no el tamano del experimento que lo produjo:
+% «ADR-0001 · troceado estructural», no «45 configuraciones». El detalle
+% numerico vive en el Capitulo 4 y en el propio ADR, no en la figura que abre
+% la memoria.
+%
+% Dos cosas que hay que respetar al tocar las coordenadas:
+%   - Los codigos van en \mbox: «ADR-0002» tiene un guion, y sin \mbox LaTeX
+%     parte por ahi y deja «ADR-» en una linea y «0002» en la siguiente.
+%   - Las tres filas estan separadas 3,6 para que las bandas de agrupacion no
+%     se coman la fila central. Un nodo mide unos 2,5 de alto (icono mas dos
+%     lineas) y la banda anade 10 pt por lado.
+%
+% Todo lo que hay aqui esta implementado y medido; no hay ninguna caja de «por
+% decidir».
+\begingroup
+\color{borrador2}
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      % Nodo invisible: da anclajes a las flechas sin dibujar ninguna caja.
+      pieza/.style={align=center, font=\small, inner sep=3pt, text width=2.4cm},
+      banda/.style={draw=diagGrupoBorde, semithick, densely dashed,
+        fill=diagGrupo, fill opacity=0.35, text opacity=1,
+        rounded corners=3pt},
+      rotuloBanda/.style={font=\small\bfseries, inner sep=3pt,
+        text=diagGrupoBorde!65!black},
+      gobierna/.style={-{Latex[length=2mm]}, semithick, densely dashed,
+        draw=diagNodoBorde},
+      ]
+
+      % ── La cadena, que es el eje del dibujo ────────────────────────────────
+      \node[pieza] (fuente)  at (0,-5.2)
+      {\icPantalla[0.5]\\[5pt]\textbf{Web oficial}\\{\scriptsize de la EPSJ}};
+      \node[pieza] (extraer) at (3,-5.2)
+      {\icWeb[0.5]\\[5pt]\textbf{Extraer}\\{\scriptsize Scrapy}};
+      \node[pieza] (trocear) at (6,-5.2)
+      {\icCortar[0.5]\\[5pt]\textbf{Trocear}\\{\scriptsize por estructura}};
+      \node[pieza] (indexar) at (9,-5.2)
+      {\icBase[0.5]\\[5pt]\textbf{Indexar}\\{\scriptsize base vectorial}};
+      \node[pieza] (recuperar) at (12,-5.2)
+      {\icLupa[0.5]\\[5pt]\textbf{Recuperar}\\{\scriptsize K dinámico}};
+      \node[pieza] (generar) at (15,-5.2)
+      {\icChip[0.5]\\[5pt]\textbf{Generar}\\{\scriptsize modelo local}};
+      \node[pieza] (responder) at (18,-5.2)
+      {\icGlobo[0.5]\\[5pt]\textbf{Responder}\\{\scriptsize web sin registro}};
+      \node[pieza] (respuesta) at (21,-5.2)
+      {\icPersona[0.5]\\[5pt]\textbf{Respuesta}\\{\scriptsize con su fuente}};
+
+      \foreach \a/\b in {fuente/extraer, extraer/trocear, trocear/indexar,
+        indexar/recuperar, recuperar/generar, generar/responder,
+        responder/respuesta}{
+        \draw[flechaDiag] (\a) -- (\b);}
+
+      % ── Lo que fija cada eleccion, encima ──────────────────────────────────
+      \node[pieza] (a2) at (3,-1.6)
+      {\icDocumento[0.4]\\[4pt]\textbf{\mbox{ADR-0002}}\\{\scriptsize Scrapy}};
+      \node[pieza] (a1) at (6,-1.6)
+      {\icDocumento[0.4]\\[4pt]\textbf{\mbox{ADR-0001}}\\{\scriptsize troceado estructural}};
+      \node[pieza] (a34) at (9,-1.6)
+      {\icDocumento[0.4]\\[4pt]\textbf{\mbox{ADR-0003} · \mbox{ADR-0004}}\\{\scriptsize e5-small y LanceDB}};
+      \node[pieza] (a5) at (15,-1.6)
+      {\icDocumento[0.4]\\[4pt]\textbf{\mbox{ADR-0005}}\\{\scriptsize gemma3:12b}};
+      \node[pieza] (a6) at (18,-1.6)
+      {\icDocumento[0.4]\\[4pt]\textbf{\mbox{ADR-0006}}\\{\scriptsize emisión por partes}};
+
+      \draw[gobierna] (a2)  -- (extraer);
+      \draw[gobierna] (a1)  -- (trocear);
+      \draw[gobierna] (a34) -- (indexar);
+      \draw[gobierna] (a5)  -- (generar);
+      \draw[gobierna] (a6)  -- (responder);
+
+      % ── Con que se comprueba, debajo ───────────────────────────────────────
+      \node[pieza] (v1) at (6,-8.8)
+      {\icLista[0.4]\\[4pt]\textbf{Verificadores}\\{\scriptsize sobre el corpus entero}};
+      \node[pieza] (v2) at (12,-8.8)
+      {\icLista[0.4]\\[4pt]\textbf{Banco de evaluación}\\{\scriptsize exhaustividad y MRR}};
+      \node[pieza] (v3) at (18,-8.8)
+      {\icLista[0.4]\\[4pt]\textbf{Banco del sistema}\\{\scriptsize veredicto por entrada}};
+
+      \draw[gobierna] (v1) -- (trocear);
+      \draw[gobierna] (v2) -- (recuperar);
+      \draw[gobierna] (v3) -- (responder);
+
+      % ── Las dos bandas, al fondo para no tapar los iconos ──────────────────
+      \begin{scope}[on background layer]
+        \node[banda, fit=(a2)(a1)(a34)(a5)(a6), inner sep=10pt] (bDecide) {};
+        \node[banda, fit=(v1)(v2)(v3), inner sep=10pt] (bMide) {};
+      \end{scope}
+      \node[rotuloBanda, anchor=south west] at (bDecide.north west)
+      {Lo que fija cada elección};
+      \node[rotuloBanda, anchor=north west] at (bMide.south west)
+      {Con qué se comprueba};
+    \end{tikzpicture}%
+  }
+  \caption[Conjunto del trabajo]{Conjunto del trabajo. La fila central es la
+    cadena que lleva de la web de la Escuela a la respuesta; encima, la decisión
+    documentada que fija cada eslabón; debajo, el instrumento con el que se
+    comprueba. Fuente: Elaboración propia.}
+  \label{fig:conjunto_tfg}
+\end{figure}
+\endgroup

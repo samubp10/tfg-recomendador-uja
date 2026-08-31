@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter{CONCLUSIONES}
 \label{cap:conclusiones}
 
@@ -20,22 +21,140 @@
   \item \textbf{El cumplimiento de objetivos hay que cotejarlo con los cinco objetivos de la
   propuesta original aprobada}, no solo con los OE1--OE6 de esta memoria. Es literalmente lo
   que dice el criterio de evaluación, y son listas distintas.
+  \item \textbf{AUDITORÍA 30/08 --- este capítulo no tiene todavía ni una línea
+  tuya.} Medido sobre el fuente: cero caracteres de prosa propia, 768 en
+  turquesa y 1.423 en borradores. Las secciones \emph{Limitaciones} y
+  \emph{Trabajo futuro} están completamente vacías: solo tienen el título y
+  estas notas. Son cuatro páginas del documento y es el último capítulo que
+  lee un tribunal, que es justo el que se recuerda.
+  \item \textbf{Lo bueno es que el material ya existe y no hay que investigar
+  nada más.} Las limitaciones salen de la Sección~\ref{secc:amenazas_validez} y de las
+  tres lecturas prohibidas del 57 de 57; el trabajo futuro sale de esas mismas
+  limitaciones. Es trabajo de redacción, no de medición: se puede hacer en una
+  sesión si te sientas con las dos secciones delante.
 \end{borrador}
 \section{Cumplimiento de los objetivos}
 
-\begin{borrador}        
-  \item \textbf{Fase:} 5 (IT-52). Repasar uno a uno los seis objetivos
-  específicos (OE1--OE6) del Capítulo~\ref{cap:objetivos} y decir, con la
-  evidencia de los Capítulos~\ref{cap:materialesymetodos}
-  y~\ref{cap:resultados}, si se cumple o no cada uno. También se ve si se ha conseguido o no la hipótesis de trabajo
+\begin{borrador}
+  \item \textbf{Fase:} 5 (IT-52). Andamiaje: el esqueleto y el veredicto propuesto de
+  cada punto. La prosa la escribes tú y le quitas el turquesa.
+  \item \textbf{Este apartado NO repite la discusión.} Allí se argumenta; aquí se
+  cierra. Si un párrafo de aquí necesita explicar \emph{por qué}, es que pertenece al
+  Apartado~\ref{secc:discusion}.
+  \item \textbf{Cotéjalo con los cinco objetivos de la propuesta original aprobada},
+  no solo con los OE1--OE6 de esta memoria: es literalmente lo que dice el criterio de
+  evaluación, y son dos listas distintas.
 \end{borrador}
+
+\textcolor{borrador2}{Los seis objetivos específicos quedan cumplidos. La discusión del
+  Apartado~\ref{secc:discusion} razona cada uno con su evidencia y con el límite que lo
+  acota; aquí se recoge solo el cierre.}
+
+\textcolor{borrador2}{La hipótesis de trabajo queda \textbf{parcialmente confirmada}.
+  Se sostiene lo esencial ---que con equipo doméstico y modelos de pesos abiertos se
+  puede construir un sistema que apoye cada respuesta en la documentación oficial del
+  centro---, y \textbf{no se sostiene la condición temporal}: la mediana de respuesta
+  de las preguntas que llegan al modelo más que dobla los treinta segundos fijados. Esa
+  condición se declara refutada, y su incumplimiento se sigue de una prioridad escrita
+  de antemano, no de un descuido.}
 
 \section{Limitaciones}
+\label{secc:limitaciones}
 
+\textcolor{borrador2}{Este trabajo deja siete cosas sin cubrir. Cada una se
+  argumenta en el capítulo anterior, junto al resultado que la provoca; aquí se
+  enuncian juntas, con el apartado donde se razona, para que el lector no tenga
+  que reconstruirlas.}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{El sistema no se ha probado con
+      usuarios}, de modo que no se sabe si un estudiante formula sus dudas como
+    las formula el banco de preguntas, ni si la respuesta le sirve para decidir
+    (Apartado~\ref{secc:validacion_usuarios}).}
+
+  \item \textcolor{borrador2}{\textbf{De cada respuesta se comprueba que no
+      invente y que nombre lo que debía, no que sea buena}: una respuesta
+    correcta, fundamentada y poco útil pasa todas las comprobaciones
+    (Apartado~\ref{secc:metricas_no_capturan}).}
+
+  \item \textcolor{borrador2}{\textbf{El banco de evaluación es propio y lo
+      escribió la misma persona que escribió el corrector}
+    (Apartado~\ref{secc:amenazas_validez}).}
+
+  \item \textcolor{borrador2}{\textbf{Los tiempos de respuesta no son
+      extrapolables a otro equipo}: se miden sobre el equipo doméstico que impone
+    el requisito RNF-01, y ahí la mediana dobla el umbral fijado
+    (Apartado~\ref{secc:amenazas_validez}).}
+
+  \item \textcolor{borrador2}{\textbf{La colección cubre un solo centro y no
+      todas sus titulaciones por igual}, de modo que el sistema sabe menos
+    precisamente de las más nuevas (Apartado~\ref{secc:amenazas_validez}).}
+
+  \item \textcolor{borrador2}{\textbf{La colección no recoge dos de las cuatro
+      fuentes que enunciaba la propuesta}, las memorias de grado y los datos
+    estadísticos (Apartado~\ref{secc:discusion_trazabilidad}).}
+
+  \item \textcolor{borrador2}{\textbf{La aplicación web no está en condiciones
+      de producción} (Apartado~\ref{secc:fase3_punto_entrada}).}
+\end{itemize}
 
 \section{Trabajo futuro}
+\label{secc:trabajo_futuro}
 
-\begin{borrador}        
-  \item \textbf{Fase:} 5 --> La escalabilidad
+\textcolor{borrador2}{Cada línea responde a una limitación de la lista
+  anterior y en el mismo orden. Ninguna se enuncia si no se sigue de algo que
+  este trabajo haya encontrado, y lo que haría falta para levantar cada una se
+  razona en el Apartado~\ref{secc:levantar_amenazas}.}
+
+\begin{itemize}
+  \item \textcolor{borrador2}{\textbf{Probar el sistema con estudiantes de
+      secundaria}, antes que cualquier otra cosa y antes de ponerlo en
+    producción.}
+
+  \item \textcolor{borrador2}{\textbf{Medir la utilidad de la respuesta y no
+      solo su fidelidad}, que exige a su vez la validación con usuarios.}
+
+  \item \textcolor{borrador2}{\textbf{Que el banco de preguntas y sus
+      respuestas correctas los escriba alguien distinto de quien escribe el
+    corrector.} Repetir las mediciones no levanta esa duda.}
+
+  \item \textcolor{borrador2}{\textbf{Reducir el tiempo de respuesta} hasta el
+    umbral que la hipótesis fijaba: la tarjeta gráfica para la inferencia, y
+    menos llamadas al modelo por turno, que hoy son dos.}
+
+  \item \textcolor{borrador2}{\textbf{Extender la colección al resto de centros
+      de la Universidad.} El diseño admite crecer sin tocar el núcleo de
+    recuperación y generación; que el sistema \emph{escale} \textbf{no está
+      medido}, y es lo que habría que comprobar antes de prometerlo.}
+
+  \item \textcolor{borrador2}{\textbf{Completar la colección con las memorias de
+      grado y los datos estadísticos} que enunciaba la propuesta y que hoy no
+    recoge.}
+
+  \item \textcolor{borrador2}{\textbf{Llevar la aplicación a condiciones de
+      producción}: atender en paralelo, cifrar el tráfico y limitar el tamaño y
+    la frecuencia por cliente.}
+\end{itemize}
+
+\begin{borrador}
+  \item \textbf{Fase:} 5 (IT-52). Andamiaje de las dos secciones, escrito el
+  31/08/2026. Reescríbelo con tus palabras y quita el turquesa.
+  \item \textbf{El reparto ya está aplicado:} lo \emph{razonado} ---por qué el
+  sistema no puede hacer algo y qué haría falta--- vive en las amenazas a la
+  validez del capítulo anterior, y aquí quedan siete enunciados, cada uno con el
+  apartado donde se argumenta. Al reescribirlos, no vuelvas a razonarlos: si un
+  punto de aquí necesita explicar el porqué, es que pertenece al
+  Apartado~\ref{secc:amenazas_validez}.
+  \item \textbf{Las dos listas van emparejadas y en el mismo orden}, punto por
+  punto. Si añades o quitas uno, hazlo en las dos o el paralelismo se rompe y se
+  nota.
+  \item \textbf{El sexto punto es nuevo} ---las memorias de grado y los datos
+  estadísticos que la propuesta pedía y la colección no recoge---. Va aquí
+  porque el Apartado~\ref{secc:discusion_trazabilidad} promete que se recogen
+  como línea de continuación; si lo quitas, esa promesa se queda sin destino.
+  \item \textbf{Cuidado con la última de trabajo futuro y con la de extender la
+  colección:} están escritas para no prometer escalabilidad. Lo que se puede
+  afirmar es que el diseño \emph{admite} crecer; que el sistema \emph{escale} no
+  está medido. Si suavizas esa frase, se convierte en una afirmación que el
+  trabajo no sostiene.
 \end{borrador}
-

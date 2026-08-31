@@ -1,0 +1,111 @@
+% !TEX root = ../main.tex
+% Secuencia del troceado de la coleccion (Fase 1).
+%
+% Comparte convenciones con la figura del recorrido de una consulta, para que
+% las dos secuencias del documento se lean igual: cabecera de una linea, sin
+% barras de actividad, bloques en amarillo con el rotulo en negrita arriba a
+% la izquierda, y flecha gruesa para el resultado.
+%
+% La version anterior llevaba un marco de bucle con pestana, y la pestana y la
+% guarda quedaban partidas por la barra de actividad del fragmentador. Con
+% este bloque el problema no existe: el rotulo va fuera del recorrido de
+% cualquier linea de vida.
+%
+% CIFRAS COMPROBADAS el 29/08/2026 contra los ficheros reales:
+%   - grados.json trae 837 registros: 12 grado, 528 asignatura, 288 guia,
+%     8 salidas y 1 procedencia.
+%   - las 288 guias se agrupan en 210 unidades por (nombre, contenido); es
+%     decir, 78 copias que no se vuelven a indexar. OJO: son 210 unidades DE
+%     GUIA. El corpus entero tiene 398 unidades, de las que 81 se imparten en
+%     varias titulaciones. Las dos cifras conviven en la memoria y hay que
+%     decir siempre cual de las dos se esta citando.
+%   - de los 1.499 fragmentos, 1.413 pasan por el troceador y 86 no.
+%
+% Lo que esta figura ensena y el diagrama de flujo no: la DEDUPLICACION y que
+% los 86 avisos de «sin guia» son el unico mensaje que NO pasa por el
+% troceador. No hay texto que cortar, pero se escriben igual para que esas
+% asignaturas no desaparezcan del corpus.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      % Sin `text width`: el nodo se ajusta a su rotulo y asi ninguno se parte
+      % con guion. Con 3,7 cm entre lineas de vida caben todos holgados.
+      papel/.style={nodoDiag, minimum height=0.9cm, font=\small},
+      papelFin/.style={papel, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
+      lineaVida/.style={densely dotted, thick, draw=diagNodoBorde},
+      mensaje/.style={-{Latex[length=2mm]}, semithick},
+      devuelve/.style={-{Latex[length=2mm]}, semithick, densely dashed},
+      mensajeFin/.style={-{Latex[length=2mm]}, very thick, draw=diagFocoBorde},
+      % Relleno opaco: sin el, las lineas de vida punteadas atraviesan los
+      % rotulos largos y los vuelven ilegibles.
+      etiqueta/.style={font=\small, midway, above, inner sep=1.5pt, fill=white},
+      propia/.style={font=\small, anchor=west, inner sep=1.5pt, fill=white},
+      bloque/.style={draw=diagGrupoBorde, semithick, densely dashed,
+        fill=diagGrupo, fill opacity=0.4, text opacity=1,
+        rounded corners=2pt},
+      rotuloBloque/.style={font=\small\bfseries, anchor=north west,
+        inner sep=2.5pt, text=diagGrupoBorde!65!black, fill=white},
+      apunte/.style={font=\small, align=center, draw=diagNodoBorde,
+        fill=white, inner sep=3pt, rounded corners=2pt},
+      ]
+
+      % --- Participantes y lineas de vida ---
+      % Centrados en -1,3 para que su borde inferior quede justo encima del
+      % arranque de las lineas de vida, sin tener que mover ningun mensaje.
+      \node[papel]    at (0,-1.3)    {El fragmentador};
+      \node[papel]    at (3.7,-1.3)  {La colección};
+      \node[papel]    at (7.4,-1.3)  {El agrupador};
+      \node[papel]    at (11.1,-1.3) {El troceador};
+      \node[papelFin] at (14.8,-1.3) {Lo que se indexa};
+      \foreach \x in {0, 3.7, 7.4, 11.1, 14.8}{
+        \draw[lineaVida] (\x,-1.75) -- (\x,-12.6);
+      }
+
+      % --- Lectura de la coleccion ---
+      \draw[mensaje]  (0,-2.4) -- node[etiqueta]{lee 837 registros} (3.7,-2.4);
+      \draw[devuelve] (3.7,-3.0) -- node[etiqueta]{la colección} (0,-3.0);
+
+      % --- Deduplicacion ---
+      \draw[mensaje] (0,-3.9) -- node[etiqueta]{las 288 guías} (7.4,-3.9);
+      \draw[mensaje] (7.4,-4.5) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (8.3,-4.75) {agrupa por (nombre, contenido)};
+      % «de guia» no sobra: el corpus entero tiene 398 unidades, de las que 210
+      % son de guia. Sin el matiz, esta cifra parece contradecir la otra.
+      \draw[devuelve] (7.4,-5.6)
+      -- node[etiqueta]{210 unidades de guía: 78 copias que no se repiten} (0,-5.6);
+
+      % --- Listados compuestos ---
+      \draw[mensaje] (0,-6.2) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (0.9,-6.45)
+      {compone los listados: plan, catálogo, ficha y mención};
+
+      % --- El bucle, una unidad cada vez ---
+      \node[bloque, fit={(-1.4,-7.3) (16.2,-10.5)}] (b1) {};
+      \node[rotuloBloque] at (b1.north west) {por cada unidad};
+      \node[font=\small, anchor=north west, fill=white] at (3.4,-7.42)
+      {[210 de guía, 8 de salidas y los listados compuestos]};
+      \draw[mensaje] (0,-8.5) -- node[etiqueta]{encabezado + texto} (11.1,-8.5);
+      \draw[mensaje] (11.1,-9.1) -- ++(0.8,0) -- ++(0,-0.45) -- ++(-0.8,0);
+      \node[propia] at (12.0,-9.35) {corta, empaqueta y fusiona lo corto};
+      \draw[devuelve] (11.1,-10.1)
+      -- node[etiqueta]{fragmentos numerados} (0,-10.1);
+
+      % --- Lo que se escribe, y lo que se escribe sin trocear ---
+      \draw[mensajeFin] (0,-11.3) -- node[etiqueta]{1.413 fragmentos} (14.8,-11.3);
+      \draw[mensaje]    (0,-12.0)
+      -- node[etiqueta]{86 avisos de «sin guía»} (14.8,-12.0);
+      \node[apunte] at (7.4,-13.1)
+      {los 86 avisos son el único mensaje que no pasa por el troceador:\\
+        no hay texto que cortar, pero la asignatura no desaparece del corpus};
+    \end{tikzpicture}%
+  }
+  \caption[Secuencia del troceado de la colección]{\textcolor{borrador2}{Secuencia
+      del troceado. El fragmentador lee la colección extraída, manda las guías
+      al agrupador ---que reduce las 288 a 210 unidades, sin volver a indexar
+      el texto que se repite--- y llama al troceador una vez por unidad. La
+      flecha gruesa es lo que se indexa. La última no pasa por el troceador:
+      una asignatura sin guía no tiene texto que cortar, pero deja igualmente
+      su fragmento. Fuente: Elaboración propia.}}
+  \label{fig:secuencia_chunking}
+\end{figure}

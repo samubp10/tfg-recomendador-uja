@@ -1,3 +1,4 @@
+% !TEX root = ../main.tex
 \chapter{ANTECEDENTES Y ESTADO DEL ARTE}
 \label{cap:antecedentes}
 
@@ -30,7 +31,7 @@ La orientación académica preuniversitaria tiene como finalidad ayudar al alumn
 
 Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso materializadas en la nota de corte y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
 
-Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (\sig{TGNA}) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\% en las universidades públicas y un 13,20\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (\sig{TGBA}) de esa misma cohorte alcanzó el 25,72\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
+Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (\sig{TGNA}) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\,\% en las universidades públicas y un 13,20\,\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (\sig{TGBA}) de esa misma cohorte alcanzó el 25,72\,\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
 
 
 
@@ -76,6 +77,18 @@ Las decisiones concretas de cada tecnología junto con las alternativas descarta
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
 
 El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}.
+
+\textcolor{borrador2}{No es una disciplina reciente. Su primera forma
+  trataba el lenguaje como un sistema de reglas: la gramática generativa de
+  Chomsky\cite{chomsky1957syntactic} describía las frases válidas de una lengua
+  mediante reglas de reescritura, y de ahí salieron los analizadores sintácticos
+  que dominaron el campo durante décadas. El cambio a métodos estadísticos, y
+  después a redes neuronales, es lo que llevó a los sistemas actuales; Hirschberg
+  y Manning\cite{hirschberg2015advances} recogen ese recorrido y señalan la
+  disponibilidad de datos y de cómputo como el factor que lo hizo posible, por
+  encima de los avances en los propios algoritmos. Delso et
+  al.\cite{delso2024evolucion} continúan esa revisión hasta la etapa de los
+  modelos preentrenados de gran tamaño, que es la que da pie a este trabajo.}
 
 Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM). Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
 
@@ -186,7 +199,7 @@ El denominador en esta división es lo que convierte el producto escalar en un c
 
 La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. Esta, es la alternativa a la búsqueda léxica, que puntúa un documento en función si las palabras a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-Con incrustaciones este funcionamiento cambia. Como explicamos en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo del espacio de dimensiones. Esto genera otro problema y es que ahora tenemos que encontrar los vecinos más próximosen un espacio de cientos de dimensiones, y este problema lo abarcará las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
+Con incrustaciones este funcionamiento cambia. \sout{Como explicamos}\textcolor{borrador2}{Como se explica} en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo del espacio de dimensiones. Esto genera otro problema y es que ahora \sout{tenemos que encontrar}\textcolor{borrador2}{hay que encontrar} los vecinos más próximosen un espacio de cientos de dimensiones, y este problema lo abarcará las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
 
 Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
@@ -238,7 +251,7 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
   ningún resultado relevante aparece entre los recuperados, ese sumando se cuenta como cero, y
   no como el inverso de una posición que no existe.
 
-  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc... y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad podemos verla de dos maneras diferentes:
+  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc... y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad \sout{podemos verla}\textcolor{borrador2}{puede verse} de dos maneras diferentes:
 \begin{itemize}
   \item \textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción de los fragmentos relevantes ha entrado entre los $K$ primeros. 
   \item \textbf{Por unidad} (\textit{RU@K}): se considera aceptada la pregunta si es que aparece alguno de los fragmentos de la unidad preguntada.
@@ -246,6 +259,18 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
 
 
 \subsubsection{Las métricas de generación}
+
+\textcolor{borrador2}{Medir la generación es más difícil que medir la
+  recuperación, porque no hay una lista de respuestas correctas contra la que
+  comparar: hay un texto. La propuesta más extendida para resolverlo es
+  \textit{RAGAS}\cite{es2023ragas}, que evalúa la fidelidad de la respuesta al
+  contexto y la pertinencia de lo recuperado \textbf{usando un modelo de lenguaje
+  como juez}: otro modelo lee la respuesta y decide si cada afirmación se apoya en
+  el contexto. Este trabajo no la emplea, y conviene decir por qué, porque es la
+  vía habitual. Un juez que es a su vez un modelo generativo tiene el mismo defecto
+  que se está midiendo, no da una cifra reproducible y traslada la confianza a una
+  pieza que nadie ha evaluado. Aquí se mide con comprobaciones deterministas sobre
+  cadenas, que abarcan menos pero no dependen de nada que haya que creerse.}
 
 
 
@@ -262,12 +287,24 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
   están \textit{Recall@K}, MRR, nDCG ni fidelidad, y las abreviaturas MRR y nDCG tampoco
   aparecen en la lista de abreviaturas. Si las marcas con la macro del glosario sin darlas
   de alta, la nota al pie remite a una definición que no existe.
+  \item \textbf{AUDITORÍA 30/08 --- esta nota ya está resuelta, puedes tacharla.}
+  Comprobado hoy recorriendo las macros una a una: \emph{Recall@K} está en el
+  glosario como «Exhaustividad», MRR como «Rango recíproco medio» y la fidelidad
+  entra dos veces, la del índice y la de la respuesta. MRR figura además en la
+  lista de abreviaturas. Y nDCG no hace falta darlo de alta porque no se usa en
+  ninguna parte de la memoria.
+  \item \textbf{De los 39 términos marcados en el texto, los 39 tienen su
+  destino}: no hay ni un enlace roto en el glosario. Al revés sí sobran nueve
+  entradas dadas de alta que nunca se marcan (\emph{autoatención},
+  \emph{transformador}, \emph{fragmento}, \emph{test de Holland}\dots), que no
+  es un error pero sí una decisión: o se marcan en su primera aparición o se
+  quitan del glosario.
 \end{borrador}
 
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-Una base de datos vectorial\cite{pan2024vectordb} es un sistema de almacenamiento especializado en guardar incrustaciones junto a sus metadatos y resolver que dada una consulta, cuáles de llas incrustaciones almacenadas son las más próximas. Es la tecnología que hace viable la búsqueda semántica ya que comparar la consulta con toda la colección deja de ser factible cuando tenemos una colección grande.
+Una base de datos vectorial\cite{pan2024vectordb} es un sistema de almacenamiento especializado en guardar incrustaciones junto a sus metadatos y resolver que dada una consulta, cuáles de llas incrustaciones almacenadas son las más próximas. Es la tecnología que hace viable la búsqueda semántica ya que comparar la consulta con toda la colección deja de ser factible cuando \sout{tenemos una colección grande}\textcolor{borrador2}{la colección es grande}.
 
 Una distición que debemos de hacer es la de búsqueda exacta y búsqueda aproximada, esta primera, también llamada por fuerza bruta, compara la consulta con todos los vectores y devuelve los más próximos, su coste crece linealmente con el tamaño de los datos, pero no se equivoca nunca. La búsqueda aproximada no tiene esa garantía a cambio de una mayor velocidad ya que solo recorre parte del espacio y no por completo.
 
@@ -413,6 +450,24 @@ Este sistema trabaja con dos categorías de información sensible. Por un lado, 
 Con respecto a la extracción automatizada de información de la web, actualmente el \textit{scraper} se descarga los PDF de las guías docentes (previamente en formato HTML) que contienen datos como direcciones de correo, nombres y teléfonos. De cada documento se extrae únicamente el resumen y la descripción de contenidos mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, ningún dato personal llega a la colección indexada. Gracias a esta actividad, el trabajo puede apoyarse en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
 
 Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga se ampara en el artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021}, cuyo apartado 1 establece que <<no será precisa la autorización del titular de los derechos de propiedad intelectual para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minería de textos y datos>>. Y precisamente esta forma legítima se respeta aquí puesto que el rastreador respeta el fichero \texttt{robots.txt}, espacia sus peticiones y en ningún momento se elude una medida de protección.
+
+\textcolor{borrador2}{Ese mismo artículo condiciona la excepción a que el
+  titular no se haya reservado expresamente el uso de sus contenidos para minería
+  de textos y datos, así que hubo que ir a mirarlo. El aviso legal de la
+  Universidad de Jaén\cite{uja_avisolegal} prohíbe con carácter general extraer el
+  contenido del sitio, pero no formula ninguna reserva expresa frente a la minería
+  de textos y datos, que es la figura concreta que la ley exige reservar. La
+  distinción no es un tecnicismo: de ella depende que la excepción se aplique o no.}
+
+\textcolor{borrador2}{Al margen de la propiedad intelectual, la extracción
+  automatizada ha llegado a los tribunales españoles. La Sentencia 572/2012 del
+  Tribunal Supremo\cite{sts572_2012}, en el litigio entre una aerolínea y una
+  agencia de viajes en línea, desestimó las pretensiones de la primera sobre el
+  derecho \textit{sui generis} de bases de datos frente a la extracción
+  automatizada de sus contenidos. El caso no es equiparable a este ---allí había
+  explotación comercial de los datos ajenos, y aquí un uso académico sin ánimo de
+  lucro---, pero fija que la extracción no es ilícita por sí misma y que lo que
+  decide son las condiciones concretas en que se hace.}
 
 
 \subsection{Protección de datos y usuarios menores de edad}

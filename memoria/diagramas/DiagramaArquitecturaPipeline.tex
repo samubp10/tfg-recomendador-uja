@@ -1,54 +1,96 @@
+% !TEX root = ../main.tex
+% Arquitectura general del sistema.
+%
+% El corte NO es por fase de desarrollo, como en la version anterior, sino por
+% CUANDO SE EJECUTA cada cosa: arriba lo que corre una sola vez para dejar el
+% indice construido, abajo lo que corre en cada pregunta. Agrupar por fase
+% mezclaba dos ejes distintos ---cuando se programo y cuando se ejecuta--- y
+% dejaba el indice, que es lo unico que une las dos mitades, dentro de una de
+% ellas.
+%
+% El rastreador, el fragmentador y el indexador van como ROTULO DE FLECHA y no
+% como caja: son transformaciones entre artefactos, y ponerlas como cajas
+% duplicaba la fila sin anadir informacion.
+%
+% Dos piezas llevan borde grueso: el indice, porque es lo unico que une las dos
+% bandas, y el servidor web, porque es donde viven las tres barreras de dominio.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[node distance=0.55cm and 1cm]
-      % Fase 0
-      \node[nodoDiag] (web) {Web pública\\EPSJ};
-      \node[nodoDiag, below=of web] (grados) {\texttt{grados.json}};
-      \node[nodoDiag, below=of grados] (chunks) {\texttt{chunks.json}};
-      % Fase 1
-      % Actualizado el 30/07/2026: el modelo de incrustaciones dejo de ser una
-      % caja generica cuando el ADR-0003 lo fijo, asi que la figura lo nombra.
-      % Actualizado el 13/08/2026: la base de datos deja de ser una caja generica
-      % por el mismo motivo que el modelo, ahora que el ADR-0004 la fija.
-      \node[nodoDiag, right=3.4cm of web] (emb) {Modelo de\\\textit{embeddings}\\{\scriptsize multilingual-e5-small}};
-      \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15, below=of emb] (bd) {Base de datos\\vectorial\\{\scriptsize LanceDB}};
-      % Fase 2
-      \node[nodoDiag, right=3cm of emb] (preg) {Pregunta\\del usuario};
-      \node[nodoDiag, below=of preg] (rec) {Recuperación\\de fragmentos};
-      \node[nodoDiag, below=of rec] (llm) {LLM local};
-      \node[nodoDiag, below=of llm] (resp) {Respuesta\\fundamentada};
-      % Fase 3
-      \node[nodoDiag, right=3.2cm of rec] (chat) {Interfaz de chat\\sin registro};
-      % Nodos invisibles que "miden" cada título (mismo texto y fuente que la
-      % etiqueta real) para que el fit incluya su ancho: un label de TikZ no
-      % forma parte del cálculo del área del nodo, así que sin esto el título
-      % puede sobresalir de la caja aunque esta se ensanche.
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of web] (f0medida) {Fase 0 --- Colección de datos};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of emb] (f1medida) {Fase 1 --- Indexación};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of preg] (f2medida) {Fase 2 --- \textit{Pipeline} RAG};
-      \node[font=\small, inner sep=0pt, text opacity=0, above=1pt of chat] (f3medida) {Fase 3 --- Aplicación web};
-      % Cajas de fase (en la capa de fondo, para no tapar los nodos)
+    \begin{tikzpicture}[
+      nodoFoco/.style={nodoDiag, draw=diagFocoBorde, fill=diagFocoFondo, very thick},
+      nodoAux/.style={nodoDiag, densely dashed},
+      flechaDoble/.style={{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick},
+      flechaAux/.style={-{Latex[length=2.5mm]}, densely dashed},
+      % La máscara evita que la flecha se lea por debajo del rótulo. Su color
+      % es el del fondo sobre el que cae, que no es el mismo en las dos bandas.
+      rotuloEnGrupo/.style={font=\scriptsize, fill=diagGrupo, inner sep=1.5pt},
+      rotuloFuera/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
+      ]
+
+      % ── Banda de arriba: se ejecuta una vez ────────────────────────────────
+      \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (web) at (0,0)
+      {Web de la EPSJ\\{\scriptsize \texttt{eps.ujaen.es}}};
+      \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (grados) at (5,0)
+      {\texttt{grados.json}\\{\scriptsize 528 asignaturas}};
+      \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (chunks) at (10,0)
+      {\texttt{chunks.json}\\{\scriptsize 1.499 fragmentos}};
+      \node[nodoFoco, cylinder, shape border rotate=90, aspect=0.15,
+      minimum width=2.8cm, minimum height=1.3cm] (indice) at (15,0)
+      {Índice vectorial\\{\scriptsize LanceDB · e5-small}};
+
+      % ── Banda de abajo: se ejecuta en cada pregunta ────────────────────────
+      \node[nodoDiag, minimum width=3.6cm, minimum height=1.3cm] (navegador) at (0.6,-5)
+      {Navegador\\{\scriptsize sin cuenta de usuario}};
+      \node[nodoFoco, minimum width=5.4cm, minimum height=1.3cm] (servidor) at (7.5,-5)
+      {Servidor web\\{\scriptsize recupera · genera · verifica}};
+      \node[nodoDiag, minimum width=3.6cm, minimum height=1.3cm] (inferencia) at (14.4,-5)
+      {Servidor de inferencia\\{\scriptsize \texttt{gemma3:12b}}};
+      \node[nodoAux, minimum width=3.6cm, minimum height=1cm] (registro) at (14.4,-7.6)
+      {\texttt{registro\_chat.jsonl}\\{\scriptsize sin datos personales}};
+
+      % ── Las dos bandas ─────────────────────────────────────────────────────
+      % Las esquinas se dan a mano para que los dos rectángulos midan lo mismo:
+      % el contenido de la banda de abajo es algo más estrecho que el de arriba.
       \begin{scope}[on background layer]
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(web)(grados)(chunks)(f0medida), label={[tituloGrupo]north:Fase 0 --- Colección de datos}] (f0) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(emb)(bd)(f1medida), label={[tituloGrupo]north:Fase 1 --- Indexación}] (f1) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(preg)(rec)(llm)(resp)(f2medida), label={[tituloGrupo]north:Fase 2 --- \textit{Pipeline} RAG}] (f2) {};
-        \node[grupoDiag, inner xsep=20pt, inner ysep=16pt, fit=(chat)(f3medida), label={[tituloGrupo]north:Fase 3 --- Aplicación web}] (f3) {};
+        \node[grupoDiag, fit={(-1.9,1.25) (16.9,-1.25) (web) (indice)},
+        label={[tituloGrupo, anchor=south]north:Construcción del índice: se ejecuta una vez}] {};
+        \node[grupoDiag,
+        fit={(-1.9,-5) (16.9,-5) (navegador) (servidor) (inferencia) (registro)},
+        label={[tituloGrupo]south:Atención de una consulta: se ejecuta en cada pregunta}] {};
       \end{scope}
-      % Flechas internas
-      \draw[flechaDiag] (web) -- node[right, font=\footnotesize]{\textit{spider} (Scrapy)} (grados);
-      \draw[flechaDiag] (grados) -- node[right, font=\footnotesize]{\textit{chunker}} (chunks);
-      \draw[flechaDiag] (emb) -- (bd);
-      \draw[flechaDiag] (preg) -- (rec);
-      \draw[flechaDiag] (rec) -- (llm);
-      \draw[flechaDiag] (llm) -- (resp);
-      % Flechas entre fases
-      \draw[flechaDiag] (chunks.east) -- (emb.west);
-      \draw[flechaDiag] (bd.east) -- (rec.west);
-      \draw[flechaDiag] (resp.east) -- (chat.south west);
+
+      % ── La cadena de construcción ──────────────────────────────────────────
+      \draw[flechaDiag] (web) -- node[rotuloEnGrupo, above=2pt]{rastreador} (grados);
+      \draw[flechaDiag] (grados) -- node[rotuloEnGrupo, above=2pt]{fragmentador} (chunks);
+      \draw[flechaDiag] (chunks) -- node[rotuloEnGrupo, above=2pt]{indexador} (indice);
+
+      % ── El diálogo de una consulta ─────────────────────────────────────────
+      \draw[flechaDoble] (navegador) -- node[rotuloEnGrupo, above=2pt]{eventos} (servidor);
+      \draw[flechaDoble] (servidor) -- node[rotuloEnGrupo, above=2pt]{generación} (inferencia);
+
+      % ── Lo único que une las dos bandas ────────────────────────────────────
+      \draw[flechaDoble, rounded corners=6pt]
+      (servidor.north) -- (7.5,-2.3) -- (15,-2.3) -- (indice.south);
+      \node[rotuloFuera, above=2pt] at (11.25,-2.3) {búsqueda};
+
+      % ── Anotar es tarea auxiliar: si falla, la respuesta se entrega igual ──
+      \draw[flechaAux, rounded corners=6pt]
+      (servidor.south) -- (7.5,-7.6) -- (registro.west);
+      \node[rotuloEnGrupo, anchor=west] at (7.65,-6.4) {traza};
+
+      % ── Leyenda, fuera de las bandas ───────────────────────────────────────
+      \draw[diagFocoBorde, very thick] (-1.9,-10.1) -- (-1.1,-10.1);
+      \node[font=\scriptsize, anchor=west] at (-0.9,-10.1)
+      {pieza que sostiene las decisiones de este capítulo};
+      \draw[densely dashed] (7.5,-10.1) -- (8.3,-10.1);
+      \node[font=\scriptsize, anchor=west] at (8.5,-10.1)
+      {tarea auxiliar: si falla, la respuesta se entrega igual};
     \end{tikzpicture}%
   }
-  \caption{Arquitectura general del sistema, organizada por fases de
-    desarrollo. Fuente: Elaboración propia.}
+  \caption[Arquitectura general del sistema]{\textcolor{borrador2}{Arquitectura
+      general del sistema. La banda superior se ejecuta una sola vez, para dejar
+      construido el índice; la inferior, cada vez que alguien pregunta. El índice
+      es lo único que las une. Fuente: Elaboración propia.}}
   \label{fig:arquitectura_pipeline}
 \end{figure}
