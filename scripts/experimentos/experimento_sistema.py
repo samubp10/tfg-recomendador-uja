@@ -385,7 +385,7 @@ def informe(filas: list[dict[str, Any]], destino: Path) -> None:
     lineas = [
         "# Evaluación del sistema completo (IT-37)",
         "",
-        "> Lo escribe `scripts/experimento_sistema.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_sistema.py`. **No editar a mano.**",
         "",
         f"- Entradas del banco: **{len(filas) // max(len(modelos), 1)}**",
         f"- Servidor de inferencia: {filas[0]['servidor'] if filas else '?'}",
