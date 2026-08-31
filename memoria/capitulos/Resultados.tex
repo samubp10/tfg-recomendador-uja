@@ -264,6 +264,63 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   prelación, y el Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede
   leerse.}
 
+\section[Ajuste de los parámetros del recuperador]{\textcolor{borrador2}{Ajuste de los parámetros del recuperador}}
+\label{secc:resultados_barrido}
+
+\textcolor{borrador2}{El recuperador no entrega un número fijo de fragmentos:
+  recorta la lista de vecinos con una banda, con un corte relativo a la distancia
+  del mejor y con un suelo por debajo del cual no se considera pertinente nada.
+  Esos cuatro valores se fijaron con una rejilla de 240 configuraciones, medida
+  sobre las 56 preguntas de dominio y las 10 ajenas del conjunto de evaluación.
+  La rejilla no llama al modelo generativo: los parámetros solo deciden dónde se
+  corta una lista ya ordenada, de modo que las 240 se simulan sobre los mismos
+  vecinos calculados una sola vez.}
+
+\input{tablas/TablaBarridoRecuperador.tex}
+
+\textcolor{borrador2}{El suelo se mueve de 0,142 a 0,137 sin discusión: con ese
+  valor se detiene una pregunta ajena más de las diez con las que se ajustó, y no
+  se pierde ninguna de las unidades que responden a las 56 de dominio.}
+
+\textcolor{borrador2}{El factor de corte es otra cosa, y es el resultado que más
+  enseña de este apartado. La rejilla prefiere 1,10: mantiene la unidad que
+  responde en las 56 preguntas y baja la media de fragmentos entregados de 7,2 a
+  4,2, casi la mitad de contexto por el mismo acierto. Y sin embargo se adopta
+  1,20. Medido sobre el banco del sistema completo, ese recorte hacía perder tres
+  respuestas de las cuarenta y siete que el banco tenía entonces: dos preguntas
+  cuyo contexto pasaba de veinte fragmentos a diez y de doce a tres dejaban de
+  contestarse bien, aunque la unidad correcta siguiera estando entre lo
+  recuperado.}
+
+\textcolor{borrador2}{La consecuencia va más allá de este parámetro. Que la
+  unidad que responde esté entre los fragmentos recuperados no basta para que el
+  modelo redacte la respuesta con ella: hace falta además que el contexto llegue
+  completo. Ajustar el recuperador contra métricas de recuperación mejora la
+  recuperación y empeora el sistema, y eso solo se ve midiendo el recorrido
+  entero. Es la razón por la que el apartado siguiente informa del sistema
+  completo y no solo de la fase que lo alimenta.}
+
+\begin{borrador}
+  \item \textbf{Fase:} 4 (IT-49). Andamiaje: la estructura y las cifras, que
+  salen de \texttt{docs/experimentos/it49-recuperador.md}. La prosa la escribes
+  tú y le quitas el turquesa.
+  \item \textbf{Lo que hay que defender aquí no son los cuatro números, es el
+  párrafo del factor de corte.} Es el único sitio de la memoria donde una
+  métrica intermedia apunta en dirección contraria al sistema completo, y eso
+  sostiene la tesis del trabajo mejor que ninguna otra cifra: mide el sistema
+  entero o te engañas con la parte.
+  \item \textbf{Discrepancia que hay que resolver antes de entregar, y no la he
+  tocado.} La columna \emph{Rechazo} de la tabla vale 0,800 (8 de 10) según el
+  informe de IT-49, pero el informe de IT-38 dice que sobre ese mismo conjunto
+  de ajuste el recuperador rechaza \textbf{6 de 10}. Los dos ficheros están en
+  el repositorio y se contradicen. Puede ser que midan cosas distintas ---la
+  rejilla simula el corte sobre vecinos ya calculados y el otro pasa por el
+  recuperador entero---, pero eso hay que comprobarlo, no suponerlo. Mientras no
+  se aclare, no cites la cifra absoluta en la prosa: el texto de arriba está
+  escrito a propósito en términos relativos («una pregunta ajena más»), que es
+  lo que la comparación sí sostiene.
+\end{borrador}
+
 \section[Evaluación del sistema completo]{\textcolor{borrador2}{Evaluación del sistema completo}}
 \label{secc:resultados_sistema}
 
