@@ -89,14 +89,19 @@ NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
 #: ADR-0001, el ADR-0003 y el ADR-0004.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0005-modelo-de-generacion.md"
 
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
+
 #: Marcas entre las que escribe este guion. Existen para poder volver a
 #: ejecutarlo sin pisar lo que el autor haya redactado en el resto del ADR: la
 #: Decisión y las Consecuencias son suyas y el guion no las toca.
-MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
-    "(scripts/experimentos/experimento_generacion.py) -->"
+MARCA_INICIO: Final[str] = _adr.marca_inicio(
+    "scripts/experimentos/experimento_generacion.py"
 )
-MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 sys.path.insert(0, str(RAIZ / "src"))
 
@@ -892,17 +897,7 @@ def escribir_adr(bloque: str) -> None:
             forma ruidosa a propósito: escribir el bloque al final de un
             fichero que no lo esperaba deja el ADR desordenado sin avisar.
     """
-    if not RUTA_ADR.exists():
-        raise SystemExit(f"No existe {RUTA_ADR}: el ADR lo abre IT-36, no este guion.")
-    contenido = RUTA_ADR.read_text(encoding="utf-8")
-    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
-        raise SystemExit(
-            f"{RUTA_ADR} no lleva las marcas de resultados automáticos. "
-            "Añádelas donde deba ir el bloque."
-        )
-    antes, resto = contenido.split(MARCA_INICIO, 1)
-    _, despues = resto.split(MARCA_FIN, 1)
-    RUTA_ADR.write_text(antes + bloque + despues, encoding="utf-8")
+    _adr.sustituir(RUTA_ADR, MARCA_INICIO, bloque)
     print(f"Resultados escritos en {RUTA_ADR}")
 
 
