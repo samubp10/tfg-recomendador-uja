@@ -3,7 +3,7 @@
 Comprueba los invariantes de ``data/grados.json`` tras cada regeneración::
 
     scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
-    py scripts/check_dataset.py
+    py scripts/verificadores/check_dataset.py
 
 Acepta una ruta alternativa como argumento.
 """
@@ -396,7 +396,7 @@ def main(argv: list[str] | None = None) -> int:
         Código de salida (0 si todos los invariantes se cumplen).
     """
     argumentos = argv if argv is not None else sys.argv[1:]
-    por_defecto = Path(__file__).resolve().parent.parent / "data" / "grados.json"
+    por_defecto = Path(__file__).resolve().parent.parent.parent / "data" / "grados.json"
     ruta = Path(argumentos[0]) if argumentos else por_defecto
 
     datos = json.loads(ruta.read_text(encoding="utf-8"))

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asistente de titulaciones · Escuela Politécnica Superior de Jaén</title>
+  <meta name="description"
+    content="Asistente que responde sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.">
+
+  <!--
+    NO se pide ninguna tipografía a un servidor externo, y es una decisión, no
+    un olvido. Se pedían a Google Fonts con respaldo del sistema, de modo que
+    la página se veía bien sin red; pero pedirlas manda a un tercero la
+    dirección de red y la identificación del navegador de quien abre el
+    asistente cada vez, y eso contradice lo que el RNF-02 afirma sobre que el
+    sistema funciona entero en local. El precio es la letra: se usa la del
+    sistema operativo, que en Windows y en macOS es distinta.
+  -->
+  <link rel="icon" href="logo-uja.png">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+  <!--
+    D2 (RNF-07): cada region lleva su rotulo para que se pueda saltar de una a
+    otra con un lector de pantalla en vez de recorrer la pagina entera. Los
+    elementos ya eran los correctos ---`header`, `main`, `nav`, `form`---, lo
+    que faltaba era el nombre: dos regiones sin rotular se anuncian las dos
+    como «region» y no hay forma de saber cual es cual.
+  -->
+  <div class="aplicacion">
+
+    <header class="cabecera" aria-label="Escuela Politécnica Superior de Jaén">
+      <img class="cabecera__escudo" src="logo-uja.png" alt="Universidad de Jaén">
+      <div class="cabecera__textos">
+        <!--
+          `h1` y no un párrafo: es el único encabezado de nivel uno de la
+          página. Antes el único encabezado del documento era el `h2` del
+          diálogo de fuentes, que está oculto mientras el diálogo está
+          cerrado, así que navegar por encabezados con un lector de pantalla
+          no llevaba a ninguna parte (WCAG 1.3.1 y 2.4.6). El aspecto no
+          cambia: la hoja de estilo ya le daba tamaño propio.
+        -->
+        <h1 class="cabecera__titulo">Escuela Politécnica Superior</h1>
+        <p class="cabecera__subtitulo">Universidad de Jaén · Asistente Virtual</p>
+      </div>
+    </header>
+
+    <!--
+      `aria-live="polite"` hace que un lector de pantalla anuncie cada respuesta
+      segun aparece. Con la emision por partes esto importa mas de lo habitual:
+      la respuesta se completa a lo largo de un minuto y quien no ve la pantalla
+      no tiene otra forma de saber que sigue llegando texto.
+    -->
+    <main class="conversacion" id="conversacion" aria-label="Conversación con el asistente"
+      aria-live="polite" aria-atomic="false">
+      <img class="conversacion__marca" src="logo-uja.png" alt="" aria-hidden="true">
+      <div class="conversacion__mensajes" id="mensajes"></div>
+    </main>
+
+    <!--
+      Aqui no hay ninguna pregunta escrita: las pone el servidor, que antes le
+      ha preguntado al indice si existe el fragmento que respalda cada una.
+      Escribirlas en este fichero seria tener dos listas que acaban diciendo
+      cosas distintas, y ofrecer lo que el corpus no tiene garantiza que el
+      primer contacto del estudiante con el asistente sea un rechazo.
+    -->
+    <nav class="sugerencias" id="sugerencias" aria-label="Preguntas sugeridas"></nav>
+
+    <form class="redaccion" id="redaccion" autocomplete="off"
+      aria-label="Escribir una consulta">
+      <div class="redaccion__caja">
+        <label class="visualmente-oculto" for="entrada">Escribe tu consulta</label>
+        <textarea id="entrada" class="redaccion__entrada" rows="1"
+          placeholder="Escribe tu consulta aquí… (Intro para enviar)"></textarea>
+        <button type="submit" class="redaccion__enviar" id="enviar" aria-label="Enviar consulta">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15.9 12 3.4 13.8z" />
+          </svg>
+        </button>
+      </div>
+      <p class="redaccion__aviso">
+        Responde solo sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.
+      </p>
+    </form>
+
+    <!--
+      Dos avisos distintos y a proposito separados: el de arriba acota el
+      DOMINIO ---de que se puede preguntar--- y este acota la FIABILIDAD ---
+      quien redacta la respuesta y que puede equivocarse---. Fundirlos en uno
+      solo dejaria una de las dos cosas sin decir.
+    -->
+    <p class="aviso-ia" role="note">
+      Las respuestas las redacta un modelo de lenguaje a partir de la información
+      publicada por la Escuela, y pueden contener errores. Comprueba en la web
+      oficial del centro cualquier dato del que dependa una decisión.
+    </p>
+
+  </div>
+
+  <!--
+    El cuadro de fuentes es un <dialog> del navegador y no un div propio: trae
+    hecho el atrapado del foco, el cierre con Escape y el fondo inerte, que es
+    justo lo que habria que escribir a mano para cumplir RNF-07.
+  -->
+  <dialog class="fuentes" id="fuentes" aria-labelledby="fuentes-titulo">
+    <div class="fuentes__cabecera">
+      <h2 class="fuentes__titulo" id="fuentes-titulo">Fuentes consultadas</h2>
+      <button type="button" class="fuentes__cerrar" id="fuentes-cerrar" aria-label="Cerrar el cuadro de fuentes">&#10005;</button>
+    </div>
+    <!--
+      El rotulo dice «consultadas» y la nota lo remata: esto es lo que se le
+      ENTREGO al modelo, no lo que el modelo uso al redactar. El sistema no
+      sabe lo segundo, y una respuesta que dice no tener el dato puede venir
+      igualmente acompanada de fragmentos, porque se le dieron y no le sirvieron.
+    -->
+    <p class="fuentes__nota">De aquí salió el contexto que se le entregó al modelo para redactar la respuesta.</p>
+    <ul class="fuentes__lista" id="fuentes-lista"></ul>
+  </dialog>
+
+  <script src="chat.js"></script>
+</body>
+
+</html>

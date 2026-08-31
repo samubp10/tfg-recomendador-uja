@@ -32,8 +32,8 @@ sino el corte, y el corte lo aplica el recuperador.
 
 Uso::
 
-    py scripts/experimento_recuperacion.py
-    py scripts/experimento_recuperacion.py --salida otro/sitio.md
+    py scripts/experimentos/experimento_recuperacion.py
+    py scripts/experimentos/experimento_recuperacion.py --salida otro/sitio.md
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ from typing import Any, Final
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 from tfg_uja.evaluacion import chunks_relevantes, evaluar_modelo  # noqa: E402
@@ -93,7 +93,9 @@ def cargar_chunks(ruta: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """
     items = json.loads(ruta.read_text(encoding="utf-8"))
     chunks = [i for i in items if i.get("tipo") == "chunk"]
-    procedencia = next((i for i in items if i.get("tipo") == "procedencia"), {})
+    procedencia: dict[str, Any] = next(
+        (i for i in items if i.get("tipo") == "procedencia"), {}
+    )
     return chunks, procedencia
 
 
@@ -239,7 +241,8 @@ def informe(
     lineas = [
         "# Recuperación del sistema sobre el conjunto de IT-27 (IT-38)",
         "",
-        "> Lo escribe `scripts/experimento_recuperacion.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_recuperacion.py`. "
+        "**No editar a mano.**",
         "",
         f"- Modelo de incrustaciones: `{MODELO}`",
         f"- Fragmentos del corpus: **{cuantos_chunks}**",

@@ -17,8 +17,9 @@ name = "tfg-recomendador-uja"
 version = "0.1.0"
 description = "Recomendador de titulaciones de la Universidad de Jaén basado en RAG"
 readme = "README.md"
-# Versión mínima de Python requerida para ejecutar el código
-requires-python = ">=3.10"
+# El proyecto se desarrolla, prueba y ejecuta con una sola versión menor.
+# El límite superior evita prometer compatibilidad con una 3.14 no verificada.
+requires-python = ">=3.13,<3.14"
 authors = [
     {name = "Samuel Blanco Palmero"}
 ]
@@ -37,12 +38,19 @@ dependencies = ["scrapy>=2.13", "pypdf>=4.0"]
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",   # Framework de ejecución de pruebas
+    "pytest-cov>=5.0", # Cobertura. Estaba instalado y sin declarar, de modo que
+                       #   un entorno recién creado no podía medirla
     "black>=23.0.0",   # Formateador automático de código
     "flake8>=6.0.0",   # Linter para análisis estático (control de estilo PEP 8)
     "mypy>=1.8",       # Verificador estático de tipos
     "lancedb>=0.37",   # Base vectorial (ADR-0004): los tests del indexador la usan en disco
     "pyarrow>=17.0",   # Esquema de la tabla. Se declara porque el indexador lo importa
     "numpy>=1.24",     # Similitud coseno del ranking en evaluacion.py (IT-28)
+    "psutil>=7.0",     # RSS del proceso: lo usa la medida de U5 del experimento
+                       #   de bases vectoriales, que desde IT-113 esta cubierta
+                       #   por pruebas. Estaba solo en `comparativa-vectordb`,
+                       #   que el CI no instala, asi que la tanda fallaba alli
+                       #   y pasaba en local
 ]
 # Ejecución real del pipeline de indexación (IT-30). Separado de dev porque
 # sentence-transformers arrastra PyTorch (cientos de MB) y el CI no lo
@@ -100,6 +108,16 @@ where = ["src"]
 # Longitud máxima de línea (88 es el valor estándar que usa Black por defecto)
 line-length = 88
 
+# Sin esto Black supone la versión más nueva que conoce y **se salta la
+# comprobación de AST**: avisa de que no puede verificar la equivalencia y
+# devuelve 0 igualmente, o sea que da por bueno un formateo que no ha
+# comprobado. Fijándolo a la versión que declara el proyecto, comprueba.
+target-version = ["py313"]
+
+# Mypy analiza con la misma versión menor que ejecutan el entorno y el CI.
+[tool.mypy]
+python_version = "3.13"
+
 # --- Pytest (Framework de pruebas) ---
 [tool.pytest.ini_options]
 # Directorio donde pytest buscará los archivos de pruebas automáticamente
@@ -117,4 +135,40 @@ addopts = "--strict-markers -ra -m 'not lento'"
 markers = [
     "dataset: valida la integridad del dataset versionado (data/grados.json)",
     "lento: recorre el conjunto entero llamando al modelo; minutos, no segundos",
+]
+
+# --- Coverage (Medida de cobertura de las pruebas) ---
+# El objetivo de cobertura no es el mismo en todo el repositorio, y decirlo aquí
+# evita perseguir un número que no significa nada: `src/tfg_uja/` y los dos
+# verificadores del corpus se exigen al 100 %, porque son el sistema que se
+# defiende y las herramientas que dicen si el corpus está bien. Los guiones de
+# experimento de un solo uso NO se exigen: se ejecutan una vez, su resultado
+# queda escrito en `docs/experimentos/` y probarlos costaría más que volver a
+# lanzarlos.
+# La cobertura que se mide es de SENTENCIA, no de rama. La de rama exigiría
+# recorrer cada condición por sus dos salidas y es una promesa distinta y mucho
+# más cara; decir «100 %» sin aclarar cuál de las dos es lo que hace que el
+# número no signifique nada.
+[tool.coverage.run]
+branch = false
+source = ["src/tfg_uja", "scripts"]
+
+[tool.coverage.report]
+show_missing = true
+# Líneas que no se pueden ejecutar desde una prueba y cuya ausencia no dice
+# nada sobre si el código está probado. Se excluyen por nombre, no con
+# `# pragma: no cover` repartido por los ficheros, para que la lista de lo que
+# se deja fuera esté en un solo sitio y se pueda auditar de un vistazo.
+exclude_also = [
+    # Arranque por línea de órdenes: bajo pytest el módulo se importa, nunca
+    # se ejecuta como programa.
+    "if __name__ == .__main__.:",
+    # Reconfiguración de la consola de Windows, que fuerza cp1252. Solo entra
+    # cuando la salida NO es UTF-8, y pytest la captura siempre en UTF-8.
+    "sys.stdout.reconfigure",
+    # Ramas de solo-tipado: no existen en tiempo de ejecución.
+    "if TYPE_CHECKING:",
+    # Métodos abstractos y protocolos sin cuerpo.
+    "raise NotImplementedError",
+    '\.\.\.$',
 ]

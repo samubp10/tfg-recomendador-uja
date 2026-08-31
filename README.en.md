@@ -17,7 +17,9 @@ publishes.
 
 Internally it combines Retrieval-Augmented Generation (RAG) with an open-weights
 language model run locally, so that answers rest on real university data rather
-than on the model's generic knowledge.
+than on the model's generic knowledge. **No external service is ever queried:**
+the generative model, the embeddings model and the vector index all run on the
+same machine.
 
 This repository is a Bachelor's Thesis (TFG) in Computer Engineering at the
 University of Jaén, academic year 2025/2026.
@@ -30,21 +32,29 @@ University of Jaén, academic year 2025/2026.
 | ----- | -------- | ------ |
 | 0 | Web scraping, cleaning, validation and chunking | ✅ Complete |
 | 1 | Chunking strategy and embeddings comparison | ✅ Complete |
-| 2 | Vector database, local LLM and full RAG pipeline | 🚧 In progress |
-| 3 | Web chat application | Pending |
-| 4 | User validation and ablation study | Pending |
+| 2 | Vector database, local LLM and full RAG pipeline | ✅ Complete |
+| 3 | Web chat application | ✅ Complete |
+| 4 | User validation and ablation study | 🚧 In progress |
 | 5 | Wrap-up and defence | Pending |
 
 ## Architecture
 
 ```text
-EPSJ website ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ vector index ──▶ [RAG + LLM] ──▶ [chat web app]
+EPSJ website ──spider──▶ grados.json ──chunker──▶ chunks.json ──indexer──▶ LanceDB index
+                                                                                │
+                                        browser ◀── server ◀── RAG ◀────────────┘
+                                                      │
+                                                      └──▶ Ollama (gemma3:12b)
 ```
 
 Each stage is decoupled from the next and produces a regenerable artefact:
 re-chunking or re-indexing is cheap and happens often while experimenting;
 re-crawling the website is expensive and impolite towards the university's
 server, so it only happens when the source changes.
+
+The web application is **a single Python process** that serves the interface and
+answers the queries, importing the retrieval-and-generation pipeline as a
+library. The only thing running apart from it is the inference server.
 
 ## Dataset
 
@@ -53,9 +63,9 @@ throughout the year, so they change on every crawl. Both `grados.json` and
 `chunks.json` carry their own extraction date and academic year inside the file.
 
 | Metric | Value |
-|---|---:|
-| Crawled on | 2026-08-05 (academic year 2026-27) |
-| Chunked on | 2026-08-06 |
+| --- | ---: |
+| Crawled on | 2026-08-16 (academic year 2026-27) |
+| Chunked on | 2026-08-19 |
 | Degrees (5 of them double degrees) | 12 |
 | Degrees with subjects of their own | 11 |
 | Subjects | 528 |
@@ -63,7 +73,8 @@ throughout the year, so they change on every crawl. Both `grados.json` and
 | Syllabus coverage | 83.7 % |
 | Subjects with no syllabus content | 86 |
 | Career-prospects blocks | 8 |
-| **Chunks after deduplication** | **1,334** |
+| **Chunks after deduplication** | **1,499** |
+| Units they belong to (81 shared between degrees) | 398 |
 
 The twelfth degree is a double degree run jointly with a German university and
 publishes no curriculum of its own, so it contributes no chunks.
@@ -76,13 +87,36 @@ table, it is only as fresh as the last time someone edited it.
 
 ## Requirements
 
-- Python 3.13 (3.10 minimum).
-- To run the actual indexing: the `[index]` extra (see below), which pulls in
-  PyTorch through `sentence-transformers`.
+### Software
+
+| What | Tested version | What for |
+| --- | --- | --- |
+| **Python** | 3.13 | all the code |
+| **[Ollama](https://ollama.com/)** | 0.32.14 | local inference server, on `http://127.0.0.1:11434` |
+| Docker | — | **optional**, only for the experiment comparing vector databases (Qdrant) |
+
+The project requires **Python 3.13.** and admits no other version: that is what
+`pyproject.toml`, `mypy`, `black`, the `.python-version` file and CI all declare,
+and a test fails if any of them drifts. Development happened on 3.13.5.
+
+### Models
+
+Downloaded once, then kept locally:
+
+| Model | On-disk size | How it gets there |
+| --- | ---: | --- |
+| `gemma3:12b` — generation (ADR-0005) | 8.1 GB | `ollama pull gemma3:12b` |
+| `intfloat/multilingual-e5-small` — embeddings (ADR-0003) | ~0.5 GB | downloaded automatically by `sentence-transformers` on first use |
+
+> The small embeddings model was chosen over the large one **deliberately**: both
+> have to share memory with the generative model, and the first run of the
+> comparison died out of memory loading the large one (ADR-0003).
 
 ## Installation
 
-**Windows (CMD or PowerShell)**
+### 1. Python environment
+
+#### Windows (CMD or PowerShell)
 
 ```console
 py -m venv .venv
@@ -90,7 +124,7 @@ py -m venv .venv
 pip install -e ".[dev]"
 ```
 
-**Linux / macOS**
+#### Linux / macOS
 
 ```console
 python3 -m venv .venv
@@ -100,11 +134,24 @@ pip install -e ".[dev]"
 
 > On Git Bash for Windows: `source .venv/Scripts/activate`.
 
-For vector indexing (downloads the embeddings model, hundreds of MB):
+To actually run the system (indexing and queries) you also need the `[index]`
+extra, which pulls in PyTorch through `sentence-transformers` (hundreds of MB).
+The tests do **not** need it: they inject a fake embedder.
 
 ```console
 pip install -e ".[dev,index]"
 ```
+
+### 2. Inference server
+
+```console
+ollama pull gemma3:12b
+ollama serve
+```
+
+`ollama serve` leaves the server listening on `http://127.0.0.1:11434`, which is
+where the system looks for it. On Windows and macOS the Ollama desktop app
+starts it on login.
 
 ## Usage
 
@@ -123,37 +170,72 @@ py -m tfg_uja.chunker data/grados.json data/chunks.json
 #    The default model is the one chosen in ADR-0003; another one can be
 #    passed as a third argument to repeat the experiment without touching code.
 py -m tfg_uja.indexer data/chunks.json data/indice_lance
+
+# 4. Start the web application
+py -m tfg_uja.servidor
 ```
+
+Step 4 opens the assistant at **<http://127.0.0.1:8000>**. It needs
+`data/indice_lance` and `data/grados.json` to exist and Ollama to be answering;
+if the index is missing the program says so and refuses to start.
+
+There is also a console client, handy for exercising the pipeline without a
+browser:
+
+```console
+py scripts/chat_rag.py
+```
+
+> ⚠️ **The server is not production-ready, and says so.** It is built on the
+> standard library's `http.server`: it serves requests one at a time, does not
+> cap request size and offers no HTTPS. It listens on `127.0.0.1` only.
+> Deployment is out of the scope of this work.
 
 ### Dataset checkers (local only)
 
-They do not run in CI because `data/` does not exist in a clean checkout; run
-them before every push:
+They do not run in CI because `data/` does not exist in a clean checkout; they
+are run before every push:
 
 ```console
-py scripts/check_dataset.py     # integrity of degrees/subjects/syllabuses/prospects
-py scripts/check_chunks.py      # chunk sizes and deduplication
-py scripts/check_evalset.py     # the evaluation set resolves against the dataset
-py scripts/check_guias_pdf.py   # PDF extraction, audited against the stored PDFs
+py scripts/verificadores/check_dataset.py    # integrity of degrees/subjects/syllabuses/prospects
+py scripts/verificadores/check_chunks.py     # chunk sizes and deduplication
+py scripts/verificadores/check_evalset.py    # the evaluation set resolves against the dataset
+py scripts/verificadores/check_guias_pdf.py  # PDF extraction is faithful to the originals
 ```
 
 ### Experiments
 
+They live in `scripts/experimentos/` and each writes its results into the ADR or
+the `docs/experimentos/` file it belongs to. Several take hours, and the phase 2
+and 3 ones need Ollama running.
+
 ```console
-# Compares embedding models (Recall@3, Recall@5, MRR) over the evaluation set.
-# Requires the [index] extra and network access the first time. Local only.
-py scripts/experimento_embeddings.py
+py scripts/experimentos/experimento_embeddings.py   # ADR-0003: compares embedding models
+py scripts/experimentos/experimento_vectordb.py     # ADR-0004: compares vector databases
+py scripts/experimentos/experimento_generacion.py   # ADR-0005: compares generative models
+py scripts/experimentos/experimento_recuperacion.py # Recall@K, MRR and out-of-domain rejection
+py scripts/experimentos/experimento_sistema.py      # the full end-to-end run
 ```
 
-Real results of every run are kept in the annex of the matching ADR, written by the script itself.
+⚠️ **Do not send anything else to Ollama while an experiment is measuring.** The
+timings stop meaning anything, and with the model loaded the wording changes
+between calls.
 
 ## Tests
 
 ```console
-pytest                                          # 278 tests, with real HTML/PDF/JSON fixtures
+pytest                                          # 861 tests, with real HTML/PDF/JSON fixtures
 mypy src/tfg_uja/ --ignore-missing-imports      # clean static typing
 black src/ tests/ scripts/                      # formatting
 flake8 src/ tests/ scripts/                     # style (configured in .flake8)
+```
+
+Three tests skip themselves when Ollama is not answering, and announce it rather
+than passing green in silence. The slow integration test walks the whole
+evaluation set calling the model, and is excluded from the default run:
+
+```console
+py -m pytest tests/test_integracion_rag.py -m lento -q -ra
 ```
 
 Testing principles: **real** fixtures downloaded from the EPSJ (never network
@@ -163,13 +245,25 @@ regression test with its real case.
 ## Repository structure
 
 ```text
-src/tfg_uja/        # source code (spider, PDF syllabuses, cleaning, validation,
-                    #   chunker, embeddings, indexer and retrieval metrics)
-tests/              # tests with real fixtures (EPSJ HTML and PDF, dataset chunks)
-scripts/            # dataset checkers and experiments
+src/tfg_uja/        # source code
+  grados_spider.py  #   crawls the EPSJ website
+  guia_pdf.py       #   extracts the syllabuses served as PDF
+  text_cleaner.py · validators.py · invariantes.py
+  chunker.py        #   chunking and deduplication
+  incrustaciones.py · indexer.py · recuperador.py · evaluacion.py
+  ambito.py         #   which degree the conversation is about
+  conversacion.py   #   dialogue state and context window
+  generador.py      #   prompt building and model call
+  verificacion.py   #   deterministic checks on the answer
+  servidor.py       #   web application (interface + /api/chat)
+  sugerencias.py · registro_chat.py
+web/                # interface: HTML, CSS and JavaScript, no dependencies
+tests/              # tests with real fixtures (EPSJ HTML and PDF)
+scripts/            # checkers, experiments and question banks
 eval/               # retrieval evaluation set (manual, versioned)
 docs/adr/           # Architecture Decision Records (ADR)
 docs/dqa/           # Data Quality Assessment records (DQA)
+docs/experimentos/  # real results, written by the scripts themselves
 memoria/            # the thesis itself, in LaTeX (EPSJ template)
 data/               # generated artefacts (NOT versioned)
 ```
@@ -195,18 +289,21 @@ Architectural decisions are documented as ADRs, each with the alternatives
 considered and the evidence that settled it:
 
 | ADR | Decision |
-|---|---|
+| --- | --- |
 | [ADR-0001](docs/adr/adr-0001-estrategia-chunking.md) | Chunking strategy and deduplication |
 | [ADR-0002](docs/adr/adr-0002-alternativas-extraccion-datos.md) | Scrapy as the extraction framework |
 | [ADR-0003](docs/adr/adr-0003-modelo-de-embeddings.md) | Embeddings model |
 | [ADR-0004](docs/adr/adr-0004-base-vectorial.md) | Vector database |
+| [ADR-0005](docs/adr/adr-0005-modelo-de-generacion.md) | Generative model |
+| [ADR-0006](docs/adr/adr-0006-emision-de-la-respuesta.md) | How the answer is streamed back |
 
 ## Scope
 
 The first version covers the EPSJ bachelor's degrees. The system is designed to
 be extended to other schools of the University of Jaén by adding sources to the
-extraction stage, without rewriting the retrieval and generation core. Teaching
-staff is deliberately excluded from the extracted data (privacy).
+extraction stage, without rewriting the retrieval and generation core. **That the
+design allows growth is argued; that the system scales is not measured.**
+Teaching staff is deliberately excluded from the extracted data (privacy).
 
 ## Legal & ethical notice
 

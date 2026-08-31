@@ -29,8 +29,8 @@ suspendido a todos los candidatos por un hueco del corpus, no por el modelo.
 
 Uso::
 
-    py scripts/generar_banco_generacion.py
-    py scripts/generar_banco_generacion.py --muestra 80 --semilla 42
+    py scripts/bancos/generar_banco_generacion.py
+    py scripts/bancos/generar_banco_generacion.py --muestra 80 --semilla 42
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ from typing import Any
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 
 #: Tipos que un estudiante entiende como «hay que aprobarlas sí o sí». No se
 #: llaman «obligatorias» en la pregunta a propósito: en el plan oficial `FB` es
@@ -338,7 +338,7 @@ def main(argumentos: list[str]) -> None:
     documento = {
         "descripcion": (
             "Banco de preguntas para comparar modelos generativos (IT-35). "
-            "Generado por scripts/generar_banco_generacion.py a partir de "
+            "Generado por scripts/bancos/generar_banco_generacion.py a partir de "
             "data/grados.json: ni las preguntas ni las respuestas correctas se "
             "escriben a mano. Solo contiene familias cuya respuesta es exacta y "
             "computable, para que la comparación no dependa de un juez."

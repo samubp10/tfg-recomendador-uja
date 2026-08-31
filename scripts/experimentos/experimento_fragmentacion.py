@@ -48,7 +48,7 @@ Ejecutar desde la raíz del repositorio y **con el entorno virtual activado**
 ---el ``py`` del sistema no tiene las dependencias---::
 
     source .venv/Scripts/activate
-    python -u scripts/experimento_fragmentacion.py
+    python -u scripts/experimentos/experimento_fragmentacion.py
 
 Reescribe el anexo del ADR-0001, entre sus marcas de resultados automáticos.
 """
@@ -64,7 +64,7 @@ from typing import Any, Callable, Final
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from tfg_uja import chunker  # noqa: E402
 from tfg_uja.chunker import (  # noqa: E402
@@ -81,19 +81,25 @@ from tfg_uja.incrustaciones import (  # noqa: E402
     con_prefijo,
 )
 
-RAIZ: Final[Path] = Path(__file__).resolve().parent.parent
+RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 RUTA_DATASET: Final[Path] = RAIZ / "data" / "grados.json"
 RUTA_PREGUNTAS: Final[Path] = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_SALIDA: Final[Path] = RAIZ / "docs" / "adr" / "adr-0001-estrategia-chunking.md"
+
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
 
 #: Marcas entre las que vive el bloque que escribe este guion. El resultado del
 #: experimento va **dentro del ADR** y no en un fichero aparte: separarlos hizo
 #: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
 #: propio anexo, porque una se refrescó y la otra no.
-MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_fragmentacion.py) -->"
+MARCA_INICIO: Final[str] = _adr.marca_inicio(
+    "scripts/experimentos/experimento_fragmentacion.py"
 )
-MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 
 def escribir_en_el_adr(bloque: str) -> None:
@@ -103,19 +109,13 @@ def escribir_en_el_adr(bloque: str) -> None:
         bloque: Texto que va entre las marcas, sin ellas.
 
     Raises:
-        SystemExit: Si el ADR no tiene las dos marcas. Es preferible fallar a
-            escribir el resultado en un sitio que nadie va a leer.
+        SystemExit: Si el ADR no existe o no tiene las dos marcas. Es
+            preferible fallar a escribir el resultado donde nadie va a leerlo.
     """
-    contenido = RUTA_SALIDA.read_text(encoding="utf-8")
-    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
-        raise SystemExit(
-            f"{RUTA_SALIDA.name} no tiene las marcas de resultados automáticos."
-        )
-    antes, resto = contenido.split(MARCA_INICIO, 1)
-    _, despues = resto.split(MARCA_FIN, 1)
-    RUTA_SALIDA.write_text(
-        f"{antes}{MARCA_INICIO}\n{bloque.strip()}\n\n{MARCA_FIN}{despues}",
-        encoding="utf-8",
+    _adr.sustituir(
+        RUTA_SALIDA,
+        MARCA_INICIO,
+        f"{MARCA_INICIO}\n{bloque.strip()}\n\n{MARCA_FIN}",
     )
 
 
@@ -693,7 +693,8 @@ def _cabecera_del_informe(
     """
     return [
         f"Generado el {date.today():%d/%m/%Y} con "
-        "`py -u scripts/experimento_fragmentacion.py` sobre `data/grados.json`, "
+        "`py -u scripts/experimentos/experimento_fragmentacion.py` sobre "
+        "`data/grados.json`, "
         f"con {n_preguntas} preguntas de `eval/preguntas_evaluacion.json` y el "
         f"modelo `{MODELO}` (ventana de {ventana} tokens), en CPU.",
         "",

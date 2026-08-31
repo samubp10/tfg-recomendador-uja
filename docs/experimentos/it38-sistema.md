@@ -1,15 +1,15 @@
 # Evaluación del sistema completo (IT-37)
 
-> Lo escribe `scripts/experimento_sistema.py`. **No editar a mano.**
+> Lo escribe `scripts/experimentos/experimento_sistema.py`. **No editar a mano.**
 
-- Entradas del banco: **47**
+- Entradas del banco: **57**
 - Servidor de inferencia: 0.32.14
 
 ## Aciertos por modelo
 
 | Modelo | Aciertos | Tasa | Mediana (s) |
 | --- | ---: | ---: | ---: |
-| `gemma3:12b` | 47 de 47 | 1.000 | 53.6 |
+| `gemma3:12b` | 56 de 57 | 0.982 | 42.3 |
 
 ## Aciertos por familia
 
@@ -21,12 +21,12 @@
 | conversacion | 8 | 8/8 |
 | cortesia | 4 | 4/4 |
 | creditos | 4 | 4/4 |
-| curso_de_asignatura | 4 | 4/4 |
-| fuera_de_dominio | 5 | 5/5 |
+| curso_de_asignatura | 4 | 3/4 |
+| fuera_de_dominio | 15 | 15/15 |
 | menciones | 4 | 4/4 |
 | optativas | 4 | 4/4 |
 | plan_por_curso | 4 | 4/4 |
 
 ## Lo que falla
 
-Nada.
+- `gemma3:12b` · G-ASI-0078 (curso_de_asignatura)

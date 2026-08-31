@@ -48,7 +48,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -61,6 +61,11 @@ POR_FAMILIA_FACTUAL = 4
 
 #: Semilla del sorteo de las factuales.
 SEMILLA = 20
+
+#: Conjunto de validación del rechazo, del que salen las preguntas ajenas
+#: difíciles. Se nombra aquí y no se copia su contenido para que la única
+#: versión de cada pregunta sea la del fichero versionado.
+VALIDACION_AJENAS = "preguntas_fuera_de_dominio_validacion.json"
 
 
 def factuales(ruta_banco: Path, por_familia: int, semilla: int) -> list[dict[str, Any]]:
@@ -250,9 +255,27 @@ def cortesias() -> list[dict[str, Any]]:
     ]
 
 
-def ajenas() -> list[dict[str, Any]]:
-    """Preguntas fuera del dominio. Las tres primeras llevan vocabulario del
-    centro a propósito: son las que atraviesan el suelo de pertinencia."""
+def ajenas(ruta_validacion: Path | None = None) -> list[dict[str, Any]]:
+    """Preguntas fuera del dominio, de dos procedencias distintas.
+
+    Las cinco primeras se escriben aquí y son las evidentes; las tres iniciales
+    llevan vocabulario del centro a propósito, porque son las que atraviesan el
+    suelo de pertinencia. Con solo esas cinco el sistema acierta las cinco, y una
+    proporción sobre cinco casos no sostiene ninguna conclusión: su intervalo al
+    95 % baja hasta 0,549.
+
+    Por eso se les suman las diez del conjunto de validación, que están escritas
+    para colarse y **no intervinieron en ningún ajuste** del sistema. Se leen del
+    fichero en lugar de copiarse aquí para que no puedan discrepar dos copias de
+    la misma pregunta, y cada entrada conserva de dónde viene.
+
+    Args:
+        ruta_validacion: Conjunto de validación del rechazo. Por omisión, el
+            versionado en ``eval/``.
+
+    Returns:
+        Las quince preguntas ajenas, las escritas aquí primero.
+    """
     formas = [
         "¿Puedo estudiar Medicina en la Escuela Politécnica Superior de Jaén?",
         "¿Qué nota de corte tiene el Grado en Derecho?",
@@ -260,7 +283,10 @@ def ajenas() -> list[dict[str, Any]]:
         "¿Cuál es la capital de Francia?",
         "Dame una receta de tortilla de patatas",
     ]
-    return [
+    ruta = ruta_validacion or RAIZ / "eval" / VALIDACION_AJENAS
+    adversarias = json.loads(ruta.read_text(encoding="utf-8"))["preguntas"]
+
+    entradas = [
         {
             "id": f"S-AJE-{i:03d}",
             "familia": "fuera_de_dominio",
@@ -268,9 +294,23 @@ def ajenas() -> list[dict[str, Any]]:
             "pregunta": texto,
             "respuesta": "rechazo",
             "esperado": [],
+            "origen": "escrita_en_el_guion",
         }
         for i, texto in enumerate(formas, 1)
     ]
+    entradas.extend(
+        {
+            "id": f"S-AJE-{i:03d}",
+            "familia": "fuera_de_dominio",
+            "que_prueba": f"rechazo ante una pregunta ajena de clase {p['clase']}",
+            "pregunta": p["pregunta"],
+            "respuesta": "rechazo",
+            "esperado": [],
+            "origen": f"conjunto_de_validacion:{p['id']}",
+        }
+        for i, p in enumerate(adversarias, len(formas) + 1)
+    )
+    return entradas
 
 
 def ambiguas() -> list[dict[str, Any]]:

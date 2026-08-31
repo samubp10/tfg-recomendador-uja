@@ -9,6 +9,7 @@ ejecución reproducible viajan de verdad en la petición.
 
 from __future__ import annotations
 
+import io
 import json
 from typing import Any
 
@@ -21,6 +22,7 @@ from tfg_uja.generador import (
     RESPUESTA_DESPEDIDA,
     RESPUESTA_SALUDO,
     RESPUESTA_SIN_CONTEXTO,
+    RESPUESTA_TITULACION_INVENTADA,
     TOPE_RESPUESTA,
     VENTANA,
     cerrar_en_frase_completa,
@@ -418,6 +420,24 @@ def test_sin_ambito_el_prompt_no_lo_menciona():
     assert "ÁMBITO:" not in prompt
 
 
+def test_un_ambito_multiple_declara_todas_las_titulaciones():
+    """RU-04 no puede presentar una comparación como si fuera de un grado."""
+    titulaciones = [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+    ]
+
+    prompt = construir_prompt(
+        "¿En qué se diferencian?",
+        [fragmento("Datos generales", "Texto.")],
+        ambito=titulaciones,
+    )
+
+    assert "ÁMBITO: la consulta abarca estas titulaciones:" in prompt
+    assert all(f"- {titulacion}" in prompt for titulacion in titulaciones)
+    assert prompt.index("ÁMBITO") < prompt.index("CONTEXTO:")
+
+
 # --- Sin contexto no se llama al modelo ---
 
 
@@ -772,11 +792,16 @@ def test_si_todas_existen_la_respuesta_pasa(monkeypatch):
 
 
 def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
-    """Comportamiento declarado: sin catálogo la barrera no actúa."""
+    """Comportamiento declarado: sin catálogo la barrera no actúa.
+
+    Se compara con el texto sin espacios de cierre porque eso es lo que el
+    sistema entrega de verdad: `generar` ya devuelve la respuesta «sin espacios
+    sobrantes», y este doble se los salta al inyectar el texto a mano.
+    """
     _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
     assert (
         generador.responder("una pregunta", [fragmento("A", "texto")], "un-modelo")
-        == _RESPUESTA_CON_INVENTADA
+        == _RESPUESTA_CON_INVENTADA.strip()
     )
 
 
@@ -968,7 +993,9 @@ def test_la_traza_recoge_lo_que_la_barrera_retira(monkeypatch):
     )
     assert respuesta == generador.RESPUESTA_TITULACION_INVENTADA
     assert traza["inventadas"] == ["Grado en Ingeniería de Edificación"]
-    assert traza["retirada"] == _RESPUESTA_CON_INVENTADA
+    # Sin los espacios de cierre, por el mismo motivo que en la prueba de
+    # arriba: se retira lo que se iba a entregar, no el texto en bruto.
+    assert traza["retirada"] == _RESPUESTA_CON_INVENTADA.strip()
 
 
 def test_la_traza_queda_vacia_si_la_barrera_no_salta(monkeypatch):
@@ -1051,3 +1078,437 @@ def test_una_pregunta_normal_del_dominio_no_dispara_la_comprobacion():
     assert (
         generador.pregunta_por_otro_centro("¿Cuántos créditos tiene Álgebra?") is None
     )
+
+
+# --- Los tres desenlaces que faltaban por cubrir ---
+
+
+def test_una_cortesia_que_no_saluda_ni_se_despide_no_recibe_respuesta_fija():
+    """«Vale» es todo cortesía y no es ni saludo ni despedida: no se contesta.
+
+    Es la condición que el propio módulo declara al separar ``_SALUDO`` de
+    ``_CORTESIA``: sin ella, un resto de frase como «vale» o «por favor»
+    entraría por ser todo palabras corteses y el asistente saludaría a mitad de
+    conversación. Devolver ``None`` deja que el turno siga su curso normal.
+    """
+    assert cortesia("vale") is None
+    assert cortesia("por favor") is None
+
+
+def test_una_despedida_sin_contexto_se_despide_en_vez_de_no_encontrar_nada():
+    """Dar las gracias al final no puede acabar en «no he encontrado nada».
+
+    Es el mismo fallo del turno 5 de la sesión del 19/08/2026, pero por la otra
+    rama: cuando además el recuperador se ha quedado sin fragmentos. Cerrar la
+    conversación no necesita contexto ninguno.
+    """
+    assert cortesia_sin_contexto("muchas gracias, hasta luego") == RESPUESTA_DESPEDIDA
+
+
+def test_una_respuesta_cortada_por_longitud_se_cierra_y_se_avisa(monkeypatch):
+    """Si el modelo agota el tope, se corta en frase entera y se dice que falta.
+
+    Ollama devuelve ``done_reason: "length"`` cuando ha llegado al tope de
+    fichas. Entregar el texto tal cual dejaría la última frase a medias, y el
+    estudiante no tendría forma de saber si eso es toda la información o solo
+    la que cupo.
+    """
+
+    def urlopen_falso(peticion: Any, timeout: int = 0) -> RespuestaFalsa:
+        return RespuestaFalsa(
+            {
+                "response": "Se cursan Álgebra y Cálculo. Además está Físi",
+                "done_reason": "length",
+            }
+        )
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", urlopen_falso)
+
+    escrito = generar("un prompt", "un-modelo")
+
+    assert escrito.endswith(AVISO_RESPUESTA_CORTADA)
+    assert "Físi" not in escrito
+    assert "Se cursan Álgebra y Cálculo." in escrito
+
+
+# --- IT-39: un imperativo ajeno no se saluda ---
+
+
+def test_una_peticion_ajena_sin_interrogacion_no_recibe_un_saludo():
+    """«Hazme un resumen de la Segunda Guerra Mundial» no es un saludo.
+
+    Medido el 23/08/2026 sobre el banco del sistema: esa frase y «Tradúceme al
+    inglés...» no llevan interrogación, y sus verbos con pronombre enclítico
+    ---`hazme`, `traduceme`--- no están en el vocabulario interrogativo, que
+    recoge unas formas y otras no. Las dos recibían la bienvenida del asistente
+    en lugar de que se les dijera que eso queda fuera de su ámbito, y eso es
+    peor que no responder: da a entender que la petición se ha entendido.
+    """
+    assert (
+        cortesia_sin_contexto("Hazme un resumen de la Segunda Guerra Mundial.") is None
+    )
+    assert (
+        cortesia_sin_contexto(
+            "Tradúceme al inglés: «me gustaría estudiar una ingeniería»."
+        )
+        is None
+    )
+
+
+def test_un_saludo_que_no_esta_en_la_lista_sigue_recibiendo_la_bienvenida():
+    """La regresión del arreglo: «hei» y «q tal» no pueden dejar de saludarse.
+
+    El respaldo existe porque el vocabulario de saludos no puede recogerlos
+    todos. Lo que lo separa de una petición ajena es la longitud, no el verbo.
+    """
+    assert cortesia_sin_contexto("hei") == RESPUESTA_SALUDO
+    assert cortesia_sin_contexto("q tal") == RESPUESTA_SALUDO
+
+
+def test_el_saludo_de_respaldo_no_se_estira_a_una_frase():
+    """Tres palabras ya son una petición, no un saludo mal escrito."""
+    assert cortesia_sin_contexto("resumeme la guerra") is None
+
+
+def test_un_agradecimiento_no_tapa_la_pregunta_que_viene_detras():
+    """Regresión del turno 22, medido el 27/08/2026 sobre la aplicación.
+
+    «Vale, gracias, me podrías decir cómo se harían unas costillas
+    topográficas?» no recuperaba nada, la fórmula «gracias» ganaba, y el
+    estudiante recibía «¡De nada!» con su pregunta sin contestar. La condición
+    que faltaba no es nueva: es la que :func:`cierre_de_conversacion` ya exige
+    ---fórmula presente y ninguna pregunta--- y que se perdió al relajar esta
+    función para que a la fórmula le bastara con aparecer.
+    """
+    assert (
+        cortesia_sin_contexto(
+            "Vale, gracias, me podrias decir como se harian unas costillas "
+            "topograficas?"
+        )
+        is None
+    )
+
+
+def test_un_saludo_si_puede_traer_una_pregunta_detras():
+    """La interrogación desactiva la despedida, no el saludo.
+
+    Un agradecimiento cierra algo, así que si el mensaje sigue preguntando, la
+    fórmula era el preámbulo. Un saludo abre: a quien entra preguntando si se
+    le puede ayudar se le da la bienvenida, que es lo que invita a preguntar, y
+    no un «no he encontrado información sobre eso».
+    """
+    assert cortesia_sin_contexto("hola, me puedes ayudar?") == RESPUESTA_SALUDO
+
+
+# --- IT-44: emisión por partes (ADR-0006) ---
+
+
+class FlujoFalso:
+    """Imita la respuesta en flujo de Ollama: un JSON por línea."""
+
+    def __init__(self, trozos: list[dict[str, Any]]) -> None:
+        self._lineas = [json.dumps(t).encode("utf-8") for t in trozos]
+
+    def __iter__(self) -> Any:
+        return iter(self._lineas + [b"\n"])
+
+    def __enter__(self) -> "FlujoFalso":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+
+def flujo_de(monkeypatch, trozos: list[dict[str, Any]]) -> None:
+    """Hace que la llamada al modelo devuelva ese flujo."""
+    monkeypatch.setattr(
+        generador.urllib.request, "urlopen", lambda *a, **k: FlujoFalso(trozos)
+    )
+
+
+@pytest.mark.parametrize(
+    ("texto", "unidades", "resto"),
+    [
+        ("Una frase. Y otra.", ["Una frase.", " Y otra."], ""),
+        ("Sin frontera todavia", [], "Sin frontera todavia"),
+        ("*  Item\n*  Otro\n", ["*  Item\n", "*  Otro\n"], ""),
+        ("", [], ""),
+    ],
+)
+def test_solo_se_suelta_lo_que_cierra_frontera_segura(texto, unidades, resto) -> None:
+    """La frontera es lo que impide el falso positivo del ADR-0006.
+
+    Soltar «Grado en Ingeniería Infor» ---cortado a mitad de palabra--- haría
+    saltar la comprobación de titulaciones inventadas, porque esas palabras no
+    son subconjunto de ninguna titulación real. Con la frontera eso no ocurre.
+    """
+    assert generador.partir_en_unidades(texto) == (unidades, resto)
+
+
+def test_el_flujo_del_modelo_llega_trozo_a_trozo(monkeypatch) -> None:
+    """Es lo que hace que el estudiante vea texto antes del minuto."""
+    flujo_de(monkeypatch, [{"response": "Hola"}, {"response": " mundo."}])
+
+    assert list(generador.generar_por_partes("prompt", "un-modelo")) == [
+        "Hola",
+        " mundo.",
+    ]
+
+
+def test_una_respuesta_cortada_por_longitud_lo_avisa_al_final(monkeypatch) -> None:
+    """El tope solo se conoce al terminar, así que el aviso va detrás."""
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "Se cursan Álgebra"},
+            {"response": " y", "done_reason": "length"},
+        ],
+    )
+
+    partes = list(generador.generar_por_partes("prompt", "un-modelo"))
+
+    assert partes[-1] == AVISO_RESPUESTA_CORTADA
+
+
+def test_si_el_servidor_esta_caido_el_flujo_lo_dice(monkeypatch) -> None:
+    """Mismo error que la vía síncrona: un fallo de red no puede pasar mudo."""
+
+    def revienta(*a: Any, **k: Any) -> Any:
+        raise generador.urllib.error.URLError("conexión rechazada")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", revienta)
+
+    with pytest.raises(generador.ErrorDelModelo, match="Ollama"):
+        list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+def test_la_cortesia_sale_de_una_pieza_y_sin_llamar_al_modelo(monkeypatch) -> None:
+    """Un saludo no espera: sale entero y en una sola parte."""
+
+    def no_llamar(*a: Any, **k: Any) -> Any:  # pragma: no cover
+        raise AssertionError("no debería llamarse al modelo")
+
+    monkeypatch.setattr(generador, "generar_por_partes", no_llamar)
+
+    assert list(generador.responder_por_partes("hola", [], "un-modelo")) == [
+        RESPUESTA_SALUDO
+    ]
+
+
+def test_sin_fragmentos_no_se_llama_al_modelo(monkeypatch) -> None:
+    """La barrera del contexto vacío es idéntica en las dos vías."""
+    partes = list(
+        generador.responder_por_partes("¿Cuántos créditos tiene Álgebra?", [], "m")
+    )
+
+    assert partes == [RESPUESTA_SIN_CONTEXTO]
+
+
+def test_una_titulacion_inventada_manda_borrar_lo_ya_emitido(monkeypatch) -> None:
+    """Es la barrera de retirada del ADR-0006 actuando a media emisión.
+
+    El ``None`` es la señal de «borra lo emitido»: sin ella el estudiante se
+    quedaría con la recomendación inventada en pantalla y la respuesta fija
+    debajo, que es peor que no retirar nada.
+    """
+    flujo_de(
+        monkeypatch,
+        [{"response": "Te recomiendo el Grado en Magia Avanzada."}],
+    )
+    frag = fragmento("Álgebra", "algo", grados=["Grado en Ingeniería Mecánica"])
+
+    partes = list(
+        generador.responder_por_partes(
+            "¿Qué me recomiendas?",
+            [frag],
+            "un-modelo",
+            catalogo=["Grado en Ingeniería Mecánica"],
+        )
+    )
+
+    assert partes[-2] is None
+    assert partes[-1] == RESPUESTA_TITULACION_INVENTADA
+
+
+def test_la_cola_sin_frontera_tambien_se_verifica(monkeypatch) -> None:
+    """Lo último que escribe el modelo puede no cerrar en punto.
+
+    Sin esta rama, una titulación inventada escrita en la última frase ---la
+    que se queda sin punto final--- se entregaría sin comprobar.
+    """
+    flujo_de(monkeypatch, [{"response": "Existe el Grado en Magia Avanzada"}])
+    frag = fragmento("Álgebra", "algo", grados=["Grado en Ingeniería Mecánica"])
+
+    partes = list(
+        generador.responder_por_partes(
+            "¿Y?", [frag], "m", catalogo=["Grado en Ingeniería Mecánica"]
+        )
+    )
+
+    assert partes[-1] == RESPUESTA_TITULACION_INVENTADA
+
+
+def test_una_respuesta_limpia_sale_entera_por_partes(monkeypatch) -> None:
+    """El caso normal: se suelta por frases y no se retira nada."""
+    flujo_de(
+        monkeypatch,
+        [{"response": "Álgebra tiene 6 ECTS."}, {"response": " Es de primero"}],
+    )
+    frag = fragmento("Álgebra", "algo", grados=["Grado en Ingeniería Mecánica"])
+
+    partes = list(
+        generador.responder_por_partes(
+            "¿Cuántos créditos?",
+            [frag],
+            "m",
+            catalogo=["Grado en Ingeniería Mecánica"],
+        )
+    )
+
+    assert "".join(p for p in partes if p) == "Álgebra tiene 6 ECTS. Es de primero"
+    assert None not in partes
+
+
+def test_un_error_http_del_servidor_llega_con_su_codigo(monkeypatch) -> None:
+    """Un 500 del servidor de inferencia no puede confundirse con una respuesta."""
+
+    def revienta(*a: Any, **k: Any) -> Any:
+        raise generador.urllib.error.HTTPError(
+            "u",
+            500,
+            "Internal Error",
+            {},  # type: ignore[arg-type]
+            io.BytesIO(b"modelo no cargado"),
+        )
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", revienta)
+
+    with pytest.raises(generador.ErrorDelModelo, match="500"):
+        list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+def test_un_modelo_colgado_cuesta_una_pregunta_y_no_la_sesion(monkeypatch) -> None:
+    """Misma lección que la vía síncrona: agotar la espera levanta TimeoutError.
+
+    El 19/08/2026 un modelo colgado tumbó una tanda de 560 respuestas cuando
+    llevaba 85, porque TimeoutError no es un URLError y se escapaba de las dos
+    ramas. La vía por partes tiene que atraparlo igual.
+    """
+
+    def se_cuelga(*a: Any, **k: Any) -> Any:
+        raise TimeoutError
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", se_cuelga)
+
+    with pytest.raises(generador.ErrorDelModelo, match="no respondió"):
+        list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+# ------------------------------------------- la respuesta que no llega al modelo
+
+
+@pytest.mark.parametrize(
+    "pregunta",
+    [
+        "Hola",
+        "Buenas tardes",
+        "Gracias, adiós",
+        "¿Puedo estudiar Medicina en la Universidad de Granada?",
+    ],
+)
+def test_hay_preguntas_que_se_contestan_sin_mirar_el_contexto(pregunta: str) -> None:
+    """Las tres salidas anticipadas se deciden con la pregunta y nada más.
+
+    Quien llama necesita saberlo ANTES de recuperar: buscar fragmentos para un
+    saludo es trabajo tirado, y enseñarlos como fuentes de la respuesta es
+    presentar como respaldo algo que nadie usó para redactarla.
+    """
+    assert generador.respuesta_fija(pregunta) is not None
+
+
+def test_una_pregunta_del_dominio_no_tiene_respuesta_fija() -> None:
+    """Si la tuviera, el sistema dejaría de consultar la colección."""
+    assert generador.respuesta_fija("¿Qué asignaturas tiene Informática?") is None
+
+
+def test_las_dos_formas_de_responder_toman_el_mismo_desvio() -> None:
+    """Regresión: la cadena de salidas estaba escrita dos veces.
+
+    Con dos copias, cambiar una y olvidar la otra hace que el chat y la
+    emisión por partes contesten cosas distintas al mismo saludo.
+    """
+    entera = generador.responder("Hola", [], "da-igual", catalogo=[])
+    por_partes = list(
+        generador.responder_por_partes("Hola", [], "da-igual", catalogo=[])
+    )
+
+    assert por_partes == [entera]
+
+
+_CONTEXTO_FOTOGRAMETRIA = (
+    "«Fotogrametría y teledetección III», asignatura obligatoria de 6 ECTS "
+    "del Grado en Ingeniería Geomática y Topográfica (plan 2025). Se imparte "
+    "en el primer cuatrimestre de tercer curso.\n"
+    "La guía docente de esta asignatura no está publicada en la web de la "
+    "EPSJ, por lo que solo se dispone de sus datos básicos."
+)
+
+
+def test_el_atributo_corregido_queda_registrado(monkeypatch, caplog):
+    """Un sistema que corrige en silencio no se puede auditar después.
+
+    Es la contrapartida de haber elegido corregir en vez de retirar: si la
+    respuesta que se entrega no es literalmente la que dio el modelo, tiene
+    que quedar dicho en algún sitio qué se cambió y con qué autoridad.
+    """
+    _con_respuesta(
+        monkeypatch,
+        "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
+        "segundo cuatrimestre.",
+    )
+    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+        respuesta = generador.responder(
+            "¿Cuándo se da Fotogrametría III?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+        )
+
+    assert "primer cuatrimestre" in respuesta
+    assert "Atributo corregido" in caplog.text
+    assert "primer cuatrimestre" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        # Una corrección de atributo.
+        "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
+        "segundo cuatrimestre.",
+        # Una respuesta que no hay que tocar.
+        "Fotogrametría y teledetección III es obligatoria y son 6 ECTS.",
+        # Varias frases, para que el troceado en unidades tenga trabajo.
+        "Primera frase. Segunda frase.\nY una tercera en otra línea.",
+    ],
+)
+def test_las_dos_formas_de_entregar_dan_exactamente_el_mismo_texto(monkeypatch, texto):
+    """`responder` es una envoltura de `responder_por_partes`, no una copia.
+
+    Eran dos implementaciones del mismo contrato y las barreras vivían
+    duplicadas. Como el experimento del sistema llama a la primera y la
+    aplicación web a la segunda, una barrera puesta solo en una hacía que las
+    cifras describieran un sistema distinto del que se entrega. Pasó el
+    29/08/2026 con la corrección de atributos, así que la igualdad se
+    comprueba en vez de suponerse.
+    """
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+
+    _con_respuesta(monkeypatch, texto)
+    entera = generador.responder("¿Cuándo?", contexto, "un-modelo")
+
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([texto]))
+    por_partes = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Cuándo?", contexto, "un-modelo")
+    ).strip()
+
+    assert entera == por_partes

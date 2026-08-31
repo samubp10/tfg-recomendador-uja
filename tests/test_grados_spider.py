@@ -1145,3 +1145,132 @@ def test_las_salidas_repetidas_de_un_doble_grado_no_se_duplican():
     vinetas = [ln for ln in item["texto"].splitlines() if ln.startswith("- ")]
     assert len(vinetas) == len(set(vinetas))
     assert len(vinetas) == 12
+
+
+# --- Bordes estructurales de la tabla de asignaturas ---
+#
+# El HTML de estos casos va en línea y no en fixture porque son formas que la
+# EPSJ NO publica hoy: son las defensas que existen justamente para que un
+# cambio de la fuente se note en vez de perder una titulación en silencio. Ya
+# ocurrió con la columna «Curso recomendado» del plan 2025 de Geomática
+# (IT-76), que se coló entre las demás y se llevó la titulación entera.
+
+
+def _asignaturas_de_html(html: str):
+    resp = HtmlResponse(
+        url=_URL_ASIG,
+        body=html.encode("utf-8"),
+        encoding="utf-8",
+        request=Request(_URL_ASIG, meta=_META_ASIG),
+    )
+    return [i for i in GradosSpider().parse_asignaturas(resp) if isinstance(i, dict)]
+
+
+def test_una_tabla_sin_ninguna_fila_no_rompe_el_rastreo():
+    """Una tabla vacía se salta: leer su cabecera reventaría por índice."""
+    html = """
+    <html><body>
+      <table></table>
+      <table>
+        <tr><th>Código</th><th>Asignatura</th><th>Tipo</th><th>ECTS</th></tr>
+        <tr><td>13312001</td><td>Álgebra</td><td>FB</td><td>6</td></tr>
+      </table>
+    </body></html>
+    """
+
+    items = _asignaturas_de_html(html)
+
+    assert [i["nombre"] for i in items] == ["Álgebra"]
+
+
+def test_una_tabla_sin_columna_de_tipo_ni_de_mencion_se_omite_avisando(caplog):
+    """No se adivina qué es cada fila: se descarta la tabla y se deja constancia.
+
+    Sin la columna de tipo no se sabe si una fila es una asignatura, y sin la de
+    mención tampoco es una tabla de menciones. Inventarse el tipo metería basura
+    en el corpus; omitir en silencio perdería asignaturas. Se omite y se avisa.
+    """
+    html = """
+    <html><body>
+      <table>
+        <tr><th>Horario</th><th>Aula</th></tr>
+        <tr><td>Lunes</td><td>A3</td></tr>
+      </table>
+    </body></html>
+    """
+
+    items = _asignaturas_de_html(html)
+
+    assert items == []
+    assert "Tabla sin columna de tipo ni de mención" in caplog.text
+
+
+def test_una_optativa_en_dos_menciones_las_acumula_y_hereda_el_curso():
+    """La misma optativa figura en varias tablas de mención: se suman, no se pisan.
+
+    Y el curso se rellena si la primera aparición vino sin él ---solo algunas de
+    esas tablas cuelgan de un rótulo con curso--- pero no se sobrescribe: la
+    primera manda, igual que con las menciones.
+    """
+    html = """
+    <html><body>
+      <h3>Mención en Computación</h3>
+      <table>
+        <tr><th>Código</th><th>Asignatura</th><th>Mención</th><th>ECTS</th></tr>
+        <tr><td>13312050</td><td>Minería de datos</td>
+            <td>Computación</td><td>6</td></tr>
+      </table>
+      <h3>Cuarto curso</h3>
+      <h3>Mención en Sistemas de información</h3>
+      <table>
+        <tr><th>Código</th><th>Asignatura</th><th>Mención</th><th>ECTS</th></tr>
+        <tr><td>13312050</td><td>Minería de datos</td>
+            <td>Sistemas de información</td><td>6</td></tr>
+      </table>
+    </body></html>
+    """
+
+    items = _asignaturas_de_html(html)
+
+    mineria = _por_nombre(items, "Minería de datos")
+    assert mineria is not None
+    assert mineria["menciones"] == ["Computación", "Sistemas de información"]
+    assert mineria["curso"] == "Cuarto curso"
+
+
+def test_una_columna_que_la_tabla_no_trae_da_texto_vacio():
+    """48 asignaturas del corpus no tienen código: la columna no existe.
+
+    Devolver cadena vacía en vez de fallar es lo que permite que esas
+    asignaturas sigan en el corpus, identificadas por su nombre.
+    """
+    resp = HtmlResponse(
+        url=_URL_ASIG,
+        body=b"<table><tr><td>Solo una celda</td></tr></table>",
+        encoding="utf-8",
+    )
+    celdas = resp.css("td")
+
+    assert GradosSpider._texto_celda(celdas, None) == ""
+    assert GradosSpider._texto_celda(celdas, 0) == "Solo una celda"
+
+
+def test_sin_el_contenedor_de_la_ficha_se_limpia_la_pagina_entera():
+    """Si la guía no trae el contenedor esperado, se lee la página completa.
+
+    Es el respaldo de DQA-0002. Sigue quitando las secciones excluidas ---el
+    profesorado, con sus datos personales--- porque la exclusión se aplica sobre
+    lo que se acabe leyendo y no sobre el contenedor.
+    """
+    html = """
+    <html><body>
+      <div id="otro-contenedor">
+        <p>Contenido de la guía docente.</p>
+      </div>
+    </body></html>
+    """
+    resp = HtmlResponse(url=_URL_GUIA, body=html.encode("utf-8"), encoding="utf-8")
+
+    texto = GradosSpider._limpieza_general(resp)
+
+    assert "Contenido de la guía docente." in texto

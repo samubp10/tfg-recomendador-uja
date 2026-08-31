@@ -1,6 +1,6 @@
 # Recuperación del sistema sobre el conjunto de IT-27 (IT-38)
 
-> Lo escribe `scripts/experimento_recuperacion.py`. **No editar a mano.**
+> Lo escribe `scripts/experimentos/experimento_recuperacion.py`. **No editar a mano.**
 
 - Modelo de incrustaciones: `intfloat/multilingual-e5-small`
 - Fragmentos del corpus: **1499**

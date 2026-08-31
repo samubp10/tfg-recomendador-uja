@@ -6,11 +6,11 @@ Comprueba que cada selector de unidad anotado en
 grado. Igual que los demás verificadores, se ejecuta SOLO en local (data/ no
 está versionado y no existe en un checkout limpio de CI):
 
-    py scripts/check_evalset.py
+    py scripts/verificadores/check_evalset.py
 
 Acepta rutas alternativas como argumentos::
 
-    py scripts/check_evalset.py otro/evalset.json otra/ruta/chunks.json
+    py scripts/verificadores/check_evalset.py otro/evalset.json otra/ruta/chunks.json
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 # Las rutas se resuelven relativas a la raíz del repositorio, no a scripts/.
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 

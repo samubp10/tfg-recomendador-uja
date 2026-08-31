@@ -15,7 +15,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 _spec = importlib.util.spec_from_file_location(
-    "generar_banco", RAIZ / "scripts" / "generar_banco_generacion.py"
+    "generar_banco", RAIZ / "scripts" / "bancos" / "generar_banco_generacion.py"
 )
 assert _spec is not None and _spec.loader is not None
 generar_banco = importlib.util.module_from_spec(_spec)
@@ -232,3 +232,85 @@ def test_pedir_mas_preguntas_de_las_que_hay_devuelve_todas():
     banco = generar_banco.construir(_DATOS)
     muestra = generar_banco.muestra_estratificada(banco, 10_000, semilla=42)
     assert len(muestra) == len(banco)
+
+
+# --- El recorrido entero (IT-113) -------------------------------------------
+
+import json  # noqa: E402
+
+
+def _dataset_en_disco(tmp_path, con_procedencia=True):
+    """Deja en disco los registros reales y devuelve su ruta."""
+    datos = list(_DATOS)
+    if con_procedencia:
+        datos = [{"tipo": "procedencia", "fecha_extraccion": "2026-08-16"}] + datos
+    ruta = tmp_path / "grados.json"
+    ruta.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
+    return ruta
+
+
+def test_main_escribe_el_banco_con_la_procedencia_del_dataset(tmp_path, capsys):
+    """La procedencia viaja dentro del banco: sin ella no se sabe de qué corpus es."""
+    dataset = _dataset_en_disco(tmp_path)
+    salida = tmp_path / "preguntas_generacion.json"
+
+    generar_banco.main(["--dataset", str(dataset), "--salida", str(salida)])
+
+    documento = json.loads(salida.read_text(encoding="utf-8"))
+    assert documento["procedencia_del_dataset"]["fecha_extraccion"] == "2026-08-16"
+    assert documento["preguntas"]
+    assert "Banco escrito en" in capsys.readouterr().out
+
+
+def test_main_sobre_un_dataset_sin_procedencia_lo_deja_a_nulo(tmp_path, capsys):
+    dataset = _dataset_en_disco(tmp_path, con_procedencia=False)
+    salida = tmp_path / "preguntas_generacion.json"
+
+    generar_banco.main(["--dataset", str(dataset), "--salida", str(salida)])
+
+    documento = json.loads(salida.read_text(encoding="utf-8"))
+    assert documento["procedencia_del_dataset"] is None
+
+
+def test_main_informa_del_reparto_por_familia(tmp_path, capsys):
+    dataset = _dataset_en_disco(tmp_path)
+    salida = tmp_path / "preguntas_generacion.json"
+
+    generar_banco.main(["--dataset", str(dataset), "--salida", str(salida)])
+
+    texto = capsys.readouterr().out
+    banco = json.loads(salida.read_text(encoding="utf-8"))["preguntas"]
+    assert f"preguntas: {len(banco)}" in texto
+    for familia in {p["familia"] for p in banco}:
+        assert familia in texto
+
+
+def test_main_escribe_ademas_la_muestra_de_decision(tmp_path, capsys):
+    """Es la que decide el ADR-0005; el banco entero sirve para el finalista."""
+    dataset = _dataset_en_disco(tmp_path)
+    salida = tmp_path / "preguntas_generacion.json"
+
+    generar_banco.main(
+        ["--dataset", str(dataset), "--salida", str(salida), "--muestra", "3"]
+    )
+
+    muestra = salida.with_name("preguntas_generacion_muestra.json")
+    documento = json.loads(muestra.read_text(encoding="utf-8"))
+    banco = json.loads(salida.read_text(encoding="utf-8"))["preguntas"]
+
+    # El sorteo es estratificado: no puede bajar del numero de familias
+    # aunque se pidan menos preguntas, porque todas tienen que estar.
+    familias = {p["familia"] for p in banco}
+    assert {p["familia"] for p in documento["preguntas"]} == familias
+    assert len(documento["preguntas"]) < len(banco)
+    assert "semilla 42" in documento["descripcion"]
+    assert "Muestra escrita en" in capsys.readouterr().out
+
+
+def test_sin_muestra_no_se_escribe_el_segundo_fichero(tmp_path):
+    dataset = _dataset_en_disco(tmp_path)
+    salida = tmp_path / "preguntas_generacion.json"
+
+    generar_banco.main(["--dataset", str(dataset), "--salida", str(salida)])
+
+    assert not salida.with_name("preguntas_generacion_muestra.json").exists()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import importlib.util
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -12,7 +13,7 @@ import numpy as np
 import pytest
 
 RAIZ = Path(__file__).resolve().parent.parent
-_RUTA = RAIZ / "scripts" / "experimento_vectordb.py"
+_RUTA = RAIZ / "scripts" / "experimentos" / "experimento_vectordb.py"
 _spec = importlib.util.spec_from_file_location("experimento_vectordb", _RUTA)
 assert _spec is not None and _spec.loader is not None
 experimento = importlib.util.module_from_spec(_spec)
@@ -462,43 +463,47 @@ def test_escribir_resultados_solo_sustituye_entre_las_marcas(
     assert "viejo" not in resultado
 
 
-def test_escribir_resultados_anade_al_final_si_faltan_las_marcas(
+def test_escribir_resultados_falla_si_faltan_las_marcas(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Si alguien borra las marcas a mano, se añade al final sin perder nada.
+    """Sin las marcas no se escribe: se avisa y no se toca el fichero.
 
-    Es la tercera rama de la función, y la que decide si un descuido cuesta la
-    prosa del ADR o solo deja el bloque en un sitio raro.
+    Antes el bloque se añadía al final, que es la manera de dejar el ADR
+    desordenado sin que nadie se entere. Un ADR al que le faltan las marcas es
+    un ADR que alguien ha editado mal, y eso hay que verlo, no absorberlo.
     """
     adr = tmp_path / "adr-0004.md"
-    adr.write_text("# ADR\n\nProsa del autor, sin marcas.\n", encoding="utf-8")
+    original = "# ADR\n\nProsa del autor, sin marcas.\n"
+    adr.write_text(original, encoding="utf-8")
     monkeypatch.setattr(experimento, "RUTA_ADR", adr)
 
-    experimento.escribir_resultados(
-        f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
-    )
+    with pytest.raises(SystemExit, match="marcas"):
+        experimento.escribir_resultados(
+            f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
+        )
 
-    resultado = adr.read_text(encoding="utf-8")
-    assert "Prosa del autor, sin marcas." in resultado
-    assert "resultados" in resultado
-    assert resultado.index("Prosa del autor") < resultado.index("resultados")
+    assert adr.read_text(encoding="utf-8") == original
 
 
-def test_escribir_resultados_crea_el_esqueleto_si_no_existe(
+def test_escribir_resultados_falla_si_el_adr_no_existe(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """La primera vez se crea el ADR con los huecos de IT-32 marcados."""
+    """El ADR lo abre su tarjeta, no el guion que le mete las cifras.
+
+    Crear el fichero desde aquí obligaba a mantener una plantilla de ADR
+    dentro del experimento, que además envejecía por su cuenta: llevaba un
+    campo de fecha y un apartado de amenazas que la plantilla vigente ya no
+    tiene.
+    """
     adr = tmp_path / "adr-0004.md"
     monkeypatch.setattr(experimento, "RUTA_ADR", adr)
 
-    experimento.escribir_resultados(
-        f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
-    )
+    with pytest.raises(SystemExit, match="No existe"):
+        experimento.escribir_resultados(
+            f"{experimento.MARCA_INICIO}\nresultados\n{experimento.MARCA_FIN}"
+        )
 
-    resultado = adr.read_text(encoding="utf-8")
-    assert "# ADR-0004: Base de datos vectorial" in resultado
-    assert "resultados" in resultado
-    assert "IT-32" in resultado
+    assert not adr.exists()
 
 
 # --- Que estas pruebas se puedan recoger en CI (IT-31) ---------------------
@@ -518,7 +523,7 @@ def test_el_experimento_no_exige_las_dependencias_opcionales_al_importarse() -> 
     Se analiza el árbol sintáctico porque lo que importa es dónde está el
     `import`, no si el módulo está instalado en la máquina que ejecuta esto.
     """
-    ruta = RAIZ / "scripts" / "experimento_vectordb.py"
+    ruta = RAIZ / "scripts" / "experimentos" / "experimento_vectordb.py"
     arbol = ast.parse(ruta.read_text(encoding="utf-8"))
 
     de_cabecera: set[str] = set()
@@ -543,3 +548,970 @@ def test_el_experimento_no_exige_las_dependencias_opcionales_al_importarse() -> 
         f"de pruebas dejaría de poder recogerse. Muévelos dentro de la función "
         f"que los usa."
     )
+
+
+# ---------------------------------------------------------------------------
+# Medida, veredictos, informe y recorrido entero (IT-113)
+#
+# `chromadb` y `qdrant_client` NO están en las dependencias de desarrollo: en
+# CI no existen. Se inyectan de mentira, igual que hace el propio guion al
+# importarlas de forma perezosa. LanceDB sí está, así que esa se ejecuta de
+# verdad contra un índice en disco.
+# ---------------------------------------------------------------------------
+
+import types  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+
+def _medida(**cambios):
+    """Una medida completa, con los valores de una candidata que cumple todo."""
+    base = dict(
+        nombre="LanceDB",
+        version="0.37.1",
+        modo="recorrido completo",
+        segundos_construir=1.5,
+        latencia_mediana_ms=7.35,
+        latencia_p90_ms=9.0,
+        fidelidad=1.0,
+        memoria_mb=22.71,
+        filtros={"por grado": (10, 10, 0)},
+        prefiltrado=(10, 10, True),
+        esfuerzo={"servicio aparte": "no"},
+        notas=[],
+    )
+    base.update(cambios)
+    return experimento.Medida(**base)
+
+
+# --- Los veredictos ---------------------------------------------------------
+
+
+def test_u1_se_fija_en_el_uno_exacto() -> None:
+    """El umbral se fijó en 1,000 exacto ANTES de medir; por eso descarta.
+
+    Lo eliminatorio no es el tamaño de la pérdida, es que el umbral estaba
+    escrito de antemano.
+    """
+    assert "CUMPLE" in experimento._veredicto_u1(_medida(fidelidad=1.0))
+    assert "NO CUMPLE" in experimento._veredicto_u1(_medida(fidelidad=0.998))
+
+
+def test_u2_no_cumple_si_hay_un_falso_positivo() -> None:
+    assert "NO CUMPLE" in experimento._veredicto_u2(
+        _medida(filtros={"por grado": (10, 10, 1)})
+    )
+
+
+def test_u2_no_cumple_si_falta_algo_por_recuperar() -> None:
+    assert "NO CUMPLE" in experimento._veredicto_u2(
+        _medida(filtros={"por grado": (9, 10, 0)})
+    )
+
+
+def test_u2_cumple_cuando_recupera_lo_que_debe_y_nada_mas() -> None:
+    veredicto = experimento._veredicto_u2(_medida())
+
+    assert "CUMPLE" in veredicto and "NO CUMPLE" not in veredicto
+    assert "10/10" in veredicto
+
+
+def test_u3_lleva_el_p90_al_lado_para_no_leer_sola_la_mediana() -> None:
+    veredicto = experimento._veredicto_u3(_medida())
+
+    assert "CUMPLE" in veredicto
+    assert "p90 9.00 ms" in veredicto
+
+
+def test_u3_no_cumple_por_encima_del_medio_segundo() -> None:
+    assert "NO CUMPLE" in experimento._veredicto_u3(_medida(latencia_mediana_ms=501.0))
+
+
+@pytest.mark.parametrize(
+    "memoria, esperado",
+    [(400.0, "CUMPLE"), (800.0, "ZONA INTERMEDIA"), (2000.0, "DESCARTA")],
+)
+def test_u5_tiene_tres_tramos_y_no_dos(memoria, esperado) -> None:
+    """La memoria no es binaria: hay una zona intermedia declarada."""
+    assert esperado in experimento._veredicto_u5(_medida(memoria_mb=memoria))
+
+
+def test_el_prefiltrado_no_es_un_umbral_sino_una_garantia() -> None:
+    assert "PREFILTRA" in experimento._veredicto_prefiltrado((10, 10, True))
+
+
+def test_devolver_menos_de_los_pedidos_es_posfiltrar() -> None:
+    """Posfiltrar es un fallo silencioso: diría «no tengo» de algo indexado."""
+    veredicto = experimento._veredicto_prefiltrado((3, 10, True))
+
+    assert "POSFILTRA O PIERDE" in veredicto
+
+
+def test_devolver_algo_que_no_cumple_el_filtro_se_dice() -> None:
+    veredicto = experimento._veredicto_prefiltrado((10, 10, False))
+
+    assert "NO cumple el filtro" in veredicto
+
+
+def test_evaluar_umbrales_deja_fuera_la_linea_base() -> None:
+    """NumPy no es candidata: es la referencia contra la que se mide U1."""
+    # Se salta por la clave del diccionario, que es como la mete `main`.
+    medidas = {"NumPy": _medida(), "lance": _medida()}
+
+    veredictos = experimento.evaluar_umbrales(medidas)
+
+    assert "lance" in veredictos
+    assert "NumPy" not in veredictos
+
+
+def test_una_candidata_sin_caso_de_prefiltrado_no_lo_declara() -> None:
+    veredictos = experimento.evaluar_umbrales({"lance": _medida(prefiltrado=None)})
+
+    assert not [v for v in veredictos["lance"] if "Prefiltrado" in v]
+
+
+# --- Las tablas del informe -------------------------------------------------
+
+
+def test_la_tabla_resumen_lleva_una_fila_por_candidata() -> None:
+    tabla = experimento._tabla_resumen(
+        {"a": _medida(nombre="A"), "b": _medida(nombre="B")}
+    )
+
+    assert "A" in tabla and "B" in tabla
+
+
+def test_la_tabla_de_filtrado_desglosa_los_casos() -> None:
+    tabla = experimento._tabla_filtrado({"a": _medida()})
+
+    assert "por grado" in tabla
+
+
+def test_la_tabla_discriminante_dice_cuanto_separa_cada_caso() -> None:
+    tabla = experimento._tabla_discriminante({"por grado": (10, 100)})
+
+    assert "por grado" in tabla
+
+
+def test_la_tabla_de_esfuerzo_recoge_los_hechos_verificables() -> None:
+    """U7 se mide en hechos, no en opiniones."""
+    tabla = experimento._tabla_esfuerzo({"a": _medida()})
+
+    assert "servicio aparte" in tabla
+
+
+def test_la_tabla_de_prefiltrado_dice_quien_posfiltra() -> None:
+    tabla = experimento._tabla_prefiltrado(
+        {"a": _medida(), "b": _medida(prefiltrado=(3, 10, True))},
+        (0, "Grado en Ingeniería Informática", 40),
+        ["¿qué asignaturas tiene?"],
+    )
+
+    assert "Informática" in tabla
+
+
+# --- Las secciones ----------------------------------------------------------
+
+
+def test_la_cabecera_declara_contra_que_corpus_se_midio() -> None:
+    lineas = experimento._seccion_cabecera({"a": _medida()}, [{"texto": "uno"}], ["¿?"])
+
+    texto = "\n".join(lineas)
+    assert "1 fragmentos" in texto
+
+
+def test_las_limitaciones_se_declaran_en_el_informe() -> None:
+    lineas = experimento._seccion_limitaciones([{"texto": "uno"}], (1.0, 0.0, True))
+
+    assert lineas
+
+
+def test_el_bloque_va_entre_las_marcas_de_su_adr() -> None:
+    """El guion escribe entre marcas para no pisar lo que redacte el autor."""
+    bloque = experimento.generar_bloque_resultados(
+        {"a": _medida()},
+        {"a": ["U1: CUMPLE"]},
+        [{"texto": "uno"}],
+        ["¿?"],
+        (1.0, 0.0, True),
+        {"por grado": (10, 100)},
+        (0, "Grado en Ingeniería Informática", 40),
+    )
+
+    assert bloque.startswith(experimento.MARCA_INICIO)
+    assert bloque.rstrip().endswith(experimento.MARCA_FIN)
+
+
+# --- La línea base y la medida de una candidata -----------------------------
+
+
+def test_numpy_es_exacta_por_construccion() -> None:
+    """Es la referencia de U1: su fidelidad es 1 por definición, no por medida."""
+    vectores = np.eye(5, dtype=np.float32)
+    consultas = np.eye(5, dtype=np.float32)[:2]
+
+    medida, exactos = experimento.medir_numpy(vectores, consultas)
+
+    assert medida.fidelidad == 1.0
+    assert len(exactos) == 2
+    assert exactos[0][0] == 0
+
+
+def test_la_memoria_de_numpy_es_la_matriz_y_no_el_rss() -> None:
+    """No hay almacén: es la línea base, no una base con su sobrecarga."""
+    vectores = np.eye(10, dtype=np.float32)
+
+    medida, _ = experimento.medir_numpy(vectores, vectores[:1])
+
+    assert medida.memoria_mb == pytest.approx(vectores.nbytes / (1024**2))
+
+
+class _ConsultadorFalso:
+    """Adaptador que responde lo que se le diga, sin ninguna base detrás."""
+
+    def __init__(self, vecinos, filtro=None, filtrados=None):
+        self.vecinos = lambda q, k: list(vecinos)[:k]
+        self.filtro = filtro or (lambda g, t: set())
+        self.vecinos_filtrados = filtrados or (lambda q, k, g: list(vecinos)[:k])
+
+
+def test_medir_candidata_compara_contra_los_vecinos_exactos() -> None:
+    consultas = np.eye(3, dtype=np.float32)[:1]
+    chunks = [{"grados": ["G"], "tipo_asignatura": "OB"} for _ in range(3)]
+
+    medida = experimento.medir_candidata(
+        "X",
+        "1.0",
+        "exacto",
+        1.0,
+        10.0,
+        _ConsultadorFalso([0, 1, 2]),
+        consultas,
+        [[0, 1, 2]],
+        chunks,
+        notas=[],
+    )
+
+    assert medida.fidelidad == 1.0
+    assert medida.nombre == "X"
+
+
+def test_medir_candidata_detecta_que_pierde_un_vecino() -> None:
+    consultas = np.eye(3, dtype=np.float32)[:1]
+    chunks = [{"grados": ["G"]} for _ in range(3)]
+
+    medida = experimento.medir_candidata(
+        "X",
+        "1.0",
+        "aproximado",
+        1.0,
+        10.0,
+        _ConsultadorFalso([0, 1, 9]),
+        consultas,
+        [[0, 1, 2]],
+        chunks,
+        notas=[],
+    )
+
+    assert medida.fidelidad < 1.0
+
+
+def test_comprobar_prefiltrado_denuncia_lo_que_no_cumple_el_filtro() -> None:
+    chunks = [{"grados": ["Otro"]}, {"grados": ["G"]}]
+    consultas = np.eye(2, dtype=np.float32)
+
+    devueltos, pedidos, correctos = experimento.comprobar_prefiltrado(
+        _ConsultadorFalso([0, 1]), consultas, chunks, (0, "G", 1), k=2
+    )
+
+    assert (devueltos, pedidos) == (2, 2)
+    assert correctos is False
+
+
+# --- Las utilidades de medida -----------------------------------------------
+
+
+def test_construir_con_metricas_devuelve_lo_construido_y_su_coste() -> None:
+    construido, segundos, memoria = experimento.construir_con_metricas(
+        lambda: "almacen"
+    )
+
+    assert construido == "almacen"
+    assert segundos >= 0.0
+    assert memoria >= 0.0
+
+
+def test_la_memoria_nunca_sale_negativa(monkeypatch) -> None:
+    """Una bajada solo diría que el recolector liberó algo de otro sitio."""
+    valores = iter([100.0, 50.0])
+    monkeypatch.setattr(experimento, "rss_actual_mb", lambda: next(valores))
+
+    _c, _s, memoria = experimento.construir_con_metricas(lambda: None)
+
+    assert memoria == 0.0
+
+
+def test_el_rss_se_lee_en_mebibytes() -> None:
+    assert experimento.rss_actual_mb() > 0.0
+
+
+def test_la_carpeta_temporal_se_borra_al_salir() -> None:
+    with experimento.carpeta_temporal() as tmp:
+        ruta = Path(tmp)
+        assert ruta.is_dir()
+
+    assert not ruta.exists()
+
+
+# --- Las entradas del guion -------------------------------------------------
+
+
+def test_el_corpus_se_lee_de_su_fichero(tmp_path, monkeypatch) -> None:
+    ruta = tmp_path / "chunks.json"
+    ruta.write_text(json.dumps([_chunk(["G"])]), encoding="utf-8")
+    monkeypatch.setattr(experimento, "RUTA_CHUNKS", ruta)
+
+    assert len(experimento.cargar_corpus()) == 1
+
+
+def test_las_preguntas_se_leen_de_su_fichero(tmp_path, monkeypatch) -> None:
+    ruta = tmp_path / "evalset.json"
+    ruta.write_text(
+        json.dumps({"preguntas": [{"pregunta": "¿?"}, {"pregunta": "¿y?"}]}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_EVAL", ruta)
+
+    assert experimento.cargar_preguntas() == ["¿?", "¿y?"]
+
+
+# --- LanceDB, que sí está en las dependencias de desarrollo ------------------
+
+
+def _corpus_minimo(n=6):
+    """Un corpus pequeño con dos titulaciones y dos tipos."""
+    return [
+        _chunk(
+            [
+                (
+                    "Grado en Ingeniería Informática"
+                    if i % 2
+                    else "Grado en Ingeniería Mecánica"
+                )
+            ],
+            tipo="OB" if i % 3 else "OP",
+            texto=f"fragmento {i}",
+            codigos=[f"{i:04d}"],
+        )
+        | {"curso": "Primer curso"}
+        for i in range(n)
+    ]
+
+
+def _vectores(n, dimension=4):
+    """Vectores distintos y normalizados, uno por fragmento."""
+    matriz = np.eye(n, dimension, dtype=np.float32)
+    matriz += 0.01
+    return matriz / np.linalg.norm(matriz, axis=1, keepdims=True)
+
+
+def test_lancedb_se_construye_y_se_mide_de_verdad(tmp_path) -> None:
+    """Es la elegida por el ADR-0004: conviene que su medida esté cubierta."""
+    chunks = _corpus_minimo(6)
+    vectores = _vectores(6)
+    consultas = vectores[:2]
+    _base, exactos = experimento.medir_numpy(vectores, consultas)
+
+    medida = experimento.medir_lancedb(
+        chunks, vectores, consultas, exactos, tmp_path / "indice"
+    )
+
+    assert medida.nombre == "LanceDB"
+    assert medida.fidelidad == 1.0
+    assert "escaneo completo" in medida.modo
+    assert medida.filtros
+
+
+def test_lancedb_prefiltra_y_no_posfiltra(tmp_path) -> None:
+    """Posfiltrar diría «no tengo información» de algo que sí está indexado."""
+    chunks = _corpus_minimo(6)
+    vectores = _vectores(6)
+    consultas = vectores[:1]
+    _base, exactos = experimento.medir_numpy(vectores, consultas)
+    caso = (0, "Grado en Ingeniería Informática", 3)
+
+    medida = experimento.medir_lancedb(
+        chunks, vectores, consultas, exactos, tmp_path / "indice", caso
+    )
+
+    devueltos, _pedidos, correctos = medida.prefiltrado
+    assert correctos
+    assert devueltos > 0
+
+
+def test_una_comilla_en_el_filtro_no_rompe_la_consulta() -> None:
+    """El nombre de una titulación puede llevar comilla; SQL no perdona."""
+    # Duplica las comillas segun el estandar SQL; las exteriores las pone
+    # quien compone la expresion, no esta funcion.
+    assert experimento._sql_literal("Grado en Ingeniería 'rara'") == (
+        "Grado en Ingeniería ''rara''"
+    )
+
+
+# --- ChromaDB y Qdrant, que en CI no están instaladas -----------------------
+
+
+class _ColeccionFalsa:
+    """Colección de Chroma con lo justo para el adaptador del experimento."""
+
+    def __init__(self):
+        self.filas = []
+        self.metadata = {"hnsw:space": "cosine"}
+
+    def add(self, ids, embeddings, documents, metadatas):
+        for i, identificador in enumerate(ids):
+            self.filas.append((identificador, list(embeddings[i]), metadatas[i]))
+
+    def query(self, query_embeddings, n_results, where=None):
+        filas = self.filas
+        if where:
+            grado = where["grados"]["$contains"]
+            filas = [f for f in filas if grado in f[2].get("grados", "")]
+        return {"ids": [[f[0] for f in filas[:n_results]]]}
+
+    def get(self, where):
+        if "$and" in where:
+            grado = where["$and"][0]["grados"]["$contains"]
+            tipo = where["$and"][1]["tipo_asignatura"]["$eq"]
+            filas = [
+                f
+                for f in self.filas
+                if grado in f[2].get("grados", "")
+                and f[2].get("tipo_asignatura") == tipo
+            ]
+        else:
+            grado = where["grados"]["$contains"]
+            filas = [f for f in self.filas if grado in f[2].get("grados", "")]
+        return {"ids": [f[0] for f in filas]}
+
+
+class _ClienteChromaFalso:
+    def __init__(self, path=None):
+        self.path = path
+
+    def delete_collection(self, nombre):
+        raise RuntimeError("no existía")
+
+    def create_collection(self, nombre, metadata=None):
+        return _ColeccionFalsa()
+
+
+@pytest.fixture
+def chroma_falso(monkeypatch):
+    """Inyecta un `chromadb` de mentira: no está en las dependencias de dev."""
+    modulo = types.ModuleType("chromadb")
+    modulo.PersistentClient = _ClienteChromaFalso  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "chromadb", modulo)
+    monkeypatch.setattr(experimento, "version_instalada", lambda n: "1.5.9")
+    return modulo
+
+
+def test_chroma_declara_la_distancia_al_crear_la_coleccion(chroma_falso, tmp_path):
+    """La de ChromaDB por defecto es l2; hay que declarar coseno."""
+    almacen = experimento.crear_almacen_chroma(tmp_path / "i", {"modelo": "e5"})
+
+    assert isinstance(almacen.coleccion, _ColeccionFalsa)
+
+
+def test_chroma_se_construye_y_se_mide(chroma_falso, tmp_path):
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    consultas = vectores[:1]
+    _base, exactos = experimento.medir_numpy(vectores, consultas)
+
+    medida = experimento.medir_chroma(
+        chunks, vectores, consultas, exactos, tmp_path / "indice"
+    )
+
+    assert medida.nombre == "ChromaDB"
+    assert medida.version == "1.5.9"
+
+
+def test_si_chroma_no_expone_su_configuracion_el_experimento_no_se_cae():
+    """Se degrada a los metadatos, que sí son API pública, y se dice."""
+    coleccion = _ColeccionFalsa()
+
+    modo = experimento._modo_chroma(coleccion)
+
+    assert "cosine" in modo
+    assert "NO VERIFICABLE" in modo
+
+
+def test_si_chroma_expone_su_configuracion_se_lee():
+    coleccion = _ColeccionFalsa()
+    coleccion.configuration_json = {"hnsw": {"space": "cosine", "ef_search": 100}}
+
+    modo = experimento._modo_chroma(coleccion)
+
+    assert "ef_search=100" in modo
+
+
+class _PuntoFalso:
+    def __init__(self, identificador):
+        self.id = identificador
+        self.payload = {"id": identificador}
+
+
+class _ClienteQdrantFalso:
+    """Cliente con lo justo para el adaptador del experimento."""
+
+    def __init__(self, *a, **kw):
+        self.puntos = []
+        self.colecciones = {}
+
+    def get_collections(self):
+        return types.SimpleNamespace(collections=[])
+
+    def collection_exists(self, nombre):
+        return nombre in self.colecciones
+
+    def delete_collection(self, nombre):
+        self.colecciones.pop(nombre, None)
+
+    def create_collection(self, collection_name, vectors_config=None, **kw):
+        self.colecciones[collection_name] = True
+
+    def create_payload_index(self, **kw):
+        return None
+
+    def upsert(self, collection_name, points):
+        self.puntos.extend(points)
+
+    def query_points(self, collection_name, query, limit, query_filter=None, **kw):
+        puntos = [_PuntoFalso(f"chunk-{i:06d}") for i in range(len(self.puntos))]
+        return types.SimpleNamespace(points=puntos[:limit])
+
+    def scroll(self, collection_name, scroll_filter=None, limit=None, **kw):
+        puntos = [_PuntoFalso(f"chunk-{i:06d}") for i in range(len(self.puntos))]
+        return puntos[: limit or len(puntos)], None
+
+    def get_collection(self, nombre):
+        return types.SimpleNamespace(
+            indexed_vectors_count=0, points_count=len(self.puntos)
+        )
+
+
+def _info_qdrant(indexados, puntos=1334):
+    """La descripcion de coleccion que devuelve `get_collection`."""
+    return types.SimpleNamespace(
+        indexed_vectors_count=indexados,
+        points_count=puntos,
+        config=types.SimpleNamespace(
+            optimizer_config=types.SimpleNamespace(indexing_threshold=20000),
+            hnsw_config=types.SimpleNamespace(full_scan_threshold=10000),
+        ),
+    )
+
+
+def test_el_modo_de_qdrant_se_lee_del_contador_de_indexados():
+    """Qdrant sí expone cuántos vectores tiene indexados, y por eso se mide."""
+    modo = experimento._modo_qdrant(_info_qdrant(indexados=0))
+
+    assert "escaneo completo" in modo
+    assert "indexed_vectors_count = 0 de 1334" in modo
+
+
+def test_el_modo_de_qdrant_dice_cuando_si_hay_indice():
+    modo = experimento._modo_qdrant(_info_qdrant(indexados=1334))
+
+    assert "HNSW" in modo
+
+
+# --- El recorrido entero ----------------------------------------------------
+
+
+def test_main_mide_las_cuatro_y_escribe_el_bloque(tmp_path, monkeypatch, capsys):
+    """Se sustituyen las tres bases: lo que se mide aquí es el recorrido."""
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    monkeypatch.setattr(experimento, "cargar_corpus", lambda: chunks)
+    monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?", "¿y?"])
+
+    from tfg_uja import incrustaciones
+
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_documentos",
+        lambda: (lambda t: vectores.tolist()),
+    )
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_consultas",
+        lambda: (lambda t: vectores[:2].tolist()),
+    )
+    for nombre in ("medir_chroma", "medir_lancedb"):
+        monkeypatch.setattr(experimento, nombre, lambda *a, **kw: _medida(nombre="X"))
+    monkeypatch.setattr(experimento, "medir_qdrant", lambda *a, **kw: _medida())
+
+    adr = tmp_path / "adr-0004.md"
+    adr.write_text(
+        f"# ADR\n\n{experimento.MARCA_INICIO}\nviejo\n{experimento.MARCA_FIN}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+
+    experimento.main()
+
+    salida = capsys.readouterr().out
+    assert "4 fragmentos · 2 preguntas" in salida
+    assert "Evaluando contra los umbrales" in salida
+    assert "viejo" not in adr.read_text(encoding="utf-8")
+
+
+def test_main_dice_cuando_el_corpus_no_permite_la_comprobacion(
+    tmp_path, monkeypatch, capsys
+):
+    """Sin un caso que distinga prefiltrado de posfiltrado, se omite y se dice."""
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    monkeypatch.setattr(experimento, "cargar_corpus", lambda: chunks)
+    monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?"])
+    monkeypatch.setattr(experimento, "elegir_caso_prefiltrado", lambda *a: None)
+
+    from tfg_uja import incrustaciones
+
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_documentos",
+        lambda: (lambda t: vectores.tolist()),
+    )
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_consultas",
+        lambda: (lambda t: vectores[:1].tolist()),
+    )
+    for nombre in ("medir_chroma", "medir_lancedb", "medir_qdrant"):
+        monkeypatch.setattr(experimento, nombre, lambda *a, **kw: _medida())
+
+    adr = tmp_path / "adr-0004.md"
+    adr.write_text(
+        f"# ADR\n\n{experimento.MARCA_INICIO}\nviejo\n{experimento.MARCA_FIN}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+
+    experimento.main()
+
+    assert "la comprobación se omite" in capsys.readouterr().out
+
+
+# --- Qdrant, que además exige el contenedor levantado -----------------------
+
+
+class _Punto:
+    """Un punto de Qdrant: identificador numérico y su carga."""
+
+    def __init__(self, identificador, payload=None):
+        self.id = identificador
+        self.payload = payload or {}
+
+
+def _modelos_qdrant_falsos():
+    """El submódulo `models` con las cinco clases que usa el experimento."""
+    modelos = types.ModuleType("qdrant_client.models")
+
+    class _PointStruct:
+        def __init__(self, id, vector, payload):
+            self.id = id
+            self.vector = vector
+            self.payload = payload
+
+    class _MatchValue:
+        def __init__(self, value):
+            self.value = value
+
+    class _FieldCondition:
+        def __init__(self, key, match):
+            self.key = key
+            self.match = match
+
+    class _Filter:
+        def __init__(self, must):
+            self.must = list(must)
+
+    class _VectorParams:
+        def __init__(self, size, distance):
+            self.size = size
+            self.distance = distance
+
+    modelos.PointStruct = _PointStruct
+    modelos.MatchValue = _MatchValue
+    modelos.FieldCondition = _FieldCondition
+    modelos.Filter = _Filter
+    modelos.VectorParams = _VectorParams
+    modelos.Distance = types.SimpleNamespace(COSINE="Cosine")
+    modelos.PayloadSchemaType = types.SimpleNamespace(KEYWORD="keyword")
+    return modelos
+
+
+class _ClienteQdrant:
+    """Servidor de mentira: guarda los puntos en memoria y los filtra."""
+
+    def __init__(self, url=None, paginas=1):
+        self.puntos: list[Any] = []
+        self.colecciones: set[str] = set()
+        self.indices: list[tuple[str, str]] = []
+        self.paginas = paginas
+
+    def collection_exists(self, nombre):
+        return nombre in self.colecciones
+
+    def delete_collection(self, nombre):
+        self.colecciones.discard(nombre)
+
+    def create_collection(self, collection_name, vectors_config):
+        self.colecciones.add(collection_name)
+
+    def create_payload_index(self, nombre, campo, field_schema=None):
+        self.indices.append((nombre, campo))
+
+    def upsert(self, collection_name, points):
+        self.puntos.extend(points)
+
+    def _cumplen(self, filtro):
+        if filtro is None:
+            return list(self.puntos)
+        elegidos = []
+        for punto in self.puntos:
+            if all(
+                (
+                    c.match.value in punto.payload.get(c.key, [])
+                    if isinstance(punto.payload.get(c.key), list)
+                    else punto.payload.get(c.key) == c.match.value
+                )
+                for c in filtro.must
+            ):
+                elegidos.append(punto)
+        return elegidos
+
+    def query_points(self, collection_name, query, limit, query_filter=None):
+        elegidos = self._cumplen(query_filter)
+        return types.SimpleNamespace(points=[_Punto(p.id) for p in elegidos[:limit]])
+
+    def scroll(self, collection_name, scroll_filter, limit, offset, with_payload):
+        elegidos = self._cumplen(scroll_filter)
+        # Se parte en varias paginas para ejercitar el cursor: quedarse con la
+        # primera contaria menos fragmentos de los que cumplen el filtro.
+        trozo = max(len(elegidos) // self.paginas, 1)
+        inicio = offset or 0
+        pagina = elegidos[inicio : inicio + trozo]
+        siguiente = inicio + trozo
+        return (
+            [_Punto(p.id) for p in pagina],
+            siguiente if siguiente < len(elegidos) else None,
+        )
+
+    def get_collection(self, nombre):
+        return _info_qdrant(indexados=0, puntos=len(self.puntos))
+
+
+@pytest.fixture
+def qdrant_falso(monkeypatch):
+    """Inyecta un `qdrant_client` de mentira y su `models`."""
+    modelos = _modelos_qdrant_falsos()
+    modulo = types.ModuleType("qdrant_client")
+    modulo.QdrantClient = _ClienteQdrant  # type: ignore[attr-defined]
+    modulo.models = modelos  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "qdrant_client", modulo)
+    monkeypatch.setitem(sys.modules, "qdrant_client.models", modelos)
+    monkeypatch.setattr(experimento, "version_instalada", lambda n: "1.19.0")
+    monkeypatch.setattr(experimento, "memoria_contenedor_mb", lambda n: 149.1)
+    return modulo
+
+
+def test_los_indices_de_carga_se_crean_antes_de_insertar(qdrant_falso):
+    """Son los que generan las aristas extra del HNSW filtrable."""
+    cliente = _ClienteQdrant()
+
+    experimento._crear_coleccion_qdrant(cliente, "chunks_epsj", 4)
+
+    assert ("chunks_epsj", "grados") in cliente.indices
+    assert ("chunks_epsj", "tipo_asignatura") in cliente.indices
+
+
+def test_una_coleccion_previa_se_borra_antes_de_recrearla(qdrant_falso):
+    """Se pregunta si existe en vez de tragarse la excepcion del borrado.
+
+    Ese patrón se traga también un Qdrant caído, y el error aparecería después
+    con un mensaje que no dice cuál era el problema.
+    """
+    cliente = _ClienteQdrant()
+    cliente.colecciones.add("chunks_epsj")
+
+    experimento._crear_coleccion_qdrant(cliente, "chunks_epsj", 4)
+
+    assert "chunks_epsj" in cliente.colecciones
+
+
+def test_qdrant_se_construye_y_se_mide(qdrant_falso):
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    consultas = vectores[:1]
+    _base, exactos = experimento.medir_numpy(vectores, consultas)
+
+    medida = experimento.medir_qdrant(chunks, vectores, consultas, exactos)
+
+    assert medida.nombre == "Qdrant"
+    assert medida.memoria_mb == 149.1
+    assert "escaneo completo" in medida.modo
+
+
+def test_el_filtro_de_qdrant_agota_el_cursor(qdrant_falso, monkeypatch):
+    """Quedarse con la primera página haría que U2 dijera que Qdrant pierde.
+
+    El que se los dejaría es el guion, no la candidata.
+    """
+    cliente = _ClienteQdrant(paginas=3)
+    modelos = sys.modules["qdrant_client.models"]
+    for i in range(6):
+        cliente.puntos.append(
+            modelos.PointStruct(
+                id=i,
+                vector=[0.0],
+                payload={"grados": ["Grado en Ingeniería Informática"]},
+            )
+        )
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.filtro("Grado en Ingeniería Informática", None) == set(range(6))
+
+
+def test_el_filtro_de_qdrant_combina_grado_y_tipo(qdrant_falso):
+    cliente = _ClienteQdrant()
+    modelos = sys.modules["qdrant_client.models"]
+    cliente.puntos = [
+        modelos.PointStruct(
+            id=0, vector=[0.0], payload={"grados": ["G"], "tipo_asignatura": "OB"}
+        ),
+        modelos.PointStruct(
+            id=1, vector=[0.0], payload={"grados": ["G"], "tipo_asignatura": "OP"}
+        ),
+    ]
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.filtro("G", "OB") == {0}
+
+
+def test_los_vecinos_filtrados_de_qdrant_solo_traen_los_de_su_grado(qdrant_falso):
+    cliente = _ClienteQdrant()
+    modelos = sys.modules["qdrant_client.models"]
+    cliente.puntos = [
+        modelos.PointStruct(id=0, vector=[0.0], payload={"grados": ["A"]}),
+        modelos.PointStruct(id=1, vector=[0.0], payload={"grados": ["B"]}),
+    ]
+
+    consultador = experimento._consultador_qdrant(cliente, "chunks_epsj")
+
+    assert consultador.vecinos_filtrados(np.array([0.0]), 5, "B") == [1]
+
+
+def test_los_vecinos_de_chroma_filtrados_por_grado(chroma_falso, tmp_path):
+    """El adaptador tiene que devolver solo los de la titulación pedida."""
+    almacen = experimento.crear_almacen_chroma(tmp_path / "i", {})
+    almacen.anadir(
+        ["chunk-000000", "chunk-000001"],
+        [[0.0], [0.0]],
+        ["a", "b"],
+        [{"grados": "A"}, {"grados": "B"}],
+    )
+
+    consultador = experimento._consultador_chroma(almacen.coleccion)
+
+    assert consultador.vecinos_filtrados(np.array([0.0]), 5, "B") == [1]
+
+
+# --- Las unidades de docker stats -------------------------------------------
+
+
+def test_una_salida_de_docker_que_no_se_entiende_falla(monkeypatch):
+    """Confundir una unidad daría una memoria mil veces mayor sin fallar nada."""
+    monkeypatch.setattr(
+        experimento.subprocess,
+        "run",
+        lambda *a, **kw: types.SimpleNamespace(stdout="ochenta megas / 2GiB"),
+    )
+
+    with pytest.raises(ValueError, match="docker stats"):
+        experimento.memoria_contenedor_mb("qdrant-tfg")
+
+
+# --- Las cuatro ramas que quedaban ------------------------------------------
+
+
+def test_sin_datos_de_esfuerzo_la_tabla_lo_dice():
+    """U7 se deja en blanco antes que inventarse un coste de operacion."""
+    assert (
+        experimento._tabla_esfuerzo({"a": _medida(esfuerzo={})}) == "_(sin registrar)_"
+    )
+
+
+def test_la_tabla_de_prefiltrado_salta_a_quien_no_lo_midio():
+    """Una candidata sin caso no aparece: no es que posfiltre, es que no se midio."""
+    tabla = experimento._tabla_prefiltrado(
+        {"a": _medida(prefiltrado=None), "b": _medida()},
+        (0, "Grado en Ingeniería Informática", 40),
+        ["¿?"],
+    )
+
+    assert tabla.count("LanceDB") == 1
+
+
+def test_los_veredictos_arrastran_las_notas_de_cada_candidata():
+    """Las notas dicen como se midio; sin ellas, la cifra queda sin contexto."""
+    medidas = {"a": _medida(notas=["Memoria del contenedor, no del proceso."])}
+
+    partes = experimento._seccion_veredictos(medidas, {"a": ["U1: CUMPLE"]})
+
+    assert any("Nota: Memoria del contenedor" in p for p in partes)
+
+
+def test_main_dice_con_que_caso_comprueba_el_prefiltrado(tmp_path, monkeypatch, capsys):
+    """El caso se elige del corpus real, no se escribe a mano: hay que verlo."""
+    chunks = _corpus_minimo(4)
+    vectores = _vectores(4)
+    monkeypatch.setattr(experimento, "cargar_corpus", lambda: chunks)
+    monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?"])
+    monkeypatch.setattr(
+        experimento,
+        "elegir_caso_prefiltrado",
+        lambda *a: (0, "Grado en Ingeniería Informática", 40),
+    )
+
+    from tfg_uja import incrustaciones
+
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_documentos",
+        lambda: (lambda t: vectores.tolist()),
+    )
+    monkeypatch.setattr(
+        incrustaciones,
+        "incrustador_de_consultas",
+        lambda: (lambda t: vectores[:1].tolist()),
+    )
+    for nombre in ("medir_chroma", "medir_lancedb", "medir_qdrant"):
+        monkeypatch.setattr(experimento, nombre, lambda *a, **kw: _medida())
+
+    adr = tmp_path / "adr-0004.md"
+    adr.write_text(
+        f"# ADR\n\n{experimento.MARCA_INICIO}\nviejo\n{experimento.MARCA_FIN}\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(experimento, "RUTA_ADR", adr)
+
+    experimento.main()
+
+    salida = capsys.readouterr().out
+    assert "pregunta 0 filtrando por «Grado en Ingeniería Informática»" in salida
+    assert "40 fragmentos" in salida

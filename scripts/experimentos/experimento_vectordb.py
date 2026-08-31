@@ -19,7 +19,7 @@ Qdrant necesita su contenedor levantado (solo en desarrollo)::
 
     source .venv/Scripts/activate      # Git Bash
     .venv\\Scripts\\activate.bat         # cmd.exe
-    python scripts/experimento_vectordb.py
+    python scripts/experimentos/experimento_vectordb.py
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ from typing import Any, Final
 
 import numpy as np
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 #: Un fragmento de ``chunks.json``, tal como lo emite el troceador. Se nombra
@@ -58,58 +58,18 @@ RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 #: y no en un fichero aparte.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0004-base-vectorial.md"
 
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
+
 #: Marcas entre las que este guion escribe. Permiten volver a ejecutarlo sin
 #: pisar lo que el autor haya escrito a mano en el resto del ADR.
-MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_vectordb.py) -->"
+MARCA_INICIO: Final[str] = _adr.marca_inicio(
+    "scripts/experimentos/experimento_vectordb.py"
 )
-MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
-
-#: Esqueleto que se escribe la primera vez, si el ADR todavía no existe. El
-#: resto de secciones (Contexto, Alternativas, Decisión) son una decisión del
-#: autor y este guion no las redacta: solo deja el hueco marcado con su
-#: tarjeta, para que quede claro qué falta y de dónde sale cada cosa.
-ESQUELETO_ADR: Final[str] = """# ADR-0004: Base de datos vectorial
-
-*Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
-
-- **Estado:** propuesta
-- **Fecha:** {fecha}
-- **Decisores:** Samuel Blanco Palmero
-- **Contexto técnico:** Fase 2 (pipeline RAG y base vectorial) del Recomendador UJA
-
-## Contexto
-
-_(IT-32, pendiente de redactar. Restricciones y candidatas verificadas en
-`Notas_TFG/Teoría/Fase2_bases_vectoriales/`.)_
-
-## Alternativas consideradas
-
-_(IT-32, pendiente. Ver `02_los_3_candidatos.md` para ChromaDB, LanceDB y
-Qdrant, con licencia, arquitectura e índice de cada una, y las descartadas con
-su motivo.)_
-
-## Resultados del experimento (IT-31)
-
-{bloque}
-
-## Decisión
-
-_(IT-32, pendiente: a partir de los resultados de arriba.)_
-
-## Consecuencias
-
-_(IT-32, pendiente.)_
-
-## Amenazas a la validez
-
-_(IT-32, pendiente. Ver `04_como_se_mide_una_base_vectorial.md` §4.7 para la
-lista ya identificada antes de ejecutar nada.)_
-
-## Referencias
-
-_(IT-32, pendiente.)_
-"""
+MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 #: Vecinos que se piden en cada consulta. Es el K con el que se comprueba la
 #: fidelidad frente a la búsqueda exacta (U1).
@@ -900,6 +860,11 @@ def _esquema_lance(dimension: int) -> Any:
             pa.field("grados", pa.list_(pa.string())),
             pa.field("codigos", pa.list_(pa.string())),
             pa.field("tipo_asignatura", pa.string()),
+            # IT-105 anadio esta columna al esquema del indexador y aqui se
+            # quedo sin anadir. Como `medir_lancedb` reutiliza `indexar_chunks`,
+            # que emite el campo siempre, la tabla rechazaba cada lote y el
+            # experimento no podia medir a la candidata que el ADR-0004 elige.
+            pa.field("curso", pa.string()),
             pa.field("chunk_index", pa.int64()),
             pa.field("total_chunks", pa.int64()),
         ]
@@ -1513,7 +1478,8 @@ def _seccion_cabecera(
     """Encabezado con la procedencia de las cifras y la tabla comparativa."""
     return [
         f"**Generado el {datetime.now():%Y-%m-%d} por "
-        f"`scripts/experimento_vectordb.py`, sobre {len(chunks)} fragmentos y "
+        f"`scripts/experimentos/experimento_vectordb.py`, sobre "
+        f"{len(chunks)} fragmentos y "
         f"{len(preguntas)} preguntas de `eval/preguntas_evaluacion.json`. "
         f"K = {K}, {REPETICIONES} repeticiones por pregunta para la latencia. "
         "Las cuatro condiciones reciben los mismos vectores, incrustados una "
@@ -1678,25 +1644,20 @@ def generar_bloque_resultados(
 
 
 def escribir_resultados(bloque: str) -> None:
-    """Inserta o reemplaza el bloque de resultados dentro del ADR-0004.
+    """Sustituye el bloque de resultados que hay entre las dos marcas.
 
-    Si el ADR no existe todavía, crea el esqueleto mínimo con el bloque
-    dentro: el resto (Contexto, Alternativas, Decisión, Consecuencias) es una
-    decisión del autor y este guion no la redacta. Si ya existe, solo
-    sustituye lo que hay entre las marcas, para no tocar nada escrito a mano.
+    Solo toca lo que hay entre ellas, de modo que no altera ni una línea de lo
+    que el autor haya escrito en el resto del ADR.
+
+    Args:
+        bloque: El bloque completo, marcas incluidas.
+
+    Raises:
+        SystemExit: Si el ADR no existe o no lleva las marcas. Se falla de
+            forma ruidosa a propósito: añadir el bloque al final de un fichero
+            que no lo esperaba deja el ADR desordenado sin avisar.
     """
-    if RUTA_ADR.exists():
-        contenido = RUTA_ADR.read_text(encoding="utf-8")
-        if MARCA_INICIO in contenido and MARCA_FIN in contenido:
-            antes, resto = contenido.split(MARCA_INICIO, 1)
-            _, despues = resto.split(MARCA_FIN, 1)
-            nuevo = antes + bloque + despues
-        else:
-            nuevo = contenido.rstrip("\n") + "\n\n" + bloque + "\n"
-    else:
-        nuevo = ESQUELETO_ADR.format(fecha=f"{datetime.now():%Y-%m-%d}", bloque=bloque)
-    RUTA_ADR.parent.mkdir(parents=True, exist_ok=True)
-    RUTA_ADR.write_text(nuevo, encoding="utf-8")
+    _adr.sustituir(RUTA_ADR, MARCA_INICIO, bloque)
     print(f"Resultados escritos en {RUTA_ADR}")
 
 

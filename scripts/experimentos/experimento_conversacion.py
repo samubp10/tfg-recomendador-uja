@@ -25,8 +25,8 @@ metería su variabilidad en un experimento que no va de eso.
 
 Uso::
 
-    py scripts/experimento_conversacion.py
-    py scripts/experimento_conversacion.py --k 10
+    py scripts/experimentos/experimento_conversacion.py
+    py scripts/experimentos/experimento_conversacion.py --k 10
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ from typing import Any, Iterable
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 from tfg_uja.conversacion import (  # noqa: E402

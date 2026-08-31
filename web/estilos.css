@@ -1,0 +1,932 @@
+/*
+  Hoja de estilo del asistente (IT-45).
+
+  Los colores salen de la hoja de estilo de la propia Escuela Politecnica
+  Superior y se recogen aqui como variables para que no haya un valor suelto
+  repetido por el fichero. El oro que traia el boceto se ha retirado: la
+  Escuela no tiene dorado en su identidad, era una invencion del boceto.
+
+  No hay marco de trabajo ni paso de compilacion: es la decision de IT-42, que
+  descarta los marcos habituales porque lo que hay que dibujar es un cuadro de
+  texto y una lista de mensajes.
+*/
+
+:root {
+  --uja-verde: #006d38;
+  --uja-verde-oscuro: #004921;
+  --uja-verde-claro: #e6f2eb;
+  /* El verde azulado de la portada de la Escuela. Sustituye al oro inventado. */
+  --epsj-verdeazul: #3c726b;
+
+  --superficie: #f4f4f5;
+  --superficie-alta: #ffffff;
+  --borde: #ececed;
+  /* Medido el 27/08/2026: sobre `--superficie` daba 1,95 y la WCAG pide
+     3,0 para el borde de un control (1.4.11). Con #8c8d8f sube a 3,02.
+     Lo usan la sugerencia y el cuadro de escribir, los dos bordes de
+     control que hay. */
+  --borde-fuerte: #8c8d8f;
+  --texto: #231f20;
+  --texto-suave: #696a6c;
+
+  --degradado-uja: linear-gradient(135deg, var(--uja-verde) 0%, var(--uja-verde-oscuro) 100%);
+
+  /*
+    Solo tipografias del sistema. Antes encabezaban «Lora» e «Inter»,
+    servidas por Google, y aunque la pagina no dependia de que llegaran,
+    pedirlas mandaba a un tercero la direccion de red y el navegador de
+    quien abre el asistente. El sistema se defiende como local: no puede
+    hacer una peticion externa solo por la letra.
+  */
+  --letra-titulo: Georgia, "Times New Roman", "Nimbus Roman", serif;
+  --letra-texto: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+
+  --radio: 16px;
+
+  /*
+    Ancho de la columna de lectura y margen minimo a los lados. Las bandas de
+    color ocupan la ventana entera y solo su CONTENIDO se alinea con esta
+    columna. Asi se corrigen las dos cosas que se veian mal: una aplicacion de
+    920 px encogida en medio de una pantalla ancha, y ---si se quitaba ese
+    tope--- una linea de texto de mil pixeles que no hay quien siga.
+  */
+  --columna: 62rem;
+  --margen: clamp(12px, 2.5vw, 32px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/*
+  El tamano base crece con la ventana en vez de estar clavado en 15 px, y con
+  el crece todo lo demas, que se mide en `rem`. El minimo y el maximo tambien
+  van en `rem`: dentro de `font-size` del elemento raiz esa unidad se resuelve
+  contra el tamano que la persona tenga puesto en el navegador, asi que quien
+  lo haya subido por necesidad no lo pierde.
+*/
+html {
+  font-size: clamp(1rem, 0.2vw + 0.95rem, 1.2rem);
+}
+
+body {
+  font-family: var(--letra-texto);
+  background: var(--superficie);
+  color: var(--texto);
+  line-height: 1.55;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.aplicacion {
+  display: flex;
+  flex-direction: column;
+  /* `dvh` y no `vh`: en el movil la barra de direcciones se recoge al
+     desplazar y con `vh` el cuadro de texto queda por debajo del borde. */
+  height: 100dvh;
+}
+
+/*
+  Cada banda ocupa el ancho completo y centra su contenido en la columna de
+  lectura. El relleno lateral no se elige, se calcula: cuando la ventana es mas
+  estrecha que la columna gana el margen minimo, y cuando es mas ancha gana la
+  mitad de lo que sobra. Se mide en `%` y no en `vw` porque `vw` incluye la
+  barra de desplazamiento y produce un desbordamiento horizontal en Windows.
+*/
+.cabecera,
+.conversacion__mensajes,
+.sugerencias,
+.redaccion,
+.aviso-ia {
+  padding-inline: max(var(--margen), (100% - var(--columna)) / 2);
+}
+
+/* ---------------------------------------------------------------- cabecera */
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 18px);
+  padding-block: clamp(8px, 1vw, 14px);
+  background: var(--degradado-uja);
+  box-shadow: 0 2px 12px rgba(26, 128, 72, 0.28);
+  flex-shrink: 0;
+}
+
+.cabecera__escudo {
+  width: clamp(44px, 5vw, 76px);
+  height: clamp(44px, 5vw, 76px);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.cabecera__textos {
+  min-width: 0;
+}
+
+.cabecera__titulo {
+  margin: 0;
+  font-family: var(--letra-titulo);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+
+.cabecera__subtitulo {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: #c8e8d4;
+  letter-spacing: 0.06em;
+}
+
+/* ------------------------------------------------------------ conversacion */
+
+.conversacion {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+/* El escudo de fondo es decorativo: `alt` vacio y fuera del arbol de
+   accesibilidad, para que un lector de pantalla no lo anuncie. */
+.conversacion__marca {
+  /* `fixed` y no `absolute`: asi el escudo se queda quieto mientras la
+     conversacion se desplaza por encima, que es lo que hace un fondo y no un
+     elemento mas de la lista. */
+  position: fixed;
+  /* Detras de todo: con `z-index` negativo el escudo queda por encima del
+     color de fondo de la pagina y por debajo de la cabecera y de las burbujas,
+     que si son opacas. Por eso `.aplicacion` ya no pinta fondo propio: si lo
+     pintara, lo taparia. */
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  /* Sin tope en pixeles, que era lo que dejaba el escudo pequeno en una
+     pantalla grande. `vmin` mira el lado corto de la ventana, asi que no se
+     sale ni en apaisado ni en vertical. */
+  width: clamp(220px, 60vmin, 900px);
+  height: clamp(220px, 60vmin, 900px);
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  opacity: 0.11;
+  /* El escudo original es rojo, verde y oro. Al 7 % de opacidad y sin tenir,
+     el rojo domina y el fondo se ve rosado. Se lleva al verde de la identidad
+     para que la marca de agua no compita con nada. */
+  filter: grayscale(1) sepia(0.6) hue-rotate(70deg) saturate(2.5);
+  pointer-events: none;
+  user-select: none;
+}
+
+.conversacion__mensajes {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --------------------------------------------------------------- burbujas */
+
+/* Sin relleno lateral propio: lo pone `.conversacion__mensajes`, que es quien
+   sabe donde empieza la columna de lectura. */
+.mensaje {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.mensaje--propio {
+  justify-content: flex-end;
+}
+
+.mensaje__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.mensaje__avatar--asistente {
+  background: var(--degradado-uja);
+}
+
+.mensaje__avatar--asistente img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.mensaje__avatar--propio {
+  background: var(--epsj-verdeazul);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.mensaje__burbuja {
+  /* Dos topes a la vez: en una ventana estrecha manda el porcentaje y en una
+     ancha manda la medida en `ch` ---anchos de caracter, no pixeles---, que es
+     lo que impide que la linea se alargue hasta hacerse incomoda de leer. */
+  max-width: min(84%, 66ch);
+  padding: 11px 16px;
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+}
+
+.mensaje--propio .mensaje__burbuja {
+  background: var(--degradado-uja);
+  color: #ffffff;
+  border-top-right-radius: 4px;
+}
+
+.mensaje--asistente .mensaje__burbuja {
+  background: var(--superficie-alta);
+  border: 1px solid var(--borde);
+  border-top-left-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 102, 51, 0.06);
+}
+
+/* La respuesta que el sistema devuelve sin llegar a consultar al modelo se
+   marca con un filete verde azulado. No es decoracion: una respuesta fija
+   tarda decimas de segundo y una elaborada mas de un minuto, y sin
+   distinguirlas la rapida parece un error. */
+.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
+  border-left: 3px solid var(--epsj-verdeazul);
+}
+
+.mensaje__burbuja p {
+  margin: 0 0 0.6em;
+}
+
+.mensaje__burbuja p:last-child {
+  margin-bottom: 0;
+}
+
+.mensaje__burbuja ul {
+  margin: 0.2em 0 0.6em;
+  padding-left: 1.2em;
+}
+
+.mensaje__burbuja li {
+  margin: 0.15em 0;
+}
+
+.mensaje__pie {
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  display: flex;
+  gap: 8px;
+}
+
+.mensaje--propio .mensaje__pie {
+  color: rgba(255, 255, 255, 0.7);
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------- la espera */
+
+/*
+  La mediana de una respuesta que llega al modelo es de 62,7 s y el percentil 90
+  pasa de dos minutos (medido el 24/08/2026 sobre el banco del sistema). Tres
+  puntitos rebotando durante un minuto se leen como una aplicacion colgada, asi
+  que la espera dice cuanto lleva y, pasado un umbral, explica por que tarda.
+*/
+.espera__puntos {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  height: 16px;
+}
+
+.espera__punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--uja-verde);
+  animation: rebote 1.2s ease-in-out infinite;
+}
+
+.espera__punto:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.espera__punto:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes rebote {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+/* Quien haya pedido menos animacion en su sistema no ve el rebote, pero sigue
+   viendo el contador: la informacion no depende del movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .espera__punto {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.espera__aviso {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+}
+
+/* ------------------------------------------------- la respuesta en curso
+
+   El texto llega por partes a lo largo de un minuto y entre frase y frase no
+   habia forma de distinguir «esta escribiendo la siguiente» de «ya ha
+   terminado»: el aviso de espera se retira con la primera frase y el pie con
+   la hora y la duracion no se pinta hasta despues de la ultima. Ese hueco es
+   el que cubre esta marca.
+
+   Cuelga de `aria-busy`, que es el atributo que un lector de pantalla ya
+   tiene que leer para cumplir RNF-07. Al salir las dos senales ---la que se ve
+   y la que se anuncia--- del mismo sitio, no pueden acabar contradiciendose:
+   no hay una clase que se olvide de quitar por un lado. */
+
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+  content: "escribiendo…";
+  display: block;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  animation: respirar 1.6s ease-in-out infinite;
+}
+
+/* Mientras se ve el aviso de espera la marca sobra: los dos dicen lo mismo y
+   el aviso ademas cuenta los segundos. */
+.mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo:has(.espera__puntos)::after {
+  content: none;
+}
+
+@keyframes respirar {
+
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* El movimiento es solo enfasis: quien haya pedido menos animacion sigue
+   leyendo la palabra, que es donde esta la informacion. */
+@media (prefers-reduced-motion: reduce) {
+  .mensaje__burbuja[aria-busy="true"] .mensaje__cuerpo::after {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------ sugerencias */
+
+/*
+   Se envuelven en vez de correr en un carril horizontal sin barra. Medido a
+   320 px: los botones ocupaban entre 479 y 655 px, asi que no se leia ni la
+   primera sugerencia entera y nada indicaba que hubiera mas. Con teclado si
+   se alcanzaban ---el navegador desplaza el contenedor al enfocar---, de modo
+   que el problema era de raton y de dedo, no de accesibilidad por teclado.
+
+   El tope de altura evita el efecto contrario: cuatro preguntas largas
+   envueltas empujarian el cuadro de escribir fuera de la pantalla en un
+   movil. Cuando se pasa, la barra SI se ve, que es lo que faltaba antes. */
+.sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 6px 8px;
+  flex-shrink: 0;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.sugerencia {
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--borde-fuerte);
+  background: #f0f7f3;
+  color: var(--uja-verde);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  /* El texto parte donde haga falta y el boton no pasa del ancho util: una
+     pregunta de 655 px dejaba de caber en cualquier telefono. */
+  white-space: normal;
+  text-align: left;
+  max-width: 100%;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.sugerencia:hover:not(:disabled),
+.sugerencia:focus-visible {
+  background: var(--uja-verde);
+  color: #ffffff;
+}
+
+.sugerencia:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* --------------------------------------------------------------- redaccion */
+
+.redaccion {
+  flex-shrink: 0;
+  padding-block: 4px 16px;
+}
+
+.redaccion__caja {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radio);
+  background: var(--superficie-alta);
+  border: 1.5px solid var(--borde-fuerte);
+  box-shadow: 0 2px 16px rgba(0, 102, 51, 0.08);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.redaccion__caja:focus-within {
+  border-color: var(--uja-verde);
+  box-shadow: 0 2px 20px rgba(0, 102, 51, 0.15);
+}
+
+.redaccion__entrada {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--texto);
+  max-height: 160px;
+}
+
+.redaccion__entrada::placeholder {
+  color: var(--texto-suave);
+}
+
+/* El cuadro tiene `outline: 0` para que no le salga un recuadro dentro de la
+   caja, y lo unico que marcaba el foco era que la caja de fuera cambiaba de
+   color de borde: un cambio que apenas se distingue del estado normal. Los
+   botones si tenian foco visible, asi que el unico control sin marca clara
+   era justo el principal (WCAG 2.4.7). Se marca la caja entera, que es lo que
+   la persona percibe como «el cuadro de escribir». */
+.redaccion__caja:has(.redaccion__entrada:focus-visible) {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
+}
+
+.redaccion__enviar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--degradado-uja);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
+}
+
+.redaccion__enviar:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.redaccion__aviso {
+  margin: 8px 4px 0;
+  font-size: 0.7rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------ fallo */
+
+.mensaje--fallo .mensaje__burbuja {
+  border-color: #d9b3b3;
+  background: #fdf6f6;
+  color: #7a3131;
+}
+
+/* ------------------------------------------------ las fuentes de la respuesta
+
+   RF-09 pide mostrar junto a la respuesta las fuentes de las que sale. Se
+   resuelve con un boton discreto en el pie de la burbuja y no con una lista
+   siempre desplegada: los fragmentos recuperados llegan a ser veinte, y veinte
+   lineas de procedencia debajo de cada respuesta tapan la respuesta.
+
+   El cuadro es un <dialog> del navegador: trae el foco atrapado, el cierre con
+   Escape y el fondo inerte sin escribir una linea para ello. */
+
+.mensaje__fuentes {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--uja-verde);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.mensaje__fuentes:hover {
+  color: var(--uja-verde-oscuro);
+}
+
+.mensaje__fuentes:focus-visible {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.fuentes {
+  width: min(92vw, 34rem);
+  max-height: 76dvh;
+  padding: 0;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie-alta);
+  color: var(--texto);
+}
+
+/* En columna para que solo se desplace la lista y la cabecera del cuadro se
+   quede quieta. Va con `[open]` porque el navegador esconde un <dialog>
+   cerrado con `display: none`, y escribir `display: flex` a secas lo dejaria
+   siempre visible. */
+.fuentes[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.fuentes::backdrop {
+  background: rgba(35, 31, 32, 0.45);
+}
+
+.fuentes__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px 10px;
+  border-bottom: 1px solid var(--borde);
+}
+
+.fuentes__titulo {
+  margin: 0;
+  font-family: var(--letra-titulo);
+  font-size: 1rem;
+  color: var(--uja-verde-oscuro);
+}
+
+.fuentes__cerrar {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.fuentes__cerrar:hover {
+  color: var(--texto);
+}
+
+.fuentes__lista {
+  margin: 0;
+  padding: 12px 20px 18px;
+  list-style: none;
+  overflow-y: auto;
+  /* Sin `min-height: 0` un hijo flexible no se encoge por debajo de su
+     contenido y el desplazamiento no llega a activarse nunca. Sustituye a un
+     `calc()` que restaba la altura de la cabecera en pixeles: con el tamano de
+     letra variable esa altura ya no es un numero fijo. */
+  min-height: 0;
+}
+
+.fuentes__lista li {
+  padding: 8px 0 8px 12px;
+  border-left: 3px solid var(--uja-verde-claro);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.fuentes__lista li + li {
+  margin-top: 4px;
+}
+
+.fuentes__titulacion {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 0.76rem;
+}
+
+/* ----------------------------------------------------------- el aviso del pie
+
+   El aviso que hay bajo el cuadro de texto acota el DOMINIO. Este acota otra
+   cosa distinta: que quien redacta es un modelo y puede equivocarse. Son dos
+   advertencias que no se pueden fundir en una sin perder una de las dos. */
+
+.aviso-ia {
+  margin: 0;
+  padding-block: 0 12px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
+
+.fuentes__nota {
+  margin: 0;
+  padding: 10px 20px 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
+
+/* --------------------------------------------- IT-45: leerlo como un plan
+
+   Las preguntas de listado son las mas frecuentes del banco de evaluacion
+   (20 de temario y 14 de listado sobre 56 de dominio) y son las que peor se
+   leian: veinte asignaturas seguidas en una sola lista, con el rotulo de curso
+   como un parrafo mas en negrita. La respuesta ya venia agrupada por curso
+   ---se lo pide la instruccion al modelo---, pero eso no se veia.
+
+   Todo lo que sigue es presentacion. No se toca `chat.js`, que no tiene
+   pruebas: cualquier logica nueva ahi entraria sin red. */
+
+/* El rotulo de curso deja de ser un parrafo en negrita y pasa a comportarse
+   como lo que es: el encabezado de una seccion del plan.
+
+   Se reconoce por la forma, no por el texto: un parrafo cuyo unico contenido
+   es una negrita. Es lo que produce `formatear()` con la linea
+   `**Primer curso:**` que escribe el modelo. Un parrafo entero en negrita
+   escrito por otro motivo tambien lo recibiria; es raro y el resultado seguiria
+   siendo un enfasis, asi que no se persigue el caso. */
+.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) {
+  margin: 1.1em 0 0.5em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--borde);
+  color: var(--epsj-verdeazul);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) strong {
+  font-weight: 600;
+}
+
+/* El primero no separa de nada: sin esto abre la burbuja con un hueco. */
+.mensaje--asistente .mensaje__cuerpo p:first-child:has(> strong:only-child) {
+  margin-top: 0;
+}
+
+/* Con el rotulo ya marcado, el punto de cada asignatura sobra: lo que ordena
+   la lectura es la seccion, no la vinneta. Se quitan y se alinea el texto con
+   el rotulo, que es como se imprime un plan de estudios. */
+.mensaje--asistente .mensaje__cuerpo ul {
+  padding-left: 0;
+  list-style: none;
+}
+
+.mensaje--asistente .mensaje__cuerpo li {
+  padding: 0.22em 0;
+  /* Sangria francesa: en el movil el nombre de una asignatura ocupa dos
+     lineas, y sin ella la continuacion empieza donde empieza la siguiente
+     asignatura, de modo que no se ve donde acaba cada una. */
+  padding-left: 1em;
+  text-indent: -1em;
+  /* Cifras de ancho fijo: los creditos se repiten en cada linea y con la letra
+     proporcional bailan de un renglon a otro. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------- IT-45: la bienvenida, centrada en la pantalla
+
+   Mientras no hay conversacion, la bienvenida se centra en vez de dejar un
+   vacio de media pantalla entre ella y el cuadro de escribir.
+
+   El escudo del fondo NO se toca aqui: se queda puesto durante toda la
+   conversacion, con la opacidad y el tamano que tiene declarados arriba. Se
+   probo retirarlo al llegar el primer mensaje del estudiante y se descarto:
+   la marca de agua dice de que centro es lo que se esta leyendo, y eso hace
+   mas falta con una respuesta delante que con la pantalla vacia.
+
+   `:has()` no lo entienden los navegadores antiguos; ahi la bienvenida se
+   queda arriba, que es el comportamiento de antes y no una pagina rota. */
+.conversacion:not(:has(.mensaje--propio)) .conversacion__mensajes {
+  min-height: 100%;
+  justify-content: center;
+}
+
+/* ------------------------------------- IT-45: la procedencia se ve o no esta
+
+   RF-09 y el argumento central del trabajo: la respuesta sale de lo que la
+   Escuela publica y se puede comprobar. Ese boton era un enlace subrayado de
+   11 px perdido entre la hora y los segundos, o sea el dato mas importante de
+   la pantalla con el aspecto de una nota al pie.
+
+   Se separa de la metadata ---la hora y la duracion informan, esto se pulsa---
+   y se le da forma de control. Sigue siendo discreto: no compite con la
+   respuesta, que es lo que se ha venido a leer. */
+.mensaje__pie {
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.mensaje__fuentes {
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--uja-verde) 35%, transparent);
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mensaje__fuentes:hover {
+  background: var(--uja-verde);
+  border-color: var(--uja-verde);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mensaje__fuentes {
+    transition: none;
+  }
+}
+
+/* ------------------------------- IT-45 · E1: la respuesta no es un mensaje
+
+   La tarjeta blanca con esquinas redondeadas sobre fondo gris es el aspecto
+   por omision de cualquier aplicacion de mensajeria, y aqui no describe lo que
+   pasa: lo que el asistente devuelve no es un mensaje de alguien, es un
+   informe compuesto a partir de documentos de la Escuela.
+
+   La pregunta del estudiante SI se queda como burbuja ---la escribe una
+   persona--- y el contraste entre las dos formas es lo que separa quien habla
+   de que se responde, sin necesidad de dos colores de tarjeta.
+
+   El filete de la izquierda hace ademas el trabajo que antes hacia el borde
+   del recuadro: marca donde empieza y acaba la respuesta cuando hay varias
+   seguidas. Y sigue distinguiendo la respuesta fija de la elaborada, ahora por
+   color y no por presencia. */
+.mensaje--asistente .mensaje__burbuja {
+  background: none;
+  border: 0;
+  border-left: 2px solid var(--borde-fuerte);
+  border-radius: 0;
+  box-shadow: none;
+  padding: 2px 0 2px 16px;
+  /* Sin recuadro, la linea puede respirar mas sin volverse incomoda de leer. */
+  max-width: min(92%, 72ch);
+}
+
+/* Una respuesta que no llego a consultar al modelo tarda decimas de segundo y
+   una elaborada mas de un minuto. Sin distinguirlas, la rapida parece un fallo. */
+.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
+  border-left-color: var(--epsj-verdeazul);
+}
+
+/* El fallo si conserva el recuadro: es la unica respuesta que hay que poder
+   distinguir de un vistazo entre varias, y el color solo no basta para quien
+   no lo percibe. */
+.mensaje--fallo .mensaje__burbuja {
+  border: 1px solid #b06a6a;
+  border-radius: var(--radio);
+  padding: 11px 16px;
+  background: #fdf6f6;
+  color: #6d2c2c;
+}
+
+/* ------------------------- IT-45 · C1: las fuentes, agrupadas por titulacion
+
+   Con veinte unidades de tres titulaciones, la lista plana obliga a leerlas
+   todas para ver de donde sale la respuesta. */
+.fuentes__grupo {
+  padding: 0 0 0 12px;
+  border-left: 3px solid var(--uja-verde-claro);
+}
+
+.fuentes__titulacion {
+  margin: 0 0 4px;
+  color: var(--uja-verde-oscuro);
+  font-size: 0.78rem;
+  font-weight: 600;
+  /* Una unidad compartida trae varias titulaciones en la misma cadena y puede
+     ser larga: que parta donde haga falta en vez de desbordar el cuadro. */
+  overflow-wrap: anywhere;
+}
+
+.fuentes__unidades {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fuentes__unidades li {
+  padding: 3px 0;
+  border-left: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.fuentes__unidades li + li {
+  margin-top: 0;
+}
+
+.fuentes__origen {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 0.74rem;
+}
+
+/* El nombre de la unidad enlaza a su pagina oficial en la web de la EPSJ,
+   cuando la hay. Las asignaturas sin guia publicada salen sin enlace y por eso
+   el subrayado va aqui y no en el `li`: distingue a simple vista lo que se
+   puede comprobar de lo que no.
+
+   Se subraya en vez de solo cambiar el color porque el color por si solo no
+   basta para senalar un enlace (WCAG 1.4.1, «uso del color»). */
+.fuentes__enlace {
+  color: var(--uja-verde);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.fuentes__enlace:hover {
+  text-decoration-thickness: 2px;
+}
+
+.fuentes__enlace:focus-visible {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ------------------------------------ IT-45 · D3: cuando se pide mas contraste
+
+   `prefers-contrast: more` lo activa quien lo necesita desde su sistema. Se
+   endurecen los bordes y se oscurecen los grises: no cambia ninguna decision de
+   diseno, solo deja de apoyarse en matices que esa persona no distingue. */
+@media (prefers-contrast: more) {
+  :root {
+    --texto-suave: #4a4b4d;
+    --borde: #9a9b9d;
+    --borde-fuerte: #5c5d5f;
+  }
+
+  .mensaje--asistente .mensaje__burbuja {
+    border-left-width: 3px;
+  }
+
+  .sugerencia {
+    border-width: 2px;
+  }
+}

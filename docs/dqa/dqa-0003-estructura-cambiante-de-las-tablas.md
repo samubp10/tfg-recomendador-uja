@@ -149,7 +149,7 @@ sobrevive a que se mueva.
 La segunda fila de la tabla es la que sostiene el registro entero: la regla general no es
 «añádase la columna de Geomática», sino **localizar cada columna por su rótulo**, comparado en
 minúsculas y sin tildes porque la fuente no es consistente. Sobre la colección completa,
-`scripts/check_dataset.py` comprueba el recuento por titulación, que es donde se vería una
+`scripts/verificadores/check_dataset.py` comprueba el recuento por titulación, que es donde se vería una
 tabla perdida.
 
 ## Cómo se corrige y cómo se detecta si vuelve
@@ -159,7 +159,7 @@ no fallar**: una tabla con las columnas cambiadas se lee sin excepción, cada da
 columna equivocada, la fila no valida y se descarta con un aviso. La titulación entera puede
 desaparecer del corpus con el rastreo aparentemente correcto.
 
-1. Ejecutar `py scripts/check_dataset.py`. Una titulación que pierde asignaturas se ve en el
+1. Ejecutar `py scripts/verificadores/check_dataset.py`. Una titulación que pierde asignaturas se ve en el
    recuento; es la única señal que hay.
 2. Revisar el registro del rastreo buscando avisos de filas descartadas. Un número alto en una
    sola titulación apunta a una cabecera nueva.

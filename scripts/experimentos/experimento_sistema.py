@@ -21,9 +21,11 @@ import time
 from pathlib import Path
 from typing import Any
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
-sys.path.insert(0, str(RAIZ / "scripts"))
+# El vecino de carpeta del que se importan los correctores. Se apunta a la
+# carpeta propia y no a `scripts/`, que desde IT-114 ya no contiene el modulo.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
@@ -112,6 +114,14 @@ _RECHAZOS_FIJOS: tuple[str, ...] = (
     generador.RESPUESTA_OTRA_UNIVERSIDAD,
 )
 
+#: Con qué se niega en español. No solo con «no»: el modelo niega tanto con
+#: «ninguna de las titulaciones encaja» como con «no encaja ninguna», y las dos
+#: son la misma respuesta. Buscar una palabra concreta mediría cómo está
+#: redactado el rechazo en vez de si rechaza.
+_NEGACIONES: frozenset[str] = frozenset(
+    {"no", "ninguna", "ninguno", "ningun", "nada", "tampoco", "nunca", "ni"}
+)
+
 
 def corregir_rechazo(respuesta: str, catalogo: list[str]) -> tuple[bool, str]:
     """Comprueba que a una pregunta ajena se le responda que no.
@@ -129,6 +139,14 @@ def corregir_rechazo(respuesta: str, catalogo: list[str]) -> tuple[bool, str]:
     empezara «Sí, puedes estudiar Medicina aquí» no lleva negación y es
     exactamente el fallo que este criterio busca.
 
+    La negación no se busca solo como la palabra «no». La versión anterior lo
+    hacía y daba por fallada esta respuesta, que es un rechazo impecable:
+    «ninguna de las titulaciones que ofrece la Escuela encaja con tus
+    intereses. Todas son de ingeniería y no tienen relación con el ámbito
+    legal». La negación estaba en «ninguna», y en la segunda frase. Un criterio
+    que exige una palabra concreta mide la redacción y no el rechazo, que es el
+    mismo defecto que la precisión del cribado tuvo antes de IT-110.
+
     Args:
         respuesta: Lo que devolvió el sistema.
         catalogo: Titulaciones que declara el índice.
@@ -141,8 +159,8 @@ def corregir_rechazo(respuesta: str, catalogo: list[str]) -> tuple[bool, str]:
     inventadas = titulaciones_inventadas(respuesta, catalogo)
     if inventadas:
         return False, "inventa " + ", ".join(sorted(inventadas))
-    apertura = re.split("[.!?" + chr(10) + "]", respuesta, maxsplit=1)[0]
-    if "no" not in palabras(apertura):
+    apertura = re.split("[.!?" + chr(10) + "]", respuesta, maxsplit=2)[:2]
+    if not (palabras(" ".join(apertura)) & _NEGACIONES):
         return False, "no niega lo preguntado"
     return True, ""
 
@@ -369,7 +387,8 @@ def informe(filas: list[dict[str, Any]], destino: Path) -> None:
     lineas = [
         "# Evaluación del sistema completo (IT-37)",
         "",
-        "> Lo escribe `scripts/experimento_sistema.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_sistema.py`. "
+        "**No editar a mano.**",
         "",
         f"- Entradas del banco: **{len(filas) // max(len(modelos), 1)}**",
         f"- Servidor de inferencia: {filas[0]['servidor'] if filas else '?'}",

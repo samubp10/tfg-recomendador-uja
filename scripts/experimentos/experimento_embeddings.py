@@ -15,7 +15,7 @@ Necesita la dependencia opcional ``[index]`` (arrastra PyTorch) y red para
 descargar los modelos la primera vez; por eso, igual que los verificadores del
 dataset, se ejecuta SOLO en local y no en CI:
 
-    py scripts/experimento_embeddings.py
+    py scripts/experimentos/experimento_embeddings.py
 """
 
 from __future__ import annotations
@@ -30,10 +30,16 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Final
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent.parent.parent
 RUTA_CHUNKS = RAIZ / "data" / "chunks.json"
 RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 RUTA_RESULTADOS = RAIZ / "docs" / "adr" / "adr-0003-modelo-de-embeddings.md"
+
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
 
 #: Firma de la función de incrustación: recibe una lista de textos y devuelve
 #: un vector de números reales por texto, en el mismo orden.
@@ -43,10 +49,8 @@ Incrustador = Callable[[list[str]], list[list[float]]]
 #: viven **dentro del ADR** y no en un fichero aparte: tenerlos separados fue lo
 #: que permitió que las cifras del cuerpo de un ADR se quedaran atrás respecto a
 #: las de su propio anexo.
-MARCA_INICIO = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimento_embeddings.py) -->"
-)
-MARCA_FIN = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+MARCA_INICIO = _adr.marca_inicio("scripts/experimentos/experimento_embeddings.py")
+MARCA_FIN = _adr.MARCA_FIN
 
 
 def escribir_en_el_adr(destino: Path, bloque: str) -> None:
@@ -57,17 +61,11 @@ def escribir_en_el_adr(destino: Path, bloque: str) -> None:
         bloque: Texto que va entre las marcas, sin ellas.
 
     Raises:
-        SystemExit: Si el destino no tiene las dos marcas. Es preferible fallar
-            a dejar el resultado donde nadie lo va a leer.
+        SystemExit: Si el destino no existe o no tiene las dos marcas. Es
+            preferible fallar a dejar el resultado donde nadie va a leerlo.
     """
-    contenido = destino.read_text(encoding="utf-8")
-    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
-        raise SystemExit(f"{destino.name} no tiene las marcas de resultados.")
-    antes, resto = contenido.split(MARCA_INICIO, 1)
-    _, despues = resto.split(MARCA_FIN, 1)
-    destino.write_text(
-        antes + MARCA_INICIO + "\n" + bloque.strip() + "\n\n" + MARCA_FIN + despues,
-        encoding="utf-8",
+    _adr.sustituir(
+        destino, MARCA_INICIO, f"{MARCA_INICIO}\n{bloque.strip()}\n\n{MARCA_FIN}"
     )
 
 
@@ -520,7 +518,12 @@ def _evaluar_candidato(
         # Hay que soltar las TRES referencias: las dos funciones de
         # incrustación son cierres que capturan el modelo, así que anular
         # solo `modelo` no liberaría ni un byte.
-        incrustar_doc = incrustar_consulta = modelo = None  # noqa: F841
+        # El `type: ignore` es la contrapartida de soltar el modelo: las
+        # tres variables se anotaron con el tipo que tienen mientras se
+        # usan, y aqui se anulan a proposito para que el recolector pueda
+        # llevarselas. Sin el, `mypy scripts/` arrastra un error conocido
+        # y deja de mirarse.
+        incrustar_doc = incrustar_consulta = modelo = None  # type: ignore[assignment] # noqa: F841,E501
         gc.collect()
     fila = {
         "nombre": candidato.nombre,
@@ -601,7 +604,7 @@ def _cabecera_del_informe(
         corpus = ruta_chunks.name
     return (
         f"Generado el {date.today():%d/%m/%Y} ejecutando "
-        f"`py scripts/experimento_embeddings.py` contra `{corpus}` "
+        f"`py scripts/experimentos/experimento_embeddings.py` contra `{corpus}` "
         f"({total_chunks} fragmentos, {total_preguntas} preguntas de "
         f"`eval/preguntas_evaluacion.json`), en **{_dispositivo()}**.\n\n"
     )
@@ -678,8 +681,8 @@ def main(argumentos: list[str] | None = None) -> int:
 
     Uso::
 
-        py scripts/experimento_embeddings.py
-        py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
+        py scripts/experimentos/experimento_embeddings.py
+        py scripts/experimentos/experimento_embeddings.py --chunks otro_corpus.json \\
             --salida docs/adr/adr-0003-modelo-de-embeddings.md
 
     Args:

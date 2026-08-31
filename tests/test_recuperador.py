@@ -17,9 +17,11 @@ from typing import Any
 
 import pytest
 
+from tfg_uja import recuperador
 from tfg_uja.incrustaciones import MODELO
 from tfg_uja.indexer import reconstruir_indice
 from tfg_uja.recuperador import (
+    K_MAXIMO,
     K_POR_DEFECTO,
     SUELO_PERTINENCIA,
     Fragmento,
@@ -28,6 +30,7 @@ from tfg_uja.recuperador import (
     abrir_indice,
     acotar_por_distancia,
     catalogo_del_indice,
+    contexto_para,
     distancia_del_indice,
     expandir,
     palabras_distintivas,
@@ -628,3 +631,227 @@ def test_pedir_consejo_fuera_de_la_cita_si_cuenta():
     assert pide_recomendacion(
         "Mi amigo dice «yo haré Mecánica», pero ¿qué me recomiendas a mí?"
     )
+
+
+# --- Las dos salidas de `contexto_para` que no pasaban por ninguna prueba ---
+#
+# Las dos se prueban sustituyendo `recuperar`, y no con el índice de la fixture,
+# porque lo que está sin cubrir es la BIFURCACIÓN de `contexto_para` y no la
+# búsqueda. Con el incrustador falso todos los vectores apuntan al mismo eje y
+# la distancia sale 0,0 para cualquier consulta, de modo que ninguna pregunta
+# puede caer por debajo del suelo: la geometría de la fixture no puede producir
+# el caso, y forzarla a hacerlo mediría el doble en vez del código.
+
+
+def _fragmento_cualquiera(distancia: float = 0.05) -> Fragmento:
+    """Un fragmento con la forma que devuelve `recuperar`."""
+    return Fragmento(
+        texto="Texto del fragmento.",
+        nombre="Una asignatura",
+        grados=[SIMPLE],
+        origen="guia",
+        distancia=distancia,
+        chunk_index=0,
+        total_chunks=1,
+        curso="",
+    )
+
+
+def test_una_peticion_de_consejo_se_amplia_y_no_se_acota(monkeypatch):
+    """Al pedir consejo se busca con la consulta ampliada y se entrega sin acotar.
+
+    Es la excepción que el módulo declara y que está medida: una recomendación
+    no se parece a nada de la colección, porque habla de lo que le gusta al
+    estudiante y no de lo que publica la Escuela. Acotarla dejaba el contexto en
+    tres fragmentos sin ninguna asignatura dentro, y de las once asignaturas que
+    el modelo puso de ejemplo, siete no existían.
+
+    Los fragmentos que devuelve la búsqueda van todos lejísimos a propósito: con
+    el suelo y el corte relativo puestos no pasaría ninguno, así que si salen es
+    porque de verdad no se ha acotado.
+    """
+    consultas: list[str] = []
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        consultas.append(consulta)
+        return [_fragmento_cualquiera(0.9) for _ in range(K_MAXIMO + 5)]
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+    pregunta = "No sé qué estudiar, me gusta la física y el dibujo técnico"
+
+    fragmentos = contexto_para(pregunta, tabla=None, incrustar=incrustador_falso)
+
+    assert consultas == [expandir(pregunta)]
+    assert len(fragmentos) == K_MAXIMO
+
+
+def test_si_la_pregunta_se_queda_sin_contexto_se_reintenta_con_el_respaldo(monkeypatch):
+    """Una pregunta de seguimiento que no se sostiene sola busca otra vez.
+
+    Medido el 20/08/2026: tras preguntar por las optativas de una titulación,
+    «¿y cuántas son en total?» tenía su mejor fragmento a 0,1722, por debajo del
+    suelo, y el sistema decía no haber encontrado información sobre lo que él
+    mismo acababa de contestar. El reintento se dispara solo con la lista vacía,
+    que es un hecho comprobado y no una conjetura sobre la frase.
+    """
+    consultas: list[str] = []
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        consultas.append(consulta)
+        return (
+            [] if consulta == "¿y cuántas son en total?" else [_fragmento_cualquiera()]
+        )
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    fragmentos = contexto_para(
+        "¿y cuántas son en total?",
+        tabla=None,
+        incrustar=incrustador_falso,
+        respaldo="optativas del Doble Grado ¿y cuántas son en total?",
+    )
+
+    assert consultas == [
+        "¿y cuántas son en total?",
+        "optativas del Doble Grado ¿y cuántas son en total?",
+    ]
+    assert len(fragmentos) == 1
+
+
+def test_sin_respaldo_una_pregunta_sin_contexto_se_queda_sin_contexto(monkeypatch):
+    """Sin respaldo no hay segundo intento: se devuelve la lista vacía.
+
+    Importa porque es lo que hace que el sistema conteste su respuesta fija en
+    lugar de llamar al modelo sin nada que leer, que es la barrera del ADR-0005.
+    """
+    llamadas: list[str] = []
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        llamadas.append(consulta)
+        return []
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    assert contexto_para("¿y cuántas son?", None, incrustador_falso) == []
+    assert len(llamadas) == 1
+
+
+def test_varias_titulaciones_se_buscan_por_separado_y_se_intercalan(monkeypatch):
+    """RU-04 necesita evidencia de cada titulación, no un único top global.
+
+    En una búsqueda conjunta una titulación puede ocupar todos los vecinos.
+    Buscar cada filtro por separado y alternar los resultados conserva la
+    relevancia dentro de cada grado sin dejar al otro fuera del contexto.
+    """
+    llamadas: list[list[str]] = []
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        (titulacion,) = opciones["ambito"]
+        llamadas.append(opciones["ambito"])
+        return [
+            Fragmento(
+                texto=f"Dato {indice} de {titulacion}",
+                nombre=f"Unidad {indice} de {titulacion}",
+                grados=[titulacion],
+                origen="ficha_titulacion",
+                distancia=0.05 + indice / 1000,
+                chunk_index=0,
+                total_chunks=1,
+            )
+            for indice in range(K_MAXIMO)
+        ]
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    fragmentos = contexto_para(
+        "Compara Ingeniería Eléctrica e Informática",
+        tabla=None,
+        incrustar=incrustador_falso,
+        ambito=[SIMPLE, INFORMATICA],
+    )
+
+    assert llamadas == [[SIMPLE], [INFORMATICA]]
+    assert len(fragmentos) == K_MAXIMO
+    assert [f.grados[0] for f in fragmentos] == [
+        SIMPLE,
+        INFORMATICA,
+    ] * (K_MAXIMO // 2)
+
+
+def test_un_ambito_multiple_devuelve_solo_la_evidencia_disponible(monkeypatch):
+    """El intercalado no rellena hasta veinte si solo existen dos resultados."""
+
+    def recuperar_falso(consulta, tabla, incrustar, **opciones):
+        (titulacion,) = opciones["ambito"]
+        return [
+            Fragmento(
+                texto=f"Dato de {titulacion}",
+                nombre=f"Ficha de {titulacion}",
+                grados=[titulacion],
+                origen="ficha_titulacion",
+                distancia=0.05,
+                chunk_index=0,
+                total_chunks=1,
+            )
+        ]
+
+    monkeypatch.setattr(recuperador, "recuperar", recuperar_falso)
+
+    fragmentos = contexto_para(
+        "Compara Ingeniería Eléctrica e Informática",
+        tabla=None,
+        incrustar=incrustador_falso,
+        ambito=[SIMPLE, INFORMATICA],
+    )
+
+    assert [f.grados[0] for f in fragmentos] == [SIMPLE, INFORMATICA]
+
+
+# --- La consulta abierta se busca como una petición de consejo ---
+
+
+def incrustador_lejano(textos: list[str]) -> list[list[float]]:
+    """Incrustador falso que deja la consulta perpendicular a todo el corpus.
+
+    Los fragmentos se indexan con :func:`incrustador_falso`, que los coloca
+    todos sobre el primer eje; devolviendo el segundo, la distancia coseno con
+    cada uno de ellos sale 1,0, muy por encima del suelo de pertinencia. Así se
+    ve si el recorte se aplica o no sin depender de qué texto se busque.
+    """
+    return [[0.0, 1.0] + [0.0] * (DIMENSION - 2) for _ in textos]
+
+
+def test_una_consulta_abierta_no_se_recorta(indice):
+    """Es el camino de la petición de consejo, y por el mismo motivo.
+
+    «Enséñame todas las titulaciones» no se parece a ninguna unidad del corpus
+    ---su mejor fragmento se queda en 0,156, por encima del suelo--- porque se
+    responde con el catálogo entero y no con la unidad más próxima. Recortarla
+    la dejaría sin contexto, y dar poco contexto a una pregunta abierta produce
+    invención igual que no darle ninguno.
+    """
+    tabla = abrir_indice(indice, MODELO)
+    fragmentos = contexto_para(
+        "¿qué titulaciones ofrece la escuela?",
+        tabla,
+        incrustador_lejano,
+        abierta=True,
+    )
+    assert len(fragmentos) == 4
+
+
+def test_sin_ser_abierta_la_misma_pregunta_sigue_recortandose(indice):
+    """El suelo sigue mandando en todo lo demás.
+
+    Es la diferencia que introduce `abierta`: misma pregunta, mismo índice y
+    mismas distancias, y la única razón por la que aquí no se devuelve nada es
+    que nadie ha dicho que se pregunte por la oferta en general.
+    """
+    tabla = abrir_indice(indice, MODELO)
+    fragmentos = contexto_para(
+        "¿qué titulaciones ofrece la escuela?",
+        tabla,
+        incrustador_lejano,
+        abierta=False,
+    )
+    assert fragmentos == []
