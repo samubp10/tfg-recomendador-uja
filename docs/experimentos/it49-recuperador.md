@@ -7,8 +7,8 @@
 
 ## La configuración de hoy
 
-- mín 3, máx 20, factor 1.2, suelo 0.142
-- unidad **1.000** · rechazo **0.700** · 7.2 fragmentos por pregunta · 0 sin contexto
+- mín 3, máx 20, factor 1.2, suelo 0.137
+- unidad **1.000** · rechazo **0.800** · 7.2 fragmentos por pregunta · 0 sin contexto
 
 ## Las veinte mejores
 

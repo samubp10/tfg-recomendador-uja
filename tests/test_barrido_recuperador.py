@@ -119,3 +119,22 @@ def test_medir_cuenta_el_rechazo_de_lo_ajeno():
 def test_la_rejilla_no_propone_un_minimo_mayor_que_el_maximo():
     for config in barrido.rejilla():
         assert config.minimo <= config.maximo
+
+
+def test_la_configuracion_vigente_se_lee_del_modulo_y_no_de_una_copia():
+    """El informe rotula esa fila como «la configuración de hoy», y tiene que serlo.
+
+    Es una prueba de regresión con su caso real: el guion llevaba los cuatro
+    valores escritos a mano y siguió presentando como vigente un suelo de 0,142
+    después de que este mismo barrido lo bajara a 0,137.
+    """
+    from tfg_uja import recuperador
+
+    vigente = barrido.configuracion_vigente()
+
+    assert (vigente.minimo, vigente.maximo, vigente.factor, vigente.suelo) == (
+        recuperador.K_MINIMO,
+        recuperador.K_MAXIMO,
+        recuperador.FACTOR_CORTE,
+        recuperador.SUELO_PERTINENCIA,
+    )
