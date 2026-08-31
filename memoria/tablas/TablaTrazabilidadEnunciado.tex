@@ -7,31 +7,47 @@
 % que son una redaccion posterior. El mapeo era rastreable pero no estaba
 % escrito en ninguna parte, de modo que reconstruirlo quedaba en manos del
 % lector.
+%
+% La fila 1 cita el objetivo COMO ESTA REDACTADO EN LA PROPUESTA APROBADA, con
+% las cuatro fuentes que enumera. Antes decia «titulaciones, guias docentes y
+% memorias de verificacion», que no es lo que dice la propuesta: perdia los
+% datos estadisticos y cambiaba el nombre de las memorias. Asi redactada, la
+% fila se leia como si se hubiera pedido tres cosas y se hubieran hecho las
+% tres. El tribunal llega con la propuesta delante y coteja esta fila.
 \begin{table}[htbp]
   \centering
   \small
-  \caption[Trazabilidad con el enunciado original]{Correspondencia entre los
-    objetivos del enunciado original del trabajo y los objetivos específicos de
-    esta memoria. Fuente: Elaboración propia.}
+  \caption[\textcolor{borrador2}{Trazabilidad con el enunciado original}]{%
+    \textcolor{borrador2}{Correspondencia entre los objetivos del enunciado
+      original del trabajo y los objetivos específicos de esta memoria. Fuente:
+      elaboración propia.}}
   \label{tab:trazabilidad_enunciado}
   \begin{tabularx}{\textwidth}{@{}l >{\hsize=1.30\hsize}Y c >{\hsize=0.70\hsize}Y@{}}
     \toprule
-    \textbf{N.\textsuperscript{o}} & \textbf{Objetivo del enunciado original} & \textbf{OE} & \textbf{Dónde se responde} \\
+    \textbf{N.\textsuperscript{o}} & \textcolor{borrador2}{\textbf{Objetivo del enunciado original}} & \textcolor{borrador2}{\textbf{OE}} & \textcolor{borrador2}{\textbf{Dónde se responde}} \\
     \midrule
-    1 & Desarrollar un rastreador de la web del centro que recoja titulaciones, guías docentes y memorias de verificación & OE1 & Apartado~\ref{secc:resultados_coleccion} \\
-    2 & Estudiar los sistemas de generación aumentada por recuperación                                                    & OE2 · OE3 & Apartados~\ref{secc:resultados_fragmentacion} y~\ref{secc:resultados_embeddings} \\
-    3 & Configurar y desplegar el sistema RAG sobre la colección construida                                               & OE4 & Apartado~\ref{secc:resultados_rag_sistema} \\
-    4 & Construir una aplicación web de conversación sobre ese sistema                                                     & OE6 & Apartado~\ref{secc:fase3_interfaz} \\
-    5 & Probar y validar el resultado                                                                                      & OE5 & Apartado~\ref{secc:resultados_rag_sistema} \\
+    1 & \textcolor{borrador2}{Diseñar e implementar un rastreador web que extraiga títulos, guías, memorias de grado\textsuperscript{$\dagger$} y datos estadísticos\textsuperscript{$\dagger$}} & \textcolor{borrador2}{OE1} & \textcolor{borrador2}{Apartado~\ref{secc:resultados_coleccion}} \\
+    2 & \textcolor{borrador2}{Estudiar los sistemas de generación aumentada por recuperación}                                & \textcolor{borrador2}{OE2 · OE3} & \textcolor{borrador2}{Apartados~\ref{secc:resultados_fragmentacion} y~\ref{secc:resultados_embeddings}} \\
+    3 & \textcolor{borrador2}{Configurar y desplegar el sistema RAG sobre la colección construida}                           & \textcolor{borrador2}{OE4} & \textcolor{borrador2}{Apartado~\ref{secc:resultados_rag_sistema}} \\
+    4 & \textcolor{borrador2}{Construir una aplicación web de conversación sobre ese sistema}                                 & \textcolor{borrador2}{OE6} & \textcolor{borrador2}{Apartado~\ref{secc:fase3_interfaz}} \\
+    5 & \textcolor{borrador2}{Probar y validar el resultado}                                                                  & \textcolor{borrador2}{OE5} & \textcolor{borrador2}{Apartado~\ref{secc:resultados_rag_sistema}} \\
     \bottomrule
   \end{tabularx}
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textbf{Notas:} \textbf{OE} remite al objetivo específico correspondiente
-    del Capítulo~\ref{cap:objetivos}. La correspondencia no es uno a uno en los
-    dos sentidos: el segundo objetivo del enunciado se desdobla en dos objetivos
-    específicos porque la fragmentación y la elección del modelo de
-    incrustaciones se decidieron con experimentos distintos.
+    \textcolor{borrador2}{\textbf{Notas:} \textbf{OE} remite al objetivo
+      específico correspondiente del Capítulo~\ref{cap:objetivos}. La
+      correspondencia no es uno a uno en los dos sentidos: el segundo objetivo
+      del enunciado se desdobla en dos objetivos específicos porque la
+      fragmentación y la elección del modelo de incrustaciones se decidieron con
+      experimentos distintos.
+      \textsuperscript{$\dagger$}~\textbf{La colección construida no recoge las
+        memorias de grado ni los datos estadísticos} ---tasas de titulación y de
+      egreso, inserción laboral--- que enumera el primer objetivo. Sí recoge las
+      otras dos fuentes que este pedía, títulos y guías, y añade los planes de
+      estudio y las salidas profesionales. La desviación se razona en el
+      Apartado~\ref{secc:discusion_trazabilidad} y las dos fuentes ausentes
+      quedan recogidas en el Apartado~\ref{secc:trabajo_futuro}.}
   \end{minipage}
 \end{table}
