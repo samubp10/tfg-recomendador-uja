@@ -177,3 +177,69 @@ def test_dos_guias_con_el_mismo_codigo_abortan(tmp_path) -> None:
 
     with pytest.raises(InvarianteRoto, match="repetidos"):
         check_guias_pdf.main(list(argv))
+
+
+# --- Los últimos caminos sin cubrir (IT-113) --------------------------------
+
+
+def test_una_guia_sin_codigo_no_se_puede_auditar(tmp_path, capsys) -> None:
+    """El PDF se nombra por el código: sin él no hay fichero que localizar.
+
+    No es lo mismo que un PDF ausente, y por eso se cuenta aparte: aquí no
+    falta el fichero, falta la manera de saber cuál es.
+    """
+    dataset = [_asignatura(codigo=None), _guia(codigo=None)]
+    ruta, carpeta = _escenario(tmp_path, dataset, con_pdf=False)
+
+    codigo = check_guias_pdf.main([ruta, carpeta])
+
+    salida = capsys.readouterr().out
+    assert codigo == 1
+    assert "sin código" in salida
+    assert "se nombra por" in salida
+
+
+def test_una_guia_a_la_que_le_falta_un_rotulo_de_la_plantilla_se_denuncia(
+    tmp_path, capsys, monkeypatch
+) -> None:
+    """Si la Universidad retira un rótulo, su sección deja de terminar donde debe.
+
+    Se sustituye el detector, no el PDF: lo que se prueba aquí es el veredicto
+    del verificador, no la extracción, que tiene sus propias pruebas.
+    """
+    monkeypatch.setattr(
+        check_guias_pdf, "rotulos_ausentes", lambda datos: ["PROFESORADO"]
+    )
+    dataset = [_asignatura(), _guia()]
+    ruta, carpeta = _escenario(tmp_path, dataset, con_pdf=True)
+
+    with pytest.raises(InvarianteRoto, match="PROFESORADO"):
+        check_guias_pdf.main([ruta, carpeta])
+
+
+def test_una_guia_cuyo_texto_no_coincide_con_su_pdf_se_denuncia(
+    tmp_path, capsys
+) -> None:
+    """El dataset dice una cosa y el PDF del que salió dice otra."""
+    dataset = [_asignatura(), _guia(resumen="Un resumen que el PDF no trae.")]
+    ruta, carpeta = _escenario(tmp_path, dataset, con_pdf=True)
+
+    with pytest.raises(InvarianteRoto, match=CODIGO):
+        check_guias_pdf.main([ruta, carpeta])
+
+
+def test_un_pdf_sin_guia_pero_con_motivo_se_explica(tmp_path, capsys) -> None:
+    """DQA-0004: la asignatura enlaza su guía y la publica sin contenido.
+
+    El PDF existe y se descarga; lo que no trae es qué contar, así que no se
+    emite ningún item `guia`. Es la única explicación legítima de un huérfano.
+    """
+    dataset = [_asignatura(), _guia(), _asignatura(codigo="99999999")]
+    ruta, carpeta = _escenario(tmp_path, dataset, con_pdf=True)
+    (Path(carpeta) / "99999999.pdf").write_bytes(FIXTURE.read_bytes())
+
+    codigo = check_guias_pdf.main([ruta, carpeta])
+
+    salida = capsys.readouterr().out
+    assert codigo == 0
+    assert "1 PDF sin guía en el dataset, y con motivo" in salida
