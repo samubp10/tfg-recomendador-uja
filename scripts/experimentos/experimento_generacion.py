@@ -39,11 +39,11 @@ cuántos fragmentos recibió cada respuesta.
 
 Uso::
 
-    py scripts/experimento_generacion.py --modelos ministral-8b:latest gemma3:12b
-    py scripts/experimento_generacion.py --limite 10          # prueba corta
-    py scripts/experimento_generacion.py --solo-informe       # solo reescribe el .md
-    py scripts/experimento_generacion.py --recalcular         # repuntúa lo guardado
-    py scripts/experimento_generacion.py --adr                # datos brutos al ADR-0005
+    py scripts/experimentos/experimento_generacion.py --modelos ministral-8b:latest gemma3:12b
+    py scripts/experimentos/experimento_generacion.py --limite 10          # prueba corta
+    py scripts/experimentos/experimento_generacion.py --solo-informe       # solo reescribe el .md
+    py scripts/experimentos/experimento_generacion.py --recalcular         # repuntúa lo guardado
+    py scripts/experimentos/experimento_generacion.py --adr                # datos brutos al ADR-0005
 
 Las respuestas se van guardando según se producen y una ejecución nueva **no
 repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
@@ -662,7 +662,7 @@ def informe(
     escribir = lineas.append
     escribir("# Cribado de modelos generativos (IT-35)")
     escribir("")
-    escribir("> Lo escribe `scripts/experimento_generacion.py`. **No editar a mano.**")
+    escribir("> Lo escribe `scripts/experimentos/experimento_generacion.py`. **No editar a mano.**")
     escribir("")
     escribir(f"- Preguntas del banco usadas: **{len({f['id'] for f in filas})}**")
     escribir(f"- Respuestas medidas: **{len(filas)}**")
@@ -796,7 +796,7 @@ def bloque_adr(filas: list[dict[str, Any]], banco: dict[str, Any]) -> str:
     lineas: list[str] = [
         MARCA_INICIO,
         "",
-        "> Lo escribe `scripts/experimento_generacion.py --adr`. "
+        "> Lo escribe `scripts/experimentos/experimento_generacion.py --adr`. "
         "**No editar a mano.**",
         "",
         f"- Preguntas del banco: **{preguntas}** · "
