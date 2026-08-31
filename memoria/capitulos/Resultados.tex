@@ -282,6 +282,17 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   valor se detiene una pregunta ajena más de las diez con las que se ajustó, y no
   se pierde ninguna de las unidades que responden a las 56 de dominio.}
 
+\textcolor{borrador2}{La columna de rechazo de esa tabla pide una advertencia,
+  porque no es la misma cifra que informa el
+  Apartado~\ref{secc:resultados_rag_recuperacion} y confundirlas llevaría a
+  pensar que una de las dos está mal. Aquí se mide qué detiene el corte por
+  distancia \textbf{a solas}, que es lo único que la rejilla varía, y son ocho de
+  diez; allí se mide qué deja sin contexto el recuperador \textbf{completo}, y
+  son seis de diez. Las dos que las separan son las dos peticiones de consejo del
+  conjunto, a las que el recuperador entrega la banda entera \textbf{a
+    propósito}. La rejilla es un instrumento para comparar configuraciones entre
+  sí, no una medida del comportamiento del sistema.}
+
 \textcolor{borrador2}{El factor de corte es otra cosa, y es el resultado que más
   enseña de este apartado. La rejilla prefiere 1,10: mantiene la unidad que
   responde en las 56 preguntas y baja la media de fragmentos entregados de 7,2 a
@@ -309,16 +320,21 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   métrica intermedia apunta en dirección contraria al sistema completo, y eso
   sostiene la tesis del trabajo mejor que ninguna otra cifra: mide el sistema
   entero o te engañas con la parte.
-  \item \textbf{Discrepancia que hay que resolver antes de entregar, y no la he
-  tocado.} La columna \emph{Rechazo} de la tabla vale 0,800 (8 de 10) según el
-  informe de IT-49, pero el informe de IT-38 dice que sobre ese mismo conjunto
-  de ajuste el recuperador rechaza \textbf{6 de 10}. Los dos ficheros están en
-  el repositorio y se contradicen. Puede ser que midan cosas distintas ---la
-  rejilla simula el corte sobre vecinos ya calculados y el otro pasa por el
-  recuperador entero---, pero eso hay que comprobarlo, no suponerlo. Mientras no
-  se aclare, no cites la cifra absoluta en la prosa: el texto de arriba está
-  escrito a propósito en términos relativos («una pregunta ajena más»), que es
-  lo que la comparación sí sostiene.
+  \item \textbf{Las dos cifras de rechazo, 8 de 10 y 6 de 10, están
+  comprobadas y no se contradicen.} Se reprodujeron las dos sobre el índice real
+  con la configuración adoptada: el corte por distancia a solas deja fuera ocho,
+  y el recuperador completo deja sin contexto seis. Las dos que las separan son
+  \emph{P-053} y \emph{P-054}, las dos peticiones de consejo, que reciben veinte
+  fragmentos a propósito. Si el tribunal pregunta por qué dos informes del
+  repositorio dan cifras distintas, esa es la respuesta y está escrita arriba.
+  \item \textbf{Un defecto del guion que conviene que sepas, y que no he
+  tocado porque es código.} \texttt{barrido\_recuperador.py} lleva la
+  «configuración de hoy» escrita a mano ---\texttt{Configuracion(3, 20, 1.20,
+  0.142)}--- en vez de leer las constantes del módulo. Por eso su informe
+  presenta como actual un suelo que se cambió el mismo día del barrido, y por
+  eso al leerlo parece que el sistema usa 0,142 cuando usa 0,137. Si se
+  reejecutara hoy, volvería a decir lo mismo. Es una línea, pero decide si entra
+  como tarjeta.
 \end{borrador}
 
 \section[Evaluación del sistema completo]{\textcolor{borrador2}{Evaluación del sistema completo}}
