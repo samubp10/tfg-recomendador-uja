@@ -44,10 +44,20 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
 from tfg_uja.recuperador import (  # noqa: E402
+    FACTOR_CORTE,
+    K_MAXIMO,
+    K_MINIMO,
+    SUELO_PERTINENCIA,
     abrir_indice,
     distancia_del_indice,
     recuperar,
 )
+
+#: Ruta de este guion dentro del repositorio, para que el informe diga dónde
+#: está. Se deriva y no se escribe a mano: cuando IT-114 agrupó los guiones en
+#: subcarpetas, la ruta literal quedó desactualizada y la siguiente ejecución
+#: deshizo la corrección hecha sobre el informe.
+GUION = Path(__file__).resolve().relative_to(RAIZ).as_posix()
 
 #: Cuántos vecinos se traen de cada pregunta antes de simular. Tiene que ser
 #: mayor que el máximo de la rejilla, o las configuraciones grandes se medirían
@@ -67,6 +77,21 @@ class Configuracion:
     maximo: int
     factor: float
     suelo: float
+
+
+def configuracion_vigente() -> Configuracion:
+    """La configuración que el sistema usa hoy, leída del módulo que la define.
+
+    Se lee de :mod:`tfg_uja.recuperador` en vez de escribirse aquí a mano
+    porque el informe rotula esta fila como «la configuración de hoy», y una
+    copia escrita a mano deja de ser cierta en cuanto se ajusta un parámetro.
+    Ya ocurrió: este mismo barrido bajó el suelo a 0,137 y el informe siguió
+    presentando como vigente el 0,142 anterior.
+
+    Returns:
+        Los cuatro parámetros del recuperador tal como están hoy.
+    """
+    return Configuracion(K_MINIMO, K_MAXIMO, FACTOR_CORTE, SUELO_PERTINENCIA)
 
 
 @dataclass(frozen=True)
@@ -230,7 +255,7 @@ def informe(filas: list[dict[str, Any]], destino: Path, actual: dict[str, Any]) 
     lineas = [
         "# Rejilla de parámetros del recuperador (IT-49)",
         "",
-        "> Lo escribe `scripts/barrido_recuperador.py`. **No editar a mano.**",
+        f"> Lo escribe `{GUION}`. **No editar a mano.**",
         "",
         f"- Configuraciones probadas: **{len(filas)}**",
         "- Sin llamar a ningún modelo generativo: los tres parámetros solo "
@@ -312,7 +337,7 @@ def main(argumentos: list[str] | None = None) -> None:
     configuraciones = rejilla()
     print(f"Simulando {len(configuraciones)} configuraciones...")
     filas = [medir(c, dominio, ajenas) for c in configuraciones]
-    actual = medir(Configuracion(3, 20, 1.20, 0.142), dominio, ajenas)
+    actual = medir(configuracion_vigente(), dominio, ajenas)
 
     destino = Path(opciones.salida)
     destino.parent.mkdir(parents=True, exist_ok=True)
