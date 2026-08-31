@@ -1,28 +1,4 @@
 % !TEX root = ../main.tex
-% Arquitectura de la aplicacion web (IT-42), dibujada por CAPAS.
-%
-% La version anterior era un grafo de componentes con las dependencias
-% externas colgando a la derecha, y no se entendia: habia que seguir seis
-% flechas para saber por donde entra una pregunta. Una pila no tiene ese
-% problema porque no tiene flechas que cruzarse: se lee de arriba abajo y ya.
-%
-% Lo que la pila separa es LO QUE HACE CADA CAPA, no donde corre. Las cuatro
-% de dentro son un solo proceso de Python, y eso lo dice el pie y la nota, no
-% el dibujo: dibujar ademas el limite de proceso obligaba a meter una caja
-% envolvente mas y volviamos al problema anterior.
-%
-% El servidor de inferencia va FUERA de la pila y con borde discontinuo
-% porque es lo unico que corre en otro proceso. Le llegan dos flechas y no
-% una: se le llama dos veces por turno, una para fijar de que titulacion se
-% habla y otra para redactar. La figura anterior escondia ese detalle, que es
-% la mitad de lo que tarda una respuesta.
-%
-% No se dibujan las flechas de vuelta. La respuesta sube por el mismo camino
-% por el que bajo la pregunta, y duplicar las cuatro flechas para decirlo
-% habria doblado el numero de trazos sin anadir informacion.
-%
-% Las capas se encadenan con `below=of` y todo lo demas se coloca RELATIVO a
-% ellas: dar las alturas a mano ya provoco solapes en otra figura.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -102,13 +78,6 @@
         se leen al arrancar\\
         \texttt{registro\_chat.jsonl} se escribe};
 
-      % ── Lo único que corre en otro proceso ─────────────────────────────────
-      % Se centra entre las dos capas que lo llaman; el punto medio sale de un
-      % `midway` sobre un camino invisible, sin necesitar la librería `calc`.
-      % Ojo a la abscisa: una banda de 13\,cm colocada sin `at` queda CENTRADA
-      % en el origen, así que su borde derecho está en 6,5 y no en 13. Contando
-      % desde 13 el servidor se iba a 8,6\,cm de la pila y las dos flechas
-      % salían más largas que media figura.
       \path (l3.north east) -- (l4.south east) node[midway] (medio) {};
       \node[externo] (ollama) at (9.7,0 |- medio)
       {\textbf{Servidor de inferencia}\\[2pt]
@@ -116,28 +85,20 @@
         {\scriptsize otro proceso}\\[2pt]
         {\scriptsize dos llamadas por turno}};
 
-      % ── La pregunta baja por la pila ───────────────────────────────────────
+
       \draw[flechaDiag] (l1) -- (l2);
       \draw[flechaDiag] (l2) -- (l3);
       \draw[flechaDiag] (l3) -- (l4);
       \draw[flechaDiag] (l4) -- (l5);
 
-      % ── Las dos llamadas al modelo ─────────────────────────────────────────
-      % `(a -| b)` da el punto con la altura de `a` y la abscisa de `b`: así
-      % las dos flechas salen horizontales y no en diagonal.
+
       \draw[flechaDoble] (l3.east) -- node[rotulo, above=2pt]{ámbito}
       (l3.east -| ollama.west);
       \draw[flechaDoble] (l4.east) -- node[rotulo, above=2pt]{redacta}
       (l4.east -| ollama.west);
-    \end{tikzpicture}%
+    \end{tikzpicture}
   }
-  \caption[Arquitectura de la aplicación web]{\textcolor{borrador2}{Arquitectura
-      de la aplicación web. Las cuatro capas centrales son un solo proceso de
-      Python: la pila las separa por lo que hace cada una, no por dónde corre.
-      El servidor de inferencia queda fuera porque es lo único que corre
-      aparte, y le llegan dos flechas porque se le llama dos veces en cada
-      turno. La respuesta sube por el mismo camino por el que bajó la pregunta,
-      y por eso no se dibujan las flechas de vuelta. Fuente: Elaboración
-      propia.}}
+    \caption[Arquitectura de la aplicación web]{Estructura por capas de la aplicación web y su comunicación con el servidor de inferencia externo (\texttt{Ollama}), al que consulta para la fijación del ámbito y la redacción final. Fuente: Elaboración propia.}
+
   \label{fig:arquitectura_web}
 \end{figure}
