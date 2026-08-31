@@ -1,30 +1,5 @@
 % !TEX root = ../main.tex
-% Secuencia del troceado de la coleccion (Fase 1).
-%
-% Comparte convenciones con la figura del recorrido de una consulta, para que
-% las dos secuencias del documento se lean igual: cabecera de una linea, sin
-% barras de actividad, bloques en amarillo con el rotulo en negrita arriba a
-% la izquierda, y flecha gruesa para el resultado.
-%
-% La version anterior llevaba un marco de bucle con pestana, y la pestana y la
-% guarda quedaban partidas por la barra de actividad del fragmentador. Con
-% este bloque el problema no existe: el rotulo va fuera del recorrido de
-% cualquier linea de vida.
-%
-% CIFRAS COMPROBADAS el 29/08/2026 contra los ficheros reales:
-%   - grados.json trae 837 registros: 12 grado, 528 asignatura, 288 guia,
-%     8 salidas y 1 procedencia.
-%   - las 288 guias se agrupan en 210 unidades por (nombre, contenido); es
-%     decir, 78 copias que no se vuelven a indexar. OJO: son 210 unidades DE
-%     GUIA. El corpus entero tiene 398 unidades, de las que 81 se imparten en
-%     varias titulaciones. Las dos cifras conviven en la memoria y hay que
-%     decir siempre cual de las dos se esta citando.
-%   - de los 1.499 fragmentos, 1.413 pasan por el troceador y 86 no.
-%
-% Lo que esta figura ensena y el diagrama de flujo no: la DEDUPLICACION y que
-% los 86 avisos de «sin guia» son el unico mensaje que NO pasa por el
-% troceador. No hay texto que cortar, pero se escriben igual para que esas
-% asignaturas no desaparezcan del corpus.
+
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -100,12 +75,7 @@
         no hay texto que cortar, pero la asignatura no desaparece del corpus};
     \end{tikzpicture}%
   }
-  \caption[Secuencia del troceado de la colección]{\textcolor{borrador2}{Secuencia
-      del troceado. El fragmentador lee la colección extraída, manda las guías
-      al agrupador ---que reduce las 288 a 210 unidades, sin volver a indexar
-      el texto que se repite--- y llama al troceador una vez por unidad. La
-      flecha gruesa es lo que se indexa. La última no pasa por el troceador:
-      una asignatura sin guía no tiene texto que cortar, pero deja igualmente
-      su fragmento. Fuente: Elaboración propia.}}
+  \caption[Secuencia del proceso de fragmentación]{Diagrama de secuencia del proceso de fragmentación. Ilustra la deduplicación inicial de guías compartidas, la composición de listados, el particionado recursivo por unidad documental y la emisión directa de los fragmentos informativos para materias sin guía docente. Fuente: Elaboración propia.}
+
   \label{fig:secuencia_chunking}
 \end{figure}
