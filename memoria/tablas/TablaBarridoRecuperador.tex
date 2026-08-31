@@ -36,10 +36,15 @@
       pertinente nada. \textbf{Unidad} es la proporción de las 56 preguntas de
       dominio en las que se recupera al menos un fragmento de la unidad que las
       responde. \textbf{Rechazo} es la proporción de las 10 preguntas ajenas que
-      se quedan sin contexto, que en esa familia es el acierto; se mide sobre el
-      conjunto con el que se ajustó el parámetro, de modo que informa de lo bien
-      que se ajustó y \textbf{no} de lo bien que el sistema rechaza ---esa cifra
-      es la del Apartado~\ref{secc:resultados_rag_recuperacion}---.
+      se quedan sin contexto \textbf{aplicando solo el corte por distancia}, que
+      es lo que la rejilla varía. \textbf{No es la cifra de rechazo del
+        sistema}, y no debe leerse como tal, por dos razones: se mide sobre el
+      mismo conjunto con el que se ajustó el parámetro, de modo que informa de lo
+      bien que se ajustó; y el recuperador completo entrega contexto a las
+      peticiones de consejo a propósito, de manera que sobre estas mismas diez
+      preguntas rechaza seis y no ocho. Las dos que las separan son las dos
+      peticiones de consejo. La cifra que describe el sistema es la del
+      Apartado~\ref{secc:resultados_rag_recuperacion}.
       \textbf{Frag.} es la media de fragmentos entregados por pregunta, que se
       paga en tiempo y en ventana de contexto. Ninguna de las tres deja sin
       contexto ninguna pregunta de dominio.}
