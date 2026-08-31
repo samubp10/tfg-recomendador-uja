@@ -12,7 +12,7 @@ entorno virtual del proyecto**::
 
     source .venv/Scripts/activate      # Git Bash
     .venv\\Scripts\\activate.bat         # cmd.exe
-    python scripts/repeticiones_vectordb.py [N]
+    python scripts/experimentos/repeticiones_vectordb.py [N]
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 # seguir. Se registra en `sys.modules` antes de ejecutarlo porque el módulo
 # define un `@dataclass`, y `dataclasses` resuelve las anotaciones buscando el
 # módulo por su nombre.
-_RUTA_EXPERIMENTO = RAIZ / "scripts" / "experimento_vectordb.py"
+_RUTA_EXPERIMENTO = Path(__file__).resolve().parent / "experimento_vectordb.py"
 _spec = importlib.util.spec_from_file_location(
     "experimento_vectordb", _RUTA_EXPERIMENTO
 )
@@ -99,7 +99,7 @@ def informe(registro: dict[str, dict[str, list[float]]], ciclos: int) -> str:
         "# IT-31 — Reproducibilidad de la comparativa de bases vectoriales (U6)",
         "",
         f"Generado el {datetime.now():%d/%m/%Y} por "
-        "`scripts/repeticiones_vectordb.py`, sobre "
+        "`scripts/experimentos/repeticiones_vectordb.py`, sobre "
         f"**{ciclos} reconstrucciones completas** de cada índice con los mismos "
         "vectores. U6 pide que los resultados se repitan a tres decimales, y una "
         "sola pasada no puede comprobarlo.",
