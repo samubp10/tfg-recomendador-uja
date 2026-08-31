@@ -225,8 +225,9 @@ def rejilla() -> list[Configuracion]:
 
     El mínimo se barre porque nunca se ha barrido: está en 3 desde el primer
     día. El máximo, el factor y el suelo cubren un entorno amplio de los valores
-    actuales (3, 20, 1,20 y 0,142) para poder ver la forma del compromiso, no
-    solo si el valor de al lado es mejor.
+    que el sistema usa hoy ---los que devuelve :func:`configuracion_vigente`,
+    para no repetirlos aquí y que se queden atrás--- de modo que se vea la forma
+    del compromiso y no solo si el valor de al lado es mejor.
 
     Returns:
         Todas las combinaciones.
@@ -285,7 +286,13 @@ def informe(filas: list[dict[str, Any]], destino: Path, actual: dict[str, Any]) 
         "**Unidad** es la proporción de preguntas de dominio en las que se "
         "recupera al menos un fragmento de la unidad que las responde. "
         "**Rechazo** es la proporción de preguntas ajenas al dominio que se "
-        "quedan sin contexto, que es el acierto en esa familia. **Frag.** es la "
+        "quedan sin contexto **aplicando solo el corte por distancia**, que es "
+        "lo que esta rejilla varía. **No es el rechazo del sistema** y no debe "
+        "leerse como tal, por dos razones: se mide sobre el mismo conjunto con "
+        "el que se ajustó el suelo, así que informa de lo bien que se ajustó; y "
+        "el recuperador completo entrega contexto a las peticiones de consejo a "
+        "propósito, de modo que sobre estas mismas preguntas rechaza menos. "
+        "**Frag.** es la "
         "media de fragmentos por pregunta, que se paga en tiempo y en ventana. "
         "**Sin ctx.** son las preguntas de dominio que se quedan sin nada, que "
         "es el peor fallo posible del recuperador.",
