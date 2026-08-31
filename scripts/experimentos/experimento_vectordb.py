@@ -19,7 +19,7 @@ Qdrant necesita su contenedor levantado (solo en desarrollo)::
 
     source .venv/Scripts/activate      # Git Bash
     .venv\\Scripts\\activate.bat         # cmd.exe
-    python scripts/experimento_vectordb.py
+    python scripts/experimentos/experimento_vectordb.py
 """
 
 from __future__ import annotations
@@ -1514,7 +1514,7 @@ def _seccion_cabecera(
     """Encabezado con la procedencia de las cifras y la tabla comparativa."""
     return [
         f"**Generado el {datetime.now():%Y-%m-%d} por "
-        f"`scripts/experimento_vectordb.py`, sobre {len(chunks)} fragmentos y "
+        f"`scripts/experimentos/experimento_vectordb.py`, sobre {len(chunks)} fragmentos y "
         f"{len(preguntas)} preguntas de `eval/preguntas_evaluacion.json`. "
         f"K = {K}, {REPETICIONES} repeticiones por pregunta para la latencia. "
         "Las cuatro condiciones reciben los mismos vectores, incrustados una "
