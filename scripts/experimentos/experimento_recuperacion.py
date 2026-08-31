@@ -32,8 +32,8 @@ sino el corte, y el corte lo aplica el recuperador.
 
 Uso::
 
-    py scripts/experimento_recuperacion.py
-    py scripts/experimento_recuperacion.py --salida otro/sitio.md
+    py scripts/experimentos/experimento_recuperacion.py
+    py scripts/experimentos/experimento_recuperacion.py --salida otro/sitio.md
 """
 
 from __future__ import annotations
@@ -241,7 +241,7 @@ def informe(
     lineas = [
         "# Recuperación del sistema sobre el conjunto de IT-27 (IT-38)",
         "",
-        "> Lo escribe `scripts/experimento_recuperacion.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_recuperacion.py`. **No editar a mano.**",
         "",
         f"- Modelo de incrustaciones: `{MODELO}`",
         f"- Fragmentos del corpus: **{cuantos_chunks}**",
