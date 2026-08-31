@@ -14,13 +14,7 @@
 
 \textcolor{blue}{[sbp] Este comentario se ha quedado cortado.}
 
-
-Este capítulo sitúa el punto de partida del trabajo. Primero se revisa la orientación académica que se ofrece actualmente a los estudiantes preuniversitarios tales como recursos que tienen a su alcance y los problemas de accesibilidad y legibilidad que presentan. A continuación se examina el estado del arte, es decir, los asistentes conversacionales y sistemas de recomendación que ya intentan resolver un problema parecido, para delimitar qué hueco viene a cubrir este trabajo. Por último, se recoge el marco legal y ético que condiciona su diseño.
-
-\begin{borrador}
-  \item Introducción viva, revisar en la fase 5
-  \item Hay que revisar este capítulo, puesto que al inicio se habla de los recursos de orientación existentes y sus limitaciones y luego se pasa de apartado a estado del arte y en este también se explican otros recursos como chatbots, sistemas de recomendación educativos 
-\end{borrador}
+Este capítulo establece el contexto y el punto de partida del proyecto a través de tres bloques fundamentales. En primer lugar, se analiza la situación actual de la orientación académica preuniversitaria, identificando las principales dificultades que afronta el alumnado al elegir una titulación y las limitaciones de acceso y comprensión que presentan los canales oficiales de información. En segundo lugar, se revisa el estado del arte y las tecnologías fundamentales, desde la evolución del procesamiento del lenguaje natural y las alucinaciones, hasta la arquitectura de generación aumentada por recuperación (RAG), las bases de datos vectoriales y los modelos conversacionales universitarios ya existentes. Por último, se examina el marco legal y ético que condiciona el diseño del sistema en materia de extracción de datos, privacidad de usuarios menores de edad, transparencia en el uso de inteligencia artificial y accesibilidad web.
 
 \section{La orientación académica preuniversitaria}
 
@@ -59,16 +53,7 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \section{Estado del arte}
 \label{secc:estado_arte}
 
-Antes de plantear un sistema nuevo conviene mirar qué hay ya hecho para resolver un problema parecido. Esta revisión se hace en dos bloques diferenciados. El primero recoge el estado del arte de la tecnología sobre la que se construye el sistema, qué es un modelo de lenguaje y por qué alucina, en qué consiste la generación aumentada por recuperación (RAG), qué distingue a un modelo propietario de uno de pesos abiertos, y qué son la fragmentación de una colección de datos y una base de datos vectorial. El segundo bloque repasa los sistemas ya desplegados que persiguen un objetivo parecido al de este trabajo.
-
-Las decisiones concretas de cada tecnología junto con las alternativas descartadas se justifican en el Capítulo~\ref{cap:materialesymetodos}.
-
-
-
-\begin{borrador}  
-  \item texto introductorio vivo, a revisar en la fase 5                      
-\end{borrador}
-
+Antes de abordar el diseño de la solución propuesta, conviene examinar el estado actual de las tecnologías y los antecedentes en orientación académica. Esta revisión se organiza en dos partes: primeramente, los fundamentos tecnológicos sobre los que se sustenta el sistema (modelos de lenguaje y alucinaciones, arquitectura \sig{RAG}, modelos de pesos abiertos frente a comerciales, y bases de datos vectoriales), en segundo lugar, los asistentes conversacionales universitarios y sistemas de recomendación existentes, con el fin de aclarar la necesidad que cubre este trabajo. La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
 
@@ -76,19 +61,8 @@ Las decisiones concretas de cada tecnología junto con las alternativas descarta
 
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
 
-El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}.
+El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Aunque comenzó con sistemas simbólicos basados en reglas formales\cite{chomsky1957syntactic}, la disciplina evolucionó hacia modelos estadísticos y redes neuronales impulsada por el aumento de datos y cómputo\cite{hirschberg2015advances}. Esta trayectoria ha culminado en los actuales modelos de lenguaje de gran tamaño\cite{delso2024evolucion}, sustentados en la arquitectura \textit{Transformer}.
 
-\textcolor{borrador2}{No es una disciplina reciente. Su primera forma
-  trataba el lenguaje como un sistema de reglas: la gramática generativa de
-  Chomsky\cite{chomsky1957syntactic} describía las frases válidas de una lengua
-  mediante reglas de reescritura, y de ahí salieron los analizadores sintácticos
-  que dominaron el campo durante décadas. El cambio a métodos estadísticos, y
-  después a redes neuronales, es lo que llevó a los sistemas actuales; Hirschberg
-  y Manning\cite{hirschberg2015advances} recogen ese recorrido y señalan la
-  disponibilidad de datos y de cómputo como el factor que lo hizo posible, por
-  encima de los avances en los propios algoritmos. Delso et
-  al.\cite{delso2024evolucion} continúan esa revisión hasta la etapa de los
-  modelos preentrenados de gran tamaño, que es la que da pie a este trabajo.}
 
 Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM). Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
 
@@ -133,7 +107,7 @@ Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicament
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
-Conviene no confundir los modelos de pesos abiertos con aquellos de código abierto, ya que son diferentes. De un modelo de pesos abiertos se pueden descargar los parámetros que la red aprendió durante el entrenamiento al que fue sometido, que es lo que hace falta para ejecutarlo en un equipo de despliege de este. En contra posición, un modelo se considera de código abierto cuando, además de los pesos, se publican con la licencia que permite estudiarlos y modificar el código con el que se entrenó y los datos y la procedencia que se usaron para ello. Ninguna de la familia de modelos citadas en este apartado cumple lo segundo.
+Conviene no confundir los modelos de pesos abiertos con aquellos de código abierto, ya que son diferentes. De un modelo de pesos abiertos se pueden descargar los parámetros que la red aprendió durante el entrenamiento al que fue sometido, que es lo que hace falta para ejecutarlo en un equipo de despliegue de este. En contraposición, un modelo se considera de código abierto cuando, además de los pesos, se publican con la licencia que permite estudiarlos y modificar el código con el que se entrenó y los datos y la procedencia que se usaron para ello. Ninguna de la familia de modelos citadas en este apartado cumple lo segundo.
 
 La disponibilidad de los pesos puede permitir a usuarios e instituciones desplegar el modelo en equipos propios o en instancias privadas de computación. Cuando tanto la inferencia como el resto del flujo se ejecutan localmente y no intervienen API, telemetría ni otros servicios externos, las consultas pueden mantenerse dentro de una infraestructura controlada por la organización.
 
@@ -152,10 +126,6 @@ La Figura~\ref{fig:privativos_vs_abiertos} resume el contraste entre ambas famil
 \label{subsec:mineria_rastreo}
 
 El rastreo web (\textit{web scraping}) es la actividad de extraer información y descargar páginas a partir de su \sig{HTML}. A alto nivel, una herramienta de rastreo web envía una petición HTTP al servidor web, recibe la respuesta HTML, la analiza (\textit{parsing}) y localiza los datos mediante selectores como podrían ser CSS o XPath para normalizar el resultado. Este proceso no suele ser ni limpio ni uniforme ya que la codificación de caracteres suele ser inconsistente, la estructura del HTML no es igual entre páginas y, en algunos sitios, el contenido se genera dinámicamente mediante JavaScript (que no es lo que pasa en la página web de la EPSJ).
-
- \begin{borrador}
-  \item Falta hacer referencia a este apartado y borrarlo de definiciones si es que queda muy redundante.
- \end{borrador}
 
 
 \subsection{Fragmentación de la colección documental}
@@ -179,7 +149,7 @@ Existen cuatro propiedades de un modelo de incrustaciones que son importantes en
   \item  \textbf{La dimensión del vector: } Fija cuánta memoria ocupa el índice y cuánto cuesta cada comparación.
   \item  \textbf{La ventana de contexto: } Esta está medida en \glr{tokens}{token}, y es el texto máximo que tiene en cuenta el modelo para generar el vector.
   \item  \textbf{Las lenguas con las que se ha entrenado}: Esto es sumamente importante ya que muchas veces solo se entrena en un idioma para optimizar (mayoritariamente en inglés) y esto hace que no funcionen bien con otros idiomas.
-  \item  \textbf{La simetría entre la pregunta y el documento}: Una búsqueda simétrica es cuando los dos textos que se comparan tienen un papel y forma parecidas, como dos frases que se comparan para saber si significan lo mismo, y una búsqueda es asimétrica cuando por ejemplo se compara una pregunta breve frente a un documento extenso que la responde y que no se le parece en nada. Los modelos a menudo son entrenados para ambas cosas, y algunas familias de modelos resulven lo anterior poniéndole una etiqueta que devlare cuál de los dos papeles cumple.
+  \item  \textbf{La simetría entre la pregunta y el documento}: Una búsqueda simétrica es cuando los dos textos que se comparan tienen un papel y forma parecidas, como dos frases que se comparan para saber si significan lo mismo, y una búsqueda es asimétrica cuando por ejemplo se compara una pregunta breve frente a un documento extenso que la responde y que no se le parece en nada. Los modelos a menudo son entrenados para ambas cosas, y algunas familias de modelos resuelven lo anterior poniéndole una etiqueta que declare cuál de los dos papeles cumple.
 \end{itemize}
 
 La proximidad entre dos vectores en el espacio de incrustaciones se calcula normalmente con la similitud del coseno, que mide el ángulo que forman y descarta por tanto su longitud. Sin embargo, cuando un modelo entrega sus vectores ya normalizados a longitud uno, el coseno y la distancia euclídea ordenan los resultados exactamente igual, de manera que la métrica configurada deja de diferenciarse por lo que devuelve.
@@ -199,7 +169,7 @@ El denominador en esta división es lo que convierte el producto escalar en un c
 
 La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. Esta, es la alternativa a la búsqueda léxica, que puntúa un documento en función si las palabras a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-Con incrustaciones este funcionamiento cambia. \sout{Como explicamos}\textcolor{borrador2}{Como se explica} en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo del espacio de dimensiones. Esto genera otro problema y es que ahora \sout{tenemos que encontrar}\textcolor{borrador2}{hay que encontrar} los vecinos más próximosen un espacio de cientos de dimensiones, y este problema lo abarcará las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
+Con incrustaciones este funcionamiento cambia. Como se explica en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo del espacio de dimensiones. Esto genera otro problema y es que ahora hay que encontrar los vecinos más próximos en un espacio de cientos de dimensiones, y este problema lo abarcarán las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
 
 Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
@@ -208,14 +178,6 @@ Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo 
   \item \textbf{Si se filtra por metadatos: } Una colección en la que cada fragmento pone a qué titulación pertenece permite restringir la búsqueda antes de calcularla (filtrado previo) o descartar después lo que no encaja (filtrado posterior). 
 \end{itemize}
 
-
-\begin{borrador}
-  \item \textbf{El orden de los apartados de esta sección} quedaría más natural con
-  <<Métricas de comprobación>> al final, después de <<Bases de datos vectoriales>>: hoy se
-  explica cómo medir antes de haber presentado la mitad de lo que se mide. No lo he movido
-  porque es tu estructura; decide tú.
-  \item No se va a escribir sobre la búsqueda híbrida.
-\end{borrador}
 
 \subsection{Métricas de comprobación}
 
@@ -251,7 +213,7 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
   ningún resultado relevante aparece entre los recuperados, ese sumando se cuenta como cero, y
   no como el inverso de una posición que no existe.
 
-  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc... y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad \sout{podemos verla}\textcolor{borrador2}{puede verse} de dos maneras diferentes:
+  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc... y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad puede verse de dos maneras diferentes:
 \begin{itemize}
   \item \textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción de los fragmentos relevantes ha entrado entre los $K$ primeros. 
   \item \textbf{Por unidad} (\textit{RU@K}): se considera aceptada la pregunta si es que aparece alguno de los fragmentos de la unidad preguntada.
@@ -260,55 +222,27 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
 
 \subsubsection{Las métricas de generación}
 
-\textcolor{borrador2}{Medir la generación es más difícil que medir la
-  recuperación, porque no hay una lista de respuestas correctas contra la que
-  comparar: hay un texto. La propuesta más extendida para resolverlo es
-  \textit{RAGAS}\cite{es2023ragas}, que evalúa la fidelidad de la respuesta al
-  contexto y la pertinencia de lo recuperado \textbf{usando un modelo de lenguaje
-  como juez}: otro modelo lee la respuesta y decide si cada afirmación se apoya en
-  el contexto. Este trabajo no la emplea, y conviene decir por qué, porque es la
-  vía habitual. Un juez que es a su vez un modelo generativo tiene el mismo defecto
-  que se está midiendo, no da una cifra reproducible y traslada la confianza a una
-  pieza que nadie ha evaluado. Aquí se mide con comprobaciones deterministas sobre
-  cadenas, que abarcan menos pero no dependen de nada que haya que creerse.}
+A diferencia de la fase de recuperación, la cual se podría evaluar mediante métricas cuantitativas consolidadas ($Recall@K$ y $MRR$), medir la calidad de la generación de texto en lenguaje natural es más complejo al no existir una única respuesta prefijada.
 
+En la literatura más reciente, la solución más extendida es el uso de marcos de evaluación automatizados como \textit{RAGAS} (\textit{Retrieval Augmented Generation Assessment})\cite{es2023ragas}. Estas herramientas miden cosas como la fidelidad de la respuesta al contexto recuperado (\textit{faithfulness}) o la relevancia de la respuesta empleando un modelo de lenguaje como juez (\textit{LLM-as-a-judge}). Sin embargo, este enfoque presenta limitaciones metodológicas tales como que el evaluador es otro modelo de lenguaje, que puede arrastrar los mismos sesgos y las mismas alucinaciones que se le pide juzgar.
 
+Por ello, en este trabajo se descarta el uso de modelos generativos como evaluadores y se opta por un conjunto de comprobaciones deterministas basadas en reglas comparación de cadenas sobre los datos oficiales:
 
+\begin{itemize}
+  \item \textbf{Detección de titulaciones inventadas:} Se comprueba de forma estricta que cualquier titulación mencionada en la respuesta pertenezca al catálogo oficial de grados de la EPSJ.
+  \item \textbf{Fidelidad al contexto:} Se verifica que las asignaturas y menciones citadas por el modelo figuren explícitamente en los fragmentos de contexto proporcionados en el \textit{prompt}.
+  \item \textbf{Rechazo de consultas fuera de dominio:} Se valida que el sistema reconozca preguntas ajenas a la oferta académica del centro y emita la respuesta de declinación preestablecida en lugar de alucinar información externa.
+\end{itemize}
 
-
-\begin{borrador}
-  \item Por redacta las métricas de generación cuando se llege a su parte.
- 
-  \item \textbf{Dos nombres de tu lista se han quedado fuera a propósito:} <<RAGEval>> y
-  <<qEVAL>>. No los he puesto porque no me consta que existan con ese nombre exacto y aquí
-  no se puede citar de oídas. RAGAS sí está comprobado y ya figura en la bibliografía.
-  Compruébalos tú antes de añadirlos, y si no aparecen, quítalos de la lista sin más.
-  \item \textbf{Faltan entradas en el glosario} del Capítulo~\ref{cap:definiciones}: no
-  están \textit{Recall@K}, MRR, nDCG ni fidelidad, y las abreviaturas MRR y nDCG tampoco
-  aparecen en la lista de abreviaturas. Si las marcas con la macro del glosario sin darlas
-  de alta, la nota al pie remite a una definición que no existe.
-  \item \textbf{AUDITORÍA 30/08 --- esta nota ya está resuelta, puedes tacharla.}
-  Comprobado hoy recorriendo las macros una a una: \emph{Recall@K} está en el
-  glosario como «Exhaustividad», MRR como «Rango recíproco medio» y la fidelidad
-  entra dos veces, la del índice y la de la respuesta. MRR figura además en la
-  lista de abreviaturas. Y nDCG no hace falta darlo de alta porque no se usa en
-  ninguna parte de la memoria.
-  \item \textbf{De los 39 términos marcados en el texto, los 39 tienen su
-  destino}: no hay ni un enlace roto en el glosario. Al revés sí sobran nueve
-  entradas dadas de alta que nunca se marcan (\emph{autoatención},
-  \emph{transformador}, \emph{fragmento}, \emph{test de Holland}\dots), que no
-  es un error pero sí una decisión: o se marcan en su primera aparición o se
-  quitan del glosario.
-\end{borrador}
 
 \subsection{Bases de datos vectoriales}
 \label{subsec:vectordb_concepto}
 
-Una base de datos vectorial\cite{pan2024vectordb} es un sistema de almacenamiento especializado en guardar incrustaciones junto a sus metadatos y resolver que dada una consulta, cuáles de llas incrustaciones almacenadas son las más próximas. Es la tecnología que hace viable la búsqueda semántica ya que comparar la consulta con toda la colección deja de ser factible cuando \sout{tenemos una colección grande}\textcolor{borrador2}{la colección es grande}.
+Una base de datos vectorial\cite{pan2024vectordb} es un sistema de almacenamiento especializado en guardar incrustaciones junto a sus metadatos y resolver que dada una consulta, cuáles de las incrustaciones almacenadas son las más próximas. Es la tecnología que hace viable la búsqueda semántica ya que comparar la consulta con toda la colección deja de ser factible cuando la colección es grande.
 
-Una distición que debemos de hacer es la de búsqueda exacta y búsqueda aproximada, esta primera, también llamada por fuerza bruta, compara la consulta con todos los vectores y devuelve los más próximos, su coste crece linealmente con el tamaño de los datos, pero no se equivoca nunca. La búsqueda aproximada no tiene esa garantía a cambio de una mayor velocidad ya que solo recorre parte del espacio y no por completo.
+Una distinción que hay que hacer es la de búsqueda exacta y búsqueda aproximada, esta primera, también llamada por fuerza bruta, compara la consulta con todos los vectores y devuelve los más próximos, su coste crece linealmente con el tamaño de los datos, pero no se equivoca nunca. La búsqueda aproximada no tiene esa garantía a cambio de una mayor velocidad ya que solo recorre parte del espacio y no por completo.
 
-Para que la búsqueda aproximada no recorra todo el espacio, las bases vectoriales construyen un índice, del cuál los más populares son:
+Para que la búsqueda aproximada no recorra todo el espacio, las bases vectoriales construyen un índice, de los cuales los más populares son:
 
 \begin{itemize}
   \item \textbf{Grafos de proximidad}: como HNSW\cite{malkov2020hnsw}, que enlazan cada vector con sus vecinos en varias capas y navegan saltando de uno a otro hacia la consulta. Son los más usados hoy y lo que mejor equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que abarca el grafo.
@@ -421,25 +355,12 @@ no la síntesis de una fuente citable. Es precisamente esta capacidad la que dis
 
 \subsection{Posicionamiento de este trabajo}
 
-Este trabajo comparte con los sistemas revisados el objetivo de orientar en la elección de estudios,
-pero se distingue en tres aspectos fundamentales: el dominio está acotado a la oferta de la Escuela Politécnica
-Superior de Jaén (ver sección \ref{secc:alcance}), que responde en lenguaje natural apoyándose en documentos oficiales y el público objetivo es preuniversitario,
-lo que impone exigencias específicas de legibilidad y fiabilidad.
-
-
-\begin{borrador}
-  \item \textbf{Dos frases de este apartado necesitan que las reescribas tú}, porque no se
-  arreglan cambiando una palabra.
-  \item La que empieza por <<Según el siguiente artículo sobre sistemas de recomendación\dots
-  identifica el filtrado colaborativo>> se queda sin sujeto: <<según>> ya introduce la fuente,
-  así que el verbo se queda colgado. Con <<El artículo\dots identifica>> o con <<Según el
-  artículo\dots, el filtrado colaborativo es uno de los enfoques más habituales>> se resuelve.
-  Y <<el siguiente artículo>> no señala a nada, porque la cita va después.
-  \item La de los <<tres aspectos fundamentales>> del posicionamiento enumera tres cosas que no
-  son del mismo tipo: un dominio acotado, una oración de relativo (<<que responde en lenguaje
-  natural\dots>>) y un público objetivo. Con tres sintagmas paralelos se lee sola.
-\end{borrador}
-
+Este trabajo comparte con los sistemas analizados el propósito de orientar en la elección académica, pero se diferencia de ellos en tres aspectos fundamentales:
+\begin{itemize}
+  \item \textbf{La delimitación del dominio:} el conocimiento del sistema se ciñe únicamente al ámbito de la oferta académica oficial de la Escuela Politécnica Superior de Jaén (ver Sección~\ref{secc:alcance}), garantizando respuestas especializadas y acotadas a esa oferta.
+  \item \textbf{La generación fundamentada en fuentes oficiales:} frente a los asistentes comerciales actuales que se limitan a redirigir a enlaces web o los sistemas psicométricos que devuelven listas cerradas, este trabajo genera respuestas en lenguaje natural para que lo pueda entender un alumno no universitario.
+  \item \textbf{El enfoque hacia el público preuniversitario:} el diseño se adapta a las dudas de estudiantes preuniversitarios que nunca han estado en la universidad y que no conocen la jerga, priorizando la claridad conceptual y la fiabilidad para evitar desorientar.
+\end{itemize}
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
@@ -451,23 +372,7 @@ Con respecto a la extracción automatizada de información de la web, actualment
 
 Siguiendo con la misma extracción/scraping y Propiedad Intelectual, la descarga se ampara en el artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021}, cuyo apartado 1 establece que <<no será precisa la autorización del titular de los derechos de propiedad intelectual para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minería de textos y datos>>. Y precisamente esta forma legítima se respeta aquí puesto que el rastreador respeta el fichero \texttt{robots.txt}, espacia sus peticiones y en ningún momento se elude una medida de protección.
 
-\textcolor{borrador2}{Ese mismo artículo condiciona la excepción a que el
-  titular no se haya reservado expresamente el uso de sus contenidos para minería
-  de textos y datos, así que hubo que ir a mirarlo. El aviso legal de la
-  Universidad de Jaén\cite{uja_avisolegal} prohíbe con carácter general extraer el
-  contenido del sitio, pero no formula ninguna reserva expresa frente a la minería
-  de textos y datos, que es la figura concreta que la ley exige reservar. La
-  distinción no es un tecnicismo: de ella depende que la excepción se aplique o no.}
-
-\textcolor{borrador2}{Al margen de la propiedad intelectual, la extracción
-  automatizada ha llegado a los tribunales españoles. La Sentencia 572/2012 del
-  Tribunal Supremo\cite{sts572_2012}, en el litigio entre una aerolínea y una
-  agencia de viajes en línea, desestimó las pretensiones de la primera sobre el
-  derecho \textit{sui generis} de bases de datos frente a la extracción
-  automatizada de sus contenidos. El caso no es equiparable a este ---allí había
-  explotación comercial de los datos ajenos, y aquí un uso académico sin ánimo de
-  lucro---, pero fija que la extracción no es ilícita por sí misma y que lo que
-  decide son las condiciones concretas en que se hace.}
+No obstante, la legislación condiciona esta excepción a que el titular de los derechos no haya manifestado una reserva expresa frente a la minería de textos y datos. Al revisar el aviso legal de la  Universidad de Jaén\cite{uja_avisolegal}, se observa que, si bien prohíbe en general la extracción de los contenidos del sitio web, no formula la reserva formal y específica exigida por la normativa. Por consiguiente, la extracción automatizada para fines de investigación e indexación se acoge a esta excepción.
 
 
 \subsection{Protección de datos y usuarios menores de edad}
@@ -478,19 +383,10 @@ La alternativa elegida es evitar el problema en el origen, ya que el sistema no 
 
 \subsection{Transparencia en el uso de la inteligencia artificial}
 
-Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción.
+Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción. Para cumplir con esto, la interfaz de la aplicación incorpora un aviso permanente en la cabecera del chat e incluye en cada respuesta las referencias exactas a las guías docentes consultadas.
 
+En cuanto a las licencias, el código fuente del proyecto se distribuye bajo la licencia libre GNU General Public License v3 (GPLv3)\cite{gpl3}. Para la parte de inferencia, se restringe la selección a modelos exclusivamente de pesos abiertos, asegurando la soberanía de los datos procesados en local.
 
+\subsection{Accesibilidad del servicio web}
 
-
-\begin{borrador}                                        
-  
-  \item \textbf{Accesibilidad --- Fase 3.} Accesibilidad de la web. Aquí hay dos anclajes y
-  conviene distinguirlos: la referencia técnica son las WCAG 2.2\cite{wcag22}, y la
-  obligación jurídica, si la herramienta acaba publicada por la Universidad, vendría del
-  Real Decreto 1112/2018\cite{rd1112_2018}. Ese real decreto no nombra a las universidades:
-  su artículo 2.1.d remite al sector público institucional del artículo 2.2 de la
-  Ley 39/2015, y es ahí donde encajan las públicas. Merece la pena que sigas tú esa cadena
-  de remisiones antes de afirmarlo, que es justo el tipo de detalle que se pregunta.
-  \item \textbf{Licencias} La licencia del modelo concreto se fijará con el ADR-0005 (Fase 2), luego de elegirlo finalmente.
-\end{borrador}
+La interfaz web del asistente se ha creado bajo las pautas técnicas \textit{WCAG 2.2}\cite{wcag22} en su nivel de conformidad AA. En el marco legal español, el Real Decreto 1112/2018\cite{rd1112_2018} exige garantizar la accesibilidad en los sitios web del sector público, entorno en el que se integran las universidades públicas a través de la remisión de su artículo 2.1.d al artículo 2.2 de la Ley 39/2015.
