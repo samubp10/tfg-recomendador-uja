@@ -1,14 +1,5 @@
 % !TEX root = ../main.tex
-% Resumen del backlog por fase y naturaleza del trabajo. Sustituye a la antigua
-% TablaBacklog.tex, que listaba las historias una a una (tutoria del 04/08/2026:
-% demasiado especifica para un lector que no conoce el proyecto por dentro).
-%
-% Las cifras NO se escriben a mano: se cuentan sobre el repositorio con
-% `gh issue list --state all` filtrando los titulos que empiezan por «IT-», que
-% es lo unico que distingue una historia del proyecto de una incidencia suelta.
-%
-% Las naturalezas del repositorio son siete y la tabla muestra cinco:
-% tipo:test cuenta como Codigo, y tipo:adr y tipo:dqa cuentan como Decision.
+
 \begin{table}[htbp]
   \centering
   \caption{Reparto de las historias de usuario del proyecto por fase y por
@@ -37,13 +28,6 @@
     algo sobre datos reales para poder decidir con evidencia; \textbf{Decisión}: se documenta
     una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA);
     \textbf{Gestión}: infraestructura del propio proyecto. Un guion indica que esa fase no
-    tiene ninguna historia de esa naturaleza. \textcolor{borrador2}{Cifras contadas sobre el
-      repositorio el 31/08/2026; cambian cada vez que se abre o se reasigna una tarjeta.
-      \textbf{Seis historias siguen contando aquí aunque no se vayan a hacer} ---las
-      tres de validación con usuarios, las dos de datos de acceso y de inserción
-      laboral, y la documentación técnica de la interfaz de programación---: están
-      clasificadas como \textit{won't have}, que es una decisión registrada y no una
-      tarjeta que desaparece. Por eso el total de la tabla no coincide con el número de
-      historias realizadas.}
+    tiene ninguna historia de esa naturaleza.
   \end{minipage}
 \end{table}
