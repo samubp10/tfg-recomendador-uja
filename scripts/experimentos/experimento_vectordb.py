@@ -860,6 +860,11 @@ def _esquema_lance(dimension: int) -> Any:
             pa.field("grados", pa.list_(pa.string())),
             pa.field("codigos", pa.list_(pa.string())),
             pa.field("tipo_asignatura", pa.string()),
+            # IT-105 anadio esta columna al esquema del indexador y aqui se
+            # quedo sin anadir. Como `medir_lancedb` reutiliza `indexar_chunks`,
+            # que emite el campo siempre, la tabla rechazaba cada lote y el
+            # experimento no podia medir a la candidata que el ADR-0004 elige.
+            pa.field("curso", pa.string()),
             pa.field("chunk_index", pa.int64()),
             pa.field("total_chunks", pa.int64()),
         ]
