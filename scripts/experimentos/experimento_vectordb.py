@@ -66,52 +66,6 @@ MARCA_INICIO: Final[str] = (
 )
 MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
 
-#: Esqueleto que se escribe la primera vez, si el ADR todavía no existe. El
-#: resto de secciones (Contexto, Alternativas, Decisión) son una decisión del
-#: autor y este guion no las redacta: solo deja el hueco marcado con su
-#: tarjeta, para que quede claro qué falta y de dónde sale cada cosa.
-ESQUELETO_ADR: Final[str] = """# ADR-0004: Base de datos vectorial
-
-*Basado en https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions*
-
-- **Estado:** propuesta
-- **Fecha:** {fecha}
-- **Decisores:** Samuel Blanco Palmero
-- **Contexto técnico:** Fase 2 (pipeline RAG y base vectorial) del Recomendador UJA
-
-## Contexto
-
-_(IT-32, pendiente de redactar. Restricciones y candidatas verificadas en
-`Notas_TFG/Teoría/Fase2_bases_vectoriales/`.)_
-
-## Alternativas consideradas
-
-_(IT-32, pendiente. Ver `02_los_3_candidatos.md` para ChromaDB, LanceDB y
-Qdrant, con licencia, arquitectura e índice de cada una, y las descartadas con
-su motivo.)_
-
-## Resultados del experimento (IT-31)
-
-{bloque}
-
-## Decisión
-
-_(IT-32, pendiente: a partir de los resultados de arriba.)_
-
-## Consecuencias
-
-_(IT-32, pendiente.)_
-
-## Amenazas a la validez
-
-_(IT-32, pendiente. Ver `04_como_se_mide_una_base_vectorial.md` §4.7 para la
-lista ya identificada antes de ejecutar nada.)_
-
-## Referencias
-
-_(IT-32, pendiente.)_
-"""
-
 #: Vecinos que se piden en cada consulta. Es el K con el que se comprueba la
 #: fidelidad frente a la búsqueda exacta (U1).
 K: Final[int] = 10
@@ -1514,7 +1468,8 @@ def _seccion_cabecera(
     """Encabezado con la procedencia de las cifras y la tabla comparativa."""
     return [
         f"**Generado el {datetime.now():%Y-%m-%d} por "
-        f"`scripts/experimentos/experimento_vectordb.py`, sobre {len(chunks)} fragmentos y "
+        f"`scripts/experimentos/experimento_vectordb.py`, sobre "
+        f"{len(chunks)} fragmentos y "
         f"{len(preguntas)} preguntas de `eval/preguntas_evaluacion.json`. "
         f"K = {K}, {REPETICIONES} repeticiones por pregunta para la latencia. "
         "Las cuatro condiciones reciben los mismos vectores, incrustados una "
@@ -1679,25 +1634,30 @@ def generar_bloque_resultados(
 
 
 def escribir_resultados(bloque: str) -> None:
-    """Inserta o reemplaza el bloque de resultados dentro del ADR-0004.
+    """Sustituye el bloque de resultados que hay entre las dos marcas.
 
-    Si el ADR no existe todavía, crea el esqueleto mínimo con el bloque
-    dentro: el resto (Contexto, Alternativas, Decisión, Consecuencias) es una
-    decisión del autor y este guion no la redacta. Si ya existe, solo
-    sustituye lo que hay entre las marcas, para no tocar nada escrito a mano.
+    Solo toca lo que hay entre ellas, de modo que no altera ni una línea de lo
+    que el autor haya escrito en el resto del ADR.
+
+    Args:
+        bloque: El bloque completo, marcas incluidas.
+
+    Raises:
+        SystemExit: Si el ADR no existe o no lleva las marcas. Se falla de
+            forma ruidosa a propósito: añadir el bloque al final de un fichero
+            que no lo esperaba deja el ADR desordenado sin avisar.
     """
-    if RUTA_ADR.exists():
-        contenido = RUTA_ADR.read_text(encoding="utf-8")
-        if MARCA_INICIO in contenido and MARCA_FIN in contenido:
-            antes, resto = contenido.split(MARCA_INICIO, 1)
-            _, despues = resto.split(MARCA_FIN, 1)
-            nuevo = antes + bloque + despues
-        else:
-            nuevo = contenido.rstrip("\n") + "\n\n" + bloque + "\n"
-    else:
-        nuevo = ESQUELETO_ADR.format(fecha=f"{datetime.now():%Y-%m-%d}", bloque=bloque)
-    RUTA_ADR.parent.mkdir(parents=True, exist_ok=True)
-    RUTA_ADR.write_text(nuevo, encoding="utf-8")
+    if not RUTA_ADR.exists():
+        raise SystemExit(f"No existe {RUTA_ADR}: el ADR lo abre IT-32, no este guion.")
+    contenido = RUTA_ADR.read_text(encoding="utf-8")
+    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
+        raise SystemExit(
+            f"{RUTA_ADR.name} no lleva las marcas de resultados automáticos. "
+            "Añádelas donde deba ir el bloque."
+        )
+    antes, resto = contenido.split(MARCA_INICIO, 1)
+    _, despues = resto.split(MARCA_FIN, 1)
+    RUTA_ADR.write_text(antes + bloque + despues, encoding="utf-8")
     print(f"Resultados escritos en {RUTA_ADR}")
 
 
