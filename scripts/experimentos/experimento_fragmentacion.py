@@ -48,7 +48,7 @@ Ejecutar desde la raíz del repositorio y **con el entorno virtual activado**
 ---el ``py`` del sistema no tiene las dependencias---::
 
     source .venv/Scripts/activate
-    python -u scripts/experimento_fragmentacion.py
+    python -u scripts/experimentos/experimento_fragmentacion.py
 
 Reescribe el anexo del ADR-0001, entre sus marcas de resultados automáticos.
 """
@@ -694,7 +694,7 @@ def _cabecera_del_informe(
     """
     return [
         f"Generado el {date.today():%d/%m/%Y} con "
-        "`py -u scripts/experimento_fragmentacion.py` sobre `data/grados.json`, "
+        "`py -u scripts/experimentos/experimento_fragmentacion.py` sobre `data/grados.json`, "
         f"con {n_preguntas} preguntas de `eval/preguntas_evaluacion.json` y el "
         f"modelo `{MODELO}` (ventana de {ventana} tokens), en CPU.",
         "",
