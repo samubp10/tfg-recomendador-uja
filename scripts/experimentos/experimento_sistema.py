@@ -23,7 +23,9 @@ from typing import Any
 
 RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
-sys.path.insert(0, str(RAIZ / "scripts"))
+# El vecino de carpeta del que se importan los correctores. Se apunta a la
+# carpeta propia y no a `scripts/`, que desde IT-114 ya no contiene el modulo.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
@@ -385,7 +387,8 @@ def informe(filas: list[dict[str, Any]], destino: Path) -> None:
     lineas = [
         "# Evaluación del sistema completo (IT-37)",
         "",
-        "> Lo escribe `scripts/experimentos/experimento_sistema.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_sistema.py`. "
+        "**No editar a mano.**",
         "",
         f"- Entradas del banco: **{len(filas) // max(len(modelos), 1)}**",
         f"- Servidor de inferencia: {filas[0]['servidor'] if filas else '?'}",
