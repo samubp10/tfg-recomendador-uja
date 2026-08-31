@@ -1,0 +1,47 @@
+% !TEX root = ../main.tex
+% Tres configuraciones de la rejilla del recuperador (IT-49), elegidas para que
+% se lea la decision y no para resumir las 240.
+% Fuente: docs/experimentos/it49-recuperador.md, escrito por el propio guion
+%   scripts/experimentos/barrido_recuperador.py. NO editar estas cifras a mano.
+%
+% Por que estas tres y no las veinte mejores: la fila del medio es la que la
+% rejilla prefiere y la de abajo la que se adopta. Sin las dos juntas no se ve
+% la decision, que es lo unico que esta seccion tiene que contar.
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption[\textcolor{borrador2}{Rejilla de parámetros del recuperador}]{%
+    \textcolor{borrador2}{Tres de las 240 configuraciones de la rejilla del
+      recuperador: la de partida, la que la rejilla prefiere y la adoptada.
+      Fuente: elaboración propia.}}
+  \label{tab:barrido_recuperador}
+  \begin{tabular}{@{}lrrrrrrr@{}}
+    \toprule
+    \textcolor{borrador2}{\textbf{Configuración}} & \textbf{mín} & \textbf{máx}
+      & \textbf{factor} & \textbf{suelo} & \textbf{Unidad} & \textbf{Rechazo}
+      & \textbf{Frag.} \\
+    \midrule
+    \textcolor{borrador2}{De partida}          & 3 & 20 & 1,20 & 0,142 & 1,000 & 0,700 & 7,2 \\
+    \textcolor{borrador2}{Preferida por la rejilla} & 3 & 20 & 1,10 & 0,137 & 1,000 & 0,800 & 4,2 \\
+    \textcolor{borrador2}{\textbf{Adoptada}}   & 3 & 20 & 1,20 & 0,137 & 1,000 & \textbf{0,800} & 7,2 \\
+    \bottomrule
+  \end{tabular}
+  \begin{minipage}{0.95\textwidth}
+    \vspace{4pt}
+    \tiny
+    \textcolor{borrador2}{\textbf{Notas:} \textbf{mín} y \textbf{máx} son la
+      banda de fragmentos que se pueden entregar; \textbf{factor} es cuánto más
+      lejos que el mejor puede estar un fragmento y seguir entrando;
+      \textbf{suelo} es la distancia por encima de la cual no se considera
+      pertinente nada. \textbf{Unidad} es la proporción de las 56 preguntas de
+      dominio en las que se recupera al menos un fragmento de la unidad que las
+      responde. \textbf{Rechazo} es la proporción de las 10 preguntas ajenas que
+      se quedan sin contexto, que en esa familia es el acierto; se mide sobre el
+      conjunto con el que se ajustó el parámetro, de modo que informa de lo bien
+      que se ajustó y \textbf{no} de lo bien que el sistema rechaza ---esa cifra
+      es la del Apartado~\ref{secc:resultados_rag_recuperacion}---.
+      \textbf{Frag.} es la media de fragmentos entregados por pregunta, que se
+      paga en tiempo y en ventana de contexto. Ninguna de las tres deja sin
+      contexto ninguna pregunta de dominio.}
+  \end{minipage}
+\end{table}
