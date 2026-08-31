@@ -46,6 +46,11 @@ dev = [
     "lancedb>=0.37",   # Base vectorial (ADR-0004): los tests del indexador la usan en disco
     "pyarrow>=17.0",   # Esquema de la tabla. Se declara porque el indexador lo importa
     "numpy>=1.24",     # Similitud coseno del ranking en evaluacion.py (IT-28)
+    "psutil>=7.0",     # RSS del proceso: lo usa la medida de U5 del experimento
+                       #   de bases vectoriales, que desde IT-113 esta cubierta
+                       #   por pruebas. Estaba solo en `comparativa-vectordb`,
+                       #   que el CI no instala, asi que la tanda fallaba alli
+                       #   y pasaba en local
 ]
 # Ejecución real del pipeline de indexación (IT-30). Separado de dev porque
 # sentence-transformers arrastra PyTorch (cientos de MB) y el CI no lo
