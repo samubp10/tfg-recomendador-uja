@@ -241,7 +241,8 @@ def informe(
     lineas = [
         "# Recuperación del sistema sobre el conjunto de IT-27 (IT-38)",
         "",
-        "> Lo escribe `scripts/experimentos/experimento_recuperacion.py`. **No editar a mano.**",
+        "> Lo escribe `scripts/experimentos/experimento_recuperacion.py`. "
+        "**No editar a mano.**",
         "",
         f"- Modelo de incrustaciones: `{MODELO}`",
         f"- Fragmentos del corpus: **{cuantos_chunks}**",
