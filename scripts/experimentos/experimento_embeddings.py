@@ -15,7 +15,7 @@ Necesita la dependencia opcional ``[index]`` (arrastra PyTorch) y red para
 descargar los modelos la primera vez; por eso, igual que los verificadores del
 dataset, se ejecuta SOLO en local y no en CI:
 
-    py scripts/experimento_embeddings.py
+    py scripts/experimentos/experimento_embeddings.py
 """
 
 from __future__ import annotations
@@ -607,7 +607,7 @@ def _cabecera_del_informe(
         corpus = ruta_chunks.name
     return (
         f"Generado el {date.today():%d/%m/%Y} ejecutando "
-        f"`py scripts/experimento_embeddings.py` contra `{corpus}` "
+        f"`py scripts/experimentos/experimento_embeddings.py` contra `{corpus}` "
         f"({total_chunks} fragmentos, {total_preguntas} preguntas de "
         f"`eval/preguntas_evaluacion.json`), en **{_dispositivo()}**.\n\n"
     )
@@ -684,8 +684,8 @@ def main(argumentos: list[str] | None = None) -> int:
 
     Uso::
 
-        py scripts/experimento_embeddings.py
-        py scripts/experimento_embeddings.py --chunks otro_corpus.json \\
+        py scripts/experimentos/experimento_embeddings.py
+        py scripts/experimentos/experimento_embeddings.py --chunks otro_corpus.json \\
             --salida docs/adr/adr-0003-modelo-de-embeddings.md
 
     Args:
