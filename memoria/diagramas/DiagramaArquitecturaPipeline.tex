@@ -1,19 +1,5 @@
 % !TEX root = ../main.tex
-% Arquitectura general del sistema.
-%
-% El corte NO es por fase de desarrollo, como en la version anterior, sino por
-% CUANDO SE EJECUTA cada cosa: arriba lo que corre una sola vez para dejar el
-% indice construido, abajo lo que corre en cada pregunta. Agrupar por fase
-% mezclaba dos ejes distintos ---cuando se programo y cuando se ejecuta--- y
-% dejaba el indice, que es lo unico que une las dos mitades, dentro de una de
-% ellas.
-%
-% El rastreador, el fragmentador y el indexador van como ROTULO DE FLECHA y no
-% como caja: son transformaciones entre artefactos, y ponerlas como cajas
-% duplicaba la fila sin anadir informacion.
-%
-% Dos piezas llevan borde grueso: el indice, porque es lo unico que une las dos
-% bandas, y el servidor web, porque es donde viven las tres barreras de dominio.
+
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -88,9 +74,6 @@
       {tarea auxiliar: si falla, la respuesta se entrega igual};
     \end{tikzpicture}%
   }
-  \caption[Arquitectura general del sistema]{\textcolor{borrador2}{Arquitectura
-      general del sistema. La banda superior se ejecuta una sola vez, para dejar
-      construido el índice; la inferior, cada vez que alguien pregunta. El índice
-      es lo único que las une. Fuente: Elaboración propia.}}
+  \caption[Arquitectura general del sistema]{Arquitectura general del sistema. La sección superior se ejecuta una única vez para construir el índice, mientras que la inferior resuelve las consultas en tiempo real conectándose exclusivamente a través de él. Fuente: Elaboración propia.}
   \label{fig:arquitectura_pipeline}
 \end{figure}
