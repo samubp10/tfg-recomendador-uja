@@ -58,13 +58,18 @@ RUTA_EVAL = RAIZ / "eval" / "preguntas_evaluacion.json"
 #: y no en un fichero aparte.
 RUTA_ADR: Final[Path] = RAIZ / "docs" / "adr" / "adr-0004-base-vectorial.md"
 
+# El ayudante que coloca el bloque dentro del ADR es el vecino de carpeta.
+# `scripts/` no es un paquete importable, asi que se anade la carpeta propia al
+# camino de busqueda, que es lo mismo que hace el interprete al ejecutar esto.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _adr  # noqa: E402
+
 #: Marcas entre las que este guion escribe. Permiten volver a ejecutarlo sin
 #: pisar lo que el autor haya escrito a mano en el resto del ADR.
-MARCA_INICIO: Final[str] = (
-    "<!-- INICIO RESULTADOS AUTOMÁTICOS "
-    "(scripts/experimentos/experimento_vectordb.py) -->"
+MARCA_INICIO: Final[str] = _adr.marca_inicio(
+    "scripts/experimentos/experimento_vectordb.py"
 )
-MARCA_FIN: Final[str] = "<!-- FIN RESULTADOS AUTOMÁTICOS -->"
+MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 #: Vecinos que se piden en cada consulta. Es el K con el que se comprueba la
 #: fidelidad frente a la búsqueda exacta (U1).
@@ -1647,17 +1652,7 @@ def escribir_resultados(bloque: str) -> None:
             forma ruidosa a propósito: añadir el bloque al final de un fichero
             que no lo esperaba deja el ADR desordenado sin avisar.
     """
-    if not RUTA_ADR.exists():
-        raise SystemExit(f"No existe {RUTA_ADR}: el ADR lo abre IT-32, no este guion.")
-    contenido = RUTA_ADR.read_text(encoding="utf-8")
-    if MARCA_INICIO not in contenido or MARCA_FIN not in contenido:
-        raise SystemExit(
-            f"{RUTA_ADR.name} no lleva las marcas de resultados automáticos. "
-            "Añádelas donde deba ir el bloque."
-        )
-    antes, resto = contenido.split(MARCA_INICIO, 1)
-    _, despues = resto.split(MARCA_FIN, 1)
-    RUTA_ADR.write_text(antes + bloque + despues, encoding="utf-8")
+    _adr.sustituir(RUTA_ADR, MARCA_INICIO, bloque)
     print(f"Resultados escritos en {RUTA_ADR}")
 
 
