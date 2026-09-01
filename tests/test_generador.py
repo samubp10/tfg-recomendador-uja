@@ -1512,3 +1512,64 @@ def test_las_dos_formas_de_entregar_dan_exactamente_el_mismo_texto(monkeypatch, 
     ).strip()
 
     assert entera == por_partes
+
+
+# --- IT-119: el nombre en una frase y el atributo en la siguiente ---
+
+
+@pytest.mark.parametrize("flujo", [True, False])
+def test_regresion_el_atributo_escrito_en_frase_aparte_se_corrige(monkeypatch, flujo):
+    """El punto separa el nombre del dato, y la correccion tiene que seguir.
+
+    `partir_en_unidades` corta por el punto, asi que esta respuesta son dos
+    unidades y la segunda no nombra ninguna asignatura. Antes de IT-119 pasaba
+    entera sin corregir y sin dejar aviso, mientras que la MISMA afirmacion
+    escrita de corrido si se corregia: el corrector dependia de donde el modelo
+    pusiera un punto. Es la forma normal de enumerar en vinetas.
+    """
+    dicho = (
+        "**Fotogrametría y teledetección III** (6 ECTS). Se imparte en el "
+        "segundo cuatrimestre."
+    )
+    _con_respuesta(monkeypatch, dicho)
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+
+    entregada = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Cuándo se imparte?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+            flujo=flujo,
+        )
+    )
+
+    assert "primer cuatrimestre" in entregada
+    assert "segundo cuatrimestre" not in entregada
+
+
+def test_una_vineta_nueva_no_hereda_el_sujeto_de_la_anterior(monkeypatch):
+    """El salto de linea cierra la vineta, y con ella de quien se hablaba.
+
+    Sin soltar el sujeto, lo que se afirma de la asignatura de abajo se
+    corregiria contra los atributos de la de arriba, que es el defecto de
+    mezclar asignaturas visto desde el otro lado.
+    """
+    dicho = (
+        "**Fotogrametría y teledetección III** (6 ECTS).\n"
+        "* Otra asignatura. Se imparte en el segundo cuatrimestre."
+    )
+    _con_respuesta(monkeypatch, dicho)
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+
+    entregada = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Y las demás?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+        )
+    )
+
+    # La linea de la otra asignatura se entrega tal cual: nadie sabe de ella.
+    assert "Otra asignatura. Se imparte en el segundo cuatrimestre." in entregada

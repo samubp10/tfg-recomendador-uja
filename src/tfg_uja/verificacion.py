@@ -411,6 +411,16 @@ _ORDINALES: Final[dict[str, int]] = {
     "cuarto": 4,
     "4": 4,
     "4o": 4,
+    # El indicador ordinal masculino, que es como se escribe de verdad en
+    # espanol y lo que el modelo produce la mitad de las veces. Sobrevive a
+    # `normalizar` ---no es una marca diacritica---, asi que sin estas cuatro
+    # entradas «2º cuatrimestre» no casaba con nada y la correccion no llegaba
+    # ni a intentarse. La alternancia de `_ORDINAL` va ordenada de mas larga a
+    # mas corta, de modo que «2º» gana a «2» y no deja el indicador suelto.
+    "1º": 1,
+    "2º": 2,
+    "3º": 3,
+    "4º": 4,
 }
 
 #: Como se escribe cada ordinal al corregir. Se usa la forma del troceador,
@@ -588,7 +598,7 @@ def _sin_adornos(nombre: str) -> str:
     return normalizar(_CALIFICADOR.sub("", nombre).strip(" :.,;-"))
 
 
-def _asignatura_del_segmento(
+def asignatura_del_segmento(
     segmento: str, atributos: dict[str, Atributos]
 ) -> str | None:
     """De que asignatura habla un segmento, si habla de una sola.
@@ -597,6 +607,11 @@ def _asignatura_del_segmento(
     que se persigue nace precisamente de mezclar asignaturas de nombre casi
     igual, asi que atribuir a ciegas seria repetirlo desde el otro lado. Ante
     la duda no se corrige nada.
+
+    Es publica porque quien emite la respuesta por partes necesita saber de que
+    asignatura se venia hablando: parte el texto en frases antes de que llegue
+    aqui, y sin ese dato la frase que lleva el atributo no sabe a quien se lo
+    esta atribuyendo. Ver el argumento entero en :func:`corregir_atributos`.
 
     Args:
         segmento: Un trozo de la respuesta.
@@ -651,7 +666,7 @@ def _corrige_ordinal(
 
 
 def corregir_atributos(
-    texto: str, atributos: dict[str, Atributos]
+    texto: str, atributos: dict[str, Atributos], sujeto: str | None = None
 ) -> tuple[str, list[str]]:
     """Devuelve el texto con curso, cuatrimestre y ECTS puestos al del contexto.
 
@@ -671,9 +686,24 @@ def corregir_atributos(
     nace de confundir asignaturas casi homonimas y arriesgarse a atribuir mal
     seria cometerlo al reves.
 
+    **El segmento es la linea, no la frase, y eso obliga a ``sujeto``.** Quien
+    emite la respuesta por partes la corta antes en frases (ADR-0006), asi que
+    el nombre puede llegar en una llamada y el atributo en la siguiente. Medido
+    con «Automatica avanzada», que el contexto situa en el segundo cuatrimestre:
+    escrito «**Automatica avanzada** (6 ECTS) se imparte en el primer
+    cuatrimestre.» se corregia, y escrito con un punto en medio ---dos frases,
+    que es como se enumera en vinetas--- pasaba **sin corregir y sin aviso**,
+    porque la segunda frase no nombra a nadie. Con ``sujeto`` la asignatura de
+    la que se venia hablando sigue en pie hasta que la linea se cierra.
+
     Args:
         texto: Lo que ha redactado el modelo.
         atributos: Lo que dice el contexto, de :func:`atributos_del_contexto`.
+        sujeto: Asignatura de la que venia hablando la linea, cuando este texto
+            es la continuacion de un trozo anterior. Solo se aplica al primer
+            segmento: a partir del primer salto de linea empieza una viñeta
+            nueva, y arrastrar el sujeto ahi atribuiria a una asignatura lo que
+            se dice de la siguiente.
 
     Returns:
         ``(texto corregido, avisos)``. Los avisos describen cada cambio, para
@@ -684,8 +714,10 @@ def corregir_atributos(
 
     avisos: list[str] = []
     corregidos = []
-    for segmento in texto.split("\n"):
-        nombre = _asignatura_del_segmento(segmento, atributos)
+    for posicion, segmento in enumerate(texto.split("\n")):
+        nombre = asignatura_del_segmento(segmento, atributos)
+        if nombre is None and posicion == 0 and sujeto in atributos:
+            nombre = sujeto
         if nombre is None:
             corregidos.append(segmento)
             continue
