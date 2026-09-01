@@ -1186,3 +1186,149 @@ def test_un_nombre_ambiguo_entre_varias_guias_no_se_reparte_a_ojo(capsys):
     aviso = capsys.readouterr().err
     assert "nombre ambiguo" in aviso
     assert "Doble Grado A y B - FÍSICA" in aviso
+
+
+# --- IT-125: una unidad no afirma de una titulación el plan de otra ---
+
+
+def _asig(grado, codigo, nombre, tipo, curso, cuatrimestre="Segundo cuatrimestre"):
+    """Asignatura con lo que el encabezado afirma de ella."""
+    return {
+        "tipo": "asignatura",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": nombre,
+        "tipo_asignatura": tipo,
+        "ects": "6",
+        "curso": curso,
+        "cuatrimestre": cuatrimestre,
+        "menciones": [],
+        "ofertada": True,
+        "tiene_guia": True,
+    }
+
+
+def _guia_compartida(grado, codigo, nombre):
+    return {
+        "tipo": "guia",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": nombre,
+        "curso": "2026-27",
+        "fallback": False,
+        "resumen": "Resumen de la asignatura.",
+        "temario": "Tema 1. Contenido.",
+    }
+
+
+def test_una_guia_compartida_no_impone_el_curso_de_una_titulacion_a_las_demas():
+    """Regresión de IT-125, con el caso real de «Centrales eléctricas II».
+
+    La asignatura se imparte en tres titulaciones con **la misma guía**: en el
+    grado simple es de cuarto curso y en los dos dobles, de quinto. El corpus
+    la guardaba como una sola unidad con el curso de la primera, y el
+    encabezado ---que se vectoriza--- decía, en la misma frase que enumeraba
+    las tres, que se imparte en cuarto. Medido sobre el corpus completo: 41 de
+    las 210 unidades de guía tenían cursos distintos entre sus titulaciones.
+
+    Aquí solo hay grados simples porque lo que se prueba es la partición, no el
+    enganche de los dobles grados, que tiene sus propias pruebas.
+    """
+    simple = "Grado en Ingeniería Eléctrica"
+    otro = "Grado en Ingeniería Electrónica Industrial"
+    items = [
+        _asig(simple, "13512001", "Centrales eléctricas II", "OB", "Cuarto curso"),
+        _asig(otro, "13612001", "Centrales eléctricas II", "OB", "Quinto curso"),
+        _guia_compartida(simple, "13512001", "Centrales eléctricas II"),
+        _guia_compartida(otro, "13612001", "Centrales eléctricas II"),
+    ]
+
+    unidades = {
+        (c["curso"], tuple(c["grados"]))
+        for c in trocear_dataset(items)
+        if c.get("origen") == "guia"
+    }
+
+    assert unidades == {("Cuarto curso", (simple,)), ("Quinto curso", (otro,))}
+    # Y lo que importa: ningún fragmento afirma un curso de una titulación que
+    # no lo cumple. Comprobarlo sobre el texto y no solo sobre el metadato es
+    # el punto entero de la tarjeta.
+    for chunk in trocear_dataset(items):
+        if chunk.get("origen") != "guia":
+            continue
+        if "cuarto curso" in chunk["texto"].lower():
+            assert chunk["grados"] == [simple]
+        if "quinto curso" in chunk["texto"].lower():
+            assert chunk["grados"] == [otro]
+
+
+def test_una_guia_compartida_no_impone_el_tipo_de_una_titulacion_a_las_demas():
+    """La otra mitad: 9 unidades del corpus discrepaban en el tipo.
+
+    «Ampliación de matemáticas», «Administración de empresas» y «Matemáticas
+    II» son formación básica en los grados simples y obligatorias en sus dobles
+    grados. El fragmento las declaraba de formación básica para todas, y ese
+    tipo es además por lo que se filtra el índice al preguntar por las
+    obligatorias de una titulación.
+    """
+    uno = "Grado en Ingeniería Eléctrica"
+    dos = "Grado en Ingeniería Mecánica"
+    items = [
+        _asig(uno, "13512002", "Ampliación de matemáticas", "FB", "Primer curso"),
+        _asig(dos, "13712002", "Ampliación de matemáticas", "OB", "Primer curso"),
+        _guia_compartida(uno, "13512002", "Ampliación de matemáticas"),
+        _guia_compartida(dos, "13712002", "Ampliación de matemáticas"),
+    ]
+
+    unidades = {
+        (c["tipo_asignatura"], tuple(c["grados"]))
+        for c in trocear_dataset(items)
+        if c.get("origen") == "guia"
+    }
+
+    assert unidades == {("FB", (uno,)), ("OB", (dos,))}
+
+
+def test_si_todo_coincide_la_guia_sigue_siendo_una_sola_unidad():
+    """Partir solo cuando hay motivo: si no, se duplicaría el corpus entero.
+
+    Es el caso de 160 de las 210 unidades, y en ellas el comportamiento tiene
+    que ser exactamente el de antes: una unidad con las dos titulaciones
+    dentro y el texto una sola vez.
+    """
+    uno = "Grado en Ingeniería Eléctrica"
+    dos = "Grado en Ingeniería Mecánica"
+    items = [
+        _asig(uno, "13512003", "Física II", "FB", "Primer curso"),
+        _asig(dos, "13712003", "Física II", "FB", "Primer curso"),
+        _guia_compartida(uno, "13512003", "Física II"),
+        _guia_compartida(dos, "13712003", "Física II"),
+    ]
+
+    guias = [c for c in trocear_dataset(items) if c.get("origen") == "guia"]
+
+    assert {tuple(c["grados"]) for c in guias} == {(uno, dos)}
+
+
+def test_el_encabezado_usa_el_nombre_de_la_unidad_y_no_el_de_la_ficha():
+    """Los planes de los dobles grados gritan y añaden el acrónimo del grado.
+
+    Un subgrupo formado solo por titulaciones dobles tomaría de ahí el nombre y
+    titularía el fragmento «CENTRALES ELÉCTRICAS II (GIE)», que además dejaría
+    de empezar por el nombre de su propia unidad, lo que `check_chunks.py`
+    comprueba desde IT-91.
+    """
+    simple = "Grado en Ingeniería Eléctrica"
+    doble = "Doble Grado en Ingeniería Eléctrica y Mecánica"
+    items = [
+        {"tipo": "grado", "nombre": doble, "es_doble_grado": True},
+        _asig(simple, "13512001", "Centrales eléctricas II", "OB", "Cuarto curso"),
+        _asig(doble, "99912001", "CENTRALES ELÉCTRICAS II (GIE)", "OB", "Quinto curso"),
+        _guia_compartida(simple, "13512001", "Centrales eléctricas II"),
+    ]
+
+    guias = [c for c in trocear_dataset(items) if c.get("origen") == "guia"]
+
+    assert len(guias) >= 2
+    for chunk in guias:
+        assert chunk["texto"].startswith("«Centrales eléctricas II»")
