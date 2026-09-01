@@ -855,3 +855,100 @@ def test_sin_ser_abierta_la_misma_pregunta_sigue_recortandose(indice):
         abierta=False,
     )
     assert fragmentos == []
+
+
+# --- IT-120: la unidad compartida no puede entrar dos veces ---
+
+
+def test_regresion_una_unidad_compartida_no_se_devuelve_dos_veces() -> None:
+    """Alternar dos rankings duplicaba lo que ambos tienen en comun.
+
+    Una guia que se imparte en varias titulaciones aparece en el ranking de
+    cada una. Sin deduplicar, el tope de fragmentos se agotaba con texto
+    repetido y el modelo recibia menos evidencia real justo en las consultas
+    comparativas. Medido antes del arreglo: 14 fragmentos, 8 distintos.
+    """
+    compartida = [
+        recuperador.Fragmento(
+            texto=f"parte {i}",
+            nombre="Fundamentos de informática",
+            grados=["Grado en Ingeniería Informática", "Grado en Ingeniería Eléctrica"],
+            origen="guia",
+            distancia=0.05 + i / 100,
+            chunk_index=i,
+            total_chunks=6,
+        )
+        for i in range(6)
+    ]
+    propia_de_cada_una = [
+        recuperador.Fragmento(
+            texto="suya",
+            nombre=f"Solo de la {cual}",
+            grados=[cual],
+            origen="guia",
+            distancia=0.2,
+            chunk_index=0,
+            total_chunks=1,
+        )
+        for cual in ("primera", "segunda")
+    ]
+
+    mezclados = recuperador._intercalar(
+        [compartida + [propia_de_cada_una[0]], compartida + [propia_de_cada_una[1]]]
+    )
+
+    claves = [(f.nombre, f.origen, f.chunk_index) for f in mezclados]
+    assert len(claves) == len(set(claves))
+    # Y no se pierde nada: las seis partes compartidas y las dos propias.
+    assert len(mezclados) == 8
+
+
+def test_intercalar_conserva_el_orden_de_cada_ranking() -> None:
+    """Deduplicar no puede reordenar: dentro de cada grupo manda la distancia."""
+
+    def frag(nombre: str, i: int) -> recuperador.Fragmento:
+        return recuperador.Fragmento(
+            texto="t",
+            nombre=nombre,
+            grados=["G"],
+            origen="guia",
+            distancia=0.1 * i,
+            chunk_index=i,
+            total_chunks=3,
+        )
+
+    a = [frag("A", 0), frag("A", 1)]
+    b = [frag("B", 0), frag("B", 1)]
+
+    mezclados = recuperador._intercalar([a, b])
+
+    assert [(f.nombre, f.chunk_index) for f in mezclados] == [
+        ("A", 0),
+        ("B", 0),
+        ("A", 1),
+        ("B", 1),
+    ]
+
+
+def test_intercalar_respeta_el_tope() -> None:
+    grupos = [
+        [
+            recuperador.Fragmento(
+                texto="t",
+                nombre=f"U{g}",
+                grados=["G"],
+                origen="guia",
+                distancia=0.1,
+                chunk_index=i,
+                total_chunks=30,
+            )
+            for i in range(30)
+        ]
+        for g in range(2)
+    ]
+
+    assert len(recuperador._intercalar(grupos)) == recuperador.K_MAXIMO
+
+
+def test_intercalar_sin_grupos_no_revienta() -> None:
+    assert recuperador._intercalar([]) == []
