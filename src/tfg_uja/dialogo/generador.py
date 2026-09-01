@@ -1019,6 +1019,18 @@ def generar(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
         ) from error
+    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
+    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
+    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
+    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
+    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
+    # entero con una traza de socket, en vez de contarse como la pregunta
+    # perdida que es.
+    except ConnectionError as error:
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} cortó la conexión a media respuesta "
+            f"({error}). Suele ser que se ha quedado sin memoria."
+        ) from error
     escrito = str(datos.get("response", "")).strip()
     if datos.get("done_reason") == "length":
         return cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
@@ -1124,6 +1136,18 @@ def generar_por_partes(
         raise ErrorDelModelo(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
+        ) from error
+    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
+    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
+    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
+    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
+    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
+    # entero con una traza de socket, en vez de contarse como la pregunta
+    # perdida que es.
+    except ConnectionError as error:
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} cortó la conexión a media respuesta "
+            f"({error}). Suele ser que se ha quedado sin memoria."
         ) from error
 
 

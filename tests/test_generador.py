@@ -1682,3 +1682,34 @@ def test_la_cola_partida_no_llega_al_estudiante(monkeypatch):
 
     assert "titul" not in entregado.replace("titulaciones", "")
     assert "El Grado tiene 240 ECTS." in entregado
+
+
+@pytest.mark.parametrize(
+    "generador_bajo_prueba",
+    ["generar", "generar_por_partes"],
+)
+def test_si_el_servidor_muere_a_media_respuesta_se_cuenta_como_fallo(
+    monkeypatch, generador_bajo_prueba: str
+) -> None:
+    """Regresión de IT-133: un corte de conexión tumbaba la tanda entera.
+
+    `ConnectionResetError` es un `OSError`, no un `urllib.error.URLError`, así
+    que se colaba por encima de las dos ramas que ya se capturaban y salía en
+    crudo. Medido el 01/09/2026: Ollama se cayó en la tercera pregunta de una
+    tanda de cuatro modelos y el experimento murió con una traza de socket.
+
+    Lo que tiene que pasar es lo mismo que con el servidor apagado: la pregunta
+    se pierde, se cuenta como fallo del modelo y quien llama decide. Un modelo
+    caído cuesta una pregunta, no la sesión.
+    """
+
+    def corta(*a: Any, **k: Any) -> Any:
+        raise ConnectionResetError(10054, "forcibly closed by the remote host")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", corta)
+    funcion = getattr(generador, generador_bajo_prueba)
+
+    with pytest.raises(generador.ErrorDelModelo, match="cortó la conexión"):
+        resultado = funcion("prompt", "un-modelo")
+        # `generar_por_partes` es un generador: no se ejecuta hasta que se lee.
+        list(resultado) if generador_bajo_prueba == "generar_por_partes" else None

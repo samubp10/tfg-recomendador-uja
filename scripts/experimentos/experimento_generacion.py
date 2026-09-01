@@ -119,28 +119,40 @@ from tfg_uja.dialogo.recuperador import (  # noqa: E402
     contexto_para,
     distancia_del_indice,
 )
+from tfg_uja.invariantes import exigir  # noqa: E402
 from tfg_uja.text_cleaner import normalizar  # noqa: E402
 from tfg_uja.dialogo.verificacion import cotejar_listado  # noqa: E402
 from tfg_uja.dialogo.verificacion import titulaciones_inventadas  # noqa: E402
 
-#: Candidatos que se miden si no se dice otra cosa: **los tres finalistas**,
-#: uno por talla ---8B, 9B y 12B--- y uno por fabricante, de modo que ninguna
-#: diferencia se pueda confundir con el tamaño ni con la casa que lo entrena.
+#: Candidatos que se miden si no se dice otra cosa: los tres finalistas ---uno
+#: por talla, 8B, 9B y 12B, y uno por fabricante, de modo que ninguna diferencia
+#: se pueda confundir con el tamaño ni con la casa que lo entrena--- **más
+#: salamandra-7b**.
 #:
-#: Los tres se miden **a la vez y en la misma tanda**, que es la razón de que
-#: sean tres y no ocho. La criba amplia sí pasó por ocho candidatos, y de ahí
-#: salieron los descartes ---mistral-7b se inventó tres titulaciones enteras,
-#: salamandra-7b lo desaconsejan sus propios autores sobre este servidor---,
+#: Los cuatro se miden **a la vez y en la misma tanda**, que es la razón de que
+#: sean cuatro y no ocho. La criba amplia sí pasó por ocho candidatos, y de ahí
+#: salió el descarte de mistral-7b, que se inventó tres titulaciones enteras;
 #: pero aquella pasada quedó partida en dos versiones de Ollama y sus cifras no
 #: forman una tabla comparable. Medir los ocho de nuevo cuesta una noche entera
 #: de máquina y no lo pide el alcance de este trabajo: lo que la decisión
-#: necesita es que **los finalistas** se comparen en igualdad de condiciones.
+#: necesita es que los finalistas se comparen en igualdad de condiciones.
 #:
-#: Los descartes previos se cuentan con su motivo, no con su cifra.
+#: **salamandra-7b se mide aunque no vaya a ganar**, y el motivo es de fondo:
+#: es el modelo entrenado en español, catalán, gallego y euskera por el
+#: Barcelona Supercomputing Center, y este es un sistema que atiende en español
+#: a estudiantes españoles. Un trabajo que compara modelos generativos para una
+#: tarea en español y **no** mide el modelo público español deja sin responder
+#: la primera pregunta que cabe hacerle. Que sus propios autores desaconsejen
+#: la cuantización con la que se sirve aquí no es motivo para excluirlo, sino
+#: parte de lo que hay que contar: **es una limitación de esta medición, no una
+#: propiedad del modelo**, y como tal se declara junto a su cifra.
+#:
+#: El descarte previo se cuenta con su motivo, no con su cifra.
 MODELOS: Final[tuple[str, ...]] = (
     "ministral-8b:latest",
     "qwen3.5:9b",
     "gemma3:12b",
+    "salamandra-7b:latest",
 )
 
 #: Tope de tiempo por respuesta, en segundos. **Cero significa sin tope**, que
@@ -478,6 +490,56 @@ def ejecutar(
                 f"  [{i}/{len(pendientes)}]{marca}{pregunta['id']} "
                 f"{t_gen:6.1f} s · {n:2d} frag · {pregunta['familia']}"
             )
+
+
+def exigir_tanda_completa(
+    filas: list[dict[str, Any]],
+    preguntas: list[dict[str, Any]],
+    modelos: list[str],
+) -> None:
+    """Aborta si algún modelo no respondió todas las preguntas del banco.
+
+    El bucle de arriba captura ``ErrorDelModelo`` y sigue con la siguiente
+    pregunta, que es lo correcto mientras falle una suelta. Pero cuando lo que
+    falla es el **servidor**, fallan todas las que quedan y el guion terminaba
+    escribiendo el informe igual: una tanda que no midió nada se leía como una
+    que midió todo, y sus medias salían de las pocas respuestas que llegaron a
+    entrar.
+
+    Pasó el 01/09/2026. Ollama se cayó en la tercera pregunta del primer
+    modelo, el proceso terminó sin quejarse y la tabla del ADR se quedó con las
+    cifras de la tanda anterior, que ya no correspondían al corpus vigente. Es
+    la misma familia de defecto que este proyecto lleva encontrando desde
+    IT-10: **el instrumento dice «hecho» sin haber hecho nada**, y aquí el
+    precio sería publicar una métrica calculada sobre un trozo del banco.
+
+    No se recorta el informe ni se avisa por lo bajo: se aborta. Una tanda
+    incompleta se retoma sola al relanzar, porque el registro persiste y el
+    bucle salta lo ya hecho.
+
+    Args:
+        filas: Respuestas que hay en el registro.
+        preguntas: Preguntas del banco.
+        modelos: Modelos que la tanda tenía que medir.
+
+    Raises:
+        InvarianteRoto: Si a algún modelo le falta alguna respuesta.
+    """
+    esperadas = {p["id"] for p in preguntas}
+    faltan: list[str] = []
+    for modelo in modelos:
+        respondidas = {f["id"] for f in filas if f["modelo"] == modelo}
+        ausentes = esperadas - respondidas
+        if ausentes:
+            faltan.append(f"{modelo}: {len(ausentes)} de {len(esperadas)}")
+    exigir(
+        not faltan,
+        lambda: (
+            "la tanda está incompleta y no se escribe informe con media tanda "
+            f"({'; '.join(faltan)}). Relanza el mismo comando: el registro "
+            "persiste y se retoma donde se quedó."
+        ),
+    )
 
 
 def recalcular(
@@ -985,6 +1047,7 @@ def main(argumentos: list[str] | None = None) -> None:
             encoding="utf-8",
         )
         print(f"Repuntuadas {len(filas)} respuestas sin llamar a ningún modelo.")
+    exigir_tanda_completa(filas, banco["preguntas"], opciones.modelos)
     informe(filas, banco, Path(opciones.salida), opciones.presupuesto)
     if opciones.adr:
         escribir_adr(bloque_adr(filas, banco))
