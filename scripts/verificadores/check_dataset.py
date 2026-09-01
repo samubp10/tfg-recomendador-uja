@@ -2,7 +2,7 @@
 
 Comprueba los invariantes de ``data/grados.json`` tras cada regeneración::
 
-    scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+    scrapy runspider src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
     py scripts/verificadores/check_dataset.py
 
 Acepta una ruta alternativa como argumento.

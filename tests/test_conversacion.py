@@ -14,8 +14,16 @@ from __future__ import annotations
 
 import pytest
 
-from tfg_uja.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decision, Decisor
-from tfg_uja.conversacion import (
+from tfg_uja.dialogo.ambito import (
+    CAMBIA,
+    FALLO,
+    NINGUNA,
+    SIGUE,
+    TODAS,
+    Decision,
+    Decisor,
+)
+from tfg_uja.dialogo.conversacion import (
     Conversacion,
     contenido,
     recorta_lo_anterior,

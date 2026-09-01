@@ -73,7 +73,7 @@ def _preparar(monkeypatch, tmp_path, fidelidades):
         exp, "medir_qdrant", lambda *a: MedidaFalsa(fidelidades["qdrant"].pop(0), 5.62)
     )
 
-    from tfg_uja import incrustaciones
+    from tfg_uja.indexacion import incrustaciones
 
     monkeypatch.setattr(
         incrustaciones, "incrustador_de_documentos", lambda: (lambda textos: [[1.0]])

@@ -140,7 +140,7 @@ def main(argumentos: list[str]) -> None:
     preguntas = exp.cargar_preguntas()
     print(f"corpus {len(chunks)} · preguntas {len(preguntas)} · {ciclos} ciclos")
 
-    from tfg_uja.incrustaciones import (
+    from tfg_uja.indexacion.incrustaciones import (
         incrustador_de_consultas,
         incrustador_de_documentos,
     )

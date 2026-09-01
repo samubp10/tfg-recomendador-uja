@@ -11,7 +11,7 @@ visible; de ahí este script.
 Compara lo que hay en ``data/grados.json`` con los PDF originales que el
 rastreo deja en ``data/guias_pdf/``::
 
-    scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+    scrapy runspider src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
     py scripts/verificadores/check_guias_pdf.py
 
 Acepta rutas alternativas como argumentos::
@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from tfg_uja.guia_pdf import (  # noqa: E402
+from tfg_uja.extraccion.guia_pdf import (  # noqa: E402
     PERMITIDOS,
     extraer_guia,
     reparto_por_seccion,

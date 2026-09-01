@@ -145,7 +145,7 @@ está publicada y no recoge ni resumen ni temario.
 
 ## Referencias
 
-- `src/tfg_uja/guia_pdf.py` (`motivo_sin_guia`), `src/tfg_uja/chunker.py`
+- `src/tfg_uja/extraccion/guia_pdf.py` (`motivo_sin_guia`), `src/tfg_uja/indexacion/chunker.py`
   (texto del fragmento informativo).
 - `scripts/verificadores/check_guias_pdf.py` (auditoría de la extracción, IT-95).
 - IT-94 (la asignatura no desaparece), IT-95 (auditoría de las guías en PDF).

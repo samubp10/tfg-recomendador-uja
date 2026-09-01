@@ -32,8 +32,13 @@ from typing import Any, Final
 
 import lancedb
 
-from tfg_uja.incrustaciones import Incrustador
-from tfg_uja.indexer import CATALOGO, COLECCION, DISTANCIA, metadatos_de_indice
+from tfg_uja.indexacion.incrustaciones import Incrustador
+from tfg_uja.indexacion.indexer import (
+    CATALOGO,
+    COLECCION,
+    DISTANCIA,
+    metadatos_de_indice,
+)
 from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Fragmentos que se recuperan por consulta cuando no se dice otra cosa. Es el

@@ -38,7 +38,7 @@ from collections.abc import Iterator, Sequence
 from itertools import islice
 from typing import Any, Final, TypeVar
 
-from tfg_uja.recuperador import escapar
+from tfg_uja.dialogo.recuperador import escapar
 
 #: Cuántas sugerencias se ofrecen como mucho. Son botones bajo la
 #: conversación: pasar de cuatro deja de ser un atajo y se convierte en un

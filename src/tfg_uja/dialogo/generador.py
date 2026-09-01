@@ -39,10 +39,10 @@ import urllib.request
 from collections.abc import Iterator
 from typing import Final
 
-from tfg_uja.chunker import ORDEN_CURSOS
-from tfg_uja.recuperador import Fragmento
+from tfg_uja.indexacion.chunker import ORDEN_CURSOS
+from tfg_uja.dialogo.recuperador import Fragmento
 from tfg_uja.text_cleaner import normalizar, palabras
-from tfg_uja.verificacion import (
+from tfg_uja.dialogo.verificacion import (
     Atributos,
     asignatura_del_segmento,
     atributos_del_contexto,

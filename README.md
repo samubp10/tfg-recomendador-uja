@@ -131,18 +131,18 @@ el propio *pipeline* (esa regeneración es la garantía de reproducibilidad).
 ```console
 # 1. Extraer el dataset — hace peticiones REALES a la web de la UJA.
 #    Usar con moderación (respeta robots.txt y aplica retardo entre peticiones).
-scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+scrapy runspider src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
 
 # 2. Fragmentar (offline, barato)
-py -m tfg_uja.chunker data/grados.json data/chunks.json
+py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
 
 # 3. Indexar en la base de datos vectorial (requiere el extra [index])
 #    El modelo por defecto es el del ADR-0003; se puede pasar otro como
 #    tercer argumento para repetir el experimento sin tocar el código.
-py -m tfg_uja.indexer data/chunks.json data/indice_lance
+py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance
 
 # 4. Levantar la aplicación web
-py -m tfg_uja.servidor
+py -m tfg_uja.aplicacion.servidor
 ```
 
 El paso 4 abre el asistente en **<http://127.0.0.1:8000>**. Necesita que
@@ -221,18 +221,25 @@ encontrado entra como test de regresión con su caso real.
 ## Estructura del repositorio
 
 ```text
-src/tfg_uja/        # código fuente
-  grados_spider.py  #   rastreo de la web de la EPSJ
-  guia_pdf.py       #   extracción de las guías servidas en PDF
-  text_cleaner.py · validators.py · invariantes.py
-  chunker.py        #   fragmentación y deduplicación
-  incrustaciones.py · indexer.py · recuperador.py · evaluacion.py
-  ambito.py         #   de qué titulación se está hablando
-  conversacion.py   #   estado del diálogo y ventana de contexto
-  generador.py      #   prompt y llamada al modelo
-  verificacion.py   #   comprobaciones deterministas de la respuesta
-  servidor.py       #   aplicación web (interfaz + /api/chat)
-  sugerencias.py · registro_chat.py
+src/tfg_uja/          # código fuente, repartido por fases del trabajo
+  text_cleaner.py     #   compartido: normalización y limpieza de texto
+  invariantes.py      #   compartido: comprobación de invariantes sin assert
+  extraccion/         # Fase 0 — obtención del corpus
+    grados_spider.py  #   rastreo de la web de la EPSJ
+    guia_pdf.py       #   extracción de las guías servidas en PDF
+    validators.py     #   validación de las filas de la tabla
+  indexacion/         # Fase 1 — del corpus al índice vectorial
+    chunker.py        #   fragmentación y deduplicación
+    incrustaciones.py · indexer.py · evaluacion.py
+  dialogo/            # Fase 2 — de la pregunta a la respuesta comprobada
+    recuperador.py    #   búsqueda y acotado del contexto
+    ambito.py         #   de qué titulación se está hablando
+    conversacion.py   #   estado del diálogo y ventana de contexto
+    generador.py      #   prompt y llamada al modelo
+    verificacion.py   #   comprobaciones deterministas de la respuesta
+  aplicacion/         # Fase 3 — la aplicación web
+    servidor.py       #   interfaz + /api/chat
+    sugerencias.py · registro_chat.py
 web/                # interfaz: HTML, CSS y JavaScript, sin dependencias
 tests/              # pruebas con fixtures reales (HTML y PDF de la EPSJ)
 scripts/            # verificadores, experimentos y bancos de preguntas

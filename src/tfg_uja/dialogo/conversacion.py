@@ -42,8 +42,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Final
 
-from tfg_uja.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decisor
-from tfg_uja.recuperador import palabras_distintivas
+from tfg_uja.dialogo.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decisor
+from tfg_uja.dialogo.recuperador import palabras_distintivas
 from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Turnos que se conservan. **Política de ventana:** al llenarse se descartan

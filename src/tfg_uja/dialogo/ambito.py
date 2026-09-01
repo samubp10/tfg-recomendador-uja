@@ -59,7 +59,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable, Final
 
-from tfg_uja.generador import ErrorDelModelo, generar
+from tfg_uja.dialogo.generador import ErrorDelModelo, generar
 from tfg_uja.text_cleaner import normalizar
 
 #: Las cuatro respuestas que se admiten. Cada una se traduce a un camino de

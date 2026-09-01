@@ -8,7 +8,7 @@ import pytest
 import scrapy
 from scrapy.http import HtmlResponse, Request
 
-from tfg_uja.grados_spider import GradosSpider, curso_de_url
+from tfg_uja.extraccion.grados_spider import GradosSpider, curso_de_url
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -672,7 +672,7 @@ def test_descarta_el_marcador_de_campo_sin_contenido():
     # "Competencias: -": un guion suelto marca "sin contenido". Se aísla el
     # patrón exacto observado en un fragmento mínimo, en vez de una fixture
     # completa inventada.
-    from tfg_uja.grados_spider import GradosSpider
+    from tfg_uja.extraccion.grados_spider import GradosSpider
 
     html = (
         '<div id="resumen">'

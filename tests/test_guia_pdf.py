@@ -16,8 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja import guia_pdf
-from tfg_uja.guia_pdf import (
+from tfg_uja.extraccion import guia_pdf
+from tfg_uja.extraccion.guia_pdf import (
     ILEGIBLE,
     es_pdf,
     extraer_guia,

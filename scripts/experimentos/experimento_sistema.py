@@ -38,22 +38,25 @@ from experimento_generacion import (  # noqa: E402
     version_del_servidor,
 )
 
-from tfg_uja import generador  # noqa: E402
-from tfg_uja.conversacion import (  # noqa: E402
+from tfg_uja.dialogo import generador  # noqa: E402
+from tfg_uja.dialogo.conversacion import (  # noqa: E402
     Conversacion,
     titulaciones_de_la_respuesta,
 )
-from tfg_uja.generador import responder  # noqa: E402
+from tfg_uja.dialogo.generador import responder  # noqa: E402
 from tfg_uja.text_cleaner import palabras  # noqa: E402
-from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
+    MODELO,
+    incrustador_de_consultas,
+)
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,
     contexto_para,
     distancia_del_indice,
 )
-from tfg_uja.verificacion import (  # noqa: E402
+from tfg_uja.dialogo.verificacion import (  # noqa: E402
     cotejar_listado,
     titulaciones_inventadas,
     titulaciones_nombradas,

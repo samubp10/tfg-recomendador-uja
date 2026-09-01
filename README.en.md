@@ -161,18 +161,18 @@ the pipeline itself, and that regeneration is what guarantees reproducibility.
 ```console
 # 1. Extract the dataset — makes REAL requests to the UJA website.
 #    Use sparingly (respects robots.txt and delays requests).
-scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+scrapy runspider src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
 
 # 2. Chunk the corpus (offline, cheap)
-py -m tfg_uja.chunker data/grados.json data/chunks.json
+py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
 
 # 3. Index into the vector database (requires the [index] extra).
 #    The default model is the one chosen in ADR-0003; another one can be
 #    passed as a third argument to repeat the experiment without touching code.
-py -m tfg_uja.indexer data/chunks.json data/indice_lance
+py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance
 
 # 4. Start the web application
-py -m tfg_uja.servidor
+py -m tfg_uja.aplicacion.servidor
 ```
 
 Step 4 opens the assistant at **<http://127.0.0.1:8000>**. It needs
@@ -245,18 +245,25 @@ regression test with its real case.
 ## Repository structure
 
 ```text
-src/tfg_uja/        # source code
-  grados_spider.py  #   crawls the EPSJ website
-  guia_pdf.py       #   extracts the syllabuses served as PDF
-  text_cleaner.py · validators.py · invariantes.py
-  chunker.py        #   chunking and deduplication
-  incrustaciones.py · indexer.py · recuperador.py · evaluacion.py
-  ambito.py         #   which degree the conversation is about
-  conversacion.py   #   dialogue state and context window
-  generador.py      #   prompt building and model call
-  verificacion.py   #   deterministic checks on the answer
-  servidor.py       #   web application (interface + /api/chat)
-  sugerencias.py · registro_chat.py
+src/tfg_uja/          # source code, split by phase of the work
+  text_cleaner.py     #   shared: text normalisation and cleaning
+  invariantes.py      #   shared: invariant checks that survive python -O
+  extraccion/         # Phase 0 — obtaining the corpus
+    grados_spider.py  #   crawls the EPSJ website
+    guia_pdf.py       #   extracts the syllabuses served as PDF
+    validators.py     #   validates the rows of the subject table
+  indexacion/         # Phase 1 — from corpus to vector index
+    chunker.py        #   chunking and deduplication
+    incrustaciones.py · indexer.py · evaluacion.py
+  dialogo/            # Phase 2 — from question to checked answer
+    recuperador.py    #   retrieval and context cut-off
+    ambito.py         #   which degree the conversation is about
+    conversacion.py   #   dialogue state and context window
+    generador.py      #   prompt building and model call
+    verificacion.py   #   deterministic checks on the answer
+  aplicacion/         # Phase 3 — the web application
+    servidor.py       #   interface + /api/chat
+    sugerencias.py · registro_chat.py
 web/                # interface: HTML, CSS and JavaScript, no dependencies
 tests/              # tests with real fixtures (EPSJ HTML and PDF)
 scripts/            # checkers, experiments and question banks

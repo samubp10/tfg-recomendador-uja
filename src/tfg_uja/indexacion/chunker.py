@@ -1256,7 +1256,8 @@ if __name__ == "__main__":
     # re-trocear a la ventana de los modelos de 128 tokens para compararlos en
     # igualdad de condiciones). Sin ellos, el comportamiento es el de siempre.
     #
-    #     py -m tfg_uja.chunker entrada.json salida.json [objetivo maximo minimo]
+    #     py -m tfg_uja.indexacion.chunker entrada.json salida.json
+    #         [objetivo maximo minimo]
     if len(sys.argv) >= 6:
         main(
             sys.argv[1],
