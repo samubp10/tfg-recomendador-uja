@@ -11,12 +11,17 @@ Lo que hay que atender es un endpoint y unos ficheros estáticos, y el cuello de
 botella es el modelo, que responde con una mediana de 62,7 s: ninguna capa HTTP
 cambia eso.
 
-⚠️ **No es apto para producción**, y así está declarado: atiende en serie, no
-limita el tamaño de la petición y no da HTTPS. El despliegue en producción está
-fuera del alcance de este trabajo (reparto MoSCoW del Capítulo 4). Para llevarlo
-allí harían falta un servidor WSGI/ASGI real tras un proxy inverso, HTTPS,
-límites de tasa y de tamaño, y sobre todo resolver que el modelo atiende de uno
-en uno.
+⚠️ **No es apto para producción**, y así está declarado: no da HTTPS, no limita
+la tasa de peticiones y el estado de la conversación es uno solo para todo el
+proceso. Eso último importa porque ``ThreadingHTTPServer`` atiende cada petición
+en su propio hilo: con un solo visitante ---que es el alcance declarado--- una
+sola conversación basta, pero dos clientes a la vez comparten sujeto y contador
+de turno. El despliegue en producción está fuera del alcance de este trabajo
+(reparto MoSCoW del Capítulo 4). Para llevarlo allí harían falta un servidor
+WSGI/ASGI real tras un proxy inverso, HTTPS, límites de tasa, conversación por
+sesión, y sobre todo resolver que el modelo atiende de uno en uno.
+
+El tamaño del cuerpo sí está acotado, en :data:`MAXIMO_CUERPO`.
 
 **La lógica no vive en el manejador.** :func:`partes_de_la_respuesta` no sabe
 nada de HTTP y se prueba entera sin red y sin modelo; el manejador solo la
@@ -402,7 +407,13 @@ def partes_de_la_respuesta(
         return
     # Se anota lo que de verdad se ha entregado: si hubo retirada, lo que queda
     # anotado es la respuesta fija y no el texto retirado.
-    conversacion.anotar(pregunta, entero)
+    #
+    # Y con respuesta fija el ámbito no se toca. Aquí no se ha llamado a
+    # `preparar`, así que el decisor no ha opinado y `anotar` caería a la
+    # deducción por reglas: una pregunta por otro centro, que la barrera
+    # rechaza, dejaba la conversación apuntando a la titulación que nombraba
+    # de pasada.
+    conversacion.anotar(pregunta, entero, cambia_ambito=fija is None)
     # Se registra DESPUÉS de anotar, que es donde la conversación fija de qué
     # titulación se está hablando: registrarlo antes guardaría siempre el
     # ámbito del turno anterior.

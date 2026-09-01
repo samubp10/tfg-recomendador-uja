@@ -39,6 +39,7 @@ class ConversacionFalsa:
     def __init__(self) -> None:
         self.anotado: list[tuple[str, str]] = []
         self.ambito: list[str] = []
+        self.cambios_de_ambito: list[bool] = []
 
     def preparar(self, texto: str) -> Consulta:
         # Se devuelve la `Consulta` de verdad y no un objeto inventado al
@@ -50,8 +51,11 @@ class ConversacionFalsa:
     def preguntas(self) -> list[str]:
         return [p for p, _ in self.anotado]
 
-    def anotar(self, pregunta: str, respuesta: str) -> None:
+    def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
         self.anotado.append((pregunta, respuesta))
+        # Se guarda para poder comprobar que una respuesta fija no reapunta el
+        # ámbito: es lo único que distingue ese turno de uno normal.
+        self.cambios_de_ambito.append(cambia_ambito)
 
 
 SISTEMA_FALSO: tuple[Any, Any, list[str], str] = (
@@ -999,3 +1003,44 @@ def test_la_fuente_de_una_unidad_compartida_toma_el_enlace_que_encuentra(
 
     assert fuentes[0]["url"] == "https://ejemplo/fisica"
     assert fuentes[1]["url"] == "https://ejemplo/salidas"
+
+
+# --- IT-121: la respuesta fija no reapunta el ambito ---
+
+
+def test_una_respuesta_fija_no_deja_cambiar_el_ambito() -> None:
+    """El turno rechazado por ser de otro centro no cambia de que se habla.
+
+    Aqui no se llama a `preparar`, asi que el decisor no opina y `anotar`
+    caeria a la deduccion por reglas: la pregunta nombra una titulacion de la
+    EPSJ de pasada y el ambito se iba detras de ella.
+    """
+    conversacion = ConversacionFalsa()
+
+    list(
+        servidor.partes_de_la_respuesta(
+            "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?",
+            SISTEMA_FALSO,
+            conversacion,
+        )
+    )
+
+    assert conversacion.cambios_de_ambito == [False]
+
+
+def test_un_turno_normal_si_deja_cambiar_el_ambito(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
+) -> None:
+    """La otra mitad: sin respuesta fija, el ambito se sigue actualizando."""
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Pues mira."])
+    )
+    conversacion = ConversacionFalsa()
+
+    list(
+        servidor.partes_de_la_respuesta(
+            "¿Qué asignaturas tiene?", SISTEMA_FALSO, conversacion
+        )
+    )
+
+    assert conversacion.cambios_de_ambito == [True]

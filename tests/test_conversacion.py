@@ -694,3 +694,59 @@ def test_al_olvidar_el_decisor_vuelve_a_empezar_de_cero():
     c.olvidar()
     c.preparar("¿y las optativas?")
     assert llamadas[-1] == ("¿y las optativas?", [], None)
+
+
+# --- IT-121: una respuesta fija no cambia de que se habla ---
+
+
+def test_regresion_una_respuesta_fija_no_reapunta_el_ambito() -> None:
+    """La pregunta por otro centro se rechaza, pero contaminaba el sujeto.
+
+    El servidor resuelve la respuesta fija ANTES de preparar la consulta, asi
+    que el decisor no llega a opinar y `anotar` caia a la deduccion por reglas.
+    Medido con el catalogo real: hablando de Informatica, «¿La Universidad de
+    Granada tiene el Grado en Ingenieria Mecanica?» dejaba el ambito apuntando
+    a las cinco titulaciones de Mecanica, y la pregunta siguiente se contestaba
+    sobre ellas.
+    """
+    conversacion = Conversacion(CATALOGO)
+    conversacion.anotar(
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática?",
+        "Tiene Álgebra.",
+    )
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
+
+    conversacion.anotar(
+        "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?",
+        "Solo puedo informarte de la Escuela Politécnica Superior de Jaén.",
+        cambia_ambito=False,
+    )
+
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
+
+
+def test_sin_el_argumento_el_ambito_se_sigue_deduciendo() -> None:
+    """La otra mitad: el comportamiento normal no cambia.
+
+    Se pregunta por Informatica y no por Mecanica a proposito: «mecanica»
+    resuelve a las cinco titulaciones que la llevan en el nombre ---que es lo
+    correcto, porque la pregunta es de verdad ambigua--- y lo que aqui se
+    comprueba es que la deduccion sigue ocurriendo, no como desambigua.
+    """
+    conversacion = Conversacion(CATALOGO)
+
+    conversacion.anotar("¿Y el Grado en Ingeniería Informática?", "Tiene Álgebra.")
+
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
+
+
+def test_olvidar_deja_el_objeto_como_recien_creado() -> None:
+    """`_decidido` sobrevivia al olvido y falseaba el primer turno siguiente."""
+    conversacion = Conversacion(CATALOGO, decisor=lambda p, a, u: Decision(NINGUNA, []))
+    conversacion.preparar("hola")
+
+    conversacion.olvidar()
+
+    assert conversacion.ambito == []
+    assert conversacion.preguntas() == []
+    assert conversacion._decidido is None
