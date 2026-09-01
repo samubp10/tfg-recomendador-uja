@@ -35,14 +35,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
 
-from tfg_uja.generador import (
+from tfg_uja import RAIZ
+from tfg_uja.dialogo.generador import (
     RESPUESTA_DESPEDIDA,
     RESPUESTA_OTRA_UNIVERSIDAD,
     RESPUESTA_SALUDO,
     RESPUESTA_SIN_CONTEXTO,
 )
-
-RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 
 #: Fichero donde se acumulan los turnos, uno por línea.
 REGISTRO: Final[Path] = RAIZ / "data" / "registro_chat.jsonl"

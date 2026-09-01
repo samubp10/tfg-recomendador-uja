@@ -40,20 +40,20 @@ import scrapy
 from scrapy.http import Request, Response
 from parsel import Selector, SelectorList
 
-from tfg_uja.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
+from tfg_uja import RAIZ as _RAIZ
+from tfg_uja.extraccion.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
     reparar_url,
     separar_oferta,
 )
-from tfg_uja.validators import es_asignatura_valida, normalizar_tipo
+from tfg_uja.extraccion.validators import es_asignatura_valida, normalizar_tipo
 
 #: Raíz del repositorio, deducida de la ubicación de este módulo
 #: (``src/tfg_uja/grados_spider.py``). Se resuelve así, y no como ruta relativa
 #: al directorio de trabajo, para que el rastreo deje los ficheros en el mismo
 #: sitio se lance desde donde se lance.
-_RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
 
 
 def _normalizar(texto: str) -> str:

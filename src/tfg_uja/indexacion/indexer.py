@@ -42,7 +42,7 @@ from typing import Any, Final, Protocol
 import lancedb
 import pyarrow as pa
 
-from tfg_uja.incrustaciones import (
+from tfg_uja.indexacion.incrustaciones import (
     MODELO,
     PREFIJO_DOCUMENTO,
     Incrustador,
@@ -458,7 +458,7 @@ def main(argumentos: list[str]) -> None:
 
     Uso::
 
-        py -m tfg_uja.indexer data/chunks.json data/indice [modelo]
+        py -m tfg_uja.indexacion.indexer data/chunks.json data/indice [modelo]
 
     Args:
         argumentos: ``[ruta_chunks, ruta_indice]`` y, opcionalmente, el

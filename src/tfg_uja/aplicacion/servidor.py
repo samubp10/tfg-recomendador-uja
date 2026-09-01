@@ -39,19 +39,20 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Final
 
-from tfg_uja.ambito import decisor_con_modelo
-from tfg_uja.conversacion import Consulta, Conversacion
-from tfg_uja.generador import (
+from tfg_uja import RAIZ
+from tfg_uja.dialogo.ambito import decisor_con_modelo
+from tfg_uja.dialogo.conversacion import Consulta, Conversacion
+from tfg_uja.dialogo.generador import (
     RESPUESTA_SALUDO,
     ErrorDelModelo,
     respuesta_fija,
     responder_por_partes,
 )
-from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
-from tfg_uja.incrustaciones import incrustador_de_consultas
-from tfg_uja.registro_chat import anotar_turno, linea_de_turno
-from tfg_uja.sugerencias import sugerencias_para
-from tfg_uja.recuperador import (
+from tfg_uja.indexacion.incrustaciones import MODELO as MODELO_INCRUSTACIONES
+from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
+from tfg_uja.aplicacion.registro_chat import anotar_turno, linea_de_turno
+from tfg_uja.aplicacion.sugerencias import sugerencias_para
+from tfg_uja.dialogo.recuperador import (
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,
@@ -59,13 +60,12 @@ from tfg_uja.recuperador import (
     distancia_del_indice,
 )
 
-RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
-
 #: Interfaz estática. Se sirve desde el mismo proceso que el endpoint, que es
 #: lo que decide el ADR de arquitectura de la Fase 3.
 WEB: Final[Path] = RAIZ / "web"
 
-#: Índice vectorial. No se versiona: se construye con ``py -m tfg_uja.indexer``.
+#: Índice vectorial. No se versiona: se construye con
+#: ``py -m tfg_uja.indexacion.indexer``.
 INDICE: Final[Path] = RAIZ / "data" / "indice_lance"
 
 #: Dataset del que salen las direcciones oficiales de cada unidad. Es el
@@ -624,12 +624,15 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
 
 
 def main() -> None:
-    """Levanta el servidor. Punto de entrada de ``py -m tfg_uja.servidor``."""
+    """Levanta el servidor.
+
+    Punto de entrada de ``py -m tfg_uja.aplicacion.servidor``.
+    """
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
     if not INDICE.exists():
         print(
             f"No hay índice en {INDICE}. Se construye con "
-            "«py -m tfg_uja.indexer data/chunks.json data/indice_lance»."
+            "«py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance»."
         )
         raise SystemExit(1)
     print(f"Abriendo el índice de {INDICE}…")
