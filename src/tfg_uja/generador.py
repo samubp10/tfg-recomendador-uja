@@ -1180,7 +1180,17 @@ def responder_por_partes(
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
+    # Si el modelo paro por agotar el tope, la cola que quede sin cerrar es una
+    # frase a medias y no se entrega. El aviso llega como un trozo mas y se
+    # aparta aqui: al empezar por un salto de linea le daba a esa cola una
+    # frontera por detras, de modo que «Se cursan Algebra y» se emitia en vez
+    # de descartarse. La via sin flujo ya lo hacia bien pasando la respuesta
+    # entera por `cerrar_en_frase_completa`.
+    cortada = False
     for trozo in trozos:
+        if trozo == AVISO_RESPUESTA_CORTADA:
+            cortada = True
+            continue
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
         for unidad in unidades:
@@ -1194,8 +1204,12 @@ def responder_por_partes(
                 return
             yield unidad
 
-    # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
-    if pendiente:
+    # La cola que no llego a cerrar frontera se comprueba igual antes de salir,
+    # salvo si el modelo paro por longitud: entonces se descarta. `pendiente`
+    # nunca contiene una frontera ---`partir_en_unidades` las consume todas---,
+    # asi que tirarlo equivale exactamente a recortar el texto completo hasta su
+    # ultimo cierre, que es lo que hace `cerrar_en_frase_completa`.
+    if pendiente and not cortada:
         pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta, sujeto)
         acumulado += pendiente
         if catalogo and titulaciones_inventadas(acumulado, catalogo):
@@ -1204,3 +1218,6 @@ def responder_por_partes(
             yield RESPUESTA_TITULACION_INVENTADA
             return
         yield pendiente
+
+    if cortada:
+        yield AVISO_RESPUESTA_CORTADA
