@@ -12,10 +12,22 @@ persiste entre ramas y árboles de trabajo. Escribirlo dentro del árbol de
 trabajo de una tarjeta ya costó perder las 320 respuestas del cribado de IT-35,
 y con ellas la posibilidad de volver a puntuarlas sin repetir la tanda.
 
-**No se guarda ningún dato personal** (RNF-03): ni dirección IP, ni cabeceras
-del navegador, ni identificador del cliente. :func:`linea_de_turno` no recibe
-nada de eso, así que no puede colarse por descuido al añadir un campo más
-adelante; lo único que se conserva es lo que se pregunta y lo que se responde.
+**No se recoge ningún dato del visitante**: ni dirección IP, ni cabeceras del
+navegador, ni identificador del cliente. :func:`linea_de_turno` no recibe nada
+de eso, así que no puede colarse por descuido al añadir un campo más adelante.
+
+Lo que sí se conserva, íntegro, es **lo que la persona escribe**: la pregunta,
+la consulta derivada y la respuesta. Y ese texto es libre, de modo que puede
+contener un nombre, un correo, un teléfono o una circunstancia personal si a
+quien escribe le da por ponerlos. Por eso este fichero se trata como dato
+potencialmente personal: vive solo en la máquina, no se versiona y no sale de
+ahí.
+
+**Esto no es el RNF-03 y no debe citarse como tal.** El RNF-03 dice «no
+incorporar datos personales *a la colección*», y la colección es el corpus que
+se indexa, no este cuaderno de campo. El requisito se cumple; lo que no se
+puede afirmar es la versión fuerte ---«aquí no hay ningún dato personal»---,
+que sería más de lo que este módulo puede garantizar.
 
 **Registrar es una tarea auxiliar y se comporta como tal.**
 :func:`anotar_turno` no propaga ningún fallo: si el disco está lleno, el
