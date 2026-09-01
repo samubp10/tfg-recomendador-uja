@@ -846,3 +846,72 @@ def test_un_encabezado_sin_ningun_dato_del_plan_no_aporta_nada() -> None:
     sin_datos = "«Una guía suelta», guía docente del Grado en Ingeniería Informática."
 
     assert atributos_del_contexto([sin_datos]) == {}
+
+
+# --- IT-119: el atributo que se escribe en frase aparte de su nombre ---
+
+
+def test_regresion_el_atributo_en_frase_aparte_del_nombre() -> None:
+    # La emision por partes corta por el punto (ADR-0006), asi que estas son
+    # DOS unidades y la segunda no nombra a nadie. Sin el sujeto heredado la
+    # afirmacion falsa pasaba sin corregir y sin aviso, que es justo lo que
+    # este corrector existe para impedir.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    segunda_frase = "Se imparte en el segundo cuatrimestre."
+
+    corregida, avisos = corregir_atributos(
+        segunda_frase, atributos, sujeto="fotogrametria y teledeteccion iii"
+    )
+
+    assert corregida == "Se imparte en el primer cuatrimestre."
+    assert len(avisos) == 1
+
+
+def test_sin_sujeto_heredado_una_frase_suelta_no_se_toca() -> None:
+    # La otra mitad de la regla: sin saber de quien se habla no se corrige
+    # nada. Atribuir a ciegas seria el mismo defecto del reves.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    suelta = "Se imparte en el segundo cuatrimestre."
+
+    assert corregir_atributos(suelta, atributos) == (suelta, [])
+
+
+def test_un_sujeto_heredado_que_no_esta_en_el_contexto_se_ignora() -> None:
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    suelta = "Se imparte en el segundo cuatrimestre."
+
+    assert corregir_atributos(suelta, atributos, sujeto="otra cosa") == (suelta, [])
+
+
+def test_una_vineta_nueva_suelta_el_sujeto_heredado() -> None:
+    # El salto de linea cierra la vineta. Si el sujeto sobreviviera, lo que se
+    # dice de la asignatura de abajo se le atribuiria a la de arriba, que es
+    # exactamente el defecto de mezclar asignaturas que el modulo persigue.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+    dos_vinetas = (
+        "Se imparte en el primer cuatrimestre.\nY otra cosa en el segundo curso."
+    )
+
+    corregida, avisos = corregir_atributos(
+        dos_vinetas, atributos, sujeto="fotogrametria y teledeteccion iii"
+    )
+
+    # La primera linea si se corrige contra el sujeto; la segunda no se toca.
+    assert corregida.endswith("Y otra cosa en el segundo curso.")
+    assert all("curso" not in aviso for aviso in avisos)
+
+
+def test_el_ordinal_masculino_casa_igual_que_la_forma_ascii() -> None:
+    # «2º» es como se escribe de verdad en espanol, y el indicador ordinal
+    # sobrevive a `normalizar`. Sin sus entradas no casaba con nada y el
+    # docstring lo daba por cubierto.
+    atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
+
+    corregida, avisos = corregir_atributos(
+        "**Fotogrametría y teledetección III** se imparte en el 2º cuatrimestre.",
+        atributos,
+    )
+
+    assert "primer cuatrimestre" in corregida
+    assert "2º cuatrimestre" not in corregida
+    assert len(avisos) == 1
