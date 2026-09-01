@@ -52,9 +52,7 @@
 
 \begin{borrador}
   \item \textbf{AUDITORÍA 30/08 --- lo que incumple las reglas que dejó
-  escritas el tutor}, arriba en rojo. Estas las va a mirar seguro, porque las
-  escribió él. Ninguna se toca sin ti: la primera persona es prosa tuya y las
-  capturas necesitan una frase tuya que las presente.
+  escritas el tutor}
 
   \item \textbf{Su regla 3 (toda imagen se comenta en el texto \emph{antes} de
   aparecer): tres figuras no se citan en ninguna parte.} Son las tres capturas
@@ -120,14 +118,6 @@ El sistema se fundamenta en una arquitectura de Generación Aumentada por Recupe
 
 El desarrollo del proyecto abarca un flujo completo de ingeniería de datos e inteligencia artificial conteniendo este desde la \glr{minería de textos y datos}{Minería de textos y datos} mediante técnicas de \textit{web scraping} y la división semántica de la información (\glr{chunking}{chunking}), hasta la generación de representaciones vectoriales (\glr{embeddings}{incrustacion}), su indexación en una \glr{base de datos vectorial}{base de datos vectorial} y la integración final con el LLM a través de una interfaz web accesible. Todo ello se somete a una evaluación experimental con métricas objetivas de fidelidad (\glr{faithfulness}{fidelidad de la respuesta}) y relevancia de las respuestas para asegurar que el sistema no incurra en la invención de datos (alucinaciones).
 
-\begin{borrador}
-  \item El resumen ya está redactado. Queda únicamente el diagrama de bloques del conjunto del TFG, que lo dejaré para más adelante.
-  \item \textbf{AUDITORÍA 30/08 --- esta nota ya está resuelta.} El diagrama
-  del conjunto del trabajo existe y es la Figura~\ref{fig:conjunto_tfg}, unas
-  páginas más abajo. Puedes tachar el punto anterior y, sobre todo, responder
-  al comentario del tutor de arriba, porque tu respuesta en azul sigue
-  diciendo que el diagrama está pendiente.
-\end{borrador}
 
 \textcolor{red}{[jccuevas] ¿La plantilla LaTex es de la EPSJ? Si no lo es, reduce un poco el espacio de los títulos con el texto anterior y el posterior, como a la mitad.}
 
@@ -164,6 +154,22 @@ El ámbito de conocimiento del sistema se restringe de forma exclusiva a la ofer
 
 Dentro de esta delimitación, se excluirá además del \gl{corpus} la modalidad en extinción de una titulación cuando coexista con un plan de estudios vigente que la sustituye, como pasa con la titulación de Ingeniería Geomática y Topográfica, en la que un estudiante preuniversitario no puede matricularse en un plan que ya no admite nuevo alumnado, por lo que incluirlo entre las recomendaciones del sistema induciría a error.
 
+\textcolor{borrador2}{La colección tampoco recoge otros dos tipos de dato que
+  un preuniversitario consulta al decidir: las notas de corte y las
+  ponderaciones de acceso, por un lado, y los indicadores de inserción laboral
+  de los egresados, por otro. La exclusión no se debe a que falte la
+  información. Las notas de corte se publican por titulación concreta en el
+  Distrito Único Andaluz, de modo que la fuente existe con el detalle que haría
+  falta; de los datos de inserción, lo que se publica de forma abierta ---el
+  cruce del Sistema Integrado de Información Universitaria con la Seguridad
+  Social, y los informes de la propia Universidad--- está agregado por rama de
+  conocimiento, por centro y por nivel, y no consta que descienda hasta la
+  titulación. Las dos quedan fuera porque ambas exigen una fuente distinta de la
+  web del centro, con su propio extractor y su propia verificación, y ese
+  esfuerzo se destinó a construir y medir el sistema sobre la información
+  académica. Se recogen como línea de continuación en el
+  Apartado~\ref{secc:trabajo_futuro}.}
+
 \begin{borrador}
   \item Cuando lo reescribas, cuida una cosa: aquí se declara \emph{qué} hace el
   sistema fuera de su dominio. \emph{Cómo} lo consigue es del
@@ -181,32 +187,7 @@ El sistema está diseñado para orientar a estudiantes preuniversitarios (Educac
   \item \textbf{Información excluida:} Se omiten deliberadamente metadatos orientados a alumnos ya matriculados previamente, tales como los sistemas de evaluación, la bibliografía específica o el listado del profesorado. Esta decisión técnica no solo optimiza el proceso de extracción y el tamaño de la base de datos vectorial, sino que evita la dispersión semántica del modelo durante la fase de generación de respuestas.
 \end{itemize}
 
-
-\begin{borrador}
-  \item \textbf{Fase:} 3 (IT-74). El diagrama que pidió el tutor, con su párrafo de
-  presentación delante para que la figura esté referenciada antes de aparecer. Los dos
-  en turquesa: reescríbelos.
-  \item \textbf{No repite al del Capítulo~\ref{cap:materialesymetodos}}, y conviene
-  que siga siendo así: aquel dibuja el \emph{sistema} ---por dónde pasa un dato desde
-  la web hasta la respuesta--- y este dibuja el \emph{trabajo} ---de qué se parte, qué
-  decide cada elección y con qué se comprueba---. Si al reescribirlos los dos acaban
-  diciendo lo mismo, sobra uno.
-\end{borrador}
-
-\textcolor{borrador2}{Todo lo anterior se resume en la
-  Figura~\ref{fig:conjunto_tfg}, que recoge el trabajo entero en una sola
-  imagen. La fila central es la cadena que lleva de la información publicada por
-  la Escuela hasta la respuesta que recibe el estudiante, y cada eslabón
-  corresponde a una fase del desarrollo. Encima de cada uno aparece la decisión
-  documentada que lo fija, y debajo el instrumento con el que se comprueba que
-  hace lo que promete.}
-
-\textcolor{borrador2}{Esa disposición en tres bandas no es decorativa: es la
-  forma de trabajo que se defiende en esta memoria. Ninguna de las piezas de la
-  cadena se eligió por costumbre ---de ahí la banda de arriba--- y ninguna se da
-  por buena sin una medida que lo sostenga ---de ahí la de abajo---. Ninguna de
-  las cajas describe una intención: todas corresponden a algo construido y
-  medido.}
+La siguiente Figura~\ref{fig:conjunto_tfg} resume la arquitectura global de este proyecto. En el eje central se representa el flujo de procesamiento, desde la extracción de la información en la web de la Escuela Politécnica Superior de Jaén hasta la generación de las respuestas que recibe el estudiante. Sobre este eje se sitúan técnicamente cada elección de diseño, mientras que en la parte inferior se muestran los bancos de evaluación y verificadores desarrollados para validar el comportamiento de cada módulo.
 
 \input{diagramas/DiagramaConjuntoTFG.tex}
 
