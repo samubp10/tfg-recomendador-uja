@@ -12,6 +12,7 @@ from __future__ import annotations
 import io
 from http.server import SimpleHTTPRequestHandler
 import json
+import socketserver
 from pathlib import Path
 from typing import Any
 
@@ -200,25 +201,120 @@ def manejador_falso(
     ruta: str = "/api/chat",
     largo: int | str | None = None,
     Clase: type | None = None,
+    cabeceras: dict[str, str] | None = None,
 ):
     """Crea un manejador sin socket, con la petición ya puesta dentro.
 
     ``Clase`` se pasa cuando la prueba necesita **dos peticiones seguidas del
     mismo servidor**: la conversación y la cuenta de turnos viven en la clase,
     así que construir una nueva por cada petición es empezar de cero.
+
+    Las cabeceras por omisión son las de una petición legítima de la interfaz
+    (IT-129). ``cabeceras`` las sustituye o añade, y un valor ``None`` borra la
+    cabecera, que es como se prueba que falte.
     """
     Clase = Clase or servidor.manejador(SISTEMA_FALSO)
     m = Clase.__new__(Clase)
     m.path = ruta
     m.rfile = io.BytesIO(cuerpo)
     m.wfile = io.BytesIO()
-    m.headers = {"Content-Length": str(len(cuerpo) if largo is None else largo)}
+    m.headers = {
+        "Content-Length": str(len(cuerpo) if largo is None else largo),
+        "Host": f"127.0.0.1:{servidor.PUERTO}",
+        "Origin": f"http://127.0.0.1:{servidor.PUERTO}",
+        "Content-Type": "application/json",
+    }
+    for nombre, valor in (cabeceras or {}).items():
+        if valor is None:
+            m.headers.pop(nombre, None)
+        else:
+            m.headers[nombre] = valor
     m.errores: list[tuple[int, str | None]] = []
     m.send_error = lambda codigo, mensaje=None: m.errores.append((codigo, mensaje))
     m.send_response = lambda *a, **k: None
     m.send_header = lambda *a, **k: None
     m.end_headers = lambda: None
     return m
+
+
+@pytest.mark.parametrize(
+    "cabeceras, porque",
+    [
+        ({"Host": "ejemplo.com"}, "un Host ajeno es el vector del reenlace de DNS"),
+        ({"Host": None}, "sin Host no se sabe a nombre de quién se ha llegado"),
+        ({"Origin": "http://ejemplo.com"}, "la consulta viene de otra página"),
+        ({"Content-Type": "text/plain"}, "lo que manda un formulario ajeno"),
+        ({"Content-Type": None}, "sin declarar el tipo tampoco se acepta"),
+    ],
+)
+def test_una_consulta_que_no_viene_de_la_interfaz_se_rechaza(
+    cabeceras: dict[str, str], porque: str
+) -> None:
+    """Regresión de IT-129: ``/api/chat`` atendía a cualquiera.
+
+    Comprobado antes del arreglo: una petición con ``Origin`` y ``Host`` ajenos
+    y ``Content-Type: text/plain`` se contestaba con un 200. Una página abierta
+    en otra pestaña podía lanzar consultas, mover el estado de la conversación
+    y ensuciar el registro.
+
+    Se responde 403 y no 400 a propósito: la petición está bien formada, lo que
+    falla es de dónde viene.
+    """
+    cuerpo = json.dumps({"pregunta": "¿qué asignaturas tiene?"}).encode("utf-8")
+    m = manejador_falso(cuerpo, cabeceras=cabeceras)
+
+    m.do_POST()
+
+    assert m.errores and m.errores[0][0] == 403, porque
+    assert sucesos_de(m) == [], "no puede haberse respondido nada"
+
+
+@pytest.mark.parametrize(
+    "cabeceras",
+    [
+        {},
+        {"Host": f"localhost:{servidor.PUERTO}"},
+        {"Origin": f"http://localhost:{servidor.PUERTO}"},
+        # El tipo puede traer parámetros y sigue siendo el mismo tipo.
+        {"Content-Type": "application/json; charset=utf-8"},
+        # `curl` y las herramientas con las que se prueba a mano no mandan
+        # Origin. Lo que hay que rechazar es un Origin ajeno, no su ausencia.
+        {"Origin": None},
+    ],
+)
+def test_la_interfaz_local_sigue_pudiendo_preguntar(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, cabeceras: dict[str, str]
+) -> None:
+    """La barrera no puede dejar fuera a quien tiene que entrar."""
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+    cuerpo = json.dumps({"pregunta": "¿qué asignaturas tiene?"}).encode("utf-8")
+    m = manejador_falso(cuerpo, cabeceras=cabeceras)
+
+    m.do_POST()
+
+    assert m.errores == []
+    assert sucesos_de(m)
+
+
+def test_el_servidor_atiende_de_una_peticion_en_una() -> None:
+    """IT-129: es lo que hace correcto compartir una sola conversación.
+
+    ``conversacion`` y ``turno`` son atributos de la clase de manejador, o sea
+    compartidos por todas las conexiones. Con ``ThreadingHTTPServer`` dos
+    peticiones solapadas mezclaban historial, ámbito y contador sin ninguna
+    sincronización, y a eso llega una persona sola cancelando una respuesta y
+    volviendo a preguntar.
+
+    Se comprueba la clase que se instancia, no un comportamiento con hilos:
+    montar dos peticiones concurrentes de verdad para demostrar que no hay
+    concurrencia sería una prueba lenta y con carreras propias.
+    """
+    from http.server import ThreadingHTTPServer
+
+    assert servidor.HTTPServer is not ThreadingHTTPServer
+    assert not issubclass(servidor.HTTPServer, socketserver.ThreadingMixIn)
 
 
 def sucesos_de(m: Any) -> list[dict[str, object]]:
@@ -473,7 +569,7 @@ def test_el_arranque_levanta_el_servidor_y_se_para_con_ctrl_c(
         def serve_forever(self) -> None:
             raise KeyboardInterrupt
 
-    monkeypatch.setattr(servidor, "ThreadingHTTPServer", ServidorFalso)
+    monkeypatch.setattr(servidor, "HTTPServer", ServidorFalso)
 
     servidor.main()
 
