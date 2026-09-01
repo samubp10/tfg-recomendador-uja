@@ -134,15 +134,15 @@ el propio *pipeline* (esa regeneración es la garantía de reproducibilidad).
 scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
 
 # 2. Fragmentar (offline, barato)
-py -m tfg_uja.chunker data/grados.json data/chunks.json
+py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
 
 # 3. Indexar en la base de datos vectorial (requiere el extra [index])
 #    El modelo por defecto es el del ADR-0003; se puede pasar otro como
 #    tercer argumento para repetir el experimento sin tocar el código.
-py -m tfg_uja.indexer data/chunks.json data/indice_lance
+py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance
 
 # 4. Levantar la aplicación web
-py -m tfg_uja.servidor
+py -m tfg_uja.aplicacion.servidor
 ```
 
 El paso 4 abre el asistente en **<http://127.0.0.1:8000>**. Necesita que

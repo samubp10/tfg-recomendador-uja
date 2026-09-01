@@ -164,15 +164,15 @@ the pipeline itself, and that regeneration is what guarantees reproducibility.
 scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
 
 # 2. Chunk the corpus (offline, cheap)
-py -m tfg_uja.chunker data/grados.json data/chunks.json
+py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
 
 # 3. Index into the vector database (requires the [index] extra).
 #    The default model is the one chosen in ADR-0003; another one can be
 #    passed as a third argument to repeat the experiment without touching code.
-py -m tfg_uja.indexer data/chunks.json data/indice_lance
+py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance
 
 # 4. Start the web application
-py -m tfg_uja.servidor
+py -m tfg_uja.aplicacion.servidor
 ```
 
 Step 4 opens the assistant at **<http://127.0.0.1:8000>**. It needs

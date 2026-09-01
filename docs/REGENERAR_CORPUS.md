@@ -86,7 +86,7 @@ entran al corpus.
 ## 3. Fragmentar
 
 ```bash
-py -m tfg_uja.chunker data/grados.json data/chunks.json
+py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
 py scripts/verificadores/check_chunks.py
 ```
 
@@ -141,7 +141,7 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
   entero, que es barato y es la política del proyecto:
 
   ```bash
-  py -m tfg_uja.indexer data/chunks.json data/indice_lance
+  py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance
   ```
 
   Desde IT-98 el índice **graba en sus metadatos el modelo y el prefijo de documento** con
