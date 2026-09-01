@@ -313,4 +313,4 @@ tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 - ADR-0004: base de datos vectorial.
 - `eval/preguntas_generacion.json` y `eval/preguntas_generacion_muestra.json`.
 - `scripts/bancos/generar_banco_generacion.py` y `scripts/experimentos/experimento_generacion.py`.
-- `src/tfg_uja/verificacion.py`: las comprobaciones deterministas.
+- `src/tfg_uja/dialogo/verificacion.py`: las comprobaciones deterministas.

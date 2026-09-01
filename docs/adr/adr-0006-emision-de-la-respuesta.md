@@ -130,9 +130,9 @@ desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
 
 - ADR-0005, elección del modelo generativo: 320 respuestas medidas, cero
   titulaciones inventadas.
-- `src/tfg_uja/verificacion.py`, `titulaciones_inventadas()`: la comparación por
+- `src/tfg_uja/dialogo/verificacion.py`, `titulaciones_inventadas()`: la comparación por
   subconjunto de palabras que obliga a la frontera segura.
-- `src/tfg_uja/generador.py`, `responder()`: las tres barreras y el orden en que
+- `src/tfg_uja/dialogo/generador.py`, `responder()`: las tres barreras y el orden en que
   actúan.
 - `docs/experimentos/it38-sistema.md`: el banco de 57 entradas y la única
   retirada registrada.

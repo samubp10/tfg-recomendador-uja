@@ -237,7 +237,7 @@ la firma `%PDF` del cuerpo.
 
 ## Referencias
 
-- `src/tfg_uja/guia_pdf.py`, `src/tfg_uja/grados_spider.py`
+- `src/tfg_uja/extraccion/guia_pdf.py`, `src/tfg_uja/extraccion/grados_spider.py`
   (`parse_guia`, `_guia_desde_pdf`).
 - `scripts/verificadores/check_dataset.py` (comprobación de binario en campos de texto).
 - `tests/test_guia_pdf.py`, `tests/test_grados_spider.py`

@@ -50,10 +50,10 @@ from tfg_uja.text_cleaner import (
 )
 from tfg_uja.extraccion.validators import es_asignatura_valida, normalizar_tipo
 
-#: Raíz del repositorio, deducida de la ubicación de este módulo
-#: (``src/tfg_uja/grados_spider.py``). Se resuelve así, y no como ruta relativa
-#: al directorio de trabajo, para que el rastreo deje los ficheros en el mismo
-#: sitio se lance desde donde se lance.
+# La raíz llega de :mod:`tfg_uja` y no se calcula aquí: se resuelve desde la
+# ubicación del paquete y no como ruta relativa al directorio de trabajo, para
+# que el rastreo deje los ficheros en el mismo sitio se lance desde donde se
+# lance.
 
 
 def _normalizar(texto: str) -> str:

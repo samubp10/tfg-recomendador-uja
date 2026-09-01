@@ -29,7 +29,7 @@ cp data/chunks.json data/chunks_$(date +%F).json.bak
 ## 1. Rastrear la web
 
 ```bash
-scrapy runspider src/tfg_uja/grados_spider.py -O data/grados.json
+scrapy runspider src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
 ```
 
 **Déjalo en primer plano y espera a que termine.** Si se cierra la sesión con el proceso en
