@@ -1270,6 +1270,67 @@ def test_una_respuesta_cortada_por_longitud_lo_avisa_al_final(monkeypatch) -> No
     assert partes[-1] == AVISO_RESPUESTA_CORTADA
 
 
+def test_la_cola_a_medias_no_llega_al_estudiante_por_la_via_en_flujo(
+    monkeypatch,
+) -> None:
+    """Regresión de IT-128: la vía en flujo no cerraba en frase completa.
+
+    Sin flujo se devuelve ``cerrar_en_frase_completa(escrito) + aviso``. En
+    flujo, el aviso se emitía como un trozo más, y al empezar por un salto de
+    línea le daba a la cola incompleta una frontera por detrás: «Se cursan
+    Álgebra y» se emitía en vez de descartarse. Las dos vías prometen entregar
+    lo mismo y ante un corte por longitud entregaban cosas distintas.
+
+    Se comprueba que la cola **no llega**, no solo que el aviso aparezca al
+    final: eso ya pasaba antes del arreglo.
+    """
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "Se cursan Álgebra y Física. "},
+            {"response": "También Cálculo y", "done_reason": "length"},
+        ],
+    )
+
+    contexto = [fragmento("Álgebra", "Matrices y determinantes.")]
+    partes = list(
+        generador.responder_por_partes("qué asignaturas hay", contexto, "un-modelo")
+    )
+    entregado = "".join(p for p in partes if p is not None)
+
+    assert "También Cálculo y" not in entregado
+    assert "Se cursan Álgebra y Física." in entregado
+    assert entregado.endswith(AVISO_RESPUESTA_CORTADA)
+
+
+def test_las_dos_vias_entregan_lo_mismo_ante_un_corte_por_longitud(
+    monkeypatch,
+) -> None:
+    """La equivalencia es el contrato: si se rompe, se mide un sistema y se
+    entrega otro.
+
+    Se compara la vía en flujo con lo que produce ``cerrar_en_frase_completa``,
+    que es exactamente lo que hace la vía sin flujo en :func:`generar`.
+    """
+    escrito = "Se cursan Álgebra y Física. También Cálculo y"
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "Se cursan Álgebra y Física. "},
+            {"response": "También Cálculo y", "done_reason": "length"},
+        ],
+    )
+
+    contexto = [fragmento("Álgebra", "Matrices y determinantes.")]
+    partes = list(
+        generador.responder_por_partes("qué asignaturas hay", contexto, "un-modelo")
+    )
+    en_flujo = "".join(p for p in partes if p is not None)
+    sin_flujo = cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
+
+    assert en_flujo.strip() == sin_flujo.strip()
+
+
 def test_si_el_servidor_esta_caido_el_flujo_lo_dice(monkeypatch) -> None:
     """Mismo error que la vía síncrona: un fallo de red no puede pasar mudo."""
 
