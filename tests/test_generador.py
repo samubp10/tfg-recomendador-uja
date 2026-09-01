@@ -778,6 +778,20 @@ def _con_respuesta(monkeypatch, texto: str) -> None:
     monkeypatch.setattr(generador, "generar", lambda prompt, modelo: texto)
 
 
+def _con_respuesta_cortada(monkeypatch, texto: str) -> None:
+    """Como si el modelo hubiera agotado el tope de fichas.
+
+    No se sustituye `generar`, sino la llamada de red: lo que se quiere probar
+    es justamente lo que `generar` hace con `done_reason`, y sustituirlo lo
+    dejaria fuera de la medida.
+    """
+    monkeypatch.setattr(
+        generador.urllib.request,
+        "urlopen",
+        lambda *a, **k: RespuestaFalsa({"response": texto, "done_reason": "length"}),
+    )
+
+
 def test_una_titulacion_inventada_retira_la_respuesta_entera(monkeypatch):
     """Regresión del turno 19 de mistral-nemo:12b.
 
@@ -1295,6 +1309,9 @@ def test_una_respuesta_cortada_por_longitud_lo_avisa_al_final(monkeypatch) -> No
     partes = list(generador.generar_por_partes("prompt", "un-modelo"))
 
     assert partes[-1] == AVISO_RESPUESTA_CORTADA
+    # `generar_por_partes` reenvia los trozos tal cual: quien cierra la frase es
+    # `responder_por_partes`, que es donde estan las fronteras seguras.
+    assert "".join(partes[:-1]) == "Se cursan Álgebra y"
 
 
 def test_si_el_servidor_esta_caido_el_flujo_lo_dice(monkeypatch) -> None:
@@ -1600,3 +1617,68 @@ def test_una_vineta_nueva_no_hereda_el_sujeto_de_la_anterior(monkeypatch):
 
     # La linea de la otra asignatura se entrega tal cual: nadie sabe de ella.
     assert "Otra asignatura. Se imparte en el segundo cuatrimestre." in entregada
+
+
+# --- IT-122: el tope agotado se cierra igual por los dos caminos ---
+
+
+@pytest.mark.parametrize(
+    ("etiqueta", "trozos"),
+    [
+        # El caso real: la ultima palabra queda partida detras de un punto.
+        ("con frontera", ["El Grado tiene 240 ECTS.", " Nota: todas las titul"]),
+        # Sin ninguna frontera no hay nada que cerrar, y `cerrar_en_frase_completa`
+        # devuelve el texto intacto. Los dos caminos tienen que hacer lo mismo.
+        ("sin frontera", ["El Grado tiene 240 ECTS y todas las titul"]),
+        ("justo en frontera", ["El Grado tiene 240 ECTS."]),
+    ],
+)
+def test_el_tope_agotado_entrega_lo_mismo_con_flujo_y_sin_el(
+    monkeypatch, etiqueta, trozos
+):
+    """La web y el experimento tienen que entregar el MISMO texto cortado.
+
+    `generar` cerraba la frase y `generar_por_partes` no, asi que la aplicacion
+    entregaba «...todas las titul» mientras el camino que mide el experimento
+    entregaba la frase entera. La prueba de equivalencia que ya existia no lo
+    veia porque ninguno de sus tres textos agota el tope.
+    """
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+    entero = "".join(trozos)
+
+    _con_respuesta_cortada(monkeypatch, entero)
+    sin_flujo = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Y?", contexto, "m", flujo=False)
+    ).strip()
+
+    flujo_de(
+        monkeypatch,
+        [{"response": t} for t in trozos] + [{"response": "", "done_reason": "length"}],
+    )
+    con_flujo = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Y?", contexto, "m", flujo=True)
+    ).strip()
+
+    assert sin_flujo == con_flujo
+    assert sin_flujo.endswith(AVISO_RESPUESTA_CORTADA.strip())
+
+
+def test_la_cola_partida_no_llega_al_estudiante(monkeypatch):
+    """Lo que motiva la tarjeta: la palabra cortada no se entrega."""
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "El Grado tiene 240 ECTS."},
+            {"response": " Nota: todas las titul", "done_reason": "length"},
+        ],
+    )
+    entregado = "".join(
+        p or "" for p in generador.responder_por_partes("¿Y?", contexto, "m")
+    )
+
+    assert "titul" not in entregado.replace("titulaciones", "")
+    assert "El Grado tiene 240 ECTS." in entregado

@@ -1188,12 +1188,28 @@ def responder_por_partes(
     # atributo: «**Automatica avanzada** (6 ECTS). Se imparte en el primer
     # cuatrimestre.» son dos unidades y la segunda no nombra a nadie.
     sujeto: str | None = None
+    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
+    # cola al agotarse el tope: ver mas abajo.
+    hubo_frontera = False
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
     for trozo in trozos:
+        # El tope agotado corta a mitad de palabra, y lo que queda sin cerrar
+        # frase es exactamente `pendiente`: todo lo anterior ya salio en
+        # unidades. Tirarlo aqui es lo mismo que hace `cerrar_en_frase_completa`
+        # en la via sin flujo, y sin ello la web entregaba «...todas las titul»
+        # mientras el camino que mide el experimento entregaba la frase entera.
+        #
+        # Se exige `hubo_frontera` porque `cerrar_en_frase_completa` devuelve el
+        # texto intacto cuando no hay ninguna frontera en el: sin esa condicion,
+        # una respuesta corta y cortada se quedaria solo en el aviso por un lado
+        # y entera por el otro, que es la divergencia que esto viene a cerrar.
+        if trozo == AVISO_RESPUESTA_CORTADA and hubo_frontera:
+            pendiente = ""
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
+        hubo_frontera = hubo_frontera or bool(unidades)
         for unidad in unidades:
             unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
             sujeto = _sujeto_tras(unidad, del_plan, sujeto)
