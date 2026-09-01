@@ -46,14 +46,16 @@ def _sin_minimo_de_preguntas(monkeypatch) -> None:
     monkeypatch.setattr(check_evalset, "_MINIMO_PREGUNTAS", 1)
 
 
-def _chunk(nombre: str, grados: list[str], origen: str = "guia") -> dict:
+def _chunk(
+    nombre: str, grados: list[str], origen: str = "guia", cuerpo: str = "Contenido."
+) -> dict:
     return {
         "tipo": "chunk",
         "origen": origen,
         "nombre": nombre,
         "grados": grados,
         "codigos": ["1" for _ in grados],
-        "texto": f"{nombre}\nContenido.",
+        "texto": f"{nombre}\n{cuerpo}",
         "chunk_index": 0,
         "total_chunks": 1,
     }
@@ -62,9 +64,15 @@ def _chunk(nombre: str, grados: list[str], origen: str = "guia") -> dict:
 #: Corpus mínimo con la trampa que tiene el real: dos asignaturas distintas
 #: que se llaman igual en titulaciones distintas. En el corpus del 05/08/2026
 #: hay 14 nombres así («Prácticas externas», «Trabajo fin de Grado»...).
+#:
+#: Los dos «Estadística» llevan cuerpos distintos **porque son asignaturas
+#: distintas**, que es lo que este corpus dice representar. Antes compartían el
+#: texto de relleno, y con eso la fixture describía sin querer el caso
+#: contrario: una misma guía partida en dos unidades, que es lo que IT-125
+#: introduce y que **no** es ambiguo.
 CORPUS = [
-    _chunk("Estadística", [INFORMATICA]),
-    _chunk("Estadística", [IAYC]),
+    _chunk("Estadística", [INFORMATICA], cuerpo="Inferencia y contraste."),
+    _chunk("Estadística", [IAYC], cuerpo="Probabilidad para datos masivos."),
     _chunk("Minería web", [INFORMATICA]),
     _chunk("Grado en Ingeniería Informática", [INFORMATICA], origen="salidas"),
 ]
@@ -174,6 +182,32 @@ def test_un_selector_sin_grado_sobre_un_nombre_repetido_se_denuncia(
 
     assert codigo == 1
     assert "ambiguo" in salida
+
+
+def test_la_misma_guia_partida_en_dos_unidades_no_es_ambigua(tmp_path, capsys) -> None:
+    """El caso que crea IT-125, y que la regla anterior no contemplaba.
+
+    Al dejar de afirmar de una titulación el plan de otra, una guía compartida
+    se parte en tantas unidades como combinaciones de plan tengan sus
+    titulaciones. «Ampliación de matemáticas» es formación básica en los cuatro
+    grados simples y obligatoria en los cuatro dobles: dos unidades **con el
+    mismo texto**, porque es literalmente la misma guía.
+
+    Ahí no hay ambigüedad que denunciar. Cualquiera de las dos responde a
+    «¿qué temario tiene?», y exigir un ``grado`` obligaría a elegir una y
+    contar la otra como fallo diciendo exactamente lo mismo.
+    """
+    corpus = [
+        _chunk("Ampliación de matemáticas", [INFORMATICA], cuerpo="Series y límites."),
+        _chunk("Ampliación de matemáticas", [IAYC], cuerpo="Series y límites."),
+    ]
+    selector = {"origen": "guia", "nombre": "Ampliación de matemáticas"}
+    codigo, salida = _correr(
+        tmp_path, [_pregunta("P-001", [selector])], capsys, corpus=corpus
+    )
+
+    assert "ambiguo" not in salida
+    assert codigo == 0
 
 
 def test_el_mismo_selector_con_grado_es_correcto(tmp_path, capsys) -> None:

@@ -186,6 +186,46 @@ def unidades_por_nombre(
     return unidades
 
 
+def _mismo_contenido(chunks: list[dict[str, Any]]) -> bool:
+    """Dice si las unidades que recoge un selector dicen todas lo mismo.
+
+    La comprobación de ambigüedad de arriba se escribió para el caso en que dos
+    unidades se llaman igual y **son cosas distintas**: «Prácticas externas» de
+    Informática y de Mecánica son dos asignaturas con dos guías. Ahí un
+    selector sin ``grado`` recoge las dos y el Recall sale más alto de lo que
+    corresponde.
+
+    IT-125 introduce un caso que esa regla no contemplaba. Al dejar de afirmar
+    de una titulación el plan de otra, una guía compartida se parte en tantas
+    unidades como combinaciones de plan tengan sus titulaciones: «Ampliación de
+    matemáticas» es formación básica en los cuatro grados simples y obligatoria
+    en los cuatro dobles, y son dos unidades **con el mismo texto**, porque es
+    literalmente la misma guía. Preguntado su temario, cualquiera de las dos
+    responde, y exigir un ``grado`` obligaría a elegir una y contar la otra
+    como fallo diciendo exactamente lo mismo.
+
+    Se compara el cuerpo y no el fragmento entero: el encabezado enumera las
+    titulaciones de su unidad, así que difiere siempre por construcción. Y se
+    compara el texto unido y no fragmento a fragmento, porque un encabezado más
+    largo deja menos presupuesto al cuerpo y desplaza los cortes.
+
+    Args:
+        chunks: Fragmentos que resuelve el selector.
+
+    Returns:
+        ``True`` si todas las unidades que recoge tienen el mismo contenido.
+    """
+    por_unidad: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    for chunk in chunks:
+        por_unidad.setdefault(tuple(sorted(chunk["grados"])), []).append(chunk)
+    cuerpos = set()
+    for fragmentos in por_unidad.values():
+        ordenados = sorted(fragmentos, key=lambda c: c["chunk_index"])
+        sin_encabezado = [c["texto"].split("\n", 1)[-1] for c in ordenados]
+        cuerpos.add(" ".join(" ".join(sin_encabezado).split()))
+    return len(cuerpos) == 1
+
+
 def _informar_procedencia(procedencia: dict) -> None:
     """Muestra de qué extracción y de qué curso es el corpus consultado.
 
@@ -238,7 +278,11 @@ def _resolver_selectores(
             # 14 nombres así ---«Prácticas externas», «Trabajo fin de Grado»,
             # «Estadística»---, y ningún selector cae hoy sobre ellos.
             juegos = unidades[(selector["origen"], selector["nombre"])]
-            if "grado" not in selector and len(juegos) > 1:
+            if (
+                "grado" not in selector
+                and len(juegos) > 1
+                and not _mismo_contenido(encontrados)
+            ):
                 errores.append(
                     f"{pregunta['id']}: el selector {selector['nombre']!r} es "
                     f"ambiguo: hay {len(juegos)} unidades distintas con ese "

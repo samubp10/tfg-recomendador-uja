@@ -188,7 +188,7 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 > Lo escribe `scripts/experimentos/experimento_generacion.py --adr`. **No editar a mano.**
 
-- Preguntas del banco: **80** · respuestas medidas: **320**
+- Preguntas del banco: **80** · respuestas medidas: **240**
 - Corpus extraído el 2026-08-16 de https://eps.ujaen.es/grados
 - Servidor de inferencia: 0.32.14
 
@@ -196,10 +196,9 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 | Modelo | Titul. inventadas | Precisión | Sin medir | Cobertura | Acierto escalar | Mediana (s) | p90 (s) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ministral-8b:latest` | 0 | 1.000 | 0/34 | 0.996 | 0.957 | 12.1 | 42.1 |
-| `qwen3.5:9b` | 0 | 0.996 | 0/34 | 0.997 | 0.957 | 18.2 | 67.2 |
-| `gemma3:12b` | 0 | 1.000 | 2/34 | 1.000 | 0.978 | 21.6 | 74.4 |
-| `salamandra-7b` | 0 | 0.992 | 15/34 | 0.908 | 0.935 | 3.8 | 11.1 |
+| `ministral-8b:latest` | 0 | 0.997 | 0/34 | 0.968 | 1.000 | 17.9 | 56.7 |
+| `qwen3.5:9b` | 0 | 1.000 | 0/34 | 0.971 | 1.000 | 17.0 | 45.7 |
+| `gemma3:12b` | 0 | 1.000 | 3/34 | 0.971 | 1.000 | 25.7 | 72.1 |
 
 **Titulaciones inventadas** es el criterio eliminatorio: un nombre con forma de titulación que no está en el catálogo del índice. **Sin medir** son las respuestas de listado redactadas en prosa, que no enumeran nada: su precisión no existe y queda fuera de la media (IT-110). Que no se pueda medir no las exime, porque la cobertura se mide sobre el texto entero y sí las recoge.
 
@@ -209,45 +208,34 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 35.2 |
-| creditos | 23 | — | — | 1.000 | 8.4 |
-| curso_de_asignatura | 23 | — | — | 0.913 | 7.1 |
-| menciones | 13 | 1.000 | 1.000 | — | 18.4 |
-| optativas | 7 | 1.000 | 1.000 | — | 43.2 |
-| plan_por_curso | 13 | 1.000 | 0.989 | — | 27.5 |
+| catalogo | 1 | 1.000 | 1.000 | — | 39.4 |
+| creditos | 23 | — | — | 1.000 | 13.8 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 11.1 |
+| menciones | 13 | 1.000 | 1.000 | — | 23.2 |
+| optativas | 7 | 1.000 | 1.000 | — | 38.6 |
+| plan_por_curso | 13 | 0.992 | 0.915 | — | 51.0 |
 
 #### `qwen3.5:9b`
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 42.9 |
-| creditos | 23 | — | — | 1.000 | 13.1 |
-| curso_de_asignatura | 23 | — | — | 0.913 | 14.5 |
-| menciones | 13 | 0.989 | 1.000 | — | 20.2 |
-| optativas | 7 | 1.000 | 1.000 | — | 45.2 |
-| plan_por_curso | 13 | 1.000 | 0.992 | — | 34.7 |
+| catalogo | 1 | 1.000 | 1.000 | — | 41.6 |
+| creditos | 23 | — | — | 1.000 | 14.7 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 14.8 |
+| menciones | 13 | 1.000 | 1.000 | — | 22.5 |
+| optativas | 7 | 1.000 | 1.000 | — | 42.1 |
+| plan_por_curso | 13 | 1.000 | 0.923 | — | 31.9 |
 
 #### `gemma3:12b`
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 67.1 |
-| creditos | 23 | — | — | 1.000 | 15.2 |
-| curso_de_asignatura | 23 | — | — | 0.957 | 16.0 |
-| menciones | 13 | 1.000 | 1.000 | — | 25.4 |
-| optativas | 7 | 1.000 | 1.000 | — | 78.3 |
-| plan_por_curso | 13 | 1.000 | 1.000 | — | 53.7 |
-
-#### `salamandra-7b`
-
-| Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 19.8 |
-| creditos | 23 | — | — | 1.000 | 3.7 |
-| curso_de_asignatura | 23 | — | — | 0.870 | 2.0 |
-| menciones | 13 | 0.976 | 1.000 | — | 4.4 |
-| optativas | 7 | 1.000 | 0.571 | — | 8.3 |
-| plan_por_curso | 13 | 1.000 | 0.989 | — | 8.5 |
+| catalogo | 1 | 1.000 | 1.000 | — | 67.4 |
+| creditos | 23 | — | — | 1.000 | 22.4 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 19.1 |
+| menciones | 13 | 1.000 | 1.000 | — | 34.2 |
+| optativas | 7 | 1.000 | 1.000 | — | 73.9 |
+| plan_por_curso | 13 | 1.000 | 0.923 | — | 56.7 |
 
 <!-- FIN RESULTADOS AUTOMÁTICOS -->
 

@@ -3,7 +3,7 @@
 > Lo escribe `scripts/experimentos/experimento_recuperacion.py`. **No editar a mano.**
 
 - Modelo de incrustaciones: `intfloat/multilingual-e5-small`
-- Fragmentos del corpus: **1499**
+- Fragmentos del corpus: **1922**
 - Preguntas de dominio: **56**
 - Preguntas ajenas al dominio: **10**
 - Procedencia del corpus: extracción 2026-08-16, origen ?
@@ -17,19 +17,19 @@ sola.
 
 | K | Techo de Recall@K por fragmento |
 | ---: | ---: |
-| 3 | 0.754 |
-| 5 | 0.906 |
-| 10 | 0.966 |
+| 3 | 0.756 |
+| 5 | 0.905 |
+| 10 | 0.964 |
 
 ## Resultado
 
 | K | Recall@K | Techo | Recall de unidad@K |
 | ---: | ---: | ---: | ---: |
-| 3 | 0.652 | 0.754 | 0.906 |
-| 5 | 0.789 | 0.906 | 0.973 |
-| 10 | 0.881 | 0.966 | 0.991 |
+| 3 | 0.644 | 0.756 | 0.906 |
+| 5 | 0.777 | 0.905 | 0.973 |
+| 10 | 0.865 | 0.964 | 0.991 |
 
-**MRR: 0.926**
+**MRR: 0.914**
 
 ## Preguntas ajenas al dominio
 
