@@ -42,6 +42,7 @@ from parsel import Selector, SelectorList
 
 from tfg_uja import RAIZ as _RAIZ
 from tfg_uja.extraccion.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
+from tfg_uja.invariantes import exigir
 from tfg_uja.text_cleaner import (
     limpiar_texto,
     quitar_nota_al_pie,
@@ -54,6 +55,42 @@ from tfg_uja.extraccion.validators import es_asignatura_valida, normalizar_tipo
 # ubicación del paquete y no como ruta relativa al directorio de trabajo, para
 # que el rastreo deje los ficheros en el mismo sitio se lance desde donde se
 # lance.
+
+
+#: Tamaño máximo que se acepta descargar, en bytes. Ver el comentario de
+#: ``custom_settings``: sale de medir los PDF reales, no de un número redondo.
+TOPE_DESCARGA: Final[int] = 2 * 1024 * 1024
+
+#: Lo único que se admite en el nombre de un PDF guardado. Es una lista de
+#: PERMITIDOS y no de prohibidos, por la misma razón que en :mod:`guia_pdf`:
+#: enumerar lo que puede pasar deja fuera lo que aún no se ha visto, mientras
+#: que enumerar lo que se prohíbe deja pasar todo lo que no se pensó.
+_PERMITIDO_EN_NOMBRE: Final[re.Pattern[str]] = re.compile(r"[^A-Za-z0-9_-]")
+
+#: Nombre del fichero cuando la asignatura no trae código, o cuando el que trae
+#: no deja ningún carácter admisible.
+_SIN_CODIGO: Final[str] = "sin_codigo"
+
+
+def nombre_seguro(codigo: str | None) -> str:
+    """Convierte un código de asignatura en un nombre de fichero sin sorpresas.
+
+    El código sale de una página remota y se usaba tal cual como nombre. Un
+    valor con ``..``, con separadores o con una ruta absoluta escribiría el PDF
+    fuera de ``data/guias_pdf``. Hoy la EPSJ no publica códigos así, y ese es
+    justamente el motivo de no depender de ello: la protección no puede
+    apoyarse en que la fuente se porte bien, que es la suposición que ya se
+    rompió con la columna nueva del plan 2025 y con las guías pasadas a PDF.
+
+    Args:
+        codigo: Código tal como venía en la página, o ``None``.
+
+    Returns:
+        Un nombre compuesto solo de letras, cifras, guion y guion bajo. Si no
+        queda nada utilizable, :data:`_SIN_CODIGO`.
+    """
+    limpio = _PERMITIDO_EN_NOMBRE.sub("", codigo or "")
+    return limpio or _SIN_CODIGO
 
 
 def _normalizar(texto: str) -> str:
@@ -134,6 +171,20 @@ class GradosSpider(scrapy.Spider):
         "DOWNLOAD_DELAY": 1.0,
         "USER_AGENT": "TFG-UJA/0.1 (+https://github.com/samubp10/tfg-recomendador-uja)",
         "FEED_EXPORT_ENCODING": "utf-8",
+        # Tope de descarga. Scrapy trae uno por defecto muy holgado, y `pypdf`
+        # procesa el documento entero sin límite de páginas ni de texto
+        # descomprimido: una respuesta anómala consumiría disco, memoria y CPU
+        # sin freno.
+        #
+        # El umbral NO se inventa: medidos los 293 PDF que hay descargados en
+        # `data/guias_pdf`, el mayor ocupa 106.683 B (104 KiB) y la mediana
+        # 71.977 B. Se deja en 2 MiB, unas veinte veces el mayor real, para que
+        # una guía bastante más larga que cualquiera de las publicadas siga
+        # entrando y a la vez el daño quede acotado.
+        "DOWNLOAD_MAXSIZE": TOPE_DESCARGA,
+        # Avisa mucho antes de rechazar, para enterarse de que la fuente está
+        # creciendo sin esperar a que un rastreo falle.
+        "DOWNLOAD_WARNSIZE": TOPE_DESCARGA // 4,
     }
 
     #: Marca con la que la EPSJ señala en el nombre una titulación que ya no
@@ -791,7 +842,18 @@ class GradosSpider(scrapy.Spider):
         """
         try:
             self.DIR_PDF.mkdir(parents=True, exist_ok=True)
-            (self.DIR_PDF / f"{codigo or 'sin_codigo'}.pdf").write_bytes(cuerpo)
+            destino = self.DIR_PDF / f"{nombre_seguro(codigo)}.pdf"
+            # El nombre ya está saneado, así que esto no debería fallar nunca.
+            # Se comprueba igual porque la alternativa a comprobar es confiar,
+            # y aquí lo que se confiaría es en que la EPSJ no publique nunca un
+            # código raro: esa suposición sobre la fuente es exactamente la que
+            # ya se rompió con la columna nueva del plan 2025 y con el cambio de
+            # las guías a PDF.
+            exigir(
+                destino.resolve().parent == self.DIR_PDF.resolve(),
+                lambda: f"el código «{codigo}» apunta fuera de {self.DIR_PDF}",
+            )
+            destino.write_bytes(cuerpo)
         except OSError as error:
             self.logger.warning(
                 "No se ha podido guardar el PDF de la guía %s (%s); el rastreo "
