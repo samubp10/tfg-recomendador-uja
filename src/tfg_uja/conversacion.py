@@ -410,7 +410,7 @@ class Conversacion:
             decision=decidida,
         )
 
-    def anotar(self, pregunta: str, respuesta: str) -> None:
+    def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
         """Registra un turno y actualiza de qué se está hablando.
 
         El sujeto se busca **también en la respuesta**, y esa es la corrección
@@ -426,9 +426,22 @@ class Conversacion:
         haga falta deducirla otra vez con reglas. Dos mecanismos apuntando al
         mismo dato se acaban contradiciendo: mandaría el último en escribir.
 
+        **Una respuesta fija no cambia de qué se habla**, y por eso existe
+        ``cambia_ambito``. La cortesía, el cierre y la pregunta por otro centro
+        se resuelven antes de preparar la consulta, así que el decisor no llega
+        a opinar y esta función caía a la rama determinista, que deduce el
+        ámbito de las palabras de la pregunta. Medido con el catálogo real:
+        hablando de Informática, «¿La Universidad de Granada tiene el Grado en
+        Ingeniería Mecánica?» se rechaza correctamente por ser de otro centro
+        **y deja el ámbito apuntando a las cinco titulaciones de Mecánica**. Es
+        lo mismo que ya defiende el módulo para el saludo: un mensaje que no se
+        responde con el corpus no cambia el tema de la conversación.
+
         Args:
             pregunta: Lo que se preguntó.
             respuesta: Lo que contestó el asistente.
+            cambia_ambito: Si este turno puede reapuntar la titulación de la
+                que se habla. Falso cuando la respuesta fue una de las fijas.
         """
         self._preguntas.append(pregunta)
         del self._preguntas[: -self.turnos_recordados]
@@ -445,7 +458,7 @@ class Conversacion:
         # asistente y nadie lo recoge--- justo cuando ya nada podía avisar.
         decidido = self._decidido
         self._decidido = None
-        if decidido is not None:
+        if decidido is not None or not cambia_ambito:
             return
         nuevo = titulaciones_de_la_pregunta(
             pregunta, self.catalogo
@@ -463,8 +476,16 @@ class Conversacion:
         return list(self._preguntas)
 
     def olvidar(self) -> None:
-        """Vacía la conversación y el sujeto. Deja el objeto como recién creado."""
+        """Vacía la conversación y el sujeto. Deja el objeto como recién creado.
+
+        ``_decidido`` entra en el olvido como todo lo demás: es lo que
+        :meth:`preparar` deja escrito para que :meth:`anotar` sepa si alguien
+        decidió el ámbito en este turno. Sobreviviendo a un olvido, el primer
+        turno de la conversación siguiente se saltaba la deducción por reglas
+        creyendo que ya había decidido un decisor que no llegó a existir.
+        """
         self._preguntas.clear()
         self._ambito.clear()
         self._predicado = ""
         self._ultimo_turno = None
+        self._decidido = None
