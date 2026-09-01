@@ -17,15 +17,15 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import registro_chat
-from tfg_uja.conversacion import Consulta
-from tfg_uja.generador import (
+from tfg_uja.aplicacion import registro_chat
+from tfg_uja.dialogo.conversacion import Consulta
+from tfg_uja.dialogo.generador import (
     RESPUESTA_SALUDO,
     RESPUESTA_SIN_CONTEXTO,
     RESPUESTA_TITULACION_INVENTADA,
 )
-from tfg_uja.recuperador import Fragmento
-from tfg_uja.registro_chat import anotar_turno, linea_de_turno
+from tfg_uja.dialogo.recuperador import Fragmento
+from tfg_uja.aplicacion.registro_chat import anotar_turno, linea_de_turno
 
 INFORMATICA = "Grado en Ingeniería Informática"
 

@@ -10,10 +10,10 @@ from __future__ import annotations
 
 import pytest
 
-from tfg_uja import evaluacion
+from tfg_uja.indexacion import evaluacion
 from tfg_uja.invariantes import InvarianteRoto
 
-from tfg_uja.evaluacion import (
+from tfg_uja.indexacion.evaluacion import (
     chunks_relevantes,
     evaluar_modelo,
     mrr_de_pregunta,

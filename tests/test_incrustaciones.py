@@ -20,8 +20,8 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja import incrustaciones
-from tfg_uja.incrustaciones import (
+from tfg_uja.indexacion import incrustaciones
+from tfg_uja.indexacion.incrustaciones import (
     MODELO,
     PREFIJO_CONSULTA,
     PREFIJO_DOCUMENTO,

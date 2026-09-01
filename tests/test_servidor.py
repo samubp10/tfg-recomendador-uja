@@ -17,16 +17,16 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import registro_chat, servidor
+from tfg_uja.aplicacion import registro_chat, servidor
 
 # Se enlazan al importar, ANTES de que la fixture de aislamiento sustituya
 # los atributos del modulo: las cuatro pruebas de enlaces necesitan la
 # implementacion de verdad y no el sustituto vacio.
-from tfg_uja.servidor import enlaces_oficiales as _ENLACES_REALES
-from tfg_uja.servidor import paginas_de_titulacion as _PAGINAS_REALES
-from tfg_uja.conversacion import Consulta, Conversacion
-from tfg_uja.recuperador import Fragmento
-from tfg_uja.generador import (
+from tfg_uja.aplicacion.servidor import enlaces_oficiales as _ENLACES_REALES
+from tfg_uja.aplicacion.servidor import paginas_de_titulacion as _PAGINAS_REALES
+from tfg_uja.dialogo.conversacion import Consulta, Conversacion
+from tfg_uja.dialogo.recuperador import Fragmento
+from tfg_uja.dialogo.generador import (
     ErrorDelModelo,
     RESPUESTA_SALUDO,
     RESPUESTA_TITULACION_INVENTADA,
@@ -455,7 +455,7 @@ def test_sin_indice_el_arranque_avisa_en_vez_de_reventar(
     with pytest.raises(SystemExit):
         servidor.main()
 
-    assert "py -m tfg_uja.indexer" in capsys.readouterr().out
+    assert "py -m tfg_uja.indexacion.indexer" in capsys.readouterr().out
 
 
 def test_el_arranque_levanta_el_servidor_y_se_para_con_ctrl_c(

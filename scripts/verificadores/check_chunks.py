@@ -5,7 +5,7 @@ invariantes del troceo, además de reportar las estadísticas que permiten
 detectar regresiones cada vez que se regenera el dataset. Debe ejecutarse
 tras cada regeneración::
 
-    py -m tfg_uja.chunker data/grados.json data/chunks.json
+    py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
     py scripts/verificadores/check_chunks.py
 
 Acepta rutas alternativas como argumentos::
@@ -34,7 +34,7 @@ from pathlib import Path
 #: cuarto caso de esta serie en el proyecto, después de los encabezados
 #: cruzados de IT-91, y el patrón siempre es el mismo: el verificador mide
 #: algo distinto de lo que cree medir, y nadie se entera porque dice «OK».
-from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
+from tfg_uja.indexacion.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 
 #: Por el mismo motivo que los umbrales de arriba: los cuatro verificadores
 #: comprueban invariantes y los cuatro tienen que hacerlo igual. Una copia por

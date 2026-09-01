@@ -53,15 +53,18 @@ from typing import Any
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.ambito import Decisor, decisor_con_modelo  # noqa: E402
-from tfg_uja.conversacion import Conversacion  # noqa: E402
-from tfg_uja.generador import (  # noqa: E402
+from tfg_uja.dialogo.ambito import Decisor, decisor_con_modelo  # noqa: E402
+from tfg_uja.dialogo.conversacion import Conversacion  # noqa: E402
+from tfg_uja.dialogo.generador import (  # noqa: E402
     ErrorDelModelo,
     cortesia,
     responder,
 )
-from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
+    MODELO,
+    incrustador_de_consultas,
+)
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     K_MAXIMO,
     Fragmento,
     ModeloDiscrepante,
@@ -307,7 +310,8 @@ def _preparar_indice(ruta_indice: Path) -> Indice:
     if not ruta_indice.exists():
         sys.exit(
             f"No hay índice en {ruta_indice}.\n"
-            f"Constrúyelo con: py -m tfg_uja.indexer data/chunks.json {ruta_indice}"
+            f"Constrúyelo con: py -m tfg_uja.indexacion.indexer "
+            f"data/chunks.json {ruta_indice}"
         )
 
     print("Cargando el modelo de incrustaciones...")
@@ -320,7 +324,7 @@ def _preparar_indice(ruta_indice: Path) -> Indice:
     if not catalogo:
         sys.exit(
             "El índice no declara su catálogo de titulaciones. Reconstrúyelo:\n"
-            f"  py -m tfg_uja.indexer data/chunks.json {ruta_indice}"
+            f"  py -m tfg_uja.indexacion.indexer data/chunks.json {ruta_indice}"
         )
     return Indice(
         tabla=tabla,

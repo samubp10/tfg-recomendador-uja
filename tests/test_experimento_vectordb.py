@@ -1136,7 +1136,7 @@ def test_main_mide_las_cuatro_y_escribe_el_bloque(tmp_path, monkeypatch, capsys)
     monkeypatch.setattr(experimento, "cargar_corpus", lambda: chunks)
     monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?", "¿y?"])
 
-    from tfg_uja import incrustaciones
+    from tfg_uja.indexacion import incrustaciones
 
     monkeypatch.setattr(
         incrustaciones,
@@ -1177,7 +1177,7 @@ def test_main_dice_cuando_el_corpus_no_permite_la_comprobacion(
     monkeypatch.setattr(experimento, "cargar_preguntas", lambda: ["¿?"])
     monkeypatch.setattr(experimento, "elegir_caso_prefiltrado", lambda *a: None)
 
-    from tfg_uja import incrustaciones
+    from tfg_uja.indexacion import incrustaciones
 
     monkeypatch.setattr(
         incrustaciones,
@@ -1488,7 +1488,7 @@ def test_main_dice_con_que_caso_comprueba_el_prefiltrado(tmp_path, monkeypatch, 
         lambda *a: (0, "Grado en Ingeniería Informática", 40),
     )
 
-    from tfg_uja import incrustaciones
+    from tfg_uja.indexacion import incrustaciones
 
     monkeypatch.setattr(
         incrustaciones,

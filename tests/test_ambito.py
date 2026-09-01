@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import pytest
 
-from tfg_uja.ambito import (
+from tfg_uja.dialogo.ambito import (
     CAMBIA,
     INTENTOS,
     Decision,
@@ -32,7 +32,7 @@ from tfg_uja.ambito import (
     decisor_con_modelo,
     interpretar,
 )
-from tfg_uja.generador import ErrorDelModelo
+from tfg_uja.dialogo.generador import ErrorDelModelo
 
 CATALOGO = [
     "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",

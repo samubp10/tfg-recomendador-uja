@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja import chunker
-from tfg_uja.chunker import (
+from tfg_uja.indexacion import chunker
+from tfg_uja.indexacion.chunker import (
     TAMANO_MAXIMO,
     TAMANO_MINIMO,
     _fusionar_pequenos,

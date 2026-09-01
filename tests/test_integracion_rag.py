@@ -28,21 +28,21 @@ from typing import Any
 
 import pytest
 
-from tfg_uja.generador import SERVIDOR, responder
-from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
-from tfg_uja.incrustaciones import incrustador_de_consultas
-from tfg_uja.recuperador import (
+from tfg_uja.dialogo.generador import SERVIDOR, responder
+from tfg_uja.indexacion.incrustaciones import MODELO as MODELO_INCRUSTACIONES
+from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
+from tfg_uja.dialogo.recuperador import (
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,
     contexto_para,
     distancia_del_indice,
 )
-from tfg_uja.verificacion import titulaciones_inventadas
+from tfg_uja.dialogo.verificacion import titulaciones_inventadas
 
 RAIZ = Path(__file__).resolve().parent.parent
 
-#: Índice vectorial construido con ``py -m tfg_uja.indexer``. No se versiona.
+#: Índice vectorial construido con ``py -m tfg_uja.indexacion.indexer``. No se versiona.
 INDICE = RAIZ / "data" / "indice_lance"
 
 #: Conjunto etiquetado de IT-27. Este sí está versionado.
@@ -68,7 +68,7 @@ def motivo_para_saltar() -> str | None:
     if not INDICE.exists():
         return (
             f"no hay índice vectorial en {INDICE.relative_to(RAIZ)}; "
-            "se construye con «py -m tfg_uja.indexer data/chunks.json "
+            "se construye con «py -m tfg_uja.indexacion.indexer data/chunks.json "
             "data/indice_lance»"
         )
     try:

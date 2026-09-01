@@ -15,8 +15,8 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import generador
-from tfg_uja.generador import (
+from tfg_uja.dialogo import generador
+from tfg_uja.dialogo.generador import (
     AVISO_RESPUESTA_CORTADA,
     INSTRUCCIONES,
     RESPUESTA_DESPEDIDA,
@@ -33,7 +33,7 @@ from tfg_uja.generador import (
     generar,
     responder,
 )
-from tfg_uja.recuperador import Fragmento
+from tfg_uja.dialogo.recuperador import Fragmento
 
 
 def fragmento(
@@ -884,7 +884,7 @@ def test_el_caso_que_motivo_la_tarjeta_se_detecta(monkeypatch):
 def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
     """Una barrera que descarta en silencio no se puede auditar."""
     _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
-    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+    with caplog.at_level("WARNING", logger="tfg_uja.dialogo.generador"):
         generador.responder(
             "una pregunta",
             [fragmento("A", "texto")],
@@ -1510,7 +1510,7 @@ def test_el_atributo_corregido_queda_registrado(monkeypatch, caplog):
         "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
         "segundo cuatrimestre.",
     )
-    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+    with caplog.at_level("WARNING", logger="tfg_uja.dialogo.generador"):
         respuesta = generador.responder(
             "¿Cuándo se da Fotogrametría III?",
             [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],

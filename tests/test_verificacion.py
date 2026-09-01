@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from tfg_uja.verificacion import (
+from tfg_uja.dialogo.verificacion import (
     Atributos,
     atributos_del_contexto,
     corregir_atributos,

@@ -25,7 +25,7 @@ sys.path.insert(0, str(RAIZ / "scripts" / "experimentos"))
 
 import experimento_fragmentacion as rejilla  # noqa: E402
 
-from tfg_uja import chunker  # noqa: E402
+from tfg_uja.indexacion import chunker  # noqa: E402
 
 MUESTRA = json.loads(
     (RAIZ / "tests" / "fixtures" / "dataset_muestra.json").read_text(encoding="utf-8")

@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from tfg_uja.guia_pdf import extraer_guia
+from tfg_uja.extraccion.guia_pdf import extraer_guia
 from tfg_uja.invariantes import InvarianteRoto
 
 RAIZ = Path(__file__).resolve().parent.parent

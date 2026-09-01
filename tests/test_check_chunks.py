@@ -16,7 +16,7 @@ import importlib.util
 import inspect
 from pathlib import Path
 
-from tfg_uja import chunker
+from tfg_uja.indexacion import chunker
 
 RAIZ = Path(__file__).resolve().parent.parent
 _RUTA = RAIZ / "scripts" / "verificadores" / "check_chunks.py"

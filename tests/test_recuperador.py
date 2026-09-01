@@ -17,10 +17,10 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import recuperador
-from tfg_uja.incrustaciones import MODELO
-from tfg_uja.indexer import reconstruir_indice
-from tfg_uja.recuperador import (
+from tfg_uja.dialogo import recuperador
+from tfg_uja.indexacion.incrustaciones import MODELO
+from tfg_uja.indexacion.indexer import reconstruir_indice
+from tfg_uja.dialogo.recuperador import (
     K_MAXIMO,
     K_POR_DEFECTO,
     SUELO_PERTINENCIA,

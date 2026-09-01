@@ -1,6 +1,10 @@
 """Pruebas de los validadores de asignaturas (IT-01)."""
 
-from tfg_uja.validators import es_asignatura_valida, es_placeholder, normalizar_tipo
+from tfg_uja.extraccion.validators import (
+    es_asignatura_valida,
+    es_placeholder,
+    normalizar_tipo,
+)
 
 # --- es_placeholder: casos reales de la tabla (Optativa 1..5) ---
 

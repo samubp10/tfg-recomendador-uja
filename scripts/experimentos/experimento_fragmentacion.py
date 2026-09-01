@@ -66,15 +66,18 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from tfg_uja import chunker  # noqa: E402
-from tfg_uja.chunker import (  # noqa: E402
+from tfg_uja.indexacion import chunker  # noqa: E402
+from tfg_uja.indexacion.chunker import (  # noqa: E402
     _dividir_en_piezas,
     _empaquetar,
     _fusionar_pequenos,
     trocear_dataset,
 )
-from tfg_uja.evaluacion import chunks_relevantes, evaluar_modelo  # noqa: E402
-from tfg_uja.incrustaciones import (  # noqa: E402
+from tfg_uja.indexacion.evaluacion import (  # noqa: E402
+    chunks_relevantes,
+    evaluar_modelo,
+)
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
     MODELO,
     PREFIJO_CONSULTA,
     PREFIJO_DOCUMENTO,

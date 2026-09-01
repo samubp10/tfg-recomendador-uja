@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
-from tfg_uja.guia_pdf import (  # noqa: E402
+from tfg_uja.extraccion.guia_pdf import (  # noqa: E402
     PERMITIDOS,
     extraer_guia,
     reparto_por_seccion,

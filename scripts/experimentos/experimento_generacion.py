@@ -105,11 +105,14 @@ MARCA_FIN: Final[str] = _adr.MARCA_FIN
 
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.conversacion import Conversacion  # noqa: E402
-from tfg_uja.generador import SERVIDOR, ErrorDelModelo  # noqa: E402
-from tfg_uja.generador import construir_prompt, generar  # noqa: E402
-from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.dialogo.conversacion import Conversacion  # noqa: E402
+from tfg_uja.dialogo.generador import SERVIDOR, ErrorDelModelo  # noqa: E402
+from tfg_uja.dialogo.generador import construir_prompt, generar  # noqa: E402
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
+    MODELO,
+    incrustador_de_consultas,
+)
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,
@@ -117,8 +120,8 @@ from tfg_uja.recuperador import (  # noqa: E402
     distancia_del_indice,
 )
 from tfg_uja.text_cleaner import normalizar  # noqa: E402
-from tfg_uja.verificacion import cotejar_listado  # noqa: E402
-from tfg_uja.verificacion import titulaciones_inventadas  # noqa: E402
+from tfg_uja.dialogo.verificacion import cotejar_listado  # noqa: E402
+from tfg_uja.dialogo.verificacion import titulaciones_inventadas  # noqa: E402
 
 #: Candidatos que se miden si no se dice otra cosa: **los tres finalistas**,
 #: uno por talla ---8B, 9B y 12B--- y uno por fabricante, de modo que ninguna
