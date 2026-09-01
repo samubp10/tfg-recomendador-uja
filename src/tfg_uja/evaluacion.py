@@ -22,6 +22,8 @@ from typing import Any, Callable, Final
 
 import numpy as np
 
+from tfg_uja.invariantes import exigir
+
 #: Firma de la función de incrustación: recibe una lista de textos y
 #: devuelve un vector de números reales por texto, en el mismo orden.
 Incrustador = Callable[[list[str]], list[list[float]]]
@@ -245,6 +247,29 @@ def evaluar_modelo(
 
     vectores_chunks = incrustar_chunks([chunk["texto"] for chunk in chunks])
     vectores_preguntas = incrustar_preguntas([p["pregunta"] for p in preguntas])
+
+    # Se comprueba antes de calcular una sola métrica. El bucle recorre
+    # `zip(preguntas, vectores_preguntas)`, y `zip` se para en la más corta:
+    # un incrustador que devolviera menos vectores haría desaparecer preguntas
+    # del detalle **y de las medias**, sin lanzar error. Publicaríamos un
+    # Recall@K calculado sobre un subconjunto distinto del banco declarado, que
+    # es el peor de los fallos posibles en un trabajo que se defiende por sus
+    # cifras. Lo mismo con los chunks: rankear contra menos vectores de los que
+    # tiene el corpus mide otra colección.
+    exigir(
+        len(vectores_preguntas) == len(preguntas),
+        lambda: (
+            f"se han incrustado {len(vectores_preguntas)} vectores para "
+            f"{len(preguntas)} preguntas del conjunto de evaluación"
+        ),
+    )
+    exigir(
+        len(vectores_chunks) == len(chunks),
+        lambda: (
+            f"se han incrustado {len(vectores_chunks)} vectores para "
+            f"{len(chunks)} chunks del corpus"
+        ),
+    )
 
     detalle: list[dict[str, Any]] = []
     metricas = [f"recall@{k}" for k in ks] + [f"recall_unidad@{k}" for k in ks]
