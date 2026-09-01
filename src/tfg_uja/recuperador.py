@@ -654,10 +654,24 @@ def _intercalar(grupos: list[list[Fragmento]]) -> list[Fragmento]:
     de modo que el modelo recibía menos evidencia real justo en las consultas
     comparativas para las que existe esta función.
 
-    La clave es ``(nombre, origen, chunk_index)`` y no el propio fragmento
-    porque :class:`Fragmento` no es hasheable: lleva ``grados`` como lista. Esa
-    terna es la identidad de unidad más la posición dentro de ella, que es la
-    misma con la que el resto del sistema distingue un fragmento de otro.
+    La clave es ``(origen, nombre, grados, chunk_index)`` y no el propio
+    fragmento porque :class:`Fragmento` no es hasheable: lleva ``grados`` como
+    lista. Es la identidad de unidad que fija IT-126 ---la misma que usan
+    :func:`tfg_uja.generador.ordenar_contexto` y
+    :func:`tfg_uja.evaluacion.unidad_de_chunk`--- más la posición dentro de la
+    unidad.
+
+    **Las titulaciones son parte de la identidad y no un adorno.** Sin ellas,
+    dos unidades que solo comparten el nombre colisionan y la segunda se
+    descarta: ocho nombres de guía del corpus son más de una unidad, y
+    «Trabajo fin de Grado» son cinco. Como esta función solo interviene en las
+    consultas comparativas, perder una de las dos deja al modelo redactando la
+    comparación con la mitad de los datos y sin forma de saberlo.
+
+    Que la clave lleve ``grados`` no reabre lo que arregló IT-120: una unidad
+    genuinamente compartida llega a los dos grupos con la **misma** lista, que
+    viene del índice y enumera todas sus titulaciones, no la del filtro con el
+    que se buscó.
 
     Args:
         grupos: Fragmentos ya ordenados y acotados de cada titulación.
@@ -665,13 +679,18 @@ def _intercalar(grupos: list[list[Fragmento]]) -> list[Fragmento]:
     Returns:
         Como máximo :data:`K_MAXIMO` fragmentos, todos distintos.
     """
-    vistos: set[tuple[str, str, int]] = set()
+    vistos: set[tuple[str, str, tuple[str, ...], int]] = set()
     mezclados: list[Fragmento] = []
     for fila in zip_longest(*grupos):
         for fragmento in fila:
             if fragmento is None:
                 continue
-            clave = (fragmento.nombre, fragmento.origen, fragmento.chunk_index)
+            clave = (
+                fragmento.origen,
+                fragmento.nombre,
+                tuple(fragmento.grados),
+                fragmento.chunk_index,
+            )
             if clave in vistos:
                 continue
             vistos.add(clave)
