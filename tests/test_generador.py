@@ -277,6 +277,33 @@ def test_un_listado_no_desplaza_a_lo_que_estaba_mas_cerca():
     assert prompt.index("GUIA-CERCANA") < prompt.index("LISTADO")
 
 
+def test_dos_unidades_homonimas_de_titulaciones_distintas_no_se_mezclan():
+    """Regresión de IT-126: la unidad se identificaba por «(nombre, origen)».
+
+    Ocho nombres de guía del corpus corresponden a más de una unidad, y los dos
+    peores son los que más se preguntan: «Trabajo fin de Grado» y «Prácticas
+    externas» son cinco unidades distintas cada uno. Sin la titulación en la
+    clave, las dos homónimas compartían la mejor distancia de las dos: la menos
+    pertinente ascendía y sus fragmentos se colaban entre las partes de la otra,
+    que es justo lo que agrupar por unidad promete evitar.
+
+    Medido sobre el banco del sistema, dos de las cincuenta y siete entradas
+    cambian de orden al corregirlo; una es esta, con dos «TFG ING. ELÉCTRICA
+    (GIE)» de dos dobles grados.
+    """
+    electrica = ["Grado en Ingeniería Eléctrica"]
+    doble = ["Doble Grado en Ingeniería Eléctrica y Mecánica"]
+    recuperados = [
+        fragmento("Trabajo fin de Grado", "TFG-A", electrica, 0.10, parte=0, total=2),
+        fragmento("Trabajo fin de Grado", "TFG-DOBLE", doble, 0.20),
+        fragmento("Trabajo fin de Grado", "TFG-B", electrica, 0.40, parte=1, total=2),
+        fragmento("Álgebra", "OTRA", electrica, 0.50),
+    ]
+    prompt = construir_prompt("qué es el trabajo fin de grado", recuperados)
+    posiciones = [prompt.index(t) for t in ("TFG-A", "TFG-B", "TFG-DOBLE", "OTRA")]
+    assert posiciones == sorted(posiciones)
+
+
 def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
     """Las 67 asignaturas de Informática son ~783 tokens; con 400 se cortaban.
 

@@ -178,9 +178,15 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
     Returns:
         Los mismos fragmentos, agrupados por unidad y ordenados dentro de ella.
     """
-    mejor: dict[tuple[str, str], float] = {}
+    # La titulación forma parte de la identidad de la unidad, como ya la
+    # consideran `evaluacion.unidad_de_chunk()` y `servidor.fuentes_de()`. Ocho
+    # nombres de guía del corpus son más de una unidad ---«Trabajo fin de
+    # Grado» y «Prácticas externas» son cinco cada uno---, y sin la titulación
+    # las homónimas compartían la mejor distancia de las dos: la menos
+    # pertinente ascendía y sus partes se intercalaban con las de la otra.
+    mejor: dict[tuple[str, str, tuple[str, ...]], float] = {}
     for f in fragmentos:
-        clave = (f.nombre, f.origen)
+        clave = (f.origen, f.nombre, tuple(f.grados))
         mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
 
     # Los listados del plan se leen en el orden en que se cursan, no por
@@ -201,7 +207,7 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
         if f.origen != "plan_de_estudios":
             continue
         titulacion = tuple(f.grados)
-        distancia = mejor[(f.nombre, f.origen)]
+        distancia = mejor[(f.origen, f.nombre, titulacion)]
         anclas[titulacion] = min(anclas.get(titulacion, distancia), distancia)
 
     def orden(f: Fragmento) -> tuple[float, int, str, int]:
@@ -212,7 +218,12 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
                 f.nombre,
                 f.chunk_index,
             )
-        return (mejor[(f.nombre, f.origen)], 0, f.nombre, f.chunk_index)
+        return (
+            mejor[(f.origen, f.nombre, tuple(f.grados))],
+            0,
+            f.nombre,
+            f.chunk_index,
+        )
 
     return sorted(fragmentos, key=orden)
 
