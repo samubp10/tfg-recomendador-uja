@@ -408,6 +408,73 @@ def test_el_encabezado_correcto_pasa():
     check_chunks._exigir_encabezados([_frag()])
 
 
+# --- Metadatos de una unidad compartida (IT-125) -----------------------------
+
+
+def _compartido(curso="Cuarto curso", tipo="OB"):
+    """Un chunk de guía compartido por dos titulaciones, con sus escalares."""
+    return _frag(
+        nombre="Centrales eléctricas II",
+        grados=[GRADO, DOBLE],
+        codigos=["11111", "22222"],
+    ) | {"curso": curso, "tipo_asignatura": tipo}
+
+
+def _asig(grado, codigo, curso, tipo="OB"):
+    """Una asignatura del dataset, con solo lo que mira el verificador."""
+    return {
+        "tipo": "asignatura",
+        "grado": grado,
+        "codigo": codigo,
+        "nombre": "Centrales eléctricas II",
+        "curso": curso,
+        "tipo_asignatura": tipo,
+    }
+
+
+DOBLE = "Doble Grado en Ingeniería Eléctrica y Mecánica"
+
+
+def test_un_chunk_que_afirma_el_curso_de_una_sola_de_sus_titulaciones_falla():
+    # El caso real que destapó IT-125. «Centrales eléctricas II» comparte
+    # contenido entre el grado simple y el doble, pero es de cuarto en uno y de
+    # quinto en el otro; el escalar salía de la primera de la lista y el
+    # encabezado ---que es lo que se vectoriza--- lo afirmaba de las dos.
+    chunk = _compartido(curso="Cuarto curso")
+    dataset = [
+        _asig(GRADO, "11111", "Cuarto curso"),
+        _asig(DOBLE, "22222", "Quinto curso"),
+    ]
+
+    with pytest.raises(InvarianteRoto, match="curso"):
+        check_chunks._exigir_metadatos_de_todas_sus_titulaciones([chunk], dataset)
+
+
+def test_un_chunk_que_afirma_el_tipo_de_una_sola_de_sus_titulaciones_falla():
+    # El mismo defecto con el otro campo: una asignatura es FB en el grado
+    # simple y OB en su doble grado, y el chunk solo puede llevar uno.
+    chunk = _compartido(tipo="FB")
+    dataset = [
+        _asig(GRADO, "11111", "Cuarto curso", tipo="FB"),
+        _asig(DOBLE, "22222", "Cuarto curso", tipo="OB"),
+    ]
+
+    with pytest.raises(InvarianteRoto, match="tipo_asignatura"):
+        check_chunks._exigir_metadatos_de_todas_sus_titulaciones([chunk], dataset)
+
+
+def test_las_titulaciones_que_coinciden_en_el_plan_si_comparten_unidad():
+    # Lo que IT-125 NO cambia: cuando el curso y el tipo coinciden, las dos
+    # titulaciones siguen viajando en la misma unidad y no se duplica el texto.
+    chunk = _compartido()
+    dataset = [
+        _asig(GRADO, "11111", "Cuarto curso"),
+        _asig(DOBLE, "22222", "Cuarto curso"),
+    ]
+
+    check_chunks._exigir_metadatos_de_todas_sus_titulaciones([chunk], dataset)
+
+
 def test_un_derivado_lleva_su_nombre_sin_comillas():
     """IT-100/IT-107: no nombran una asignatura, sino un listado o una ficha."""
     check_chunks._exigir_encabezados([_plan(), _catalogo(), _ficha()])
