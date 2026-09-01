@@ -28,6 +28,7 @@ import pyarrow as pa
 import pytest
 
 from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
+from tfg_uja.invariantes import InvarianteRoto
 from tfg_uja.indexer import (
     COLECCION,
     DISTANCIA,
@@ -461,6 +462,28 @@ def test_un_lote_vacio_no_llega_a_crear_la_tabla(almacen):
     """
     almacen.anadir([], [], [], [])
 
+    assert almacen.tabla is None
+
+
+def test_un_vector_de_menos_aborta_en_vez_de_indexar_de_menos(almacen):
+    """Regresión de IT-127: ``zip`` descartaba la cola sin avisar.
+
+    ``anadir`` combinaba las cuatro listas con ``zip``, que se para en la más
+    corta. Un incrustador que devolviera un vector de menos escribía una fila de
+    menos mientras ``indexar_chunks`` seguía devolviendo el total de entrada: el
+    guion informaba de un índice completo sobre un índice incompleto, y la
+    diferencia solo se vería al buscar y no encontrar un fragmento que sí está
+    en el corpus.
+    """
+    with pytest.raises(InvarianteRoto) as fallo:
+        almacen.anadir(
+            ["a", "b"],
+            [[1.0] + [0.0] * (DIMENSION - 1)],
+            ["texto a", "texto b"],
+            [{"nombre": "A"}, {"nombre": "B"}],
+        )
+
+    assert "2 identificadores, 1 vectores" in str(fallo.value)
     assert almacen.tabla is None
 
 

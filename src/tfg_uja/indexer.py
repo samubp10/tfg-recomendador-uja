@@ -48,6 +48,7 @@ from tfg_uja.incrustaciones import (
     Incrustador,
     incrustador_de_documentos,
 )
+from tfg_uja.invariantes import exigir
 
 #: Nombre de la colección dentro del índice. En LanceDB es el nombre de la
 #: tabla; se conserva el término genérico porque nombra al conjunto de
@@ -210,7 +211,23 @@ class AlmacenLance:
             vectores: Incrustaciones, una por texto.
             textos: Texto de cada chunk.
             metadatos: Metadatos de cada chunk.
+
+        Raises:
+            InvarianteRoto: Si las cuatro listas no miden lo mismo. La
+                comprobación no es defensiva: ``zip`` se para en la más corta y
+                **descarta el resto sin avisar**, de modo que un incrustador que
+                devolviera un vector de menos escribiría una fila de menos
+                mientras :func:`indexar_chunks` sigue informando del total de
+                entrada. El índice quedaría incompleto y nadie se enteraría.
         """
+        exigir(
+            len(ids) == len(vectores) == len(textos) == len(metadatos),
+            lambda: (
+                "el lote no cuadra: "
+                f"{len(ids)} identificadores, {len(vectores)} vectores, "
+                f"{len(textos)} textos y {len(metadatos)} metadatos"
+            ),
+        )
         if not ids:
             return
         if self.tabla is None:

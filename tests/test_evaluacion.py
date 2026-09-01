@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 
 from tfg_uja import evaluacion
+from tfg_uja.invariantes import InvarianteRoto
 
 from tfg_uja.evaluacion import (
     chunks_relevantes,
@@ -237,3 +238,58 @@ def test_recall_de_unidad_exige_que_la_pregunta_tenga_relevantes():
 
     with pytest.raises(ValueError, match="no es evaluable"):
         evaluacion.recall_de_unidad_en_k([0], set(), chunks, 3)
+
+
+def test_menos_vectores_de_preguntas_aborta_en_vez_de_medir_de_menos():
+    """Regresión de IT-127: el bucle iba con ``zip`` y perdía preguntas.
+
+    ``zip`` se para en la más corta, así que un incrustador que devolviera menos
+    vectores hacía desaparecer preguntas del detalle **y de las medias**, sin
+    lanzar error. La cifra publicada sería un Recall@K medido sobre un banco
+    distinto del declarado, y nada en la salida lo delataría.
+    """
+    relevante = [{"origen": "guia", "nombre": "A"}]
+    chunks = [_chunk("guia", "A", ["G1"], texto="a")]
+    preguntas = [
+        {"id": "P-1", "tipo": "temario", "pregunta": "p1", "relevantes": relevante},
+        {"id": "P-2", "tipo": "temario", "pregunta": "p2", "relevantes": relevante},
+    ]
+
+    def incrustar_corto(textos: list[str]) -> list[list[float]]:
+        return [[1.0, 0.0] for _ in textos][:1]
+
+    def incrustar(textos: list[str]) -> list[list[float]]:
+        return [[1.0, 0.0] for _ in textos]
+
+    with pytest.raises(InvarianteRoto, match="1 vectores para 2 preguntas"):
+        evaluar_modelo(chunks, preguntas, incrustar, incrustar_corto)
+
+
+def test_menos_vectores_de_chunks_aborta_antes_de_rankear():
+    """La otra mitad: rankear contra menos vectores mide otra colección.
+
+    El ranking se construye sobre ``vectores_chunks``, de modo que un chunk sin
+    vector queda fuera de todo ranking y **nunca puede recuperarse**. El Recall
+    saldría más bajo sin que el recuperador hubiera fallado.
+    """
+    chunks = [
+        _chunk("guia", "A", ["G1"], texto="a"),
+        _chunk("guia", "B", ["G1"], texto="b"),
+    ]
+    preguntas = [
+        {
+            "id": "P-1",
+            "tipo": "temario",
+            "pregunta": "p1",
+            "relevantes": [{"origen": "guia", "nombre": "A"}],
+        }
+    ]
+
+    def incrustar_corto(textos: list[str]) -> list[list[float]]:
+        return [[1.0, 0.0] for _ in textos][:1]
+
+    def incrustar(textos: list[str]) -> list[list[float]]:
+        return [[1.0, 0.0] for _ in textos]
+
+    with pytest.raises(InvarianteRoto, match="1 vectores para 2 chunks"):
+        evaluar_modelo(chunks, preguntas, incrustar_corto, incrustar)
