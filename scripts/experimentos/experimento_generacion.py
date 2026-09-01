@@ -123,24 +123,35 @@ from tfg_uja.text_cleaner import normalizar  # noqa: E402
 from tfg_uja.dialogo.verificacion import cotejar_listado  # noqa: E402
 from tfg_uja.dialogo.verificacion import titulaciones_inventadas  # noqa: E402
 
-#: Candidatos que se miden si no se dice otra cosa: **los tres finalistas**,
-#: uno por talla ---8B, 9B y 12B--- y uno por fabricante, de modo que ninguna
-#: diferencia se pueda confundir con el tamaño ni con la casa que lo entrena.
+#: Candidatos que se miden si no se dice otra cosa: los tres finalistas ---uno
+#: por talla, 8B, 9B y 12B, y uno por fabricante, de modo que ninguna diferencia
+#: se pueda confundir con el tamaño ni con la casa que lo entrena--- **más
+#: salamandra-7b**.
 #:
-#: Los tres se miden **a la vez y en la misma tanda**, que es la razón de que
-#: sean tres y no ocho. La criba amplia sí pasó por ocho candidatos, y de ahí
-#: salieron los descartes ---mistral-7b se inventó tres titulaciones enteras,
-#: salamandra-7b lo desaconsejan sus propios autores sobre este servidor---,
+#: Los cuatro se miden **a la vez y en la misma tanda**, que es la razón de que
+#: sean cuatro y no ocho. La criba amplia sí pasó por ocho candidatos, y de ahí
+#: salió el descarte de mistral-7b, que se inventó tres titulaciones enteras;
 #: pero aquella pasada quedó partida en dos versiones de Ollama y sus cifras no
 #: forman una tabla comparable. Medir los ocho de nuevo cuesta una noche entera
 #: de máquina y no lo pide el alcance de este trabajo: lo que la decisión
-#: necesita es que **los finalistas** se comparen en igualdad de condiciones.
+#: necesita es que los finalistas se comparen en igualdad de condiciones.
 #:
-#: Los descartes previos se cuentan con su motivo, no con su cifra.
+#: **salamandra-7b se mide aunque no vaya a ganar**, y el motivo es de fondo:
+#: es el modelo entrenado en español, catalán, gallego y euskera por el
+#: Barcelona Supercomputing Center, y este es un sistema que atiende en español
+#: a estudiantes españoles. Un trabajo que compara modelos generativos para una
+#: tarea en español y **no** mide el modelo público español deja sin responder
+#: la primera pregunta que cabe hacerle. Que sus propios autores desaconsejen
+#: la cuantización con la que se sirve aquí no es motivo para excluirlo, sino
+#: parte de lo que hay que contar: **es una limitación de esta medición, no una
+#: propiedad del modelo**, y como tal se declara junto a su cifra.
+#:
+#: El descarte previo se cuenta con su motivo, no con su cifra.
 MODELOS: Final[tuple[str, ...]] = (
     "ministral-8b:latest",
     "qwen3.5:9b",
     "gemma3:12b",
+    "salamandra-7b:latest",
 )
 
 #: Tope de tiempo por respuesta, en segundos. **Cero significa sin tope**, que
