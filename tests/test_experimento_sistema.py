@@ -18,7 +18,7 @@ sys.path.insert(0, str(RAIZ / "scripts" / "experimentos"))
 
 import experimento_sistema as sistema  # noqa: E402
 
-from tfg_uja import generador  # noqa: E402
+from tfg_uja.dialogo import generador  # noqa: E402
 
 CATALOGO = [
     "Doble Grado en Ingeniería Mecánica y Organización Industrial",

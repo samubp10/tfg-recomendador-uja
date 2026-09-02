@@ -17,7 +17,7 @@ sys.path.insert(0, str(RAIZ / "scripts" / "experimentos"))
 
 import barrido_recuperador as barrido  # noqa: E402
 
-from tfg_uja.recuperador import Fragmento, acotar_por_distancia  # noqa: E402
+from tfg_uja.dialogo.recuperador import Fragmento, acotar_por_distancia  # noqa: E402
 
 
 def recuperados(distancias: list[float]) -> list[barrido.Recuperado]:
@@ -128,7 +128,7 @@ def test_la_configuracion_vigente_se_lee_del_modulo_y_no_de_una_copia():
     valores escritos a mano y siguió presentando como vigente un suelo de 0,142
     después de que este mismo barrido lo bajara a 0,137.
     """
-    from tfg_uja import recuperador
+    from tfg_uja.dialogo import recuperador
 
     vigente = barrido.configuracion_vigente()
 

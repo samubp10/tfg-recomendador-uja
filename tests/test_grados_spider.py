@@ -8,7 +8,12 @@ import pytest
 import scrapy
 from scrapy.http import HtmlResponse, Request
 
-from tfg_uja.grados_spider import GradosSpider, curso_de_url
+from tfg_uja.extraccion.grados_spider import (
+    TOPE_DESCARGA,
+    GradosSpider,
+    curso_de_url,
+    nombre_seguro,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -672,7 +677,7 @@ def test_descarta_el_marcador_de_campo_sin_contenido():
     # "Competencias: -": un guion suelto marca "sin contenido". Se aísla el
     # patrón exacto observado en un fragmento mínimo, en vez de una fixture
     # completa inventada.
-    from tfg_uja.grados_spider import GradosSpider
+    from tfg_uja.extraccion.grados_spider import GradosSpider
 
     html = (
         '<div id="resumen">'
@@ -823,6 +828,66 @@ def test_un_fallo_al_guardar_el_pdf_no_tumba_el_rastreo(tmp_path):
     )
     assert len(items) == 1
     assert "estadística descriptiva" in items[0]["temario"].lower()
+
+
+@pytest.mark.parametrize(
+    "codigo, esperado",
+    [
+        ("13311008", "13311008"),  # el caso normal no cambia
+        ("../../../evadido", "evadido"),
+        ("..\\..\\evadido", "evadido"),
+        ("/etc/passwd", "etcpasswd"),
+        ("C:\\Windows\\System32\\algo", "CWindowsSystem32algo"),
+        ("con espacios", "conespacios"),
+        ("..", "sin_codigo"),
+        ("", "sin_codigo"),
+        (None, "sin_codigo"),
+    ],
+)
+def test_el_codigo_remoto_no_decide_donde_se_escribe(codigo, esperado):
+    """Regresión de IT-131: el código venía de la web y era el nombre a pelo.
+
+    ``f"{codigo or 'sin_codigo'}.pdf"`` con un valor que llevara ``..``, un
+    separador o una ruta absoluta escribía el PDF fuera de ``data/guias_pdf``.
+    Hoy la EPSJ no publica códigos así, y ese es justamente el motivo de no
+    depender de ello: la suposición de que la fuente se porta bien ya se rompió
+    con la columna nueva del plan 2025 y con las guías pasadas a PDF.
+    """
+    assert nombre_seguro(codigo) == esperado
+
+
+def test_un_codigo_con_ruta_deja_el_pdf_dentro_del_directorio(tmp_path):
+    """La comprobación de arriba es sobre la cadena; esta, sobre el disco."""
+    destino = tmp_path / "guias"
+    resp = _respuesta_pdf(
+        (FIXTURES / "guia_estadistica_iayc.pdf").read_bytes(),
+        "../../fuera",
+        "Estadística",
+        "Grado en Inteligencia Artificial y Ciberseguridad",
+    )
+    list(_spider_con_pdf_en(destino).parse_guia(resp))
+
+    escritos = list(destino.glob("*.pdf"))
+    assert [f.name for f in escritos] == ["fuera.pdf"]
+    # Y nada ha salido del directorio: si hubiera escapado, estaría dos niveles
+    # más arriba, que es adonde apuntaban los dos «..».
+    assert not list(tmp_path.parent.glob("*.pdf"))
+
+
+def test_el_tope_de_descarga_sale_de_los_pdf_reales():
+    """El umbral no es un número redondo elegido a ojo.
+
+    Medidos los 293 PDF descargados en ``data/guias_pdf``, el mayor ocupa
+    106.683 B. El tope se fija en 2 MiB, unas veinte veces ese máximo: deja
+    sitio a una guía bastante más larga que cualquiera de las publicadas y a la
+    vez acota lo que puede consumir una respuesta anómala.
+    """
+    mayor_real = 106_683
+    assert GradosSpider.custom_settings["DOWNLOAD_MAXSIZE"] == TOPE_DESCARGA
+    assert TOPE_DESCARGA > mayor_real * 15
+    # El aviso llega mucho antes que el rechazo, para enterarse de que la
+    # fuente crece sin esperar a que un rastreo falle.
+    assert GradosSpider.custom_settings["DOWNLOAD_WARNSIZE"] < TOPE_DESCARGA
 
 
 def test_encola_una_peticion_a_la_guia_por_cada_asignatura_con_guia():

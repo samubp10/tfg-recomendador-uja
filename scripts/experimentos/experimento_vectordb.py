@@ -671,7 +671,7 @@ def crear_almacen_chroma(
     """
     import chromadb
 
-    from tfg_uja.indexer import COLECCION
+    from tfg_uja.indexacion.indexer import COLECCION
 
     cliente = chromadb.PersistentClient(path=str(ruta_indice))
     try:
@@ -771,8 +771,8 @@ def medir_chroma(
     caso_prefiltrado: tuple[int, str, int] | None = None,
 ) -> Medida:
     """Construye y mide ChromaDB, reutilizando el pipeline de ``indexer.py``."""
-    from tfg_uja.incrustaciones import MODELO, PREFIJO_DOCUMENTO
-    from tfg_uja.indexer import indexar_chunks
+    from tfg_uja.indexacion.incrustaciones import MODELO, PREFIJO_DOCUMENTO
+    from tfg_uja.indexacion.indexer import indexar_chunks
 
     def construir() -> Any:
         almacen = crear_almacen_chroma(
@@ -975,7 +975,7 @@ def medir_lancedb(
     """Construye y mide LanceDB."""
     import lancedb
 
-    from tfg_uja.indexer import indexar_chunks
+    from tfg_uja.indexacion.indexer import indexar_chunks
 
     def construir() -> Any:
         db = lancedb.connect(str(ruta_indice))
@@ -1204,7 +1204,7 @@ def medir_qdrant(
     """
     from qdrant_client import QdrantClient
 
-    from tfg_uja.indexer import indexar_chunks
+    from tfg_uja.indexacion.indexer import indexar_chunks
 
     cliente = QdrantClient(url=URL_QDRANT)
     nombre_coleccion = "chunks_epsj"
@@ -1668,7 +1668,7 @@ def main() -> None:
     preguntas = cargar_preguntas()
     print(f"  {len(chunks)} fragmentos · {len(preguntas)} preguntas")
 
-    from tfg_uja.incrustaciones import (
+    from tfg_uja.indexacion.incrustaciones import (
         MODELO,
         incrustador_de_consultas,
         incrustador_de_documentos,

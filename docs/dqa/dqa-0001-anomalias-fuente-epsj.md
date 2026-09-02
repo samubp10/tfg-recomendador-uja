@@ -195,8 +195,8 @@ sin dejar constancia de que estaba mal.
 
 ## Referencias
 
-- `src/tfg_uja/text_cleaner.py`, `src/tfg_uja/validators.py`,
-  `src/tfg_uja/grados_spider.py`.
+- `src/tfg_uja/text_cleaner.py`, `src/tfg_uja/extraccion/validators.py`,
+  `src/tfg_uja/extraccion/grados_spider.py`.
 - `tests/fixtures/tabla_asignaturas.html`,
   `tests/fixtures/tabla_asignaturas_iayc.html`, `tests/test_text_cleaner.py`.
 - ADR-0002 (elección de Scrapy y resolución de codificación).

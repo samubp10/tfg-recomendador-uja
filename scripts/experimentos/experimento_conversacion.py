@@ -45,12 +45,15 @@ sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from tfg_uja.conversacion import (  # noqa: E402
+from tfg_uja.dialogo.conversacion import (  # noqa: E402
     Conversacion,
     titulaciones_de_la_pregunta,
 )
-from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
+    MODELO,
+    incrustador_de_consultas,
+)
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,

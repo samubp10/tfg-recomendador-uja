@@ -27,10 +27,10 @@ from typing import Any
 
 import pytest
 
-from tfg_uja.incrustaciones import MODELO
-from tfg_uja.indexer import reconstruir_indice
-from tfg_uja.recuperador import abrir_indice, catalogo_del_indice
-from tfg_uja.sugerencias import (
+from tfg_uja.indexacion.incrustaciones import MODELO
+from tfg_uja.indexacion.indexer import reconstruir_indice
+from tfg_uja.dialogo.recuperador import abrir_indice, catalogo_del_indice
+from tfg_uja.aplicacion.sugerencias import (
     ARRANQUE_CATALOGO,
     DEL_AMBITO,
     MAXIMO,
@@ -45,7 +45,7 @@ DIMENSION = 8
 RAIZ = Path(__file__).resolve().parent.parent
 
 #: Índice del corpus completo. No se versiona: se construye con
-#: ``py -m tfg_uja.indexer data/chunks.json data/indice_lance``.
+#: ``py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance``.
 INDICE_REAL = RAIZ / "data" / "indice_lance"
 
 ELECTRICA = "Grado en Ingeniería Eléctrica"
@@ -436,7 +436,7 @@ def test_ninguna_plantilla_se_ha_quedado_sin_respaldo():
     if not INDICE_REAL.exists():
         pytest.skip(
             f"no hay índice vectorial en {INDICE_REAL.relative_to(RAIZ)}; "
-            "se construye con «py -m tfg_uja.indexer data/chunks.json "
+            "se construye con «py -m tfg_uja.indexacion.indexer data/chunks.json "
             "data/indice_lance»"
         )
     tabla_real = abrir_indice(INDICE_REAL, MODELO)

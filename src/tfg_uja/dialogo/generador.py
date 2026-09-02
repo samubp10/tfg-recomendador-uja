@@ -39,11 +39,12 @@ import urllib.request
 from collections.abc import Iterator
 from typing import Final
 
-from tfg_uja.chunker import ORDEN_CURSOS
-from tfg_uja.recuperador import Fragmento
+from tfg_uja.indexacion.chunker import ORDEN_CURSOS
+from tfg_uja.dialogo.recuperador import Fragmento
 from tfg_uja.text_cleaner import normalizar, palabras
-from tfg_uja.verificacion import (
+from tfg_uja.dialogo.verificacion import (
     Atributos,
+    asignatura_del_segmento,
     atributos_del_contexto,
     corregir_atributos,
     titulaciones_inventadas,
@@ -177,9 +178,15 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
     Returns:
         Los mismos fragmentos, agrupados por unidad y ordenados dentro de ella.
     """
-    mejor: dict[tuple[str, str], float] = {}
+    # La titulación forma parte de la identidad de la unidad, como ya la
+    # consideran `evaluacion.unidad_de_chunk()` y `servidor.fuentes_de()`. Ocho
+    # nombres de guía del corpus son más de una unidad ---«Trabajo fin de
+    # Grado» y «Prácticas externas» son cinco cada uno---, y sin la titulación
+    # las homónimas compartían la mejor distancia de las dos: la menos
+    # pertinente ascendía y sus partes se intercalaban con las de la otra.
+    mejor: dict[tuple[str, str, tuple[str, ...]], float] = {}
     for f in fragmentos:
-        clave = (f.nombre, f.origen)
+        clave = (f.origen, f.nombre, tuple(f.grados))
         mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
 
     # Los listados del plan se leen en el orden en que se cursan, no por
@@ -200,7 +207,7 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
         if f.origen != "plan_de_estudios":
             continue
         titulacion = tuple(f.grados)
-        distancia = mejor[(f.nombre, f.origen)]
+        distancia = mejor[(f.origen, f.nombre, titulacion)]
         anclas[titulacion] = min(anclas.get(titulacion, distancia), distancia)
 
     def orden(f: Fragmento) -> tuple[float, int, str, int]:
@@ -211,7 +218,12 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
                 f.nombre,
                 f.chunk_index,
             )
-        return (mejor[(f.nombre, f.origen)], 0, f.nombre, f.chunk_index)
+        return (
+            mejor[(f.origen, f.nombre, tuple(f.grados))],
+            0,
+            f.nombre,
+            f.chunk_index,
+        )
 
     return sorted(fragmentos, key=orden)
 
@@ -642,8 +654,34 @@ def _anotar_retirada(
         traza["retirada"] = texto
 
 
+def _sujeto_tras(
+    unidad: str, del_plan: dict[str, Atributos], sujeto: str | None
+) -> str | None:
+    """De que asignatura se sigue hablando cuando termina esta unidad.
+
+    El salto de linea cierra la vineta y con ella el sujeto: lo que venga
+    despues habla de otra asignatura, y arrastrarlo le atribuiria a la primera
+    lo que se dice de la segunda. Dentro de la misma linea, en cambio, el
+    sujeto se sostiene hasta que otra asignatura lo releva.
+
+    Args:
+        unidad: Trozo ya cerrado por una frontera segura.
+        del_plan: Lo que el contexto dice de cada asignatura.
+        sujeto: De quien se venia hablando antes de esta unidad.
+
+    Returns:
+        La asignatura en pie al terminar, o ``None`` si no hay ninguna.
+    """
+    if "\n" in unidad:
+        return asignatura_del_segmento(unidad.rsplit("\n", 1)[1], del_plan)
+    return asignatura_del_segmento(unidad, del_plan) or sujeto
+
+
 def _con_el_plan_corregido(
-    unidad: str, del_plan: dict[str, Atributos], pregunta: str
+    unidad: str,
+    del_plan: dict[str, Atributos],
+    pregunta: str,
+    sujeto: str | None = None,
 ) -> str:
     """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota.
 
@@ -663,11 +701,13 @@ def _con_el_plan_corregido(
         unidad: Trozo de respuesta ya cerrado por una frontera segura.
         del_plan: Lo que el contexto dice de cada asignatura.
         pregunta: Solo para el registro, si hay algo que anotar.
+        sujeto: Asignatura de la que venia hablando la linea. Sin el, una
+            afirmacion escrita en frase aparte de su nombre no se corrige.
 
     Returns:
         La unidad, con los atributos que contradecian al contexto corregidos.
     """
-    corregida, avisos = corregir_atributos(unidad, del_plan)
+    corregida, avisos = corregir_atributos(unidad, del_plan, sujeto)
     for aviso in avisos:
         _registro.warning(
             "Atributo corregido contra el contexto. Pregunta: %r. %s",
@@ -979,6 +1019,18 @@ def generar(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
         ) from error
+    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
+    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
+    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
+    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
+    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
+    # entero con una traza de socket, en vez de contarse como la pregunta
+    # perdida que es.
+    except ConnectionError as error:
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} cortó la conexión a media respuesta "
+            f"({error}). Suele ser que se ha quedado sin memoria."
+        ) from error
     escrito = str(datos.get("response", "")).strip()
     if datos.get("done_reason") == "length":
         return cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
@@ -1085,6 +1137,18 @@ def generar_por_partes(
             f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
             "¿Está Ollama en marcha?"
         ) from error
+    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
+    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
+    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
+    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
+    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
+    # entero con una traza de socket, en vez de contarse como la pregunta
+    # perdida que es.
+    except ConnectionError as error:
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} cortó la conexión a media respuesta "
+            f"({error}). Suele ser que se ha quedado sin memoria."
+        ) from error
 
 
 def responder_por_partes(
@@ -1143,14 +1207,36 @@ def responder_por_partes(
     del_plan = atributos_del_contexto([f.texto for f in fragmentos])
     acumulado = ""
     pendiente = ""
+    # De que asignatura se viene hablando dentro de la linea en curso. Se
+    # arrastra entre unidades porque el corte por frases separa el nombre del
+    # atributo: «**Automatica avanzada** (6 ECTS). Se imparte en el primer
+    # cuatrimestre.» son dos unidades y la segunda no nombra a nadie.
+    sujeto: str | None = None
+    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
+    # cola al agotarse el tope: ver mas abajo.
+    hubo_frontera = False
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
     for trozo in trozos:
+        # El tope agotado corta a mitad de palabra, y lo que queda sin cerrar
+        # frase es exactamente `pendiente`: todo lo anterior ya salio en
+        # unidades. Tirarlo aqui es lo mismo que hace `cerrar_en_frase_completa`
+        # en la via sin flujo, y sin ello la web entregaba «...todas las titul»
+        # mientras el camino que mide el experimento entregaba la frase entera.
+        #
+        # Se exige `hubo_frontera` porque `cerrar_en_frase_completa` devuelve el
+        # texto intacto cuando no hay ninguna frontera en el: sin esa condicion,
+        # una respuesta corta y cortada se quedaria solo en el aviso por un lado
+        # y entera por el otro, que es la divergencia que esto viene a cerrar.
+        if trozo == AVISO_RESPUESTA_CORTADA and hubo_frontera:
+            pendiente = ""
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
+        hubo_frontera = hubo_frontera or bool(unidades)
         for unidad in unidades:
-            unidad = _con_el_plan_corregido(unidad, del_plan, pregunta)
+            unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
+            sujeto = _sujeto_tras(unidad, del_plan, sujeto)
             acumulado += unidad
             if catalogo and titulaciones_inventadas(acumulado, catalogo):
                 _anotar_retirada(pregunta, acumulado, catalogo, traza)
@@ -1161,7 +1247,7 @@ def responder_por_partes(
 
     # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
     if pendiente:
-        pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta)
+        pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta, sujeto)
         acumulado += pendiente
         if catalogo and titulaciones_inventadas(acumulado, catalogo):
             _anotar_retirada(pregunta, acumulado, catalogo, traza)

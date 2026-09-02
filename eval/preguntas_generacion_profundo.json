@@ -1,0 +1,3762 @@
+{
+  "descripcion": "Subconjunto de decisión de 250 preguntas, sorteado con semilla 7 y con todas las familias representadas. Es el que decide el ADR-0005; el banco completo sirve para comprobar al finalista.",
+  "procedencia_del_dataset": {
+    "tipo": "procedencia",
+    "fecha_extraccion": "2026-08-16",
+    "origen": "https://eps.ujaen.es/grados"
+  },
+  "preguntas": [
+    {
+      "id": "G-CAT-001",
+      "familia": "catalogo",
+      "pregunta": "¿Qué titulaciones se pueden estudiar en la Escuela Politécnica Superior de Jaén?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "Doble Grado en Ingeniería Mecánica (Internacional - University of Applied Sciences Schmalkalden, Alemania)",
+        "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "Grado en Ingeniería Electrónica Industrial",
+        "Grado en Ingeniería Eléctrica",
+        "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería de Organización Industrial",
+        "Grado en Inteligencia Artificial y Ciberseguridad"
+      ],
+      "ambito": {}
+    },
+    {
+      "id": "G-CUR-001",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto o tercer curso del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CINEMÁTICA Y DINÁMICA DE MÁQUINAS (GIM)",
+        "DISEÑO DE MÁQUINAS (GIM)",
+        "ELASTICIDAD Y RESISTENCIA DE MATERIALES II (GIM)",
+        "INGENIERÍA TÉRMICA II (GIM)",
+        "MÁQUINAS E INSTALACIONES DE FLUIDOS (GIM)",
+        "TECNOLOGÍA DE FABRICACIÓN (GIM)",
+        "TECNOLOGÍA DE MATERIALES (GIM)",
+        "TEORÍA DE ESTRUCTURAS (GIM)",
+        "TÉCNICAS DE INGENIERÍA GRÁFICA APLICADAS A INGENIERÍA MECÁNICA (GIM)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "curso": "Cuarto o tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-002",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ADMINISTRACIÓN DE EMPRESAS",
+        "DIBUJO INDUSTRIAL",
+        "ESTADÍSTICA",
+        "EXPRESIÓN GRÁFICA",
+        "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA",
+        "FÍSICA I",
+        "FÍSICA II",
+        "INFORMÁTICA",
+        "MATEMÁTICAS I",
+        "MATEMÁTICAS II"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-003",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en quinto curso del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CONTROL POR COMPUTADOR (GIEI)",
+        "ELECTRÓNICA DE POTENCIA (GIEI)",
+        "MÁQUINAS TÉRMICAS (GIM)",
+        "PROYECTOS (GIEI)",
+        "SIMULACIÓN DE FLUJOS INDUSTRIALES (GIM)",
+        "TFG ING. ELETRÓNICA INDUSTRIAL (GIEI)",
+        "TFG ING. MECÁNICA (GIM)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "curso": "Quinto curso"
+      }
+    },
+    {
+      "id": "G-CUR-005",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer o cuarto curso del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "AUTOMÁTICA AVANZADA (GIEI)",
+        "ELECTROTECNIA AVANZADA (GIEI)",
+        "ELECTRÓNICA ANALÓGICA (GIEI)",
+        "ELECTRÓNICA DIGITAL (GIEI)",
+        "FUNDAMENTOS DE TECNOLOGÍA MEDIOAMBIENTAL (GIEI)",
+        "INFORMÁTICA INDUSTRIAL (GIEI)",
+        "INGENIERÍA DE CONTROL (GIEI)",
+        "INSTRUMENTACIÓN ELECTRÓNICA (GIEI)",
+        "INTRODUCCIÓN A LOS SISTEMAS FOTOVOLTAICOS (GIEI)",
+        "SISTEMAS ANALÓGICOS (GIEI)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "curso": "Tercer o cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-006",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto o tercer curso del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "AUTOMÁTICA AVANZADA (GIEI)",
+        "ELECTRÓNICA ANALÓGICA (GIEI)",
+        "ELECTRÓNICA DIGITAL (GIEI)",
+        "INFORMÁTICA INDUSTRIAL (GIEI)",
+        "INSTRUMENTACIÓN ELECTRÓNICA (GIEI)",
+        "INTRODUCCIÓN A LOS SISTEMAS FOTOVOLTAICOS (GIEI)",
+        "SISTEMAS ANALÓGICOS (GIEI)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "curso": "Cuarto o tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-007",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ADMINISTRACIÓN DE EMPRESAS",
+        "DIBUJO INDUSTRIAL",
+        "ESTADÍSTICA",
+        "EXPRESIÓN GRÁFICA",
+        "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA",
+        "FÍSICA I",
+        "FÍSICA II",
+        "INFORMÁTICA",
+        "MATEMÁTICAS I",
+        "MATEMÁTICAS II"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-008",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en quinto curso del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CENTRALES ELÉCTRICAS I (GIE)",
+        "CENTRALES ELÉCTRICAS II (GIE)",
+        "CONTROL POR COMPUTADOR (GIEI)",
+        "ELECTRÓNICA DE POTENCIA (GIEI)",
+        "PROYECTOS (GIE)",
+        "SISTEMAS ELÉCTRICOS DE POTENCIA (GIE)",
+        "TFG ING. ELECTRÓNICA INDUSTRIAL (GIEI)",
+        "TFG ING. ELÉCTRICA (GIE)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "curso": "Quinto curso"
+      }
+    },
+    {
+      "id": "G-CUR-009",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "AMPLIACIÓN DE MATEMÁTICAS",
+        "AUTOMÁTICA INDUSTRIAL",
+        "CIENCIA E INGENIERÍA DE MATERIALES",
+        "ELASTICIDAD Y RESISTENCIA DE MATERIALES",
+        "ELECTROTECNIA",
+        "FUNDAMENTOS DE ELECTRÓNICA",
+        "INGENIERÍA DE FABRICACIÓN",
+        "INGENIERÍA TÉRMICA",
+        "MECÁNICA DE FLUIDOS",
+        "MECÁNICA DE MÁQUINAS"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-010",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer o cuarto curso del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ACCIONAMIENTOS ELÉCTRICOS Y ELECTRÓNICA DE POTENCIA (GIE)",
+        "CIRCUITOS (GIE)",
+        "FUNDAMENTOS DE TECNOLOGÍA MEDIOAMBIENTAL (GIE)",
+        "INSTALACIONES ELÉCTRICAS DE ALTA TENSIÓN (GIE)",
+        "INSTALACIONES ELÉCTRICAS DE BAJA TENSIÓN (GIE)",
+        "MÁQUINAS ELÉCTRICAS I (GIE)",
+        "MÁQUINAS ELÉCTRICAS II (GIE)",
+        "REGULACIÓN AUTOMÁTICA (GIE)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "curso": "Tercer o cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-011",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto o tercer curso del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ACCIONAMIENTOS ELÉCTRICOS Y ELECTRÓNICA DE POTENCIA (GIE)",
+        "CIRCUITOS (GIE)",
+        "INSTALACIONES ELÉCTRICAS DE ALTA TENSIÓN (GIE)",
+        "INSTALACIONES ELÉCTRICAS DE BAJA TENSIÓN (GIE)",
+        "MÁQUINAS ELÉCTRICAS I (GIE)",
+        "MÁQUINAS ELÉCTRICAS II (GIE)",
+        "MÁQUINAS TÉRMICAS (GIM)",
+        "REGULACIÓN AUTOMÁTICA (GIE)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "curso": "Cuarto o tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-012",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ADMINISTRACIÓN DE EMPRESAS",
+        "DIBUJO INDUSTRIAL",
+        "ESTADÍSTICA",
+        "EXPRESIÓN GRÁFICA",
+        "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA",
+        "FÍSICA I",
+        "FÍSICA II",
+        "INFORMÁTICA",
+        "MATEMÁTICAS I",
+        "MATEMÁTICAS II"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-015",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer o cuarto curso del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CINEMÁTICA Y DINÁMICA DE MÁQUINAS (GIM)",
+        "DISEÑO DE MÁQUINAS (GIM)",
+        "ELASTICIDAD Y RESISTENCIA DE MATERIALES II (GIM)",
+        "FUNDAMENTOS DE TECNOLOGÍA MEDIOAMBIENTAL (GIM)",
+        "INGENIERÍA TÉRMICA II (GIM)",
+        "MÁQUINAS E INSTALACIONES DE FLUIDOS (GIM)",
+        "TECNOLOGÍA DE FABRICACIÓN (GIM)",
+        "TECNOLOGÍA DE MATERIALES (GIM)",
+        "TEORÍA DE ESTRUCTURAS (GIM)",
+        "TÉCNICAS DE INGENIERÍA GRÁFICA APLICADAS A INGENIERÍA MECÁNICA (GIM)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "curso": "Tercer o cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-016",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto o tercer curso del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "CINEMÁTICA Y DINÁMICA DE MÁQUINAS (GIM)",
+        "DISEÑO DE MÁQUINAS (GIM)",
+        "ELASTICIDAD Y RESISTENCIA DE MATERIALES II (GIM)",
+        "INGENIERÍA TÉRMICA II (GIM)",
+        "MÁQUINAS E INSTALACIONES DE FLUIDOS (GIM)",
+        "TECNOLOGÍA DE FABRICACIÓN (GIM)",
+        "TECNOLOGÍA DE MATERIALES (GIM)",
+        "TEORÍA DE ESTRUCTURAS (GIM)",
+        "TÉCNICAS DE INGENIERÍA GRÁFICA APLICADAS A INGENIERÍA MECÁNICA (GIM)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "curso": "Cuarto o tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-017",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ADMINISTRACIÓN DE EMPRESAS",
+        "DIBUJO INDUSTRIAL",
+        "ESTADÍSTICA",
+        "EXPRESIÓN GRÁFICA",
+        "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA",
+        "FÍSICA I",
+        "FÍSICA II",
+        "INFORMÁTICA",
+        "MATEMÁTICAS I",
+        "MATEMÁTICAS II"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-018",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en quinto curso del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "ESTRATEGIA Y POLÍTICA DE LA EMPRESA (GIOI)",
+        "POLÍTICA INDUSTRIAL Y TECNOLÓGICA (GIOI)",
+        "PROYECTOS (GIOI)",
+        "SIMULACIÓN DE FLUJOS INDUSTRIALES (GIM)",
+        "TFG ING. MECÁNICA (GIM)",
+        "TFG ING. ORGANIZACIÓN INDUSTRIAL (GIOI)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "curso": "Quinto curso"
+      }
+    },
+    {
+      "id": "G-CUR-019",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "AMPLIACIÓN DE MATEMÁTICAS",
+        "AUTOMÁTICA INDUSTRIAL",
+        "CIENCIA E INGENIERÍA DE MATERIALES",
+        "ELASTICIDAD Y RESISTENCIA DE MATERIALES",
+        "ELECTROTECNIA",
+        "FUNDAMENTOS DE ELECTRÓNICA",
+        "INGENIERÍA DE FABRICACIÓN",
+        "INGENIERÍA TÉRMICA",
+        "MECÁNICA DE FLUIDOS",
+        "MECÁNICA DE MÁQUINAS"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-020",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer o cuarto curso del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "COMPLEJOS INDUSTRIALES (GIOI)",
+        "FUNDAMENTOS DE TECNOLOGÍA MEDIOAMBIENTAL (GIOI)",
+        "GESTIÓN DE LA CALIDAD (GIOI)",
+        "GESTIÓN DE SISTEMAS PRODUCTIVOS (GIOI)",
+        "GESTIÓN FINANCIERA (GIOI)",
+        "MARKETING INDUSTRIAL (GIOI)",
+        "MÁQUINAS TÉRMICAS (GIM)",
+        "MÉTODOS CUANTITATIVOS (GIOI)",
+        "ORGANIZACIÓN DEL TRABAJO Y FACTOR HUMANO (GIOI)",
+        "TECNOLOGÍA ELÉCTRICA (GIOI)"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "curso": "Tercer o cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-022",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Administración de empresas",
+        "Dibujo industrial",
+        "Estadística",
+        "Expresión gráfica",
+        "Fundamentos químicos en la ingeniería",
+        "Física I",
+        "Física II",
+        "Informática",
+        "Matemáticas I",
+        "Matemáticas II"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-023",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Ampliación de matemáticas",
+        "Automática industrial",
+        "Ciencia e ingeniería de materiales",
+        "Elasticidad y resistencia de materiales",
+        "Electrotecnia",
+        "Fundamentos de electrónica",
+        "Ingeniería de fabricación",
+        "Ingeniería térmica",
+        "Mecánica de fluidos",
+        "Mecánica de máquinas"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-024",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automática avanzada",
+        "Electrotecnia avanzada",
+        "Electrónica analógica",
+        "Electrónica digital",
+        "Fundamentos de tecnología medioambiental",
+        "Informática industrial",
+        "Ingeniería de control",
+        "Instrumentación electrónica",
+        "Introducción a los sistemas fotovoltaicos",
+        "Sistemas analógicos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-025",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Centrales eléctricas I",
+        "Centrales eléctricas II",
+        "Proyectos",
+        "Sistemas eléctricos de potencia",
+        "Trabajo fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-026",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Administración de empresas",
+        "Dibujo industrial",
+        "Estadística",
+        "Expresión gráfica",
+        "Fundamentos químicos en la ingeniería",
+        "Física I",
+        "Física II",
+        "Informática",
+        "Matemáticas I",
+        "Matemáticas II"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-027",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Ampliación de matemáticas",
+        "Automática industrial",
+        "Ciencia e ingeniería de materiales",
+        "Elasticidad y resistencia de materiales",
+        "Electrotecnia",
+        "Fundamentos de electrónica",
+        "Ingeniería de fabricación",
+        "Ingeniería térmica",
+        "Mecánica de fluidos",
+        "Mecánica de máquinas"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-028",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Accionamientos eléctricos y electrónica de potencia",
+        "Circuitos",
+        "Fundamentos de tecnología medioambiental",
+        "Instalaciones eléctricas de alta tensión",
+        "Instalaciones eléctricas de baja tensión",
+        "Máquinas eléctricas I",
+        "Máquinas eléctricas II",
+        "Regulación automática"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-029",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Proyectos",
+        "Trabajo de Fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-030",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Cartografía y SIG I",
+        "Instrumentos topográficos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-031",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Cartografía matemática",
+        "Cartografía y SIG II",
+        "Fotogrametría y teledetección I",
+        "Fotogrametría y teledetección II",
+        "Geodesia geométrica",
+        "Ingeniería civil e ingeniería ambiental",
+        "Métodos topográficos",
+        "Redes topográficas"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-032",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Catastro y valoraciones",
+        "Fotogrametría y teledetección III",
+        "Geodesia espacial",
+        "Geofísica y geodesia física",
+        "Infraestructuras de datos espaciales",
+        "Modelización de la información geográfica",
+        "Planificación territorial",
+        "Topografía en la ingeniería civil"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-034",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Análisis y métodos numéricos",
+        "Electrónica digital",
+        "Estadística",
+        "Fundamentos de arquitectura de computadores",
+        "Fundamentos de la programación",
+        "Fundamentos físicos de la informática",
+        "Matemática discreta",
+        "Organización y gestión empresarial",
+        "Programación orientada a objetos",
+        "Álgebra"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-035",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Arquitectura de computadores",
+        "Diseño de algoritmos",
+        "Estructuras de datos",
+        "Fundamentos de bases de datos",
+        "Fundamentos de ingeniería del software",
+        "Inteligencia artificial",
+        "Programación y administración de redes",
+        "Seguridad en tecnologías de la información",
+        "Sistemas concurrentes y distribuidos",
+        "Sistemas operativos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-036",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Auditoría informática",
+        "Bases de datos distribuidas",
+        "Calidad del software",
+        "Desarrollo de aplicaciones web",
+        "Desarrollo de software para dispositivos móviles",
+        "Desarrollo ágil",
+        "Gestión y administración de bases de datos",
+        "Gestión y control de proyectos informáticos",
+        "Informática gráfica y visualización",
+        "Ingeniería de requisitos",
+        "Interacción persona-ordenador",
+        "Metaheurísticas",
+        "Procesamiento de información visual",
+        "Sistemas de información basados en web",
+        "Sistemas de información para el negocio electrónico",
+        "Sistemas de recuperación de información",
+        "Sistemas inteligentes de información",
+        "Sistemas multiagente",
+        "Sistemas multimedia",
+        "Tecnologías basadas en la web"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-037",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Máquinas térmicas",
+        "Proyectos",
+        "Simulación de flujos industriales",
+        "Trabajo fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-038",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Administración de empresas",
+        "Dibujo industrial",
+        "Estadística",
+        "Expresión gráfica",
+        "Fundamentos químicos en la ingeniería",
+        "Física I",
+        "Física II",
+        "Informática",
+        "Matemáticas I",
+        "Matemáticas II"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-039",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Ampliación de matemáticas",
+        "Automática industrial",
+        "Ciencia e ingeniería de materiales",
+        "Elasticidad y resistencia de materiales",
+        "Electrotecnia",
+        "Fundamentos de electrónica",
+        "Ingeniería de fabricación",
+        "Ingeniería térmica",
+        "Mecánica de fluidos",
+        "Mecánica de máquinas"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-041",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Estrategia y política de la empresa",
+        "Política industrial y tecnológica",
+        "Proyectos",
+        "Trabajo fin de Grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-042",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Administración de empresas",
+        "Dibujo industrial",
+        "Estadística",
+        "Expresión gráfica",
+        "Fundamentos químicos en la ingeniería",
+        "Física I",
+        "Física II",
+        "Informática",
+        "Matemáticas I",
+        "Matemáticas II"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-043",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Ampliación de matemáticas",
+        "Automática industrial",
+        "Ciencia e ingeniería de materiales",
+        "Elasticidad y resistencia de materiales",
+        "Electrotecnia",
+        "Fundamentos de electrónica",
+        "Ingeniería de fabricación",
+        "Ingeniería térmica",
+        "Mecánica de fluidos",
+        "Mecánica de máquinas"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-044",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Complejos industriales",
+        "Fundamentos de tecnología medioambiental",
+        "Gestión de la calidad",
+        "Gestión de sistemas productivos",
+        "Gestión financiera",
+        "Marketing industrial",
+        "Métodos cuantitativos",
+        "Organización del trabajo y factor humano",
+        "Tecnología eléctrica",
+        "Tecnología energética"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-CUR-045",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en cuarto curso del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Aprendizaje profundo",
+        "Arquitectura de servicios en la nube y dispositivos inteligentes",
+        "Hacking ético y protección activa de la información",
+        "Infraestructuras seguras de comunicaciones",
+        "Minería de datos",
+        "Procesamiento de lenguaje natural",
+        "Trabajo fin de grado"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "curso": "Cuarto curso"
+      }
+    },
+    {
+      "id": "G-CUR-046",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en primer curso del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Análisis y métodos numéricos",
+        "Electrónica digital",
+        "Estadística",
+        "Fundamentos de arquitectura de computadores",
+        "Fundamentos de programación",
+        "Fundamentos físicos de la Informática",
+        "Matemática discreta",
+        "Organización y gestión empresarial",
+        "Programación orientada a objetos",
+        "Álgebra"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "curso": "Primer curso"
+      }
+    },
+    {
+      "id": "G-CUR-047",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en segundo curso del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Arquitectura de computadores",
+        "Diseño de algoritmos",
+        "Estructuras de datos",
+        "Fundamentos de bases de datos",
+        "Fundamentos de ingeniería del software",
+        "Gestión y control de proyectos informáticos",
+        "Inteligencia artificial",
+        "Programación y administración de redes",
+        "Sistemas concurrentes y distribuidos",
+        "Sistemas operativos"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "curso": "Segundo curso"
+      }
+    },
+    {
+      "id": "G-CUR-048",
+      "familia": "plan_por_curso",
+      "pregunta": "¿Qué asignaturas se cursan en tercer curso del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Aprendizaje automático I",
+        "Aprendizaje automático II",
+        "Arquitectura de entornos inteligentes",
+        "Criptografía",
+        "Desarrollo de software seguro",
+        "Fundamentos en identidad digital y seguridad biométrica",
+        "Ingeniería inversa y análisis forense",
+        "Inteligencia artificial y ciberseguridad: normativa, regulación y ética",
+        "Seguridad en gestión de la información",
+        "Sistemas basados en el conocimiento y robótica"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "curso": "Tercer curso"
+      }
+    },
+    {
+      "id": "G-OPT-001",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Domótica e Inmótica",
+        "Electrónica aplicada a la Iluminación del Automóvil",
+        "Electrónica aplicada a los sistemas fotovoltaicos",
+        "Gestión y mantenimiento de sistemas fotovoltaicos",
+        "Instalaciones fotovoltaicas",
+        "Microelectrónica",
+        "Modelado y Control de Máquinas Eléctricas",
+        "Programación",
+        "Prácticas externas",
+        "Robótica industrial",
+        "Sistemas Digitales",
+        "Sistemas de adquisición de datos",
+        "Tecnología electrónica y desarrollo de prototipos electrónicos",
+        "Tecnología eléctrica en sistemas fotovoltaicos",
+        "Visión por computador"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial"
+      }
+    },
+    {
+      "id": "G-OPT-002",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automatización de sistemas eléctricos",
+        "Eficiencia y ahorro energético",
+        "Explotación y planificación de sistemas eléctricos",
+        "Generación de energía eléctrica con energías renovables",
+        "Instalaciones fotovoltaicas",
+        "Integración en la Red Eléctrica de Sistemas de Energía Renovable",
+        "Matemáticas para ingeniería eléctrica",
+        "Protecciones eléctricas",
+        "Prácticas externas",
+        "Recursos hidroeléctricos",
+        "Sistemas Electrónicos para la Smart Grid",
+        "Smart Grids. Redes Eléctricas Inteligentes",
+        "Tecnología de la iluminación",
+        "Tecnología eléctrica de los sistemas fotovoltaicos",
+        "Topografía y construcción",
+        "Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica"
+      }
+    },
+    {
+      "id": "G-OPT-003",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Bases de datos geoespaciales",
+        "Big data geoespacial",
+        "Control de deformaciones en la ingeniería",
+        "Desarrollos web para aplicaciones geomáticas",
+        "Fotogrametría de objeto cercano",
+        "Ingeniería geológica",
+        "Iniciativa empresarial y creación de empresas",
+        "Inteligencia artificial en información geográfica",
+        "IoT en información geográfica",
+        "Modelización cartográfica en entornos urbanos",
+        "Navegación",
+        "Proyectos y producción de cartografía",
+        "Prácticas externas",
+        "SIG avanzados",
+        "Teledetección aplicada",
+        "Topografía en infraestructuras civiles",
+        "Topografía industrial y metrología",
+        "Topografía subterránea",
+        "Técnicas geomáticas aplicadas al patrimonio"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+      }
+    },
+    {
+      "id": "G-OPT-004",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Algoritmos geométricos",
+        "Creación de empresas basadas en TIC",
+        "Desarrollo de videojuegos",
+        "Diseño de modelos de simulación",
+        "Ejercicio profesional de la informática",
+        "Inteligencia ambiental",
+        "Microprocesadores y microcontroladores",
+        "Minería web",
+        "Procesamiento del lenguaje natural",
+        "Programación de aplicaciones gráficas",
+        "Programación hardware",
+        "Protocolos de soporte a las aplicaciones multimedia",
+        "Prácticas externas",
+        "Sistemas de información para las decisiones estratégicas",
+        "Técnicas avanzadas de seguridad",
+        "Técnicas de animación 3D y post-procesamiento",
+        "Web semántica y social"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática"
+      }
+    },
+    {
+      "id": "G-OPT-005",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Construcción y arquitectura industrial",
+        "Energía hidráulica y eólica",
+        "Estructuras de hormigón armado",
+        "Estructuras metálicas",
+        "Fluidomecánica industrial",
+        "Ingeniería del mecanizado",
+        "Instalaciones térmicas en la edificación",
+        "Instalaciones térmicas en la industria",
+        "Integridad estructural en elementos mecánicos",
+        "Mantenimiento y seguridad de máquinas",
+        "Métodos avanzados de cálculo en ingeniería mecánica",
+        "Prácticas externas",
+        "Tecnologías aplicadas a la fabricación",
+        "Topografía y materiales de construcción",
+        "Técnicas numéricas y modelado geométrico"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica"
+      }
+    },
+    {
+      "id": "G-OPT-006",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Aprovechamiento y ahorro energético",
+        "Automática avanzada",
+        "Creación de empresas de base tecnológica",
+        "Entorno económico de la empresa",
+        "Gestión de la innovación",
+        "Gestión del mantenimiento industrial",
+        "Logística y gestión de flotas",
+        "Manutención y almacenaje",
+        "Metrología",
+        "Métodos cuantitativos avanzados",
+        "Prevención de riesgos laborales",
+        "Prácticas externas",
+        "Sistemas informáticos en la industria",
+        "Telecomunicaciones en la Industria",
+        "Técnicas de ingeniería gráfica aplicada"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial"
+      }
+    },
+    {
+      "id": "G-OPT-007",
+      "familia": "optativas",
+      "pregunta": "¿Qué asignaturas optativas ofrece el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Bases de datos distribuidas",
+        "Desarrollo de aplicaciones empresariales",
+        "Desarrollo ágil",
+        "Diseño e implantación de servidores",
+        "Gestión de proyectos software",
+        "Prácticas externas 1",
+        "Prácticas externas 2",
+        "Redes e infraestructuras de comunicaciones",
+        "Sistemas de recuperación de información",
+        "Sistemas inteligentes de información",
+        "Sistemas multiagente"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad"
+      }
+    },
+    {
+      "id": "G-MEN-001",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automática",
+        "Sistemas electrónicos",
+        "Sistemas fotovoltaicos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial"
+      }
+    },
+    {
+      "id": "G-MEN-002",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Generación Eléctrica con Energías Renovables",
+        "Instalaciones Eléctricas",
+        "Sistemas Eléctricos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica"
+      }
+    },
+    {
+      "id": "G-MEN-003",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "TIA",
+        "TIG"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)"
+      }
+    },
+    {
+      "id": "G-MEN-004",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Informática empresarial",
+        "Sistemas gráficos",
+        "Tratamiento inteligente de la información",
+        "Técnicas para la información y la comunicación"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática"
+      }
+    },
+    {
+      "id": "G-MEN-005",
+      "familia": "menciones",
+      "pregunta": "¿En qué menciones se puede especializar el Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Construcción industrial",
+        "Ingeniería y fabricación mecánica",
+        "Instalaciones térmicas y de fluidos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica"
+      }
+    },
+    {
+      "id": "G-MEN-006",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Automática del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Domótica e Inmótica",
+        "Modelado y Control de Máquinas Eléctricas",
+        "Robótica industrial",
+        "Visión por computador"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "mencion": "Automática"
+      }
+    },
+    {
+      "id": "G-MEN-007",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Sistemas electrónicos del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Electrónica aplicada a la Iluminación del Automóvil",
+        "Microelectrónica",
+        "Sistemas Digitales",
+        "Tecnología electrónica y desarrollo de prototipos electrónicos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "mencion": "Sistemas electrónicos"
+      }
+    },
+    {
+      "id": "G-MEN-008",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Sistemas fotovoltaicos del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Electrónica aplicada a los sistemas fotovoltaicos",
+        "Gestión y mantenimiento de sistemas fotovoltaicos",
+        "Instalaciones fotovoltaicas",
+        "Tecnología eléctrica en sistemas fotovoltaicos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "mencion": "Sistemas fotovoltaicos"
+      }
+    },
+    {
+      "id": "G-MEN-009",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Generación Eléctrica con Energías Renovables del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Generación de energía eléctrica con energías renovables",
+        "Instalaciones fotovoltaicas",
+        "Integración en la Red Eléctrica de Sistemas de Energía Renovable",
+        "Recursos hidroeléctricos",
+        "Tecnología eléctrica de los sistemas fotovoltaicos"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "mencion": "Generación Eléctrica con Energías Renovables"
+      }
+    },
+    {
+      "id": "G-MEN-010",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Instalaciones Eléctricas del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Eficiencia y ahorro energético",
+        "Protecciones eléctricas",
+        "Tecnología de la iluminación",
+        "Topografía y construcción",
+        "Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "mencion": "Instalaciones Eléctricas"
+      }
+    },
+    {
+      "id": "G-MEN-011",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Sistemas Eléctricos del Grado en Ingeniería Eléctrica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Automatización de sistemas eléctricos",
+        "Explotación y planificación de sistemas eléctricos",
+        "Integración en la Red Eléctrica de Sistemas de Energía Renovable",
+        "Matemáticas para ingeniería eléctrica",
+        "Protecciones eléctricas",
+        "Sistemas Electrónicos para la Smart Grid",
+        "Smart Grids. Redes Eléctricas Inteligentes"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "mencion": "Sistemas Eléctricos"
+      }
+    },
+    {
+      "id": "G-MEN-012",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de TIA del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Control de deformaciones en la ingeniería",
+        "Fotogrametría de objeto cercano",
+        "Ingeniería geológica",
+        "Iniciativa empresarial y creación de empresas",
+        "Modelización cartográfica en entornos urbanos",
+        "Navegación",
+        "Prácticas externas",
+        "Topografía en infraestructuras civiles",
+        "Topografía industrial y metrología",
+        "Topografía subterránea",
+        "Técnicas geomáticas aplicadas al patrimonio"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "mencion": "TIA"
+      }
+    },
+    {
+      "id": "G-MEN-013",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de TIG del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Bases de datos geoespaciales",
+        "Big data geoespacial",
+        "Desarrollos web para aplicaciones geomáticas",
+        "Iniciativa empresarial y creación de empresas",
+        "Inteligencia artificial en información geográfica",
+        "IoT en información geográfica",
+        "Modelización cartográfica en entornos urbanos",
+        "Proyectos y producción de cartografía",
+        "Prácticas externas",
+        "SIG avanzados",
+        "Teledetección aplicada"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "mencion": "TIG"
+      }
+    },
+    {
+      "id": "G-MEN-014",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Informática empresarial del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Creación de empresas basadas en TIC",
+        "Minería web",
+        "Sistemas de información para las decisiones estratégicas",
+        "Web semántica y social"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "mencion": "Informática empresarial"
+      }
+    },
+    {
+      "id": "G-MEN-015",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Sistemas gráficos del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Algoritmos geométricos",
+        "Desarrollo de videojuegos",
+        "Programación de aplicaciones gráficas",
+        "Técnicas de animación 3D y post-procesamiento"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "mencion": "Sistemas gráficos"
+      }
+    },
+    {
+      "id": "G-MEN-016",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Tratamiento inteligente de la información del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Diseño de modelos de simulación",
+        "Inteligencia ambiental",
+        "Minería web",
+        "Procesamiento del lenguaje natural"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "mencion": "Tratamiento inteligente de la información"
+      }
+    },
+    {
+      "id": "G-MEN-017",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Técnicas para la información y la comunicación del Grado en Ingeniería Informática?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Microprocesadores y microcontroladores",
+        "Programación hardware",
+        "Protocolos de soporte a las aplicaciones multimedia",
+        "Técnicas avanzadas de seguridad"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "mencion": "Técnicas para la información y la comunicación"
+      }
+    },
+    {
+      "id": "G-MEN-018",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Construcción industrial del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Construcción y arquitectura industrial",
+        "Estructuras de hormigón armado",
+        "Estructuras metálicas",
+        "Integridad estructural en elementos mecánicos",
+        "Topografía y materiales de construcción"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "mencion": "Construcción industrial"
+      }
+    },
+    {
+      "id": "G-MEN-019",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Ingeniería y fabricación mecánica del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Ingeniería del mecanizado",
+        "Integridad estructural en elementos mecánicos",
+        "Mantenimiento y seguridad de máquinas",
+        "Métodos avanzados de cálculo en ingeniería mecánica",
+        "Tecnologías aplicadas a la fabricación"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "mencion": "Ingeniería y fabricación mecánica"
+      }
+    },
+    {
+      "id": "G-MEN-020",
+      "familia": "menciones",
+      "pregunta": "¿Qué asignaturas hay que cursar en la mención de Instalaciones térmicas y de fluidos del Grado en Ingeniería Mecánica?",
+      "respuesta": "conjunto",
+      "esperado": [
+        "Energía hidráulica y eólica",
+        "Fluidomecánica industrial",
+        "Instalaciones térmicas en la edificación",
+        "Instalaciones térmicas en la industria",
+        "Técnicas numéricas y modelado geométrico"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "mencion": "Instalaciones térmicas y de fluidos"
+      }
+    },
+    {
+      "id": "G-ASI-0017",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Diseño de máquinas (GIM) del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "DISEÑO DE MÁQUINAS (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0020",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Elasticidad y resistencia de materiales en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "ELASTICIDAD Y RESISTENCIA DE MATERIALES"
+      }
+    },
+    {
+      "id": "G-ASI-0021",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Elasticidad y resistencia de materiales ii (GIM) del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "ELASTICIDAD Y RESISTENCIA DE MATERIALES II (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0042",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fundamentos químicos en la ingeniería en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA"
+      }
+    },
+    {
+      "id": "G-ASI-0048",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Informática en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "INFORMÁTICA"
+      }
+    },
+    {
+      "id": "G-ASI-0050",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Informática industrial (GIEI) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "INFORMÁTICA INDUSTRIAL (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0058",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ingeniería térmica ii (GIM) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "INGENIERÍA TÉRMICA II (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0063",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Matemáticas i del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "MATEMÁTICAS I"
+      }
+    },
+    {
+      "id": "G-ASI-0067",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Mecánica de fluidos del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "MECÁNICA DE FLUIDOS"
+      }
+    },
+    {
+      "id": "G-ASI-0076",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Proyectos (GIEI) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "PROYECTOS (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0077",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Simulación de flujos industriales (GIM) del Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "SIMULACIÓN DE FLUJOS INDUSTRIALES (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0080",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Sistemas analógicos (GIEI) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "SISTEMAS ANALÓGICOS (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0084",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Tecnología de materiales (GIM) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "TECNOLOGÍA DE MATERIALES (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0086",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Teoría de estructuras (GIM) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "TEORÍA DE ESTRUCTURAS (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0092",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Técnicas de ingeniería gráfica aplicadas a ingeniería mecánica (GIM) en el Doble Grado en Ingeniería Electrónica Industrial y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
+        "asignatura": "TÉCNICAS DE INGENIERÍA GRÁFICA APLICADAS A INGENIERÍA MECÁNICA (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0095",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Administración de empresas del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ADMINISTRACIÓN DE EMPRESAS"
+      }
+    },
+    {
+      "id": "G-ASI-0099",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automática avanzada (GIEI) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "AUTOMÁTICA AVANZADA (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0101",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automática industrial del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "AUTOMÁTICA INDUSTRIAL"
+      }
+    },
+    {
+      "id": "G-ASI-0105",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Centrales eléctricas ii (GIE) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "CENTRALES ELÉCTRICAS II (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0106",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Centrales eléctricas ii (GIE) en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "CENTRALES ELÉCTRICAS II (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0108",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ciencia e ingeniería de materiales en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "CIENCIA E INGENIERÍA DE MATERIALES"
+      }
+    },
+    {
+      "id": "G-ASI-0114",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Dibujo industrial en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "DIBUJO INDUSTRIAL"
+      }
+    },
+    {
+      "id": "G-ASI-0119",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Electrónica analógica (GIEI) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ELECTRÓNICA ANALÓGICA (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0121",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Electrónica de potencia (GIEI) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ELECTRÓNICA DE POTENCIA (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0122",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Electrónica de potencia (GIEI) en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ELECTRÓNICA DE POTENCIA (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0123",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Electrónica digital (GIEI) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "9"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ELECTRÓNICA DIGITAL (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0124",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Electrónica digital (GIEI) en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "ELECTRÓNICA DIGITAL (GIEI)"
+      }
+    },
+    {
+      "id": "G-ASI-0127",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Expresión gráfica del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "EXPRESIÓN GRÁFICA"
+      }
+    },
+    {
+      "id": "G-ASI-0129",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de electrónica del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "FUNDAMENTOS DE ELECTRÓNICA"
+      }
+    },
+    {
+      "id": "G-ASI-0133",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos químicos en la ingeniería del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA"
+      }
+    },
+    {
+      "id": "G-ASI-0143",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ingeniería de fabricación del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "INGENIERÍA DE FABRICACIÓN"
+      }
+    },
+    {
+      "id": "G-ASI-0149",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Instalaciones eléctricas de baja tensión (GIE) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "INSTALACIONES ELÉCTRICAS DE BAJA TENSIÓN (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0156",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas i en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "MATEMÁTICAS I"
+      }
+    },
+    {
+      "id": "G-ASI-0158",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas ii en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "MATEMÁTICAS II"
+      }
+    },
+    {
+      "id": "G-ASI-0161",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Mecánica de máquinas del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "MECÁNICA DE MÁQUINAS"
+      }
+    },
+    {
+      "id": "G-ASI-0163",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Máquinas eléctricas i (GIE) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "MÁQUINAS ELÉCTRICAS I (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0165",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Máquinas eléctricas ii (GIE) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "MÁQUINAS ELÉCTRICAS II (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0170",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Regulación automática (GIE) en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "REGULACIÓN AUTOMÁTICA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0177",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tfg ing. eléctrica (GIE) del Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "12"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "TFG ING. ELÉCTRICA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0178",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Tfg ing. eléctrica (GIE) en el Doble Grado en Ingeniería Eléctrica y Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "asignatura": "TFG ING. ELÉCTRICA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0179",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Accionamientos eléctricos y electrónica de potencia (GIE) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "9"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "ACCIONAMIENTOS ELÉCTRICOS Y ELECTRÓNICA DE POTENCIA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0184",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ampliación de matemáticas en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "AMPLIACIÓN DE MATEMÁTICAS"
+      }
+    },
+    {
+      "id": "G-ASI-0185",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automática industrial del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "AUTOMÁTICA INDUSTRIAL"
+      }
+    },
+    {
+      "id": "G-ASI-0186",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Automática industrial en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "AUTOMÁTICA INDUSTRIAL"
+      }
+    },
+    {
+      "id": "G-ASI-0193",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Circuitos (GIE) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "9"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "CIRCUITOS (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0199",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Elasticidad y resistencia de materiales del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "ELASTICIDAD Y RESISTENCIA DE MATERIALES"
+      }
+    },
+    {
+      "id": "G-ASI-0211",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de tecnología medioambiental (GIM) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "3"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "FUNDAMENTOS DE TECNOLOGÍA MEDIOAMBIENTAL (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0213",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos químicos en la ingeniería del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "FUNDAMENTOS QUÍMICOS EN LA INGENIERÍA"
+      }
+    },
+    {
+      "id": "G-ASI-0217",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Física ii del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "FÍSICA II"
+      }
+    },
+    {
+      "id": "G-ASI-0228",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Instalaciones eléctricas de alta tensión (GIE) en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "INSTALACIONES ELÉCTRICAS DE ALTA TENSIÓN (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0230",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Instalaciones eléctricas de baja tensión (GIE) en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "INSTALACIONES ELÉCTRICAS DE BAJA TENSIÓN (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0231",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Matemáticas i del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "MATEMÁTICAS I"
+      }
+    },
+    {
+      "id": "G-ASI-0241",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Máquinas eléctricas i (GIE) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "MÁQUINAS ELÉCTRICAS I (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0247",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Proyectos (GIE) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "PROYECTOS (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0250",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Regulación automática (GIE) en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "REGULACIÓN AUTOMÁTICA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0253",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Sistemas eléctricos de potencia (GIE) del Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "SISTEMAS ELÉCTRICOS DE POTENCIA (GIE)"
+      }
+    },
+    {
+      "id": "G-ASI-0256",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Tecnología de fabricación (GIM) en el Doble Grado en Ingeniería Eléctrica y Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Eléctrica y Mecánica",
+        "asignatura": "TECNOLOGÍA DE FABRICACIÓN (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0267",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Administración de empresas del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "ADMINISTRACIÓN DE EMPRESAS"
+      }
+    },
+    {
+      "id": "G-ASI-0273",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ciencia e ingeniería de materiales del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "CIENCIA E INGENIERÍA DE MATERIALES"
+      }
+    },
+    {
+      "id": "G-ASI-0281",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Diseño de máquinas (GIM) del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "DISEÑO DE MÁQUINAS (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0290",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Estadística en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "ESTADÍSTICA"
+      }
+    },
+    {
+      "id": "G-ASI-0294",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Expresión gráfica en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "EXPRESIÓN GRÁFICA"
+      }
+    },
+    {
+      "id": "G-ASI-0295",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de electrónica del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "FUNDAMENTOS DE ELECTRÓNICA"
+      }
+    },
+    {
+      "id": "G-ASI-0296",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fundamentos de electrónica en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "FUNDAMENTOS DE ELECTRÓNICA"
+      }
+    },
+    {
+      "id": "G-ASI-0308",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Gestión de sistemas productivos (GIOI) en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer o cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "GESTIÓN DE SISTEMAS PRODUCTIVOS (GIOI)"
+      }
+    },
+    {
+      "id": "G-ASI-0309",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Gestión financiera (GIOI) del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "GESTIÓN FINANCIERA (GIOI)"
+      }
+    },
+    {
+      "id": "G-ASI-0322",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas i en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "MATEMÁTICAS I"
+      }
+    },
+    {
+      "id": "G-ASI-0333",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Métodos cuantitativos (GIOI) del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "MÉTODOS CUANTITATIVOS (GIOI)"
+      }
+    },
+    {
+      "id": "G-ASI-0347",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tecnología eléctrica (GIOI) del Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "TECNOLOGÍA ELÉCTRICA (GIOI)"
+      }
+    },
+    {
+      "id": "G-ASI-0350",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Teoría de estructuras (GIM) en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto o tercer curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "TEORÍA DE ESTRUCTURAS (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0352",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Tfg ing. mecánica (GIM) en el Doble Grado en Ingeniería Mecánica y Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Quinto curso"
+      ],
+      "ambito": {
+        "grado": "Doble Grado en Ingeniería Mecánica y Organización Industrial",
+        "asignatura": "TFG ING. MECÁNICA (GIM)"
+      }
+    },
+    {
+      "id": "G-ASI-0367",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Control por computador del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Control por computador"
+      }
+    },
+    {
+      "id": "G-ASI-0371",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Domótica e Inmótica del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Domótica e Inmótica"
+      }
+    },
+    {
+      "id": "G-ASI-0373",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Elasticidad y resistencia de materiales en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Elasticidad y resistencia de materiales"
+      }
+    },
+    {
+      "id": "G-ASI-0380",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Electrónica aplicada a la Iluminación del Automóvil del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Electrónica aplicada a la Iluminación del Automóvil"
+      }
+    },
+    {
+      "id": "G-ASI-0382",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Electrónica de potencia del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Electrónica de potencia"
+      }
+    },
+    {
+      "id": "G-ASI-0383",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Electrónica de potencia en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Electrónica de potencia"
+      }
+    },
+    {
+      "id": "G-ASI-0388",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Expresión gráfica del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Expresión gráfica"
+      }
+    },
+    {
+      "id": "G-ASI-0397",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Física I en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Física I"
+      }
+    },
+    {
+      "id": "G-ASI-0403",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Informática industrial del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Informática industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0405",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ingeniería de control del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Ingeniería de control"
+      }
+    },
+    {
+      "id": "G-ASI-0408",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ingeniería de fabricación en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Ingeniería de fabricación"
+      }
+    },
+    {
+      "id": "G-ASI-0416",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Matemáticas I del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Matemáticas I"
+      }
+    },
+    {
+      "id": "G-ASI-0419",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas II en el Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Matemáticas II"
+      }
+    },
+    {
+      "id": "G-ASI-0430",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Robótica industrial del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Robótica industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0436",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Trabajo fin de Grado del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "12"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Trabajo fin de Grado"
+      }
+    },
+    {
+      "id": "G-ASI-0438",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Visión por computador del Grado en Ingeniería Electrónica Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Electrónica Industrial",
+        "asignatura": "Visión por computador"
+      }
+    },
+    {
+      "id": "G-ASI-0439",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Accionamientos eléctricos y electrónica de potencia del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "9"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Accionamientos eléctricos y electrónica de potencia"
+      }
+    },
+    {
+      "id": "G-ASI-0443",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ampliación de matemáticas del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Ampliación de matemáticas"
+      }
+    },
+    {
+      "id": "G-ASI-0444",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ampliación de matemáticas en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Ampliación de matemáticas"
+      }
+    },
+    {
+      "id": "G-ASI-0445",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automatización de sistemas eléctricos del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Automatización de sistemas eléctricos"
+      }
+    },
+    {
+      "id": "G-ASI-0446",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automática industrial del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Automática industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0447",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Automática industrial en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Automática industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0449",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Centrales eléctricas I en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Centrales eléctricas I"
+      }
+    },
+    {
+      "id": "G-ASI-0476",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Física II del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Física II"
+      }
+    },
+    {
+      "id": "G-ASI-0477",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Física II en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Física II"
+      }
+    },
+    {
+      "id": "G-ASI-0484",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ingeniería térmica en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Ingeniería térmica"
+      }
+    },
+    {
+      "id": "G-ASI-0493",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Matemáticas II del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Matemáticas II"
+      }
+    },
+    {
+      "id": "G-ASI-0499",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Mecánica de máquinas en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Mecánica de máquinas"
+      }
+    },
+    {
+      "id": "G-ASI-0510",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Regulación automática en el Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Regulación automática"
+      }
+    },
+    {
+      "id": "G-ASI-0520",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica del Grado en Ingeniería Eléctrica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Eléctrica",
+        "asignatura": "Técnicas de ingeniería gráfica aplicadas a ingeniería eléctrica"
+      }
+    },
+    {
+      "id": "G-ASI-0528",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Cartografía y SIG II en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Cartografía y SIG II"
+      }
+    },
+    {
+      "id": "G-ASI-0533",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fotogrametría de objeto cercano del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Fotogrametría de objeto cercano"
+      }
+    },
+    {
+      "id": "G-ASI-0534",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fotogrametría y teledetección I del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Fotogrametría y teledetección I"
+      }
+    },
+    {
+      "id": "G-ASI-0536",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fotogrametría y teledetección II del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Fotogrametría y teledetección II"
+      }
+    },
+    {
+      "id": "G-ASI-0537",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fotogrametría y teledetección II en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Fotogrametría y teledetección II"
+      }
+    },
+    {
+      "id": "G-ASI-0539",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fotogrametría y teledetección III en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Fotogrametría y teledetección III"
+      }
+    },
+    {
+      "id": "G-ASI-0543",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Geodesia geométrica en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Geodesia geométrica"
+      }
+    },
+    {
+      "id": "G-ASI-0544",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Geofísica y geodesia física del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Geofísica y geodesia física"
+      }
+    },
+    {
+      "id": "G-ASI-0555",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura IoT en información geográfica del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "IoT en información geográfica"
+      }
+    },
+    {
+      "id": "G-ASI-0560",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Métodos topográficos en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Métodos topográficos"
+      }
+    },
+    {
+      "id": "G-ASI-0569",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Redes topográficas en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Redes topográficas"
+      }
+    },
+    {
+      "id": "G-ASI-0574",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Topografía en la ingeniería civil en el Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Topografía en la ingeniería civil"
+      }
+    },
+    {
+      "id": "G-ASI-0575",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Topografía industrial y metrología del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Topografía industrial y metrología"
+      }
+    },
+    {
+      "id": "G-ASI-0577",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Trabajo de Fin de Grado del Grado en Ingeniería Geomática y Topográfica (plan 2025)?",
+      "respuesta": "escalar",
+      "esperado": [
+        "12"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "asignatura": "Trabajo de Fin de Grado"
+      }
+    },
+    {
+      "id": "G-ASI-0581",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Análisis y métodos numéricos del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Análisis y métodos numéricos"
+      }
+    },
+    {
+      "id": "G-ASI-0588",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Bases de datos distribuidas en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Bases de datos distribuidas"
+      }
+    },
+    {
+      "id": "G-ASI-0589",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Calidad del software del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Calidad del software"
+      }
+    },
+    {
+      "id": "G-ASI-0594",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Desarrollo de aplicaciones web del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Desarrollo de aplicaciones web"
+      }
+    },
+    {
+      "id": "G-ASI-0598",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Desarrollo de videojuegos del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Desarrollo de videojuegos"
+      }
+    },
+    {
+      "id": "G-ASI-0603",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Diseño de modelos de simulación del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Diseño de modelos de simulación"
+      }
+    },
+    {
+      "id": "G-ASI-0605",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Diseño de software en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Diseño de software"
+      }
+    },
+    {
+      "id": "G-ASI-0621",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de la programación del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Fundamentos de la programación"
+      }
+    },
+    {
+      "id": "G-ASI-0626",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Gestión de proyectos software en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Gestión de proyectos software"
+      }
+    },
+    {
+      "id": "G-ASI-0630",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Gestión y control de proyectos informáticos en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Gestión y control de proyectos informáticos"
+      }
+    },
+    {
+      "id": "G-ASI-0643",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Metaheurísticas en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Metaheurísticas"
+      }
+    },
+    {
+      "id": "G-ASI-0646",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Minería de datos en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Minería de datos"
+      }
+    },
+    {
+      "id": "G-ASI-0662",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Redes e infraestructuras de comunicaciones en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Redes e infraestructuras de comunicaciones"
+      }
+    },
+    {
+      "id": "G-ASI-0668",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Sistemas de ayuda a la decisión en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Sistemas de ayuda a la decisión"
+      }
+    },
+    {
+      "id": "G-ASI-0669",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Sistemas de información basados en web del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Sistemas de información basados en web"
+      }
+    },
+    {
+      "id": "G-ASI-0680",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Sistemas multiagente del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Sistemas multiagente"
+      }
+    },
+    {
+      "id": "G-ASI-0681",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Sistemas multiagente en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Sistemas multiagente"
+      }
+    },
+    {
+      "id": "G-ASI-0685",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Sistemas operativos en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Sistemas operativos"
+      }
+    },
+    {
+      "id": "G-ASI-0686",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tecnologías basadas en la web del Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Tecnologías basadas en la web"
+      }
+    },
+    {
+      "id": "G-ASI-0687",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Tecnologías basadas en la web en el Grado en Ingeniería Informática?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Informática",
+        "asignatura": "Tecnologías basadas en la web"
+      }
+    },
+    {
+      "id": "G-ASI-0697",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Administración de empresas del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Administración de empresas"
+      }
+    },
+    {
+      "id": "G-ASI-0705",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Cinemática y dinámica de maquinas del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "9"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Cinemática y dinámica de maquinas"
+      }
+    },
+    {
+      "id": "G-ASI-0707",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Construcción y arquitectura industrial del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Construcción y arquitectura industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0714",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Elasticidad y resistencia de materiales II del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Elasticidad y resistencia de materiales II"
+      }
+    },
+    {
+      "id": "G-ASI-0726",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Fundamentos de electrónica del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Fundamentos de electrónica"
+      }
+    },
+    {
+      "id": "G-ASI-0738",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ingeniería de fabricación del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Ingeniería de fabricación"
+      }
+    },
+    {
+      "id": "G-ASI-0741",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Ingeniería térmica del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Ingeniería térmica"
+      }
+    },
+    {
+      "id": "G-ASI-0750",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas I en el Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Matemáticas I"
+      }
+    },
+    {
+      "id": "G-ASI-0754",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Mecánica de fluidos en el Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Mecánica de fluidos"
+      }
+    },
+    {
+      "id": "G-ASI-0763",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Proyectos en el Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Proyectos"
+      }
+    },
+    {
+      "id": "G-ASI-0765",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Simulación de flujos industriales del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Simulación de flujos industriales"
+      }
+    },
+    {
+      "id": "G-ASI-0766",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Simulación de flujos industriales en el Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Simulación de flujos industriales"
+      }
+    },
+    {
+      "id": "G-ASI-0767",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tecnología de fabricación del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Tecnología de fabricación"
+      }
+    },
+    {
+      "id": "G-ASI-0771",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Tecnologías aplicadas a la fabricación del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Tecnologías aplicadas a la fabricación"
+      }
+    },
+    {
+      "id": "G-ASI-0777",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Técnicas de ingeniería gráfica aplicadas a ingeniería mecánica del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Técnicas de ingeniería gráfica aplicadas a ingeniería mecánica"
+      }
+    },
+    {
+      "id": "G-ASI-0779",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Técnicas numéricas y modelado geométrico del Grado en Ingeniería Mecánica?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería Mecánica",
+        "asignatura": "Técnicas numéricas y modelado geométrico"
+      }
+    },
+    {
+      "id": "G-ASI-0786",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Automática industrial del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Automática industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0792",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Creación de empresas de base tecnológica del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Creación de empresas de base tecnológica"
+      }
+    },
+    {
+      "id": "G-ASI-0796",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Elasticidad y resistencia de materiales en el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Elasticidad y resistencia de materiales"
+      }
+    },
+    {
+      "id": "G-ASI-0801",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Estadística en el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Estadística"
+      }
+    },
+    {
+      "id": "G-ASI-0804",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Expresión gráfica del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Expresión gráfica"
+      }
+    },
+    {
+      "id": "G-ASI-0823",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Gestión financiera en el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Gestión financiera"
+      }
+    },
+    {
+      "id": "G-ASI-0824",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Informática del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Informática"
+      }
+    },
+    {
+      "id": "G-ASI-0833",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Marketing industrial en el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Marketing industrial"
+      }
+    },
+    {
+      "id": "G-ASI-0837",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Matemáticas II en el Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Matemáticas II"
+      }
+    },
+    {
+      "id": "G-ASI-0843",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Métodos cuantitativos del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Métodos cuantitativos"
+      }
+    },
+    {
+      "id": "G-ASI-0851",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Proyectos del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Proyectos"
+      }
+    },
+    {
+      "id": "G-ASI-0862",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Técnicas de ingeniería gráfica aplicada del Grado en Ingeniería de Organización Industrial?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Ingeniería de Organización Industrial",
+        "asignatura": "Técnicas de ingeniería gráfica aplicada"
+      }
+    },
+    {
+      "id": "G-ASI-0865",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Aprendizaje automático I del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Aprendizaje automático I"
+      }
+    },
+    {
+      "id": "G-ASI-0868",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Aprendizaje automático II en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Aprendizaje automático II"
+      }
+    },
+    {
+      "id": "G-ASI-0872",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Arquitectura de computadores en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Arquitectura de computadores"
+      }
+    },
+    {
+      "id": "G-ASI-0882",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Desarrollo de software seguro en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Desarrollo de software seguro"
+      }
+    },
+    {
+      "id": "G-ASI-0886",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Diseño e implantación de servidores del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Diseño e implantación de servidores"
+      }
+    },
+    {
+      "id": "G-ASI-0896",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fundamentos de bases de datos en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Fundamentos de bases de datos"
+      }
+    },
+    {
+      "id": "G-ASI-0900",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Fundamentos de programación en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Fundamentos de programación"
+      }
+    },
+    {
+      "id": "G-ASI-0905",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Gestión de proyectos software del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Gestión de proyectos software"
+      }
+    },
+    {
+      "id": "G-ASI-0906",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Gestión y control de proyectos informáticos del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Gestión y control de proyectos informáticos"
+      }
+    },
+    {
+      "id": "G-ASI-0911",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Infraestructuras seguras de comunicaciones en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Infraestructuras seguras de comunicaciones"
+      }
+    },
+    {
+      "id": "G-ASI-0913",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Ingeniería inversa y análisis forense en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Tercer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Ingeniería inversa y análisis forense"
+      }
+    },
+    {
+      "id": "G-ASI-0915",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Inteligencia artificial en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Segundo curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Inteligencia artificial"
+      }
+    },
+    {
+      "id": "G-ASI-0916",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Inteligencia artificial y ciberseguridad: normativa, regulación y ética del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Inteligencia artificial y ciberseguridad: normativa, regulación y ética"
+      }
+    },
+    {
+      "id": "G-ASI-0926",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Programación orientada a objetos del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Programación orientada a objetos"
+      }
+    },
+    {
+      "id": "G-ASI-0927",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Programación orientada a objetos en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Primer curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Programación orientada a objetos"
+      }
+    },
+    {
+      "id": "G-ASI-0935",
+      "familia": "creditos",
+      "pregunta": "¿Cuántos créditos ECTS tiene la asignatura Sistemas basados en el conocimiento y robótica del Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "6"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Sistemas basados en el conocimiento y robótica"
+      }
+    },
+    {
+      "id": "G-ASI-0945",
+      "familia": "curso_de_asignatura",
+      "pregunta": "¿En qué curso se imparte Trabajo fin de grado en el Grado en Inteligencia Artificial y Ciberseguridad?",
+      "respuesta": "escalar",
+      "esperado": [
+        "Cuarto curso"
+      ],
+      "ambito": {
+        "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
+        "asignatura": "Trabajo fin de grado"
+      }
+    }
+  ]
+}

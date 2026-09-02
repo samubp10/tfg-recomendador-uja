@@ -42,8 +42,11 @@ sys.path.insert(0, str(RAIZ / "src"))
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
-from tfg_uja.incrustaciones import MODELO, incrustador_de_consultas  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.indexacion.incrustaciones import (  # noqa: E402
+    MODELO,
+    incrustador_de_consultas,
+)
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     FACTOR_CORTE,
     K_MAXIMO,
     K_MINIMO,

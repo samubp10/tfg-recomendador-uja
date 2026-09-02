@@ -24,9 +24,9 @@ sys.path.insert(0, str(RAIZ / "scripts"))
 
 import chat_rag as chat  # noqa: E402
 
-from tfg_uja.conversacion import Conversacion  # noqa: E402
-from tfg_uja.generador import ErrorDelModelo  # noqa: E402
-from tfg_uja.recuperador import (  # noqa: E402
+from tfg_uja.dialogo.conversacion import Conversacion  # noqa: E402
+from tfg_uja.dialogo.generador import ErrorDelModelo  # noqa: E402
+from tfg_uja.dialogo.recuperador import (  # noqa: E402
     Fragmento,
     ModeloDiscrepante,
     TitulacionDesconocida,
@@ -321,7 +321,7 @@ def test_el_decisor_usa_el_modelo_que_haya_puesto_ahora(
 
 def test_sin_indice_el_chat_dice_como_construirlo(tmp_path: Path) -> None:
     """Se termina el programa en vez de propagar: sin índice no hay chat."""
-    with pytest.raises(SystemExit, match="tfg_uja.indexer"):
+    with pytest.raises(SystemExit, match="tfg_uja.indexacion.indexer"):
         chat._preparar_indice(tmp_path / "no-esta")
 
 
@@ -689,7 +689,7 @@ def test_el_catalogo_de_las_pruebas_tiene_palabras_distintivas() -> None:
     deduce nunca el sujeto y las pruebas que dependen de ello quedan en verde
     sobre un sistema que no se parece al real.
     """
-    from tfg_uja.recuperador import palabras_distintivas
+    from tfg_uja.dialogo.recuperador import palabras_distintivas
 
     distintivas = palabras_distintivas(CATALOGO)
 

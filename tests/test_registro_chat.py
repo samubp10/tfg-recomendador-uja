@@ -17,15 +17,15 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import registro_chat
-from tfg_uja.conversacion import Consulta
-from tfg_uja.generador import (
+from tfg_uja.aplicacion import registro_chat
+from tfg_uja.dialogo.conversacion import Consulta
+from tfg_uja.dialogo.generador import (
     RESPUESTA_SALUDO,
     RESPUESTA_SIN_CONTEXTO,
     RESPUESTA_TITULACION_INVENTADA,
 )
-from tfg_uja.recuperador import Fragmento
-from tfg_uja.registro_chat import anotar_turno, linea_de_turno
+from tfg_uja.dialogo.recuperador import Fragmento
+from tfg_uja.aplicacion.registro_chat import anotar_turno, linea_de_turno
 
 INFORMATICA = "Grado en Ingeniería Informática"
 
@@ -142,13 +142,18 @@ def test_los_segundos_se_redondean_a_centesimas() -> None:
     assert linea(segundos=61.234)["segundos"] == 61.23
 
 
-def test_el_registro_no_guarda_ningun_dato_personal() -> None:
-    """RNF-03. Este es el sitio exacto por donde se colarían.
+def test_el_registro_no_recoge_ningun_dato_del_visitante() -> None:
+    """Este es el sitio exacto por donde se colarían.
 
     La prueba fija la lista entera de campos, no comprueba la ausencia de unos
     cuantos: un registro de conversaciones crece con el tiempo, y lo que hay
     que impedir es que un campo **nuevo** ---la dirección IP, el agente de
     usuario, un identificador de sesión--- entre sin que nadie lo note.
+
+    Ojo con lo que esta prueba **no** dice, que es lo que corrige IT-130: que
+    no se recoja nada del visitante no significa que en el fichero no pueda
+    haber datos personales. El texto que la persona escribe se guarda íntegro y
+    puede llevarlos dentro. Eso lo fija la prueba siguiente.
     """
     assert set(linea()) == {
         "momento",
@@ -166,6 +171,29 @@ def test_el_registro_no_guarda_ningun_dato_personal() -> None:
         "modelo_llamado",
         "error",
     }
+
+
+def test_lo_que_escribe_la_persona_se_guarda_tal_cual() -> None:
+    """IT-130: el fichero puede contener datos personales, y hay que decirlo.
+
+    El módulo afirmaba «no se guarda ningún dato personal» amparándose en el
+    RNF-03. La enumeración que seguía era cierta ---ni IP, ni cabeceras, ni
+    identificador---, pero el titular no: la pregunta se persiste íntegra y es
+    texto libre.
+
+    Esta prueba fija el hecho que hace falsa la versión fuerte de la
+    afirmación, para que nadie la reintroduzca creyendo que es inofensiva. No
+    se redacta nada: redactar o no es una decisión abierta, y lo que aquí se
+    exige es que la documentación diga lo que el código hace.
+
+    El RNF-03 no queda incumplido: habla de no incorporar datos personales *a
+    la colección*, y este fichero no es la colección.
+    """
+    escrito = "soy Ana López, ana.lopez@ejemplo.com, 600123456"
+
+    registrada = linea(pregunta=escrito)
+
+    assert registrada["pregunta"] == escrito
 
 
 # ------------------------------------------------ si se llamó o no al modelo

@@ -5,7 +5,7 @@ invariantes del troceo, además de reportar las estadísticas que permiten
 detectar regresiones cada vez que se regenera el dataset. Debe ejecutarse
 tras cada regeneración::
 
-    py -m tfg_uja.chunker data/grados.json data/chunks.json
+    py -m tfg_uja.indexacion.chunker data/grados.json data/chunks.json
     py scripts/verificadores/check_chunks.py
 
 Acepta rutas alternativas como argumentos::
@@ -34,7 +34,7 @@ from pathlib import Path
 #: cuarto caso de esta serie en el proyecto, después de los encabezados
 #: cruzados de IT-91, y el patrón siempre es el mismo: el verificador mide
 #: algo distinto de lo que cree medir, y nadie se entera porque dice «OK».
-from tfg_uja.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
+from tfg_uja.indexacion.chunker import TAMANO_MAXIMO, TAMANO_MINIMO
 
 #: Por el mismo motivo que los umbrales de arriba: los cuatro verificadores
 #: comprueban invariantes y los cuatro tienen que hacerlo igual. Una copia por
@@ -270,6 +270,57 @@ def _exigir_encabezados(chunks: list[dict]) -> None:
             f"{len(descuadres)} chunks con el encabezado de otra unidad "
             f"(p. ej. {descuadres[0]['nombre']!r} encabezado como "
             f"{descuadres[0]['texto'].split(chr(10))[0][:60]!r})"
+        ),
+    )
+
+
+def _exigir_metadatos_de_todas_sus_titulaciones(
+    chunks: list[dict], items: list[dict]
+) -> None:
+    """Lo que un chunk afirma vale para TODAS las titulaciones que enumera.
+
+    `curso` y `tipo_asignatura` son escalares y las titulaciones van en una
+    lista, así que un chunk compartido afirma un solo curso y un solo tipo para
+    todas las de su lista. Antes de IT-125 esos escalares salían de la primera
+    titulación, y no era un detalle de metadatos: el encabezado se vectoriza,
+    de modo que el fragmento de «Centrales eléctricas II» decía «se imparte en
+    cuarto curso» en la misma frase que enumeraba las tres titulaciones en las
+    que se da, siendo de quinto en dos de ellas.
+
+    Ninguna comprobación anterior lo veía. `_exigir_encabezados` mira que el
+    encabezado sea el de su unidad, y lo era; el descuadre de cobertura compara
+    claves. **Es el quinto caso de la serie «el verificador medía algo distinto
+    de lo que creía medir»**, y por eso esta comprobación resuelve cada pareja
+    paralela `(grado, codigo)` contra el dataset en vez de mirar el escalar.
+
+    Args:
+        chunks: Chunks del corpus completo.
+        items: Items del dataset, de donde salen los metadatos de verdad.
+    """
+    asignaturas = {
+        (a["grado"], a["codigo"] or a["nombre"]): a
+        for a in items
+        if a["tipo"] == "asignatura"
+    }
+    descuadres: list[tuple[dict, str, set]] = []
+    for chunk in chunks:
+        if chunk["origen"] not in _ORIGENES_DE_ASIGNATURA:
+            continue
+        for campo in ("curso", "tipo_asignatura"):
+            valores = set()
+            for grado, codigo in zip(chunk["grados"], chunk["codigos"]):
+                clave = (grado, codigo or chunk["nombre"])
+                if clave in asignaturas:
+                    valores.add(asignaturas[clave].get(campo) or "")
+            if len(valores) > 1:
+                descuadres.append((chunk, campo, valores))
+    exigir(
+        not descuadres,
+        lambda: (
+            f"{len(descuadres)} chunks afirman un {descuadres[0][1]} que no vale "
+            f"para todas sus titulaciones (p. ej. {descuadres[0][0]['nombre']!r} "
+            f"dice {descuadres[0][0][descuadres[0][1]]!r} y sus titulaciones "
+            f"tienen {sorted(descuadres[0][2])})"
         ),
     )
 
@@ -638,6 +689,7 @@ def main(argv: list[str] | None = None) -> int:
 
     _exigir_forma(chunks)
     _exigir_encabezados(chunks)
+    _exigir_metadatos_de_todas_sus_titulaciones(chunks, dataset)
     _exigir_listados_completos(chunks)
     _exigir_catalogo(chunks, titulaciones)
     _exigir_fichas(chunks, asignaturas, titulaciones)

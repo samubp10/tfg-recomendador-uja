@@ -26,18 +26,25 @@ import json
 import re
 from collections import Counter
 from dataclasses import dataclass
+from itertools import zip_longest
 from pathlib import Path
 from typing import Any, Final
 
 import lancedb
 
-from tfg_uja.incrustaciones import Incrustador
-from tfg_uja.indexer import CATALOGO, COLECCION, DISTANCIA, metadatos_de_indice
+from tfg_uja.indexacion.incrustaciones import Incrustador
+from tfg_uja.indexacion.indexer import (
+    CATALOGO,
+    COLECCION,
+    DISTANCIA,
+    metadatos_de_indice,
+)
 from tfg_uja.text_cleaner import normalizar, palabras
 
-#: Fragmentos que se recuperan por consulta cuando no se dice otra cosa.
-#: Es un valor de partida, no una decisión cerrada: fijarlo es objeto de
-#: IT-49, que lo barrerá con el conjunto de evaluación.
+#: Fragmentos que se recuperan por consulta cuando no se dice otra cosa. Es el
+#: punto de partida de la banda dinámica, no el número que acaba entregándose:
+#: quien decide cuántos entran es :func:`acotar_por_distancia`, con los valores
+#: que fijó la rejilla de IT-49.
 K_POR_DEFECTO: Final[int] = 10
 
 #: Longitud a partir de la cual una palabra del catálogo sirve para reconocer
@@ -176,26 +183,16 @@ FACTOR_CORTE: Final[float] = 1.20
 #: entre 0,170 y 0,182 ---lejísimos pero muy juntos entre sí--- y el sistema
 #: contestó con un volcado del plan de estudios.
 #:
-#: Medido el 18/08/2026 sobre las **50 preguntas del conjunto de evaluación**
-#: de IT-27 y siete preguntas ajenas al dominio (biología, psicología,
-#: literatura, medicina, derecho, historia del arte, una receta de cocina):
-#:
-#: * la peor pregunta legítima tiene su mejor fragmento a **0,137**;
-#: * la intrusa más próxima, a **0,147**.
-#:
-#: La separación es limpia, y el valor se pone en el punto medio, con cinco
-#: milésimas de margen a cada lado. El valor anterior, 0,15, salía de mirar
-#: cinco preguntas y quedaba **por encima de las intrusas**: el 18/08/2026 un
-#: modelo de 7B recibió contexto para «me gustan la biología y la salud» ---su
-#: mejor fragmento estaba a 0,148--- y contestó recomendando el «Grado en
-#: Ingeniería Biomédica», el «Grado en Ingeniería Química» y el «Grado en
-#: Medicina Veterinaria». Ninguno existe en la EPSJ.
+#: El valor anterior, 0,15, salía de mirar cinco preguntas y quedaba **por
+#: encima de las intrusas**: el 18/08/2026 un modelo de 7B recibió contexto
+#: para «me gustan la biología y la salud» ---su mejor fragmento estaba a
+#: 0,148--- y contestó recomendando el «Grado en Ingeniería Biomédica», el
+#: «Grado en Ingeniería Química» y el «Grado en Medicina Veterinaria». Ninguno
+#: existe en la EPSJ.
 #:
 #: Se prefiere pecar de estricto: rechazar una pregunta legítima molesta, pero
 #: admitir una ajena es lo que produce ese tipo de respuesta.
 #:
-#: 🔴 Sigue sin ser un barrido: 57 preguntas no fijan un parámetro, y el valor
-#: definitivo es de IT-49. El rechazo por dominio es IT-87, que es otra cosa.
 #: 🔬 **Fijado por la rejilla de IT-49, y es un óptimo exacto.** Medido sobre
 #: el conjunto actual, la peor pregunta legítima tiene su mejor fragmento a
 #: 0,1367 y las intrusas más próximas están a 0,1039, 0,1358 y 0,1380. En
@@ -267,8 +264,9 @@ def pide_recomendacion(pregunta: str) -> bool:
 
     Se separa del resto de preguntas porque el recuperador la trata distinto,
     y la razón es medible. «No sé qué estudiar, me gusta la física y el dibujo
-    técnico» tenía su fragmento más próximo a 0,1466 y el suelo de pertinencia
-    está en 0,142: el sistema no recuperaba **nada** y contestaba que no había
+    técnico» tenía su fragmento más próximo a 0,1466, por encima del suelo de
+    pertinencia que regía entonces: el sistema no recuperaba **nada** y contestaba
+    que no había
     encontrado información. Con «¿qué me recomiendas?» detrás, la misma frase
     bajaba a 0,1339 y traía nueve fragmentos.
 
@@ -651,20 +649,57 @@ def _contexto_recuperado(
 
 
 def _intercalar(grupos: list[list[Fragmento]]) -> list[Fragmento]:
-    """Alterna rankings conservando el orden interno de cada uno.
+    """Alterna rankings conservando el orden interno de cada uno, sin repetir.
+
+    **Deduplica, y no es un detalle.** Una unidad que se imparte en varias
+    titulaciones aparece en el ranking de cada una, así que alternar a secas la
+    devolvía tantas veces como titulaciones tuviera el ámbito. Medido con una
+    unidad compartida de seis fragmentos y dos titulaciones: catorce fragmentos
+    de los que solo ocho eran distintos. El tope se agotaba con texto repetido,
+    de modo que el modelo recibía menos evidencia real justo en las consultas
+    comparativas para las que existe esta función.
+
+    La clave es ``(origen, nombre, grados, chunk_index)`` y no el propio
+    fragmento porque :class:`Fragmento` no es hasheable: lleva ``grados`` como
+    lista. Es la identidad de unidad que fija IT-126 ---la misma que usan
+    :func:`tfg_uja.generador.ordenar_contexto` y
+    :func:`tfg_uja.evaluacion.unidad_de_chunk`--- más la posición dentro de la
+    unidad.
+
+    **Las titulaciones son parte de la identidad y no un adorno.** Sin ellas,
+    dos unidades que solo comparten el nombre colisionan y la segunda se
+    descarta: ocho nombres de guía del corpus son más de una unidad, y
+    «Trabajo fin de Grado» son cinco. Como esta función solo interviene en las
+    consultas comparativas, perder una de las dos deja al modelo redactando la
+    comparación con la mitad de los datos y sin forma de saberlo.
+
+    Que la clave lleve ``grados`` no reabre lo que arregló IT-120: una unidad
+    genuinamente compartida llega a los dos grupos con la **misma** lista, que
+    viene del índice y enumera todas sus titulaciones, no la del filtro con el
+    que se buscó.
 
     Args:
         grupos: Fragmentos ya ordenados y acotados de cada titulación.
 
     Returns:
-        Como máximo :data:`K_MAXIMO` fragmentos.
+        Como máximo :data:`K_MAXIMO` fragmentos, todos distintos.
     """
+    vistos: set[tuple[str, str, tuple[str, ...], int]] = set()
     mezclados: list[Fragmento] = []
-    mayor = max((len(grupo) for grupo in grupos), default=0)
-    for posicion in range(mayor):
-        for grupo in grupos:
-            if posicion < len(grupo):
-                mezclados.append(grupo[posicion])
-                if len(mezclados) == K_MAXIMO:
-                    return mezclados
+    for fila in zip_longest(*grupos):
+        for fragmento in fila:
+            if fragmento is None:
+                continue
+            clave = (
+                fragmento.origen,
+                fragmento.nombre,
+                tuple(fragmento.grados),
+                fragmento.chunk_index,
+            )
+            if clave in vistos:
+                continue
+            vistos.add(clave)
+            mezclados.append(fragmento)
+            if len(mezclados) == K_MAXIMO:
+                return mezclados
     return mezclados

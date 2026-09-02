@@ -27,6 +27,7 @@ experimento = importlib.util.module_from_spec(_spec)
 sys.modules["experimento_generacion"] = experimento
 _spec.loader.exec_module(experimento)
 
+from tfg_uja.invariantes import InvarianteRoto  # noqa: E402
 
 # --- Registros reales de data/grados.json ---
 
@@ -859,6 +860,12 @@ def test_una_titulacion_inventada_se_marca_en_pantalla(tmp_path, monkeypatch, ca
 # --- El recorrido entero ----------------------------------------------------
 
 
+#: Modelo con el que se ejercita `main`. Se declara aquí y se le pasa con
+#: `--modelos`: sin eso, estas pruebas heredaban la lista de producción y se
+#: caían al tocarla, que es lo que pasó al devolver salamandra-7b en IT-133.
+MODELO_DE_PRUEBA = "gemma3:12b"
+
+
 def _preparar_main(tmp_path, monkeypatch, con_registro=True):
     banco = tmp_path / "banco.json"
     banco.write_text(
@@ -869,22 +876,28 @@ def _preparar_main(tmp_path, monkeypatch, con_registro=True):
     datos.write_text(json.dumps([_CON_MENCION]), encoding="utf-8")
     registro = tmp_path / "registro.jsonl"
     if con_registro:
+        # Una tanda COMPLETA de `MODELO_DE_PRUEBA` sobre el banco de dos
+        # preguntas. Antes solo escribía una de las dos, y desde IT-133 eso es
+        # justamente lo que el guion se niega a convertir en informe.
         registro.write_text(
-            json.dumps(
-                {
-                    "modelo": "gemma3:12b",
-                    "servidor": "0.32.14",
-                    "id": "G-CAT-001",
-                    "familia": "catalogo",
-                    "pregunta": "¿qué titulaciones hay?",
-                    "respuesta": "Pues esto.",
-                    "fragmentos": 3,
-                    "segundos_recuperar": 0.5,
-                    "segundos_generar": 1.5,
-                    "titulaciones_inventadas": [],
-                }
-            )
-            + "\n",
+            "".join(
+                json.dumps(
+                    {
+                        "modelo": MODELO_DE_PRUEBA,
+                        "servidor": "0.32.14",
+                        "id": identificador,
+                        "familia": "catalogo",
+                        "pregunta": "¿qué titulaciones hay?",
+                        "respuesta": "Pues esto.",
+                        "fragmentos": 3,
+                        "segundos_recuperar": 0.5,
+                        "segundos_generar": 1.5,
+                        "titulaciones_inventadas": [],
+                    }
+                )
+                + "\n"
+                for identificador in ("G-CAT-001", "G-CAT-002")
+            ),
             encoding="utf-8",
         )
     monkeypatch.setattr(experimento, "catalogo_del_indice", lambda ruta: CATALOGO)
@@ -910,6 +923,8 @@ def test_main_solo_informe_no_llama_a_ningun_modelo(tmp_path, monkeypatch):
             str(tmp_path / "s.md"),
             "--indice",
             str(tmp_path),
+            "--modelos",
+            MODELO_DE_PRUEBA,
             "--solo-informe",
         ]
     )
@@ -937,6 +952,8 @@ def test_main_ejecuta_la_tanda_cuando_no_se_le_dice_lo_contrario(tmp_path, monke
             str(tmp_path / "s.md"),
             "--indice",
             str(tmp_path),
+            "--modelos",
+            MODELO_DE_PRUEBA,
             "--modelos",
             "gemma3:12b",
         ]
@@ -969,6 +986,8 @@ def test_main_con_limite_recorta_el_banco(tmp_path, monkeypatch):
             str(tmp_path / "s.md"),
             "--indice",
             str(tmp_path),
+            "--modelos",
+            MODELO_DE_PRUEBA,
             "--limite",
             "1",
         ]
@@ -994,11 +1013,13 @@ def test_main_recalcular_repuntua_sin_llamar_a_nadie(tmp_path, monkeypatch, caps
             str(tmp_path / "s.md"),
             "--indice",
             str(tmp_path),
+            "--modelos",
+            MODELO_DE_PRUEBA,
             "--recalcular",
         ]
     )
 
-    assert "Repuntuadas 1 respuestas" in capsys.readouterr().out
+    assert "Repuntuadas 2 respuestas" in capsys.readouterr().out
 
 
 def test_main_con_adr_escribe_el_bloque_de_datos_brutos(tmp_path, monkeypatch):
@@ -1021,9 +1042,54 @@ def test_main_con_adr_escribe_el_bloque_de_datos_brutos(tmp_path, monkeypatch):
             str(tmp_path / "s.md"),
             "--indice",
             str(tmp_path),
+            "--modelos",
+            MODELO_DE_PRUEBA,
             "--solo-informe",
             "--adr",
         ]
     )
 
     assert escritos == ["BLOQUE"]
+
+
+# --- IT-133: una tanda incompleta no produce informe ------------------------
+
+
+def _fila_min(identificador: str, modelo: str) -> dict:
+    return {"id": identificador, "modelo": modelo}
+
+
+def test_una_tanda_completa_deja_seguir() -> None:
+    """El caso normal: todos respondieron todo."""
+    preguntas = [{"id": "P1"}, {"id": "P2"}]
+    filas = [_fila_min(p["id"], m) for m in ("A", "B") for p in preguntas]
+
+    experimento.exigir_tanda_completa(filas, preguntas, ["A", "B"])
+
+
+def test_una_tanda_a_medias_no_escribe_informe() -> None:
+    """Regresión de IT-133, con el caso real del 01/09/2026.
+
+    Ollama se cayó en la tercera pregunta del primer modelo. El bucle captura
+    el fallo y sigue, que es lo correcto para una pregunta suelta, pero con el
+    servidor muerto fallan todas las que quedan: el guion terminaba escribiendo
+    el informe con las tres respuestas que habían entrado y las medias salían
+    de ahí. Una tanda que no midió nada se leía como una que midió todo.
+    """
+    preguntas = [{"id": f"P{i}"} for i in range(80)]
+    filas = [_fila_min(f"P{i}", "A") for i in range(3)]
+
+    with pytest.raises(InvarianteRoto, match="incompleta"):
+        experimento.exigir_tanda_completa(filas, preguntas, ["A"])
+
+
+def test_el_mensaje_dice_cuanto_falta_y_como_retomarlo() -> None:
+    """Un aborto que no dice qué hacer obliga a leer el código para seguir."""
+    preguntas = [{"id": "P1"}, {"id": "P2"}]
+    filas = [_fila_min("P1", "A"), _fila_min("P1", "B"), _fila_min("P2", "A")]
+
+    with pytest.raises(InvarianteRoto) as fallo:
+        experimento.exigir_tanda_completa(filas, preguntas, ["A", "B"])
+
+    assert "B: 1 de 2" in str(fallo.value)
+    assert "se retoma" in str(fallo.value)

@@ -17,10 +17,10 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import recuperador
-from tfg_uja.incrustaciones import MODELO
-from tfg_uja.indexer import reconstruir_indice
-from tfg_uja.recuperador import (
+from tfg_uja.dialogo import recuperador
+from tfg_uja.indexacion.incrustaciones import MODELO
+from tfg_uja.indexacion.indexer import reconstruir_indice
+from tfg_uja.dialogo.recuperador import (
     K_MAXIMO,
     K_POR_DEFECTO,
     SUELO_PERTINENCIA,
@@ -855,3 +855,183 @@ def test_sin_ser_abierta_la_misma_pregunta_sigue_recortandose(indice):
         abierta=False,
     )
     assert fragmentos == []
+
+
+# --- IT-120: la unidad compartida no puede entrar dos veces ---
+
+
+def test_regresion_una_unidad_compartida_no_se_devuelve_dos_veces() -> None:
+    """Alternar dos rankings duplicaba lo que ambos tienen en comun.
+
+    Una guia que se imparte en varias titulaciones aparece en el ranking de
+    cada una. Sin deduplicar, el tope de fragmentos se agotaba con texto
+    repetido y el modelo recibia menos evidencia real justo en las consultas
+    comparativas. Medido antes del arreglo: 14 fragmentos, 8 distintos.
+    """
+    compartida = [
+        recuperador.Fragmento(
+            texto=f"parte {i}",
+            nombre="Fundamentos de informática",
+            grados=["Grado en Ingeniería Informática", "Grado en Ingeniería Eléctrica"],
+            origen="guia",
+            distancia=0.05 + i / 100,
+            chunk_index=i,
+            total_chunks=6,
+        )
+        for i in range(6)
+    ]
+    propia_de_cada_una = [
+        recuperador.Fragmento(
+            texto="suya",
+            nombre=f"Solo de la {cual}",
+            grados=[cual],
+            origen="guia",
+            distancia=0.2,
+            chunk_index=0,
+            total_chunks=1,
+        )
+        for cual in ("primera", "segunda")
+    ]
+
+    mezclados = recuperador._intercalar(
+        [compartida + [propia_de_cada_una[0]], compartida + [propia_de_cada_una[1]]]
+    )
+
+    claves = [(f.nombre, f.origen, f.chunk_index) for f in mezclados]
+    assert len(claves) == len(set(claves))
+    # Y no se pierde nada: las seis partes compartidas y las dos propias.
+    assert len(mezclados) == 8
+
+
+def test_intercalar_conserva_el_orden_de_cada_ranking() -> None:
+    """Deduplicar no puede reordenar: dentro de cada grupo manda la distancia."""
+
+    def frag(nombre: str, i: int) -> recuperador.Fragmento:
+        return recuperador.Fragmento(
+            texto="t",
+            nombre=nombre,
+            grados=["G"],
+            origen="guia",
+            distancia=0.1 * i,
+            chunk_index=i,
+            total_chunks=3,
+        )
+
+    a = [frag("A", 0), frag("A", 1)]
+    b = [frag("B", 0), frag("B", 1)]
+
+    mezclados = recuperador._intercalar([a, b])
+
+    assert [(f.nombre, f.chunk_index) for f in mezclados] == [
+        ("A", 0),
+        ("B", 0),
+        ("A", 1),
+        ("B", 1),
+    ]
+
+
+def test_intercalar_respeta_el_tope() -> None:
+    grupos = [
+        [
+            recuperador.Fragmento(
+                texto="t",
+                nombre=f"U{g}",
+                grados=["G"],
+                origen="guia",
+                distancia=0.1,
+                chunk_index=i,
+                total_chunks=30,
+            )
+            for i in range(30)
+        ]
+        for g in range(2)
+    ]
+
+    assert len(recuperador._intercalar(grupos)) == recuperador.K_MAXIMO
+
+
+def test_intercalar_sin_grupos_no_revienta() -> None:
+    assert recuperador._intercalar([]) == []
+
+
+def _guia(nombre: str, grados: list[str], indice: int = 0) -> recuperador.Fragmento:
+    """Un fragmento de guía identificable por su texto."""
+    return recuperador.Fragmento(
+        texto=f"{nombre}|{grados[0]}",
+        nombre=nombre,
+        grados=grados,
+        origen="guia",
+        distancia=0.1,
+        chunk_index=indice,
+        total_chunks=1,
+    )
+
+
+def test_intercalar_no_descarta_dos_homonimas_de_titulaciones_distintas() -> None:
+    """Regresión de IT-132: la clave de IT-120 no miraba las titulaciones.
+
+    Era ``(nombre, origen, chunk_index)``, de modo que dos unidades distintas
+    que solo comparten el nombre colisionaban y la segunda se perdía. Ocho
+    nombres de guía del corpus son más de una unidad, y «Trabajo fin de Grado»
+    son cinco.
+
+    Duele más aquí que en el generador: allí se reordenaba, aquí se descarta. Y
+    ``_intercalar`` solo se llama en el camino comparativo, que es exactamente
+    cuando perder una de las dos invalida la respuesta: el modelo redacta la
+    comparación con la mitad de los datos sin saber que le falta la otra mitad.
+    """
+    electrica = ["Grado en Ingeniería Eléctrica"]
+    mecanica = ["Grado en Ingeniería Mecánica"]
+
+    mezclados = recuperador._intercalar(
+        [
+            [_guia("Trabajo fin de Grado", electrica)],
+            [_guia("Trabajo fin de Grado", mecanica)],
+        ]
+    )
+
+    assert len(mezclados) == 2
+    assert {f.texto for f in mezclados} == {
+        "Trabajo fin de Grado|Grado en Ingeniería Eléctrica",
+        "Trabajo fin de Grado|Grado en Ingeniería Mecánica",
+    }
+
+
+def test_intercalar_sigue_sin_duplicar_la_unidad_realmente_compartida() -> None:
+    """No se reabre IT-120 al afinar la clave.
+
+    Una guía que de verdad comparten dos titulaciones llega a los dos grupos
+    con la **misma** lista ``grados``: esa lista viene del índice y enumera
+    todas sus titulaciones, no la del filtro con el que se buscó. Así que la
+    clave nueva la sigue reconociendo como una sola unidad.
+    """
+    compartida = ["Grado en Ingeniería Eléctrica", "Grado en Ingeniería Mecánica"]
+
+    mezclados = recuperador._intercalar(
+        [[_guia("Empresa", compartida)], [_guia("Empresa", compartida)]]
+    )
+
+    assert len(mezclados) == 1
+
+
+def test_intercalar_con_grupos_de_distinto_tamano_no_pierde_la_cola() -> None:
+    """Una titulación con más fragmentos que otra no se queda a medias.
+
+    ``zip_longest`` rellena con ``None`` las filas que a un grupo ya no le
+    llegan, y esos huecos hay que saltarlos sin dar por terminada la mezcla. El
+    caso es lo normal, no lo raro: dos titulaciones casi nunca aportan el mismo
+    número de fragmentos después de acotar por distancia.
+    """
+    electrica = ["Grado en Ingeniería Eléctrica"]
+    mecanica = ["Grado en Ingeniería Mecánica"]
+    largo = [_guia("Álgebra", electrica, i) for i in range(3)]
+    corto = [_guia("Física", mecanica, 0)]
+
+    mezclados = recuperador._intercalar([largo, corto])
+
+    assert [(f.nombre, f.chunk_index) for f in mezclados] == [
+        ("Álgebra", 0),
+        ("Física", 0),
+        ("Álgebra", 1),
+        ("Álgebra", 2),
+    ]

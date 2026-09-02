@@ -11,12 +11,35 @@ Lo que hay que atender es un endpoint y unos ficheros estáticos, y el cuello de
 botella es el modelo, que responde con una mediana de 62,7 s: ninguna capa HTTP
 cambia eso.
 
-⚠️ **No es apto para producción**, y así está declarado: atiende en serie, no
-limita el tamaño de la petición y no da HTTPS. El despliegue en producción está
-fuera del alcance de este trabajo (reparto MoSCoW del Capítulo 4). Para llevarlo
-allí harían falta un servidor WSGI/ASGI real tras un proxy inverso, HTTPS,
-límites de tasa y de tamaño, y sobre todo resolver que el modelo atiende de uno
-en uno.
+⚠️ **No es apto para producción**, y así está declarado: no da HTTPS ni limita
+la tasa de peticiones. El despliegue en producción está fuera del alcance de
+este trabajo (reparto MoSCoW del Capítulo 4). Para llevarlo allí harían falta un
+servidor WSGI/ASGI real tras un proxy inverso, HTTPS, límites de tasa,
+conversación por sesión, y sobre todo resolver que el modelo atiende de uno en
+uno.
+
+**El alcance es una demostración local para un solo visitante, y el servidor
+está construido para exactamente eso.** Atiende de una petición en una
+---:class:`HTTPServer` y no ``ThreadingHTTPServer``---, y de ahí se siguen tres
+cosas que antes no eran ciertas:
+
+* El estado de la conversación es uno solo para todo el proceso, y ahora eso es
+  correcto en vez de una carrera: con hilos, dos pestañas o dos peticiones
+  solapadas ---una persona sola llega a eso cancelando y volviendo a
+  preguntar--- compartían sujeto y contador de turno sin ninguna
+  sincronización.
+* No hay hilos que agotar. Una llamada al modelo puede ocupar hasta
+  :data:`tfg_uja.generador.ESPERA_MAXIMA` segundos, y con hilos nada impedía
+  abrir tantas como se pidieran.
+* Se paga un precio y conviene decirlo: **mientras se redacta una respuesta el
+  servidor no atiende nada más**. Recargar la página a mitad de una respuesta
+  espera a que termine. Para un visitante que pregunta y lee es invisible; para
+  dos, no lo sería, y por eso el alcance dice uno.
+
+Lo que el navegador manda también se comprueba: ver
+:data:`ORIGENES_PERMITIDOS`. No es CORS abierto, es lo contrario.
+
+El tamaño del cuerpo sí está acotado, en :data:`MAXIMO_CUERPO`.
 
 **La lógica no vive en el manejador.** :func:`partes_de_la_respuesta` no sabe
 nada de HTTP y se prueba entera sin red y sin modelo; el manejador solo la
@@ -30,23 +53,24 @@ import sys
 import time
 from collections.abc import Iterator
 from functools import cache, partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from typing import Any, Final
 
-from tfg_uja.ambito import decisor_con_modelo
-from tfg_uja.conversacion import Consulta, Conversacion
-from tfg_uja.generador import (
+from tfg_uja import RAIZ
+from tfg_uja.dialogo.ambito import decisor_con_modelo
+from tfg_uja.dialogo.conversacion import Consulta, Conversacion
+from tfg_uja.dialogo.generador import (
     RESPUESTA_SALUDO,
     ErrorDelModelo,
     respuesta_fija,
     responder_por_partes,
 )
-from tfg_uja.incrustaciones import MODELO as MODELO_INCRUSTACIONES
-from tfg_uja.incrustaciones import incrustador_de_consultas
-from tfg_uja.registro_chat import anotar_turno, linea_de_turno
-from tfg_uja.sugerencias import sugerencias_para
-from tfg_uja.recuperador import (
+from tfg_uja.indexacion.incrustaciones import MODELO as MODELO_INCRUSTACIONES
+from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
+from tfg_uja.aplicacion.registro_chat import anotar_turno, linea_de_turno
+from tfg_uja.aplicacion.sugerencias import sugerencias_para
+from tfg_uja.dialogo.recuperador import (
     K_MAXIMO,
     abrir_indice,
     catalogo_del_indice,
@@ -54,13 +78,12 @@ from tfg_uja.recuperador import (
     distancia_del_indice,
 )
 
-RAIZ: Final[Path] = Path(__file__).resolve().parent.parent.parent
-
 #: Interfaz estática. Se sirve desde el mismo proceso que el endpoint, que es
 #: lo que decide el ADR de arquitectura de la Fase 3.
 WEB: Final[Path] = RAIZ / "web"
 
-#: Índice vectorial. No se versiona: se construye con ``py -m tfg_uja.indexer``.
+#: Índice vectorial. No se versiona: se construye con
+#: ``py -m tfg_uja.indexacion.indexer``.
 INDICE: Final[Path] = RAIZ / "data" / "indice_lance"
 
 #: Dataset del que salen las direcciones oficiales de cada unidad. Es el
@@ -103,6 +126,40 @@ CABECERAS_DEFENSIVAS: Final[dict[str, str]] = {
 #: Tope del cuerpo de la petición. Una pregunta no ocupa esto ni de lejos; está
 #: para que un cuerpo enorme no se lea entero en memoria.
 MAXIMO_CUERPO: Final[int] = 8 * 1024
+
+#: De dónde se acepta una consulta. Es una lista de PERMITIDOS y deliberadamente
+#: corta: solo la propia interfaz, servida por este mismo proceso.
+#:
+#: Sin ella, ``POST /api/chat`` atendía a cualquiera. Comprobado: una petición
+#: con ``Origin`` y ``Host`` ajenos y ``Content-Type: text/plain`` se respondía
+#: con un 200. Una página abierta en otra pestaña del mismo navegador podía
+#: entonces lanzar consultas, mover el estado de la conversación y ensuciar el
+#: registro; y un ataque de reenlace de DNS se apoya justo en que el proceso
+#: local se fíe de cualquier ``Host``.
+#:
+#: Esto **no es CORS**: CORS sirve para abrir el acceso a terceros y aquí lo que
+#: se quiere es lo contrario. Por eso no se emite ninguna cabecera
+#: ``Access-Control-Allow-*``.
+ORIGENES_PERMITIDOS: Final[frozenset[str]] = frozenset(
+    {
+        f"http://127.0.0.1:{PUERTO}",
+        f"http://localhost:{PUERTO}",
+    }
+)
+
+#: Anfitriones que se admiten en la cabecera ``Host``.
+ANFITRIONES_PERMITIDOS: Final[frozenset[str]] = frozenset(
+    {
+        f"127.0.0.1:{PUERTO}",
+        f"localhost:{PUERTO}",
+    }
+)
+
+#: Tipo de contenido que exige ``/api/chat``. El cuerpo se interpreta como JSON,
+#: así que pedir que lo declare no es formalismo: un ``text/plain`` es
+#: exactamente lo que un formulario ajeno puede enviar sin disparar la
+#: comprobación previa del navegador.
+TIPO_ESPERADO: Final[str] = "application/json"
 
 
 #: Cómo se nombra en pantalla cada tipo de fragmento. La colección los marca
@@ -402,7 +459,13 @@ def partes_de_la_respuesta(
         return
     # Se anota lo que de verdad se ha entregado: si hubo retirada, lo que queda
     # anotado es la respuesta fija y no el texto retirado.
-    conversacion.anotar(pregunta, entero)
+    #
+    # Y con respuesta fija el ámbito no se toca. Aquí no se ha llamado a
+    # `preparar`, así que el decisor no ha opinado y `anotar` caería a la
+    # deducción por reglas: una pregunta por otro centro, que la barrera
+    # rechaza, dejaba la conversación apuntando a la titulación que nombraba
+    # de pasada.
+    conversacion.anotar(pregunta, entero, cambia_ambito=fija is None)
     # Se registra DESPUÉS de anotar, que es donde la conversación fija de qué
     # titulación se está hablando: registrarlo antes guardaría siempre el
     # ámbito del turno anterior.
@@ -438,7 +501,7 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         sistema: Lo que devuelve :func:`abrir_sistema`.
 
     Returns:
-        La clase de manejador lista para ``ThreadingHTTPServer``.
+        La clase de manejador lista para ``HTTPServer``.
     """
 
     class Manejador(SimpleHTTPRequestHandler):
@@ -514,6 +577,14 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
         #: desbloquea IT-106. Con un solo visitante ---que es el alcance
         #: declarado--- una sola instancia basta.
         #:
+        #: Que baste **lo garantiza el servidor serial, no la buena voluntad**.
+        #: Estos dos atributos son de la clase, así que los comparten todas las
+        #: conexiones; mientras el servidor tuvo hilos, dos peticiones
+        #: solapadas mezclaban historial, ámbito y contador de turno sin
+        #: ninguna sincronización, y una persona sola llega a eso cancelando
+        #: una respuesta y volviendo a preguntar. Atendiendo de una en una no
+        #: hay dos peticiones a la vez que puedan pisarse (IT-129).
+        #:
         #: De qué titulación se habla lo decide el modelo en cada turno
         #: (:mod:`tfg_uja.ambito`). Las reglas deterministas sabían fijar el
         #: sujeto pero no soltarlo, y eso apagaba además el rechazo de
@@ -560,10 +631,49 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
                 return
             self.responder_json(sugerencias_para(sistema[0], [], sistema[2]))
 
+        def peticion_es_de_la_interfaz(self) -> bool:
+            """Comprueba que la consulta venga de la interfaz de este proceso.
+
+            Las tres comprobaciones son deliberadamente estrictas y por lista de
+            permitidos. Cada una detiene algo distinto:
+
+            * ``Host`` acota a qué nombre se ha llegado, que es lo que rompe el
+              reenlace de DNS: ese ataque consiste precisamente en que un
+              dominio ajeno resuelva a ``127.0.0.1`` y el proceso local no mire
+              a nombre de quién le hablan.
+            * ``Origin`` distingue una consulta de la propia página de una
+              lanzada desde otra pestaña. El navegador lo pone solo y no deja
+              que una página lo falsifique.
+            * ``Content-Type`` cierra el hueco que dejan las dos anteriores: un
+              formulario ajeno puede enviar ``text/plain`` sin comprobación
+              previa, y en algunos casos sin ``Origin``.
+
+            ``Origin`` ausente se admite a propósito: no lo mandan ni ``curl``
+            ni las herramientas con las que se prueba el sistema a mano, y
+            exigirlo dejaría fuera al propio autor sin cerrar nada ---lo que hay
+            que rechazar es un ``Origin`` **ajeno**, no su ausencia.
+
+            Returns:
+                ``True`` si las tres cabeceras encajan con la interfaz local.
+            """
+            if self.headers.get("Host") not in ANFITRIONES_PERMITIDOS:
+                return False
+            origen = self.headers.get("Origin")
+            if origen is not None and origen not in ORIGENES_PERMITIDOS:
+                return False
+            # El tipo puede traer parámetros: «application/json; charset=utf-8».
+            tipo = (self.headers.get("Content-Type") or "").split(";")[0].strip()
+            return tipo == TIPO_ESPERADO
+
         def do_POST(self) -> None:  # noqa: N802 (el nombre lo impone la base)
             """Atiende la consulta y emite la respuesta por partes."""
             if self.path != "/api/chat":
                 self.send_error(404)
+                return
+            if not self.peticion_es_de_la_interfaz():
+                # 403 y no 400: la petición está bien formada, lo que pasa es
+                # que no viene de donde tiene que venir.
+                self.send_error(403, "esta consulta no viene de la interfaz")
                 return
             try:
                 largo = int(self.headers.get("Content-Length") or 0)
@@ -613,17 +723,23 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
 
 
 def main() -> None:
-    """Levanta el servidor. Punto de entrada de ``py -m tfg_uja.servidor``."""
+    """Levanta el servidor.
+
+    Punto de entrada de ``py -m tfg_uja.aplicacion.servidor``.
+    """
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
     if not INDICE.exists():
         print(
             f"No hay índice en {INDICE}. Se construye con "
-            "«py -m tfg_uja.indexer data/chunks.json data/indice_lance»."
+            "«py -m tfg_uja.indexacion.indexer data/chunks.json data/indice_lance»."
         )
         raise SystemExit(1)
     print(f"Abriendo el índice de {INDICE}…")
     atender = partial(manejador(abrir_sistema()), directory=str(WEB))
-    servidor = ThreadingHTTPServer(("127.0.0.1", PUERTO), atender)
+    # Serial a proposito: ver el docstring del modulo. El alcance es un solo
+    # visitante, y atender de uno en uno es lo que hace correcto compartir una
+    # sola conversacion en vez de ser una carrera.
+    servidor = HTTPServer(("127.0.0.1", PUERTO), atender)
     print(f"Asistente en http://127.0.0.1:{PUERTO}  (Ctrl+C para parar)")
     try:
         servidor.serve_forever()

@@ -471,7 +471,7 @@ perdería casi toda su fuerza.
 
 ### Negativas
 
-- **Hay que migrar el indexador.** `src/tfg_uja/indexer.py` está escrito contra
+- **Hay que migrar el indexador.** `src/tfg_uja/indexacion/indexer.py` está escrito contra
   ChromaDB (3 referencias) y `tests/test_indexer.py` monta una colección en
   memoria (6 referencias). Las dos cosas hay que rehacerlas, y `chromadb` sale de
   las dependencias de ejecución mientras entra `lancedb`.

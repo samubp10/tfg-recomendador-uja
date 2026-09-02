@@ -221,7 +221,7 @@ def techos_de_recall(
     Returns:
         Diccionario ``{K: techo}``.
     """
-    from tfg_uja.evaluacion import chunks_relevantes
+    from tfg_uja.indexacion.evaluacion import chunks_relevantes
 
     cuantos = [len(chunks_relevantes(p, chunks)) for p in preguntas]
     return {k: sum(min(k, n) / n for n in cuantos if n) / len(cuantos) for k in KS}
@@ -706,7 +706,7 @@ def main(argumentos: list[str] | None = None) -> int:
 
     # Import perezoso: solo evaluar_modelo, no crear_incrustadores, para dar
     # un error claro y rápido si faltan los chunks/eval antes de tocar red.
-    from tfg_uja.evaluacion import evaluar_modelo
+    from tfg_uja.indexacion.evaluacion import evaluar_modelo
 
     chunks, preguntas = cargar_datos(opciones.chunks)
     print(

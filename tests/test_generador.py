@@ -15,8 +15,8 @@ from typing import Any
 
 import pytest
 
-from tfg_uja import generador
-from tfg_uja.generador import (
+from tfg_uja.dialogo import generador
+from tfg_uja.dialogo.generador import (
     AVISO_RESPUESTA_CORTADA,
     INSTRUCCIONES,
     RESPUESTA_DESPEDIDA,
@@ -33,7 +33,7 @@ from tfg_uja.generador import (
     generar,
     responder,
 )
-from tfg_uja.recuperador import Fragmento
+from tfg_uja.dialogo.recuperador import Fragmento
 
 
 def fragmento(
@@ -275,6 +275,33 @@ def test_un_listado_no_desplaza_a_lo_que_estaba_mas_cerca():
     )
     prompt = construir_prompt("una pregunta", [guia, listado])
     assert prompt.index("GUIA-CERCANA") < prompt.index("LISTADO")
+
+
+def test_dos_unidades_homonimas_de_titulaciones_distintas_no_se_mezclan():
+    """Regresión de IT-126: la unidad se identificaba por «(nombre, origen)».
+
+    Ocho nombres de guía del corpus corresponden a más de una unidad, y los dos
+    peores son los que más se preguntan: «Trabajo fin de Grado» y «Prácticas
+    externas» son cinco unidades distintas cada uno. Sin la titulación en la
+    clave, las dos homónimas compartían la mejor distancia de las dos: la menos
+    pertinente ascendía y sus fragmentos se colaban entre las partes de la otra,
+    que es justo lo que agrupar por unidad promete evitar.
+
+    Medido sobre el banco del sistema, dos de las cincuenta y siete entradas
+    cambian de orden al corregirlo; una es esta, con dos «TFG ING. ELÉCTRICA
+    (GIE)» de dos dobles grados.
+    """
+    electrica = ["Grado en Ingeniería Eléctrica"]
+    doble = ["Doble Grado en Ingeniería Eléctrica y Mecánica"]
+    recuperados = [
+        fragmento("Trabajo fin de Grado", "TFG-A", electrica, 0.10, parte=0, total=2),
+        fragmento("Trabajo fin de Grado", "TFG-DOBLE", doble, 0.20),
+        fragmento("Trabajo fin de Grado", "TFG-B", electrica, 0.40, parte=1, total=2),
+        fragmento("Álgebra", "OTRA", electrica, 0.50),
+    ]
+    prompt = construir_prompt("qué es el trabajo fin de grado", recuperados)
+    posiciones = [prompt.index(t) for t in ("TFG-A", "TFG-B", "TFG-DOBLE", "OTRA")]
+    assert posiciones == sorted(posiciones)
 
 
 def test_el_tope_da_para_la_respuesta_mas_larga_del_corpus():
@@ -751,6 +778,20 @@ def _con_respuesta(monkeypatch, texto: str) -> None:
     monkeypatch.setattr(generador, "generar", lambda prompt, modelo: texto)
 
 
+def _con_respuesta_cortada(monkeypatch, texto: str) -> None:
+    """Como si el modelo hubiera agotado el tope de fichas.
+
+    No se sustituye `generar`, sino la llamada de red: lo que se quiere probar
+    es justamente lo que `generar` hace con `done_reason`, y sustituirlo lo
+    dejaria fuera de la medida.
+    """
+    monkeypatch.setattr(
+        generador.urllib.request,
+        "urlopen",
+        lambda *a, **k: RespuestaFalsa({"response": texto, "done_reason": "length"}),
+    )
+
+
 def test_una_titulacion_inventada_retira_la_respuesta_entera(monkeypatch):
     """Regresión del turno 19 de mistral-nemo:12b.
 
@@ -843,7 +884,7 @@ def test_el_caso_que_motivo_la_tarjeta_se_detecta(monkeypatch):
 def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
     """Una barrera que descarta en silencio no se puede auditar."""
     _con_respuesta(monkeypatch, _RESPUESTA_CON_INVENTADA)
-    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+    with caplog.at_level("WARNING", logger="tfg_uja.dialogo.generador"):
         generador.responder(
             "una pregunta",
             [fragmento("A", "texto")],
@@ -1268,6 +1309,9 @@ def test_una_respuesta_cortada_por_longitud_lo_avisa_al_final(monkeypatch) -> No
     partes = list(generador.generar_por_partes("prompt", "un-modelo"))
 
     assert partes[-1] == AVISO_RESPUESTA_CORTADA
+    # `generar_por_partes` reenvia los trozos tal cual: quien cierra la frase es
+    # `responder_por_partes`, que es donde estan las fronteras seguras.
+    assert "".join(partes[:-1]) == "Se cursan Álgebra y"
 
 
 def test_si_el_servidor_esta_caido_el_flujo_lo_dice(monkeypatch) -> None:
@@ -1466,7 +1510,7 @@ def test_el_atributo_corregido_queda_registrado(monkeypatch, caplog):
         "**Fotogrametría y teledetección III (6 ECTS):** Se imparte en el "
         "segundo cuatrimestre.",
     )
-    with caplog.at_level("WARNING", logger="tfg_uja.generador"):
+    with caplog.at_level("WARNING", logger="tfg_uja.dialogo.generador"):
         respuesta = generador.responder(
             "¿Cuándo se da Fotogrametría III?",
             [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
@@ -1512,3 +1556,160 @@ def test_las_dos_formas_de_entregar_dan_exactamente_el_mismo_texto(monkeypatch, 
     ).strip()
 
     assert entera == por_partes
+
+
+# --- IT-119: el nombre en una frase y el atributo en la siguiente ---
+
+
+@pytest.mark.parametrize("flujo", [True, False])
+def test_regresion_el_atributo_escrito_en_frase_aparte_se_corrige(monkeypatch, flujo):
+    """El punto separa el nombre del dato, y la correccion tiene que seguir.
+
+    `partir_en_unidades` corta por el punto, asi que esta respuesta son dos
+    unidades y la segunda no nombra ninguna asignatura. Antes de IT-119 pasaba
+    entera sin corregir y sin dejar aviso, mientras que la MISMA afirmacion
+    escrita de corrido si se corregia: el corrector dependia de donde el modelo
+    pusiera un punto. Es la forma normal de enumerar en vinetas.
+    """
+    dicho = (
+        "**Fotogrametría y teledetección III** (6 ECTS). Se imparte en el "
+        "segundo cuatrimestre."
+    )
+    _con_respuesta(monkeypatch, dicho)
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+
+    entregada = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Cuándo se imparte?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+            flujo=flujo,
+        )
+    )
+
+    assert "primer cuatrimestre" in entregada
+    assert "segundo cuatrimestre" not in entregada
+
+
+def test_una_vineta_nueva_no_hereda_el_sujeto_de_la_anterior(monkeypatch):
+    """El salto de linea cierra la vineta, y con ella de quien se hablaba.
+
+    Sin soltar el sujeto, lo que se afirma de la asignatura de abajo se
+    corregiria contra los atributos de la de arriba, que es el defecto de
+    mezclar asignaturas visto desde el otro lado.
+    """
+    dicho = (
+        "**Fotogrametría y teledetección III** (6 ECTS).\n"
+        "* Otra asignatura. Se imparte en el segundo cuatrimestre."
+    )
+    _con_respuesta(monkeypatch, dicho)
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+
+    entregada = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Y las demás?",
+            [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)],
+            "un-modelo",
+        )
+    )
+
+    # La linea de la otra asignatura se entrega tal cual: nadie sabe de ella.
+    assert "Otra asignatura. Se imparte en el segundo cuatrimestre." in entregada
+
+
+# --- IT-122: el tope agotado se cierra igual por los dos caminos ---
+
+
+@pytest.mark.parametrize(
+    ("etiqueta", "trozos"),
+    [
+        # El caso real: la ultima palabra queda partida detras de un punto.
+        ("con frontera", ["El Grado tiene 240 ECTS.", " Nota: todas las titul"]),
+        # Sin ninguna frontera no hay nada que cerrar, y `cerrar_en_frase_completa`
+        # devuelve el texto intacto. Los dos caminos tienen que hacer lo mismo.
+        ("sin frontera", ["El Grado tiene 240 ECTS y todas las titul"]),
+        ("justo en frontera", ["El Grado tiene 240 ECTS."]),
+    ],
+)
+def test_el_tope_agotado_entrega_lo_mismo_con_flujo_y_sin_el(
+    monkeypatch, etiqueta, trozos
+):
+    """La web y el experimento tienen que entregar el MISMO texto cortado.
+
+    `generar` cerraba la frase y `generar_por_partes` no, asi que la aplicacion
+    entregaba «...todas las titul» mientras el camino que mide el experimento
+    entregaba la frase entera. La prueba de equivalencia que ya existia no lo
+    veia porque ninguno de sus tres textos agota el tope.
+    """
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+    entero = "".join(trozos)
+
+    _con_respuesta_cortada(monkeypatch, entero)
+    sin_flujo = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Y?", contexto, "m", flujo=False)
+    ).strip()
+
+    flujo_de(
+        monkeypatch,
+        [{"response": t} for t in trozos] + [{"response": "", "done_reason": "length"}],
+    )
+    con_flujo = "".join(
+        p or ""
+        for p in generador.responder_por_partes("¿Y?", contexto, "m", flujo=True)
+    ).strip()
+
+    assert sin_flujo == con_flujo
+    assert sin_flujo.endswith(AVISO_RESPUESTA_CORTADA.strip())
+
+
+def test_la_cola_partida_no_llega_al_estudiante(monkeypatch):
+    """Lo que motiva la tarjeta: la palabra cortada no se entrega."""
+    contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
+
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "El Grado tiene 240 ECTS."},
+            {"response": " Nota: todas las titul", "done_reason": "length"},
+        ],
+    )
+    entregado = "".join(
+        p or "" for p in generador.responder_por_partes("¿Y?", contexto, "m")
+    )
+
+    assert "titul" not in entregado.replace("titulaciones", "")
+    assert "El Grado tiene 240 ECTS." in entregado
+
+
+@pytest.mark.parametrize(
+    "generador_bajo_prueba",
+    ["generar", "generar_por_partes"],
+)
+def test_si_el_servidor_muere_a_media_respuesta_se_cuenta_como_fallo(
+    monkeypatch, generador_bajo_prueba: str
+) -> None:
+    """Regresión de IT-133: un corte de conexión tumbaba la tanda entera.
+
+    `ConnectionResetError` es un `OSError`, no un `urllib.error.URLError`, así
+    que se colaba por encima de las dos ramas que ya se capturaban y salía en
+    crudo. Medido el 01/09/2026: Ollama se cayó en la tercera pregunta de una
+    tanda de cuatro modelos y el experimento murió con una traza de socket.
+
+    Lo que tiene que pasar es lo mismo que con el servidor apagado: la pregunta
+    se pierde, se cuenta como fallo del modelo y quien llama decide. Un modelo
+    caído cuesta una pregunta, no la sesión.
+    """
+
+    def corta(*a: Any, **k: Any) -> Any:
+        raise ConnectionResetError(10054, "forcibly closed by the remote host")
+
+    monkeypatch.setattr(generador.urllib.request, "urlopen", corta)
+    funcion = getattr(generador, generador_bajo_prueba)
+
+    with pytest.raises(generador.ErrorDelModelo, match="cortó la conexión"):
+        resultado = funcion("prompt", "un-modelo")
+        # `generar_por_partes` es un generador: no se ejecuta hasta que se lee.
+        list(resultado) if generador_bajo_prueba == "generar_por_partes" else None

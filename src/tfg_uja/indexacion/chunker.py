@@ -300,6 +300,74 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     return resultado
 
 
+def _por_metadatos_del_plan(
+    pares: list[tuple[str, str | None]],
+    nombre: str,
+    asignaturas: dict[tuple[str, str], dict[str, Any]],
+) -> dict[tuple[Any, ...], list[tuple[str, str | None]]]:
+    """Reparte las titulaciones de una guía según lo que el encabezado afirma.
+
+    Una guía se comparte cuando su **contenido** es idéntico, y ese sigue
+    siendo el criterio de deduplicación. Pero el encabezado que se antepone al
+    contenido no habla del contenido: habla del plan de estudios, y ahí las
+    titulaciones sí discrepan. Medido sobre el corpus, de las 210 unidades de
+    guía hay **41 cuyas titulaciones no coinciden en el curso** y **9 que no
+    coinciden en el tipo**, y el escalar salía de la primera de la lista.
+
+    El daño no era solo de metadatos. El encabezado se vectoriza, así que el
+    fragmento de «Centrales eléctricas II» decía, en la misma frase que
+    enumeraba sus tres titulaciones, que se imparte en cuarto curso: cierto en
+    el grado simple y falso en los dos dobles, donde es de quinto. Un modelo
+    fiel al contexto respondía en falso, y la causa no estaba en la generación.
+
+    La regla que se adopta es la que hace verdadera cada frase del encabezado:
+    **una unidad solo agrupa titulaciones que coinciden en todo lo que el
+    encabezado afirma de ellas.** Por eso la clave lleva los cuatro campos que
+    aparecen ahí y no solo los dos que hoy varían: si mañana el encabezado deja
+    de afirmar uno, o empieza a afirmar otro, la clave se mueve con él en vez de
+    quedarse describiendo una versión anterior del texto.
+
+    De los cuatro, ECTS y cuatrimestre **no varían en ninguna unidad del corpus
+    actual** ---comprobado, no supuesto---, así que hoy no parten nada. Los
+    otros dos llevan las 210 unidades a 283.
+
+    Esto revisa la premisa del ADR-0001 de que tipo y ECTS nunca varían entre
+    titulaciones que comparten guía. Era cierta cuando se midió, sobre 28
+    grupos y sin dobles grados en el corpus; dejó de serlo al incorporarlos en
+    IT-101. La deduplicación por ``(nombre, contenido)`` no cambia: lo que
+    cambia es que el resultado ya no se presenta como una sola unidad cuando
+    sus titulaciones no comparten plan.
+
+    Args:
+        pares: ``(grado, codigo)`` de cada titulación de la guía, en el orden
+            en que deben quedar: primero las que publican la guía.
+        nombre: Nombre de la asignatura, para resolverla cuando no hay código.
+        asignaturas: Asignaturas del dataset por su clave.
+
+    Returns:
+        Un subgrupo por combinación distinta, conservando el orden de entrada.
+        Con una sola combinación ---el caso de 160 de las 210 unidades--- se
+        devuelve un único subgrupo y el resultado es el de antes.
+    """
+    subgrupos: dict[tuple[Any, ...], list[tuple[str, str | None]]] = {}
+    for grado, codigo in pares:
+        asignatura = asignaturas.get(_clave_asignatura(grado, codigo, nombre))
+        clave = (
+            (
+                asignatura.get("tipo_asignatura"),
+                asignatura.get("ects"),
+                asignatura.get("curso"),
+                asignatura.get("cuatrimestre"),
+            )
+            if asignatura
+            # Sin ficha no hay nada que afirmar, y todas las que están en ese
+            # caso comparten encabezado: van juntas en vez de una por cabeza.
+            else ()
+        )
+        subgrupos.setdefault(clave, []).append((grado, codigo))
+    return subgrupos
+
+
 def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str:
     """Compone el encabezado autocontenido de los chunks de una asignatura.
 
@@ -307,9 +375,15 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
     menciones y titulaciones) para que cada chunk tenga sentido por sí solo
     al recuperarse de forma aislada en el RAG. Cuando la misma asignatura se
     imparte en varias titulaciones (guías de contenido idéntico fusionadas
-    en una sola unidad), el encabezado las enuncia todas; el tipo y los ECTS
-    son comunes a todas ellas (verificado: nunca varían entre titulaciones
-    que comparten guía).
+    en una sola unidad), el encabezado las enuncia todas.
+
+    **Todo lo que se afirma aquí vale para todas las titulaciones que se
+    enuncian**, y eso lo garantiza :func:`_por_metadatos_del_plan`, que no
+    agrupa dos titulaciones si discrepan en alguno de esos datos. La versión
+    anterior tomaba tipo, ECTS y curso de la primera de la lista amparándose en
+    que no variaban: era cierto en el corpus con el que se comprobó y dejó de
+    serlo con los dobles grados, y entonces el encabezado afirmaba de tres
+    titulaciones un curso que solo valía para una.
 
     Args:
         asignatura: Item de tipo ``asignatura`` del dataset (aporta tipo,
@@ -1038,42 +1112,44 @@ def trocear_dataset(
     for (nombre, texto), guias in grupos_guia.items():
         # Orden estable de titulaciones para que el troceo sea determinista.
         guias = sorted(guias, key=lambda g: g["grado"])
-        grados = [g["grado"] for g in guias]
-        codigos = [g["codigo"] for g in guias]
-        # Los dobles grados se añaden DESPUÉS de ordenar y de calcular
-        # `guias[0]`: los metadatos del encabezado (ECTS, tipo) tienen que
-        # seguir saliendo de una titulación que sí publica la guía.
-        for grado_doble, codigo_doble in sorted(
-            dobles_por_grupo.get((nombre, texto), [])
-        ):
-            grados.append(grado_doble)
-            codigos.append(codigo_doble)
-        asignatura = asignaturas.get(
-            _clave_asignatura(guias[0]["grado"], guias[0]["codigo"], nombre)
-        )
-        encabezado = (
-            _encabezado_asignatura(asignatura, grados)
-            if asignatura
-            else _encabezado_sin_metadatos(nombre, grados)
-        )
-        # IT-100: el tipo viaja también como metadato, no solo dentro del
-        # encabezado. Sin él no se puede filtrar el índice por «obligatorias»
-        # ni anotar una pregunta de listado sin enumerar cincuenta nombres.
-        # Se toma de la primera titulación del grupo: el ADR-0001 verificó que
-        # el tipo y los ECTS nunca varían entre titulaciones que comparten
-        # guía (0 de 28 grupos), así que colapsarlo no pierde información.
-        base = {
-            "grados": grados,
-            "codigos": codigos,
-            "nombre": nombre,
-            "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
-            # IT-105. Se toma de la asignatura del grupo con el mismo criterio
-            # que el tipo. Ojo: una guía compartida entre titulaciones puede
-            # impartirse en cursos distintos en cada una, así que este valor es
-            # el de la primera y no vale para afirmar nada de las demás.
-            "curso": (asignatura.get("curso", "") if asignatura else ""),
-        }
-        chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
+        # Los dobles grados se añaden DESPUÉS de ordenar: así el primer par de
+        # cada subgrupo es, siempre que lo haya, el de una titulación que sí
+        # publica la guía.
+        pares: list[tuple[str, str | None]] = [(g["grado"], g["codigo"]) for g in guias]
+        pares += sorted(dobles_por_grupo.get((nombre, texto), []))
+
+        for propios in _por_metadatos_del_plan(pares, nombre, asignaturas).values():
+            grados = [grado for grado, _ in propios]
+            codigos = [codigo for _, codigo in propios]
+            asignatura = asignaturas.get(
+                _clave_asignatura(grados[0], codigos[0], nombre)
+            )
+            encabezado = (
+                # El nombre es el de la unidad y no el de la ficha de la que
+                # salen los metadatos: los planes de los dobles grados escriben
+                # las asignaturas en mayúsculas y con el acrónimo del grado de
+                # procedencia («CENTRALES ELÉCTRICAS II (GIE)»). Un subgrupo
+                # formado solo por dobles titularía así el fragmento, que
+                # además dejaría de empezar por el nombre de su propia unidad
+                # ---lo que `check_chunks.py` comprueba desde IT-91.
+                _encabezado_asignatura({**asignatura, "nombre": nombre}, grados)
+                if asignatura
+                else _encabezado_sin_metadatos(nombre, grados)
+            )
+            # IT-100: el tipo viaja también como metadato, no solo dentro del
+            # encabezado. Sin él no se puede filtrar el índice por
+            # «obligatorias» ni anotar una pregunta de listado sin enumerar
+            # cincuenta nombres. Desde IT-125 el escalar es correcto para todas
+            # las titulaciones de la unidad, porque la unidad solo agrupa
+            # titulaciones que coinciden en él.
+            base = {
+                "grados": grados,
+                "codigos": codigos,
+                "nombre": nombre,
+                "tipo_asignatura": asignatura["tipo_asignatura"] if asignatura else "",
+                "curso": (asignatura.get("curso", "") if asignatura else ""),
+            }
+            chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
 
     for item in items:
         if item["tipo"] == "salidas":
@@ -1256,7 +1332,8 @@ if __name__ == "__main__":
     # re-trocear a la ventana de los modelos de 128 tokens para compararlos en
     # igualdad de condiciones). Sin ellos, el comportamiento es el de siempre.
     #
-    #     py -m tfg_uja.chunker entrada.json salida.json [objetivo maximo minimo]
+    #     py -m tfg_uja.indexacion.chunker entrada.json salida.json
+    #         [objetivo maximo minimo]
     if len(sys.argv) >= 6:
         main(
             sys.argv[1],

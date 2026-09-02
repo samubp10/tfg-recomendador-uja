@@ -196,10 +196,10 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 | Modelo | Titul. inventadas | Precisión | Sin medir | Cobertura | Acierto escalar | Mediana (s) | p90 (s) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `ministral-8b:latest` | 0 | 1.000 | 0/34 | 0.996 | 0.957 | 12.1 | 42.1 |
-| `qwen3.5:9b` | 0 | 0.996 | 0/34 | 0.997 | 0.957 | 18.2 | 67.2 |
-| `gemma3:12b` | 0 | 1.000 | 2/34 | 1.000 | 0.978 | 21.6 | 74.4 |
-| `salamandra-7b` | 0 | 0.992 | 15/34 | 0.908 | 0.935 | 3.8 | 11.1 |
+| `ministral-8b:latest` | 0 | 1.000 | 0/34 | 0.971 | 1.000 | 24.4 | 87.2 |
+| `qwen3.5:9b` | 0 | 1.000 | 0/34 | 0.971 | 1.000 | 17.4 | 47.7 |
+| `gemma3:12b` | 0 | 1.000 | 3/34 | 0.971 | 1.000 | 26.0 | 72.1 |
+| `salamandra-7b:latest` | 0 | 0.995 | 13/34 | 0.770 | 0.978 | 7.1 | 21.2 |
 
 **Titulaciones inventadas** es el criterio eliminatorio: un nombre con forma de titulación que no está en el catálogo del índice. **Sin medir** son las respuestas de listado redactadas en prosa, que no enumeran nada: su precisión no existe y queda fuera de la media (IT-110). Que no se pueda medir no las exime, porque la cobertura se mide sobre el texto entero y sí las recoge.
 
@@ -209,45 +209,45 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 35.2 |
-| creditos | 23 | — | — | 1.000 | 8.4 |
-| curso_de_asignatura | 23 | — | — | 0.913 | 7.1 |
-| menciones | 13 | 1.000 | 1.000 | — | 18.4 |
-| optativas | 7 | 1.000 | 1.000 | — | 43.2 |
-| plan_por_curso | 13 | 1.000 | 0.989 | — | 27.5 |
+| catalogo | 1 | 1.000 | 1.000 | — | 32.8 |
+| creditos | 23 | — | — | 1.000 | 18.2 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 12.3 |
+| menciones | 13 | 1.000 | 1.000 | — | 48.3 |
+| optativas | 7 | 1.000 | 1.000 | — | 76.3 |
+| plan_por_curso | 13 | 1.000 | 0.923 | — | 47.8 |
 
 #### `qwen3.5:9b`
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 42.9 |
-| creditos | 23 | — | — | 1.000 | 13.1 |
-| curso_de_asignatura | 23 | — | — | 0.913 | 14.5 |
-| menciones | 13 | 0.989 | 1.000 | — | 20.2 |
-| optativas | 7 | 1.000 | 1.000 | — | 45.2 |
-| plan_por_curso | 13 | 1.000 | 0.992 | — | 34.7 |
+| catalogo | 1 | 1.000 | 1.000 | — | 42.5 |
+| creditos | 23 | — | — | 1.000 | 15.1 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 15.2 |
+| menciones | 13 | 1.000 | 1.000 | — | 22.6 |
+| optativas | 7 | 1.000 | 1.000 | — | 43.1 |
+| plan_por_curso | 13 | 1.000 | 0.923 | — | 32.8 |
 
 #### `gemma3:12b`
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 67.1 |
-| creditos | 23 | — | — | 1.000 | 15.2 |
-| curso_de_asignatura | 23 | — | — | 0.957 | 16.0 |
-| menciones | 13 | 1.000 | 1.000 | — | 25.4 |
-| optativas | 7 | 1.000 | 1.000 | — | 78.3 |
-| plan_por_curso | 13 | 1.000 | 1.000 | — | 53.7 |
+| catalogo | 1 | 1.000 | 1.000 | — | 70.3 |
+| creditos | 23 | — | — | 1.000 | 24.0 |
+| curso_de_asignatura | 23 | — | — | 1.000 | 19.1 |
+| menciones | 13 | 1.000 | 1.000 | — | 34.3 |
+| optativas | 7 | 1.000 | 1.000 | — | 75.5 |
+| plan_por_curso | 13 | 1.000 | 0.923 | — | 58.2 |
 
-#### `salamandra-7b`
+#### `salamandra-7b:latest`
 
 | Familia | n | Precisión | Cobertura | Acierto | Mediana (s) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| catalogo | 1 | 1.000 | 1.000 | — | 19.8 |
-| creditos | 23 | — | — | 1.000 | 3.7 |
-| curso_de_asignatura | 23 | — | — | 0.870 | 2.0 |
-| menciones | 13 | 0.976 | 1.000 | — | 4.4 |
-| optativas | 7 | 1.000 | 0.571 | — | 8.3 |
-| plan_por_curso | 13 | 1.000 | 0.989 | — | 8.5 |
+| catalogo | 1 | 1.000 | 1.000 | — | 21.2 |
+| creditos | 23 | — | — | 1.000 | 7.3 |
+| curso_de_asignatura | 23 | — | — | 0.957 | 3.5 |
+| menciones | 13 | 1.000 | 0.963 | — | 9.7 |
+| optativas | 7 | 1.000 | 0.295 | — | 7.0 |
+| plan_por_curso | 13 | 0.991 | 0.815 | — | 18.7 |
 
 <!-- FIN RESULTADOS AUTOMÁTICOS -->
 
@@ -313,4 +313,4 @@ tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 - ADR-0004: base de datos vectorial.
 - `eval/preguntas_generacion.json` y `eval/preguntas_generacion_muestra.json`.
 - `scripts/bancos/generar_banco_generacion.py` y `scripts/experimentos/experimento_generacion.py`.
-- `src/tfg_uja/verificacion.py`: las comprobaciones deterministas.
+- `src/tfg_uja/dialogo/verificacion.py`: las comprobaciones deterministas.

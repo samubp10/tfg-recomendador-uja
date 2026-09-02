@@ -174,7 +174,7 @@ Es el origen de esta anomalía y de la segunda del DQA-0005, que es la misma en 
 
 ## Referencias
 
-- Código: `src/tfg_uja/grados_spider.py`
+- Código: `src/tfg_uja/extraccion/grados_spider.py`
   (`_columnas_de_cabecera`, `parse_asignaturas`).
 - Fixture con el caso real: `tests/fixtures/tabla_geomatica_plan2025.html`.
 - Tests de regresión: los de IT-76 en `tests/test_grados_spider.py`, que
