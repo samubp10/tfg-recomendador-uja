@@ -38,7 +38,7 @@ import math
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Any, Final
 
 RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
@@ -53,6 +53,15 @@ Z: float = 1.959963984540054
 #: Se fija **antes** de mirar ningún resultado, que es lo que hace que sea un
 #: criterio y no una racionalización.
 ALFA: float = 0.05
+
+#: Métricas binarias que se comparan, y **las tres del banco, no dos**.
+#:
+#: ``acierto`` es la de las preguntas de valor único ---créditos y curso---, y
+#: dejarla fuera no habría sido un detalle: en la muestra de 250 son **180 de
+#: las 250**, casi tres cuartas partes. El informe habría dicho «no se
+#: distinguen» habiendo mirado 70 preguntas de 250, que es exactamente la clase
+#: de cifra que parece medida y no lo está.
+METRICAS: Final[tuple[str, ...]] = ("precision", "cobertura", "acierto")
 
 
 def wilson(exitos: int, total: int) -> tuple[float, float]:
@@ -192,7 +201,7 @@ def informe(filas: list[dict[str, Any]], a: str, b: str) -> str:
         f"| Métrica | n | `{a}` | `{b}` | Solo A | Solo B | p | ¿Se distinguen? |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |",
     ]
-    for campo in ("precision", "cobertura"):
+    for campo in METRICAS:
         r = comparar(filas, a, b, campo)
         if not r["n"]:
             continue
@@ -272,7 +281,7 @@ def main(argumentos: list[str] | None = None) -> int:
     salida.parent.mkdir(parents=True, exist_ok=True)
     salida.write_text(informe(filas, a, b), encoding="utf-8")
     print(f"Informe escrito en {salida}")
-    for campo in ("precision", "cobertura"):
+    for campo in METRICAS:
         r = comparar(filas, a, b, campo)
         if r["n"]:
             veredicto = "SE DISTINGUEN" if r["p"] < ALFA else "no se distinguen"
