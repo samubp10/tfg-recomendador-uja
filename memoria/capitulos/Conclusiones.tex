@@ -2,140 +2,80 @@
 \chapter{CONCLUSIONES}
 \label{cap:conclusiones}
 
-\begin{borrador}
-  \item \textbf{Fase:} 5 (IT-52). Todo lo turquesa de este capítulo es andamiaje: el
-  esqueleto, el veredicto de cada punto y la referencia a dónde se sostiene. La prosa la
-  escribes tú y le quitas el color. \emph{Trabajo futuro} ya es tuya y por eso va en negro.
-  \item \textbf{La regla que gobierna el capítulo:} aquí no se argumenta nada y no aparece
-  ninguna cifra que no esté medida antes. Cada afirmación va con el apartado que la
-  sostiene. Si un párrafo necesita explicar \emph{por qué}, pertenece al
-  Apartado~\ref{secc:discusion} y hay que moverlo, no copiarlo.
-  \item \textbf{Por qué cuatro secciones y no tres.} Faltaba decir en alguna parte qué
-  produce este trabajo. La Sección~\ref{secc:posicionamiento} lo anuncia antes de hacerlo
-  ---qué se propone aportar frente a los sistemas revisados--- y la
-  Sección~\ref{secc:contribuciones} dice qué quedó construido. Son cosas distintas y no se
-  repiten: una es la promesa y la otra el inventario.
-\end{borrador}
+A lo largo de los capítulos de esta memoria se ha visto la motivación, el diseño arquitectónico, el desarrollo e implementación del sistema recomendador, así como la evaluación experimental de cada una de las fases. Este último capítulo tiene como propósito cerrar la investigación mediante un balance crítico de lo realizado.
 
-\section[Respuesta al objetivo general y a la hipótesis]{\textcolor{borrador2}{Respuesta al objetivo general y a la hipótesis}}
+El capítulo se organiza en cuatro apartados. El primero evalúa el grado de consecución del objetivo general y de los objetivos específicos, verificando la hipótesis de partida con los resultados medidos y analizando la correspondencia con la propuesta formal aprobada para este TFG. El segundo apartado detalla las contribuciones técnicas y metodológicas generadas a lo largo del desarrollo, y finalmente, se exponen los límites y amenazas a la validez de los resultados y las líneas de continuación para trabajos futuros.
+
+\section[Respuesta al objetivo general y a la hipótesis]{Respuesta al objetivo general y a la hipótesis}
 \label{secc:cumplimiento_objetivos}
 
-\textcolor{borrador2}{El objetivo general era construir un asistente conversacional que
-  respondiera a un estudiante preuniversitario sobre la oferta de la Escuela Politécnica
-  Superior de Jaén apoyándose en la documentación oficial del centro, y ejecutándose por
-  completo en un equipo doméstico. El sistema existe, responde de extremo a extremo y se
-  ha medido. Los seis objetivos específicos quedan cumplidos; el
+ El objetivo de este Trabajo Fin de Grado consistía en diseñar, implementar y evaluar un asistente conversacional capaz de orientar a los estudiantes preuniversitarios sobre la oferta académica de la EPSJ, basándose únicamente en la documentación oficial del centro y ejecutándose de forma autónoma en un equipo doméstico.
+
+\textcolor{borrador2}{Los seis objetivos específicos quedan cumplidos, y el
   Apartado~\ref{secc:discusion_objetivos} razona cada uno con la evidencia que lo sostiene
-  y con el límite que lo acota, y aquí se recoge solo el cierre.}
+  y con el límite que lo acota. Frente a la propuesta aprobada por la Comisión de Trabajos
+  Fin de Grado, que enunciaba cinco objetivos y no seis, el cumplimiento es completo en
+  cuatro y \textbf{parcial en el primero}: la colección recoge titulaciones, guías
+  docentes, planes de estudio y salidas profesionales, pero no las memorias de
+  verificación ni los datos estadísticos que la propuesta también enumeraba. La
+  correspondencia entre las dos listas está en el
+  Apartado~\ref{secc:discusion_correspondencia}, y lo que quedó fuera vuelve como línea de
+  continuación en la Sección~\ref{secc:trabajo_futuro}.}
 
-\textcolor{borrador2}{Frente a la propuesta aprobada por la Comisión de Trabajos Fin de
-  Grado, que enunciaba cinco objetivos y no seis, el cumplimiento es completo en cuatro y
-  \textbf{parcial en el primero}: la colección recoge titulaciones, guías docentes, planes
-  de estudio y salidas profesionales, pero no las memorias de verificación ni los datos
-  estadísticos que la propuesta también enumeraba. La correspondencia entre las dos listas
-  está en el Apartado~\ref{secc:discusion_correspondencia}, y lo que quedó fuera vuelve
-  como línea de continuación en la Sección~\ref{secc:trabajo_futuro}.}
+La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} queda parcialmente confirmada. Los resultados validan plenamente sus tres primeras condiciones: el recuperador sitúa la unidad de respuesta dentro del contexto entregado, ninguna de las respuestas del modelo nombró titulaciones inexistentes y ninguna consulta del dominio le faltó fundamento documental. Por contra, la cuarta condición no se cumple ya que la mediana del tiempo de respuesta alcanza los 62,7 segundos, muy por encima de los 30 segundos que se establecieron en la hipótesis.  Lejos de constituir un defecto no controlado, este comportamiento es la consecuencia directa de la jerarquía de diseño establecida en el requisito \sig{RNF}-04, que antepone estrictamente la fidelidad factual y la ausencia de alucinaciones a la rapidez en la generación textual (Apartado~\ref{secc:discusion_hipotesis}).
 
-\textcolor{borrador2}{La hipótesis de trabajo formulada en la
-  Sección~\ref{secc:hipotesis} queda \textbf{parcialmente confirmada}. Se sostienen sus
-  tres primeras condiciones ---el recuperador sitúa la unidad que responde entre los
-  fragmentos que entrega, ninguna respuesta del modelo elegido nombró una titulación
-  inexistente y ninguna pregunta de dominio se quedó sin respuesta fundamentada--- y
-  \textbf{no se sostiene la cuarta}: la mediana de las consultas que llegan al modelo más
-  que dobla los treinta segundos que la hipótesis fijaba. Esa condición se declara
-  refutada. Su incumplimiento no es un descuido, sino la consecuencia de una prioridad
-  escrita antes de medir, el requisito RNF-04, que antepone la fidelidad de la respuesta a
-  su rapidez; el Apartado~\ref{secc:discusion_hipotesis} lo desarrolla condición por
-  condición.}
 
-\section[Contribuciones]{\textcolor{borrador2}{Contribuciones}}
+\section[Contribuciones]{Contribuciones}
 \label{secc:contribuciones}
 
-\textcolor{borrador2}{Lo que este trabajo deja construido, y que no existía al empezar, es
-  lo siguiente:}
+El desarrollo de este TFG aporta al campo de los asistentes conversacionales con RAG varios elementos destacables:
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Una colección documental de la oferta oficial de la
-      EPSJ, reproducible y verificable.} No se entrega como un fichero de datos sino como
-    el procedimiento que lo genera ---extracción, fragmentación y verificadores---, de modo
-    que volver a ejecutarlo produce el estado vigente de la fuente y no una copia
-    congelada de este (Apartado~\ref{secc:resultados_coleccion}).}
+  \item \textbf{Una colección documental de la oferta oficial de la
+      EPSJ, reproducible y verificable:} No se entrega un fichero de datos, sino el código y el procedimiento que lo genera (extracción, fragmentación y verificadores), de modo que volver a ejecutarlo produce el estado actual de la página y sus grados.
+      
 
-  \item \textcolor{borrador2}{\textbf{Cinco decisiones de diseño tomadas con medición y no
-      por costumbre}: la estrategia de fragmentación, el modelo de incrustaciones, la base
-    de datos vectorial, el modelo generativo y la forma de arrastrar el contexto de la
-    conversación. Cada una llega con sus alternativas, el umbral fijado antes de medir y
-    lo que la decisión cuesta, y todas quedan registradas en su documento de arquitectura
-    (Secciones~\ref{secc:resultados_fragmentacion} a~\ref{secc:resultados_sistema}).}
+  \item \textbf{Una metodología de diseño arquitectónico sustentada en evidencia experimental:} Se han resuelto cinco decisiones de arquitectura mediante experimentos comparativos y umbrales definidos formalmente: la estrategia de fragmentación, el modelo de incrustaciones vectoriales, el motor de base de datos vectorial, el modelo de lenguaje generativo y el mecanismo de resolución de anáforas en la conversación. Cada elección queda respaldada por su correspondiente registro de decisión arquitectónica (\sig{ADR}) documentado en el repositorio (Secciones~\ref{secc:resultados_fragmentacion} a~\ref{secc:resultados_sistema}).
 
-  \item \textcolor{borrador2}{\textbf{Una canalización RAG completa que se ejecuta en un
-      equipo doméstico}, sin servicios de terceros ni claves de ningún proveedor, y por
-    tanto sin que ninguna pregunta de un estudiante salga del equipo.}
+   \item \textbf{Una canalización RAG autónoma y local sobre hardware de consumo:} El sistema opera en un ordenador convencional sin recurrir a servicios de terceros. Esta arquitectura preserva la confidencialidad de las consultas de los usuarios preuniversitarios y cumple con el marco de protección de datos (\sig{RGPD} y \sig{LOPDGDD}).
 
-  \item \textcolor{borrador2}{\textbf{Tres barreras deterministas que acotan el dominio},
-    independientes entre sí y ejecutadas en el código y no pedidas al modelo, con el
-    reparto medido de qué detiene cada una (Apartado~\ref{secc:resultados_rag_sistema}).}
+  \item \textbf{Tres barreras deterministas que acotan el dominio:} Independientes entre sí y ejecutadas en el código y no pedidas al modelo, con el reparto medido de qué detiene cada una (Apartado~\ref{secc:resultados_rag_sistema}).
 
-  \item \textcolor{borrador2}{\textbf{Una aplicación web que un visitante puede usar sin
-      registrarse}, que muestra de qué fragmentos sale cada respuesta y que declara qué no
-    sabe en lugar de improvisarlo (Sección~\ref{secc:fase3}).}
+ \item \textbf{Una interfaz web accesible, transparente y sin barreras de entrada.} Se ha construido una aplicación conversacional ligera que \sout{cumple con las pautas de accesibilidad \sig{WCAG} 2.2 (nivel AA)}\textcolor{borrador2}{toma como objetivo de diseño el nivel AA de las pautas
+      \sig{WCAG} 2.2 (RNF-07), con el contraste medido y el recorrido por teclado
+      comprobado; la conformidad completa no se ha evaluado, porque no se ha probado con
+      ningún lector de pantalla real} y prescinde de registro previo para minimizar la fricción de acceso.\textcolor{borrador2}{ }La interfaz incorpora trazabilidad documental en cada turno mediante la cita explícita de las fuentes recuperadas y declara con claridad la ausencia de datos cuando una consulta excede el catálogo oficial (Sección~\ref{secc:fase3}).
 \end{itemize}
 
-\textcolor{borrador2}{Qué distingue este planteamiento de los asistentes universitarios
+Qué distingue este planteamiento de los asistentes universitarios
   revisados se argumenta en la Sección~\ref{secc:posicionamiento} y se contrasta contra lo
-  medido en el Apartado~\ref{secc:discusion_estado_arte}; no se repite aquí.}
+  medido en el Apartado~\ref{secc:discusion_estado_arte}.
 
-\section[Alcance y límites de lo afirmado]{\textcolor{borrador2}{Alcance y límites de lo afirmado}}
+\section[Alcance y límites de lo afirmado]{Alcance y límites de lo afirmado}
 \label{secc:limitaciones}
 
-\textcolor{borrador2}{Este trabajo deja siete cosas sin cubrir. Cada una se argumenta en
-  el capítulo anterior, junto al resultado que la provoca; aquí se enuncian juntas, con el
-  apartado donde se razona, para que el lector no tenga que reconstruirlas.}
+Para garantizar el rigor científico de las conclusiones y evitar interpretaciones erróneas, resulta imprescindible explicar las limitaciones metodológicas, técnicas y de alcance que acotan los resultados obtenidos. Estas limitaciones se comentan a continuación, remitiendo a los apartados donde se analizan en profundidad:
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{El sistema no se ha probado con
-      usuarios}, de modo que no se sabe si un estudiante formula sus dudas como
-    las formula el banco de preguntas, ni si la respuesta le sirve para decidir
-    (Apartado~\ref{secc:validacion_usuarios}).}
+  \item \textbf{El sistema no se ha probado con
+      usuarios:} El sistema no ha sido sometido ha pruebas con estudiantes preuniversitarios reales. Por ello, no es posible asegurar que las preguntas del conjunto de evaluación reproduzca el lenguaje que un usuario objetivo tendría, ni se ha evaluado la utilidad orientadora de las respuestas en la decisión vocacional 
+    (Apartado~\ref{secc:validacion_usuarios}).
 
   \item \textcolor{borrador2}{\textbf{De cada respuesta se comprueba que no
-      invente y que nombre lo que debía, no que sea buena}: una respuesta
-    correcta, fundamentada y poco útil pasa todas las comprobaciones
+      invente}: Se comprueba que la respuesta no contenga o no sea en sí una alucinación y sea fidedigna a las entidades oficiales, pero no se valoran dimensiones cualitativas como la claridad de las respuestas, o la utilidad pedagógica 
     (Apartado~\ref{secc:metricas_no_capturan}).}
 
-  \item \textcolor{borrador2}{\textbf{El banco de evaluación es propio y lo
-      escribió la misma persona que escribió el corrector}
-    (Apartado~\ref{secc:amenazas_validez}).}
+  \item \textbf{Sesgo inherente en el diseño del banco de evaluación:} Tanto las preguntas de prueba como los algoritmos de corrección han sido desarrollados por mí sin que nadie más los revisase, lo que introduce un sesgo metodológico respecto a una evaluación externa o ciega
+    (Apartado~\ref{secc:amenazas_validez}).
 
-  \item \textcolor{borrador2}{\textbf{Los tiempos de respuesta no son
-      extrapolables a otro equipo}: se miden sobre el equipo doméstico que impone
-    el requisito RNF-01, y ahí la mediana dobla el umbral fijado
-    (Apartado~\ref{secc:amenazas_validez}).}
+  \item \textbf{Dependencia del rendimiento respecto al hardware doméstico:} Las mediciones de lantencia y ocupación de memoria muestran el comportamiento del sistema en el entorno de desarrolado. Estas métricas no son directamente extrapolables a entornos con hardware diferente 
+    (Apartado~\ref{secc:amenazas_validez}).
 
-  \item \textcolor{borrador2}{\textbf{La colección cubre un solo centro y no
-      todas sus titulaciones por igual}, de modo que el sistema sabe menos
-    precisamente de las más nuevas (Apartado~\ref{secc:cobertura_generalizacion}).}
+  \item \textbf{Cobertura documental asimétrrica del corpus oficial:} La colección se basa en un único centro (la \sig{EPSJ}) y su nivel de detalle no es igual entre titulaciones, ya que las carreras de reciente implantación presentaban guías docentes incompletas o pendientes de publicación en la fecha de extracción (Apartado~\ref{secc:cobertura_generalizacion}).
 
-  \item \textcolor{borrador2}{\textbf{La colección no recoge dos de las cuatro
-      fuentes que enunciaba la propuesta}, las memorias de grado y los datos
-    estadísticos (Apartado~\ref{secc:discusion_correspondencia}), ni los datos de
-    acceso ---notas de corte y ponderaciones--- que un preuniversitario consulta
-    al decidir (Apartado~\ref{secc:alcance}).}
-
-  \item \textcolor{borrador2}{\textbf{La aplicación web no está en condiciones
-      de producción} (Apartado~\ref{secc:fase3_punto_entrada}).}
+  \item \textbf{Arquitectura web no dimensionada para producción concurrente:} El servidor y la interfaz se han diseñado como un prototipo funcional monousuario y sin adecuaciones para soportar cargas simultáneas (Apartado~\ref{secc:fase3_punto_entrada}).
 \end{itemize}
 
-\textcolor{borrador2}{Hay además tres cosas que los resultados de este trabajo \textbf{no}
-  permiten afirmar, y conviene dejarlas escritas porque son justo las que un pleno de
-  aciertos invita a leer de más. La primera es que el sistema acierte siempre: cincuenta y
-  siete de cincuenta y siete dejan la tasa real por encima de 0,949 y no en uno, y el
-  margen que queda por debajo lo fija el tamaño del banco, no la calidad del sistema. La
-  segunda es que repetir la evaluación mejore esa cota: no la mueve, porque las
-  observaciones son las preguntas y no las ejecuciones. Y la tercera es que las barreras
-  de dominio expliquen por sí solas el rechazo de las quince preguntas ajenas, porque tres
-  de esos rechazos los produce el propio modelo generativo, que no es un control del
-  sistema. Las tres se sostienen en el Apartado~\ref{secc:resultados_rag_sistema}.}
 
 \section{Trabajo futuro}
 \label{secc:trabajo_futuro}

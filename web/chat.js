@@ -445,6 +445,12 @@ async function preguntar(pregunta) {
   let primeraParte = true;
   let fuentes = [];
   let propuestas = null;
+  // El servidor cierra cada turno con `{"fin": true}`. Sin esta marca no se
+  // puede distinguir una respuesta terminada de una conexion que se corto
+  // despues de mandar medio texto: las dos llegan al final del bucle con
+  // texto acumulado. Antes se aceptaban las dos por igual, de modo que un
+  // corte a mitad se presentaba con el pie «Respuesta completa».
+  let finRecibido = false;
 
   /** Vuelca lo acumulado, sustituyendo la espera la primera vez. */
   const repintar = () => {
@@ -475,7 +481,13 @@ async function preguntar(pregunta) {
     // saltos de linea y el ultimo trozo se guarda: puede venir a medias.
     for (;;) {
       const { value, done } = await lector.read();
-      if (done) break;
+      if (done) {
+        // Vaciar el decodificador: si el flujo se corto en medio de un
+        // caracter de varios bytes, esos bytes estan retenidos dentro y sin
+        // esta llamada no aparecen por ninguna parte.
+        resto += decodificador.decode();
+        break;
+      }
       resto += decodificador.decode(value, { stream: true });
       const lineas = resto.split("\n");
       // Sin respaldo a proposito: `split` devuelve siempre al menos un
@@ -500,6 +512,7 @@ async function preguntar(pregunta) {
           // se sabe con certeza que no queda texto por llegar, asi que es
           // donde se retira la marca de «escribiendo».
           burbuja.removeAttribute("aria-busy");
+          finRecibido = true;
         }
         if (Array.isArray(suceso.sugerencias)) propuestas = suceso.sugerencias;
         if (Array.isArray(suceso.fuentes)) {
@@ -516,6 +529,14 @@ async function preguntar(pregunta) {
     }
 
     if (!acumulado.trim()) throw new Error("el servidor no devolvió ninguna respuesta");
+    // El servidor termina TODA linea con un salto, asi que lo que quede en
+    // `resto` al agotarse el flujo es una linea cortada por la mitad. No se
+    // intenta interpretar: media linea de JSON no dice nada fiable.
+    if (resto.trim()) throw new Error("la respuesta llegó cortada a la mitad");
+    // Sin el cierre del servidor la respuesta esta incompleta aunque haya
+    // texto. Aceptar el fin del transporte como fin de la respuesta hacia
+    // que un corte de red se presentase con el pie «Respuesta completa».
+    if (!finRecibido) throw new Error("la respuesta terminó sin el cierre del servidor");
     espera.parar();
 
     const segundos = (Date.now() - inicio) / 1000;
@@ -589,7 +610,6 @@ function bloquear(bloqueado) {
     "aria-label",
     bloqueado ? "Cancelar la consulta en curso" : "Enviar consulta"
   );
-  botonEnviar.classList.toggle("redaccion__enviar--cancelar", bloqueado);
   actualizarEnviar();
   if (!bloqueado) entrada.focus();
 }

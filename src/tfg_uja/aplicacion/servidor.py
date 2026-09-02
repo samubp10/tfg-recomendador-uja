@@ -49,6 +49,7 @@ enchufa con el socket.
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import time
 from collections.abc import Iterator
@@ -77,6 +78,11 @@ from tfg_uja.dialogo.recuperador import (
     contexto_para,
     distancia_del_indice,
 )
+
+#: Canal diagnóstico del servidor. Sirve para lo que no puede ir al chat ni
+#: al registro de turnos: que un adorno de la interfaz se haya caído o que se
+#: haya perdido la anotación de un turno. No lleva nunca la pregunta íntegra.
+_registro: Final[logging.Logger] = logging.getLogger(__name__)
 
 #: Interfaz estática. Se sirve desde el mismo proceso que el endpoint, que es
 #: lo que decide el ADR de arquitectura de la Fase 3.
@@ -413,8 +419,15 @@ def partes_de_la_respuesta(
     retirada = False
 
     def registrar(fallo: str = "") -> None:
-        """Deja el turno en el registro con el estado tal como esté ahora."""
-        anotar_turno(
+        """Deja el turno en el registro con el estado tal como esté ahora.
+
+        Que el registro no pueda escribirse no tumba el chat, que es lo
+        correcto: es un artefacto auxiliar. Pero tampoco puede perderse en
+        silencio, porque estas sesiones se analizan después y un hueco sin
+        aviso se lee como un turno que nunca ocurrió. El aviso lleva el
+        motivo, nunca la pregunta.
+        """
+        if anotar_turno(
             linea_de_turno(
                 pregunta=pregunta,
                 consulta=consulta,
@@ -428,6 +441,11 @@ def partes_de_la_respuesta(
                 modelo=MODELO_GENERATIVO,
                 error=fallo,
             )
+        ):
+            return
+        _registro.warning(
+            "No se ha podido anotar el turno en el registro: se pierde la "
+            "observación de esta consulta."
         )
 
     try:
@@ -473,7 +491,19 @@ def partes_de_la_respuesta(
     # Las sugerencias se calculan DESPUÉS de anotar, porque es ahí donde la
     # conversación fija de qué titulación se está hablando, y eso es lo que
     # decide qué se puede proponer.
-    yield {"sugerencias": sugerencias_para(tabla, conversacion.ambito, catalogo, turno)}
+    #
+    # Y se calculan dentro de una captura porque son un adorno: consultan el
+    # índice por su cuenta y un fallo suyo escapaba hasta aquí, dejaba el
+    # turno sin `fin` y se llevaba por delante una respuesta que ya estaba
+    # entregada. La captura es estrecha a propósito: envuelve solo esta
+    # llamada, no el turno entero, para no convertir un fallo real del
+    # generador en un silencio.
+    try:
+        propuestas = sugerencias_para(tabla, conversacion.ambito, catalogo, turno)
+    except Exception as fallo:  # noqa: BLE001
+        _registro.warning("No se han podido calcular las sugerencias: %s", fallo)
+        propuestas = []
+    yield {"sugerencias": propuestas}
     yield {"fin": True}
 
 
