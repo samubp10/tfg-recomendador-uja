@@ -112,6 +112,11 @@ el extra `[index]`, que arrastra PyTorch a través de `sentence-transformers`
 pip install -e ".[dev,index]"
 ```
 
+Para **repetir un experimento con el mismo entorno con el que se midió**, se
+añade `-c constraints.txt`, que fija las versiones exactas de esa fotografía.
+Sin él se resuelven las de hoy, que es lo que se quiere para trabajar y lo que
+no se quiere para comparar contra una cifra ya publicada.
+
 ### 2. Servidor de inferencia
 
 ```console
@@ -156,9 +161,12 @@ py scripts/chat_rag.py
 ```
 
 > ⚠️ **El servidor no es apto para producción, y así está declarado.** Está
-> construido sobre `http.server` de la biblioteca estándar: atiende en serie, no
-> limita el tamaño de la petición y no ofrece HTTPS. Escucha solo en
-> `127.0.0.1`. El despliegue queda fuera del alcance de este trabajo.
+> construido sobre `http.server` de la biblioteca estándar: atiende una petición
+> cada vez y no ofrece HTTPS. Escucha solo en `127.0.0.1`, limita el cuerpo de
+> la petición y solo atiende consultas que lleguen desde su propia interfaz
+> ---comprueba `Host`, `Origin` y `Content-Type`---, de modo que una página
+> ajena abierta en el mismo navegador no puede usarlo. El despliegue queda
+> fuera del alcance de este trabajo.
 
 ### Verificadores del dataset (solo en local)
 
@@ -200,14 +208,15 @@ cambia entre llamadas.
 ## Calidad
 
 ```console
-pytest                                          # 861 pruebas, con fixtures HTML/PDF/JSON reales
+pytest                                          # la tanda entera, con fixtures HTML/PDF/JSON reales
 mypy src/tfg_uja/ --ignore-missing-imports      # tipado estático limpio
 black src/ tests/ scripts/                      # formato
 flake8 src/ tests/ scripts/                     # estilo (configurado en .flake8)
 ```
 
-Tres pruebas se saltan solas si Ollama no responde, y lo anuncian en vez de
-pasar en verde en silencio. La prueba lenta de integración recorre el conjunto
+Algunas pruebas se saltan solas cuando falta el índice vectorial o Ollama no
+responde, y dicen cuál de las dos cosas falta en vez de pasar en verde en
+silencio. La prueba lenta de integración recorre el conjunto
 de evaluación entero llamando al modelo y queda fuera de la tanda por defecto:
 
 ```console
