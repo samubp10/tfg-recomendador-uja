@@ -142,6 +142,11 @@ The tests do **not** need it: they inject a fake embedder.
 pip install -e ".[dev,index]"
 ```
 
+To **reproduce an experiment with the environment it was measured on**, add
+`-c constraints.txt`, which pins that snapshot exactly. Without it you get
+today's versions, which is what you want for working and not what you want for
+comparing against an already published figure.
+
 ### 2. Inference server
 
 ```console
@@ -187,9 +192,11 @@ py scripts/chat_rag.py
 ```
 
 > ⚠️ **The server is not production-ready, and says so.** It is built on the
-> standard library's `http.server`: it serves requests one at a time, does not
-> cap request size and offers no HTTPS. It listens on `127.0.0.1` only.
-> Deployment is out of the scope of this work.
+> standard library's `http.server`: it serves one request at a time and offers
+> no HTTPS. It listens on `127.0.0.1` only, caps the request body, and answers
+> queries only when they come from its own interface ---it checks `Host`,
+> `Origin` and `Content-Type`---, so a foreign page open in the same browser
+> cannot drive it. Deployment is out of the scope of this work.
 
 ### Dataset checkers (local only)
 
@@ -224,14 +231,15 @@ between calls.
 ## Tests
 
 ```console
-pytest                                          # 861 tests, with real HTML/PDF/JSON fixtures
+pytest                                          # the whole run, with real HTML/PDF/JSON fixtures
 mypy src/tfg_uja/ --ignore-missing-imports      # clean static typing
 black src/ tests/ scripts/                      # formatting
 flake8 src/ tests/ scripts/                     # style (configured in .flake8)
 ```
 
-Three tests skip themselves when Ollama is not answering, and announce it rather
-than passing green in silence. The slow integration test walks the whole
+Some tests skip themselves when the vector index is missing or Ollama is not
+answering, and say which of the two is missing rather than passing green in
+silence. The slow integration test walks the whole
 evaluation set calling the model, and is excluded from the default run:
 
 ```console

@@ -15,16 +15,40 @@ jobs:
           python-version: "3.13"
           cache: "pip"
 
+      # Sin este paso, `tests/test_chat_js.py` se salta solo cuando falta
+      # `node` y la tanda queda en verde SIN haber probado el cliente. Que la
+      # imagen de GitHub traiga Node hoy no es garantía de nada: se pide
+      # explícitamente para que dejar de traerlo se vea como un fallo y no
+      # como un silencio.
+      - name: Preparar Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "lts/*"
+
       - name: Instalar el proyecto y sus dependencias
         run: pip install -e ".[dev]"
 
-      - name: Ejecutar las pruebas
-        run: pytest
+      # El formato y el estilo van ANTES que las pruebas: son segundos, y no
+      # tiene sentido esperar la tanda entera para descubrir una línea larga.
+      - name: Comprobar el formato
+        run: black --check src/ tests/ scripts/
+
+      - name: Comprobar el estilo
+        run: flake8 src/ tests/ scripts/
+
+      # La cobertura se exige aquí y no solo en local. El objetivo es el que
+      # fija `pyproject.toml`, y es de SENTENCIA: llegar al 100 % no dice que
+      # el código esté bien probado, dice que ninguna línea se ha quedado sin
+      # ejecutar ni una vez. Sirve para ver la línea que nadie toca ---como
+      # el camino de fallo de un verificador, que es justo el que importa---,
+      # no para dar por buena una prueba.
+      - name: Ejecutar las pruebas con cobertura
+        run: pytest --cov --cov-fail-under=100
 
       - name: Comprobar la coherencia de tipos
         run: mypy src/tfg_uja/ --ignore-missing-imports
 
-      # check_dataset.py y check_chunks.py NO se ejecutan aquí: data/ no
+      # Los cuatro verificadores del corpus NO se ejecutan aquí: data/ no
       # está versionado (ver .gitignore), así que en un checkout limpio de
       # CI esos ficheros no existen. Se ejecutan en local antes de cada
       # push (ver el README, «Verificadores del dataset»).

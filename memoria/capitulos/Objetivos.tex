@@ -103,7 +103,10 @@ En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo ori
 \subsection[Diseño conceptual de la interfaz]{Diseño conceptual de la interfaz}
 \label{secc:wireframe}
 
-Los requisitos descritos anteriormente determinan qué debe de hacer el sistema, pero no cómo se le presenta a quien va a usarlo. Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y única del aplicativo como se puede observar en la Figura~\ref{fig:wireframe}.
+Los requisitos descritos anteriormente determinan qué debe de hacer el sistema, pero no cómo se le presenta a quien va a usarlo. \sout{Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y única del aplicativo como se puede observar en la Figura~\ref{fig:wireframe}.}
+\textcolor{borrador2}{El boceto de la Figura~\ref{fig:wireframe} recoge qué se le pedía a la
+  pantalla principal, que es la única del aplicativo. Cómo se resolvió después es materia
+  del Apartado~\ref{secc:fase3_interfaz}.}
 
 
 \begin{figure}[H]
@@ -116,15 +119,9 @@ Los requisitos descritos anteriormente determinan qué debe de hacer el sistema,
 
 El boceto establece una pantalla sin registro ni instalación previa, dando cumplimiento al requisito RU-05, un cuadro de texto dando un saludo al usuario (RU-01) y el historial de mensajes sobre él. Se evitó sobrecargar la estética de funcionalidades innecesarias para hacer más sencillo su uso.
 
-Además del flujo habitual que pudiera tener un usuario, el diseño resuelve tres situaciones derivadas del comportamiento real de la aplicación, ilustradas en la Figura~\ref{fig:estados_chat}:
-
-\begin{itemize}
-  \item \textbf{La espera durante la inferencia:} La ejecución del modelo del lenguaje en el equipo local (RNF-01) y la prioridad de la fidelidad sobre la latencia (RNF-04) conlleva tiempos de inferencia más altos. Para evitar la sensación de bloqueo o congelamiento de la aplicación, la interfaz incorpora un indicador visual de la actividad con mensajes informativos sobre el estado actual de la respuesta.
-  
-\item \textbf{La respuesta determinista inmediata:} Determinados mensajes como los saludos ("Hola", "buenos días", etc...) o cuando se detectan preguntas sobre centros ajenos a las EPSJ, se resuelven mediante respuestas prefijadas por reglas de control (RF-07). Al no requerir la inferencia del modelo, la respuesta la genera el código y es prácticamente instantánea y se muestra de forma directa en la conversación.
-
- \item \textbf{La declaración de ausencia de información:} Cuando el ámbito de una pregunta excede el catálogo de información oficial disponible (como la solicitud de notas de corte o plazos de matrícula), el sistema informa expresamente de que les faltan estos datos para evitar alucinaciones (RU-03, RU-06). Se trata esto como en el caso anterior, como una respuesta válida, integrándola en el flujo de chat sin presentarla como un error.
-
-\end{itemize}
-
-\input{diagramas/DiagramaEstadosChat.tex}
+\textcolor{borrador2}{[Aquí seguían tres situaciones que el diseño tiene que resolver ---la
+  espera durante la inferencia, la respuesta determinista inmediata y la declaración de
+  ausencia de información--- y el diagrama de estados de la conversación. Las tres son
+  decisiones de construcción, no objetivos, y las tres se volvían a explicar en Material y
+  Métodos, así que el lector las leía dos veces. Se han movido con su texto intacto al
+  Apartado~\ref{secc:fase3_interfaz}, junto con el diagrama.]}

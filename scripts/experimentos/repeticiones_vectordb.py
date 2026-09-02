@@ -29,6 +29,10 @@ import numpy as np
 RAIZ = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
+# Se importa aquí, y no arriba con el resto, porque `tfg_uja` solo es
+# importable después del `sys.path.insert` de la línea anterior.
+from tfg_uja.invariantes import exigir  # noqa: E402
+
 # El guion del experimento se carga por su ruta, igual que hacen las pruebas
 # del proyecto con los verificadores de `scripts/`: esa carpeta no es un
 # paquete importable, y un `import` normal solo funcionaría por un `sys.path`
@@ -40,7 +44,10 @@ _RUTA_EXPERIMENTO = Path(__file__).resolve().parent / "experimento_vectordb.py"
 _spec = importlib.util.spec_from_file_location(
     "experimento_vectordb", _RUTA_EXPERIMENTO
 )
-assert _spec is not None and _spec.loader is not None
+exigir(
+    _spec is not None and _spec.loader is not None,
+    lambda: f"no se ha podido preparar la carga de {_RUTA_EXPERIMENTO}",
+)
 exp = importlib.util.module_from_spec(_spec)
 sys.modules["experimento_vectordb"] = exp
 _spec.loader.exec_module(exp)

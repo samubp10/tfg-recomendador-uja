@@ -50,10 +50,13 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 
 
 
-\section{Estado del arte}
+\section[Fundamentos técnicos]{Fundamentos técnicos}
 \label{secc:estado_arte}
 
-Antes de abordar el diseño de la solución propuesta, conviene examinar el estado actual de las tecnologías y los antecedentes en orientación académica. Esta revisión se organiza en dos partes: primeramente, los fundamentos tecnológicos sobre los que se sustenta el sistema (modelos de lenguaje y alucinaciones, arquitectura \sig{RAG}, modelos de pesos abiertos frente a comerciales, y bases de datos vectoriales), en segundo lugar, los asistentes conversacionales universitarios y sistemas de recomendación existentes, con el fin de aclarar la necesidad que cubre este trabajo. La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
+
+En esta sección de exponen los conceptos teóricos y las tecnologías que sustentan el diseño del proyecto. En primer lugar, se examinan los modelos de lenguaje, el fenómeno de las alucinaciones y la necesidad de una arquitectura de Generación Aumentada por Recuperación (\sig{RAG}), contrastando el uso de modelos comerciales frente a opciones de pesos abiertos ejecutables en local. En segundo lugar, se detallan los elementos esenciales del tratamiento documental, como los procesos de extracción web, la fragmentación semántica del texto, la generación de incrustaciones (\textit{embeddings}) y su almacenamiento en bases de datos vectoriales para posibilitar la búsqueda semántica. Finalmente, se definen las métricas matemáticas empleadas para evaluar tanto la calidad de la recuperación como la fidelidad de las respuestas generadas.
+
+La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
 
@@ -256,6 +259,11 @@ Hay dos características que separan unas bases de otras. La primera es cómo se
 
 
 
+\section[Estado del arte]{Estado del arte}
+\label{secc:estado_arte_asistentes}
+
+Una vez dichos los fundamentos tecnológicos en la sección anterior, este apartado examina las soluciones existentes orientadas a resolver el problema de orientación académica en la educación superior. Esta sección se reparte en dos vertientes, por un lado, los asistentes conversacionales actualmente en funcionamiento en universidades españolas, evaluando de forma práctica su capacidad de respuesta frente a preguntas de estudiantes de nuevo ingreso, y por otro lado, los sitemas de recomendación educativos documentados en la literatura científicam, tales como los modelos basado en filtrado colaborativo o los enfoques psicométricos.
+
 \subsection{Asistentes conversacionales en el ámbito universitario}
 
 
@@ -354,6 +362,7 @@ no la síntesis de una fuente citable. Es precisamente esta capacidad la que dis
 
 
 \subsection{Posicionamiento de este trabajo}
+\label{secc:posicionamiento}
 
 Este trabajo comparte con los sistemas analizados el propósito de orientar en la elección académica, pero se diferencia de ellos en tres aspectos fundamentales:
 \begin{itemize}

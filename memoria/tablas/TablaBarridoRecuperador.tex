@@ -1,18 +1,23 @@
 % !TEX root = ../main.tex
-% Tres configuraciones de la rejilla del recuperador (IT-49), elegidas para que
+% Dos configuraciones de la rejilla del recuperador (IT-49), elegidas para que
 % se lea la decision y no para resumir las 240.
 % Fuente: docs/experimentos/it49-recuperador.md, escrito por el propio guion
 %   scripts/experimentos/barrido_recuperador.py. NO editar estas cifras a mano.
 %
-% Por que estas tres y no las veinte mejores: la fila del medio es la que la
-% rejilla prefiere y la de abajo la que se adopta. Sin las dos juntas no se ve
-% la decision, que es lo unico que esta seccion tiene que contar.
+% Por que estas dos y no las veinte mejores: la primera es la que la rejilla
+% prefiere y la segunda la que se adopta. Sin las dos juntas no se ve la
+% decision, que es lo unico que esta seccion tiene que contar.
+%
+% Habia una tercera fila, "De partida" (factor 1,20 y suelo 0,142), que se ha
+% retirado: su suelo no aparece en ninguna parte de it49-recuperador.md, de modo
+% que era la unica cifra de la tabla sin artefacto de procedencia. Si se quiere
+% recuperar hay que volver a ejecutar el barrido y que el informe la publique.
 \begin{table}[htbp]
   \centering
   \small
   \caption[\textcolor{borrador2}{Rejilla de parámetros del recuperador}]{%
-    \textcolor{borrador2}{Tres de las 240 configuraciones de la rejilla del
-      recuperador: la de partida, la que la rejilla prefiere y la adoptada.
+    \textcolor{borrador2}{Dos de las 240 configuraciones de la rejilla del
+      recuperador: la que la rejilla prefiere y la que se adopta.
       Fuente: elaboración propia.}}
   \label{tab:barrido_recuperador}
   \begin{tabular}{@{}lrrrrrrr@{}}
@@ -21,7 +26,6 @@
       & \textbf{factor} & \textbf{suelo} & \textbf{Unidad} & \textbf{Rechazo}
       & \textbf{Frag.} \\
     \midrule
-    \textcolor{borrador2}{De partida}          & 3 & 20 & 1,20 & 0,142 & 1,000 & 0,700 & 7,2 \\
     \textcolor{borrador2}{Preferida por la rejilla} & 3 & 20 & 1,10 & 0,137 & 1,000 & 0,800 & 4,2 \\
     \textcolor{borrador2}{\textbf{Adoptada}}   & 3 & 20 & 1,20 & 0,137 & 1,000 & \textbf{0,800} & 7,2 \\
     \bottomrule
@@ -46,7 +50,7 @@
       peticiones de consejo. La cifra que describe el sistema es la del
       Apartado~\ref{secc:resultados_rag_recuperacion}.
       \textbf{Frag.} es la media de fragmentos entregados por pregunta, que se
-      paga en tiempo y en ventana de contexto. Ninguna de las tres deja sin
+      paga en tiempo y en ventana de contexto. Ninguna de las dos deja sin
       contexto ninguna pregunta de dominio.}
   \end{minipage}
 \end{table}

@@ -1,14 +1,7 @@
 % !TEX root = ../main.tex
 % Resultados literales de la evaluacion del sistema completo (IT-38, IT-39).
 % Fuente: docs/experimentos/it38-sistema.md, escrito por el propio guion
-%   scripts/experimento_sistema.py, y el registro data/registro_sistema_gemma3.jsonl.
-% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar el guion y se
-%   copian de ahi. 57 entradas del banco de IT-37, modelo gemma3:12b, corpus de
-%   1.499 fragmentos y servidor de inferencia 0.32.14.
-%
-% La familia fuera de dominio paso de 5 a 15 en IT-39: a las cinco evidentes se
-% le sumaron las diez adversarias, que antes se median en un experimento aparte.
-% Por eso hay una sola cifra de rechazo y ya no dos que parecian contradecirse.
+%   scripts/experimentos/experimento_sistema.py, y el registro data/registro_sistema_gemma3.jsonl.
 \begin{table}[htbp]
   \centering
   \small
@@ -41,22 +34,6 @@
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textcolor{borrador2}{\textbf{Notas:} las seis primeras familias preguntan
-      por un dato de la colección y se corrigen contra ella; las cinco últimas
-      comprueban comportamiento y se corrigen contra las respuestas fijas del
-      generador. Ninguna comprobación emplea un modelo que juzgue a otro.
-      \textbf{Conversación encadenada} son diálogos de varios turnos, de modo
-      que su tiempo acumula todos ellos y no es comparable con el de una
-      pregunta suelta. \textbf{Quince de las 57 entradas se resuelven sin llegar
-      a llamar al modelo}: las cuatro de cortesía y once de las quince ajenas, y
-      de ahí sus medianas de décimas de segundo. Eso hace que la mediana total
-      sea más baja que la de cualquier familia que sí llama al modelo, así que
-      \textbf{no debe leerse como el tiempo de una respuesta}: describe la
-      composición del banco antes que al sistema. \textbf{Fuera de dominio}
-      reúne las cinco preguntas ajenas evidentes y las diez construidas para
-      colarse, que no intervinieron en ningún ajuste. El pleno se mide sobre 57
-      entradas: con esa muestra la cota inferior del intervalo de confianza al
-      95\,\% es 0,949, y sobre las quince ajenas por separado, 0,819. Ninguna de
-      las dos es 1.}
+    \textbf{Notas:} $n$ es el número de casos de prueba evaluados. Todas las comprobaciones se corrigen de forma determinista contra los datos de la colección o las respuestas fijas del sistema (sin modelos como juez). En \textit{Conversación encadenada}, el tiempo acumula la totalidad de turnos del diálogo. Las familias de \textit{Cortesía} y \textit{Fuera de dominio} presentan latencias mínimas porque la mayoría de sus entradas se resuelven mediante respuestas fijas o filtros antes de invocar al modelo generativo.
   \end{minipage}
 \end{table}

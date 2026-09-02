@@ -1,0 +1,87 @@
+% Guion grafico de la pantalla de chat (IT-43).
+%
+% Se dibuja ANTES de programar la interfaz (IT-45): es una decision de diseno,
+% no documentacion a posteriori de lo que resulto comodo de implementar.
+%
+% Los dos textos del asistente NO son inventados:
+%   - El de la izquierda es la respuesta real de gemma3:12b a la pregunta
+%     G-MEN-002 del banco de evaluacion, tal cual la devolvio el sistema.
+%   - El de la derecha es literalmente RESPUESTA_SIN_CONTEXTO de generador.py,
+%     que es una constante del codigo y no una redaccion de ejemplo.
+% La pregunta de la derecha es V-001 del conjunto de preguntas ajenas.
+%
+% Lo que este guion decide, y es su motivo de existir: el bloque de fuentes
+% aparece SOLO cuando hay fragmentos recuperados. Su ausencia es la senal de
+% que el sistema no esta citando nada, y por eso no se sustituye por un bloque
+% vacio ni por un aviso generico.
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      pantalla/.style={draw=diagNodoBorde, thick, rounded corners=4pt, fill=white},
+      barra/.style={draw=diagGrupoBorde, fill=diagGrupo, rounded corners=2pt,
+                    align=center, font=\footnotesize\bfseries, minimum height=0.8cm},
+      usuario/.style={draw=diagNodoBorde, fill=diagNodo, rounded corners=4pt,
+                      align=left, font=\scriptsize, inner sep=5pt},
+      asistente/.style={draw=diagNodoBorde, fill=white, rounded corners=4pt,
+                        align=left, font=\scriptsize, inner sep=5pt},
+      fuentes/.style={draw=diagGrupoBorde, fill=diagGrupo, rounded corners=4pt,
+                      align=left, font=\scriptsize, inner sep=5pt},
+      entrada/.style={draw=diagNodoBorde, rounded corners=4pt, fill=white,
+                      align=left, font=\scriptsize\itshape, inner sep=5pt},
+      nota/.style={font=\scriptsize, text=diagGrupoBorde!60!black, align=left,
+                   inner sep=2pt},
+      apunte/.style={-{Latex[length=2mm]}, semithick, densely dashed,
+                     draw=diagGrupoBorde!70!black},
+      rotulo/.style={font=\small\bfseries, anchor=north},
+      ]
+
+      % ================= CASO NORMAL =================
+      \node[pantalla, minimum width=8cm, minimum height=10.6cm] (p1) at (4,5.3) {};
+      \node[barra, minimum width=7.4cm] at (4,9.9) {Asistente de titulaciones · EPSJ};
+      \node[usuario, text width=4.6cm, anchor=north east] at (7.7,9.2)
+      {¿En qué menciones se puede especializar el Grado en Ingeniería Eléctrica?};
+      \node[asistente, text width=5.6cm, anchor=north west] at (0.3,7.7)
+      {El Grado en Ingeniería Eléctrica tiene tres menciones:\\[2pt]
+        · Generación Eléctrica con Energías Renovables\\
+        · Instalaciones Eléctricas\\
+        · Sistemas Eléctricos};
+      \node[fuentes, text width=5.6cm, anchor=north west] at (0.3,4.5)
+      {\textbf{Fuentes}\\[2pt]
+        · Menciones del Grado en Ingeniería Eléctrica\\
+        · Plan de estudios del Grado en Ingeniería Eléctrica};
+      \node[entrada, text width=6.9cm, anchor=north west] at (0.3,1.6)
+      {Escribe tu pregunta\ldots};
+      \node[rotulo] at (4,-0.1) {Caso normal};
+
+      % ================= CASO SIN INFORMACION =================
+      \begin{scope}[shift={(9.6,0)}]
+        \node[pantalla, minimum width=8cm, minimum height=10.6cm] (p2) at (4,5.3) {};
+        \node[barra, minimum width=7.4cm] at (4,9.9) {Asistente de titulaciones · EPSJ};
+        \node[usuario, text width=4.6cm, anchor=north east] at (7.7,9.2)
+        {¿Se puede estudiar Enfermería aquí?};
+        \node[asistente, text width=5.6cm, anchor=north west] (r2) at (0.3,7.7)
+        {No he encontrado información sobre eso en la web de la Escuela
+          Politécnica Superior de Jaén. Puedo ayudarte con las titulaciones que
+          se imparten allí: sus asignaturas, qué se estudia en cada una y qué
+          salidas profesionales tienen. ¿Sobre cuál te gustaría saber?};
+        \node[nota, text width=5.4cm, anchor=north west] (n2) at (0.5,4.2)
+        {Aquí \textbf{no} hay bloque de fuentes: no se ha recuperado ningún
+          fragmento, así que no hay nada que citar. Su ausencia es la señal, y
+          por eso no se sustituye por un bloque vacío.};
+        \draw[apunte] (n2.north west) ++(0.2,0.15) -- ++(0,0.9);
+        \node[entrada, text width=6.9cm, anchor=north west] at (0.3,1.6)
+        {Escribe tu pregunta\ldots};
+        \node[rotulo] at (4,-0.1) {Caso sin información suficiente};
+      \end{scope}
+    \end{tikzpicture}%
+  }
+  \caption[Guion gráfico de la pantalla de chat]{\textcolor{borrador2}{Guion
+      gráfico de la pantalla de chat, en el caso normal y en el caso en que el
+      sistema no encuentra información con la que responder. Las dos respuestas
+      del asistente son reales: la de la izquierda es la que devolvió el sistema
+      a la pregunta \texttt{G-MEN-002} del banco de evaluación, y la de la
+      derecha es la constante con la que responde cuando la recuperación vuelve
+      vacía. Fuente: Elaboración propia.}}
+  \label{fig:storyboard_chat}
+\end{figure}
