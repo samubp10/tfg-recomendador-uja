@@ -14,7 +14,7 @@ Además de esta metodología para la gestión de tareas, el proyecto se apoya en
 
 \subsection{Gestión del trabajo y priorización}
 
-El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en unidades de trabajo atómicas o historias de usuario. Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta la validación con usuarios reales.
+El ciclo de vida del proyecto se ha gestionado mediante un tablero \textbf{Kanban} virtual (implementado en \textit{GitHub Projects}), dividiendo el alcance total en unidades de trabajo atómicas o historias de usuario. Estas tareas se agrupan secuencialmente en seis fases lógicas (Fase 0 a Fase 5), desde la minería de datos hasta \sout{la validación con usuarios reales}\textcolor{borrador2}{el cierre y la preparación de la defensa}.
 
 Para gestionar la priorización de las tareas, se ha aplicado la técnica de \textbf{MoSCoW} \cite{moscow} (\textit{Must have, Should have, Could have, Won't have}), asegurando que los componentes críticos del sistema RAG se desarrollen de manera prioritaria frente a las características opcionales.
 
@@ -70,7 +70,7 @@ para asegurar que todas las partes del sistema funcionan correctamente y que los
 \textbf{El primer tipo son las pruebas del código}, escritas con
 \texttt{pytest} y ejecutadas antes de la ejecución del código que comprueban y cuando se suben al repositorio (explicado en la sección ~\ref{secc:Integracion_continua}). Comprueban que cada módulo o script hace lo que está previsto que haga, son deterministas y su resultado es de carácter booleano, es decir, pasan o no pasan. Cuando fallan, el defecto está en el código.
 
-\textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que continen toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los chunks de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de los chunks supera el tamaño máximo o si el fragmento nombra a una unidad  (Asignatura, plan de estudio o Salida profesional) distinta a la suya.
+\textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que \sout{continen}\textcolor{borrador2}{contienen} toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los chunks de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de los chunks supera el tamaño máximo o si el fragmento nombra a una unidad  (Asignatura, plan de estudio o Salida profesional) distinta a la suya.
 
 Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no en la integración continua debido a que la colección de datos no se versiona ya que son ficheros grandes y con previsión a ser aún más grandes en el futuro (Sección~\ref{secc:verificacion_fase0}).
 
@@ -150,7 +150,11 @@ Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Fig
         
   \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
         
-  \item \textbf{Fase 4 (Validación experimental):} Pruebas del sistema con usuarios reales (estudiantes de perfil preuniversitario) y estudios de ablación sobre los hiperparámetros del sistema.
+  \item \textbf{Fase 4 (Validación experimental):} \sout{Pruebas del sistema con usuarios reales (estudiantes de perfil preuniversitario) y estudios de ablación sobre los hiperparámetros del sistema.}\textcolor{borrador2}{Estudios de ablación sobre los
+        parámetros del recuperador y evaluación del sistema completo sobre el banco de
+        preguntas. Esta fase incluía además pruebas con estudiantes de perfil
+        preuniversitario, que quedaron fuera del alcance por las razones que expone el
+        Apartado~\ref{secc:validacion_usuarios}.}
         
   \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral (Aunque la memoria se está haciendo a la par que el desarrollo).
         
@@ -243,21 +247,24 @@ la incidencia correspondiente en el repositorio, de modo que cualquier línea de
 A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
 
-Los cinco tipos de historias son los siguientes:
-\begin{itemize}                                                                                                                                                    
-  \item \textbf{Código}: se escribe o se corrige software y sus pruebas.
-  \item \textbf{Memoria}: se redacta una parte de este documento.
-  \item \textbf{Experimento}: se mide algo sobre datos reales para poder decidir con evidencia la mejor opción posible.
-  \item \textbf{Decisión}: se documenta una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA) con sus alternativas y sus motivos.
-  \item \textbf{Gestión}: infraestructura del propio proyecto, como la integración continua o el material de la defensa.
-\end{itemize}
+\sout{Los cinco tipos de historias son los siguientes:}
+\textcolor{borrador2}{Los cinco tipos de historia son los mismos que enumera el
+  Apartado~\ref{secc:dod} con sus criterios de finalización ---código, memoria,
+  experimento, decisión y gestión---, y son las columnas por las que se reparte la tabla.}
+\sout{
+  Código: se escribe o se corrige software y sus pruebas.
+  Memoria: se redacta una parte de este documento.
+  Experimento: se mide algo sobre datos reales para poder decidir con evidencia la mejor opción posible.
+  Decisión: se documenta una elección de arquitectura (ADR) o una anomalía de la fuente de datos (DQA) con sus alternativas y sus motivos.
+  Gestión: infraestructura del propio proyecto, como la integración continua o el material de la defensa.
+}
 
 \input{tablas/TablaResumenBacklog.tex}
 
 
 \section{Tecnologías y herramientas}
 
-Antes de la descripción de la construcción del sistema, resulta necesario establecer dos premisas que determinan y enmarcan las decisiones técnicas posteriores. La primera concierne al engoque arquitectónico, que consiste en establecer una estrategia para garantizar que el modelo de lenguaje genere respuestas verazces y no alucine, justificando el descarte de técnicas de reentrenamiento. Le segunda premisa define las restricciones \textit{hardware} del equipo sobre el que se ejecuta el sistema. Esta limitación de memoria constitye un cuello de botella que condiciona de forma directa la selección posterior del modelo de incrustaciones, la base de datos vectorial y el modelo generativo.
+Antes de la descripción de la construcción del sistema, resulta necesario establecer dos premisas que determinan y enmarcan las decisiones técnicas posteriores. La primera concierne al \sout{engoque}\textcolor{borrador2}{enfoque} arquitectónico, que consiste en establecer una estrategia para garantizar que el modelo de lenguaje genere respuestas \sout{verazces}\textcolor{borrador2}{veraces} y no alucine, justificando el descarte de técnicas de reentrenamiento. \sout{Le}\textcolor{borrador2}{La} segunda premisa define las restricciones \textit{hardware} del equipo sobre el que se ejecuta el sistema. Esta limitación de memoria \sout{constitye}\textcolor{borrador2}{constituye} un cuello de botella que condiciona de forma directa la selección posterior del modelo de incrustaciones, la base de datos vectorial y el modelo generativo.
 
 \subsection{RAG frente al ajuste fino}
 
@@ -321,6 +328,7 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \section{Fase 0: construcción de la colección documental}
 
 \subsection{Situación de partida}
+\label{secc:fase0_situacion}
 
 Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (HTML en el catálogo de titulaciones, PDF en las guías docentes) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
 
@@ -438,16 +446,16 @@ Las salidas profesionales se extraen como un bloque de texto por titulación. El
 uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cual se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
 
 
-  La Figura~\ref{fig:estructura_salidas} muestra la estructura de este tipo de elemento a partir de un caso real (las salidas profesionales del Grado en Ingeniería Informática). Consta de un solo bloque de texto continuo y se indeza únicamente con el nombre de la titulación.
+  La Figura~\ref{fig:estructura_salidas} muestra la estructura de este tipo de elemento a partir de un caso real (las salidas profesionales del Grado en Ingeniería Informática). Consta de un solo bloque de texto continuo y se \sout{indeza}\textcolor{borrador2}{indexa} únicamente con el nombre de la titulación.
 
 \input{diagramas/DiagramaEstructuraSalidas.tex}
 
 \subsection[Deduplicación de la colección]{Deduplicación de la colección}
 \label{subsec:deduplicacion}
 
-Durante el análisis del corpus recopilado se detectó una notable redundancia estructural en la fuente oficial. Las asignaturas de lso primeros cursos de las carreras de ingeniería (como \textit{Física} o \textit{Matemáticas I}) comparten una guía docente idéntica.
+Durante el análisis del corpus recopilado se detectó una notable redundancia estructural en la fuente oficial. Las asignaturas de \sout{lso}\textcolor{borrador2}{los} primeros cursos de las carreras de ingeniería (como \textit{Física} o \textit{Matemáticas I}) comparten una guía docente idéntica.
 
-Esta duplicidad afecta negativamente a la fase de recuperacion del sistema RAG ya que varios fragmentos exactos pelearía por un puesto limitado del \textit{ranking} ($Top\text{-}K$). Para solventarlo, se implementó un proceso de eliminación de duplicidades previo a la fragmentación, conservando un único documento por grupo y consolidando en listas paralelas los identificadores y grados donde se imparte (\texttt{grados} y \texttt{codigos}).
+Esta duplicidad afecta negativamente a la fase de \sout{recuperacion}\textcolor{borrador2}{recuperación} del sistema RAG ya que varios fragmentos exactos \sout{pelearía}\textcolor{borrador2}{pelearían} por un puesto limitado del \textit{ranking} ($Top\text{-}K$). Para solventarlo, se implementó un proceso de eliminación de duplicidades previo a la fragmentación, conservando un único documento por grupo y consolidando en listas paralelas los identificadores y grados donde se imparte (\texttt{grados} y \texttt{codigos}).
 
 \subsubsection{Criterio de identidad y selección de la clave (ADR-0001)}
 \label{secc:criterio_identidad_deduplicacion}
@@ -608,7 +616,7 @@ Para la elección de los candidatos se buscó la mayor variedad posible, por lo 
 
 De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda 5,6 veces más en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. El coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda \sout{5,6 veces más}\textcolor{borrador2}{bastante más (Apartado~\ref{secc:resultados_embeddings})} en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. El coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
 Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-e5-small), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
                                  
@@ -660,7 +668,7 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
 \subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_lancedb}
 
-De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta, y esto ocurre en cuatro de cada veinte reconstrucciones del índice. A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error es fatal.
+De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta\sout{, y esto ocurre en cuatro de cada veinte reconstrucciones del índice}\textcolor{borrador2}{ en una parte de las reconstrucciones del índice (Apartado~\ref{secc:resultados_vectordb})}. A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error es fatal.
 
 Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, no cabe fijarse en esto para establecer la decisión.
 
@@ -668,13 +676,15 @@ Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant nece
 
 La ganadora del experimento es por tanto \textbf{LanceDB}, pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque con el que se aborda este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
+\textcolor{borrador2}{La Figura~\ref{fig:comparativa_vectordb} resume el recorrido de la
+  comparación: qué se midió en cada candidata y qué umbral decidió el descarte.}
 
 \input{diagramas/DiagramaComparativaVectorDB.tex}
 
 \subsection[Construcción del índice]{Construcción del índice}
 \label{secc:fase2_construccion_indice}
 
-El índice es una estructura de datos organizada y optimizada donde se almacena la colección de fragmentos generada por la fase anterior, al cuál también descarta el registro de procedencia que encabeza el fichero ya que este describe de cuándo es el corpus y no es contenido realmente útil para el sistema. El índice actúa como la memoria del sistema de este proyecto, de modo que cada fragmento de la colección queda registrado de forma indisociable junto a su vector de incrustación y a susu metadatos asociados (titulaciones, códigos de asignatura y tipología). 
+El índice es una estructura de datos organizada y optimizada donde se almacena la colección de fragmentos generada por la fase anterior, \sout{al cuál}\textcolor{borrador2}{del cual} también \textcolor{borrador2}{se }descarta el registro de procedencia que encabeza el fichero ya que este describe de cuándo es el corpus y no es contenido realmente útil para el sistema. El índice actúa como la memoria del sistema de este proyecto, de modo que cada fragmento de la colección queda registrado de forma indisociable junto a su vector de incrustación y a \sout{susu}\textcolor{borrador2}{sus} metadatos asociados (titulaciones, códigos de asignatura y tipología). 
 
 Este índice se reconstruye entero en cada ejecución en lugar de actualizarse de forma incremental, ya que reconstruirlo cuesta minutos y garantiza que el índice siempre coincida con la colección de fragmentos, mientras que hacer actualizaciones parciales obligaría a tener más factores en cuenta innecesarios a este coste de reconstrucción. El índice es un producto regenerable y derivado de la fuente de verdad que son los datos extraídos de la web de EPSJ.
 
@@ -695,14 +705,20 @@ Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado 
 Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien lo cual no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
 
-\subsubsection{Estrategia de gestión del contexto y resolución de consultas}
-\label{secc:fase2_conversacion}
+\textcolor{borrador2}{[Aquí empezaba un apartado, «Estrategia de gestión del contexto y
+  resolución de consultas», cuyos dos párrafos repetían lo que acaba de decir la
+  subsección: los mismos dos ejemplos de pregunta implícita con otra redacción y las
+  mismas dos alternativas descartadas. El síntoma era una etiqueta duplicada, que hacía
+  que el RF-08 de la tabla de requisitos apuntase al segundo sitio y no al primero. Se
+  retira el apartado entero y su etiqueta pasa al que sigue, que es donde está la
+  solución.]}
 
-En un escenario real de orientación universitaria, las consultas de los estudiantes rara vez se formulan como preguntas individuales autocontenidas. El diálogo humano recurre de forma natural a la elipsis y a referencias dependientes de los turnos previos (por ejemplo, plantear \textit{«¿Y qué asignaturas hay en segundo?»} o \textit{«¿Tiene opción de doble grado?»} sin reiterar la titulación a la que se refieren).
+\sout{En un escenario real de orientación universitaria, las consultas de los estudiantes rara vez se formulan como preguntas individuales autocontenidas. El diálogo humano recurre de forma natural a la elipsis y a referencias dependientes de los turnos previos (por ejemplo, plantear «¿Y qué asignaturas hay en segundo?» o «¿Tiene opción de doble grado?» sin reiterar la titulación a la que se refieren).}
 
-Tratar cada de manera independiente (\textit{stateless}) provocaría fallos de recuperación al perderse información relevante, al mismo tiempo concatenar el historial completo de la conversación en la ventana de contexto del modelo generativo no solo incrementa el consumo de recursos, sino que arrastra posibles respuestas imprecisas de turnos anteriores, degradando la calidad del diálogo.
+\sout{Tratar cada turno de manera independiente (stateless) provocaría fallos de recuperación al perderse información relevante, al mismo tiempo concatenar el historial completo de la conversación en la ventana de contexto del modelo generativo no solo incrementa el consumo de recursos, sino que arrastra posibles respuestas imprecisas de turnos anteriores, degradando la calidad del diálogo.}
 
 \subsubsection{Estrategia de seguimiento del sujeto y resolución de anáforas}
+\label{secc:fase2_gestion_contexto}
 
 Para resolver este problema se diseñó un mecanismo determinista de seguimiento de estado en el que se desacopla la recuperación semántica del historial completo. El sistema gestiona el contexto mediante dos principios:
 
@@ -714,13 +730,17 @@ Para resolver este problema se diseñó un mecanismo determinista de seguimiento
 La Figura~\ref{fig:conversacion_tres_turnos} ilustra la dinámica temporal de este mecanismo sobre un diálogo real de tres turnos.
 \input{diagramas/DiagramaConversacion.tex}
 
+\textcolor{borrador2}{Las tres estrategias ---incrustar la pregunta sola, concatenar la
+  anterior y deducir el sujeto--- se midieron sobre 39 conversaciones derivadas de la
+  propia colección. Las cifras están en el Apartado~\ref{secc:resultados_conversacion}.}
+
 
 
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
 
   Ahora que se han extraído los datos, y se han fragmentado, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
-  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo que va ha realizar esta acción.
+  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo que va \sout{ha}\textcolor{borrador2}{a} realizar esta acción.
 
 \subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
 
@@ -736,7 +756,7 @@ Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cu
   \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuyas respuestas es un único valor como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
 \end{itemize}
 
-Cabe destacar que las cifras calculadas de estas cuatros medidas están en el Apartado~\ref{secc:resultados_rag}.
+Cabe destacar que las cifras calculadas de estas \sout{cuatros}\textcolor{borrador2}{cuatro} medidas están en el Apartado~\ref{secc:resultados_rag}.
 
 
 Para evitar problemas como falsos positivos o penalizaciones en las respuestas del agente que son cadenas de caracteres, se establecen tres criterios tales como exigir la unidad junto al número de créditos (que ponga 6 créditos o 6 ECTS) para evitar números al azar, admitir los nombres de la titulación con o sin el prefijo <<Grado en>>, y aceptar cualquiera de los cursos válidos en asignaturas de itinerario variable en dobles grados.
@@ -766,13 +786,13 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 \subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_gemma3}
 
-Los cuatros candidatos finalmente elegidos después de una criba de múltiples modelos, superaron los umbrales eliminatorios, ninguno inventó titulaciones inexistentes en las 320 respuestas evaluadas y todos dispusieron del contexto necesario. Al no existir descartes directos, la decisión se fundamentó en las métricas de rendimiento del Apartado~\ref{secc:resultados_rag}.
+Los \sout{cuatros}\textcolor{borrador2}{cuatro} candidatos finalmente elegidos después de una criba de múltiples modelos, superaron los umbrales eliminatorios, ninguno inventó titulaciones inexistentes \sout{en las 320 respuestas evaluadas} y todos dispusieron del contexto necesario. Al no existir descartes directos, la decisión se fundamentó en las métricas de rendimiento del Apartado~\ref{secc:resultados_rag}.
 
 A partir de los resultados del experimento se adopta \texttt{gemma3:12b}, al ser el único modelo que no queda por detrás en ninguna métrica, sin embargo, \texttt{ministral-8b} y \texttt{qwen3.5:9b} obtienen valores menores en cobertura y acierto escalar, mientras que el modelo español, \texttt{salamandra-7b} queda más rezagado.
 
-Lo peor del mejor modelo es su tiempo mediano de respuesta obteniendo \sout{21,6 segundo frente a los 12,1 del segundo más lento} \textcolor{borrador2}{26,0 segundos frente a los 17,4 del más rápido de los otros dos finalistas}. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
+Lo peor del mejor modelo es su tiempo mediano de respuesta\sout{ obteniendo 21,6 segundo frente a los 12,1 del segundo más lento}\textcolor{borrador2}{, que es el más alto de los tres finalistas (Tabla~\ref{tab:comparativa_generacion})}. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
 
-Asímismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca del la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
+\sout{Asímismo}\textcolor{borrador2}{Asimismo}, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca \sout{del}\textcolor{borrador2}{de} la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
 
 
 
@@ -802,6 +822,26 @@ Para plantear esta solución, el sistema utiliza una política de recuperación 
 
 Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
 
+\begin{borrador}
+  \item \textbf{Aquí falta de dónde salen los números.} El apartado enuncia los tres
+  mecanismos y da la banda (3 y 20), pero no dice por qué el factor es 1,20 ni por qué el
+  suelo es 0,137. Un tribunal pregunta exactamente eso, y la respuesta hoy no está escrita
+  en ninguna parte de la memoria.
+  \item \textbf{Y la evidencia existe, solo que fuera del documento.} Está en
+  \texttt{memoria/tablas/TablaBarridoRecuperador.tex}, ya redactada, con la rejilla de 240
+  configuraciones de la IT-49: la de partida, la que la rejilla prefiere y la adoptada.
+  \textbf{Ningún capítulo hace \texttt{\textbackslash input} de ese fichero}, así que la
+  tabla no aparece en el PDF y nadie la cita. Basta traerla aquí con un párrafo que la
+  presente.
+  \item \textbf{Ojo con dos cosas antes de meterla.} La primera: la fila <<De partida>>
+  (suelo 0,142, rechazo 0,700) \emph{no aparece} en
+  \texttt{docs/experimentos/it49-recuperador.md}, que solo publica las veinte mejores
+  configuraciones; las otras dos filas sí cuadran con el informe. Antes de darla por buena
+  hay que volver a ejecutar \texttt{barrido\_recuperador.py} y mirar la salida completa.
+  La segunda: la nota al pie de la tabla ya avisa de que su columna <<Rechazo>> \textbf{no
+  es la cifra de rechazo del sistema}, y esa advertencia tiene que sobrevivir a cualquier
+  recorte.
+\end{borrador}
 
 \subsubsection{Estructura y composición del \textit{prompt}}
 
@@ -820,10 +860,13 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
   \end{itemize}
 \end{enumerate}
 
+\textcolor{borrador2}{La Figura~\ref{fig:prompt_despiezado} despieza esa construcción y
+  señala qué parte del mensaje aporta cada componente.}
+
 \input{diagramas/DiagramaPromptDespiezado.tex}
 
 
-El mensaje de sistema viaja desacoplado para impedir que el modelo lo confunda con datos documentales. Asimismo, la inclusión exclusica de las preguntas del usuario y no de las respuestas generadas por el asistente previene la retroalimentación de fallos por parte de este.
+El mensaje de sistema viaja desacoplado para impedir que el modelo lo confunda con datos documentales. Asimismo, la inclusión \sout{exclusica}\textcolor{borrador2}{exclusiva} de las preguntas del usuario y no de las respuestas generadas por el asistente previene la retroalimentación de fallos por parte de este.
 
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
@@ -835,7 +878,7 @@ La primera capa es el suelo de pertinencia explicado en el apartado anterior. Si
 Para cubrir las consultas que superan el suelo de pertinencia, la segunda capa actúa antes de la llamada al modelo mediante un filtro de centros externos. El sistema comprueba si se hace referencia a otra institución mediante patrones léxicos y si se encuentra esta opción, la consulta se detiene incluso antes de llamar al modelo.
 
 
-La tercera capa opera después de generar la respuesta como una validación del catálogo oficial. Tras recibir el resultado de la inferencia redactada por el modelo, un extractor basado en expresiones regulares itentifica todas las palabras con formato de titulación y las compara contra las doce titulaciones oficiales de la Escuela. Si se detecta cualquier titulación ajena o inventada, el sistema descarta la respuesta íntegra y entrega un mensaje informativo prefijado.
+La tercera capa opera después de generar la respuesta como una validación del catálogo oficial. Tras recibir el resultado de la inferencia redactada por el modelo, un extractor basado en expresiones regulares \sout{itentifica}\textcolor{borrador2}{identifica} todas las palabras con formato de titulación y las compara contra las doce titulaciones oficiales de la Escuela. Si se detecta cualquier titulación ajena o inventada, el sistema descarta la respuesta íntegra y entrega un mensaje informativo prefijado.
 
 las tres capas mecánicas actúan de forma secuencial y determinista, asegurando que cada una capture las anomalías que escapan a las demás. La distribución cuantitativa del rechazo obtenido por cada mecanismo se analiza en detalle en el Apartado~\ref{secc:resultados_rag_sistema}.
 
@@ -870,22 +913,22 @@ Una alternativa que se barajó fue repartir el sistema en microservicios (uno de
 
 Para atender las peticiones web y servir los archivos de la interfaz, el sistema utiliza directamente el módulo estándar \texttt{http.server} de Python, sin incorporar ningún marco ni tecnología externa. La decisión de mantener lo más simple es porque al medir el número de paquetes adicionales que cada una de las alternativas exigía instalar sobre el entorno base, era numeroso.
 
-Otra razón es la simplicidad del servicio, la aplicación en el alcance establecido solo necesita gestionar un único punto de entrada para las consultas y servir unos pocos archivocs estáticos (\sig{HTML}, \sig{CSS} y \textit{JavaScript}). Las ventajas que justifican el uso de marcos de trabajo más complejos no resuelven ningún problema presente en esta arquitectura.
+Otra razón es la simplicidad del servicio, la aplicación en el alcance establecido solo necesita gestionar un único punto de entrada para las consultas y servir unos pocos \sout{archivocs}\textcolor{borrador2}{archivos} estáticos (\sig{HTML}, \sig{CSS} y \textit{JavaScript}). Las ventajas que justifican el uso de marcos de trabajo más complejos no resuelven ningún problema presente en esta arquitectura.
 
-En cuanto a las limitaciones técnicas de la tecnología usada, \texttt{http.server} no está concebido para entornos de producción, ya que procesa las solicitudes de forma secuencial, carece de soporte nativo para conexiones cifradas \sig{HTTPS} y la propia documentación oficial desaconseja su uso en producción. No obstante, estas restricciones no afectan al trabajom, ya que el despliegue multiusuario en producción se declaró fuera de alcance y el sistema está diseñado únicamente para ejecutarse en el equipo local. 
+En cuanto a las limitaciones técnicas de la tecnología usada, \texttt{http.server} no está concebido para entornos de producción, ya que procesa las solicitudes de forma secuencial, carece de soporte nativo para conexiones cifradas \sig{HTTPS} y la propia documentación oficial desaconseja su uso en producción. No obstante, estas restricciones no afectan al \sout{trabajom}\textcolor{borrador2}{trabajo}, ya que el despliegue multiusuario en producción se declaró fuera de alcance y el sistema está diseñado únicamente para ejecutarse en el equipo local. 
 
-La lógica y verificación no reside en el manejador de peticiones \sig{HTTP}, sino en una función desacoclada que recibe la consulta y emite progresivamente fragmentos de texto ya comprobado. Esto asegura una fácil sustitución de \texttt{http.server} por un marco de trabajo más complejo cuando se escale y se amplie el alcance del proyecto.
+La lógica y verificación no reside en el manejador de peticiones \sig{HTTP}, sino en una función \sout{desacoclada}\textcolor{borrador2}{desacoplada} que recibe la consulta y emite progresivamente fragmentos de texto ya comprobado. Esto asegura una fácil sustitución de \texttt{http.server} por un marco de trabajo más complejo cuando se escale y se \sout{amplie}\textcolor{borrador2}{amplíe} el alcance del proyecto.
 
 \subsection[La emisión de la respuesta]{La emisión de la respuesta}
 \label{secc:fase3_emision}
 
-El mecanismo el cual la respuesta generada se transmite al navegado es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se midió que la mediana se sitúa en 62,7 segundos y el percentil 90 alcana los 125,3 segundos. Entregar la respuesta de una sola vez obligaría al usuario a esperar frente a una interfaz estática durante más de un minuto, si antes de eso no pensara que el sistema se ha bloqueado.
+El mecanismo el cual la respuesta generada se transmite al \sout{navegado}\textcolor{borrador2}{navegador} es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se \sout{midió}\textcolor{borrador2}{observó} que \sout{la mediana se sitúa en 62,7 segundos y el percentil 90 alcana los 125,3 segundos}\textcolor{borrador2}{la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema})}. Entregar la respuesta de una sola vez obligaría al usuario a esperar frente a una interfaz estática durante más de un minuto, si antes de eso no pensara que el sistema se ha bloqueado.
 
 Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada que el usuario ya haya leído.
 
-Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detexta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia.
+Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se \sout{detexta}\textcolor{borrador2}{detecta} una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia.
 
-Esta solución se asume aún siendo no lo mejor para la experiencia de usuario ya que este vería como un texto que se está generando de repente desaparece por un texto que dice que no ha podido generarle una respuesta. Sin embargo, la frecuencia de estar anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
+Esta solución se asume aún siendo no lo mejor para la experiencia de usuario ya que este vería como un texto que se está generando de repente desaparece por un texto que dice que no ha podido generarle una respuesta. Sin embargo, la frecuencia de \sout{estar}\textcolor{borrador2}{estas} anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
 
 \subsection[La interfaz]{La interfaz}
 \label{secc:fase3_interfaz}
@@ -893,6 +936,23 @@ Esta solución se asume aún siendo no lo mejor para la experiencia de usuario y
 Dado el enfoque experimental del trabajo centrado en las tecnologías de generación aumentada por recuperación, se ha buscado que la interfaz sea lo más sencilla posible, siendo una única página servida por un único proceso y escrita en \sig{HTML}, hojas de estilo y \textit{JavaScript} sin marco de trabajo (\textit{framework}) ni paso de compilación previo. A la aplicación web se puede acceder sin registro, como ya se anunciaba en el requisito de usuario RU-05 de la Tabla~\ref{tab:requisitos_usuario}. Por tanto, no hay cuentas de usuario, ni sesiones persistentes, ni base de datos de usuarios que proteger.
 
 La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
+
+\textcolor{borrador2}{Además del recorrido habitual, la interfaz tiene que resolver tres
+  situaciones que no son un fallo pero tampoco son una respuesta corriente, y que la
+  Figura~\ref{fig:estados_chat} recoge como estados de la conversación. Estos tres párrafos
+  y el diagrama estaban en el capítulo de Objetivos, en el Apartado~\ref{secc:wireframe},
+  que es donde se dice qué se quiere conseguir y no cómo se ha resuelto. Se traen aquí sin
+  cambiar el texto.}
+
+\begin{itemize}
+  \item \textbf{La espera durante la inferencia:} La ejecución del modelo del lenguaje en el equipo local (RNF-01) y la prioridad de la fidelidad sobre la latencia (RNF-04) conlleva tiempos de inferencia más altos. Para evitar la sensación de bloqueo o congelamiento de la aplicación, la interfaz incorpora un indicador visual de la actividad con mensajes informativos sobre el estado actual de la respuesta \textcolor{borrador2}{(Apartado~\ref{secc:fase3_interaccion})}.
+
+  \item \textbf{La respuesta determinista inmediata:} Determinados mensajes como los saludos ("Hola", "buenos días", etc...) o cuando se detectan preguntas sobre centros ajenos a las EPSJ, se resuelven mediante respuestas prefijadas por reglas de control (RF-07). Al no requerir la inferencia del modelo, la respuesta la genera el código y es prácticamente instantánea y se muestra de forma directa en la conversación \textcolor{borrador2}{(Apartado~\ref{secc:fase2_dominio})}.
+
+  \item \textbf{La declaración de ausencia de información:} Cuando el ámbito de una pregunta excede el catálogo de información oficial disponible (como la solicitud de notas de corte o plazos de matrícula), el sistema informa expresamente de que les faltan estos datos para evitar alucinaciones (RU-03, RU-06). Se trata esto como en el caso anterior, como una respuesta válida, integrándola en el flujo de chat sin presentarla como un error.
+\end{itemize}
+
+\input{diagramas/DiagramaEstadosChat.tex}
 
 
 \subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
@@ -920,30 +980,9 @@ El sistema genera 10 plantillas parametrizadas con más de noventa preguntas vá
 
 Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar que el usuario asuma que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
 
-\subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
-\label{secc:fase3_registro}
-
-Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
-
-\begin{borrador}
-  \item \textbf{AUDITORÍA 30/08 --- las tres capturas que vienen debajo no las
-  presenta nadie.} Las Figuras~\ref{fig:app_inicio}, \ref{fig:app_listado}
-  y~\ref{fig:app_movil} caen aquí seguidas sin que ningún párrafo las anuncie,
-  y el tutor pidió por escrito lo contrario: «no se debe poner una imagen, de
-  ningún tipo, que no aparezca comentada previamente en el texto».
-  \item Fíjate en cómo está resuelta la
-  Figura~\ref{fig:app_fuentes} unas líneas más arriba ---una frase que dice
-  qué requisito resuelve y cómo, y la referencia entre paréntesis---: con tres
-  frases del mismo estilo, una por captura, queda cerrado. Y así de paso este
-  apartado deja de acabar en seco.
-  \item \textbf{Ojo, que esta misma nota engaña al comprobador:} como aquí las
-  tres figuras aparecen citadas, un buscador automático de «figuras sin citar»
-  dice ahora que no hay ninguna. Pero las citas están \emph{dentro de un
-  borrador}, que se va a borrar. Las tres frases hay que escribirlas en el
-  texto de verdad; si no, el problema vuelve el día que retires estas notas.
-\end{borrador}
-
-
+\textcolor{borrador2}{La Figura~\ref{fig:app_inicio} recoge el estado inicial de la
+  aplicación, con la cabecera institucional y las cuatro sugerencias que resuelven la
+  pantalla vacía descrita más arriba.}
 
 \begin{figure}[htbp]
   \centering
@@ -953,6 +992,10 @@ Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el s
   \label{fig:app_inicio}
 \end{figure}
 
+\textcolor{borrador2}{La Figura~\ref{fig:app_listado} muestra el caso de las preguntas de
+  listado, donde la interfaz agrupa las asignaturas por curso en lugar de entregarlas
+  en prosa seguida.}
+
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_listado.png}
@@ -961,6 +1004,8 @@ Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el s
   \label{fig:app_listado}
 \end{figure}
 
+\textcolor{borrador2}{Por último, la Figura~\ref{fig:app_movil} comprueba el requisito de
+  adaptación a pantallas estrechas sobre un ancho de 390~píxeles.}
 
 \begin{figure}[htbp]
   \centering
@@ -969,3 +1014,8 @@ Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el s
 
   \label{fig:app_movil}
 \end{figure}
+
+\subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
+\label{secc:fase3_registro}
+
+Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
