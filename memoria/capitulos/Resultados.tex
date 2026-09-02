@@ -3,57 +3,17 @@
 \label{cap:resultados}
 
 
-\begin{borrador}
-  \item Capítulo vivo mientras se hacen las fases, a escribir mientras pasan las tarjetas y fases.
+\begin{borrador}    
   \item \textbf{Regla de este capítulo, que conviene tener delante al escribir:} aquí van los
   resultados, y en la sección de discusión su interpretación. Si una frase de las secciones
-   anteriores empieza por <<esto implica>> o <<esto demuestra>>, pertenece a la discusión. Es
+  anteriores empieza por <<esto implica>> o <<esto demuestra>>, pertenece a la discusión. Es
   el error más común en este capítulo y el más fácil de cometer.
-  \item \textbf{Orden de lectura dentro de cada sección}, que también es convención y ayuda
-  al lector: qué se midió y sobre qué colección; la tabla o figura; el resultado principal;
-  los desgloses; y las lecturas erróneas que conviene desactivar antes de que las haga otro.
 \end{borrador}
 
-\begin{borrador}
-  \item \textbf{AUDITORÍA 30/08 --- este capítulo es el que más turquesa tiene
-  de toda la memoria: el 59\,\%.} Es decir, más de la mitad de lo que dice el
-  capítulo que sostiene la parte científica del trabajo lo he escrito yo y está
-  pendiente de que lo hagas tuyo. Aquí está el reparto, de más a menos, para
-  que decidas por dónde empezar y no por dónde caiga:
-  \begin{enumerate}
-    \item \textbf{Comparativa de modelos de generación} (5.5) --- unos 5.400
-    caracteres, la sección entera. Es la más grande.
-    \item \textbf{El recorrido completo} (dentro de 5.6) --- unos 4.900.
-    \item \textbf{La recuperación} (dentro de 5.6) --- unos 3.100.
-    \item \textbf{Qué haría falta para levantarlas} (dentro de 5.9) --- unos 2.850.
-    \item \textbf{Comparación con los asistentes revisados} (5.8) --- unos 1.900.
-    \item Las cuatro validez (constructo, interna, externa, de conclusión) ---
-    entre 580 y 1.660 cada una.
-    \item \textbf{Trazabilidad con la propuesta original} (5.8) --- unos 1.000.
-  \end{enumerate}
-  \item \textbf{Lo que no está en turquesa y por tanto ya es tuyo:} la
-  colección construida (5.1), la fragmentación (5.2), las incrustaciones (5.3),
-  la base vectorial (5.4), el cumplimiento de objetivos y la hipótesis. Esas
-  seis no hay que tocarlas.
-  \item \textbf{Un atajo que quizá te sirva:} las secciones 5.3 y 5.4 ya están
-  escritas por ti y tratan lo mismo que 5.5 ---una comparativa con umbrales
-  fijados de antemano---. Si te atascas con 5.5, mira cómo resolviste esas dos
-  y sigue el mismo patrón; no hace falta inventar una forma nueva.
-\end{borrador}
+Este capítulo presenta los resultados obtenidos durante las diferentes mediciones de los diferentes experimentos del sistema. Primero se describe la colección documental generada y su fragmentación, después la representación mediante incrustaciones y la indexación en la base de datos vectorial, y por último, se muestran los resultados de la evaluación del sistema RAG completo. La sección final discute el alcance de los resultados y las conclusiones que pueden extraerse de la evidencia obtenida
 
-\textcolor{borrador2}{Este capítulo recoge lo que el sistema produce y lo que se ha medido
-  sobre él. Se organiza siguiendo los objetivos específicos enunciados en el
-  Capítulo~\ref{cap:objetivos}: la colección documental que se construye, la fragmentación
-  con la que se parte, el modelo de incrustaciones y la base de datos vectorial con los que
-  se representa y se indexa, y la evaluación del sistema completo con el alcance que tiene,
-  que no llega a incluir pruebas con usuarios.
-  La última sección discute qué responde cada resultado a cada objetivo y con qué alcance.}
+Todas las cifras proceden de la ejecución de los verificadores y experimentos ejecutados sobre el corpus completo correspondiente al curso 2026-27. En los experiemntos de evaluación se especifica también el conjunto de preguntas utilizado y su tamaño. El Capítulo~\ref{cap:materialesymetodos} describe el procedimiento seguido y las comparaciones realizadas, este capítulo se reserva para presentar los resultados y discutir su alcance.
 
-\textcolor{borrador2}{Todas las cifras proceden de la ejecución de los verificadores y de los
-  guiones de experimentación sobre la colección completa del curso 2026-27, y no sobre una
-  muestra. El método con el que se obtuvieron ---qué se compara, con qué instrumento y por
-  qué--- está en el Capítulo~\ref{cap:materialesymetodos}; aquí están las cifras y su
-  lectura.}
 \section[La colección documental construida]{La colección documental construida} 
 \label{secc:resultados_coleccion}
 
@@ -61,16 +21,16 @@ La colección documental o \textit{corpus} resultante recoge las 12 titulaciones
 
 De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
-Sobre esta recopilación de información, el fragmentador produce 1.499 fragmentos repartidos en 398 unidades, de las cuales 81 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.296 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 a 900 caracteres, con una mediana de 836 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
+Sobre esta recopilación de información, el fragmentador produce \sout{1.499} \textcolor{borrador2}{1.922} fragmentos repartidos en \sout{398} \textcolor{borrador2}{471} unidades, de las cuales \sout{81} \textcolor{borrador2}{63} se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: \sout{1.296} \textcolor{borrador2}{1.719} fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 a 900 caracteres, con una mediana de \sout{836} \textcolor{borrador2}{846} y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
 Estas cifras recogidas no proceden de una fuente uniforme, lo que ha llevado a muchos problemas de recogida de datos durante el desarrollo de este proyecto. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}.
 
 La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que finaliza en .html, de modo que el formato solo se puede conocer mirando el tipo de contenido de la respuesta que arroja el servidor.
 
 La segunda anomalía afecta a la estructura de las tablas de asignaturas, y es que esta no es la misma en todos los planes. Un ejemplo de ello es que los dobles grados rotulan «carácter» la columna
-  que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples escriben «OB».
+que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples escriben «OB».
 
-  La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas coincida con el de la misma asignatura en los grados base.
+La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas coincida con el de la misma asignatura en los grados base.
 
 La cuarta anomalía afecta a las guías docentes, ya que de las 288 publicadas, cinco traen la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
 
@@ -79,12 +39,6 @@ La quinta son irregularidades menores, como tablas que mezclan asignaturas tronc
 
 
 \input{tablas/TablaCaracterizacionCorpus.tex}
-
-\begin{borrador}
-  \item \textbf{Lo que falta y la DoD pide explícitamente:} el sesgo de la cobertura y
-  la limitación de las asignaturas de tercero y cuarto del Grado en Inteligencia
-  Artificial y Ciberseguridad.
-\end{borrador}
 
 Conviene decir que la cobertura de las guías no es homogénea entre las titulaciones ya que las asignaturas sin contenido se concentran en los planes de estudio más recientes como el Grado en Inteligencia Artificial y Ciberseguridad, donde la Escuela aún no había publicado las guías docentes de tercero y cuarto curso en la fecha de recogida de los datos.
 
@@ -148,11 +102,11 @@ El otro candidato, \texttt{bge-m3}\cite{chen2024m3embedding}, gana en exhaustivi
 Los costes medidos separan a los dos modelos de la misma familia \texttt{e5} más que las propias métricas tomadas. Incrustar la colección entera lleva 108 segundos con el pequeño y 604 segundos con el grande, 5,6 veces más, y sus pesos ocupan en memoria principal alrededor de 0,5~GB frente a 2,2~GB. 
 
 Con estas cifras se adopta \texttt{multilingual-e5-small}, por las
-  razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}.
+razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}.
 
 
 
-\section[Base de datos vectorial]{Base de datos vectorial}
+\section[Comparativa de la base de datos vectorial]{Comparativa de la base de datos vectorial}
 \label{secc:resultados_vectordb}
 
 La comparativa enfrenta tres bases de datos vectoriales distintas, ChromaDB\cite{chromadb}, LanceDB\cite{lancedb} y Qdrant\cite{qdrant} sobre la colección de datos completa extraída hasta ahora y las preguntas del conjunto de evaluación, con una cuarta condición, la cual no es candidata pero merece la pena mencionar, que es la búsqueda exacta con NumPy, la cual sirve a la vez de referencia de fidelidad y de línea base de velocidad. El diseño de la comparación que abarca cosas como qué se compara, por qué esas tres candidatas y con qué umbrales, está en el Apartado~\ref{secc:fase2_vectordb}, y la decisión con los datos completos queda registrada en el ADR-0004\cite{repo_tfg}.
@@ -165,390 +119,135 @@ Con las cifras arrojadas por el experimento, se elige LanceDB, por las razones q
 Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta que se pedía en el umbral número 1 (U1), mientras que las otras dos opciones no fallan ninguna. 
 
 
-\section[Comparativa de modelos de generación]{\textcolor{borrador2}{Comparativa de modelos de generación}}
+\section[Comparativa de modelos de generación]{Comparativa de modelos de generación}
 \label{secc:resultados_rag}
 
-\textcolor{borrador2}{Elegido el modelo que convierte el texto en vectores y la
-  base que los guarda, queda el último de los componentes que hay que decidir
-  por experimentación: el modelo de lenguaje que redacta la respuesta. Se
-  compara igual que los anteriores ---mismos datos, mismo instrumento para
-  todos, criterio de descarte fijado antes de medir--- y el diseño de la
-  medición está en el Apartado~\ref{secc:fase2_llm} del
-  Capítulo~\ref{cap:materialesymetodos}.}
+Una vez fijados el modelo de incrustaciones y la base de datos vectorial, quedaba por seleccionar el modelo de lenguaje encargado de redactar las respuestas. Para ello se compararon cuatro modelos bajo las mismas condiciones experimentales, utilizando el mismo corpus, el mismo banco de preguntas y la misma versión del servidor de inferencia. El diseño de esta comparación se describe en el Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.
 
+La comparación principal se realizó entre \texttt{ministral-8b}, \texttt{qwen3.5:9b} y \texttt{gemma3:12b}. Además, se incluyó \texttt{salamandra-7b} como referencia independiente, con el objetivo de comprobar si un modelo entrenado específicamente con corpus en español ofrecía un comportamiento superior sobre información de la EPSJ redactada en esta lengua.
 
-\begin{borrador}
-  \item El registro en bruto de esta tanda ya no existe, de modo que los fallos
-    de curso no pueden mirarse pregunta a pregunta sin volver a ejecutarla. Todo
-    lo que se afirma aquí sale del informe agregado.
-\end{borrador}
-
-\textcolor{borrador2}{Sobre la misma muestra de ochenta preguntas, el mismo
-  corpus y la misma versión del servidor de inferencia se midieron cuatro
-  modelos, en un total de trescientas veinte respuestas. Tres compiten por el
-  puesto; el cuarto, \texttt{salamandra-7b}, se mide aparte para responder si un
-  modelo entrenado en español rinde mejor sobre un corpus en español. La
-  Tabla~\ref{tab:comparativa_generacion} recoge el resultado.}
+Cada modelo respondió a las mismas ochenta preguntas seleccionadas del banco de evaluación, lo que produjo un total de trescientas veinte respuestas. Aunque las preguntas constituyen una muestra del banco completo, el corpus documental utilizado fue el completo. La Tabla~\ref{tab:comparativa_generacion} resume los resultados obtenidos.
 
 \input{tablas/TablaComparativaGeneracion.tex}
 
-\textcolor{borrador2}{Los cuatro cumplen el umbral eliminatorio: ninguno nombró
-  una titulación que no exista en las trescientas veinte respuestas, y a ninguno
-  se le quedó una pregunta sin contexto recuperado. La consecuencia es que
-  \textbf{el criterio que se fijó para descartar no descarta a nadie}, y la
-  elección hay que sostenerla con el resto de columnas y con lo observado fuera
-  del banco.}
+Ninguno de los cuatro modelo inclumpieron los dos umbrales eliminatorios establecidos. Ninguno generó el nombre de una titulación que no existiera en el catálogo de la EPSJ y ninguna pregunta quedó sin contexto recuperado. Por tanto, estos criterios no permitieron descartar a ningún candidatos y la elección tuvo que basarse en las medidas descritas de precisión, cobertura y acierto escalar.
 
-\textcolor{borrador2}{Las diferencias de precisión son diminutas y conviene no
-  exagerarlas: las cuatro cifras caben en ocho milésimas, medidas sobre treinta
-  y cuatro preguntas de listado por modelo y sin intervalo de confianza
-  calculado, de modo que ese orden no significa nada. Donde sí hay separación es
-  en la cobertura, en el acierto escalar y, sobre todo, en el desglose por
-  familia de pregunta.}
+\sout{\texttt{Gemma3:12b} obtuvo una precisión y una cobertura de 1,000 en las cuatro familias de preguntas de listado. En las preguntas de respuesta escalar alcanzó un acierto de 0,978 fallando solo una de las veintitrés preguntas sobre el curso de una asignatura. Este último resultado constituye su único valor inferior al máximo en las medidas principales.}
+\textcolor{borrador2}{\texttt{Gemma3:12b} obtuvo una precisión de 1,000, una cobertura de 0,971 y un acierto escalar de 1,000. Las mismas tres cifras, exactamente, que \texttt{ministral-8b} y \texttt{qwen3.5:9b}: sobre el corpus corregido las medidas descriptivas no distinguen a los tres candidatos grandes, y por eso la elección del modelo no se sostiene sobre ellas sino sobre el umbral eliminatorio (ADR-0005). La única de las cuatro medidas en la que alguno se separa es la cobertura, y el que se separa es \texttt{salamandra-7b} con 0,770.}
 
-\textcolor{borrador2}{De ese desglose queda fuera una familia. A
-  \texttt{catalogo} le tocó una sola pregunta en el sorteo de la muestra, y los
-  cuatro candidatos la aciertan; con un caso, esa fila no separa a nadie ni
-  sostiene ninguna conclusión, y no se usa aquí para leer nada. Las cifras que
-  siguen se apoyan en las familias con veintitrés, trece y siete preguntas.}
+\texttt{ministral-8b} y \texttt{qwen3.5:9b} presentaron resultados próximos entre sí, acertando veintiún de las veintitrés preguntas de curso y dejando una diferencia mínima en la cobertura, pero una diferencia mayor en los tiempos de respuesta. Sin embargo el comportamiento de \texttt{salamandra-7b} fue el más bajo, a pesar de no haber tanta diferencia en el número de parámetros y que fue entrenado en español, fue el que peor resultados dio de todos los modelos enfrentados.
 
-\textcolor{borrador2}{\texttt{gemma3:12b} es el único sin punto flojo entre las
-  preguntas de listado: precisión y cobertura valen 1,000 en las cuatro familias
-  ---catálogo, menciones, optativas y plan por curso---. Su única mancha está en
-  el acierto escalar, 0,978, que corresponde a un fallo en las veintitrés
-  preguntas de curso. Es también el más lento de los tres que compiten, con 21,6
-  segundos de mediana.}
+A partir de estas medidas se adopta \texttt{gemma3:12b} como modelo elegido para generar las respuestas en el sistema. Es el candidato con mejores resultados de los modelos que superaron la criba. La justificación detallada de esta elección se recoge en el Apartado~\ref{secc:eleccion_gemma3}.
 
-\textcolor{borrador2}{\texttt{ministral-8b} y \texttt{qwen3.5:9b} quedan muy
-  cerca y fallan casi en lo mismo. Los dos aciertan el curso veintiuna veces de
-  veintitrés, frente a las veintidós de \texttt{gemma3:12b}, y los dos dejan
-  fuera alguna asignatura al enumerar el plan completo de un curso: la cobertura
-  en esa familia baja a 0,989 y a 0,992 respectivamente. \texttt{qwen3.5:9b}
-  añade además algún nombre ajeno en las preguntas de mención, donde su
-  precisión es 0,989. Son diferencias de una o dos respuestas, no de
-  comportamiento.}
+Cabe recalcar que la comparación presenta dos limitaciones que deben tenerse en cuenta. En primer lugar, la decisión se basa en 80 preguntas de las 1.023 disponibles en el banco, aunque estas se seleccionaron mediante un procedimiento estratificado y con una semilla fija. En segundo lugar, estas medidas no evalúan la calidad de la redacción ni permiten determinar si una recomendación resulta adecuada para un estudiante concreto.
 
-\textcolor{borrador2}{\texttt{salamandra-7b} es el caso interesante, y no por
-  donde se esperaba. Es con diferencia el más rápido ---3,8 segundos de mediana,
-  menos de una quinta parte de lo que tarda \texttt{gemma3:12b}--- porque es el
-  único que cabe entero en la tarjeta gráfica, y su precisión, 0,992, tampoco lo
-  delata. Lo que lo delata es la columna \textbf{S/M}: quince de sus treinta y
-  cuatro respuestas de listado están redactadas en prosa y no enumeran nada, y
-  la cobertura recoge el precio, 0,908. El caso extremo son las optativas, donde
-  su cobertura cae a 0,571: a la pregunta de cuáles son las optativas de una
-  titulación contesta cuántas hay. Estar entrenado en español no lo hace mejor
-  sobre un corpus en español, al menos con este instrumento.}
-
-\textcolor{borrador2}{Queda por último un resultado que comparten los cuatro:
-  los créditos de una asignatura los aciertan siempre, las veintitrés veces cada
-  uno. Y otro que comparten en la dirección contraria: los cuatro fallan alguna
-  pregunta de curso ---una, dos, dos y tres respectivamente---, que es la única
-  familia en la que ninguno llega a pleno. Que el punto flojo sea el mismo para
-  todos apunta a lo que se les entrega y no al modelo que lo lee, pero esa
-  explicación no se ha medido y aquí solo se deja anotada.}
-
-\textcolor{borrador2}{Con estas cifras se adopta \texttt{gemma3:12b}, por las
-  razones que desarrolla el Apartado~\ref{secc:eleccion_gemma3}. Conviene
-  subrayar aquí lo que la tabla enseña por sí sola, porque es lo que más
-  condiciona su lectura: el umbral eliminatorio lo cumplen los cuatro, de modo
-  que \textbf{el criterio que se fijó para descartar no descarta a nadie} y la
-  elección se sostiene sobre las medidas descriptivas. Sobre ellas
-  \texttt{gemma3:12b} es primero o empatado en las tres y no queda por detrás en
-  ninguna, que es lo que ninguno de los otros tres consigue.}
-
-\textcolor{borrador2}{Lo que sí lo deja en último lugar es el tiempo: 21,6
-  segundos de mediana frente a los 12,1 de \texttt{ministral-8b}. Se adopta el
-  más lento a sabiendas, porque el orden entre fidelidad y rapidez está fijado
-  de antemano en el RNF-04 y no se decide con estas cifras. El tiempo aparece
-  por tanto en este capítulo como lo que es, una consecuencia medida de esa
-  prelación, y el Apartado~\ref{secc:amenazas_validez} recoge hasta dónde puede
-  leerse.}
-
-\section[Ajuste de los parámetros del recuperador]{\textcolor{borrador2}{Ajuste de los parámetros del recuperador}}
-\label{secc:resultados_barrido}
-
-\textcolor{borrador2}{El recuperador no entrega un número fijo de fragmentos:
-  recorta la lista de vecinos con una banda, con un corte relativo a la distancia
-  del mejor y con un suelo por debajo del cual no se considera pertinente nada.
-  Esos cuatro valores se fijaron con una rejilla de 240 configuraciones, medida
-  sobre las 56 preguntas de dominio y las 10 ajenas del conjunto de evaluación.
-  La rejilla no llama al modelo generativo: los parámetros solo deciden dónde se
-  corta una lista ya ordenada, de modo que las 240 se simulan sobre los mismos
-  vecinos calculados una sola vez.}
-
-\input{tablas/TablaBarridoRecuperador.tex}
-
-\textcolor{borrador2}{El suelo se mueve de 0,142 a 0,137 sin discusión: con ese
-  valor se detiene una pregunta ajena más de las diez con las que se ajustó, y no
-  se pierde ninguna de las unidades que responden a las 56 de dominio.}
-
-\textcolor{borrador2}{La columna de rechazo de esa tabla pide una advertencia,
-  porque no es la misma cifra que informa el
-  Apartado~\ref{secc:resultados_rag_recuperacion} y confundirlas llevaría a
-  pensar que una de las dos está mal. Aquí se mide qué detiene el corte por
-  distancia \textbf{a solas}, que es lo único que la rejilla varía, y son ocho de
-  diez; allí se mide qué deja sin contexto el recuperador \textbf{completo}, y
-  son seis de diez. Las dos que las separan son las dos peticiones de consejo del
-  conjunto, a las que el recuperador entrega la banda entera \textbf{a
-    propósito}. La rejilla es un instrumento para comparar configuraciones entre
-  sí, no una medida del comportamiento del sistema.}
-
-\textcolor{borrador2}{El factor de corte es otra cosa, y es el resultado que más
-  enseña de este apartado. La rejilla prefiere 1,10: mantiene la unidad que
-  responde en las 56 preguntas y baja la media de fragmentos entregados de 7,2 a
-  4,2, casi la mitad de contexto por el mismo acierto. Y sin embargo se adopta
-  1,20. Medido sobre el banco del sistema completo, ese recorte hacía perder tres
-  respuestas de las cuarenta y siete que el banco tenía entonces: dos preguntas
-  cuyo contexto pasaba de veinte fragmentos a diez y de doce a tres dejaban de
-  contestarse bien, aunque la unidad correcta siguiera estando entre lo
-  recuperado.}
-
-\textcolor{borrador2}{La consecuencia va más allá de este parámetro. Que la
-  unidad que responde esté entre los fragmentos recuperados no basta para que el
-  modelo redacte la respuesta con ella: hace falta además que el contexto llegue
-  completo. Ajustar el recuperador contra métricas de recuperación mejora la
-  recuperación y empeora el sistema, y eso solo se ve midiendo el recorrido
-  entero. Es la razón por la que el apartado siguiente informa del sistema
-  completo y no solo de la fase que lo alimenta.}
-
-\begin{borrador}
-  \item \textbf{Fase:} 4 (IT-49). Andamiaje: la estructura y las cifras, que
-  salen de \texttt{docs/experimentos/it49-recuperador.md}. La prosa la escribes
-  tú y le quitas el turquesa.
-  \item \textbf{Lo que hay que defender aquí no son los cuatro números, es el
-  párrafo del factor de corte.} Es el único sitio de la memoria donde una
-  métrica intermedia apunta en dirección contraria al sistema completo, y eso
-  sostiene la tesis del trabajo mejor que ninguna otra cifra: mide el sistema
-  entero o te engañas con la parte.
-  \item \textbf{Las dos cifras de rechazo, 8 de 10 y 6 de 10, están
-  comprobadas y no se contradicen.} Se reprodujeron las dos sobre el índice real
-  con la configuración adoptada: el corte por distancia a solas deja fuera ocho,
-  y el recuperador completo deja sin contexto seis. Las dos que las separan son
-  \emph{P-053} y \emph{P-054}, las dos peticiones de consejo, que reciben veinte
-  fragmentos a propósito. Si el tribunal pregunta por qué dos informes del
-  repositorio dan cifras distintas, esa es la respuesta y está escrita arriba.
-  \item \textbf{Un defecto del guion que conviene que sepas, y que no he
-  tocado porque es código.} \texttt{barrido\_recuperador.py} lleva la
-  «configuración de hoy» escrita a mano ---\texttt{Configuracion(3, 20, 1.20,
-  0.142)}--- en vez de leer las constantes del módulo. Por eso su informe
-  presenta como actual un suelo que se cambió el mismo día del barrido, y por
-  eso al leerlo parece que el sistema usa 0,142 cuando usa 0,137. Si se
-  reejecutara hoy, volvería a decir lo mismo. Es una línea, pero decide si entra
-  como tarjeta.
-\end{borrador}
-
-\section[Evaluación del sistema completo]{\textcolor{borrador2}{Evaluación del sistema completo}}
+\section[Evaluación del sistema completo]{Evaluación del sistema completo}
 \label{secc:resultados_sistema}
 
-\textcolor{borrador2}{Las cuatro secciones anteriores miden piezas por separado
-  y cada una decide una elección. Esta mide lo que el estudiante encuentra: el
-  recorrido entero, con las piezas ya elegidas y montadas. Se separa en dos
-  partes porque son dos preguntas distintas, y la segunda no tiene sentido sin
-  la primera: si el recuperador trae los fragmentos que hacen falta, y si el
-  sistema entero responde con ellos lo que se le pregunta.}
+Una vez seleccionados los componentes principales del sistema, se evaluó su comportamiento en dos niveles diferentes. En primer lugar, se analizó la recuperación para comprobar si los fragmentos relevantes aparecian entre los resultados. Después, se evaluó el recorrido del sistema completo, desde la entrada del usuario hasta la respuesta final.
 
-\subsection{\textcolor{borrador2}{La recuperación}}
+Antes de realizar esta evaluación se fijaron los
+parámetros de la recuperación adaptativa mediante una rejilla de 240
+configuraciones. La configuración adoptada utiliza una banda de entre 3 y 20
+fragmentos, un factor de corte relativo de 1,20 y un suelo de pertinencia de
+0,137. Se comprobó que si se recortaba el factor de corte relativo, los fragmentos se reducían pero esto hacía que se perdiera contexto necesario.
+
+\subsection{La recuperación}
 \label{secc:resultados_rag_recuperacion}
 
-\textcolor{borrador2}{Antes de las cifras hay que fijar contra qué se leen. El
-  conjunto de evaluación anota, para cada pregunta, las unidades que la
-  responden, y algunas se responden con más fragmentos de los que el sistema
-  entrega: la lista de asignaturas de una titulación ocupa varios. En esas
-  preguntas la exhaustividad por fragmento no puede llegar a uno por perfecto
-  que sea el orden, y el máximo alcanzable sobre esta colección es 0,754 para
-  tres fragmentos, 0,906 para cinco y 0,966 para diez. Leer una cifra contra
-  uno en vez de contra su techo haría parecer al recuperador peor de lo que
-  es.}
+La recuperación se evaluó sobre \sout{57} \textcolor{borrador2}{56} preguntas de dominio. En algunas de ellas, las información nececaria se encuentra repartida entre varios fragmentos. Por este motivo, como ya se ha comentado anteriormente, se distinguen dos medidas: la exhaustividad por fragmento, en la que se comprueba cuántos fragmentos relevantes aparecen, y la exhaustividad por unidad, que comprueba si aparece algún fragmento de la unidad que responde la pregunta. La primera medida tiene un techo inferior a uno cuando la unidad relevante ocupa más fragmentos de lo que permite el valor de $k$.
+
+
+La Tabla~\ref{tab:recuperacion} recoge los resultados
+obtenidos para tres valores de $K$ y muestra también el techo máximo que puede
+alcanzar la exhaustividad por fragmento en cada caso.
 
 \input{tablas/TablaRecuperacion.tex}
 
-\textcolor{borrador2}{La lectura de la Tabla~\ref{tab:recuperacion} depende de
-  qué se le pregunte a los datos. Por \textbf{unidad}, el recuperador encuentra
-  la asignatura correcta en el 90,6\,\% de las preguntas con solo tres
-  fragmentos y en el 99,1\,\% con diez: para la pregunta que un estudiante hace
-  de verdad ---qué se estudia en tal asignatura--- la unidad que la responde
-  entra casi siempre. Por \textbf{fragmento} las cifras son más bajas, y no
-  miden lo mismo: 0,652 con tres fragmentos sobre un techo de 0,754 significa
-  que se recupera el 86\,\% de lo alcanzable, no que se falle una de cada tres
-  veces.}
 
-\textcolor{borrador2}{El MRR de 0,926 dice que el primer fragmento útil aparece
-  casi siempre en la primera posición. Es la cifra que más importa para la
-  generación, porque el modelo lee el contexto en el orden en que se le
-  entrega.}
+Con tres fragmentos, la exhaustividad por unidad alcanza
+0,906, mientras que la exhaustividad por fragmento se sitúa en \sout{0,652} \textcolor{borrador2}{0,644} frente a
+un techo de \sout{0,754} \textcolor{borrador2}{0,756}. Al aumentar $K$ hasta cinco, la exhaustividad por unidad
+sube a 0,973 y la exhaustividad por fragmento alcanza \sout{0,789} \textcolor{borrador2}{0,777} sobre un máximo de
+\sout{0,906} \textcolor{borrador2}{0,905}. Finalmente, con diez fragmentos se obtienen valores de 0,991 y \sout{0,881} \textcolor{borrador2}{0,865},
+respectivamente. Por tanto, la unidad que contiene la respuesta aparece casi
+siempre, aunque no siempre se recuperen todos sus fragmentos.
 
-\textcolor{borrador2}{Las preguntas ajenas al dominio no entran en esa tabla, y
-  no por descuido: su criterio de acierto es el contrario. Una pregunta ajena se
-  responde bien cuando el recuperador \textbf{no} entrega nada, de modo que su
-  lista de unidades relevantes está vacía y aportaría un cero fijo a las dos
-  métricas. Se miden aparte, y lo que se mide aquí es solo el suelo de
-  pertinencia, que es la primera de las tres barreras y la única que actúa
-  durante la recuperación.}
+\textcolor{borrador2}{Conviene detenerse en un detalle que se ve al comparar estas cifras con las del
+  corpus anterior, de 1.499 fragmentos: la exhaustividad por fragmento baja
+  ---0,652, 0,789 y 0,881 eran los valores de entonces--- mientras que la
+  exhaustividad por unidad no se mueve ni una milésima en ninguno de los tres
+  valores de $K$. No es que el sistema recupere peor. Al corregir los metadatos
+  de las guías compartidas, una unidad que antes era una pasa a ser dos o más,
+  de modo que sus fragmentos se duplican y el mismo $K$ recoge una proporción
+  menor de los relevantes mientras sigue encontrando la unidad que responde. Es
+  justamente la razón por la que se miden las dos cosas y no solo una.}
 
-\textcolor{borrador2}{El suelo detiene \textbf{cinco de las diez} preguntas del
-  conjunto de validación. Esa es la cifra que se informa, y no la del conjunto
-  con el que se eligió el valor del suelo ---donde detiene seis de diez---,
-  porque medir sobre las mismas preguntas con las que se ajustó un parámetro
-  informa de lo bien que se ajustó, no de lo bien que rechaza. De las cinco que
-  lo atraviesan, dos son peticiones de consejo, a las que se les entrega
-  contexto \textbf{a propósito}; dos nombran otro centro y las recoge la
-  comprobación que actúa después; y queda \textbf{una} que a esta altura del
-  recorrido no tiene nada debajo.}
 
-\textcolor{borrador2}{Ese uno es la medida honesta del hueco que deja un umbral
-  de distancia, y conviene enunciarlo sin adornos: \textbf{el suelo de
-  pertinencia no es un filtro de dominio}. Mide parecido de vocabulario, y una
-  pregunta ajena escrita con las palabras del centro se le parece. Lo que ocurre
-  con esa pregunta cuando se la deja seguir hasta el final ---y con las otras
-  cuatro--- se ve en la Subsección~\ref{secc:resultados_rag_sistema}, que mide el
-  sistema entero en lugar de esta primera barrera.}
+El MRR obtenido es \sout{0,926} \textcolor{borrador2}{0,914}, lo que indica que el primer
+fragmento relevante suele aparecer en una posición cercana al comienzo de la
+lista. Este resultado es importante para la generación, ya que el modelo
+recibe los fragmentos en ese orden y debe elaborar la respuesta a partir del
+contexto proporcionado.
 
-\subsection{\textcolor{borrador2}{El recorrido completo}}
+\subsection{El recorrido completo}
 \label{secc:resultados_rag_sistema}
 
-\textcolor{borrador2}{La subsección anterior mide el recuperador a
-  solas, y la sección anterior midió el modelo generativo a solas, cada uno con
-  preguntas sueltas. Lo que un usuario encuentra no es ninguno de los dos, sino
-  el recorrido entero, y ahí aparecen situaciones que las preguntas sueltas no
-  contienen: turnos encadenados que se refieren a lo dicho antes, mensajes que
-  piden consejo en vez de un dato, mensajes que no preguntan nada y preguntas
-  que no van del centro. El banco de evaluación del sistema recoge esas cinco
-  situaciones además de las seis familias de dato, y suma cincuenta y siete
-  entradas. La Tabla~\ref{tab:evaluacion_sistema} las reparte.}
+La evaluación anterior se centraba únicamente en la
+recuperación. En esta subsección se analiza el sistema tal y como lo utiliza un
+estudiante, incluyendo la gestión de la conversación, las respuestas fijas,
+la restricción del dominio, la recuperación y la generación. El banco del
+sistema contiene 57 entradas organizadas en seis familias de preguntas sobre
+datos de la colección y cinco familias destinadas a comprobar el
+comportamiento del asistente. La Tabla~\ref{tab:evaluacion_sistema} resume su
+distribución.
 
 \input{tablas/TablaEvaluacionSistema.tex}
 
-\textcolor{borrador2}{El sistema acierta las cincuenta y siete, y conviene decir
-  enseguida qué significa y qué no. Un pleno sobre cincuenta y siete entradas no
-  es una tasa de acierto de uno: la cota inferior del intervalo de confianza al
-  95\,\% es 0,949, de modo que lo que sostienen estos datos es que el sistema
-  acierta al menos diecinueve de cada veinte veces, no siempre. Y el banco no es
-  una muestra de lo que preguntará un preuniversitario: sus preguntas de dato se
-  derivan de la propia colección, así que comprueban que el sistema es coherente
-  con sus fuentes, no que responda a lo que de verdad se le va a preguntar.}
+El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente a cualquier consulta de un usuario.
 
-\textcolor{borrador2}{El resultado interesante no está en el recuento sino en
-  cómo se reparte el trabajo. Quince de las cincuenta y siete entradas se
-  resuelven \textbf{sin llegar a llamar al modelo generativo}: las cuatro de
-  cortesía, que contesta el propio sistema, y once de las quince ajenas, que se
-  paran antes. Y las quince ajenas no se paran todas en el mismo sitio, que es
-  lo que hace legible el diseño: \textbf{ocho} se quedan sin ningún fragmento
-  porque ninguno supera el suelo de pertinencia; \textbf{tres} recuperan
-  fragmentos ---hasta veinte, de modo que el suelo no las ve--- y las detiene la
-  comprobación de centro ajeno, que actúa después; y \textbf{una} llega hasta el
-  modelo, que redacta una respuesta nombrando una titulación que no existe en la
-  Escuela, y se la retira entera. Cada una de las tres barreras detiene un tipo
-  de pregunta que las otras dos dejan pasar.}
+Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertenencia y tres por la comprobación de referencias a otros centros. Una pregunta llegó hasta el modelo, cuya respuesta fue retirada al detectar una titulación inexistente. Las tres preguntas que atravesaron las barreras anteriores y el modelo se negó a contestarlas.
 
-\textcolor{borrador2}{Quedan \textbf{tres} de las quince, y merecen leerse
-  aparte porque no las detiene ninguna barrera: recuperan contexto, lo
-  atraviesan todo y es el modelo el que se niega por su cuenta, respondiendo que
-  ninguna de las titulaciones que tiene delante encaja con lo que se le pregunta.
-  El resultado es el correcto, pero el mecanismo no es el mismo: una barrera
-  impide, y un modelo que se porta bien solo obedece. Contar esas tres como si
-  el sistema las hubiera parado sería atribuir a un control lo que hoy descansa
-  en el comportamiento del modelo, y bastaría cambiar de modelo para que dejara
-  de ser cierto. Son, por tanto, la parte del rechazo que este trabajo
-  \textbf{no puede garantizar}, y la dirección natural de mejora: llevar a un
-  control lo que ahora solo se pide en las instrucciones.}
+El pleno de 15 aciertos sobre las preguntas ajenas tampoco debe interpretarse como una medida general del rechazo fuera del dominio. El conjunto combina cinco preguntas ajenas evidentes y diez preguntas construidas para superar alguna de las barreras. Su finalidad es
+comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de cinco preguntas producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
+barreras que actúan después de la recuperación.
 
-\textcolor{borrador2}{Que las quince se rechacen tampoco autoriza a leerlo como
-  el rendimiento del sistema frente a cualquier pregunta ajena. Sobre quince
-  casos la cota inferior al 95\,\% es 0,819, y esas quince no son una muestra de
-  lo ajeno sino dos conjuntos pegados: cinco preguntas evidentes ---la capital de
-  Francia, una receta, una carrera que el centro no imparte--- y diez escritas a
-  propósito para colarse, dos de ellas nombrando otro centro de la Universidad
-  con un nombre casi idéntico al de este. Se miden juntas justamente para no
-  informar dos cifras distintas de lo mismo, que es lo que ocurría cuando el
-  banco solo traía las cinco evidentes.}
+La mediana de tiempo sobre las 57 entradas es de 32,2 segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. Si se tienen en cuenta las preguntas que sí que llegan al modelo, la mediana asciende a 62,7 segundos. 
 
-\textcolor{borrador2}{Conviene además no confundir esta cifra con la del
-  Apartado~\ref{secc:resultados_rag_recuperacion}. Allí se mide qué preguntas
-  ajenas detiene \textbf{el suelo de pertinencia por sí solo}, y son cinco de
-  diez; aquí se mide qué preguntas ajenas detiene \textbf{el sistema entero}, con
-  sus tres barreras encadenadas. No son la misma pregunta ni el mismo
-  instrumento, y presentar la segunda como si mejorase a la primera sería
-  atribuir al suelo un mérito que es de las otras dos.}
-
-\textcolor{borrador2}{Sobre los tiempos hay que ser igual de cuidadoso, y en la
-  dirección contraria a la que sugiere la tabla. La mediana de 32,2 segundos no
-  es lo que tarda una respuesta, y es \textbf{más baja que la de cualquier
-  familia que llame al modelo}: la arrastran hacia abajo las quince entradas que
-  se resuelven en centésimas sin encenderlo. Las preguntas de dato sueltas se
-  mueven entre los 11,3 segundos de una de créditos y los 109,4 de una de
-  optativas, y los diálogos de varios turnos acumulan el tiempo de todos ellos.
-  La cifra que describe el coste de una respuesta es la mediana sobre las
-  entradas que sí encienden el modelo, 62,7 segundos, y no esta.}
-
-\subsection{\textcolor{borrador2}{Lo que las métricas no capturan}}
+\subsection{Alcance de las métricas}
 \label{secc:metricas_no_capturan}
 
-\textcolor{borrador2}{Las cuatro medidas anteriores comprueban que lo que la
-  respuesta nombra existe y que nombra lo que debía, y eso deja fuera modos de
-  fallo que ninguna de ellas registra. El más instructivo apareció al pedir a un
-  candidato qué titulación ofrece más asignaturas optativas: escribió las siete
-  cifras correctas, verificadas una a una contra la colección, y a continuación
-  respondió con la titulación equivocada. Ningún guardarraíl determinista
-  detecta ese fallo, porque todos los nombres y todas las cifras que utilizó
-  existen.}
+Las métricas utilizadas permiten comprobar si los nombres
+y valores que aparecen en la respuesta coinciden con la información de la
+colección. Sin embargo, no evalúan por completo la calidad de la redacción, la
+claridad de la explicación ni la adecuación de una recomendación para un
+estudiante concreto. Una respuesta puede contener nombres y cifras reales y,
+aun así, relacionarlos de forma incorrecta, debido a que esto no se puede medir de forma determinista.
 
-\begin{borrador}
-  \item Fase: 2 (IT-35). Completar con los otros modos de fallo observados en
-    las sesiones manuales: declarar que falta un dato y responderlo igual,
-    enumerar quince elementos correctos y cerrar con una afirmación falsa sobre
-    el resto, y las listas que anuncian un número y enumeran otro.
-\end{borrador}
-
+En consecuencia, los resultados de este apartado permiten afirmar que el sistema recupera información pertinente y supera las comprobaciones definidas para el recorrido evaluado. No permiten afirmar que las respuestas sean siempre claras, que las recomendaciones sean
+educativamente adecuadas o que el sistema reproduzca el comportamiento de todos los estudiantes preuniversitarios. Para valorar esas dimensiones serían necesarias evaluaciones específicas con usuarios o revisores humanos, que no forman parte del alcance de este trabajo.
 
 
 
 \section{Validación con usuarios}
 \label{secc:validacion_usuarios}
 
-\textcolor{borrador2}{\textbf{No se ha realizado validación con usuarios
-    reales.} Reunir una muestra de estudiantes preuniversitarios exige
-  coordinarse con un centro de secundaria y disponer de un calendario que el de
-  este trabajo no permitía, y el esfuerzo de las fases anteriores se destinó a
-  construir y medir el sistema. Se enuncia aquí, en la sección que le
-  corresponde, y no se disimula omitiendo el apartado del índice.}
+En este trabajo no se realizó una validación con usuarios reales. La participación de estudiantes preuniversitarios habría requerido o bien buscarlos individualmente o bien coordinarse con un centro de secundaria, preparar las sesiones y disponer de un calendario específico. El esfuerzo del proyecto se concentró en construir la colección documental, implementar el sistema y evaluar su funcionamiento técnico.
 
-\textcolor{borrador2}{Conviene ser preciso sobre qué queda sin comprobar,
-  porque la evaluación de los apartados anteriores no es un sustituto. El banco
-  del sistema comprueba que la respuesta sea correcta y esté apoyada en la
-  documentación oficial, y eso sigue siendo cierto sin usuarios. Lo que no
-  comprueba es nada de lo que solo aparece cuando pregunta una persona: si un
-  estudiante de secundaria formula sus dudas con el vocabulario con el que están
-  escritas las preguntas del banco, si entiende la respuesta que recibe, si le
-  resulta útil para decidir, y si la espera del modelo ---cuya mediana se mide
-  en el Apartado~\ref{secc:resultados_sistema}--- le hace abandonar antes de
-  leerla. Ninguna de esas cuatro cosas se puede deducir de las métricas de este
-  capítulo.}
+La ausencia de usuarios reales y de las pruebas que estos realizan limita el alcance de los resultados obtenidos y del pulido de la aplicación. La pruebas anteriores no permiten saber si las preguntas del banco representan las consultas habituales de un estudiante, si las respuestas se entienden bien, si resultan útiles para elegir una titulación o si el tiempo de espera provoca que el usuario abandone la conversación.
 
-\textcolor{borrador2}{Por eso la ausencia se declara como limitación en el
-  Apartado~\ref{secc:limitaciones} y la validación se sitúa como el paso previo
-  a cualquier puesta en producción en el
-  Apartado~\ref{secc:trabajo_futuro}: un sistema pensado para orientar a
-  estudiantes no debería abrirse a estudiantes sin haberlo probado antes con
-  ellos.}
-
-\begin{borrador}
-  \item \textbf{Fase:} 4 (IT-48, IT-50, IT-51 --- las tres pasan a
-  \emph{won't}). Decisión del 31/08/2026: no se hace la validación con
-  usuarios, y así se escribe.
-  \item \textbf{Esta sección tiene que quedarse}, aunque sea para decir que no
-  se hizo. El capítulo la anuncia en su párrafo de entrada y el índice la
-  lista; quitarla obligaría a tocar las dos cosas y dejaría al lector sin saber
-  si se olvidó o se decidió.
-  \item \textbf{Lo que la hace defendible es el segundo párrafo}, no el primero:
-  enumera las cuatro cosas concretas que quedan sin comprobar. Una limitación
-  declarada en abstracto ---«no se ha validado con usuarios»--- suena a excusa;
-  una que dice exactamente qué no se sabe, no.
-\end{borrador}
+Por tanto, las pruebas técnicas realizadas no se
+consideran equivalentes a una validación con usuarios. Esta limitación se
+recoge en el Apartado~\ref{secc:limitaciones}. La realización de una
+evaluación con estudiantes, mediante tareas representativas y cuestionarios
+de utilidad y comprensión, queda como trabajo futuro antes de plantear una
+puesta en producción del sistema, tal como se describe en el
+Apartado~\ref{secc:trabajo_futuro}.
 
 \section[Discusión]{\textcolor{borrador2}{Discusión}}
 \label{secc:discusion}
 
-\begin{borrador}
+\begin{borrador}    
   \item \textbf{Por qué existe esta sección.} La normativa de la EPSJ nombra el
   capítulo <<Resultados \textbf{y Discusión}>> como una sola unidad, y entre los
   criterios con los que se evalúa el trabajo está la \emph{correspondencia entre los
@@ -562,14 +261,9 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   responde, con qué evidencia y con qué límite. Los que todavía no tengan resultado ---OE4,
   OE6--- se dicen también: un objetivo sin respuesta declarada es mejor que un objetivo que
   el lector no encuentra.
-  \item \textbf{Y aquí es donde toca contar lo incómodo}, que es lo que distingue una
-  discusión de un resumen: que la recuperación no separa las tres estrategias de
-  fragmentación, que la elección de la estrategia se apoya en un efecto sobre la generación
-  que este trabajo todavía no ha medido, y que la base de datos vectorial no gana en
-  velocidad a la búsqueda exacta a esta escala.
 \end{borrador}
 
-\begin{borrador}
+\begin{borrador}    
   \item \textbf{Fase:} 3 (IT-71). Lo que sigue es \emph{andamiaje}: la estructura, los
   punteros a la evidencia y el veredicto de cada objetivo. La prosa la escribes tú;
   cada bloque en turquesa se sustituye por tu redacción y se le quita el color.
@@ -581,81 +275,41 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
   que estar ya medida arriba o en un ADR citado.
 \end{borrador}
 
-\subsection[\textcolor{borrador2}{Trazabilidad con la propuesta original}]{\textcolor{borrador2}{Trazabilidad con la propuesta original}}
-\label{secc:discusion_trazabilidad}
+\subsection[Correspondencia con la propuesta original]{Correspondencia con la propuesta original}
+\label{secc:discusion_correspondencia}
 
-\textcolor{borrador2}{Antes de discutir qué se ha cumplido conviene decir
-  respecto a qué. Los objetivos específicos OE1--OE6 del
-  Capítulo~\ref{cap:objetivos} son una redacción posterior a la propuesta que
-  aprobó la Comisión de Trabajos Fin de Grado, que enunciaba cinco. Los dos
-  conjuntos se corresponden, pero esa correspondencia no estaba escrita en
-  ninguna parte y reconstruirla quedaba en manos de quien leyera. La
-  Tabla~\ref{tab:trazabilidad_enunciado} la fija.}
-
-\textcolor{borrador2}{La correspondencia no es uno a uno en los dos sentidos.
-  El segundo objetivo de la propuesta ---estudiar los sistemas de generación
-  aumentada por recuperación--- se desdobla en dos objetivos específicos, porque
-  la fragmentación y la elección del modelo de incrustaciones acabaron
-  decidiéndose con experimentos independientes y con criterios distintos.}
-
-\textcolor{borrador2}{El primer objetivo pide además dos fuentes que la
-  colección no recoge, y conviene decirlo aquí y no dejar que lo encuentre quien
-  compare los dos documentos. Enumeraba títulos, guías, memorias de grado y
-  datos estadísticos ---tasas de titulación y de egreso, inserción laboral---, y
-  la colección construida se queda en las dos primeras, a las que añade los
-  planes de estudio y las salidas profesionales.}
-
-\textcolor{borrador2}{El alcance de esa desviación se puede acotar con
-  precisión. Ninguna de las 66 preguntas del conjunto de evaluación se responde
-  con esas dos fuentes, de modo que su ausencia no altera ninguna de las cifras
-  de este capítulo. Lo que sí acota es hasta dónde llega OE1 respecto a lo que se
-  prometió, y por eso las dos quedan enunciadas como línea de continuación en el
-  Apartado~\ref{secc:trabajo_futuro} y no como algo que este trabajo dé por
-  cubierto.}
+Antes de discutir qué se ha cumplido conviene decir respecto a qué, y para ello es necesario establecer la relación entre los objetivos específicos definidos en el Capítulo~\ref{cap:objetivos} y los que figuraban en la propuesta aprobada por la Comisión de Trabajos Fin de Grado. La propuesta original contenía cinco objetivos, mientras que la versión que se ha desarrollado en este trabajo contiene seis, como se detalla en la Tabla~\ref{tab:trazabilidad_enunciado}.
 
 \input{tablas/TablaTrazabilidadEnunciado.tex}
 
-\begin{borrador}
-  \item \textbf{Fase:} 3 (IT-71). La tabla y estos párrafos son andamiaje: la
-  correspondencia sale de la propuesta aprobada, pero la prosa la escribes tú.
-  \item \textbf{Falta una frase que solo puedes escribir tú: POR QUÉ no se
-  recogieron.} Lo he dejado sin decir a propósito, porque el motivo real no me
-  consta y no voy a inventarlo. Las dos explicaciones que encajan con lo que hay
-  en el repositorio son que el esfuerzo se concentró en la parte RAG, que es el
-  núcleo del trabajo, o que esas dos fuentes no viven en la web del centro que
-  se rastrea y habrían exigido otra fuente y otro extractor. Escribe la que sea
-  cierta, en una frase, detrás del párrafo que enumera lo que falta.
-  \item \textbf{La fila 1 de la tabla ya cita el objetivo tal como lo aprobó la
-  Comisión.} Antes decía «titulaciones, guías docentes y memorias de
-  verificación», que perdía los datos estadísticos y cambiaba el nombre de las
-  memorias: así redactada parecía que se pedían tres cosas y se habían hecho las
-  tres. Si retocas la tabla, no le quites las cuatro fuentes.
-  \item \textbf{Esto afecta a IT-73 e IT-88}, que siguen abiertas en la Fase 4.
-  Si las cierras como no abordadas, el motivo que escribas aquí es el mismo que
-  va en el comentario de cierre.
-\end{borrador}
+La correspondencia entre ambos conjuntos de objetivos no es de uno a uno, puesto que el segundo objetivo relacionado con el estudio de los sistemas de generación aumentada por recuperación, se desglosa en dos objetivos específicos. Esta separación responde a que la fragmentación del corpus y la selección del modelo de incrustaciones se evaluaron mediante experimentos independientes y con criterios diferentes.
+
+También existe una diferencia en el alcance del primer objetivo. La propuesta original contemplaba la recopilación de titulaciones, guías docentes, memorias de grado y datos estadísticos, como las tasas de titulación, egreso e inserción laboral. La colección finalmente construida incluye titulaciones, guías docentes, planes de estudio y salidas profesionales, pero no incorpora los datos estadísticos.
+
+Estos datos quedaron fuera debido al alcance establecido, ya que el esfuerzo principal se concentró en la información docente y orientativa accesible desde la web del centro (guías, planes y salidas profesionales) y en el desarrollo del pipeline RAG. La incorporación de las memorias de verificación de grado y de los datos estadísticos oficiales queda planteada como una línea de trabajo futuro (Apartado~\ref{secc:trabajo_futuro}).
+
 
 \subsection{Cumplimiento y discusión de objetivos específicos}
 \label{secc:discusion_objetivos}
 
 En esta subsección se analiza y discute si se han cumplido cada uno de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ello las evidencia que se han obtenidos a lo largo del desarrollo del proyecto.
 
-\begin{itemize}
+\begin{itemize}    
   \item \textbf{OE1 --- Construcción de la colección de datos: }
         \textit{Cumplido.} Se ha generado un corpus estructurado y verificado a partir de la página web de la EPSJ, donde cada documento u objeto conserva su procedencia y metadatos de extracción. Ha de decirse que la colección es solo una instantánea temporal de una fuente de datos en continuo cambio la cuál llegó a verso modificada hasta 3 veces durante el desarrollo de este proyecto. Por tanto, cualquier rastreo futuro reproducirá el estado vigente de la página y no necesariamente el conjunto exacto sobre el que se realizaron las mediciones y pruebas.
-
+        
   \item \textbf{OE2 --- Estrategia de fragmentación de textos:}
         \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros más óptimos de tamañó. Los resultados de esto evidenció que a igualdad de longitud, las diferencias de recuperación entre estrategias era mínima, y por ello se adoptó la estrategia de partición semántica-estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
-
+        
   \item \textbf{OE3 --- Selección del modelo de incrustaciones y base vectorial: }
         \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscado por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que actualmente dado con el tamaño de la colección actual, no hay ninguna opción en el mercado que gane a la fuerza bruta.
-
+        
   \item \textbf{OE4 --- mplementación del flujo de procesamiento RAG en local:}
-      \textit{Cumplido.} El sistema opera de extremo a extremo sobre hardware doméstico integrando una arquitectura de tres barreras de control desacopladas (filtro léxico, suelo de pertinencia vectorial y directivas de contexto).
-
+        \textit{Cumplido.} El sistema opera de extremo a extremo sobre hardware doméstico integrando una arquitectura de tres barreras de control desacopladas (filtro léxico, suelo de pertinencia vectorial y directivas de contexto).
+        
   \item \textbf{OE5 --- Evaluación cuantitativa del sistema:} 
         \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre bancos de prueba estandarizados en la industria.
-
+        
   \item \textbf{OE6 --- Desarrollo de la interfaz web accesible:} 
         \textit{Cumplido.} Se ha desarrollado un prototipo y la posterior página web funcional sin dependencias de servicios externos ni registros de usuarios. En materia de accesibilidad, se han verificado aspectos clave como la navegación completa por teclado, los contrastes cromáticos y la adaptación a pantallas estrechas.
 \end{itemize}
@@ -666,263 +320,103 @@ En esta subsección se analiza y discute si se han cumplido cada uno de los seis
 La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía la viabilidad de construir un sistema RAG sobre hardware doméstico capaz de responder fielmente a partir de la documentación oficial de la Escuela Politécnica Superior de Jaén. Esta es válida si se cumplen los cuatro criterios establecidos. 
 
 
-\begin{itemize}
+\begin{itemize}    
   \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
-       \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\,\% en el extremos más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$).
-       
-
+        \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúan entre el 90,6\,\% en el extremos más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$).
+        
+        
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
         \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, se registró cero alucinaciones del modelo elegido. La verificación determinista garantiza que el sistema no genera menciones a grados inexistentes o ajenos a la Escuela.
-
+        
   \item \textbf{Condición 3 --- Proporción de respuestas útiles}
         \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\,\% fijado.
-
-  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No Cumplida}.En las consultas qeu exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la dediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
+        
+  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No Cumplida}.En las consultas que exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
 \end{itemize}
 
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
 
 En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
 
-\begin{borrador}
-  \item \textbf{Fase:} 3 (IT-58). \textbf{Dos erratas en la Condición 4}, que es
-  prosa tuya y por eso no la he tocado: «las consultas \emph{qeu} exigen» y «la
-  \emph{dediana} de tiempo de respuesta». Están en la única condición que se
-  declara incumplida, que es justo la que el tribunal va a leer con lupa.
-  \item \textbf{El veredicto de la Condición 4 aguanta} con la amenaza
-  reescrita en el Apartado~\ref{secc:amenazas_validez}: la mediana se mide sobre
-  el equipo doméstico que impone el RNF-01, que es donde el sistema tiene que
-  responder. La limitación es que la cifra no se puede llevar a otra máquina, no
-  que aquí no valga.
-\end{borrador}
 
-
-\subsection[\textcolor{borrador2}{Comparación con los asistentes revisados}]{\textcolor{borrador2}{Comparación con los asistentes revisados}}
+\subsection[Comparación con los asistentes revisados]{Comparación con los asistentes revisados}
 \label{secc:discusion_estado_arte}
 
-\textcolor{borrador2}{La hipótesis se comprueba contra sí misma, y eso no basta
-  para saber si el trabajo aporta algo. El hueco que se describió en el
-  Capítulo~\ref{cap:antecedentes} era concreto: los asistentes que ya existen en
-  las universidades españolas, probados allí uno a uno, responden a una pregunta
-  sobre las asignaturas de un curso remitiendo a la página donde está la
-  respuesta, no dando la respuesta. La información existe y el enlace es
-  correcto, pero quien pregunta sigue teniendo que leerse la página.}
+La evaluación del sistema no debe limitarse a comprobar si
+cumple la hipótesis planteada, sino que también es necesario valorar qué aporta respecto
+a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente n numerables universidades españolas, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
 
-\textcolor{borrador2}{Sobre eso sí se puede decir algo con las cifras de este
-  capítulo. Las preguntas con las que se probaron aquellos asistentes ---las
-  asignaturas de un curso de un grado--- son de la misma familia que las de
-  listado del banco de evaluación, y el sistema las contesta enumerando las
-  asignaturas, con su curso y su carácter, tomadas del plan de estudios
-  publicado. La diferencia no está en la calidad de la redacción sino en qué
-  devuelve cada uno: un enlace o el dato.}
+Las preguntas realizadas a estos asistentes son comparables con las preguntas de listado incluidas en el bacno de evaluación. En este caso, el sistema desarrollado devuelve directamente las asignaturas correspondientes, junto con el curso y el tipo de asignatura, a partir del plan de estudios publicado. La diferencia observada no se centra entonces en la redacción de la respuesta, sino en el nivel de elaboración que recibe el usuriom mientras que en un caso tiene que consultar un enlace, el otro le da una respuesta estructurada con los datos solicitados.
 
-\textcolor{borrador2}{Conviene decir con la misma claridad en qué no cabe
-  compararse, porque la comparación no es un experimento controlado y sería
-  fácil sacarle más de lo que da. Aquellos asistentes cubren una universidad
-  entera ---grados, másteres, matrícula, becas, trámites--- y este cubre los
-  grados de un solo centro; lo que aquí se gana en profundidad se pierde en
-  amplitud, y una parte de las respuestas que ellos dan bien caen fuera de este
-  dominio. Tampoco se han medido con el mismo banco de preguntas ni con las
-  mismas métricas: lo que se contrasta es el comportamiento observado en unas
-  pocas conversaciones frente a un sistema evaluado sobre un banco propio. Y hay
-  una asimetría de recursos que no se puede pasar por alto, porque son productos
-  en explotación con soporte detrás y esto es un prototipo que se ejecuta en un
-  portátil.}
 
-\begin{borrador}
-  \item \textbf{Fase:} 3 (IT-71). Andamiaje del cuarto punto de la Definición de
-  Hecho: la discusión tenía que compararse con el estado del arte del
-  Capítulo~\ref{cap:antecedentes} y no solo con la hipótesis propia.
-  \item \textbf{Decide cuánto quieres afirmar aquí.} El tercer párrafo acota la
-  comparación a propósito, porque el tribunal va a preguntar por ella: no hay banco
-  común, no hay las mismas métricas y no hay el mismo alcance. Si te parece que se
-  queda corto o que se pasa de prudente, es tuyo para ajustarlo, pero no lo quites
-  entero: una comparación sin sus límites es la clase de afirmación que se cae en dos
-  preguntas.
-  \item \textbf{Sin cifras nuevas.} Todo lo que se dice aquí está medido arriba o
-  recogido en el Capítulo~\ref{cap:antecedentes}.
-\end{borrador}
 
 \section{Amenazas a la validez}
 \label{secc:amenazas_validez}
-\textcolor{borrador2}{Los resultados anteriores tienen límites que conviene
-  enunciar aquí y no dejar que los encuentre el lector. Se agrupan por el tipo de
-  validez al que afectan.}
 
-\subsection{\textcolor{borrador2}{Validez de constructo}}
+Los resultados deben interpretarse teniendo en cuenta
+varias limitaciones. Estas se exponen a continuación agrupadas según el tipo
+de validez al que afectan, con el objetivo de delimitar qué permiten afirmar
+los experimentos y qué aspectos quedan fuera de su alcance.
 
-\textcolor{borrador2}{El suelo de pertinencia descrito en el
-  Apartado~\ref{secc:fase2_dominio} no es un filtro de dominio fiable, y este
-  trabajo no lo presenta como tal. La distancia entre vectores mide parecido de
-  vocabulario, así que una pregunta ajena al dominio formulada con las palabras
-  del centro lo atraviesa: preguntar si se puede estudiar Medicina en la Escuela
-  o qué asignaturas tiene un grado de otra facultad nombra el centro y nombra
-  una titulación, y por vocabulario se parece a lo que el sistema sí cubre.}
+\subsection{Alcance de la evaluación}
 
-\textcolor{borrador2}{Conviene además no leer esa cifra como si todas las
-  preguntas que atraviesan el suelo fueran un fallo. Las peticiones de consejo
-  reciben contexto \textbf{a propósito}, aunque el interés que expresen sea
-  ajeno a la oferta del centro: a quien dice que le gusta la biología y pregunta
-  qué carrera le pega no se le responde con silencio, sino con lo que sí se
-  imparte. A esas respuestas las vigila la comprobación de titulaciones y no el
-  suelo, y contarlas como error del filtro sería contar como fallo el
-  comportamiento que se busca.}
+El banco de evaluación permite comprobar si las
+respuestas son correctas y están respaldadas por la documentación oficial. Sin
+embargo, sus preguntas no proceden de consultas realizadas por estudiantes
+reales. Por tanto, los resultados no permiten determinar si representan la
+forma habitual en que los futuros usuarios expresarían sus dudas, si las
+respuestas se entienden con facilidad o si resultan útiles para elegir una
+titulación. Esta limitación se desarrolla en el
+Apartado~\ref{secc:validacion_usuarios}.
 
-\textcolor{borrador2}{Y una parte de la colección no es texto
-  publicado por la Escuela. De los 1.499 fragmentos, 95 los compone el
-  fragmentador contando y agrupando el propio conjunto de datos ---el catálogo,
-  la ficha de cada titulación, los listados del plan y las menciones, según se
-  describe en el Apartado~\ref{secc:fragmentos_derivados}--- y otros 86 son el
-  aviso de que la Escuela no publica guía de esa asignatura. Todo sale de lo
-  extraído y nada se añade, pero el lector no debe suponer que cada fragmento
-  procede literalmente de la web.}
+La interpretación de Recall@k también está condicionada por el número máximo de fragmentos que puede devolver el recuperador. Algunas de las preguntas tienen más unidades relevantes que fragmentos recuperables, por lo que l amétrica no puede alcanzar uno en esos casos. Esto impide interpretar Recall@k como una medida absoluta de recuperación completa sin considerar su máximo alcanzable.
 
-\subsection{\textcolor{borrador2}{Validez interna}}
+\subsection{Cobertura y generalización de la colección}
 
-\textcolor{borrador2}{El suelo de pertinencia se eligió buscando el valor que
-  más preguntas ajenas rechazaba, y las preguntas con las que se buscó son las
-  mismas que después miden ese rechazo. Medido así, el resultado dice lo bien
-  que se ajustó el parámetro a un conjunto concreto, no lo bien que el sistema
-  rechaza lo que no le corresponde, y una cifra obtenida sobre los mismos datos
-  con los que se decidió el valor no sostiene ninguna conclusión.}
+La documentación disponible no presenta la misma
+cobertura para todas las titulaciones. Las asignaturas sin guía docente
+publicada se concentran en titulaciones de implantación reciente, por lo que
+el sistema dispone de menos información sobre ellas. Además, el doble grado
+internacional aparece en el catálogo y cuenta con una ficha propia, pero no
+tiene publicado su plan de estudios. Las doce titulaciones están representadas
+en la colección, aunque solo once disponen de información sobre sus
+asignaturas. Por este motivo, los resultados agregados no reflejan
+necesariamente el mismo nivel de cobertura para todas las titulaciones.
 
-\textcolor{borrador2}{Este límite \textbf{sí} era corregible, y por eso no se
-  deja declarado sin más: se escribió un segundo conjunto de preguntas ajenas
-  que no ha intervenido en ningún ajuste, con el mismo reparto por clases que el
-  primero, y el rechazo se mide sobre él. Dos de sus preguntas están escritas
-  para ser difíciles a propósito ---una nombra otro centro de la Universidad con
-  un nombre casi idéntico al de este, y otra nombra una titulación que sí existe
-  en el catálogo---, porque es ahí, en el vocabulario cercano, donde un umbral
-  de distancia tiene su límite.}
+La colección corresponde, además, a la información
+publicada por la EPSJ para el curso analizado. Los resultados no pueden
+generalizarse directamente a otros centros, cuyas páginas pueden presentar
+una estructura y un contenido diferentes, ni garantizan el mismo
+comportamiento ante futuras modificaciones de la fuente. Comprobar esa
+generalización requeriría repetir la extracción, la indexación y la evaluación
+sobre otra fuente institucional o sobre una versión posterior de la
+colección.
 
-\textcolor{borrador2}{Los tiempos de respuesta se midieron en el portátil en el
-  que se desarrolla el proyecto, bajo un sistema operativo de propósito general
-  y con la sesión del usuario abierta. El mismo modelo sobre la misma muestra ha
-  dado medianas muy distintas según la carga, y ninguna de las cifras de
-  latencia de este capítulo es extrapolable a otro equipo.}
+\subsection{Rendimiento y reproducibilidad}
 
-\textcolor{borrador2}{Esta amenaza \textbf{no es corregible dentro de este
-    trabajo}, y conviene decir por qué antes de que se lea como un descuido. El
-  equipo es el ordenador personal del autor y no hay ninguno dedicado
-  disponible: dejarlo una noche sin nadie delante no produce un entorno
-  controlado, sino uno algo menos cargado, porque los servicios propios del
-  sistema siguen ejecutándose y no se pueden retirar sin dejar de ser el equipo
-  sobre el que el sistema está pensado para funcionar. Medir en condiciones de
-  laboratorio exigiría hardware del que este trabajo no dispone, y no una noche
-  más de cómputo.}
+La documentación disponible no presenta la misma cobertura para todas las titulaciones. Las asignaturas sin guía docente publicada se concentram en las titulaciones nuevas, por lo qeu el sistema tiene menos información sobre ellas. Además, el doble grado internacional aparece en el catálogo y cuenta con una ficha propia, pero no tiene publicado su plan de estudios. 
 
-\textcolor{borrador2}{Lo que sí acota es el alcance de la cifra, no su validez
-  aquí. La elección del modelo no la usa, como se justifica en el
-  Apartado~\ref{secc:fase2_llm}, y la condición temporal de la hipótesis se
-  declara incumplida sobre el equipo doméstico que el propio requisito
-  \textbf{RNF-01} impone, que es donde el sistema tiene que responder. Lo que no
-  puede afirmarse a partir de estos números es cuánto tardaría en otra máquina.}
+Los tiempos de respuesta se midieron en el ordenador
+personal utilizado para desarrollar el sistema, con un sistema operativo de
+propósito general y servicios en segundo plano. Las variaciones en la carga
+del equipo introducen un factor que no se controló experimentalmente. Por
+tanto, las medianas obtenidas describen las ejecuciones realizadas y permiten
+valorar el requisito~\textbf{RNF-01} en el equipo previsto, pero no permiten
+estimar el rendimiento del sistema en otra máquina o en una infraestructura
+dedicada. La latencia tampoco fue el criterio determinante para seleccionar el
+modelo generativo, como se justifica en el
+Apartado~\ref{secc:fase2_llm}.
 
-\subsection{\textcolor{borrador2}{Validez externa}}
+La redacción exacta producida por el modelo tampoco es
+completamente reproducible, incluso manteniendo constantes los parámetros de
+generación. En las repeticiones realizadas cambiaron algunas formulaciones,
+aunque se mantuvieron los veredictos del banco de evaluación. Por ello, los
+resultados permiten valorar la estabilidad del comportamiento medido, pero no
+garantizan que dos ejecuciones produzcan literalmente la misma respuesta.
 
-\textcolor{borrador2}{La cobertura de guías docentes no se reparte al azar. Las
-  asignaturas sin contenido publicado se concentran en las titulaciones en
-  implantación, de modo que el sistema sabe menos precisamente de las
-  titulaciones más nuevas, que son las que más dudas generan a un
-  preuniversitario. Y una de las doce titulaciones, el doble grado
-  internacional, no tiene plan de estudios publicado: aparece en el catálogo y
-  tiene ficha, pero ninguna de sus asignaturas está en la colección. Las doce
-  titulaciones están representadas; de once hay plan de estudios.}
-
-\subsection{\textcolor{borrador2}{Validez de conclusión}}
-
-\textcolor{borrador2}{El techo de Recall@K sobre esta colección no llega a uno,
-  porque hay preguntas cuyas unidades relevantes son más numerosas que el número
-  de fragmentos que se recuperan. Cualquier cifra de recuperación se lee contra
-  ese techo.}
-
-\textcolor{borrador2}{Y queda la lección más incómoda de
-  este trabajo. El instrumento con el que se miden las respuestas ha fallado
-  varias veces a lo largo del desarrollo, y en todos los casos produjo cifras
-  verosímiles que nadie habría cuestionado: un listado de diez asignaturas
-  correctas puntuando cero, dos respuestas perfectas puntuando cero por su
-  formato, tres candidatos coincidiendo en una precisión baja porque el
-  conjunto de comparación era el equivocado, las doce titulaciones correctas
-  puntuando 0,083 por escribirlas sin la fórmula «Grado en», un verificador que
-  contaba una cosa y rotulaba otra, y las asignaturas de doble grado que la
-  fuente sitúa en dos cursos ---«Tercer o cuarto curso»--- dadas por falladas
-  porque el cotejo exigía el rótulo entero. Todos están corregidos y cada
-  uno entró como prueba de regresión con su caso real, pero lo que se declara
-  no son los fallos, sino lo que se sigue de ellos: un verificador en verde no
-  prueba nada mientras no se haya comprobado qué mide, y en este trabajo cada
-  uno de ellos lo descubrió una lectura a mano de respuestas concretas, no
-  una batería de pruebas.}
-
-\subsection{\textcolor{borrador2}{Qué haría falta para levantarlas}}
-\label{secc:levantar_amenazas}
-
-\textcolor{borrador2}{De cada una conviene decir qué haría falta para quitarla
-  de en medio, y si eso está o no al alcance de este trabajo. Las que se podían
-  corregir con lo que hay aquí no aparecen en esta sección: se corrigieron, y
-  una limitación corregida no es una limitación del trabajo. Las que quedan
-  piden datos, equipo o alcance que este trabajo no tiene.}
-
-\textcolor{borrador2}{Para la \textbf{validez de constructo}, lo que separa al
-  suelo de pertinencia de un filtro de dominio es que el suelo mide parecido de
-  vocabulario y el dominio no es una cuestión de vocabulario. Levantarlo pide
-  otra clase de comprobación: decidir si la pregunta habla de algo que la
-  colección contiene antes de buscarlo, y no después de medir cuánto se le
-  parece. El sistema ya hace algo así con la comprobación de centro ajeno, que
-  no mide distancias sino que reconoce nombres, y es la que detiene justamente
-  las preguntas que el suelo deja pasar. Extender esa idea al resto del dominio
-  es trabajo de la fase de validación y no de esta.}
-
-\textcolor{borrador2}{Para la \textbf{validez interna}, el parámetro sigue
-  elegido sobre diez preguntas aunque se mida sobre otras diez. Lo que lo
-  levantaría no es más cuidado sino más datos: un conjunto de ajuste bastante
-  mayor, partido en pliegues, de modo que ningún valor del suelo se elija sobre
-  el mismo material con el que después se comprueba. Escribir a mano ese
-  conjunto es el coste real, porque las preguntas ajenas no se pueden derivar de
-  la colección ---no hay en ella ninguna columna que diga qué es ajeno--- y son
-  las únicas del trabajo que hay que redactar una a una. La parte de los tiempos
-  no se levanta con más mediciones: pide un equipo dedicado, y el único
-  disponible es el ordenador personal sobre el que se ha desarrollado todo.
-  Repetir la tanda en él, con más o menos carga, sigue midiendo la misma
-  máquina.}
-
-\textcolor{borrador2}{Para la \textbf{validez externa} hay dos cosas distintas.
-  El sesgo de cobertura no lo puede arreglar este trabajo, porque depende de que
-  la Escuela publique las guías que faltan; lo que sí se puede hacer, y sería
-  barato, es informar las cifras de recuperación por titulación en vez de
-  agregadas, y que se vea dónde el sistema sabe menos. La generalización a otros
-  centros es otra cosa: no se levanta con más medidas sobre esta colección, sino
-  repitiendo la canalización entera sobre la web de otro centro, y eso queda
-  fuera del alcance declarado en el Capítulo~\ref{cap:objetivos}.}
-
-\textcolor{borrador2}{Y para la \textbf{validez de conclusión}, el techo de
-  Recall@K sube recuperando más fragmentos, que es un parámetro y no un límite;
-  lo que no sube por medir más veces es la confianza en el propio instrumento.
-  Ahí lo único que ha funcionado en este trabajo ha sido leer respuestas
-  concretas a mano hasta encontrar la que el corrector puntuaba mal, y lo que
-  levantaría de verdad esa amenaza es que las preguntas y sus respuestas
-  correctas las escribiera alguien distinto de quien escribe el corrector.}
-
-\begin{borrador}
-  \item \textbf{Fase:} 2 (IT-39). Apartado vivo hasta cerrar la memoria:
-  comprobar entonces que ninguna de las cuatro se ha vuelto corregible con lo
-  que haya para entonces.
-  \item \textbf{Los tiempos pasan a declararse como amenaza no evitable}
-  (decisión del 30/08, cierre de IT-58). Antes decían «se levanta sola en cuanto
-  se mida en un equipo dedicado», que es exactamente lo que el cuarto criterio
-  de la tarjeta prohíbe: una amenaza corregible declarada en vez de corregida.
-  El argumento que la hace no evitable es que el equipo de medida \emph{es} el
-  equipo de destino ---lo impone el RNF-01--- y no hay ninguno dedicado
-  disponible, así que dejarlo libre una noche no da un entorno controlado.
-  \item \textbf{Si el tribunal pregunta, la respuesta es esta:} lo que no se
-  puede afirmar es cuánto tardaría en otra máquina; lo que sí se afirma es que
-  en la máquina sobre la que el sistema debe funcionar la mediana dobla el
-  umbral. Son dos cosas distintas y solo la segunda entra en la hipótesis.
-  \item \textbf{Decisión tuya:} este párrafo está en \emph{validez interna} y
-  tiene una mitad que es de \emph{validez externa} (que no generaliza a otro
-  equipo). Se puede dejar así, porque las dos mitades se leen seguidas, o
-  partirlo. No lo he movido para no reordenar la sección a tres días de la
-  entrega.
-\end{borrador}
-
-
-
+Estas limitaciones no invalidan los resultados, pero
+delimitan su alcance. Las conclusiones describen el comportamiento técnico del
+sistema sobre la colección, el banco de preguntas y el equipo utilizados; no
+demuestran su utilidad para estudiantes reales, su funcionamiento sobre
+cualquier fuente universitaria ni la reproducibilidad literal de sus
+respuestas.
