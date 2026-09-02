@@ -181,3 +181,63 @@ def test_palabras_descarta_lo_que_es_solo_signos():
     from tfg_uja.text_cleaner import palabras
 
     assert palabras("hola — ...") == {"hola"}
+
+
+# ------------------------------------------- IT-137: una sola normalizacion
+
+
+def test_normalizar_rotulo_colapsa_los_espacios_interiores():
+    """Es la diferencia que separaba las dos copias que había.
+
+    La del rastreador solo recortaba los extremos y la del fragmentador
+    colapsaba. Se conserva la que colapsa.
+    """
+    from tfg_uja.text_cleaner import normalizar_rotulo
+
+    assert normalizar_rotulo("  Prácticas   externas  ") == "practicas externas"
+
+
+def test_normalizar_rotulo_y_normalizar_no_son_la_misma_funcion():
+    """Regresión del riesgo de fusionarlas por parecerse.
+
+    La de rótulos pasa por ASCII, así que borra lo que no tiene equivalente;
+    la de texto libre solo descarta las marcas diacríticas y lo conserva. Esa
+    diferencia no importa en los nombres de la fuente y sí en lo que escribe
+    una persona, así que las dos tienen que seguir existiendo.
+    """
+    from tfg_uja.text_cleaner import normalizar, normalizar_rotulo
+
+    assert normalizar_rotulo("Ingeniería — 60 €") == "ingenieria 60"
+    assert normalizar("Ingeniería — 60 €") == "ingenieria — 60 €"
+
+
+def test_las_dos_copias_retiradas_daban_lo_mismo_sobre_los_nombres_reales():
+    """Caracterización que hizo segura la unificación (IT-137).
+
+    Se comprueba contra las dos implementaciones que había, escritas aquí tal
+    como estaban, sobre los nombres que de verdad maneja el sistema. Si algún
+    día divergieran, esta prueba lo dice antes de que cambie el corpus.
+    """
+    import unicodedata
+
+    from tfg_uja.text_cleaner import normalizar_rotulo
+
+    def como_el_rastreador(texto: str) -> str:
+        sin = unicodedata.normalize("NFKD", texto)
+        return sin.encode("ascii", "ignore").decode("ascii").strip().lower()
+
+    reales = [
+        "Grado en Ingeniería Informática",
+        "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
+        "Grado en Ingeniería Geomática y Topográfica (en extinción)",
+        "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+        "MATEMÁTICAS I",
+        "Créditos ECTS",
+        "Carácter",
+        "Mención",
+        "Común a todas las menciones",
+        "TRABAJO FIN DE GRADO",
+    ]
+
+    for nombre in reales:
+        assert normalizar_rotulo(nombre) == como_el_rastreador(nombre), nombre

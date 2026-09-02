@@ -23,10 +23,11 @@ from __future__ import annotations
 import json
 import re
 import sys
-import unicodedata
 from datetime import date
 from pathlib import Path
 from typing import Any, Final
+
+from tfg_uja.text_cleaner import normalizar_rotulo
 
 #: Tamaño objetivo de un chunk, en caracteres. Coincide a propósito con el
 #: máximo: la rejilla de IT-16 midió las tres proporciones (60 %, 80 % y
@@ -121,25 +122,8 @@ _COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
 _SUFIJO_GRADO: Final[re.Pattern[str]] = re.compile(r"\s*\([A-Z]{2,8}\)\s*$")
 
 
-def _normalizar(nombre: str) -> str:
-    """Devuelve un nombre de asignatura en forma comparable.
-
-    Los planes de los dobles grados escriben los nombres en mayúsculas
-    («MATEMÁTICAS I») y los de los grados simples en minúsculas
-    («Matemáticas I»). Comparando en crudo no casaba ni uno solo de los 178
-    nombres, y las asignaturas del doble grado acababan con un fragmento que
-    afirmaba en falso que no tenían guía publicada.
-
-    Args:
-        nombre: Nombre de la asignatura tal como llega de la fuente.
-
-    Returns:
-        El nombre en minúsculas, sin tildes y con los espacios colapsados.
-    """
-    sin_tildes = (
-        unicodedata.normalize("NFKD", nombre).encode("ascii", "ignore").decode("ascii")
-    )
-    return " ".join(sin_tildes.split()).lower()
+# La normalizacion de nombres vive en `text_cleaner.normalizar_rotulo`,
+# compartida con el rastreador. Aqui habia una copia.
 
 
 def _dividir_en_piezas(texto: str, maximo: int) -> list[str]:
@@ -841,7 +825,7 @@ def _chunks_de_ficha(
                 m
                 for a in suyas
                 for m in (a.get("menciones") or [])
-                if _normalizar(m) != _COMUN_A_TODAS
+                if normalizar_rotulo(m) != _COMUN_A_TODAS
             }
         )
         if menciones:
@@ -907,7 +891,7 @@ def _chunks_de_mencion(
     # parece a la pregunta. Con encabezado propio sí.
     por_grado: dict[str, list[str]] = {}
     for grado, mencion in por_mencion:
-        if _normalizar(mencion) != _COMUN_A_TODAS:
+        if normalizar_rotulo(mencion) != _COMUN_A_TODAS:
             por_grado.setdefault(grado, []).append(mencion)
     for grado in sorted(por_grado):
         nombres = sorted(por_grado[grado])
@@ -930,7 +914,7 @@ def _chunks_de_mencion(
 
     for grado, mencion in sorted(por_mencion):
         asignaturas = sorted(por_mencion[(grado, mencion)], key=lambda a: a["nombre"])
-        if _normalizar(mencion) == _COMUN_A_TODAS:
+        if normalizar_rotulo(mencion) == _COMUN_A_TODAS:
             titulo = f"Asignaturas optativas comunes a todas las menciones del {grado}"
         else:
             titulo = f"Asignaturas de la mención «{mencion}» del {grado}"
@@ -1060,14 +1044,14 @@ def trocear_dataset(
     }
     grupos_por_nombre: dict[str, list[tuple[str, str]]] = {}
     for clave in grupos_guia:
-        grupos_por_nombre.setdefault(_normalizar(clave[0]), []).append(clave)
+        grupos_por_nombre.setdefault(normalizar_rotulo(clave[0]), []).append(clave)
     dobles_por_grupo: dict[tuple[str, str], list[tuple[str, str | None]]] = {}
     atendidas: set[tuple[str, str]] = set()
     ambiguas: list[tuple[str, str]] = []
     for asig_doble in (
         a for a in items if a["tipo"] == "asignatura" and a["grado"] in dobles
     ):
-        candidatos = grupos_por_nombre.get(_normalizar(asig_doble["nombre"]), [])
+        candidatos = grupos_por_nombre.get(normalizar_rotulo(asig_doble["nombre"]), [])
         if not candidatos:
             # El plan del doble grado desambigua algunas asignaturas anotando
             # entre paréntesis el acrónimo del grado del que provienen
@@ -1077,7 +1061,7 @@ def trocear_dataset(
             # no arriesgar una coincidencia falsa cuando el nombre completo ya
             # casa por sí solo.
             candidatos = grupos_por_nombre.get(
-                _normalizar(_SUFIJO_GRADO.sub("", asig_doble["nombre"])), []
+                normalizar_rotulo(_SUFIJO_GRADO.sub("", asig_doble["nombre"])), []
             )
         if len(candidatos) != 1:
             # Ni se adivina ni se reparte entre varios: con más de un grupo

@@ -35,6 +35,49 @@ def normalizar(texto: str) -> str:
     return " ".join(limpio.split())
 
 
+def normalizar_rotulo(texto: str) -> str:
+    """Deja comparable un rótulo o un nombre **que viene de la fuente**.
+
+    Es el contrato de la extracción y de la fragmentación: los rótulos de las
+    tablas de la EPSJ y los nombres de asignatura, que llegan escritos de
+    cualquier manera ---«Mención» y «Mencion», «MATEMÁTICAS I» y «Matemáticas
+    I», «carácter» donde otro plan pone «tipo»---.
+
+    **Por qué no es :func:`normalizar` y por qué no se fusionan.** Esta
+    descompone en NFKD y pasa por ASCII, de modo que lo que no tiene
+    equivalente ASCII desaparece; :func:`normalizar` descompone en NFD y solo
+    descarta las marcas diacríticas, así que lo conserva. La diferencia no
+    importa en los rótulos de la fuente, que son nombres académicos en
+    castellano, y sí importa en el texto libre que escribe una persona o que
+    redacta el modelo, que es donde trabaja la otra.
+
+    Antes había dos copias de esta función, una en el rastreador y otra en el
+    fragmentador, que además discrepaban en los espacios interiores: una los
+    colapsaba y la otra solo recortaba los extremos. Se unifican en la versión
+    que colapsa después de comprobar que no cambia nada de lo que hay:
+
+    * sobre las 841 cadenas de ``data/grados.json`` ---nombres, titulaciones,
+      tipos, códigos, menciones, cursos y cuatrimestres--- las dos daban
+      exactamente el mismo resultado;
+    * sobre los 825 nodos de texto de las fixtures HTML reales discrepaban en
+      8, todos por dobles espacios interiores, y en **ninguno** de los tres
+      puntos de llamada, porque en dos de ellos ``limpiar_texto`` ya ha
+      colapsado antes y en el tercero ---el veredicto de titulación en
+      extinción--- los 13 nombres reales dan el mismo resultado con las dos.
+
+    Args:
+        texto: Rótulo o nombre tal como llega de la fuente.
+
+    Returns:
+        El texto en minúsculas, sin tildes, sin caracteres ajenos al ASCII y
+        con los espacios colapsados.
+    """
+    sin_tildes = (
+        unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    )
+    return " ".join(sin_tildes.split()).lower()
+
+
 def palabras(texto: str) -> set[str]:
     """Descompone un texto en el conjunto de sus palabras comparables.
 
