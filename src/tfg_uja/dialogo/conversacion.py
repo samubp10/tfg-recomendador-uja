@@ -444,10 +444,23 @@ class Conversacion:
                 que se habla. Falso cuando la respuesta fue una de las fijas.
         """
         self._preguntas.append(pregunta)
-        del self._preguntas[: -self.turnos_recordados]
+        # `[:-0]` es `[:0]` y no borra nada, así que con una ventana de cero la
+        # lista crecía sin límite en vez de no recordar nada. Se corta por el
+        # final, que dice lo mismo para cualquier ventana positiva y además
+        # significa lo que parece cuando vale cero.
+        del self._preguntas[: len(self._preguntas) - self.turnos_recordados]
         self._ultimo_turno = (pregunta, respuesta)
 
-        if contenido(pregunta, self.catalogo) and not recorta_lo_anterior(pregunta):
+        # Un turno que no puede reapuntar la titulación tampoco puede cambiar
+        # de qué se está preguntando. Antes esta asignación iba por delante del
+        # `return` de abajo, así que un «Hola» intercalado dejaba el predicado
+        # en «Hola» y la siguiente pregunta elíptica se buscaba como «Hola ¿Y
+        # en segundo?»: la titulación se conservaba y el asunto se perdía.
+        if (
+            cambia_ambito
+            and contenido(pregunta, self.catalogo)
+            and not recorta_lo_anterior(pregunta)
+        ):
             self._predicado = pregunta
 
         # Se mira si **ha decidido** alguien en este turno, no si hay decisor
