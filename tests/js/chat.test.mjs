@@ -285,7 +285,12 @@ function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = 
         read() {
           if (alLeer) alLeer();
           if (i >= partes.length) return Promise.resolve({ value: undefined, done: true });
-          return Promise.resolve({ value: codificador.encode(partes[i++]), done: false });
+          const parte = partes[i++];
+          // Un trozo puede venir ya en bytes: es la unica forma de partir un
+          // caracter de varios bytes entre dos lecturas, que es lo que obliga
+          // al cliente a vaciar el decodificador al llegar al final.
+          const valor = parte instanceof Uint8Array ? parte : codificador.encode(parte);
+          return Promise.resolve({ value: valor, done: false });
         },
       }),
     },
@@ -691,6 +696,67 @@ test("un flujo sin texto ninguno no se da por respuesta buena", async () => {
   // Aun fallando, la marca de «escribiendo» se retira: es la red de seguridad
   // del `finally`, sin la cual una caída la dejaría puesta indefinidamente.
   assert.ok(burbuja.atributosQuitados.includes("aria-busy"));
+});
+
+test("un flujo con texto pero sin el cierre del servidor no se da por bueno", async () => {
+  /*
+    Regresión del defecto que destapó la auditoría del 02/09/2026. El bucle
+    terminaba al agotarse el transporte y lo único que se comprobaba después
+    era que hubiera texto. Medido entonces: el mismo texto con `fin` y sin
+    `fin` producía una burbuja IDÉNTICA byte a byte, con el pie «Respuesta
+    completa» y la misma clase. Un corte de red a mitad de una respuesta se
+    presentaba como una respuesta terminada.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([{ parte: "Primero se cursa Álgebra" }]));
+
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+
+  const { fila, pie } = ultimaRespuesta(m);
+  assert.ok(fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(!pie.innerHTML.includes("Respuesta completa"), pie.innerHTML);
+});
+
+test("una última línea cortada por la mitad no se da por buena", async () => {
+  /*
+    El servidor termina TODA línea con un salto, así que un resto sin salto
+    solo puede ser una transmisión cortada. Antes se quedaba en la variable
+    `resto` sin que nadie volviera a mirarla.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([], {
+      trozos: [JSON.stringify({ parte: "Se cursa " }) + "\n" + '{"parte":"Álge'],
+    })
+  );
+
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+
+  assert.ok(ultimaRespuesta(m).fila.classList.contains("mensaje--fallo"));
+});
+
+test("un carácter partido entre dos lecturas se recompone", async () => {
+  /*
+    `Á` ocupa dos bytes en UTF-8. Si el flujo los entrega en lecturas
+    distintas, el decodificador retiene el primero: sin vaciarlo al llegar al
+    final, esos bytes no aparecían por ninguna parte.
+  */
+  const ndjson =
+    JSON.stringify({ parte: "Álgebra" }) + "\n" + JSON.stringify({ fin: true }) + "\n";
+  const bytes = new TextEncoder().encode(ndjson);
+  // El corte cae dentro de los dos bytes de la «Á».
+  const corte = ndjson.indexOf("Á") + 1;
+  const m = montar();
+  await reposar();
+  m.responder(() => respuestaNdjson([], { trozos: [bytes.slice(0, corte), bytes.slice(corte)] }));
+
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+
+  const { fila, cuerpo } = ultimaRespuesta(m);
+  assert.ok(!fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(cuerpo.innerHTML.includes("Álgebra"), cuerpo.innerHTML);
 });
 
 // ------------------------------------------------------------- sugerencias
