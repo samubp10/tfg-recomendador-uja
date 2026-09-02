@@ -52,6 +52,18 @@ const cerrarFuentes = document.getElementById("fuentes-cerrar");
 
 let ocupado = false;
 
+/**
+ * Si la persona ya ha preguntado algo.
+ *
+ * El saludo y las sugerencias de arranque se piden en dos peticiones aparte y
+ * sus respuestas llegaban cuando llegaran. Si tardaban mas que el primer
+ * turno, el saludo se anadia DEBAJO de la pregunta y de su respuesta, y las
+ * sugerencias de arranque sustituian a las del ultimo turno. Es una carrera de
+ * orden de llegada, y esta marca es el contrato que la corta: lo que se pidio
+ * al arrancar solo se aplica si al llegar sigue siendo lo actual.
+ */
+let yaHaPreguntado = false;
+
 /** Peticion en curso, o `null`. Es lo que permite cancelarla. */
 let enCurso = null;
 
@@ -421,6 +433,7 @@ function ponerBotonDeFuentes(pie, lista) {
 async function preguntar(pregunta) {
   if (ocupado || !pregunta.trim()) return;
   ocupado = true;
+  yaHaPreguntado = true;
   bloquear(true);
 
   pintarPregunta(pregunta.trim());
@@ -679,6 +692,10 @@ async function saludar() {
   } catch {
     return;
   }
+  // Si mientras se pedia el saludo la persona ya ha preguntado, este texto ha
+  // dejado de ser una bienvenida: pintarlo ahora lo colocaria debajo de su
+  // pregunta y de la respuesta.
+  if (yaHaPreguntado) return;
   const { burbuja, cuerpo } = abrirRespuesta();
   cuerpo.innerHTML = formatear(texto);
   burbuja.removeAttribute("aria-busy");
@@ -697,5 +714,10 @@ cerrarFuentes.addEventListener("click", () => cuadroFuentes.close());
 // boton con una pregunta que el indice no respalda es peor que ningun boton.
 fetch("/api/sugerencias")
   .then((r) => (r.ok ? r.json() : []))
-  .then(pintarSugerencias)
+  // Igual que el saludo: si el primer turno se ha adelantado, sus sugerencias
+  // son las buenas y estas ya no. Pintarlas ahora las sustituiria por las del
+  // arranque, que no tienen nada que ver con lo que se acaba de preguntar.
+  .then((lista) => {
+    if (!yaHaPreguntado) pintarSugerencias(lista);
+  })
   .catch(() => {});
