@@ -161,7 +161,17 @@ def linea_de_turno(
         "respuesta": respuesta,
         "retirada": retirada,
         "segundos": round(segundos, 2),
-        "modelo_llamado": respuesta not in RESPUESTAS_SIN_MODELO,
+        # Qué clase de respuesta se entregó, deducida del propio texto. **No
+        # es un contador de llamadas al modelo**, y se llamaba así: un turno
+        # en el que el decisor de ámbito sí opinó y después no hubo contexto
+        # salía con `decision` puesta y `modelo_llamado` en falso, es decir,
+        # la misma línea se contradecía. Lo que se puede afirmar mirando el
+        # texto es si la respuesta salió del generador o de una de las fijas,
+        # y eso es lo que dice el nombre ahora.
+        "respuesta_del_generador": respuesta not in RESPUESTAS_SIN_MODELO,
+        # Si al decisor de ámbito se le llegó a preguntar en este turno. Sale
+        # del punto donde ocurre y no de la redacción final.
+        "decisor_consultado": bool(consulta.decision),
         "error": error,
     }
 
