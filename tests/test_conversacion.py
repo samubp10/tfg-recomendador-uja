@@ -733,6 +733,47 @@ def test_regresion_una_respuesta_fija_no_reapunta_el_ambito() -> None:
     assert conversacion.ambito == ["Grado en Ingeniería Informática"]
 
 
+def test_regresion_una_respuesta_fija_tampoco_pisa_el_predicado() -> None:
+    """La otra mitad del mismo defecto, encontrada el 02/09/2026.
+
+    IT-121 protegió la titulación, pero no el asunto. La asignación del
+    predicado iba por delante del `return`, así que un saludo intercalado lo
+    dejaba en «Hola» y la elíptica siguiente se buscaba como «Hola ¿Y en
+    segundo?»: se conservaba de qué titulación se hablaba y se perdía qué se
+    estaba preguntando de ella.
+
+    Este camino no lo cubría el banco del sistema: ninguna de sus ocho
+    conversaciones encadenadas pone una respuesta fija delante de una elíptica.
+    """
+    conversacion = Conversacion(CATALOGO)
+    conversacion.anotar(
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática en primero?",
+        "Tiene Álgebra.",
+    )
+
+    conversacion.anotar(
+        "Hola", "Hola, soy el asistente de la EPSJ.", cambia_ambito=False
+    )
+
+    consulta = conversacion.preparar("¿Y en segundo?")
+    assert "Hola" not in consulta.respaldo
+    assert "Informática" in consulta.respaldo
+
+
+def test_una_ventana_de_cero_turnos_no_recuerda_ninguno() -> None:
+    """`[:-0]` es `[:0]`: no borraba nada y la ventana crecía sin límite.
+
+    Ningún consumidor pasa hoy un cero, así que no cambia ninguna medición;
+    lo que se arregla es que el parámetro signifique lo que dice.
+    """
+    conversacion = Conversacion(CATALOGO, turnos_recordados=0)
+
+    for i in range(5):
+        conversacion.anotar(f"¿Pregunta {i}?", "respuesta")
+
+    assert conversacion.preguntas() == []
+
+
 def test_sin_el_argumento_el_ambito_se_sigue_deduciendo() -> None:
     """La otra mitad: el comportamiento normal no cambia.
 

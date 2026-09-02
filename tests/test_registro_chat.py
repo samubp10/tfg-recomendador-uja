@@ -168,7 +168,8 @@ def test_el_registro_no_recoge_ningun_dato_del_visitante() -> None:
         "respuesta",
         "retirada",
         "segundos",
-        "modelo_llamado",
+        "respuesta_del_generador",
+        "decisor_consultado",
         "error",
     }
 
@@ -202,7 +203,22 @@ def test_lo_que_escribe_la_persona_se_guarda_tal_cual() -> None:
 @pytest.mark.parametrize("fija", [RESPUESTA_SALUDO, RESPUESTA_SIN_CONTEXTO])
 def test_una_respuesta_fija_queda_marcada_como_turno_sin_modelo(fija: str) -> None:
     """Un saludo o un contexto vacío no gastan modelo, y se ve en el registro."""
-    assert linea(respuesta=fija)["modelo_llamado"] is False
+    assert linea(respuesta=fija)["respuesta_del_generador"] is False
+
+
+def test_el_decisor_consultado_sale_de_donde_ocurre_y_no_del_texto() -> None:
+    """Regresión de la auditoría del 02/09/2026.
+
+    El campo antiguo se llamaba ``modelo_llamado`` y se deducía del texto
+    entregado. Un turno en el que el decisor de ámbito sí opinó y después no
+    hubo contexto salía con la decisión puesta y el campo en falso: la misma
+    línea se contradecía. Ahora una cosa dice qué clase de respuesta se
+    entregó y la otra si se preguntó al decisor.
+    """
+    registro = linea(respuesta=RESPUESTA_SIN_CONTEXTO)
+
+    assert registro["respuesta_del_generador"] is False
+    assert registro["decisor_consultado"] == bool(registro["consulta"]["decision"])
 
 
 def test_la_retirada_cuenta_como_turno_con_modelo() -> None:
@@ -214,7 +230,7 @@ def test_la_retirada_cuenta_como_turno_con_modelo() -> None:
     """
     registro = linea(respuesta=RESPUESTA_TITULACION_INVENTADA, retirada=True)
 
-    assert registro["modelo_llamado"] is True
+    assert registro["respuesta_del_generador"] is True
     assert registro["retirada"] is True
 
 

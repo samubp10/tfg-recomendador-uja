@@ -821,7 +821,7 @@ def test_una_respuesta_retirada_se_registra_como_tal(
     (turno,) = turnos_de(registro)
     assert turno["retirada"] is True
     assert turno["respuesta"] == RESPUESTA_TITULACION_INVENTADA
-    assert turno["modelo_llamado"] is True
+    assert turno["respuesta_del_generador"] is True
 
 
 def test_un_turno_que_falla_tambien_se_registra(
@@ -961,7 +961,7 @@ def test_un_saludo_ni_llega_al_indice_ni_anuncia_fuentes(
     (turno,) = turnos_de(registro)
     assert turno["se_busco"] is False
     assert turno["recuperados"] == 0
-    assert turno["modelo_llamado"] is False
+    assert turno["respuesta_del_generador"] is False
 
 
 # ------------------------------------------------------ las sugerencias que rotan
