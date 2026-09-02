@@ -695,6 +695,55 @@ test("un flujo sin texto ninguno no se da por respuesta buena", async () => {
   assert.ok(burbuja.atributosQuitados.includes("aria-busy"));
 });
 
+test("un saludo que llega tarde no se cuela debajo de la conversación", async () => {
+  /*
+    Regresión de la auditoría del 02/09/2026. El saludo y las sugerencias de
+    arranque se piden en dos peticiones aparte y no se descartaban al llegar
+    tarde: si la persona preguntaba antes de que contestaran, el saludo se
+    añadía DEBAJO de su pregunta y de la respuesta, y las sugerencias del
+    arranque sustituían a las del turno. Aquí se retienen las dos a propósito.
+  */
+  let soltarSaludo;
+  const saludoDiferido = new Promise((r) => {
+    soltarSaludo = r;
+  });
+  const fetchDoble = (url) => {
+    if (url === "/api/saludo") {
+      return saludoDiferido.then(() => ({
+        ok: true,
+        json: () => ({ respuesta: "Hola, soy el asistente." }),
+      }));
+    }
+    if (url === "/api/sugerencias") {
+      return saludoDiferido.then(() => ({ ok: true, json: () => ["¿Qué grados hay?"] }));
+    }
+    return Promise.resolve(
+      respuestaNdjson([
+        { parte: "En primero se cursa Álgebra." },
+        { sugerencias: ["¿Y en segundo?"] },
+        { fin: true },
+      ])
+    );
+  };
+  const chat = cargarChat({ fetch: fetchDoble });
+
+  await chat.preguntar("¿Qué se cursa en primero?");
+  soltarSaludo();
+  for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
+
+  const filas = chat._elementos.get("mensajes").hijos;
+  const textos = Array.from(filas, (f) => f.innerHTML || "");
+  assert.ok(
+    !textos.some((t) => t.includes("Hola, soy el asistente")),
+    "el saludo tardío no debe pintarse una vez empezada la conversación"
+  );
+  assert.deepEqual(
+    Array.from(chat._elementos.get("sugerencias").hijos, (b) => b.textContent),
+    ["¿Y en segundo?"],
+    "las sugerencias del turno mandan sobre las del arranque"
+  );
+});
+
 // ------------------------------------------------------------- sugerencias
 
 test("las sugerencias de arranque las decide el servidor", async () => {
