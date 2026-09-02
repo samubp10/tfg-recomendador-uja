@@ -166,13 +166,15 @@ web: se ejecutó solo el fragmentador con los parámetros nuevos. Conviene que e
 distinga, porque «cambió el corpus» y «cambió la fuente» son cosas distintas y solo la
 segunda obliga a repetir el rastreo.
 
-Estado del corpus vigente (06/08/2026):
+Estado del corpus vigente (rastreo del 16/08/2026, troceado del 01/09/2026):
 
-- **1 334 fragmentos**: 1 193 de guía, 86 informativos de asignaturas sin contenido, 33 de
-  plan de estudios y 22 de salidas. 322 unidades, 78 de ellas compartidas.
-- Tamaños (mín/mediana/p90/máx): **171 / 838 / 894 / 900**. Seis fragmentos quedan por
-  debajo del mínimo de 200: son colas que no cabían junto a su vecino sin desbordar el
-  máximo, y el mínimo es una preferencia, no una restricción dura.
+- **1 922 fragmentos**: 1 719 de guía, 86 informativos de asignaturas sin contenido, 56 de
+  plan de estudios, 24 de mención, 22 de salidas, 12 de ficha de titulación y 3 de
+  catálogo. 471 unidades, 63 de ellas compartidas.
+- Tamaños (mín/mediana/p90/máx): **96 / 846 / 895 / 900**. Trece fragmentos quedan por
+  debajo del mínimo de 200, un 0,68 %: tres son colas que no cabían junto a su vecino sin
+  desbordar el máximo y diez son unidades enteras más cortas que el mínimo, que es una
+  preferencia y no una restricción dura.
 - **0 nombres contaminados** por el enlace «Syllabus», que es lo que arreglaba IT-96.
 - 5 asignaturas con la guía publicada pero vacía en el origen (DQA-0004); entran al
   corpus con sus datos básicos.
