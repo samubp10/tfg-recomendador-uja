@@ -273,3 +273,40 @@ def test_una_metrica_sin_ninguna_medida_no_aparece_en_la_tabla(tmp_path) -> None
     texto = salida.read_text(encoding="utf-8")
     assert "| precision |" not in texto
     assert "| cobertura |" not in texto
+
+
+def test_se_comparan_las_tres_metricas_y_no_solo_las_dos_de_listado() -> None:
+    """Regresión: `acierto` se quedaba fuera y es la mayoría del banco.
+
+    Las preguntas de valor único ---créditos y curso--- se puntúan con
+    `acierto`, y en la muestra profunda son **180 de las 250**. Comparando solo
+    `precision` y `cobertura`, el informe concluía «no se distinguen» habiendo
+    mirado 70 preguntas de 250 sin decirlo en ninguna parte: la clase de cifra
+    que parece medida y no lo está.
+    """
+    assert comparar_dos_modelos.METRICAS == ("precision", "cobertura", "acierto")
+
+
+def test_el_informe_incluye_la_fila_de_acierto(tmp_path) -> None:
+    """Y no basta con la constante: tiene que llegar a la tabla."""
+    filas = []
+    for i in range(4):
+        for modelo in (A, B):
+            fila = _fila(f"P{i}", modelo, precision=None, cobertura=None)
+            fila["acierto"] = 1.0
+            filas.append(fila)
+    salida = tmp_path / "informe.md"
+
+    comparar_dos_modelos.main(
+        [
+            "--registro",
+            str(_registro(tmp_path, filas)),
+            "--modelos",
+            A,
+            B,
+            "--salida",
+            str(salida),
+        ]
+    )
+
+    assert "| acierto | 4 |" in salida.read_text(encoding="utf-8")
