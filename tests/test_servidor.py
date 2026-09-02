@@ -12,6 +12,7 @@ from __future__ import annotations
 import io
 from http.server import SimpleHTTPRequestHandler
 import json
+import logging
 import socketserver
 from pathlib import Path
 from typing import Any
@@ -861,6 +862,66 @@ def test_que_falle_el_registro_no_deja_al_estudiante_sin_respuesta(
 
     assert {"parte": "Hola."} in sucesos
     assert sucesos[-1] == {"fin": True}
+
+
+def test_que_falle_el_registro_deja_aviso_en_el_canal_diagnostico(
+    monkeypatch: pytest.MonkeyPatch,
+    sin_recuperador: None,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Perder la anotación de un turno no puede pasar en silencio.
+
+    Que el registro no tumbe el chat es correcto: es auxiliar. Pero estas
+    sesiones se analizan después, y un hueco sin aviso se lee como un turno
+    que nunca ocurrió. El aviso no lleva la pregunta.
+    """
+    monkeypatch.setattr(registro_chat, "REGISTRO", tmp_path)
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+
+    with caplog.at_level(logging.WARNING):
+        list(
+            servidor.partes_de_la_respuesta(
+                "¿Cuántos créditos tiene Álgebra?", SISTEMA_FALSO, ConversacionFalsa()
+            )
+        )
+
+    assert any("no se ha podido anotar" in m.lower() for m in caplog.messages)
+    assert not any("Álgebra" in m for m in caplog.messages)
+
+
+def test_que_fallen_las_sugerencias_no_se_lleva_por_delante_la_respuesta(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, registro: Path
+) -> None:
+    """Un adorno de la interfaz no puede dejar el turno sin cerrar.
+
+    Las sugerencias consultan el índice por su cuenta, y ``sugerencias_para``
+    no captura nada: ``_hay`` llama directo a ``count_rows``. Ese fallo
+    escapaba hasta el generador de sucesos, así que el turno terminaba sin
+    ``fin`` y el cliente daba por completa una respuesta que no lo estaba.
+    Regresión de la auditoría del 02/09/2026.
+    """
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+
+    def sugerencias_rotas(*a: Any, **k: Any) -> list[str]:
+        raise RuntimeError("el índice no responde")
+
+    monkeypatch.setattr(servidor, "sugerencias_para", sugerencias_rotas)
+
+    sucesos = list(
+        servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
+    )
+
+    assert {"parte": "Hola."} in sucesos
+    assert {"sugerencias": []} in sucesos
+    # Exactamente un terminal, y de éxito.
+    assert sucesos[-1] == {"fin": True}
+    assert sum(1 for s in sucesos if "fin" in s) == 1
+    assert not any("error" in s for s in sucesos)
 
 
 # ------------------------------------------------- las respuestas fijas
