@@ -255,11 +255,27 @@ distribución.
 
 El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente a cualquier consulta de un usuario.
 
+\textcolor{borrador2}{Conviene además ponerle una cifra a esa cautela, porque un pleno se
+  lee con facilidad como una tasa de acierto de uno y no lo es. Cincuenta y siete aciertos
+  sobre cincuenta y siete observaciones sitúan la tasa real, con una confianza del 95\,\%,
+  por encima de \textbf{0,949}; lo que el banco descarta es que el sistema falle más de
+  una vez de cada veinte, no que no falle nunca. La cota sale del tamaño del banco y no
+  del número de ejecuciones, de modo que repetir la tanda no la estrecha: lo único que la
+  estrecha es añadir preguntas distintas.}
+
 Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de \sout{pertenencia}\textcolor{borrador2}{pertinencia} y tres por la comprobación de referencias a otros centros. Una pregunta llegó hasta el modelo, cuya respuesta fue retirada al detectar una titulación inexistente. \sout{Las tres preguntas que atravesaron las barreras anteriores y el modelo se negó a contestarlas.}\textcolor{borrador2}{Las tres preguntas restantes atravesaron todas las barreras del sistema y fue el propio modelo el que se negó a contestarlas.}
 
 El pleno de 15 aciertos sobre las preguntas ajenas tampoco debe interpretarse como una medida general del rechazo fuera del dominio. El conjunto combina cinco preguntas ajenas evidentes y diez preguntas construidas para superar alguna de las barreras. Su finalidad es
 comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de cinco preguntas producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
 barreras que actúan después de la recuperación.
+
+\textcolor{borrador2}{Ese segundo pleno se apoya además en muchas menos observaciones que
+  el anterior, y por eso dice bastante menos: quince de quince dejan la tasa de rechazo por
+  encima de \textbf{0,819} con la misma confianza del 95\,\%, frente al 0,949 del banco
+  completo. Y once de esos quince rechazos los produce una barrera del sistema ---ocho el
+  suelo de pertinencia, tres la comprobación de centro ajeno--- y uno la retirada de la
+  respuesta; los tres restantes los rechaza el propio modelo, que no es un control:
+  bastaría cambiar de modelo generativo para perderlos.}
 
 La mediana de tiempo sobre las 57 entradas es de 32,2 segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. Si se tienen en cuenta las preguntas que sí que llegan al modelo, la mediana asciende a 62,7 segundos. \textcolor{borrador2}{Sobre esa misma
   población, el percentil 90 alcanza los 125,3 segundos: una de cada diez consultas que
