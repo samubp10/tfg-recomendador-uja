@@ -651,13 +651,11 @@ test("mientras se responde, el envío se convierte en cancelar", async () => {
   const boton = m.el("enviar");
   assert.equal(boton.disabled, false, "cancelar tiene que poder pulsarse");
   assert.equal(boton.getAttribute("aria-label"), "Cancelar la consulta en curso");
-  assert.ok(boton.classList.contains("redaccion__enviar--cancelar"));
 
   m.el("redaccion").disparar("submit");
   await enMarcha;
 
   assert.equal(boton.getAttribute("aria-label"), "Enviar consulta");
-  assert.ok(!boton.classList.contains("redaccion__enviar--cancelar"));
 });
 
 test("cancelar devuelve la pregunta al cuadro para poder corregirla", async () => {

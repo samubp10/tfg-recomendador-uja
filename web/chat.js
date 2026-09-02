@@ -576,7 +576,6 @@ function bloquear(bloqueado) {
     "aria-label",
     bloqueado ? "Cancelar la consulta en curso" : "Enviar consulta"
   );
-  botonEnviar.classList.toggle("redaccion__enviar--cancelar", bloqueado);
   actualizarEnviar();
   if (!bloqueado) entrada.focus();
 }
