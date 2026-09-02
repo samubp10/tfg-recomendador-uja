@@ -92,7 +92,7 @@
 
   \item \textcolor{borrador2}{\textbf{La colección no recoge dos de las cuatro
       fuentes que enunciaba la propuesta}, las memorias de grado y los datos
-    estadísticos (Apartado~\ref{secc:discusion_trazabilidad}), ni los datos de
+    estadísticos (Apartado~\ref{secc:discusion_correspondencia}), ni los datos de
     acceso ---notas de corte y ponderaciones--- que un preuniversitario consulta
     al decidir (Apartado~\ref{secc:alcance}).}
 
@@ -103,62 +103,26 @@
 \section{Trabajo futuro}
 \label{secc:trabajo_futuro}
 
-\textcolor{borrador2}{Cada línea responde a una limitación de la lista
-  anterior y en el mismo orden. Ninguna se enuncia si no se sigue de algo que
-  este trabajo haya encontrado, y lo que haría falta para levantar cada una se
-  razona en el Apartado~\ref{secc:levantar_amenazas}.}
+A partir de las limitaciones identificadas en el apartado anterior y de las evidencias obtenidas durante la evaluación técnica, se proponen las siguientes líneas de trabajo futuro:
+
 
 \begin{itemize}
-  \item \textcolor{borrador2}{\textbf{Probar el sistema con estudiantes de
-      secundaria}, antes que cualquier otra cosa y antes de ponerlo en
-    producción.}
+  \item \textbf{Probar el sistema con estudiantes preuniversitarios:} Realizar pruebas de uso con alumnado o usuarios objetivos para comprobar si el sistema responde a la formulación real de sus dudas y si resulta comprensible como apoyo en la toma de una decisión.
 
   \item \textcolor{borrador2}{\textbf{Medir la utilidad de la respuesta y no
       solo su fidelidad}, que exige a su vez la validación con usuarios.}
 
-  \item \textcolor{borrador2}{\textbf{Que el banco de preguntas y sus
-      respuestas correctas los escriba alguien distinto de quien escribe el
-    corrector.} Repetir las mediciones no levanta esa duda.}
+  \item \textbf{Evaluación cualitativa de la utilidad y claridad de las respuestas:} Incorporar métricas centradas en el usuario (mediantes encuestas de satisfacción por ejemplo) para valorar la calidad explicativa de las recomendaciones más allá de la fidelidad factual.
 
-  \item \textcolor{borrador2}{\textbf{Reducir el tiempo de respuesta} hasta el
-    umbral que la hipótesis fijaba: la tarjeta gráfica para la inferencia, y
-    menos llamadas al modelo por turno, que hoy son dos.}
+  \item \textbf{Optimización del tiempo de inferencia y de
+      la arquitectura de diálogo:} Evaluar el despliegue del modelo generativo sobre el hardware con aceleración por GPU y simplificar el flujo conversacional para situal la latencia por debajo del umbral de los treinta segundos.
 
-  \item \textcolor{borrador2}{\textbf{Extender la colección al resto de centros
-      de la Universidad.} El diseño admite crecer sin tocar el núcleo de
-    recuperación y generación; que el sistema \emph{escale} \textbf{no está
-      medido}, y es lo que habría que comprobar antes de prometerlo.}
+  \item \textbf{Extender la colección al resto de centros
+      de la Universidad:} Extender el alcance de la extracción a las demás facultades de la Universidad de Jaén y evaluar experimentalmente el impacto del crecimiento del índice vectorial en la precisión del recuperador y en los tiempos de búsqueda.
 
-  \item \textcolor{borrador2}{\textbf{Completar la colección con los datos de
-      acceso y de egreso}: las memorias de grado y los datos estadísticos que
-    enunciaba la propuesta, las notas de corte y ponderaciones ---publicadas por
-    titulación en el Distrito Único Andaluz--- y los indicadores de inserción
-    laboral, que hoy solo constan agregados por rama y por centro.}
+  \item \textbf{Completar la colección con los datos de
+      acceso y de egreso}: Integrar en la colección las notas de corte y ponderaciones del Distrito Único Andaluz, y los indicadores oficiales de inserción laboral que complementen la información de los planes de estudio.
 
-  \item \textcolor{borrador2}{\textbf{Llevar la aplicación a condiciones de
-      producción}: atender en paralelo, cifrar el tráfico y limitar el tamaño y
-    la frecuencia por cliente.}
+  \item \textbf{Llevar la aplicación a condiciones de
+      producción}: Implementar soporte para concurrencia de peticiones en paralelo, comunicaciones cifradas mediante HTTPS y mecanismos de control de frecuencia y volumen por cliente.
 \end{itemize}
-
-\begin{borrador}
-  \item \textbf{Fase:} 5 (IT-52). Andamiaje de las dos secciones, escrito el
-  31/08/2026. Reescríbelo con tus palabras y quita el turquesa.
-  \item \textbf{El reparto ya está aplicado:} lo \emph{razonado} ---por qué el
-  sistema no puede hacer algo y qué haría falta--- vive en las amenazas a la
-  validez del capítulo anterior, y aquí quedan siete enunciados, cada uno con el
-  apartado donde se argumenta. Al reescribirlos, no vuelvas a razonarlos: si un
-  punto de aquí necesita explicar el porqué, es que pertenece al
-  Apartado~\ref{secc:amenazas_validez}.
-  \item \textbf{Las dos listas van emparejadas y en el mismo orden}, punto por
-  punto. Si añades o quitas uno, hazlo en las dos o el paralelismo se rompe y se
-  nota.
-  \item \textbf{El sexto punto es nuevo} ---las memorias de grado y los datos
-  estadísticos que la propuesta pedía y la colección no recoge---. Va aquí
-  porque el Apartado~\ref{secc:discusion_trazabilidad} promete que se recogen
-  como línea de continuación; si lo quitas, esa promesa se queda sin destino.
-  \item \textbf{Cuidado con la última de trabajo futuro y con la de extender la
-  colección:} están escritas para no prometer escalabilidad. Lo que se puede
-  afirmar es que el diseño \emph{admite} crecer; que el sistema \emph{escale} no
-  está medido. Si suavizas esa frase, se convierte en una afirmación que el
-  trabajo no sostiene.
-\end{borrador}
