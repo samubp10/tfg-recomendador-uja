@@ -30,7 +30,6 @@ ocurre. Todo el esfuerzo de mejora va al camino PDF (:mod:`tfg_uja.guia_pdf`).
 from __future__ import annotations
 
 import re
-import unicodedata
 from collections.abc import Iterator
 from datetime import date
 from pathlib import Path
@@ -38,6 +37,13 @@ from typing import Any, Final
 
 import scrapy
 from scrapy.http import Request, Response
+
+# Se importa de `parsel` y no de `scrapy.selector`, que también los reexporta.
+# El motivo es de tipos y está comprobado: la clase que reexporta Scrapy no
+# admite parámetro genérico, de modo que `SelectorList[Selector]` deja de
+# comprobar y mypy da once errores. Como se usa directamente, `parsel` está
+# declarado como dependencia en `pyproject.toml` en vez de heredarse de Scrapy
+# sin decirlo: lo que se importa se declara.
 from parsel import Selector, SelectorList
 
 from tfg_uja import RAIZ as _RAIZ
@@ -45,6 +51,7 @@ from tfg_uja.extraccion.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
 from tfg_uja.invariantes import exigir
 from tfg_uja.text_cleaner import (
     limpiar_texto,
+    normalizar_rotulo,
     quitar_nota_al_pie,
     reparar_url,
     separar_oferta,
@@ -93,23 +100,10 @@ def nombre_seguro(codigo: str | None) -> str:
     return limpio or _SIN_CODIGO
 
 
-def _normalizar(texto: str) -> str:
-    """Pasa un texto a minúsculas y sin tildes, para compararlo con seguridad.
-
-    La web de la EPSJ no es consistente al acentuar: escribe unas veces
-    «Mención» y otras «Mencion», «Créditos ECTS» o «Creditos ECTS». Comparar
-    sobre la forma normalizada evita depender de esa inconsistencia.
-
-    Args:
-        texto (str): Texto tal como llega de la web.
-
-    Returns:
-        str: El texto en minúsculas, sin tildes y sin espacios alrededor.
-    """
-    sin_tildes = (
-        unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
-    )
-    return sin_tildes.strip().lower()
+# La normalización de rótulos vive en `text_cleaner.normalizar_rotulo`. Aquí
+# había una copia que discrepaba de la del fragmentador en los espacios
+# interiores; ver allí la caracterización que demuestra que unificarlas no
+# cambia nada de lo que hay.
 
 
 #: Curso académico dentro de la URL de una guía docente. La UJA lo incluye en
@@ -254,7 +248,7 @@ class GradosSpider(scrapy.Spider):
         Returns:
             bool: ``True`` si la titulación ya no admite nuevas matrículas.
         """
-        return cls.MARCA_EXTINCION in _normalizar(nombre)
+        return cls.MARCA_EXTINCION in normalizar_rotulo(nombre)
 
     def parse_portada(self, response: Response) -> Iterator[dict[str, Any] | Request]:
         """Extrae de la portada de un grado sus enlaces clave.
@@ -513,7 +507,9 @@ class GradosSpider(scrapy.Spider):
             " or self::caption]"
         )
         for nodo in reversed(list(previos)):
-            rotulo = _normalizar(limpiar_texto(" ".join(nodo.css("::text").getall())))
+            rotulo = normalizar_rotulo(
+                limpiar_texto(" ".join(nodo.css("::text").getall()))
+            )
             if not cuatrimestre:
                 encontrado = _CUATRIMESTRE_EN_ROTULO.search(rotulo)
                 if encontrado:
@@ -548,7 +544,7 @@ class GradosSpider(scrapy.Spider):
         """
         columnas: dict[str, int] = {}
         for posicion, rotulo in enumerate(cabeceras):
-            etiqueta = _normalizar(rotulo)
+            etiqueta = normalizar_rotulo(rotulo)
             if etiqueta.startswith("codigo"):
                 campo = "codigo"
             elif etiqueta.startswith("asignatura"):

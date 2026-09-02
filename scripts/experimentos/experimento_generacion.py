@@ -53,9 +53,11 @@ Las respuestas se van guardando según se producen y una ejecución nueva **no
 repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
 horas por un corte del servidor no es aceptable.
 
-El informe se escribe **fuera del repositorio**, en ``Notas_TFG/pruebas_chat/``,
-porque un cribado no es una decisión de arquitectura: mientras se criba son
-notas de trabajo y no tienen por qué versionarse.
+El registro y el informe se escriben en ``data/``, que no se versiona pero
+persiste entre ramas y árboles de trabajo. Un cribado no es una decisión de
+arquitectura y su informe no tiene por qué versionarse; lo que sí hay que
+proteger es el registro en bruto, que cuesta horas de modelo y del que el
+informe se rehace en segundos.
 
 Con ``--adr`` se escriben además los datos brutos **dentro del ADR-0005**, entre
 sus marcas de resultados automáticos, que es donde este proyecto guarda los
@@ -82,7 +84,17 @@ sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 RAIZ = Path(__file__).resolve().parent.parent.parent
 
 #: Dónde se dejan las notas de trabajo, fuera del repositorio.
-NOTAS = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+#: Dónde caen el registro y el informe si no se dice otra cosa.
+#:
+#: **Va a ``data/`` y no fuera del repositorio.** El registro en bruto de un
+#: experimento es la evidencia primaria: volver a obtenerlo cuesta horas de
+#: modelo, mientras que el informe se regenera en segundos a partir de él. La
+#: regla del proyecto ---todo registro experimental a ``data/``, que no se
+#: versiona pero persiste entre ramas y árboles de trabajo--- existe porque
+#: escribirlo en otro sitio ya costó perder las 320 respuestas del cribado de
+#: IT-35, y con ellas la posibilidad de repuntuarlas sin repetir la tanda.
+#: El valor por defecto contradecía esa regla y apuntaba fuera.
+NOTAS = RAIZ / "data"
 
 #: El ADR que registra la elección del modelo generativo (IT-36). Los datos
 #: brutos viven dentro del propio ADR, como anexo suyo, igual que en el

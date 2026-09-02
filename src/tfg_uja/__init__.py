@@ -15,7 +15,10 @@ todas.
 from pathlib import Path
 from typing import Final
 
-__version__ = "0.1.0"
+# Aquí había `__version__ = "0.1.0"`, una segunda copia a mano del número que
+# ya declara `pyproject.toml`. No lo leía nadie, así que lo único que podía
+# hacer era desincronizarse. Si algún día hace falta, sale de los metadatos de
+# la distribución con `importlib.metadata.version`, que no puede discrepar.
 
 #: Raíz del repositorio, de donde cuelgan ``data/``, ``eval/`` y ``web/``.
 #:

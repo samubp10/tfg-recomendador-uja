@@ -259,12 +259,6 @@ body {
   border-top-right-radius: 4px;
 }
 
-.mensaje--asistente .mensaje__burbuja {
-  background: var(--superficie-alta);
-  border: 1px solid var(--borde);
-  border-top-left-radius: 4px;
-  box-shadow: 0 1px 4px rgba(0, 102, 51, 0.06);
-}
 
 /* La respuesta que el sistema devuelve sin llegar a consultar al modelo se
    marca con un filete verde azulado. No es decoracion: una respuesta fija
@@ -544,11 +538,6 @@ body {
 
 /* ------------------------------------------------------------------ fallo */
 
-.mensaje--fallo .mensaje__burbuja {
-  border-color: #d9b3b3;
-  background: #fdf6f6;
-  color: #7a3131;
-}
 
 /* ------------------------------------------------ las fuentes de la respuesta
 
@@ -571,9 +560,6 @@ body {
   cursor: pointer;
 }
 
-.mensaje__fuentes:hover {
-  color: var(--uja-verde-oscuro);
-}
 
 .mensaje__fuentes:focus-visible {
   outline: 2px solid var(--uja-verde);
@@ -658,11 +644,6 @@ body {
   margin-top: 4px;
 }
 
-.fuentes__titulacion {
-  display: block;
-  color: var(--texto-suave);
-  font-size: 0.76rem;
-}
 
 /* ----------------------------------------------------------- el aviso del pie
 
@@ -695,8 +676,10 @@ body {
    como un parrafo mas en negrita. La respuesta ya venia agrupada por curso
    ---se lo pide la instruccion al modelo---, pero eso no se veia.
 
-   Todo lo que sigue es presentacion. No se toca `chat.js`, que no tiene
-   pruebas: cualquier logica nueva ahi entraria sin red. */
+   Todo lo que sigue es presentacion, y se resuelve sin tocar `chat.js`
+   porque no hace falta: el rotulo se reconoce por su forma. El motivo que
+   habia escrito aqui ---que `chat.js` no tiene pruebas--- dejo de ser cierto
+   con IT-45, que le puso las suyas. */
 
 /* El rotulo de curso deja de ser un parrafo en negrita y pasa a comportarse
    como lo que es: el encabezado de una seccion del plan.
@@ -830,9 +813,6 @@ body {
 
 /* Una respuesta que no llego a consultar al modelo tarda decimas de segundo y
    una elaborada mas de un minuto. Sin distinguirlas, la rapida parece un fallo. */
-.mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
-  border-left-color: var(--epsj-verdeazul);
-}
 
 /* El fallo si conserva el recuadro: es la unica respuesta que hay que poder
    distinguir de un vistazo entre varias, y el color solo no basta para quien
