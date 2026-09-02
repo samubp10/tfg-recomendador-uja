@@ -935,7 +935,45 @@ Esta solución se asume aún siendo no lo mejor para la experiencia de usuario y
 
 Dado el enfoque experimental del trabajo centrado en las tecnologías de generación aumentada por recuperación, se ha buscado que la interfaz sea lo más sencilla posible, siendo una única página servida por un único proceso y escrita en \sig{HTML}, hojas de estilo y \textit{JavaScript} sin marco de trabajo (\textit{framework}) ni paso de compilación previo. A la aplicación web se puede acceder sin registro, como ya se anunciaba en el requisito de usuario RU-05 de la Tabla~\ref{tab:requisitos_usuario}. Por tanto, no hay cuentas de usuario, ni sesiones persistentes, ni base de datos de usuarios que proteger.
 
-La alternativa de emplear marcos de trabajo habituales (como React o Vue) se descartó debido a que la interfaz únicamente requiere un cuadro de entrada de texto y un contenedor para el historial de mensajes, por lo que introducir un ecosistema de construcción complejo añadiría una sobrecarga innecesaria. Esta decisión no compromete la escalabilidad futura: dado que la interfaz se comunica con el servidor mediante peticiones \sig{HTTP} convencionales, el cliente web queda totalmente desacoplado y podría sustituirse o ampliarse en un entorno de producción sin necesidad de modificar la arquitectura backend.
+\textcolor{borrador2}{La alternativa era construirla con uno de los marcos de
+  trabajo habituales para interfaces web. Se descarta porque lo que hay que
+  dibujar es un cuadro de texto y una lista de mensajes, y adoptar un marco de
+  trabajo obligaría a añadir una cadena de construcción y sus dependencias para
+  una pantalla que no las necesita. Esa decisión no cierra ninguna puerta: la
+  interfaz habla con el servidor por peticiones \sig{HTTP} corrientes, así que
+  sustituirla más adelante no obligaría a tocar nada de lo que hay detrás.}
+
+\subsection[\textcolor{borrador2}{El guion gráfico de la pantalla}]{\textcolor{borrador2}{El guion gráfico de la pantalla}}
+\label{secc:fase3_storyboard}
+
+\textcolor{borrador2}{La pantalla se decide en este apartado y no en la
+  implementación. La Figura~\ref{fig:storyboard_chat} recoge el guion gráfico
+  con los dos casos que tiene que resolver: el normal, en el que el sistema
+  responde con lo que ha recuperado, y aquel en el que no encuentra nada con lo
+  que hacerlo. El segundo no es un caso excepcional que se atienda al final: es
+  la mitad del diseño, porque un asistente que solo se haya pensado para cuando
+  sabe la respuesta improvisa cuando no la sabe.}
+
+\input{diagramas/DiagramaStoryboardChat.tex}
+
+\textcolor{borrador2}{La decisión que sostiene el guion es que la respuesta va
+  acompañada del bloque de fuentes de las que sale, y que ese bloque
+  \textbf{solo aparece cuando hay algo que citar}. La alternativa era mostrarlo
+  siempre, vacío cuando no hubiera fragmentos, y se descarta porque un bloque
+  vacío se lee como un fallo de la pantalla y no como lo que es: que el sistema
+  no está respaldando nada. Su ausencia dice más que su presencia vacía, y no
+  hay que explicarla.}
+
+\textcolor{borrador2}{En el segundo caso el asistente no devuelve un error, ni
+  se disculpa sin más: dice que no ha encontrado esa información y enumera de
+  qué sí puede hablar. Es la misma idea que gobierna la restricción del dominio
+  (Sección~\ref{secc:fase2_dominio}) llevada a la pantalla, y por eso el texto
+  que aparece en la figura no es una redacción de ejemplo, sino la constante
+  con la que responde el sistema. Que el guion enseñe el texto real y no un
+  relleno es lo que permite comprobar que la pantalla y el código dicen lo
+  mismo.}
+
+
 
 \textcolor{borrador2}{Además del recorrido habitual, la interfaz tiene que resolver tres
   situaciones que no son un fallo pero tampoco son una respuesta corriente, y que la
@@ -1019,3 +1057,4 @@ Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}
 \label{secc:fase3_registro}
 
 Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
+
