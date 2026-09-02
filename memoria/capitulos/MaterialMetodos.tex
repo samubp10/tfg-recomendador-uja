@@ -770,7 +770,7 @@ Los cuatros candidatos finalmente elegidos después de una criba de múltiples m
 
 A partir de los resultados del experimento se adopta \texttt{gemma3:12b}, al ser el único modelo que no queda por detrás en ninguna métrica, sin embargo, \texttt{ministral-8b} y \texttt{qwen3.5:9b} obtienen valores menores en cobertura y acierto escalar, mientras que el modelo español, \texttt{salamandra-7b} queda más rezagado.
 
-Lo peor del mejor modelo es su tiempo mediano de respuesta obteniendo 21,6 segundo frente a los 12,1 del segundo más lento. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
+Lo peor del mejor modelo es su tiempo mediano de respuesta obteniendo \sout{21,6 segundo frente a los 12,1 del segundo más lento} \textcolor{borrador2}{26,0 segundos frente a los 17,4 del más rápido de los otros dos finalistas}. Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
 
 Asímismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca del la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
 
@@ -876,49 +876,16 @@ En cuanto a las limitaciones técnicas de la tecnología usada, \texttt{http.ser
 
 La lógica y verificación no reside en el manejador de peticiones \sig{HTTP}, sino en una función desacoclada que recibe la consulta y emite progresivamente fragmentos de texto ya comprobado. Esto asegura una fácil sustitución de \texttt{http.server} por un marco de trabajo más complejo cuando se escale y se amplie el alcance del proyecto.
 
-\subsection[\textcolor{borrador2}{La emisión de la respuesta}]{\textcolor{borrador2}{La emisión de la respuesta}}
+\subsection[La emisión de la respuesta]{La emisión de la respuesta}
 \label{secc:fase3_emision}
 
-\textcolor{borrador2}{Queda por decidir cómo llega la respuesta al navegador, y
-  no es una cuestión de presentación. Medido sobre el registro del banco del
-  sistema, contando solo las preguntas de un turno que llegan a llamar al modelo
-  ($n = 34$), la mediana es de 62,7 segundos y el percentil 90 de 125,3. Una
-  respuesta entregada de una sola vez deja al estudiante mirando una pantalla
-  sin cambios durante ese tiempo, que es indistinguible de una aplicación
-  colgada.}
+El mecanismo el cual la respuesta generada se transmite al navegado es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se midió que la mediana se sitúa en 62,7 segundos y el percentil 90 alcana los 125,3 segundos. Entregar la respuesta de una sola vez obligaría al usuario a esperar frente a una interfaz estática durante más de un minuto, si antes de eso no pensara que el sistema se ha bloqueado.
 
-\textcolor{borrador2}{Lo que impide resolverlo sin más es que una de las tres
-  barreras de la Sección~\ref{secc:fase2_dominio} actúa después de generar: la
-  respuesta completa se comprueba contra el catálogo de titulaciones y, si
-  nombra una que no existe, se retira entera. Ir soltando el texto a medida que
-  el modelo lo produce haría imposible retirar lo que ya se ha leído, de modo
-  que ganar en respuesta se pagaría con una garantía. Las otras dos barreras no
-  se ven afectadas, porque actúan antes de llamar al modelo.}
+Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada que el usuario ya haya leído.
 
-\textcolor{borrador2}{Se emite por partes, pero cada parte sale ya comprobada.
-  El servidor acumula la salida del modelo hasta el final de una frase o de una
-  línea de lista, pasa por la comprobación el texto acumulado hasta ese punto y
-  solo entonces lo suelta; si la comprobación falla, corta la emisión, retira lo
-  emitido y entrega la respuesta fija. Detecta exactamente los mismos casos que
-  antes, porque es la misma comprobación sobre el mismo texto.}
+Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detexta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia.
 
-\textcolor{borrador2}{Que el corte sea en final de frase no es un detalle de
-  implementación. La comprobación admite que lo dicho sea un subconjunto de las
-  palabras de una titulación real, para no retirar respuestas que abrevian el
-  nombre oficial; esa tolerancia obliga a no comprobar nunca un trozo cortado a
-  mitad de palabra, porque «Grado en Ingeniería» es subconjunto de una
-  titulación que existe y pasa, mientras que «Grado en Ingeniería Infor» no es
-  subconjunto de nada y retiraría una respuesta correcta.}
-
-\textcolor{borrador2}{Lo que se pierde no es capacidad de detección, sino
-  discreción: hasta ahora una retirada era invisible y ahora el estudiante puede
-  ver desaparecer texto que ya había leído. Se acepta porque el suceso es raro
-  ---ninguna titulación inventada en las 320 respuestas del cribado de modelos y
-  una sola retirada en las 57 entradas del banco del sistema---, y porque la
-  alternativa era perder la barrera. Conviene además no confundir lo que esto
-  mejora: el tiempo total de respuesta es exactamente el mismo, y lo único que
-  cambia es cuándo se ve lo primero. La decisión, con las tres alternativas
-  comparadas, queda registrada en el ADR-0006\cite{repo_tfg}.}
+Esta solución se asume aún siendo no lo mejor para la experiencia de usuario ya que este vería como un texto que se está generando de repente desaparece por un texto que dice que no ha podido generarle una respuesta. Sin embargo, la frecuencia de estar anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
 
 \subsection[La interfaz]{La interfaz}
 \label{secc:fase3_interfaz}
