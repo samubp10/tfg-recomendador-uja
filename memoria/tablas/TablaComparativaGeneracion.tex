@@ -2,63 +2,51 @@
 % Resultados literales de la tanda definitiva, repuntuada en IT-110.
 % Fuente: el bloque automatico de docs/adr/adr-0005-modelo-de-generacion.md,
 % que escribe scripts/experimento_generacion.py --adr.
-% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar el guion y se
-%   copian de ahi. 80 preguntas por modelo, 320 respuestas en total, corpus de
-%   1.499 fragmentos extraido el 16/08/2026 y servidor de inferencia 0.32.14.
 \begin{table}[htbp]
   \centering
   \small
-  \caption[\textcolor{borrador2}{Comparativa de modelos de generación}]{%
-    \textcolor{borrador2}{Comparativa de los modelos de generación medidos sobre
+  \caption[Comparativa de modelos de generación]{%
+    Comparativa de los modelos de generación medidos sobre
       la misma muestra de 80 preguntas, 320 respuestas en total. Fuente:
-      elaboración propia.}}
+      elaboración propia.}
   \label{tab:comparativa_generacion}
-  \begin{tabular}{@{}lrrrrrrr@{}}
+  \begin{tabular}{@{}lrrrrrr@{}}
     \toprule
     \textbf{Modelo}                    & \textbf{Inv.} & \textbf{Precisión}
-                                       & \textbf{S/M}  & \textbf{Cobertura}
+                                       & \textbf{Cobertura}
                                        & \textbf{Escalar}
                                        & \textbf{Mediana} & \textbf{p90}   \\
     \midrule
     \texttt{ministral-8b:latest}       & \textbf{0}    & \textbf{1,000}
-                                       & \textbf{0/34} & 0,996
-                                       & 0,957
-                                       & 12,1             & 42,1           \\
-    \texttt{qwen3.5:9b}                & \textbf{0}    & 0,996
-                                       & \textbf{0/34} & 0,997
-                                       & 0,957
-                                       & 18,2             & 67,2           \\
+                                       & \sout{0,996} \textcolor{borrador2}{0,971}
+                                       & \sout{0,957} \textcolor{borrador2}{1,000}
+                                       & \sout{12,1} \textcolor{borrador2}{24,4}
+                                       & \sout{42,1} \textcolor{borrador2}{87,2}   \\
+    \texttt{qwen3.5:9b}                & \textbf{0}    & \sout{0,996} \textcolor{borrador2}{\textbf{1,000}}
+                                       & \sout{0,997} \textcolor{borrador2}{0,971}
+                                       & \sout{0,957} \textcolor{borrador2}{1,000}
+                                       & \sout{18,2} \textcolor{borrador2}{17,4}
+                                       & \sout{67,2} \textcolor{borrador2}{47,7}   \\
     \texttt{gemma3:12b}                & \textbf{0}    & \textbf{1,000}
-                                       & 2/34          & \textbf{1,000}
-                                       & \textbf{0,978}
-                                       & 21,6             & 74,4           \\
+                                       & \sout{\textbf{1,000}} \textcolor{borrador2}{0,971}
+                                       & \sout{\textbf{0,978}} \textcolor{borrador2}{1,000}
+                                       & \sout{21,6} \textcolor{borrador2}{26,0}
+                                       & \sout{74,4} \textcolor{borrador2}{72,1}   \\
     \midrule
-    \texttt{salamandra-7b}$^{\dagger}$ & \textbf{0}    & 0,992
-                                       & 15/34         & 0,908
-                                       & 0,935
-                                       & 3,8              & 11,1           \\
+    \texttt{salamandra-7b}             & \textbf{0}    & \sout{0,992} \textcolor{borrador2}{0,995}
+                                       & \sout{0,908} \textcolor{borrador2}{0,770}
+                                       & \sout{0,935} \textcolor{borrador2}{0,978}
+                                       & \sout{3,8} \textcolor{borrador2}{7,1}
+                                       & \sout{11,1} \textcolor{borrador2}{21,2}   \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
     \vspace{4pt}
     \tiny
-    \textcolor{borrador2}{\textbf{Notas:} \textbf{Inv.} son las titulaciones
-      inventadas, nombres con forma de titulación que no están en el catálogo
-      del centro; es el criterio eliminatorio. \textbf{S/M} son las respuestas
-      de listado redactadas en prosa, que no enumeran nada: su precisión no
-      existe y queda fuera de la media, en lugar de contar como un cero que
-      castigaría el formato en vez de la verdad. Que no se puedan medir no las
-      exime, porque la cobertura se calcula sobre el texto entero y sí las
-      recoge. \textbf{Precisión} y \textbf{cobertura} se promedian sobre las 34
-      preguntas de listado de cada modelo; \textbf{escalar} es la proporción de
-      acierto sobre las 46 de créditos y curso. A ninguno se le quedó una
-      pregunta sin contexto recuperado. Las dos columnas de tiempo están en
-      segundos y \textbf{p90} es su percentil 90; se informan pero no
-      intervienen en la elección, porque las mediciones se tomaron en un equipo
-      que no estaba en condiciones controladas. En negrita, el mejor valor de
-      cada columna salvo en las de tiempo.
-      $^{\dagger}$~\texttt{salamandra-7b} no compite por el puesto: se mide
-      aparte para responder si un modelo entrenado en español rinde mejor sobre
-      un corpus en español.}
+    \textbf{Notas:} \textbf{Inv.} son titulaciones inventadas (criterio eliminatorio).
+    \textbf{Precisión} y \textbf{cobertura} se promedian sobre las 34 preguntas de listado.
+    \textbf{Escalar} es el acierto sobre las 46 preguntas de créditos y curso.
+    \textbf{Mediana} y \textbf{p90} indican la latencia en segundos (datos informativos).
+    En negrita, el mejor valor por columna salvo en tiempos.
   \end{minipage}
 \end{table}

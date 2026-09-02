@@ -3,7 +3,8 @@
 % Fuente: docs/experimentos/it38-recuperacion.md, escrito por el propio script.
 % NO editar estas cifras a mano: si cambian, se vuelve a ejecutar
 %   py scripts/experimento_recuperacion.py
-% y se copian de ahi. Corpus de 1.499 fragmentos y 56 preguntas de dominio.
+% y se copian de ahi. Corpus de 1.922 fragmentos y 56 preguntas de dominio
+% (antes de IT-125 eran 1.499, y las cifras de entonces estan tachadas).
 \begin{table}[htbp]
   \centering
   \small
@@ -11,13 +12,19 @@
     sistema sobre la colección completa y las 56 preguntas de dominio del
     conjunto de evaluación. Fuente: elaboración propia.}
   \label{tab:recuperacion}
-  \begin{tabular}{@{}crrr@{}}
+  \begin{tabular}{@{}crrrr@{}}
     \toprule
-    \textbf{K} & \textbf{R@K} & \textbf{Techo de R@K} & \textbf{RU@K}   \\
+    \textbf{K} & \textbf{R@K} & \textbf{Techo de R@K} & \textbf{RU@K}  & \textbf{MRR}            \\
     \midrule
-    3          & 0,652        & 0,754                 & 0,906           \\
-    5          & 0,789        & 0,906                 & 0,973           \\
-    10         & 0,881        & 0,966                 & \textbf{0,991}  \\
+    3          & \sout{0,652} \textcolor{borrador2}{0,644}
+               & \sout{0,754} \textcolor{borrador2}{0,756}
+               & 0,906          & \sout{0,926} \textcolor{borrador2}{0,914}  \\
+    5          & \sout{0,789} \textcolor{borrador2}{0,777}
+               & \sout{0,906} \textcolor{borrador2}{0,905}
+               & 0,973          & \sout{0,926} \textcolor{borrador2}{0,914}  \\
+    10         & \sout{0,881} \textcolor{borrador2}{0,865}
+               & \sout{0,966} \textcolor{borrador2}{0,964}
+               & \textbf{0,991} & \sout{0,926} \textcolor{borrador2}{0,914}  \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
@@ -32,8 +39,8 @@
     más numerosas que $K$, de modo que su R@K no puede valer 1 por perfecto que
     sea el orden. Cada R@K se lee contra su techo y no contra 1; RU@K tiene
     techo 1 y se interpreta sola. El \textbf{MRR} (\textit{Mean Reciprocal
-    Rank}), media del inverso de la posición del primer resultado correcto,
-    es \textbf{0,926} y no depende de $K$. Las diez preguntas ajenas al dominio
+    Rank}) es la media del inverso de la posición del primer resultado correcto
+    y no depende de $K$. Las diez preguntas ajenas al dominio
     quedan fuera de estas medidas: su criterio de acierto es el contrario.
   \end{minipage}
 \end{table}
