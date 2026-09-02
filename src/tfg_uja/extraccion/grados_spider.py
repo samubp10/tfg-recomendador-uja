@@ -37,6 +37,13 @@ from typing import Any, Final
 
 import scrapy
 from scrapy.http import Request, Response
+
+# Se importa de `parsel` y no de `scrapy.selector`, que también los reexporta.
+# El motivo es de tipos y está comprobado: la clase que reexporta Scrapy no
+# admite parámetro genérico, de modo que `SelectorList[Selector]` deja de
+# comprobar y mypy da once errores. Como se usa directamente, `parsel` está
+# declarado como dependencia en `pyproject.toml` en vez de heredarse de Scrapy
+# sin decirlo: lo que se importa se declara.
 from parsel import Selector, SelectorList
 
 from tfg_uja import RAIZ as _RAIZ
