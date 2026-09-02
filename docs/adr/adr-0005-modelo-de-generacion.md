@@ -176,11 +176,24 @@ Aun así **se mide junto a los tres finalistas**, porque un descarte apoyado sol
 en una sesión a mano es más débil que uno contrastado sobre la muestra entera. La
 medición **no confirma aquella sesión**: sobre las 80 preguntas no nombró ninguna
 titulación inexistente, así que cumple U1, que habla de titulaciones y no de
-créditos. Donde sí se separa del resto es en la cobertura, **0,908 frente a 0,996
-o más**, porque a tres preguntas de optativas respondió con el recuento —«ofrece
-un total de 16 asignaturas optativas»— en lugar de la lista. El descarte se
-sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a mano;
-**no en el umbral eliminatorio, que cumple**.
+créditos. Donde sí se separa del resto es en la cobertura, **0,770 frente al
+0,971 de los otros tres**, porque a las preguntas de optativas responde con el
+recuento —«ofrece un total de 16 asignaturas optativas»— en lugar de la lista:
+su cobertura en esa familia es de **0,295**. Y deja **13 de 34** listados sin
+computar por redactarlos en prosa, frente a los 3 de `gemma3` y ninguno de los
+otros dos. El descarte se sostiene, por tanto, en esa cobertura y en el dato
+inventado de la sesión a mano; **no en el umbral eliminatorio, que cumple**.
+
+> 🔧 **ANDAMIAJE — dos cosas que decidir aquí.**
+>
+> 1. **Este párrafo ya no encaja bajo «Descartados en la criba previa»**, porque
+>    salamandra-7b sí entra en la comparación final y se mide en la misma tanda
+>    que los otros tres. O se sube a una cuarta opción junto a A, B y C, o el
+>    epígrafe pasa a decir otra cosa.
+> 2. **Falta declarar una limitación de la medición.** Sus autores desaconsejan
+>    servirlo con la cuantización que se usa aquí, así que lo medido acota a
+>    _esta forma de ejecutarlo_ y no al modelo. Sin esa frase, la cifra de
+>    cobertura se lee como una propiedad de salamandra-7b y no lo es del todo.
 
 ## Resultados del experimento
 
@@ -253,25 +266,91 @@ sostiene, por tanto, en esa cobertura y en el dato inventado de la sesión a man
 
 ## Decisión
 
-**Se adopta `gemma3:12b` como modelo de generación del sistema.**
+> 🔧 **ANDAMIAJE — pendiente de redactar.** Lo que sigue son los datos y el
+> esqueleto del argumento, no la redacción definitiva. La versión anterior de
+> este apartado sostenía la elección sobre que `gemma3:12b` era «primero o
+> empatado en las tres» medidas descriptivas, y sobre el corpus vigente eso ya
+> no es cierto. Todo lo de aquí abajo sale del bloque de resultados de más
+> arriba y del informe de comparación pareada; nada está redondeado ni
+> interpretado.
 
-Los cuatro candidatos cumplen el umbral eliminatorio U1: ninguno nombró una
-titulación inexistente en las 320 respuestas. También cumplen U2: ninguna
-pregunta se quedó sin contexto recuperado. Los umbrales, por tanto, no separan a
-nadie, y la decisión se toma sobre las medidas descriptivas.
+**Los umbrales no separan a nadie, y ahora las medidas descriptivas tampoco.**
 
-Sobre ellas, `gemma3:12b` es **primero o empatado en las tres**: precisión
-1,000, cobertura 1,000 y acierto escalar 0,978, el más alto de los cuatro. No
-pierde en ninguna. `ministral-8b` y `qwen3.5:9b` quedan por detrás en cobertura y
-en acierto escalar, que son las dos medidas que dicen si la respuesta contiene lo
-que debía contener, y `salamandra-7b` en las dos y por más margen.
+Los cuatro candidatos cumplen U1: ninguno nombró una titulación inexistente en
+las 320 respuestas. Los cuatro cumplen U2. Eso no ha cambiado.
 
-Y es el más lento, con 21,6 segundos de mediana frente a los 12,1 de
-`ministral-8b`. Esa es la contrapartida que se acepta, y se acepta porque el
-orden de prelación del sistema está fijado de antemano: **antes que responder
-deprisa, no inventar**. Un asistente que orienta a alguien que va a elegir
-carrera no puede permitirse un dato falso para llegar antes, y quien lo consulta
-tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
+Lo que ha cambiado es lo de después. Los tres candidatos grandes empatan en las
+tres medidas descriptivas:
+
+| Modelo | Precisión | Cobertura | Acierto escalar |
+| --- | ---: | ---: | ---: |
+| `ministral-8b:latest` | 1,000 | 0,971 | 1,000 |
+| `qwen3.5:9b` | 1,000 | 0,971 | 1,000 |
+| `gemma3:12b` | 1,000 | 0,971 | 1,000 |
+| `salamandra-7b:latest` | 0,995 | 0,770 | 0,978 |
+
+**Por qué se cerró el hueco.** El acierto escalar era la única medida en la que
+`gemma3` destacaba (0,978 frente al 0,957 de los otros dos). Se puntúa por
+coincidencia exacta sobre preguntas de créditos y de curso, y una parte de esa
+diferencia no medía a los modelos: medía el corpus. Mientras una guía compartida
+afirmaba el curso de su primera titulación para todas, los tres fallaban las
+mismas preguntas de curso porque recibían el mismo dato equivocado. Corregido el
+corpus, los tres las aciertan.
+
+**Una comparación pareada no los separa tampoco.** Sobre 250 preguntas, con cada
+tasa acompañada de su intervalo de Wilson y la diferencia contrastada con la
+prueba exacta de McNemar sobre los pares discordantes:
+
+| Métrica | n | `qwen3.5:9b` | `gemma3:12b` | Discordantes | p |
+| --- | ---: | --- | --- | :---: | ---: |
+| Precisión | 67 | 0,985 [0,920–0,997] | 0,985 [0,920–0,997] | 0 / 0 | 1,000 |
+| Cobertura | 70 | 0,986 [0,923–0,997] | 0,971 [0,902–0,992] | 1 / 0 | 1,000 |
+| Acierto escalar | 180 | 0,989 | **1,000** | 0 / 2 | 0,500 |
+
+La única asimetría de las 250 favorece a `gemma3`: acierta **180 de 180** en las
+preguntas de valor único y `qwen3.5` acierta 178. Son dos preguntas y **no se
+distinguen del azar**; presentarlo como una victoria sería falso. Y un `p` alto
+no demuestra que los modelos sean equivalentes, sino que este banco no los
+separa: lo que acota cuánta diferencia podría quedar sin verse es la anchura de
+los intervalos, no el valor de `p`.
+
+**Qué queda para decidir, y qué no vale.**
+
+El apartado «Lo que explícitamente NO decide» excluye el tiempo de respuesta, y
+esa exclusión se fijó antes de medir. Así que la ventaja de `qwen3.5` en mediana
+---17,4 s frente a 26,0 s--- **no puede usarse como criterio de desempate** sin
+retirar antes esa exclusión y justificar por qué.
+
+Lo que sí está registrado en este ADR y sí distingue a los candidatos:
+
+1. **La licencia.** `qwen3.5:9b` es Apache 2.0; `gemma3` se distribuye bajo los
+   _Gemma Terms of Use_, con condiciones de uso añadidas. Ya figura entre los
+   pros de la Opción A y entre las consecuencias negativas de la elección
+   actual.
+2. **Las respuestas no computables.** `gemma3` redacta en prosa 3 de 34
+   listados y `qwen3.5` ninguno. Quedan fuera de la media de precisión, así que
+   su 1,000 se calcula sobre menos casos.
+3. **El acierto escalar pareado**, 180/180 frente a 178/180, con la salvedad de
+   arriba.
+
+**Las tres salidas posibles, para elegir una y argumentarla:**
+
+- **Mantener `gemma3:12b`.** Ante un empate que ninguna medida rompe, no se
+  cambia el modelo adoptado; el 180 de 180 apoya la continuidad aunque no la
+  demuestre. Hay que decir explícitamente que la elección **ya no se sostiene
+  sobre las métricas**, porque no separan.
+- **Adoptar `qwen3.5:9b`.** Empata en calidad, no deja ningún listado sin
+  computar y su licencia es libre estándar. Exige reconocer que se cambia por un
+  criterio ---la licencia--- que no era el que decidía antes, y rehacer con él
+  las cifras del sistema.
+- **Declarar el empate y elegir con un criterio nuevo, escrito aquí.** El más
+  defendible sería la licencia, por ser una propiedad del modelo y no del
+  portátil. Obliga a explicar por qué no se contempló como criterio desde el
+  principio.
+
+⚠️ Elijas la que elijas, la frase que **no** puede volver a escribirse es que
+`gemma3` gane en cobertura o en acierto escalar, ni que `qwen3.5` quede por
+detrás en ninguna de las dos.
 
 ## Consecuencias
 
@@ -280,8 +359,12 @@ tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 - **El sistema no nombra titulaciones que no existen**, medido sobre 320
   respuestas y no sobre una impresión. Es el requisito del que depende que el
   trabajo tenga sentido.
-- **La cobertura y el acierto escalar son los más altos de los cuatro**, así que
-  la elección no obliga a compensar en otro sitio lo que se gana en fidelidad.
+- 🔧 **ANDAMIAJE.** Aquí decía «la cobertura y el acierto escalar son los más
+  altos de los cuatro, así que la elección no obliga a compensar en otro sitio
+  lo que se gana en fidelidad». Sobre el corpus vigente los tres candidatos
+  grandes empatan en las dos, de modo que esta consecuencia positiva ya no
+  distingue a la elección: lo que se puede afirmar es que **no obliga a
+  compensar nada**, no que gane. Depende de qué salida se elija en la Decisión.
 - **El modelo se ejecuta en local**, sin servicio de pago, y con él la consulta
   de un estudiante no sale del equipo.
 - **La comparación es reproducible**: los cuatro candidatos se miden en la misma
@@ -290,8 +373,8 @@ tolera esperar veinte segundos mucho mejor que una recomendación equivocada.
 
 ### Negativas
 
-- **Es el candidato más lento de los cuatro**, con 21,6 segundos de mediana y un
-  p90 de 74,4. Es la contrapartida aceptada a propósito, no un efecto imprevisto.
+- **Es el candidato más lento de los cuatro**, con 26,0 segundos de mediana y un
+  p90 de 72,1. Es la contrapartida aceptada a propósito, no un efecto imprevisto.
   Buena parte de esa lentitud es del equipo: de sus 8,92 GB en memoria solo caben
   3,28 GB en la tarjeta gráfica, de modo que las cifras de tiempo describen este
   portátil y **no son extrapolables** a otro.
