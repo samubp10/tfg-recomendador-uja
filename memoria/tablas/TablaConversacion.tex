@@ -1,6 +1,6 @@
 % !TEX root = ../main.tex
 % Comparativa de las tres formas de resolver una pregunta de seguimiento
-% (IT-106). Las cifras las produce scripts/experimento_conversacion.py sobre las
+% (IT-106). Las cifras las produce scripts/experimentos/experimento_conversacion.py sobre las
 % 39 conversaciones derivadas de data/grados.json; si se regenera el corpus hay
 % que volver a ejecutarlo y traer la salida real, no ajustar los numeros aqui.
 \begin{table}[htbp]
@@ -16,7 +16,7 @@
     \cmidrule(lr){2-5} \cmidrule(lr){6-9}
     \textbf{Estrategia}             & CC                                             & CT                               & SR    & \textbf{Total} & CC    & CT    & SR    & \textbf{Total} \\
     \midrule
-    Sin conversación                & 0,080                                          & 0,333                            & 1,000 & 0,359          & 0,005 & 0,022 & 0,275 & 0,082          \\
+    Sin conversación                & \sout{0,080}\,\textcolor{borrador2}{0,040}     & 0,333                            & 1,000 & \sout{0,359}\,\textcolor{borrador2}{0,333} & \sout{0,005}\,\textcolor{borrador2}{0,002} & 0,022 & 0,275 & \sout{0,082}\,\textcolor{borrador2}{0,080} \\
     Concatenación de la anterior    & \textbf{1,000}                                 & 0,333                            & 1,000 & 0,949          & 0,653 & 0,022 & 0,275 & 0,498          \\
     \textbf{Sujeto deducido y filtrado} & \textbf{1,000}                             & \textbf{1,000}                   & \textbf{1,000} & \textbf{1,000} & \textbf{0,807} & \textbf{1,000} & \textbf{1,000} & \textbf{0,877} \\
     \bottomrule
@@ -32,7 +32,9 @@
     fragmento que responde a la pregunta entra entre los recuperados, con
     $K = 20$. \textbf{MRR}: media del inverso del puesto que ocupa ese fragmento;
     vale 1 si sale siempre el primero. \textcolor{borrador2}{Cifras producidas
-      por \texttt{scripts/experimento\_conversacion.py} sobre el corpus de la
-      extracción del 16/08/2026.}
+      por \texttt{scripts/experimentos/experimento\_conversacion.py} sobre el
+      corpus de 1.922 fragmentos, el mismo con el que se midieron el resto de
+      los experimentos de esta memoria. La salida literal del guion está en
+      \texttt{docs/experimentos/it106-conversacion.md}\cite{repo_tfg}.}
   \end{minipage}
 \end{table}
