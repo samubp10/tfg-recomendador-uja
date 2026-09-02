@@ -99,13 +99,18 @@ que convenga.
 
 ## Alternativas consideradas
 
-Las tres se ejecutan con el mismo servidor de inferencia local, cuantizadas a
+Las cuatro se ejecutan con el mismo servidor de inferencia local, cuantizadas a
 **Q4_K_M**, con la misma ventana de contexto y el mismo mensaje de sistema. Lo
 único que cambia entre ellas es el modelo.
 
+Las tres primeras cubren una talla y un fabricante distintos ---8 B, 9 B y
+12 B--- para que ninguna diferencia entre candidatos pueda confundirse con el
+tamaño ni con la casa que los entrena. La cuarta entra por un motivo que no es
+de talla y se explica en su apartado.
+
 ### Opción A — qwen3.5:9b
 
-Modelo de Alibaba, el intermedio de los tres en tamaño.
+Modelo de Alibaba, la talla intermedia de los cuatro.
 
 - **URL:** [https://ollama.com/library/qwen3.5](https://ollama.com/library/qwen3.5)
 - **Tamaño:** 9,7 B de parámetros · 6,6 GB en disco · licencia Apache 2.0.
@@ -119,7 +124,7 @@ Modelo de Alibaba, el intermedio de los tres en tamaño.
 
 ### Opción B — gemma3:12b
 
-Modelo de Google, el mayor de los tres.
+Modelo de Google, el mayor de los cuatro.
 
 - **URL:** [https://ollama.com/library/gemma3](https://ollama.com/library/gemma3)
 - **Tamaño:** 12,2 B de parámetros · 8,1 GB en disco · licencia _Gemma Terms of
@@ -139,11 +144,55 @@ Modelo de Mistral AI.
 - **URL:** [https://ollama.com/library/ministral](https://ollama.com/library/ministral)
 - **Tamaño:** 8,5 B de parámetros · 6,1 GB en disco.
 
-- **Pros:** el más rápido de los tres por un margen amplio, y tampoco rellenó el
-  dato ausente.
+- **Pros:** el más rápido de los tres finalistas y tampoco rellenó el dato
+  ausente. Solo `salamandra-7b`, que cabe entero en la tarjeta gráfica,
+  responde antes.
 - **Contras:** se va del dominio con facilidad; en una sesión a mano terminó
   recomendando cursos de una plataforma comercial que no aparece en ninguna
   parte del corpus.
+
+### Opción D — salamandra-7b
+
+Modelo del Barcelona Supercomputing Center, entrenado con corpus en español y en
+las lenguas cooficiales.
+
+- **URL:** [https://ollama.com/library/salamandra](https://ollama.com/library/salamandra)
+- **Tamaño:** 7,8 B de parámetros · 4,9 GB en disco.
+
+- **Pros:** es el candidato con el argumento más natural para este trabajo ---el
+  sistema responde en español a estudiantes españoles sobre una universidad
+  española--- y el único que cabe entero en los 6 GB de la tarjeta gráfica, lo
+  que explica que sea también el más rápido con diferencia.
+- **Contras:** en el cribado a mano, preguntado por los créditos de la única
+  asignatura del corpus cuya ficha no los publica, respondió «9 créditos» y
+  añadió que era obligatoria: se inventó el dato **y** el tipo. En la misma
+  sesión enumeró cuatro asignaturas de un curso después de afirmar que eran
+  diez.
+
+**Se mide junto a los otros tres y en la misma tanda**, porque un descarte
+apoyado solo en una sesión a mano es más débil que uno contrastado sobre la
+muestra entera. Un trabajo que compara modelos generativos para una tarea en
+español y no mide el modelo público español deja además sin responder la primera
+pregunta que cabe hacerle.
+
+La medición **no confirma aquella sesión**: sobre las 80 preguntas no nombró
+ninguna titulación inexistente, así que **cumple U1**, que habla de titulaciones
+y no de créditos. Donde sí se separa del resto es en la cobertura, **0,770
+frente al 0,971 de los otros tres**, porque a las preguntas de optativas
+responde con el recuento ---«ofrece un total de 16 asignaturas optativas»--- en
+lugar de la lista: su cobertura en esa familia baja a **0,295**. Y deja **13 de
+34** listados sin computar por redactarlos en prosa, frente a los 3 de
+`gemma3:12b` y ninguno de los otros dos.
+
+Queda descartado, por tanto, **por cobertura y no por el umbral eliminatorio,
+que cumple**. La diferencia importa: no es que invente, es que no enumera lo que
+se le pide.
+
+**Limitación de esta medición.** Sus autores desaconsejan servirlo con la
+cuantización a 4 bits que aquí se emplea, la misma que se aplica a los otros
+tres para que la comparación sea homogénea. Lo medido acota por tanto a _esta
+forma de ejecutarlo_ y no al modelo: una cobertura de 0,770 no puede leerse como
+una propiedad de salamandra-7b sin esa salvedad delante.
 
 ### Descartados en la criba previa
 
@@ -159,41 +208,6 @@ inferencia, y una tabla que mezcla dos versiones compara además los servidores.
   la respuesta suena informada.
 - **mistral-7b** se inventó tres titulaciones enteras, que es el umbral
   eliminatorio U1.
-
-### Sobre el modelo entrenado en español
-
-**salamandra-7b** (7,8 B, 4,9 GB) es el modelo del Barcelona Supercomputing
-Center entrenado con corpus en español y en las lenguas cooficiales, y era el
-candidato con el argumento más natural para este trabajo: el sistema responde en
-español a estudiantes españoles sobre una universidad española.
-
-**Se descarta.** Preguntado por los créditos de la única asignatura del corpus
-cuya ficha no los publica, respondió «9 créditos» y añadió que era obligatoria:
-se inventó el dato **y** el tipo. En la misma sesión enumeró cuatro asignaturas
-de un curso después de afirmar que eran diez.
-
-Aun así **se mide junto a los tres finalistas**, porque un descarte apoyado solo
-en una sesión a mano es más débil que uno contrastado sobre la muestra entera. La
-medición **no confirma aquella sesión**: sobre las 80 preguntas no nombró ninguna
-titulación inexistente, así que cumple U1, que habla de titulaciones y no de
-créditos. Donde sí se separa del resto es en la cobertura, **0,770 frente al
-0,971 de los otros tres**, porque a las preguntas de optativas responde con el
-recuento —«ofrece un total de 16 asignaturas optativas»— en lugar de la lista:
-su cobertura en esa familia es de **0,295**. Y deja **13 de 34** listados sin
-computar por redactarlos en prosa, frente a los 3 de `gemma3` y ninguno de los
-otros dos. El descarte se sostiene, por tanto, en esa cobertura y en el dato
-inventado de la sesión a mano; **no en el umbral eliminatorio, que cumple**.
-
-> 🔧 **ANDAMIAJE — dos cosas que decidir aquí.**
->
-> 1. **Este párrafo ya no encaja bajo «Descartados en la criba previa»**, porque
->    salamandra-7b sí entra en la comparación final y se mide en la misma tanda
->    que los otros tres. O se sube a una cuarta opción junto a A, B y C, o el
->    epígrafe pasa a decir otra cosa.
-> 2. **Falta declarar una limitación de la medición.** Sus autores desaconsejan
->    servirlo con la cuantización que se usa aquí, así que lo medido acota a
->    _esta forma de ejecutarlo_ y no al modelo. Sin esa frase, la cifra de
->    cobertura se lee como una propiedad de salamandra-7b y no lo es del todo.
 
 ## Resultados del experimento
 
@@ -266,91 +280,86 @@ inventado de la sesión a mano; **no en el umbral eliminatorio, que cumple**.
 
 ## Decisión
 
-> 🔧 **ANDAMIAJE — pendiente de redactar.** Lo que sigue son los datos y el
-> esqueleto del argumento, no la redacción definitiva. La versión anterior de
-> este apartado sostenía la elección sobre que `gemma3:12b` era «primero o
-> empatado en las tres» medidas descriptivas, y sobre el corpus vigente eso ya
-> no es cierto. Todo lo de aquí abajo sale del bloque de resultados de más
-> arriba y del informe de comparación pareada; nada está redondeado ni
-> interpretado.
+**Se adopta `gemma3:12b` como modelo de generación del sistema.**
 
-**Los umbrales no separan a nadie, y ahora las medidas descriptivas tampoco.**
+La comparación se cierra sobre dos bancos de distinto tamaño, y conviene decir
+desde el principio que cada uno responde a una pregunta distinta. El banco de
+decisión son las 80 preguntas de la muestra estratificada, y sobre él se
+calculan las cifras del apartado anterior. El segundo son 250 preguntas
+sorteadas del mismo banco de 1.023, y existe para responder algo que 80 no
+pueden: si las diferencias que se ven son diferencias o son ruido.
 
-Los cuatro candidatos cumplen U1: ninguno nombró una titulación inexistente en
-las 320 respuestas. Los cuatro cumplen U2. Eso no ha cambiado.
+### Las medidas descriptivas no separan a los candidatos
 
-Lo que ha cambiado es lo de después. Los tres candidatos grandes empatan en las
-tres medidas descriptivas:
+Sobre las 80 preguntas, los tres candidatos grandes dan **exactamente el mismo
+valor en las tres medidas**: precisión 1,000, cobertura 0,971 y acierto escalar
+1,000. `salamandra-7b` se queda por detrás en cobertura, 0,770, porque a las
+preguntas de optativas responde con el recuento en lugar de la lista.
 
-| Modelo | Precisión | Cobertura | Acierto escalar |
-| --- | ---: | ---: | ---: |
-| `ministral-8b:latest` | 1,000 | 0,971 | 1,000 |
-| `qwen3.5:9b` | 1,000 | 0,971 | 1,000 |
-| `gemma3:12b` | 1,000 | 0,971 | 1,000 |
-| `salamandra-7b:latest` | 0,995 | 0,770 | 0,978 |
+Ampliar el banco no los separa. Emparejando por pregunta ---los dos modelos
+respondieron las mismas--- y contrastando la diferencia con la prueba exacta de
+McNemar sobre los pares discordantes, ninguna de las tres medidas distingue a
+`gemma3:12b` de `qwen3.5:9b`:
 
-**Por qué se cerró el hueco.** El acierto escalar era la única medida en la que
-`gemma3` destacaba (0,978 frente al 0,957 de los otros dos). Se puntúa por
-coincidencia exacta sobre preguntas de créditos y de curso, y una parte de esa
-diferencia no medía a los modelos: medía el corpus. Mientras una guía compartida
-afirmaba el curso de su primera titulación para todas, los tres fallaban las
-mismas preguntas de curso porque recibían el mismo dato equivocado. Corregido el
-corpus, los tres las aciertan.
-
-**Una comparación pareada no los separa tampoco.** Sobre 250 preguntas, con cada
-tasa acompañada de su intervalo de Wilson y la diferencia contrastada con la
-prueba exacta de McNemar sobre los pares discordantes:
-
-| Métrica | n | `qwen3.5:9b` | `gemma3:12b` | Discordantes | p |
+| Medida | n | `qwen3.5:9b` | `gemma3:12b` | Discordantes | p |
 | --- | ---: | --- | --- | :---: | ---: |
 | Precisión | 67 | 0,985 [0,920–0,997] | 0,985 [0,920–0,997] | 0 / 0 | 1,000 |
 | Cobertura | 70 | 0,986 [0,923–0,997] | 0,971 [0,902–0,992] | 1 / 0 | 1,000 |
-| Acierto escalar | 180 | 0,989 | **1,000** | 0 / 2 | 0,500 |
+| Acierto escalar | 180 | 0,989 | 1,000 | 0 / 2 | 0,500 |
 
-La única asimetría de las 250 favorece a `gemma3`: acierta **180 de 180** en las
-preguntas de valor único y `qwen3.5` acierta 178. Son dos preguntas y **no se
-distinguen del azar**; presentarlo como una victoria sería falso. Y un `p` alto
-no demuestra que los modelos sean equivalentes, sino que este banco no los
-separa: lo que acota cuánta diferencia podría quedar sin verse es la anchura de
-los intervalos, no el valor de `p`.
+Un valor de `p` alto **no demuestra que los modelos sean equivalentes**: dice
+que este banco no los distingue, que es una afirmación más débil y la única que
+los datos sostienen. Lo que acota cuánta diferencia podría quedar sin verse es
+la anchura de los intervalos, y con 67 y 70 casos siguen siendo anchos.
 
-**Qué queda para decidir, y qué no vale.**
+**Así que la decisión no puede tomarse sobre las medidas descriptivas.** La
+versión anterior de este apartado la tomaba ahí, cuando `gemma3:12b` era el más
+alto en acierto escalar. Esa ventaja no era del modelo: una parte medía el
+corpus. Mientras una guía compartida entre varias titulaciones afirmaba de todas
+el curso de la primera, los tres candidatos fallaban las mismas preguntas de
+curso porque recibían el mismo dato equivocado. Corregido el corpus, los tres
+las aciertan.
 
-El apartado «Lo que explícitamente NO decide» excluye el tiempo de respuesta, y
-esa exclusión se fijó antes de medir. Así que la ventaja de `qwen3.5` en mediana
----17,4 s frente a 26,0 s--- **no puede usarse como criterio de desempate** sin
-retirar antes esa exclusión y justificar por qué.
+### El umbral eliminatorio sí separa, y decide
 
-Lo que sí está registrado en este ADR y sí distingue a los candidatos:
+U1 exige cero titulaciones inventadas y es eliminatorio. Sobre las 80 preguntas
+lo cumplen los cuatro candidatos, y por eso no decidía nada. Sobre las 250, no:
 
-1. **La licencia.** `qwen3.5:9b` es Apache 2.0; `gemma3` se distribuye bajo los
-   _Gemma Terms of Use_, con condiciones de uso añadidas. Ya figura entre los
-   pros de la Opción A y entre las consecuencias negativas de la elección
-   actual.
-2. **Las respuestas no computables.** `gemma3` redacta en prosa 3 de 34
-   listados y `qwen3.5` ninguno. Quedan fuera de la media de precisión, así que
-   su 1,000 se calcula sobre menos casos.
-3. **El acierto escalar pareado**, 180/180 frente a 178/180, con la salvedad de
-   arriba.
+| Modelo | Titulaciones inventadas en 250 respuestas |
+| --- | ---: |
+| `gemma3:12b` | **0** |
+| `qwen3.5:9b` | **1** |
 
-**Las tres salidas posibles, para elegir una y argumentarla:**
+La respuesta que lo incumple enumera correctamente las diez asignaturas que se
+le piden, y falla en el nombre de la titulación: escribe «Grado en Inteligencia
+Artificial y Cibersegurity», a medio traducir al inglés. **No es una carrera
+fabricada, es el nombre de una real escrito mal**, y decirlo de otro modo sería
+exagerar el hallazgo.
 
-- **Mantener `gemma3:12b`.** Ante un empate que ninguna medida rompe, no se
-  cambia el modelo adoptado; el 180 de 180 apoya la continuidad aunque no la
-  demuestre. Hay que decir explícitamente que la elección **ya no se sostiene
-  sobre las métricas**, porque no separan.
-- **Adoptar `qwen3.5:9b`.** Empata en calidad, no deja ningún listado sin
-  computar y su licencia es libre estándar. Exige reconocer que se cambia por un
-  criterio ---la licencia--- que no era el que decidía antes, y rehacer con él
-  las cifras del sistema.
-- **Declarar el empate y elegir con un criterio nuevo, escrito aquí.** El más
-  defendible sería la licencia, por ser una propiedad del modelo y no del
-  portátil. Obliga a explicar por qué no se contempló como criterio desde el
-  principio.
+Aun así incumple U1, y U1 no admite excepción por errata. Admitírsela ahora
+---después de conocer el resultado y para salvar al candidato que convenga---
+es exactamente aquello contra lo que el apartado de umbrales se blinda. El
+umbral se escribió antes de medir para que decidiera aunque el resultado no
+gustara, y esta es la ocasión en que decide.
 
-⚠️ Elijas la que elijas, la frase que **no** puede volver a escribirse es que
-`gemma3` gane en cobertura o en acierto escalar, ni que `qwen3.5` quede por
-detrás en ninguna de las dos.
+Hay además una razón de fondo para no rebajarlo. El destinatario es un
+estudiante que no conoce la oferta del centro: ante «Cibersegurity» no tiene
+forma de saber si es el nombre oficial, una traducción o una carrera distinta.
+Que el error sea tipográfico lo hace menos grave para quien conoce el catálogo,
+no para quien lo consulta por primera vez.
+
+### Lo que esta decisión no dice
+
+- **No dice que `gemma3:12b` responda mejor.** En calidad medida empatan, y así
+  queda escrito. Lo que los separa es un criterio eliminatorio, no una ventaja
+  de rendimiento.
+- **No dice nada sobre la velocidad.** El apartado «Lo que explícitamente NO
+  decide» excluye el tiempo, y esa exclusión se mantiene: `qwen3.5:9b` responde
+  con una mediana de 16,0 segundos frente a los 25,0 de `gemma3:12b`, y esa
+  ventaja no se ha usado ni en un sentido ni en el contrario.
+- **No cierra la comparación para siempre.** Un banco mayor, o un corpus
+  distinto, podría separar a los candidatos donde este no lo hace. Lo que
+  sostiene la decisión es el umbral, y el umbral se comprueba en cada tanda.
 
 ## Consecuencias
 
@@ -359,12 +368,13 @@ detrás en ninguna de las dos.
 - **El sistema no nombra titulaciones que no existen**, medido sobre 320
   respuestas y no sobre una impresión. Es el requisito del que depende que el
   trabajo tenga sentido.
-- 🔧 **ANDAMIAJE.** Aquí decía «la cobertura y el acierto escalar son los más
-  altos de los cuatro, así que la elección no obliga a compensar en otro sitio
-  lo que se gana en fidelidad». Sobre el corpus vigente los tres candidatos
-  grandes empatan en las dos, de modo que esta consecuencia positiva ya no
-  distingue a la elección: lo que se puede afirmar es que **no obliga a
-  compensar nada**, no que gane. Depende de qué salida se elija en la Decisión.
+- **La elección no obliga a compensar en otro sitio.** No gana en cobertura ni
+  en acierto escalar ---empata con los otros dos candidatos grandes---, pero
+  tampoco pierde en ninguna: se adopta el que cumple el umbral sin sacrificar
+  ninguna medida descriptiva.
+- **El criterio que decide se fijó antes de medir.** La elección no se apoya en
+  una diferencia de milésimas encontrada al mirar los resultados, sino en el
+  único umbral declarado eliminatorio, que se comprobó en las dos tandas.
 - **El modelo se ejecuta en local**, sin servicio de pago, y con él la consulta
   de un estudiante no sale del equipo.
 - **La comparación es reproducible**: los cuatro candidatos se miden en la misma
@@ -378,6 +388,12 @@ detrás en ninguna de las dos.
   Buena parte de esa lentitud es del equipo: de sus 8,92 GB en memoria solo caben
   3,28 GB en la tarjeta gráfica, de modo que las cifras de tiempo describen este
   portátil y **no son extrapolables** a otro.
+- **La cola de tiempos es larga, y eso sí se nota al usarlo.** Sobre las 250
+  preguntas de la comparación pareada su p90 es de 59,1 segundos y **la peor
+  respuesta tardó 211,7**, frente a los 97,9 del peor caso de `qwen3.5:9b`. Un
+  estudiante esperando delante de la pantalla tres minutos y medio no distingue
+  eso de un sistema colgado. El tiempo está excluido como criterio de decisión,
+  pero la limitación existe y se declara.
 - **El instrumento no mide la calidad de la redacción**, y el destinatario es un
   lector de diecisiete años. Una respuesta correcta y farragosa puntúa igual que
   una correcta y clara.
@@ -394,6 +410,13 @@ detrás en ninguna de las dos.
 - ADR-0001: estrategia de fragmentación.
 - ADR-0003: modelo de incrustaciones.
 - ADR-0004: base de datos vectorial.
-- `eval/preguntas_generacion.json` y `eval/preguntas_generacion_muestra.json`.
+- `eval/preguntas_generacion.json` y `eval/preguntas_generacion_muestra.json`:
+  el banco completo y la muestra de decisión de 80 preguntas.
+- `eval/preguntas_generacion_profundo.json`: las 250 preguntas de la comparación
+  pareada, sorteadas del mismo banco con otra semilla.
 - `scripts/bancos/generar_banco_generacion.py` y `scripts/experimentos/experimento_generacion.py`.
+- `scripts/experimentos/comparar_dos_modelos.py`: el emparejamiento por
+  pregunta, los intervalos de Wilson y la prueba exacta de McNemar. No llama a
+  ningún modelo: lee el registro que dejó la tanda.
+- `docs/experimentos/it133-qwen-vs-gemma.md`: el informe de esa comparación.
 - `src/tfg_uja/dialogo/verificacion.py`: las comprobaciones deterministas.
