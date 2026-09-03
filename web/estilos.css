@@ -609,12 +609,32 @@ body {
 .fuentes__cerrar {
   border: 0;
   background: none;
+  /* Medida y no elegida a ojo: con el relleno anterior de 4px/6px el boton
+     quedaba en 22,6 px de ancho, por debajo de los 24x24 que pide el criterio
+     2.5.8 de las WCAG 2.2 en el nivel AA. La aspa es un glifo estrecho y el
+     relleno lateral no llegaba a compensarlo. Se fija el minimo en vez de
+     subir el relleno para que no dependa del tipo de letra que resuelva el
+     sistema. */
+  min-width: 24px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px 6px;
   font: inherit;
   font-size: 1.1rem;
   line-height: 1;
   color: var(--texto-suave);
   cursor: pointer;
+}
+
+/* El foco propio del navegador se ve, pero depende de el. Estos dos botones
+   eran los unicos sin regla explicita, de modo que el criterio 2.4.7 se
+   cumplia por cortesia del agente de usuario y no por decision de la hoja. */
+.fuentes__cerrar:focus-visible,
+.redaccion__enviar:focus-visible {
+  outline: 2px solid var(--uja-verde);
+  outline-offset: 2px;
 }
 
 .fuentes__cerrar:hover {

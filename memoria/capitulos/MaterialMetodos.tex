@@ -691,8 +691,8 @@ La Figura~\ref{fig:conversacion_tres_turnos} ilustra la dinámica temporal de es
 
 Las tres estrategias (incrustar la pregunta sola, concatenar la
   anterior y deducir el sujeto) se midieron sobre 39 conversaciones derivadas de la
-  propia colección. \sout{Las cifras están en el apartado de resultados que comparaba las tres.}\textcolor{borrador2}{Las cifras están en el informe del experimento que
-  recoge el repositorio\cite{repo_tfg}.}
+  propia colección.Las cifras están en el informe del experimento que
+  recoge el repositorio\cite{repo_tfg}.
 
 
 
@@ -901,7 +901,23 @@ También se han tendido en cuenta tres estados de la conversación que la interf
 \subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
 \label{secc:fase3_accesibilidad}
 
-La interfaz se diseñó para cumplir con el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
+La interfaz \sout{se diseñó para cumplir con}\textcolor{borrador2}{cumple} el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
+
+\textcolor{borrador2}{Estas cifras no se comprobaron una vez: las mide un verificador del
+repositorio que forma parte de la batería de pruebas y que falla si alguna deja de
+cumplirse. Además del contraste comprueba el tamaño de cada control ---criterio 2.5.8, que
+pide 24 por 24 píxeles y con el que apareció el único incumplimiento real: el aspa de
+cerrar el cuadro de fuentes medía 22,6 píxeles de ancho---, que todos los controles tengan
+una regla de foco propia en lugar de depender de la que ponga el navegador (2.4.7), y el
+marcado del que dependen el nombre accesible de cada control (4.1.2), el orden de
+tabulación (2.4.3), el idioma del documento (3.1.1) y las alternativas textuales de las
+imágenes (1.1.1).}
+
+\textcolor{borrador2}{Lo que ese verificador no alcanza hay que decirlo, porque es la
+frontera de lo que se puede afirmar: todo lo que exige ejecutar la página. El
+comportamiento real con un lector de pantalla, el recorrido del foco al abrir y cerrar el
+cuadro modal y el reflujo a 320 píxeles se ven en un navegador y no en el fuente, de modo
+que sobre ellos el trabajo sostiene una decisión de diseño y no una medición.}
 
 
 \subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
