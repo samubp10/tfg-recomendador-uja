@@ -83,7 +83,6 @@ sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 RAIZ = Path(__file__).resolve().parent.parent.parent
 
-#: Dónde se dejan las notas de trabajo, fuera del repositorio.
 #: Dónde caen el registro y el informe si no se dice otra cosa.
 #:
 #: **Va a ``data/`` y no fuera del repositorio.** El registro en bruto de un
@@ -94,7 +93,7 @@ RAIZ = Path(__file__).resolve().parent.parent.parent
 #: escribirlo en otro sitio ya costó perder las 320 respuestas del cribado de
 #: IT-35, y con ellas la posibilidad de repuntuarlas sin repetir la tanda.
 #: El valor por defecto contradecía esa regla y apuntaba fuera.
-NOTAS = RAIZ / "data"
+DESTINO = RAIZ / "data"
 
 #: El ADR que registra la elección del modelo generativo (IT-36). Los datos
 #: brutos viven dentro del propio ADR, como anexo suyo, igual que en el
@@ -992,9 +991,9 @@ def main(argumentos: list[str] | None = None) -> None:
     analizador.add_argument("--indice", default=str(RAIZ / "data" / "indice_lance"))
     analizador.add_argument("--datos", default=str(RAIZ / "data" / "grados.json"))
     analizador.add_argument(
-        "--registro", default=str(NOTAS / "cribado_generacion.jsonl")
+        "--registro", default=str(DESTINO / "cribado_generacion.jsonl")
     )
-    analizador.add_argument("--salida", default=str(NOTAS / "cribado_generacion.md"))
+    analizador.add_argument("--salida", default=str(DESTINO / "cribado_generacion.md"))
     analizador.add_argument("--limite", type=int, default=0)
     analizador.add_argument(
         "--presupuesto",
