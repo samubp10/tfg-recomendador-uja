@@ -303,6 +303,12 @@ function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = 
  * `responder` cambia lo que contestará la SIGUIENTE consulta a `/api/chat`.
  * El saludo ya no entra por ahí: tiene su propia ruta, que es justo lo que
  * evita que el arranque quede anotado en el registro como una pregunta.
+ *
+ * Con `diferirArranque` las dos peticiones del arranque ---el saludo y las
+ * sugerencias--- se quedan esperando hasta que la prueba llame a `soltarSaludo`
+ * o a `soltarSugerencias`. Cada una tiene la suya, y esa es la gracia: colgando
+ * las dos de la misma promesa solo se puede probar un orden de llegada, y lo
+ * que hay que comprobar es que el orden no decide nada.
  */
 function montar({
   sugerencias = [],
@@ -311,20 +317,34 @@ function montar({
   saludoFallaAlArrancar = false,
   saludoNoOk = false,
   saludo = "Hola, soy el asistente.",
+  diferirArranque = false,
 } = {}) {
   let siguiente = () => respuestaNdjson([{ parte: "Hola." }, { fin: true }]);
   const peticiones = [];
+  const compuertas = {};
+  // Sin `diferirArranque` la espera ya viene abierta, así que el arranque se
+  // comporta igual que antes: una vuelta más de microtareas, que `reposar` da.
+  const esperar = (cual) =>
+    diferirArranque
+      ? new Promise((soltar) => {
+          compuertas[cual] = soltar;
+        })
+      : Promise.resolve();
+  const esperaSaludo = esperar("saludo");
+  const esperaSugerencias = esperar("sugerencias");
   const fetchDoble = (url, opciones) => {
     peticiones.push({ url, opciones });
     if (url === "/api/saludo") {
-      if (saludoFallaAlArrancar) return Promise.reject(new Error("Failed to fetch"));
-      if (saludoNoOk) return Promise.resolve({ ok: false, status: 500 });
-      return Promise.resolve({ ok: true, json: () => ({ respuesta: saludo }) });
+      return esperaSaludo.then(() => {
+        if (saludoFallaAlArrancar) throw new Error("Failed to fetch");
+        if (saludoNoOk) return { ok: false, status: 500 };
+        return { ok: true, json: () => ({ respuesta: saludo }) };
+      });
     }
     if (url === "/api/sugerencias") {
-      return sugerenciasFallan
-        ? Promise.resolve({ ok: false, status: 500 })
-        : Promise.resolve({ ok: true, json: () => sugerencias });
+      return esperaSugerencias.then(() =>
+        sugerenciasFallan ? { ok: false, status: 500 } : { ok: true, json: () => sugerencias }
+      );
     }
     // Se le pasan las opciones para que una prueba pueda mirar la senal de
     // cancelacion; las que no la necesitan simplemente ignoran el argumento.
@@ -338,6 +358,8 @@ function montar({
     responder: (fn) => {
       siguiente = fn;
     },
+    soltarSaludo: () => compuertas.saludo(),
+    soltarSugerencias: () => compuertas.sugerencias(),
   };
 }
 
@@ -805,6 +827,93 @@ test("un saludo que llega tarde no se cuela debajo de la conversación", async (
     Array.from(chat._elementos.get("sugerencias").hijos, (b) => b.textContent),
     ["¿Y en segundo?"],
     "las sugerencias del turno mandan sobre las del arranque"
+  );
+});
+
+/** Qué lado de la conversación es cada fila, en el orden en que se pintaron. */
+function ladosDeLaConversacion(montaje) {
+  return Array.from(montaje.el("mensajes").hijos, (fila) =>
+    fila.classList.contains("mensaje--propio") ? "persona" : "asistente"
+  );
+}
+
+test("el arranque tardío se descarta llegue en el orden que llegue", async () => {
+  /*
+    La otra mitad de la regresión de arriba. Allí el saludo y las sugerencias
+    colgaban de la MISMA promesa, así que se resolvían siempre en el mismo
+    orden y solo quedaba probada una de las dos trayectorias. Lo que decide no
+    es cuál de las dos peticiones llegue antes, sino que la conversación ya
+    haya empezado, y eso hay que comprobarlo en los dos órdenes.
+
+    Se mira además la SECUENCIA de las filas y no solo que el saludo no esté.
+    Que falte su texto no dice que el orden se conserve; que las filas sean
+    exactamente la pregunta y su respuesta, sí, y el orden es lo que la tarjeta
+    promete.
+  */
+  for (const orden of [
+    ["saludo", "sugerencias"],
+    ["sugerencias", "saludo"],
+  ]) {
+    const m = montar({ diferirArranque: true, sugerencias: ["¿Qué grados hay?"] });
+    m.responder(() =>
+      respuestaNdjson([
+        { parte: "En primero se cursa Álgebra." },
+        { sugerencias: ["¿Y en segundo?"] },
+        { fin: true },
+      ])
+    );
+
+    await m.chat.preguntar("¿Qué se cursa en primero?");
+    for (const cual of orden) {
+      if (cual === "saludo") m.soltarSaludo();
+      else m.soltarSugerencias();
+    }
+    await reposar();
+
+    const pista = `soltando primero el ${orden[0]}`;
+    assert.deepEqual(ladosDeLaConversacion(m), ["persona", "asistente"], pista);
+    assert.deepEqual(
+      Array.from(m.el("sugerencias").hijos, (b) => b.textContent),
+      ["¿Y en segundo?"],
+      pista
+    );
+  }
+});
+
+test("el saludo que llegó a tiempo se queda aunque el resto del arranque tarde", async () => {
+  /*
+    El reverso de la prueba anterior, y hace falta: una marca de interacción
+    puede pasarse de frenada y descartar lo que sí era actual cuando llegó. Aquí
+    el saludo entra ANTES de la primera pregunta ---que es lo normal--- y las
+    sugerencias del arranque llegan después. El saludo tiene que seguir donde
+    estaba, encabezando la conversación, y solo las sugerencias se descartan.
+  */
+  const m = montar({ diferirArranque: true, sugerencias: ["¿Qué grados hay?"] });
+  m.soltarSaludo();
+  await reposar();
+  assert.deepEqual(ladosDeLaConversacion(m), ["asistente"], "el saludo no llegó a pintarse");
+
+  m.responder(() =>
+    respuestaNdjson([
+      { parte: "En primero se cursa Álgebra." },
+      { sugerencias: ["¿Y en segundo?"] },
+      { fin: true },
+    ])
+  );
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+  m.soltarSugerencias();
+  await reposar();
+
+  assert.deepEqual(ladosDeLaConversacion(m), ["asistente", "persona", "asistente"]);
+  const filas = m.el("mensajes").hijos;
+  assert.ok(
+    filas[0].querySelector(".mensaje__cuerpo").innerHTML.includes("Hola, soy el asistente"),
+    "el saludo debe seguir siendo la primera fila"
+  );
+  assert.deepEqual(
+    Array.from(m.el("sugerencias").hijos, (b) => b.textContent),
+    ["¿Y en segundo?"],
+    "las del arranque llegaron tarde y no mandan"
   );
 });
 
