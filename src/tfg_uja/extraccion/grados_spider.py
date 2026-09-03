@@ -33,18 +33,11 @@ import re
 from collections.abc import Iterator
 from datetime import date
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, cast
 
 import scrapy
 from scrapy.http import Request, Response
-
-# Se importa de `parsel` y no de `scrapy.selector`, que también los reexporta.
-# El motivo es de tipos y está comprobado: la clase que reexporta Scrapy no
-# admite parámetro genérico, de modo que `SelectorList[Selector]` deja de
-# comprobar y mypy da once errores. Como se usa directamente, `parsel` está
-# declarado como dependencia en `pyproject.toml` en vez de heredarse de Scrapy
-# sin decirlo: lo que se importa se declara.
-from parsel import Selector, SelectorList
+from scrapy.selector import Selector, SelectorList
 
 from tfg_uja import RAIZ as _RAIZ
 from tfg_uja.extraccion.guia_pdf import es_pdf, extraer_guia, motivo_sin_guia
@@ -352,8 +345,13 @@ class GradosSpider(scrapy.Spider):
         # asignatura una vez por cada mención en la que figura.
         por_clave: dict[str, dict[str, Any]] = {}
         orden: list[str] = []
-        for tabla in response.css("table"):
-            filas = tabla.css("tr")
+        # Scrapy crea sus selectores unificados en ejecución, pero las
+        # anotaciones heredadas de su clase base pierden ese subtipo. El
+        # ``cast`` expresa aquí la API pública que devuelve ``response.css``;
+        # no convierte ningún objeto ni cambia el rastreo.
+        tablas = cast(list[Selector], response.css("table"))
+        for tabla in tablas:
+            filas = cast(list[Selector], tabla.css("tr"))
             if not filas:
                 continue
             cabeceras = [
@@ -381,7 +379,7 @@ class GradosSpider(scrapy.Spider):
             # la fuente lo publica en el rótulo de la sección que la agrupa.
             curso, cuatrimestre = self._curso_y_cuatrimestre(tabla)
             for fila in filas:
-                celdas = fila.css("td")
+                celdas = cast(list[Selector], fila.css("td"))
                 # La fila debe llegar hasta la última columna que interesa; las
                 # de cabecera (sin <td>) y las incompletas se descartan.
                 if len(celdas) <= max(columnas.values()):
@@ -397,10 +395,14 @@ class GradosSpider(scrapy.Spider):
                 # guía (ver enlace_guia): la celda puede traer además otros
                 # enlaces que no forman parte del nombre, y juntar todo su
                 # texto los pegaba al final (IT-93, «... ( Syllabus )»).
-                enlace_guia = celda_nombre.css("a")
+                enlace_guia = cast(SelectorList, celda_nombre.css("a"))
                 if enlace_guia:
+                    selector_enlace = cast(Selector, enlace_guia[0])
                     nombre_bruto = (
-                        self._texto_de(enlace_guia[0].css("::text")) or nombre_bruto
+                        self._texto_de(
+                            cast(SelectorList, selector_enlace.css("::text"))
+                        )
+                        or nombre_bruto
                     )
                 nombre, _ = separar_oferta(nombre_bruto)
                 # Un nombre ausente equivale a uno vacío: en ambos casos la
@@ -565,7 +567,7 @@ class GradosSpider(scrapy.Spider):
         return columnas
 
     @staticmethod
-    def _texto_celda(celdas: SelectorList[Selector], posicion: int | None) -> str:
+    def _texto_celda(celdas: list[Selector], posicion: int | None) -> str:
         """Devuelve el texto limpio de una celda, o vacío si la columna no existe.
 
         Args:
@@ -579,10 +581,11 @@ class GradosSpider(scrapy.Spider):
         """
         if posicion is None:
             return ""
-        return GradosSpider._texto_de(celdas[posicion].css("::text"))
+        nodos = cast(SelectorList, celdas[posicion].css("::text"))
+        return GradosSpider._texto_de(nodos)
 
     @staticmethod
-    def _texto_de(nodos: SelectorList[Selector]) -> str:
+    def _texto_de(nodos: SelectorList) -> str:
         """Une los nodos de texto de una selección y los deja limpios.
 
         Args:
@@ -912,9 +915,7 @@ class GradosSpider(scrapy.Spider):
         Returns:
             str: Texto limpio de toda la ficha, salvo las secciones excluidas.
         """
-        ficha: SelectorList[Selector] | Response = response.css(
-            "#fichadocenteasignatura"
-        )
+        ficha: SelectorList | Response = response.css("#fichadocenteasignatura")
         if not ficha:
             ficha = response
         exclusion = " ".join(
