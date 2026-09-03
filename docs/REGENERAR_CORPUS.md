@@ -4,7 +4,7 @@
 > Está escrito para poder ejecutarse delante de otra persona sin depender de que nadie
 > recuerde nada (Definición de Hecho de IT-80).
 >
-> Última ejecución: **05/08/2026** (rastreo) y **06/08/2026** (troceado), curso **2026-27**.
+> Última ejecución: **16/08/2026** (rastreo) y **01/09/2026** (troceado), curso **2026-27**.
 
 ## Antes de empezar
 
@@ -160,11 +160,13 @@ Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
 | 01/08/2026 | 2026-27 | 350 | 288 | 797 | Con IT-100: entran los 16 fragmentos de plan de estudios |
 | 05/08/2026 | 2026-27 | **528** | 288 | 884 | Con IT-101: los planes de los cinco dobles grados, que faltaban enteros |
 | 06/08/2026 | 2026-27 | 528 | 288 | **1 334** | Sin re-rastrear: solo se vuelve a trocear con el máximo de IT-16 en 900 |
+| 16/08/2026 | 2026-27 | 528 | 288 | — | Nuevo rastreo; la procedencia queda dentro de `grados.json` |
+| 01/09/2026 | 2026-27 | 528 | 288 | **1 922** | Sin re-rastrear: se regenera el troceado vigente, con 471 unidades |
 
-⚠️ **Las dos últimas filas no son dos rastreos.** El 06/08 no se volvió a pedir nada a la
-web: se ejecutó solo el fragmentador con los parámetros nuevos. Conviene que el registro lo
-distinga, porque «cambió el corpus» y «cambió la fuente» son cosas distintas y solo la
-segunda obliga a repetir el rastreo.
+⚠️ **No todas las filas son rastreos.** El 06/08 y el 01/09 no se volvió a pedir nada a la
+web: se ejecutó solo el fragmentador. Conviene que el registro lo distinga, porque «cambió
+el corpus» y «cambió la fuente» son cosas distintas y solo la segunda obliga a repetir el
+rastreo.
 
 Estado del corpus vigente (rastreo del 16/08/2026, troceado del 01/09/2026):
 
@@ -178,8 +180,8 @@ Estado del corpus vigente (rastreo del 16/08/2026, troceado del 01/09/2026):
 - **0 nombres contaminados** por el enlace «Syllabus», que es lo que arreglaba IT-96.
 - 5 asignaturas con la guía publicada pero vacía en el origen (DQA-0004); entran al
   corpus con sus datos básicos.
-- Conjunto de evaluación: **50 preguntas, 11/11 titulaciones**, con el reparto
-  20 temario · 14 listado · 8 salidas · 6 metadatos · **2 sin guía**. Las 14 de listado
-  entraron en IT-100. El tipo `sin guía` bajó de 5 a 2 el 29/07, al publicar la fuente
-  tres de esas guías: es una limitación declarada del instrumento de medida, no un
-  descuido, y reponerlo sigue siendo una decisión abierta.
+- Conjunto de evaluación: **66 entradas**: 56 preguntas de recuperación —20 de temario,
+  14 de listado, 8 de salidas, 8 sin guía y 6 de metadatos— y 10 preguntas ajenas, cuyo
+  criterio es el rechazo y que no entran en Recall@K ni MRR. Al resolver los selectores se
+  alcanzan 11 de las 12 titulaciones del corpus; el doble grado internacional sin página
+  propia queda sin cubrir y cuatro dobles grados se alcanzan solo por arrastre.
