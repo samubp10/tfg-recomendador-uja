@@ -16,10 +16,16 @@
 % si absorbe solo es el CONTENIDO --otra asignatura, otra guia, otro plan--;
 % lo que no absorbe es que cambie la ESTRUCTURA de la fuente.
 %
-% El RNF-07 declaraba conformidad con el nivel AA. Una conformidad no se
-% declara sin comprobarla, y el lector de pantalla no se ha probado con
-% ninguno real. El teclado si esta comprobado y se afirma; el resto queda como
-% objetivo, que es lo que de verdad se puede sostener.
+% El RNF-07 declaraba conformidad con el nivel AA sin comprobarla, y estuvo
+% una temporada rebajado a «objetivo de diseno» por ese motivo. Se afirma otra
+% vez, pero acotado y con respaldo ejecutable:
+% scripts/verificadores/check_accesibilidad.py mide sobre el codigo el
+% contraste, el tamano de cada control, su regla de foco y el marcado del que
+% dependen el nombre accesible, el orden de tabulacion, el idioma y las
+% alternativas textuales. Lo que exige ejecutar la pagina ---lector de
+% pantalla, foco del cuadro modal, reflujo a 320 px--- sigue sin comprobarse, y
+% por eso el requisito dice «los criterios comprobables sobre el codigo» y no
+% «conformidad AA» a secas.
 \begin{table}[htbp]
   \centering
   \small
@@ -36,7 +42,7 @@
     RNF-04 & Anteponer la fidelidad de la respuesta al tiempo que tarde en darla cuando ambas cosas entren en conflicto                        & OE5         & ADR-0005 \\
     RNF-05 & Poder reproducirse el índice construyéndose de nuevo y todo experimento fija su semilla y sus versiones                            & OE5         & ADR-0004 \\
     RNF-06 & Absorber los cambios de contenido de la oferta (altas, bajas y modificaciones de asignaturas y guías) regenerando la colección, sin tocar el código & OE1 · RU-02 & Sección~\ref{secc:fase2_dominio} \\
-    RNF-07 & Poder manejarse por completo con el teclado, tomando el nivel AA de las \sig{WCAG} 2.2 como objetivo de diseño & OE6 · RU-05 & Sección~\ref{secc:fase3_interfaz} \\
+    RNF-07 & Poder manejarse por completo con el teclado y cumplir el nivel AA de las \sig{WCAG} 2.2 en los criterios comprobables sobre el código & OE6 · RU-05 & Sección~\ref{secc:fase3_accesibilidad} \\
     \bottomrule
   \end{tabularx}
   \begin{minipage}{0.95\textwidth}
