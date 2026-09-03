@@ -179,7 +179,9 @@ def revisar_marcado(html: str) -> list[str]:
     fallos += [f"imagen sin alt: {i[:60]}" for i in sin_alt]
 
     positivos = re.findall(r'tabindex="([1-9][0-9]*)"', limpio)
-    fallos += [f"tabindex positivo ({t}): rompe el orden del documento" for t in positivos]
+    fallos += [
+        f"tabindex positivo ({t}): rompe el orden del documento" for t in positivos
+    ]
 
     if not re.search(r'<html[^>]+lang="[a-z]{2}', limpio):
         fallos.append("el documento no declara idioma")
