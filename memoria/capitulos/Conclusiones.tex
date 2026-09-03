@@ -11,17 +11,6 @@ El capítulo se organiza en cuatro apartados. El primero evalúa el grado de con
 
  El objetivo de este Trabajo Fin de Grado consistía en diseñar, implementar y evaluar un asistente conversacional capaz de orientar a los estudiantes preuniversitarios sobre la oferta académica de la EPSJ, basándose únicamente en la documentación oficial del centro y ejecutándose de forma autónoma en un equipo doméstico.
 
-\textcolor{borrador2}{Los seis objetivos específicos quedan cumplidos, y el
-  Apartado~\ref{secc:discusion_objetivos} razona cada uno con la evidencia que lo sostiene
-  y con el límite que lo acota. Frente a la propuesta aprobada por la Comisión de Trabajos
-  Fin de Grado, que enunciaba cinco objetivos y no seis, el cumplimiento es completo en
-  cuatro y \textbf{parcial en el primero}: la colección recoge titulaciones, guías
-  docentes, planes de estudio y salidas profesionales, pero no las memorias de
-  verificación ni los datos estadísticos que la propuesta también enumeraba. La
-  correspondencia entre las dos listas está en el
-  Apartado~\ref{secc:discusion_correspondencia}, y lo que quedó fuera vuelve como línea de
-  continuación en la Sección~\ref{secc:trabajo_futuro}.}
-
 La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} queda parcialmente confirmada. Los resultados validan plenamente sus tres primeras condiciones: el recuperador sitúa la unidad de respuesta dentro del contexto entregado, ninguna de las respuestas del modelo nombró titulaciones inexistentes y ninguna consulta del dominio le faltó fundamento documental. Por contra, la cuarta condición no se cumple ya que la mediana del tiempo de respuesta alcanza los 62,7 segundos, muy por encima de los 30 segundos que se establecieron en la hipótesis.  Lejos de constituir un defecto no controlado, este comportamiento es la consecuencia directa de la jerarquía de diseño establecida en el requisito \sig{RNF}-04, que antepone estrictamente la fidelidad factual y la ausencia de alucinaciones a la rapidez en la generación textual (Apartado~\ref{secc:discusion_hipotesis}).
 
 
@@ -41,10 +30,7 @@ El desarrollo de este TFG aporta al campo de los asistentes conversacionales con
 
   \item \textbf{Tres barreras deterministas que acotan el dominio:} Independientes entre sí y ejecutadas en el código y no pedidas al modelo, con el reparto medido de qué detiene cada una (Apartado~\ref{secc:resultados_rag_sistema}).
 
- \item \textbf{Una interfaz web accesible, transparente y sin barreras de entrada.} Se ha construido una aplicación conversacional ligera que \sout{cumple con las pautas de accesibilidad \sig{WCAG} 2.2 (nivel AA)}\textcolor{borrador2}{toma como objetivo de diseño el nivel AA de las pautas
-      \sig{WCAG} 2.2 (RNF-07), con el contraste medido y el recorrido por teclado
-      comprobado; la conformidad completa no se ha evaluado, porque no se ha probado con
-      ningún lector de pantalla real} y prescinde de registro previo para minimizar la fricción de acceso.\textcolor{borrador2}{ }La interfaz incorpora trazabilidad documental en cada turno mediante la cita explícita de las fuentes recuperadas y declara con claridad la ausencia de datos cuando una consulta excede el catálogo oficial (Sección~\ref{secc:fase3}).
+ \item \textbf{Una interfaz web accesible, transparente y sin barreras de entrada.} Se ha construido una aplicación conversacional ligera que cumple con las pautas de accesibilidad \sig{WCAG} 2.2 (nivel AA)\textcolor{borrador2}{ en todos los criterios que pueden comprobarse sobre el código, y lo hace con un verificador que los mide y que forma parte de la batería de pruebas} y prescinde de registro previo para minimizar la fricción de acceso. La interfaz incorpora trazabilidad documental en cada turno mediante la cita explícita de las fuentes recuperadas y declara con claridad la ausencia de datos cuando una consulta excede el catálogo oficial (Sección~\ref{secc:fase3}).
 \end{itemize}
 
 Qué distingue este planteamiento de los asistentes universitarios
@@ -61,9 +47,9 @@ Para garantizar el rigor científico de las conclusiones y evitar interpretacion
       usuarios:} El sistema no ha sido sometido ha pruebas con estudiantes preuniversitarios reales. Por ello, no es posible asegurar que las preguntas del conjunto de evaluación reproduzca el lenguaje que un usuario objetivo tendría, ni se ha evaluado la utilidad orientadora de las respuestas en la decisión vocacional 
     (Apartado~\ref{secc:validacion_usuarios}).
 
-  \item \textcolor{borrador2}{\textbf{De cada respuesta se comprueba que no
+  \item \textbf{De cada respuesta se comprueba que no
       invente}: Se comprueba que la respuesta no contenga o no sea en sí una alucinación y sea fidedigna a las entidades oficiales, pero no se valoran dimensiones cualitativas como la claridad de las respuestas, o la utilidad pedagógica 
-    (Apartado~\ref{secc:metricas_no_capturan}).}
+    (Apartado~\ref{secc:metricas_no_capturan}).
 
   \item \textbf{Sesgo inherente en el diseño del banco de evaluación:} Tanto las preguntas de prueba como los algoritmos de corrección han sido desarrollados por mí sin que nadie más los revisase, lo que introduce un sesgo metodológico respecto a una evaluación externa o ciega
     (Apartado~\ref{secc:amenazas_validez}).
@@ -83,9 +69,7 @@ Para garantizar el rigor científico de las conclusiones y evitar interpretacion
 A partir de las limitaciones identificadas en el apartado anterior y de las evidencias obtenidas durante la evaluación técnica, se proponen las siguientes líneas de trabajo futuro:
 
 \begin{itemize}
-  \item \textbf{Probar el sistema con estudiantes preuniversitarios:} Realizar pruebas de uso con alumnado o usuarios objetivos para comprobar si el sistema responde a la formulación real de sus dudas y si resulta comprensible como apoyo en la toma de una decisión\textcolor{borrador2}{, incorporando en esas mismas sesiones métricas
-        centradas en el usuario ---encuestas de satisfacción, por ejemplo--- que valoren la
-        calidad explicativa de las respuestas más allá de la fidelidad factual}.
+  \item \textbf{Probar el sistema con estudiantes preuniversitarios:} Realizar pruebas de uso con alumnado o usuarios objetivos para comprobar si el sistema responde a la formulación real de sus dudas y si resulta comprensible como apoyo en la toma de una decisión.
 
   \item \textbf{Optimización del tiempo de inferencia y de
       la arquitectura de diálogo:} Evaluar el despliegue del modelo generativo sobre el hardware con aceleración por GPU y simplificar el flujo conversacional para situal la latencia por debajo del umbral de los treinta segundos.
