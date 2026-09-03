@@ -28,13 +28,7 @@ authors = [
 # - pypdf: extracción del texto de las guías docentes que la EPSJ sirve como
 #   PDF desde el curso 2026-27 (IT-67). Es Python puro y ligero, así que el CI
 #   puede usarlo directamente en los tests, sin binarios externos como poppler.
-# - parsel: los selectores del rastreador. Llega de todas formas con Scrapy,
-#   pero el spider lo importa DIRECTAMENTE, y lo que se importa se declara: si
-#   no, una versión de Scrapy que dejara de arrastrarlo rompería el rastreo sin
-#   que nada avisara. Se importa de aquí y no de `scrapy.selector` porque la
-#   clase que reexporta Scrapy no admite parámetro genérico y la comprobación
-#   de tipos deja de funcionar (once errores medidos).
-dependencies = ["scrapy>=2.13", "pypdf>=4.0", "parsel>=1.9"]
+dependencies = ["scrapy>=2.13", "pypdf>=4.0"]
 
 # ==============================================================================
 # DEPENDENCIAS OPCIONALES (Optional Dependencies)
