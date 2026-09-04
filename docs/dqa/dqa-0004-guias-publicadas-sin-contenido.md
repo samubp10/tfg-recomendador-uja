@@ -1,152 +1,69 @@
 # DQA-0004: Guías docentes publicadas con las secciones de contenido vacías
 
-_Anomalía de calidad de datos, con la misma estructura que un ADR: no es una
-decisión de arquitectura, pero exige la misma evidencia. Continúa la serie del
-DQA-0001 (anomalías de la Fase 0), DQA-0002 (el cambio de formato a PDF) y
-DQA-0003 (el cambio de estructura de las tablas)._
-
 - **Estado:** aceptada
-- **Fecha:** 2026-07-29
-- **Anomalía detectada:** 29/07/2026 (ver «Pruebas y evidencia»)
 - **Ámbito técnico:** Fase 1 — extracción (`guia_pdf.py`, `grados_spider.py`) y
   fragmentación (`chunker.py`)
 
 ## Contexto
 
-IT-94 encontró cinco asignaturas que desaparecían del corpus enteras: la tabla
-del plan de estudios enlazaba su guía, pero el ítem de guía nunca llegaba a
-emitirse, y el fragmentador tampoco les daba el fragmento informativo que da a
-las asignaturas sin guía. Se corrigió, y el fragmento resultante decía que el
-contenido de la guía **«no ha podido obtenerse»**.
+La fuente publica guías PDF válidas cuya plantilla incluye los rótulos «Resumen»
+y «Descripción de contenidos», pero sin texto útil dentro de esas secciones. Seis
+guías reales presentan este caso: cinco tienen ambas secciones vacías y una solo
+contiene un resumen genérico de 110 caracteres. El PDF se descarga y se puede
+leer; la ausencia pertenece a la fuente y no a la extracción.
 
-Al preparar IT-95 se comprobó de dónde venía ese fallo, y resultó que no había
-tal fallo.
+La asignatura debe seguir formando parte del plan de estudios. El corpus, además,
+debe distinguir una guía publicada y vacía de una guía inexistente o ilegible.
 
-## Anomalía detectada y tratamiento
+## Alternativas consideradas
 
-### La fuente publica la guía con la plantilla vacía
+1. **Texto único para cualquier ausencia.** «No se dispone del contenido» evita
+   afirmar una causa incorrecta, pero oculta si la guía no existe o está publicada
+   sin resumen ni temario.
+2. **Exponer las cuatro causas técnicas en el fragmento.** Conserva todo el
+   diagnóstico, pero añade detalle sin utilidad para quien consulta: en todos los
+   casos falta el contenido docente.
+3. **Distinguir solo el estado relevante para el usuario.** El fragmento separa
+   «sin guía publicada» de «guía publicada sin resumen ni temario», mientras que
+   el registro del rastreo conserva la causa técnica exacta.
+4. **Completar desde otro curso o titulación.** Aumenta la cobertura aparente,
+   pero imputa contenido que la fuente vigente no atribuye a esa asignatura.
 
-- **Evidencia:** descargadas el 29/07/2026 las seis guías implicadas (las cinco
-  de IT-94 más la única del corpus con menos de 200 caracteres útiles), las seis
-  responden `200 application/pdf`, se abren sin error y `pypdf` extrae de ellas
-  entre 9 324 y 12 990 caracteres, con los 13 rótulos de la plantilla en su sitio.
+## Decisión
 
-  | Código | Bytes | Caracteres extraídos | Rótulos | RESUMEN | CONTENIDOS |
-  | --- | ---: | ---: | ---: | ---: | ---: |
-  | 15411008 | 46 759 | 9 324 | 13 / 13 | 0 | 0 |
-  | 15712013 | 47 858 | 10 298 | 13 / 13 | 0 | 0 |
-  | 15712014 | 48 100 | 10 372 | 13 / 13 | 0 | 0 |
-  | 15712018 | 48 779 | 10 760 | 13 / 13 | 0 | 0 |
-  | 15712020 | 51 213 | 12 990 | 13 / 13 | 0 | 0 |
-  | 15712019 | 48 059 | 10 610 | 13 / 13 | 110 | 0 |
-
-  En 15411008, las tres líneas consecutivas del PDF son:
-
-  ```text
-  RESUMEN
-  DESCRIPCIÓN DE CONTENIDOS
-  METODOLOGÍAS DOCENTES Y ACTIVIDADES FORMATIVAS
-  ```
-
-  Un rótulo detrás de otro, sin nada en medio. La sección existe y está vacía.
-
-  El caso 15712019 lo confirma desde el otro lado: su resumen son 110 caracteres
-  de plantilla («Sin conocimientos previos exigidos. Sin prerrequisitos.») y su
-  temario está vacío. Aporta un fragmento al corpus que no dice nada.
-
-  Las seis pertenecen a planes en implantación (154A y 157A), lo que encaja: son
-  asignaturas de cursos superiores cuyo contenido docente aún no se ha publicado
-  para 2026-27.
-
-- **Tratamiento:** se separa el motivo del efecto. El efecto —la asignatura
-  entra al corpus con sus datos básicos— ya lo resolvió IT-94 y no cambia. Lo
-  que cambia es lo que el corpus **afirma**: el fragmento pasa a decir que la
-  guía está publicada y que no recoge ni resumen ni temario. Y el aviso del
-  rastreo deja de llamar «PDF ilegible» a un PDF que se lee, gracias a
-  `motivo_sin_guia`, que distingue cuatro causas posibles: PDF corrupto o
-  cifrado, PDF sin capa de texto, rótulos que no encajan con los conocidos, y
-  secciones vacías en el origen. **Solo la última se ha observado.**
-
-- **Alternativa descartada:** un único texto vago («no se dispone del contenido
-  de la guía») para todos los casos. Nunca miente, pero pierde información útil
-  de verdad: a un estudiante no le dicen lo mismo «todavía no está publicada»
-  —conviene volver a mirar más adelante— y «está publicada y vacía».
-
-- **Alternativa descartada:** distinguir en el texto del fragmento las cuatro
-  causas. Para quien pregunta no hay diferencia entre «no se pudo leer» y «está
-  vacía»: en los dos casos no hay contenido. El motivo exacto se registra donde
-  sirve —el aviso del rastreo y la auditoría de IT-95—, no en un texto que solo
-  puede decir lo mismo con más palabras.
+- La asignatura se conserva y recibe un fragmento informativo aunque no exista
+  contenido útil de guía.
+- `motivo_sin_guia` distingue PDF corrupto o cifrado, PDF sin capa de texto,
+  rótulos no reconocidos y secciones vacías en el origen.
+- El texto dirigido al usuario distingue la guía no publicada de la guía publicada
+  sin resumen ni temario; el detalle técnico queda en el registro y la auditoría.
+- El contenido ausente no se completa con otro curso, otra titulación ni un texto
+  generado: se refleja, no se imputa.
 
 ## Consecuencias
 
 ### Positivas
 
-- El corpus deja de contener una afirmación falsa sobre sí mismo. Es el mismo
-  criterio de IT-94 en la otra dirección: allí no se podía negar una publicación
-  que existe; aquí no se puede insinuar un fallo propio que no ha ocurrido.
-- El rastreo informa del motivo real, así que un cambio de plantilla —el caso
-  peligroso, que no se ha dado— se distinguiría de una guía vacía, que es
-  rutinario.
+- Ninguna asignatura desaparece por carecer de contenido en su guía.
+- El corpus describe la ausencia sin atribuirla erróneamente a un fallo de lectura.
+- Un cambio de plantilla queda separado del caso rutinario de una sección vacía.
 
 ### Negativas
 
-- **La cobertura de guías está inflada.** Estas guías cuentan hoy como cobertura
-  y aportan cero contenido. La cifra que se publique en la memoria debería
-  separar guías con contenido de guías publicadas y vacías, o al menos declarar
-  que no lo hace. Refuerza la amenaza a la validez ya declarada sobre el sesgo
-  de cobertura hacia las titulaciones en implantación: no solo concentran las
-  asignaturas sin guía, sino también las guías vacías.
-- El recuento exacto de guías vacías se conocerá al regenerar el dataset (IT-80).
-  Las seis de arriba son las observadas sobre el rastreo del 28/07/2026, no una
-  cifra definitiva.
-- Queda sin prueba de regresión el caso «guía publicada con las secciones
-  vacías»: añadir su PDF a las fixtures agravaría un problema aparte —las tres
-  fixtures actuales versionan 9 correos y 6 teléfonos de profesorado real— que
-  se resuelve antes de hacer público el repositorio.
-
-## Pruebas y evidencia
-
-> **Sobre la columna «Detectada».** Es la fecha del commit que incorpora la prueba de
-> regresión de esa anomalía, que es la constancia verificable más próxima al hallazgo:
-> el hallazgo en sí no deja rastro en el repositorio, la prueba sí. Cada fecha se puede
-> comprobar con `git log -S "def <nombre de la prueba>" -- tests/`.
-
-| Anomalía | Detectada | Evidencia | Prueba de regresión |
-|---|---|---|---|
-| La fuente publica la guía con la plantilla completa y las secciones de contenido vacías | 29/07/2026 | los seis PDF descargados el 29/07/2026, con la tabla de caracteres extraídos de este mismo registro | `test_guia_pdf.py::test_una_guia_correcta_no_necesita_motivo`, `::test_un_pdf_ilegible_se_distingue_como_tal` |
-| El aviso del rastreo debe distinguir la causa y no llamar «ilegible» a un PDF que se lee | 29/07/2026 | 15411008, 15712019 | `test_guia_pdf.py::test_un_pdf_ilegible_se_distingue_como_tal` (`motivo_sin_guia`) |
-| La asignatura entra igualmente al corpus con su fragmento informativo | 29/07/2026 | `chunks_muestra_real.json` | `test_chunker.py` (fragmento de asignatura sin guía), `test_check_chunks.py` |
-
-`scripts/verificadores/check_chunks.py` comprueba sobre la colección completa que toda asignatura sin
-contenido de guía recibe su fragmento informativo, de modo que ninguna desaparece en silencio.
-
-## Cómo se corrige y cómo se detecta si vuelve
-
-Aquí no hay nada que corregir en el código: **el hueco es del origen**. Lo que sí hay que
-sostener es que la colección no afirme algo falso sobre por qué le falta un dato.
-
-1. `motivo_sin_guia` distingue cuatro causas ---PDF corrupto o cifrado, PDF sin capa de texto,
-   rótulos que no encajan con los conocidos, y secciones vacías en el origen---. **Solo la
-   última se ha observado.** Si alguna vez aparece otra, el aviso lo dirá y el tratamiento es
-   distinto en cada caso.
-2. Si el número de estas guías crece, hay que revisar la cifra de cobertura que se publica en
-   la memoria: una guía publicada y vacía **no es cobertura**, y contarla como tal infla el
-   dato justamente en las titulaciones de implantación reciente, que son las que ya arrastran
-   el sesgo.
-3. La comprobación es barata: descargar el PDF de `data/guias_pdf/` y mirar si los rótulos
-   «RESUMEN» y «DESCRIPCIÓN DE CONTENIDOS» aparecen seguidos, sin nada en medio.
-
-**Lo que no hay que hacer:** rellenar el hueco. Ni con el temario del curso anterior, ni con el
-de la misma asignatura en otra titulación, ni con un resumen generado. Un dato ausente se
-refleja, no se imputa, y el fragmento informativo dice exactamente lo que ocurre: que la guía
-está publicada y no recoge ni resumen ni temario.
-
+- Contar guías publicadas no equivale a medir cobertura útil: estas guías aportan
+  cero contenido docente. Las cifras de cobertura deben separar ambos conceptos.
+- Los casos vacíos se concentran en planes en implantación, lo que aumenta el sesgo
+  de cobertura entre titulaciones.
+- No se versiona como fixture ninguno de los seis PDF vacíos porque contienen datos
+  personales del profesorado. La regresión se cubre en el nivel de clasificación y
+  fragmentación, no con uno de esos documentos completos.
 
 ## Referencias
 
-- `src/tfg_uja/extraccion/guia_pdf.py` (`motivo_sin_guia`), `src/tfg_uja/indexacion/chunker.py`
-  (texto del fragmento informativo).
-- `scripts/verificadores/check_guias_pdf.py` (auditoría de la extracción, IT-95).
-- IT-94 (la asignatura no desaparece), IT-95 (auditoría de las guías en PDF).
-- DQA-0002 (cambio de formato de la fuente a PDF).
+- `src/tfg_uja/extraccion/guia_pdf.py` (`motivo_sin_guia`) y
+  `src/tfg_uja/indexacion/chunker.py` (fragmento informativo).
+- `tests/test_guia_pdf.py`, `tests/test_chunker.py` y
+  `tests/test_check_chunks.py`.
+- `scripts/verificadores/check_guias_pdf.py`, auditoría de la extracción sobre los
+  PDF originales.
+- DQA-0002, tratamiento de las guías servidas como PDF.

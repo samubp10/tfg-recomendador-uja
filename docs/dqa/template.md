@@ -1,45 +1,35 @@
 # DQA-NNNN: título del ámbito de anomalías
 
-*Formato adaptado de los registros de decisión de arquitectura (ADR) del
-proyecto, aplicado aquí a anomalías de calidad de datos en lugar de a
-decisiones de arquitectura: cada anomalía individual es demasiado pequeña
-para justificar un ADR propio, pero exige la misma evidencia y el mismo
-rigor que una decisión de diseño.*
-
 - **Estado:** propuesta | aceptada | sustituida por DQA-XXXX
-- **Fecha:** AAAA-MM-DD
 - **Ámbito técnico:** [Fase, módulo o componente afectado]
 
 ## Contexto
 
-Qué proceso o módulo reveló las anomalías (rastreo, fragmentación,
-indexación...) y por qué ninguna de ellas justifica un ADR propio, pero en
-conjunto merecen un registro con evidencia.
+Describe las irregularidades vigentes de la fuente, su impacto y por qué se
+agrupan en un DQA. No narres cuándo se descubrieron ni cómo evolucionó el código.
 
-## Anomalías detectadas y tratamiento
+## Alternativas consideradas
 
-### N. [Nombre breve de la anomalía]
+Expón los tratamientos posibles y qué evidencia permite descartarlos o
+mantenerlos. Las alternativas deben corresponder al estado actual de la fuente.
 
-- **Evidencia:** qué se observó y dónde (fichero, línea, fixture, caso
-  real). Nunca una anomalía hipotética.
-- **Tratamiento:** qué hace el código ante esa anomalía, con la función o
-  módulo responsable.
-- **Alternativa descartada:** *(si la hay)* qué otro tratamiento se
-  consideró y por qué se descartó.
+## Decisión
 
-*(Repetir una subsección por cada anomalía del mismo ámbito.)*
+Define las reglas que aplica el sistema entregado ante cada anomalía. Incluye la
+forma vigente de verificar esas reglas, sin relatar correcciones anteriores.
 
 ## Consecuencias
 
 ### Positivas
-- Qué se gana al tratar la anomalía de esta forma.
+
+- Qué garantiza el tratamiento elegido.
 
 ### Negativas
-- Qué riesgo o limitación queda abierto (p. ej. un patrón acotado a los
-  casos observados que no cubre variantes futuras no vistas).
+
+- Qué riesgo o limitación permanece abierto.
 
 ## Referencias
-- Módulos de código afectados.
-- Fixtures o tests que reproducen la anomalía.
-- ADR relacionados, si el tratamiento se apoya en una decisión de
-  arquitectura ya documentada (para no duplicar contenido).
+
+- Módulos responsables.
+- Fixtures, pruebas y verificadores que sostienen la decisión.
+- ADR o DQA relacionados, sin duplicar su contenido.
