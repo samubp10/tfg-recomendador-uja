@@ -508,9 +508,8 @@ def _generar_respuesta(
             catalogo=catalogo,
         )
     except ErrorDelModelo as error:
-        # Se avisa y se sigue. Un fallo pasajero del servidor no puede
-        # costar la sesion entera: el 18/08/2026 un 500 por falta de
-        # memoria, con una descarga de 9 GB en marcha, se llevo por delante
+        # Se avisa y se sigue. Un fallo pasajero del servidor no puede costar
+        # la sesion entera: un 500 por falta de memoria se llevaba por delante
         # la conversacion de pruebas completa.
         print(
             f"\n  [!] {error}\n"
