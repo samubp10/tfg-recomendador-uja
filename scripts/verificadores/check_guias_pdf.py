@@ -224,8 +224,8 @@ def _pdf_huerfanos(
     Un PDF descargado que no ha llegado a ser una guía tiene una única
     explicación legítima, y es la anomalía DQA-0004: la asignatura enlaza su
     guía, el rastreo se la baja, y sus secciones de contenido están vacías en
-    el origen, así que no se emite ningún item `guia`. Sobre el corpus del
-    05/08/2026 los cinco huérfanos son exactamente esas cinco asignaturas.
+    el origen, así que no se emite ningún item `guia`. Sobre el corpus, los
+    cinco huérfanos son exactamente esas cinco asignaturas.
 
     Uno que NO encaje ahí es otra cosa: o el PDF se descargó y su extracción
     se perdió por el camino, o es un resto de un rastreo anterior que ya no
