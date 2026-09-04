@@ -713,7 +713,7 @@ def test_las_sugerencias_de_arranque_salen_por_su_propia_ruta(
 
 
 def test_el_saludo_sale_por_una_ruta_que_no_anota_nada(registro: Path) -> None:
-    """Regresión del defecto que destapó la auditoría del 29/08/2026.
+    """Regresión del defecto que destapó la auditoría.
 
     El saludo se pedía a ``/api/chat`` con la palabra «Hola», y el servidor
     anota en el registro todo lo que entra por ahí: cada apertura de la página
@@ -901,7 +901,7 @@ def test_que_fallen_las_sugerencias_no_se_lleva_por_delante_la_respuesta(
     no captura nada: ``_hay`` llama directo a ``count_rows``. Ese fallo
     escapaba hasta el generador de sucesos, así que el turno terminaba sin
     ``fin`` y el cliente daba por completa una respuesta que no lo estaba.
-    Regresión de la auditoría del 02/09/2026.
+    Regresión de la auditoría.
     """
     monkeypatch.setattr(
         servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
