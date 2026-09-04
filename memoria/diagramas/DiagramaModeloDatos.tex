@@ -1,32 +1,5 @@
 % !TEX root = ../main.tex
-% Modelo de datos de la coleccion.
-%
-% Campos y recuentos COMPROBADOS el 29/08/2026 contra los ficheros reales
-% data/grados.json (837 items: 528 asignatura, 288 guia, 12 grado, 8 salidas y
-% 1 procedencia) y data/chunks.json (1.923 entradas: 1.922 fragmentos y 1
-% procedencia). No se escriben a mano: salen de leer los ficheros.
-%
-% Respecto a la version anterior de esta figura se corrigen dos cosas:
-%
-%   1. Dibujaba CUATRO origenes de fragmento y hay SIETE. Faltaban mencion
-%      (24), ficha_titulacion (12) y catalogo (3), es decir 39 fragmentos que
-%      existen en la coleccion y que la figura negaba.
-%   2. La caja de procedencia juntaba en una sola los campos de DOS cabeceras
-%      distintas. La de grados.json trae dos campos y la de chunks.json trae
-%      cinco, y no son los mismos.
-%
-% El corte en dos bandas es el de los dos ficheros, que es tambien el que
-% separa lo extraido de lo indexado. De los 1.922 fragmentos, 1.757 llevan
-% texto publicado por la Escuela (guia y salidas), 95 los compone el
-% fragmentador contando y agrupando (plan, ficha, mencion y catalogo) y 86 son
-% el aviso de que no hay guia publicada.
-%
-% `ects` es una cadena y no un decimal porque la fuente publica "6" y una
-% asignatura lo trae vacio; imputarlo seria inventar un dato que no esta.
-%
-% Las cajas se encadenan con `below=of` y todo lo demas se coloca RELATIVO a
-% ellas. La version anterior daba las alturas a mano y se solapaban: cada caja
-% mide lo que miden sus campos, y eso no se puede estimar de antemano.
+
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -39,13 +12,10 @@
       claseAux/.style={clase, draw=diagNodoBorde, fill=white,
         densely dashed, text width=9.6cm},
       mult/.style={font=\scriptsize, inner sep=1.5pt},
-      % La máscara blanca cae siempre fuera de la banda amarilla; por eso se
-      % separan las etiquetas 0,65 cm del borde de su caja.
       rotulo/.style={font=\scriptsize, fill=white, inner sep=1.5pt,
         align=left, anchor=south west},
       ]
 
-      % ── Lo que el rastreador extrae de la web ──────────────────────────────
       \node[clase] (grado) {\textbf{Grado}
         \nodepart{two}
         nombre \textcolor{diagNodoBorde}{\texttt{str}}\\
@@ -83,10 +53,6 @@
         grado \textcolor{diagNodoBorde}{\texttt{str}}\\
         texto \textcolor{diagNodoBorde}{\texttt{str}}};
 
-      % ── Lo que se indexa ───────────────────────────────────────────────────
-      % El fragmento se centra a la altura del hueco entre Asignatura y Guía,
-      % que es el centro vertical de la columna. El punto medio se saca con un
-      % `midway` sobre un camino invisible: no hace falta la librería `calc`.
       \path (asig.south) -- (guia.north) node[midway] (medio) {};
       \node[claseFoco] (frag) at (12,0 |- medio) {\textbf{Fragmento}
         \nodepart{two}
@@ -100,16 +66,11 @@
         chunk\_index \textcolor{diagNodoBorde}{\texttt{int}}\\
         total\_chunks \textcolor{diagNodoBorde}{\texttt{int}}};
 
-      % Los cuatro puntos de llegada, separados para que ninguna flecha tape
-      % a otra al entrar.
       \coordinate (e1) at ([yshift=1.5cm]frag.west);
       \coordinate (e2) at ([yshift=0.5cm]frag.west);
       \coordinate (e3) at ([yshift=-0.5cm]frag.west);
       \coordinate (e4) at ([yshift=-1.5cm]frag.west);
 
-      % ── Las dos bandas son los dos ficheros ────────────────────────────────
-      % La coordenada suelta mete dentro de la banda el rodeo de Grado a
-      % Salidas, que si no quedaría fuera del fichero al que pertenece.
       \begin{scope}[on background layer]
         \node[grupoDiag, fit={(grado)(asig)(guia)(salidas)(-3.6,0)},
         label={[tituloGrupo, anchor=south]north:Extraído de la web: \texttt{grados.json}}] {};
@@ -117,23 +78,16 @@
         label={[tituloGrupo, anchor=south]north:Indexado: \texttt{chunks.json}}] {};
       \end{scope}
 
-      % ── Relaciones entre lo extraído ───────────────────────────────────────
       \draw[flechaDiag] (grado.south) --
       node[mult, right]{1 $\rightarrow$ *} (asig.north);
       \draw[flechaDiag] (asig.south) --
       node[mult, right]{1 $\rightarrow$ 0..1} (guia.north);
-      % Rodea la columna por la izquierda: por dentro pasaría por detrás de
-      % Asignatura y de Guía, que no son ni origen ni destino.
       \draw[flechaDiag, rounded corners=6pt]
       (grado.west) -- (-3.2,0 |- grado.west) -- (-3.2,0 |- salidas.west)
       -- (salidas.west);
-      % Con desplazamiento positivo caían DENTRO de la caja, encima de un campo.
       \node[mult, anchor=south east] at ([xshift=-0.12cm, yshift=0.06cm]grado.west) {1};
       \node[mult, anchor=north east] at ([xshift=-0.12cm, yshift=-0.06cm]salidas.west) {0..1};
 
-      % ── Las siete procedencias de un fragmento ─────────────────────────────
-      % Las verticales van escalonadas a propósito: con cualquier otro orden
-      % la horizontal de una flecha cruzaría la vertical de otra.
       \draw[flechaDiag, rounded corners=6pt]
       (grado.east) -- (7.2,0 |- grado.east) -- (7.2,0 |- e1) -- (e1);
       \node[rotulo] at ([xshift=0.65cm, yshift=0.1cm]grado.east)
@@ -146,13 +100,12 @@
 
       \draw[flechaDiag, rounded corners=6pt]
       (guia.east) -- (7.8,0 |- guia.east) -- (7.8,0 |- e3) -- (e3);
-      \node[rotulo] at ([xshift=0.65cm, yshift=0.1cm]guia.east) {guia 1.296};
+      \node[rotulo] at ([xshift=0.65cm, yshift=0.1cm]guia.east) {guia 1.719};
 
       \draw[flechaDiag, rounded corners=6pt]
       (salidas.east) -- (8.5,0 |- salidas.east) -- (8.5,0 |- e4) -- (e4);
       \node[rotulo] at ([xshift=0.65cm, yshift=0.1cm]salidas.east) {salidas 22};
 
-      % ── Dos apuntes que el esquema por sí solo no dice ─────────────────────
       \node[font=\scriptsize, align=left, anchor=north west]
       at ([xshift=-0.35cm, yshift=-1.1cm]frag.south west)
       {\texttt{grados} y \texttt{codigos} son listas paralelas: una guía\\
@@ -167,10 +120,10 @@
         Son dos cabeceras distintas, no una: cada fichero anota lo suyo.};
     \end{tikzpicture}%
   }
-  \caption[Modelo de datos de la colección]{\textcolor{borrador2}{Modelo de datos
+  \caption[Modelo de datos de la colección]{Modelo de datos
       de la colección. A la izquierda, lo que el rastreador extrae de la web; a
       la derecha, el fragmento que se indexa. Cada flecha lleva escrito qué valor
       toma el campo \texttt{origen} del fragmento y cuántos produce. Fuente:
-      Elaboración propia.}}
+      Elaboración propia.}
   \label{fig:modelo_datos}
 \end{figure}
