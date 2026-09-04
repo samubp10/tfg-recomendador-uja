@@ -152,8 +152,8 @@ def recall_de_unidad_en_k(
     Importa porque el criterio de relevancia declarado en
     ``eval/preguntas_evaluacion.json`` anota **unidades semánticas**, mientras
     que la métrica original cuenta fragmentos. Ese desajuste tiene una
-    consecuencia medida el 01/08/2026: 12 de las 36 preguntas apuntan a más de
-    tres fragmentos, así que el techo de Recall@3 por fragmento es 0,868 y no
+    consecuencia medida: 12 de las 36 preguntas apuntan a más de tres
+    fragmentos, así que el techo de Recall@3 por fragmento es 0,868 y no
     1. Por unidad el techo vuelve a ser 1 y la cifra se interpreta sola.
 
     Las dos se reportan juntas a propósito: por fragmento describe el sistema
