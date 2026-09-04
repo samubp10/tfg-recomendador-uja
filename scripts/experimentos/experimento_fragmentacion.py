@@ -96,9 +96,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _adr  # noqa: E402
 
 #: Marcas entre las que vive el bloque que escribe este guion. El resultado del
-#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos hizo
-#: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
-#: propio anexo, porque una se refrescó y la otra no.
+#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos dejó
+#: cuatro cifras del cuerpo del ADR-0001 contradiciendo a su propio anexo,
+#: porque una se refrescó y la otra no.
 MARCA_INICIO: Final[str] = _adr.marca_inicio(
     "scripts/experimentos/experimento_fragmentacion.py"
 )
