@@ -4,10 +4,10 @@ Es la mitad que el indexador dejó sin escribir a propósito: ``indexer.py``
 construye el índice y no lo consulta, porque diseñar la consulta antes de que
 existiera el recuperador habría sido inventarse sus necesidades.
 
-Este módulo lee del índice **lo que el índice dice de sí mismo** en vez de
-suponerlo. Los tres datos que graba :func:`tfg_uja.indexer.reconstruir_indice`
----modelo, prefijo y métrica de distancia--- corresponden a tres formas de
-equivocarse que **no producen ningún error**, solo resultados peores:
+Este módulo lee del índice **lo que el índice dice de sí mismo**. Los tres datos
+que graba :func:`tfg_uja.indexer.reconstruir_indice` ---modelo, prefijo y
+métrica--- son tres formas de equivocarse que **no producen ningún error**, solo
+resultados peores:
 
 * consultar con un modelo distinto del que construyó el índice, que puede
   producir vectores de la misma dimensión y por tanto no falla;
@@ -318,20 +318,19 @@ def catalogo_del_indice(ruta_indice: Path) -> list[str]:
 def resolver_titulacion(texto: str, catalogo: list[str]) -> list[str]:
     """Traduce lo que escribe el usuario a nombres reales del catálogo.
 
-    Resuelve tres cosas de golpe. La primera es que el filtro **exigía el
-    nombre exacto**: escribir «informática» devolvía cero fragmentos, y el
-    sistema respondía que no tenía información sobre algo que sí está
-    indexado, que es un fallo con toda la pinta de respuesta legítima.
+    Resuelve tres cosas de golpe:
 
-    La segunda es de seguridad. El filtro se compone interpolando texto en una
-    expresión SQL, porque LanceDB no expone consultas parametrizadas; escapar
-    las comillas es una defensa artesanal que hoy funciona solo porque ningún
-    nombre de la EPSJ lleva una. Resolviendo contra el catálogo, **lo que se
-    interpola ya no es texto del usuario** sino un nombre del propio índice.
-
-    Y la tercera es de alcance: un nombre parcial como «eléctrica» devuelve la
-    titulación simple **y sus dobles grados**, que es lo que le interesa a
-    quien pregunta. El nombre completo y exacto devuelve solo esa.
+    * **Uso.** El filtro exigía el nombre exacto, así que «informática» devolvía
+      cero fragmentos y el sistema decía no tener información sobre algo que sí
+      está indexado ---un fallo con pinta de respuesta legítima---.
+    * **Seguridad.** El filtro se compone interpolando en SQL, porque LanceDB no
+      expone consultas parametrizadas, y escapar comillas es una defensa
+      artesanal que hoy funciona solo porque ningún nombre de la EPSJ lleva una.
+      Resolviendo contra el catálogo, **lo interpolado ya no es texto del
+      usuario** sino un nombre del propio índice.
+    * **Alcance.** Un nombre parcial como «eléctrica» devuelve la titulación
+      simple **y sus dobles grados**, que es lo que le interesa a quien
+      pregunta; el nombre completo y exacto devuelve solo esa.
 
     Args:
         texto: Lo que escribe el usuario.
@@ -366,16 +365,15 @@ def acotar_por_distancia(
 ) -> list[Fragmento]:
     """Recorta la lista donde deja de haber fragmentos pertinentes.
 
-    Un K fijo trae siempre los mismos, pertinentes o no: para «qué asignaturas
-    se dan en primer año» bastaban cuatro fragmentos y entraban treinta, de las
-    doce titulaciones, y el modelo mezcló asignaturas de unas y otras.
+    Un K fijo trae siempre los mismos, pertinentes o no: a «qué asignaturas se
+    dan en primer año» le bastaban cuatro fragmentos y entraban treinta, de las
+    doce titulaciones, y el modelo mezclaba unas con otras.
 
-    El corte es **relativo al mejor de cada consulta**, no un umbral absoluto.
-    Medido: el fragmento más próximo de una pregunta estaba a 0,076 y el de
-    otra a 0,107, así que un umbral fijo habría dejado la segunda sin nada.
-
-    La banda protege los dos extremos: nunca menos del mínimo, para que un
-    corte agresivo no deje al modelo sin contexto, y nunca más del máximo.
+    El corte es **relativo al mejor de cada consulta** y no un umbral absoluto,
+    porque el fragmento más próximo de una pregunta estaba a 0,076 y el de otra
+    a 0,107: un umbral fijo habría dejado la segunda sin nada. La banda protege
+    los dos extremos, para que un corte agresivo no deje al modelo sin contexto
+    y para que uno flojo no lo inunde.
 
     Args:
         fragmentos: Fragmentos recuperados, de más a menos próximo.
@@ -431,10 +429,10 @@ def _filtro(
     «Grado en Ingeniería Eléctrica» devuelve 417 fragmentos por pertenencia
     exacta frente a 584 por subcadena.
 
-    Los nombres que llegan aquí **ya vienen del catálogo del índice**, no del
+    Los nombres que llegan aquí **vienen del catálogo del índice**, no del
     usuario: los resuelve :func:`resolver_titulacion`. El escapado se conserva
-    como red de seguridad, pero deja de ser lo único que separa una consulta de
-    una inyección.
+    como red de seguridad, pero ya no es lo único que separa una consulta de una
+    inyección.
 
     Args:
         titulaciones: Titulaciones a las que acotar, o ``None``.
@@ -544,19 +542,17 @@ def contexto_para(
     es donde se trata aparte la petición de consejo, que se busca con la
     consulta ampliada y **sin recortar**: ni suelo ni corte relativo.
 
-    Las dos excepciones tienen el mismo motivo, y es que una recomendación no
-    la responde un puñado de fragmentos parecidos a la pregunta. El suelo
-    comprueba que la pregunta se parezca a algo de la colección, y esta no se
-    parece a nada por construcción: habla de lo que le gusta al estudiante, no
-    de lo que publica la Escuela. El corte relativo hace daño por otra vía: con
-    el mejor fragmento a 0,103 dejaba entrar tres, los tres del catálogo y las
-    salidas, y **ninguno con asignaturas dentro**. Con ese contexto, de las
-    once asignaturas que el modelo puso como ejemplo, siete no existen en la
-    EPSJ: no las inventó por desobedecer, sino porque no se le dio ninguna y
-    la pregunta pedía concretar.
-
-    Es la lección de siempre en este sistema, ahora por el otro lado: dar poco
-    contexto a una pregunta abierta produce invención igual que darle ninguno.
+    Las dos excepciones tienen el mismo motivo: una recomendación no la responde
+    un puñado de fragmentos parecidos a la pregunta. El suelo comprueba que la
+    pregunta se parezca a algo de la colección, y esta no se parece a nada por
+    construcción ---habla de lo que le gusta al estudiante, no de lo que publica
+    la Escuela---. El corte relativo hace daño por otra vía: con el mejor
+    fragmento a 0,103 dejaba entrar tres, los del catálogo y las salidas, y
+    **ninguno con asignaturas dentro**; de las once asignaturas que el modelo
+    puso entonces como ejemplo, siete no existen en la EPSJ. No las inventó por
+    desobedecer, sino porque no se le dio ninguna y la pregunta pedía concretar:
+    dar poco contexto a una pregunta abierta produce invención igual que darle
+    ninguno.
 
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
@@ -565,12 +561,12 @@ def contexto_para(
         respaldo: Con qué volver a buscar si la primera búsqueda vuelve vacía.
             Lo compone :class:`tfg_uja.conversacion.Consulta`.
         abierta: Si la consulta pregunta por la oferta de la Escuela en general.
-            Se trata igual que una petición de consejo, y por el mismo motivo:
-            «enséñame todas las titulaciones» tampoco se parece a ninguna unidad
-            del corpus, así que su mejor fragmento se queda en 0,156 ---por
-            encima del suelo--- y se responde con el catálogo, no con la unidad
-            más próxima. Lo dice quien decide el ámbito; ``pide_recomendacion``
-            sigue reconociendo por su cuenta las peticiones de consejo.
+            Se trata igual que una petición de consejo y por el mismo motivo:
+            «enséñame todas las titulaciones» no se parece a ninguna unidad del
+            corpus, su mejor fragmento se queda en 0,156 ---por encima del
+            suelo--- y se responde con el catálogo. Lo dice quien decide el
+            ámbito; ``pide_recomendacion`` reconoce por su cuenta las peticiones
+            de consejo.
         **opciones: El resto de argumentos de :func:`recuperar`.
 
     Returns:
@@ -650,32 +646,27 @@ def _contexto_recuperado(
 def _intercalar(grupos: list[list[Fragmento]]) -> list[Fragmento]:
     """Alterna rankings conservando el orden interno de cada uno, sin repetir.
 
-    **Deduplica, y no es un detalle.** Una unidad que se imparte en varias
+    **Deduplica, y no es un detalle.** Una unidad impartida en varias
     titulaciones aparece en el ranking de cada una, así que alternar a secas la
-    devolvía tantas veces como titulaciones tuviera el ámbito. Medido con una
-    unidad compartida de seis fragmentos y dos titulaciones: catorce fragmentos
-    de los que solo ocho eran distintos. El tope se agotaba con texto repetido,
-    de modo que el modelo recibía menos evidencia real justo en las consultas
-    comparativas para las que existe esta función.
+    devolvía una vez por titulación del ámbito: con una unidad compartida de
+    seis fragmentos y dos titulaciones salían catorce fragmentos de los que solo
+    ocho eran distintos. El tope se agotaba con texto repetido justo en las
+    consultas comparativas para las que existe esta función.
 
-    La clave es ``(origen, nombre, grados, chunk_index)`` y no el propio
-    fragmento porque :class:`Fragmento` no es hasheable: lleva ``grados`` como
-    lista. Es la identidad de unidad que fija IT-126 ---la misma que usan
+    La clave es ``(origen, nombre, grados, chunk_index)`` y no el fragmento
+    porque :class:`Fragmento` no es hasheable ---lleva ``grados`` como lista---:
+    es la identidad de unidad de IT-126, la misma que usan
     :func:`tfg_uja.generador.ordenar_contexto` y
-    :func:`tfg_uja.evaluacion.unidad_de_chunk`--- más la posición dentro de la
-    unidad.
+    :func:`tfg_uja.evaluacion.unidad_de_chunk`, más la posición dentro de ella.
 
     **Las titulaciones son parte de la identidad y no un adorno.** Sin ellas,
     dos unidades que solo comparten el nombre colisionan y la segunda se
-    descarta: ocho nombres de guía del corpus son más de una unidad, y
-    «Trabajo fin de Grado» son cinco. Como esta función solo interviene en las
-    consultas comparativas, perder una de las dos deja al modelo redactando la
-    comparación con la mitad de los datos y sin forma de saberlo.
-
-    Que la clave lleve ``grados`` no reabre lo que arregló IT-120: una unidad
-    genuinamente compartida llega a los dos grupos con la **misma** lista, que
-    viene del índice y enumera todas sus titulaciones, no la del filtro con el
-    que se buscó.
+    descarta ---ocho nombres de guía del corpus son más de una unidad, y
+    «Trabajo fin de Grado» son cinco---, con lo que el modelo redactaría la
+    comparación con la mitad de los datos y sin forma de saberlo. Que la clave
+    lleve ``grados`` no reabre lo que arregló IT-120: una unidad genuinamente
+    compartida llega a los dos grupos con la **misma** lista, la del índice, que
+    enumera todas sus titulaciones y no la del filtro con el que se buscó.
 
     Args:
         grupos: Fragmentos ya ordenados y acotados de cada titulación.
