@@ -13,7 +13,6 @@
       rotulo/.style={font=\scriptsize, inner sep=2pt},
       ]
 
-      % ── La cadena de peticiones ────────────────────────────────────────────
       \node[paso] (n1)
       {Listado oficial de titulaciones\\{\scriptsize una sola petición}};
 
@@ -30,23 +29,17 @@
       {¿Enlaza a su guía?\\{\scriptsize \texttt{href} real, nunca patrón}};
 
       \node[pasoFoco, below=0.7cm of d2] (n4)
-      % El salto va a mano: sin él, «Descripción» parte en dos por la mitad.
       {Guía docente en PDF\\{\scriptsize solo «Resumen»}\\{\scriptsize y «Descripción de contenidos»}\\{\scriptsize \emph{emite} \texttt{guia}}};
 
-      % ── Las ramas que no continúan ─────────────────────────────────────────
       \node[rama, left=1.4cm of d1] (n5)
       {Se descarta sin pedirla\\{\scriptsize no gasta una petición}};
 
       \node[rama, left=1.4cm of d2] (n6)
       {Queda anotada sin guía\\{\scriptsize \texttt{tiene\_guia: false}}};
 
-      % ── La rama que sí continúa, y que sale de la portada ──────────────────
       \node[paso, right=1.4cm of n2] (n7)
       {Salidas profesionales\\{\scriptsize \emph{emite} \texttt{salidas}}};
 
-      % ── Flechas ────────────────────────────────────────────────────────────
-      % `(a) -- (b)` entre nodos recorta solo hasta sus bordes, así que no hace
-      % falta calcular ni un punto.
       \draw[flechaDiag] (n1) -- (d1);
       \draw[flechaDiag] (d1) -- node[rotulo, above=2pt]{sí} (n5);
       \draw[flechaDiag] (d1) -- node[rotulo, right=2pt]{no} (n2);
@@ -56,7 +49,6 @@
       \draw[flechaDiag] (d2) -- node[rotulo, above=2pt]{no} (n6);
       \draw[flechaDiag] (d2) -- node[rotulo, right=2pt]{sí} (n4);
 
-      % ── Lo que el esquema por sí solo no dice ──────────────────────────────
       \node[rotulo, anchor=north, text width=12cm, align=center]
       at ([yshift=-0.8cm]n4.south)
       {Cada flecha hacia abajo es otra petición. Doce titulaciones,
