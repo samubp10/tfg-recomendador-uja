@@ -13,18 +13,18 @@ elige por el tipo real de la respuesta. Al empezar el proyecto todas eran HTML;
 durante el curso 2026-27 la EPSJ migró al PDF, y hoy **las 288 guías del
 corpus vienen de PDF y ninguna de HTML** (DQA-0002).
 
-El camino HTML se conserva a propósito, como **retrocompatibilidad**, no por
-descuido: la fuente ha cambiado de formato dos veces en un año y servir un PDF
-detrás de una URL acabada en ``.html`` parece más un artefacto de migración que
-una decisión firme. Conservarlo no cuesta nada apreciable; retirarlo costaría
-reescribirlo si la Escuela revierte.
+El camino HTML se conserva como **retrocompatibilidad**, no por descuido: la
+fuente ha cambiado de formato dos veces en un año y servir un PDF detrás de una
+URL acabada en ``.html`` parece más un artefacto de migración que una decisión
+firme. Conservarlo no cuesta nada apreciable; retirarlo costaría reescribirlo si
+la Escuela revierte.
 
-Lo que hoy **no se ejecuta ni una vez** y hay que leer sabiéndolo:
+Lo que **no se ejecuta ni una vez** y hay que leer sabiéndolo:
 :meth:`GradosSpider._contenido_seccion`, :data:`GradosSpider.UMBRAL_CONTENIDO_GUIA`,
 :meth:`GradosSpider._limpieza_general` y el campo ``cuerpo_general`` que produce.
-Sus pruebas seguirán pasando, porque usan fixtures HTML de 2025-26 que ya no se
-corresponden con lo que sirve la web: comprueban bien un escenario que hoy no
-ocurre. Todo el esfuerzo de mejora va al camino PDF (:mod:`tfg_uja.guia_pdf`).
+Sus pruebas pasan porque usan fixtures HTML de 2025-26: comprueban bien un
+escenario que hoy no ocurre. El esfuerzo de mejora va al camino PDF
+(:mod:`tfg_uja.guia_pdf`).
 """
 
 from __future__ import annotations
@@ -192,17 +192,15 @@ class GradosSpider(scrapy.Spider):
         contienen la palabra «Grado»), emite una petición a su portada,
         llevando el nombre del grado en los metadatos.
 
-        Antes de nada emite el item ``procedencia`` con la fecha del rastreo
-        (IT-90). Se emite aquí, en el primer callback, y no al terminar,
-        porque Scrapy no permite emitir items una vez cerrado el spider; el
-        curso no hace falta en este item, porque cada guía trae el suyo
-        deducido de su URL y el conjunto se calcula después.
+        Lo primero que emite es el item ``procedencia`` con la fecha del rastreo
+        (IT-90), y va en este primer callback y no al terminar porque Scrapy no
+        deja emitir items con el spider ya cerrado. El curso no hace falta
+        aquí: cada guía trae el suyo deducido de su URL.
 
-        Las titulaciones en extinción se descartan aquí, antes de rastrearlas
-        (IT-77): el sistema orienta a estudiantes preuniversitarios y un grado
-        en extinción no admite nuevas matrículas, así que recomendárselo sería
-        un error. Se descarta en el origen y no más adelante para no gastar
-        peticiones en la web de la UJA sobre datos que no van a usarse.
+        Las titulaciones en extinción se descartan antes de rastrearlas
+        (IT-77), porque un grado que no admite nuevas matrículas no se le puede
+        recomendar a un preuniversitario, y descartarlo en el origen no gasta
+        peticiones a la web de la UJA en datos que no van a usarse.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de grados.
@@ -254,15 +252,14 @@ class GradosSpider(scrapy.Spider):
         para descargar la tabla de asignaturas del grado, y otra para sus
         salidas profesionales si están publicadas.
 
-        Las salidas de los dobles grados se excluían a propósito, dando por
-        supuesto que eran la unión exacta de las de sus dos grados base.
-        **IT-101 comprobó que no lo son**: la página del Doble Grado en
-        Ingeniería Eléctrica y Mecánica enuncia además a qué profesiones
-        reguladas da acceso la doble titulación, que es justo lo que un
-        estudiante preuniversitario quiere saber, y no repite las salidas
-        comunes a los dos grados. Reproducir eso uniendo dos textos exigiría
-        deduplicar y redactar la frase de cabecera; leer la página que ya lo
-        dice es más simple y más fiel.
+        Las salidas de los dobles grados se leen de su propia página y no se
+        deducen de las de sus dos grados base, que es lo que parecía: **no son
+        su unión exacta** (IT-101). La del Doble Grado en Ingeniería Eléctrica
+        y Mecánica enuncia además a qué profesiones reguladas da acceso la doble
+        titulación ---justo lo que un preuniversitario quiere saber--- y no
+        repite las salidas comunes. Reproducirlo uniendo dos textos exigiría
+        deduplicar y redactar la cabecera; leer la página es más simple y más
+        fiel.
 
         Args:
             response (scrapy.http.Response): Respuesta de la portada del grado.
