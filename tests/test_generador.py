@@ -133,7 +133,7 @@ def test_las_preguntas_anteriores_entran_en_el_prompt():
 
 
 def test_las_respuestas_anteriores_no_entran_en_el_prompt():
-    """Regresión del turno 13 del 17/08/2026.
+    """Regresión del turno 13.
 
     Preguntado por los dobles grados, el modelo cerró su respuesta con «En el
     primer curso de todos los títulos mencionados se imparte Matemáticas I»,
@@ -379,10 +379,10 @@ def test_el_muestreo_va_fijado(espia):
 def test_el_mensaje_de_sistema_va_siempre_en_la_peticion(espia):
     """Regresión: sin mandarlo, cada modelo respondía bajo el suyo de fábrica.
 
-    Medido el 18/08/2026 preguntando «¿quién eres?»: ministral-3 se presentaba
-    como «un modelo creado por Mistral AI» y gemma3 como «entrenado por
-    Google». Comparar candidatos así mide, además del modelo, el texto que cada
-    uno lleva escondido en su plantilla.
+    Preguntados «¿quién eres?», ministral-3 se presentaba como «un modelo
+    creado por Mistral AI» y gemma3 como «entrenado por Google». Comparar
+    candidatos así mide, además del modelo, el texto que cada uno lleva
+    escondido en su plantilla.
     """
     generar("un prompt", "un-modelo")
     assert espia["cuerpo"]["system"] == generador.SISTEMA
@@ -471,8 +471,8 @@ def test_un_ambito_multiple_declara_todas_las_titulaciones():
 def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
     """El peor fallo del sistema, y el único que no depende del modelo.
 
-    Medido el 17/08/2026 con un 7B: el recuperador rechazó correctamente un
-    saludo, el prompt decía «no se ha recuperado ningún fragmento» y las
+    Medido con un 7B: el recuperador rechazó correctamente un saludo, el
+    prompt decía «no se ha recuperado ningún fragmento» y las
     instrucciones ya mandaban decirlo. El modelo se inventó un plan de estudios
     entero de Ingeniería Informática; de los catorce nombres que dio, **trece
     no existen** en la EPSJ.
@@ -490,8 +490,8 @@ def test_sin_fragmentos_no_se_consulta_al_modelo(espia):
 def test_un_mensaje_que_no_pregunta_nada_recibe_la_bienvenida(espia):
     """Casi nadie abre preguntando: abre saludando, y como le sale.
 
-    Medido el 18/08/2026: «hei» y «Ola buenas» no caían en el vocabulario de
-    cortesía, no recuperaban nada y el sistema contestaba «no he encontrado
+    Medido: «hei» y «Ola buenas» no caían en el vocabulario de cortesía, no
+    recuperaban nada y el sistema contestaba «no he encontrado
     información sobre eso», que responde a una pregunta que nadie había hecho.
     Enumerar las formas del saludo es una lista que nunca está completa; lo que
     sí se puede comprobar es si el mensaje pregunta algo.
@@ -596,7 +596,7 @@ def test_el_saludo_se_atiende_aunque_no_haya_contexto(espia):
 
 
 def test_el_prompt_enumera_las_titulaciones_que_existen():
-    """Regresión del peor fallo del 16/08/2026.
+    """Regresión del peor fallo.
 
     A un estudiante interesado en electricidad le recomendó seis titulaciones y
     **dos no existen** en la EPSJ: «Grado en Ingeniería de Energía» y «Grado en
@@ -643,7 +643,7 @@ def test_el_catalogo_llega_a_traves_de_responder(espia):
 
 @pytest.mark.parametrize("apertura", ["Hallo", "hello", "Hi!"])
 def test_un_saludo_en_otro_idioma_tambien_es_un_saludo(apertura):
-    """Regresión del turno 3 del 17/08/2026.
+    """Regresión del turno 3.
 
     «Hallo» cayó en la respuesta de contexto vacío y se llevó un «no he
     encontrado información sobre eso». Un estudiante abre en el idioma que le
@@ -654,7 +654,7 @@ def test_un_saludo_en_otro_idioma_tambien_es_un_saludo(apertura):
 
 
 def test_cada_titulacion_viaja_entera_en_los_listados():
-    """Regresión del turno 8 del 17/08/2026, en su segunda forma.
+    """Regresión del turno 8, en su segunda forma.
 
     Con un ancla única para todos los listados, los cursos se ordenaban entre
     sí ignorando de qué titulación eran. A «¿y en el segundo?» el listado
@@ -700,7 +700,7 @@ def test_cada_titulacion_viaja_entera_en_los_listados():
 
 
 def test_un_500_del_servidor_no_se_escapa_como_httperror(monkeypatch):
-    """Regresión del 18/08/2026.
+    """Regresión.
 
     Descargando un modelo de 9 GB mientras se cargaba uno de 7B, el servidor
     devolvió un 500 por falta de memoria. La excepción sin capturar se llevó por
@@ -736,7 +736,7 @@ def test_un_servidor_apagado_se_explica(monkeypatch):
 
 
 def test_un_modelo_colgado_no_tumba_la_sesion(monkeypatch):
-    """Regresión del 19/08/2026.
+    """Regresión.
 
     Agotar la espera de lectura levanta ``TimeoutError``, que **no** es un
     ``URLError``: se escapaba de las dos ramas y subía. Tumbó una tanda de 560
@@ -762,8 +762,8 @@ _CATALOGO_EPSJ = [
     "Grado en Ingeniería Mecánica",
 ]
 
-#: Respuesta real de mistral-nemo:12b del 19/08/2026, turno 19. Tres de las
-#: cuatro titulaciones que recomienda existen; la cuarta no.
+#: Respuesta real de mistral-nemo:12b, turno 19. Tres de las cuatro
+#: titulaciones que recomienda existen; la cuarta no.
 _RESPUESTA_CON_INVENTADA = (
     "Si estás interesado en estudiar una titulación de ingeniería, podrías "
     "considerar algunas opciones como:\n"
@@ -846,8 +846,8 @@ def test_sin_catalogo_no_hay_nada_contra_lo_que_comprobar(monkeypatch):
     )
 
 
-#: Respuesta real del 16/08/2026, la que motivó IT-87: seis titulaciones
-#: recomendadas a un estudiante interesado en electricidad, dos inexistentes.
+#: Respuesta real, la que motivó IT-87: seis titulaciones recomendadas a un
+#: estudiante interesado en electricidad, dos inexistentes.
 _RESPUESTA_IT87 = (
     "Si te interesa la electricidad, en la EPSJ puedes estudiar:\n"
     "- Grado en Ingeniería Eléctrica\n"
@@ -894,11 +894,11 @@ def test_la_respuesta_retirada_queda_registrada(monkeypatch, caplog):
     assert "Grado en Ingeniería de Edificación" in caplog.text
 
 
-# --- Lo que enseñó la sesión del 19/08/2026 con `ministral-8b` ---
+# --- Lo que enseñó la sesión a mano con `ministral-8b` ---
 
 
 def test_un_agradecimiento_con_mas_palabras_se_cierra_como_cortesia():
-    """Regresión: turno 5 de la sesión del 19/08/2026.
+    """Regresión: turno 5 de la sesión a mano.
 
     «Me gusta la idea, muchas gracias» no cabe en la cortesía estricta, que
     exige que el mensaje entero sean fórmulas, y recibía «no he encontrado
@@ -995,7 +995,7 @@ def test_una_pregunta_normal_no_dispara_el_rechazo_de_centro():
 
 
 def test_pedir_algo_sin_preguntar_no_recibe_la_bienvenida():
-    """Regresión: «Dame una receta de tortilla de patatas», medido el 20/08/2026.
+    """Regresión: «Dame una receta de tortilla de patatas».
 
     No lleva interrogación ni palabra interrogativa, así que la regla que
     distingue un saludo de una pregunta lo tomaba por un saludo y los tres
@@ -1139,7 +1139,7 @@ def test_una_cortesia_que_no_saluda_ni_se_despide_no_recibe_respuesta_fija():
 def test_una_despedida_sin_contexto_se_despide_en_vez_de_no_encontrar_nada():
     """Dar las gracias al final no puede acabar en «no he encontrado nada».
 
-    Es el mismo fallo del turno 5 de la sesión del 19/08/2026, pero por la otra
+    Es el mismo fallo del turno 5 de la sesión a mano, pero por la otra
     rama: cuando además el recuperador se ha quedado sin fragmentos. Cerrar la
     conversación no necesita contexto ninguno.
     """
@@ -1178,7 +1178,7 @@ def test_una_respuesta_cortada_por_longitud_se_cierra_y_se_avisa(monkeypatch):
 def test_una_peticion_ajena_sin_interrogacion_no_recibe_un_saludo():
     """«Hazme un resumen de la Segunda Guerra Mundial» no es un saludo.
 
-    Medido el 23/08/2026 sobre el banco del sistema: esa frase y «Tradúceme al
+    Medido sobre el banco del sistema: esa frase y «Tradúceme al
     inglés...» no llevan interrogación, y sus verbos con pronombre enclítico
     ---`hazme`, `traduceme`--- no están en el vocabulario interrogativo, que
     recoge unas formas y otras no. Las dos recibían la bienvenida del asistente
@@ -1212,7 +1212,7 @@ def test_el_saludo_de_respaldo_no_se_estira_a_una_frase():
 
 
 def test_un_agradecimiento_no_tapa_la_pregunta_que_viene_detras():
-    """Regresión del turno 22, medido el 27/08/2026 sobre la aplicación.
+    """Regresión del turno 22 sobre la aplicación.
 
     «Vale, gracias, me podrías decir cómo se harían unas costillas
     topográficas?» no recuperaba nada, la fórmula «gracias» ganaba, y el
@@ -1434,7 +1434,7 @@ def test_un_error_http_del_servidor_llega_con_su_codigo(monkeypatch) -> None:
 def test_un_modelo_colgado_cuesta_una_pregunta_y_no_la_sesion(monkeypatch) -> None:
     """Misma lección que la vía síncrona: agotar la espera levanta TimeoutError.
 
-    El 19/08/2026 un modelo colgado tumbó una tanda de 560 respuestas cuando
+    Un modelo colgado tumbó una tanda de 560 respuestas cuando
     llevaba 85, porque TimeoutError no es un URLError y se escapaba de las dos
     ramas. La vía por partes tiene que atraparlo igual.
     """
@@ -1540,9 +1540,9 @@ def test_las_dos_formas_de_entregar_dan_exactamente_el_mismo_texto(monkeypatch, 
     Eran dos implementaciones del mismo contrato y las barreras vivían
     duplicadas. Como el experimento del sistema llama a la primera y la
     aplicación web a la segunda, una barrera puesta solo en una hacía que las
-    cifras describieran un sistema distinto del que se entrega. Pasó el
-    29/08/2026 con la corrección de atributos, así que la igualdad se
-    comprueba en vez de suponerse.
+    cifras describieran un sistema distinto del que se entrega. Ha pasado con
+    la corrección de atributos, así que la igualdad se comprueba en vez de
+    suponerse.
     """
     contexto = [fragmento("Fotogrametría y teledetección III", _CONTEXTO_FOTOGRAMETRIA)]
 
@@ -1695,7 +1695,7 @@ def test_si_el_servidor_muere_a_media_respuesta_se_cuenta_como_fallo(
 
     `ConnectionResetError` es un `OSError`, no un `urllib.error.URLError`, así
     que se colaba por encima de las dos ramas que ya se capturaban y salía en
-    crudo. Medido el 01/09/2026: Ollama se cayó en la tercera pregunta de una
+    crudo. Medido: Ollama se cayó en la tercera pregunta de una
     tanda de cuatro modelos y el experimento murió con una traza de socket.
 
     Lo que tiene que pasar es lo mismo que con el servidor apagado: la pregunta
