@@ -515,43 +515,30 @@ def cierre_de_conversacion(pregunta: str) -> str | None:
 def cortesia_sin_contexto(pregunta: str) -> str | None:
     """Respuesta fija para un mensaje cortés del que no se recuperó nada.
 
-    :func:`cortesia` exige que **todo** el mensaje quepa en el vocabulario
-    cerrado, y por eso deja pasar «me gusta la idea, muchas gracias»: cuatro de
-    sus palabras no son fórmulas. Ese mensaje no recuperaba nada ---no pregunta
-    nada--- y recibía «no he encontrado información sobre eso», que a un
-    agradecimiento le sienta igual de mal que a un saludo.
+    Donde :func:`cortesia` exige que **todo** el mensaje sea fórmula, aquí
+    basta con que la fórmula aparezca: «me gusta la idea, muchas gracias» no
+    pregunta nada, no recupera nada, y recibía «no he encontrado información
+    sobre eso». Cuatro reglas, en el orden en que se aplican:
 
-    Aquí la condición se relaja a que la fórmula **aparezca**. Es también lo
-    que hace que la respuesta a un mismo mensaje no dependa de en qué turno se
-    escriba.
+    * **Despedida**, si agradece y no lleva interrogación. Esa segunda mitad no
+      se puede relajar: sin ella, «Vale, gracias, me podrías decir cómo se
+      harían unas costillas topográficas?» recibe «¡De nada!» y la pregunta se
+      queda sin contestar. Que la recuperación vuelva vacía significa que no se
+      ha encontrado nada, no que no se haya preguntado nada.
+    * **Saludo**, siempre que lo haya. La interrogación no lo desactiva porque
+      un saludo abre y un agradecimiento cierra: a «hola, ¿me puedes ayudar?»
+      se le da la bienvenida aunque no se recupere nada.
+    * **Nada**, si pregunta algo. Queda fuera del arreglo el mismo mensaje sin
+      interrogación escrita: no hay forma de separarlo de «buenas, quiero
+      información» sin perseguir casos.
+    * **Bienvenida de respaldo** para lo muy corto, que es como se saluda sin
+      usar una fórmula conocida ---«hei», «q tal»---. El límite es la longitud
+      y no el vocabulario porque «Hazme un resumen de la Segunda Guerra
+      Mundial» tampoco lleva interrogación, y ampliar la lista de verbos con
+      cada caso nuevo es perseguir casos.
 
-    Lo que **no** se relaja es la otra mitad de la regla de
-    :func:`cierre_de_conversacion`: que el mensaje no pregunte nada. Sin ella,
-    la despedida le gana a la pregunta que viene detrás y «Vale, gracias, me
-    podrías decir cómo se harían unas costillas topográficas?» recibe «¡De
-    nada!». Que la recuperación vuelva vacía significa que no se ha encontrado
-    nada, no que no se haya preguntado nada.
-
-    El signo de interrogación solo desactiva la **despedida**, no el saludo: un
-    agradecimiento cierra, así que si el mensaje sigue preguntando la fórmula
-    era el preámbulo; un saludo abre, y a «hola, ¿me puedes ayudar?» se le da
-    la bienvenida aunque no se recupere nada. El mismo mensaje **sin**
-    interrogación escrita queda fuera: no hay forma de separarlo de «buenas,
-    quiero información» sin perseguir casos.
-
-    Sin fórmula ninguna se mira si **pregunta algo**. Sin interrogación, sin
-    palabra interrogativa y sin nada que recuperar, lo que hay es alguien que
-    ha escrito «hei» o «q tal», y a eso se le da la bienvenida ---mirando el
-    mensaje y no el número de turno, para que la misma frase reciba siempre la
-    misma respuesta.
-
-    Esa bienvenida de respaldo se limita a los mensajes **muy cortos**.
-    «Hazme un resumen de la Segunda Guerra Mundial» y «Tradúceme al inglés…»
-    no llevan interrogación y sus verbos no están en el vocabulario
-    interrogativo, que recoge unas formas con pronombre enclítico y otras no:
-    las dos recibían un saludo. Ampliar esa lista con cada verbo nuevo es
-    perseguir casos; lo que de verdad separa un saludo no reconocido de una
-    petición ajena es la longitud.
+    Se mira el mensaje y no el número de turno, para que la misma frase reciba
+    siempre la misma respuesta.
 
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
