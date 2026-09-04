@@ -183,12 +183,11 @@ FACTOR_CORTE: Final[float] = 1.20
 #: entre 0,170 y 0,182 ---lejísimos pero muy juntos entre sí--- y el sistema
 #: contestó con un volcado del plan de estudios.
 #:
-#: El valor anterior, 0,15, salía de mirar cinco preguntas y quedaba **por
-#: encima de las intrusas**: el 18/08/2026 un modelo de 7B recibió contexto
-#: para «me gustan la biología y la salud» ---su mejor fragmento estaba a
-#: 0,148--- y contestó recomendando el «Grado en Ingeniería Biomédica», el
-#: «Grado en Ingeniería Química» y el «Grado en Medicina Veterinaria». Ninguno
-#: existe en la EPSJ.
+#: Un suelo de 0,15 queda **por encima de las intrusas**: con él, un modelo de
+#: 7B recibía contexto para «me gustan la biología y la salud» ---su mejor
+#: fragmento estaba a 0,148--- y contestaba recomendando el «Grado en
+#: Ingeniería Biomédica», el «Grado en Ingeniería Química» y el «Grado en
+#: Medicina Veterinaria». Ninguno existe en la EPSJ.
 #:
 #: Se prefiere pecar de estricto: rechazar una pregunta legítima molesta, pero
 #: admitir una ajena es lo que produce ese tipo de respuesta.
@@ -551,10 +550,10 @@ def contexto_para(
     parece a nada por construcción: habla de lo que le gusta al estudiante, no
     de lo que publica la Escuela. El corte relativo hace daño por otra vía: con
     el mejor fragmento a 0,103 dejaba entrar tres, los tres del catálogo y las
-    salidas, y **ninguno con asignaturas dentro**. Medido el 19/08/2026 con ese
-    contexto: de las once asignaturas que el modelo puso como ejemplo, siete no
-    existen en la EPSJ. No las inventó por desobedecer, sino porque no se le
-    dio ninguna y la pregunta pedía concretar.
+    salidas, y **ninguno con asignaturas dentro**. Con ese contexto, de las
+    once asignaturas que el modelo puso como ejemplo, siete no existen en la
+    EPSJ: no las inventó por desobedecer, sino porque no se le dio ninguna y
+    la pregunta pedía concretar.
 
     Es la lección de siempre en este sistema, ahora por el otro lado: dar poco
     contexto a una pregunta abierta produce invención igual que darle ninguno.
@@ -587,11 +586,11 @@ def contexto_para(
     fragmentos = traidos
     if fragmentos or not respaldo:
         return fragmentos
-    # Segundo intento con la pregunta anterior delante. Medido el 20/08/2026:
-    # tras preguntar por las optativas de una titulación, «¿y cuántas son en
-    # total?» tenía su mejor fragmento a 0,1722 y se quedaba sin contexto, de
-    # modo que el sistema decía no haber encontrado información sobre lo que él
-    # mismo acababa de contestar.
+    # Segundo intento con la pregunta anterior delante: tras preguntar por las
+    # optativas de una titulación, «¿y cuántas son en total?» tenía su mejor
+    # fragmento a 0,1722 y se quedaba sin contexto, de modo que el sistema
+    # decía no haber encontrado información sobre lo que él mismo acababa de
+    # contestar.
     #
     # El reintento se hace **solo con la lista vacía**, que es un hecho
     # comprobado y no una conjetura sobre la frase, y cuesta una búsqueda de
