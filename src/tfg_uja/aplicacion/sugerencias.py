@@ -7,9 +7,9 @@ lado:
 
 * una lista fija ofrece «¿qué menciones tiene?» en las siete titulaciones que
   no tienen ninguna ---los cinco dobles grados, Organización Industrial e
-  Inteligencia Artificial y Ciberseguridad, contado sobre el corpus del
-  19/08/2026, curso 2026-27---, y ahí la pregunta no la puede responder el
-  corpus. Medido sobre ese índice: «¿Qué menciones ofrece el Grado en
+  Inteligencia Artificial y Ciberseguridad, contado sobre el corpus del curso
+  2026-27---, y ahí la pregunta no la puede responder el corpus. Medido sobre
+  ese índice: «¿Qué menciones ofrece el Grado en
   Ingeniería de Organización Industrial?», con el ámbito acotado a esa
   titulación, recupera cinco fragmentos y ninguno es de mención; son de plan
   de estudios, de salidas y de ficha. **Qué contesta el modelo con ese
@@ -71,10 +71,10 @@ ARRANQUE_CATALOGO: Final[tuple[str, ...]] = (
 PETICION_DE_CONSEJO: Final[str] = "No sé qué estudiar, ¿qué me recomiendas?"
 
 #: El banco de preguntas: qué fragmento respalda a cada una. La condición se
-#: encadena con la de la titulación, así que cada pregunta se ofrece solo
-#: donde el índice tiene con qué responderla; ninguna está aquí sin haberse
-#: contado antes contra el índice completo. Entre paréntesis, en cuántas de
-#: las doce titulaciones hay respaldo (corpus del 19/08/2026, curso 2026-27).
+#: encadena con la de la titulación, así que cada pregunta se ofrece solo donde
+#: el índice tiene con qué responderla; ninguna está aquí sin haberse contado
+#: antes contra el índice completo. Entre paréntesis, en cuántas de las doce
+#: titulaciones hay respaldo (corpus del curso 2026-27).
 #:
 #: El orden importa dos veces. Es el orden en que se ofrecen, y es también el
 #: que hace que dos sugerencias seguidas no hablen de lo mismo: van alternando
