@@ -142,13 +142,12 @@ def corregir_rechazo(respuesta: str, catalogo: list[str]) -> tuple[bool, str]:
     empezara «Sí, puedes estudiar Medicina aquí» no lleva negación y es
     exactamente el fallo que este criterio busca.
 
-    La negación no se busca solo como la palabra «no». La versión anterior lo
-    hacía y daba por fallada esta respuesta, que es un rechazo impecable:
-    «ninguna de las titulaciones que ofrece la Escuela encaja con tus
-    intereses. Todas son de ingeniería y no tienen relación con el ámbito
-    legal». La negación estaba en «ninguna», y en la segunda frase. Un criterio
-    que exige una palabra concreta mide la redacción y no el rechazo, que es el
-    mismo defecto que la precisión del cribado tuvo antes de IT-110.
+    La negación no se busca solo como la palabra «no». Buscándola así se daba
+    por fallado este rechazo impecable: «ninguna de las titulaciones que ofrece
+    la Escuela encaja con tus intereses. Todas son de ingeniería y no tienen
+    relación con el ámbito legal», donde la negación está en «ninguna» y en la
+    segunda frase. Un criterio que exige una palabra concreta mide la redacción
+    y no el rechazo, que es el defecto que IT-110 corrigió en el cribado.
 
     Args:
         respuesta: Lo que devolvió el sistema.
