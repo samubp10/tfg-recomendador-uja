@@ -272,16 +272,15 @@ def _por_metadatos_del_plan(
     el grado simple y falso en los dos dobles, donde es de quinto. Un modelo
     fiel al contexto respondía en falso, y la causa no estaba en la generación.
 
-    La regla es la que hace verdadera cada frase del encabezado: **una unidad
-    solo agrupa titulaciones que coinciden en todo lo que el encabezado afirma
-    de ellas.** La clave lleva los cuatro campos que aparecen ahí y no solo los
-    dos que hoy varían, para que se mueva con el texto si este deja de afirmar
-    uno o empieza a afirmar otro. ECTS y cuatrimestre no varían en ninguna
-    unidad del corpus ---comprobado, no supuesto---, así que hoy no parten
-    nada; los otros dos llevan las 210 unidades a 283.
+    La regla hace verdadera cada frase del encabezado: **una unidad solo agrupa
+    titulaciones que coinciden en todo lo que el encabezado afirma de ellas.**
+    La clave lleva los cuatro campos que aparecen ahí y no solo los dos que hoy
+    varían, para que se mueva con el texto si deja de afirmar uno o empieza a
+    afirmar otro; ECTS y cuatrimestre no varían en ninguna unidad del corpus
+    ---comprobado, no supuesto---, y los otros dos llevan las 210 unidades a 283.
 
     Esto acota la premisa del ADR-0001 de que tipo y ECTS nunca varían entre
-    titulaciones que comparten guía: vale para los grados simples, no para los
+    titulaciones que comparten guía: vale para los grados simples y no para los
     dobles (IT-101). La deduplicación por ``(nombre, contenido)`` no cambia; lo
     que cambia es que el grupo no se presenta como una sola unidad cuando sus
     titulaciones no comparten plan.
@@ -517,22 +516,20 @@ def _chunks_de_plan_de_estudios(
 ) -> list[dict[str, Any]]:
     """Genera el listado de asignaturas de cada titulación, por grupo (IT-100).
 
-    Resuelve un problema que el troceo por asignatura no puede resolver. Una
-    pregunta como «dime todas las obligatorias de Informática» tiene, en el
-    corpus troceado por asignatura, **118 fragmentos relevantes**: ningún
-    top-K razonable los recupera, y no por un fallo del recuperador sino
-    porque es una pregunta de agregación y la recuperación devuelve los K
-    mejores, no todos: el techo de Recall@5 de esa pregunta es 0,042.
-
-    Con el listado ya agregado en el corpus, la misma pregunta pasa a tener
-    **un solo fragmento relevante**. Y el generador copia una lista completa
-    en vez de reconstruirla a partir de cincuenta trozos, que es donde se deja
+    Resuelve lo que el troceo por asignatura no puede. «Dime todas las
+    obligatorias de Informática» tiene, troceando por asignatura, **118
+    fragmentos relevantes**, y ningún top-K razonable los recupera: no es un
+    fallo del recuperador sino una pregunta de agregación, y la recuperación
+    devuelve los K mejores y no todos ---el techo de Recall@5 es 0,042---. Con
+    el listado ya agregado en el corpus la pregunta pasa a tener **un solo
+    fragmento relevante**, y el generador copia la lista entera en vez de
+    reconstruirla a partir de cincuenta trozos, que es donde se deja
     asignaturas.
 
-    Es contenido **derivado**, no literal de la fuente, igual que los
-    fragmentos informativos de las asignaturas sin guía (IT-09) y por el mismo
-    motivo: se compone de forma determinista a partir de datos que la fuente
-    sí publica, sin añadir nada. Queda declarado en el ADR-0001.
+    Es contenido **derivado** y no literal de la fuente, como los fragmentos
+    informativos de las asignaturas sin guía (IT-09) y por el mismo motivo: se
+    compone de forma determinista con datos que la fuente sí publica, sin añadir
+    nada. Queda declarado en el ADR-0001.
 
     Args:
         items: Dataset completo tal como lo exporta el spider.
@@ -713,9 +710,9 @@ def _chunks_de_ficha(
     sería peor que no darlo.
 
     Una titulación sin asignaturas en el corpus recibe **su propio fragmento
-    diciéndolo**, en vez de quedarse fuera. Es el mismo criterio que aplica
-    IT-09 a las asignaturas sin guía: un hueco silencioso hace que el sistema
-    responda como si la titulación no existiera, y sí existe.
+    diciéndolo** en vez de quedarse fuera, con el criterio que IT-09 aplica a
+    las asignaturas sin guía: un hueco silencioso hace que el sistema responda
+    como si la titulación no existiera.
 
     Args:
         items: Dataset completo tal como lo exporta el spider.
