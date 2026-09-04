@@ -779,25 +779,25 @@ def construir_prompt(
     """Arma el texto que lee el modelo.
 
     Cada fragmento entra encabezado por su unidad y su titulación: sin esa
-    etiqueta, el modelo recibe varios textos seguidos sin saber a qué
-    asignatura pertenece cada uno, y atribuir el temario de una a otra es
-    justo el defecto que la fragmentación evita desde la Fase 1.
+    etiqueta el modelo recibe varios textos seguidos sin saber de qué asignatura
+    es cada uno, y atribuir el temario de una a otra es el defecto que la
+    fragmentación evita desde la Fase 1.
 
-    El historial entra **separado del contexto y anunciado como tal**. Sin esa
-    separación, las respuestas anteriores del propio modelo quedarían al mismo
-    nivel que los fragmentos del corpus, y cualquier dato inventado en un turno
-    se convertiría en fuente para el siguiente.
+    El historial entra **separado del contexto y anunciado como tal**, o las
+    respuestas anteriores del propio modelo quedarían al mismo nivel que los
+    fragmentos del corpus y un dato inventado en un turno sería fuente para el
+    siguiente.
 
     **El catálogo se declara siempre, y es un dato, no una prohibición.** El
-    fallo más grave que se le ha visto al sistema es recomendar titulaciones
-    que no existen: a un estudiante interesado en electricidad llegó a
-    recomendarle seis, y **dos no existen** en la EPSJ. Las instrucciones ya decían
-    «usa ÚNICAMENTE la información del CONTEXTO», así que prohibirlo otra vez
-    no habría cambiado nada. Lo que sí se puede hacer desde el prompt es que la
-    lista verdadera esté delante en todas las consultas, cueste lo que cueste
-    ---son unas 150 fichas de las 8.192 de la ventana---, en vez de esperar a
-    que la recuperación la traiga. Comprobar la respuesta contra ese catálogo,
-    que es lo único que no depende de que el modelo obedezca, es IT-87.
+    fallo más grave del sistema es recomendar titulaciones que no existen: de
+    seis recomendadas a un estudiante interesado en electricidad, **dos no
+    existen** en la EPSJ. Prohibirlo otra vez no habría cambiado nada ---las
+    instrucciones ya decían «usa ÚNICAMENTE la información del CONTEXTO»---;
+    lo que sí se puede hacer desde el prompt es poner la lista verdadera delante
+    en todas las consultas, cueste lo que cueste ---unas 150 fichas de las 8.192
+    de la ventana---, en vez de esperar a que la recuperación la traiga.
+    Comprobar la respuesta contra ese catálogo, que es lo único que no depende
+    de que el modelo obedezca, es IT-87.
 
     Args:
         pregunta: Pregunta del usuario, tal cual la escribe.
@@ -997,12 +997,11 @@ def generar(
 ) -> str:
     """Pide la respuesta al modelo local.
 
-    La temperatura va a cero y la semilla fijada, que es lo que quita el azar
-    del muestreo. **Eso no basta para que el texto sea reproducible**, y
-    conviene no dar a entender lo contrario: con la misma pregunta, el mismo
-    prompt y estos mismos parámetros, la primera llamada tras cargar el modelo
-    devuelve una redacción y de la segunda en adelante devuelve otra. Las dos
-    son estables y se repiten sin fallo, pero son distintas.
+    La temperatura a cero y la semilla fijada quitan el azar del muestreo, y
+    **eso no basta para que el texto sea reproducible**: con la misma pregunta y
+    los mismos parámetros, la primera llamada tras cargar el modelo devuelve una
+    redacción y de la segunda en adelante devuelve otra. Las dos son estables y
+    se repiten sin fallo, pero son distintas.
 
     **El veredicto tampoco es reproducible.** Entre dos pasadas del banco
     cambió la redacción de 27 de las 42 respuestas generadas sin que se moviera
