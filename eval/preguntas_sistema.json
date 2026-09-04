@@ -388,7 +388,7 @@
     {
       "id": "S-CONV-002",
       "familia": "conversacion",
-      "que_prueba": "regresión del turno 7 del 19/08/2026: el doble grado no puede arrastrar al simple que contiene",
+      "que_prueba": "regresión: el doble grado no puede arrastrar al simple que contiene",
       "turnos": [
         "Háblame del Doble Grado en Ingeniería Mecánica y Organización Industrial",
         "¿Y qué asignaturas optativas tiene esta carrera?"
