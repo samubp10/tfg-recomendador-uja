@@ -51,19 +51,13 @@ def normalizar_rotulo(texto: str) -> str:
     castellano, y sí importa en el texto libre que escribe una persona o que
     redacta el modelo, que es donde trabaja la otra.
 
-    Antes había dos copias de esta función, una en el rastreador y otra en el
-    fragmentador, que además discrepaban en los espacios interiores: una los
-    colapsaba y la otra solo recortaba los extremos. Se unifican en la versión
-    que colapsa después de comprobar que no cambia nada de lo que hay:
-
-    * sobre las 841 cadenas de ``data/grados.json`` ---nombres, titulaciones,
-      tipos, códigos, menciones, cursos y cuatrimestres--- las dos daban
-      exactamente el mismo resultado;
-    * sobre los 825 nodos de texto de las fixtures HTML reales discrepaban en
-      8, todos por dobles espacios interiores, y en **ninguno** de los tres
-      puntos de llamada, porque en dos de ellos ``limpiar_texto`` ya ha
-      colapsado antes y en el tercero ---el veredicto de titulación en
-      extinción--- los 13 nombres reales dan el mismo resultado con las dos.
+    Vive aquí y no repetida en el rastreador y el fragmentador, que es donde se
+    usa: dos copias discrepaban en los espacios interiores ---una los colapsaba
+    y la otra solo recortaba los extremos---. Se conserva la que colapsa,
+    comprobado antes que no cambia nada de lo que hay: sobre las 841 cadenas de
+    ``data/grados.json`` las dos dan el mismo resultado, y sobre los 825 nodos
+    de las fixtures HTML discrepan en 8 por dobles espacios interiores, ninguno
+    en los tres puntos de llamada.
 
     Args:
         texto: Rótulo o nombre tal como llega de la fuente.
