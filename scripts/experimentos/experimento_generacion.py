@@ -8,34 +8,32 @@ Lo que se mide y por qué
 ------------------------
 
 Comparar generadores «a ojo» no se sostiene ante un tribunal: quien mira ya
-tiene una preferencia. Lo que sí es objetivo es contrastar la respuesta contra
-el corpus, porque el corpus contiene todos los nombres de titulación y de
-asignatura de la EPSJ. De ahí salen cuatro cifras, todas sin juez:
+tiene una preferencia. Lo objetivo es contrastar la respuesta contra el corpus,
+que contiene todos los nombres de titulación y de asignatura de la EPSJ. De ahí
+salen cuatro cifras, todas sin juez:
 
 * **Titulaciones inventadas.** Nombres con forma de titulación que no están en
-  el catálogo. Es el fallo más grave que puede cometer el sistema ---a un
-  preuniversitario recomendarle una carrera que no existe--- y por eso se trata
-  como criterio eliminatorio, no como una penalización más.
+  el catálogo. Es el fallo más grave del sistema ---recomendarle a un
+  preuniversitario una carrera que no existe---, así que es criterio
+  eliminatorio y no una penalización más.
 * **Precisión del listado.** De lo que el modelo enumera, cuánto existe.
 * **Cobertura del listado.** De lo que el dataset dice, cuánto aparece. Hacen
   falta las dos: un modelo puede no inventarse nada y dejarse media lista.
-* **Acierto escalar.** En las preguntas de créditos y de curso la respuesta es
-  un único valor, así que se compara con el del dataset.
+* **Acierto escalar.** En créditos y curso la respuesta es un único valor y se
+  compara con el del dataset.
 
-Y el tiempo, que se informa pero **no descarta**: eliminar por tiempo exige una
-máquina en condiciones controladas, y esta responde mientras hace otras cosas.
-Se activa con ``--presupuesto`` cuando se pueda medir en reposo.
+El tiempo se informa pero **no descarta**: eliminar por tiempo exige una máquina
+en condiciones controladas y esta responde mientras hace otras cosas. Se activa
+con ``--presupuesto`` cuando se pueda medir en reposo.
 
 Lo que NO se mide
 -----------------
 
 Si la respuesta está bien escrita, si la recomendación es buena o si el temario
-que resume es fiel. Nada de eso se computa del dataset, así que no entra en el
-criterio de decisión. Se observa aparte, a mano, y se cuenta como tal.
-
-La medición tampoco separa el fallo del modelo del fallo del recuperador: si no
-llega el fragmento, el modelo no puede acertar. Por eso se registra también
-cuántos fragmentos recibió cada respuesta.
+es fiel: nada de eso se computa del dataset, así que se observa a mano y se
+cuenta aparte, sin entrar en el criterio de decisión. Tampoco se separa el fallo
+del modelo del fallo del recuperador ---sin fragmento no hay acierto posible---,
+y por eso se registra cuántos recibió cada respuesta.
 
 Uso::
 
@@ -49,15 +47,13 @@ Opciones habituales::
     --recalcular         # repuntúa lo guardado
     --adr                # datos brutos al ADR-0005
 
-Las respuestas se van guardando según se producen y una ejecución nueva **no
-repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
-horas por un corte del servidor no es aceptable.
+Las respuestas se guardan según se producen y una ejecución nueva **no repite**
+lo ya medido: con modelos que tardan minutos por pregunta, un corte del servidor
+no puede costar dos horas.
 
-El registro y el informe se escriben en ``data/``, que no se versiona pero
-persiste entre ramas y árboles de trabajo. Un cribado no es una decisión de
-arquitectura y su informe no tiene por qué versionarse; lo que sí hay que
-proteger es el registro en bruto, que cuesta horas de modelo y del que el
-informe se rehace en segundos.
+Registro e informe se escriben en ``data/``, que no se versiona pero persiste
+entre ramas y árboles de trabajo. Lo que hay que proteger es el registro en
+bruto, que cuesta horas de modelo; el informe se rehace de él en segundos.
 
 Con ``--adr`` se escriben además los datos brutos **dentro del ADR-0005**, entre
 sus marcas de resultados automáticos, que es donde este proyecto guarda los
