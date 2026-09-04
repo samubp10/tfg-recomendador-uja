@@ -48,11 +48,11 @@ from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Turnos que se conservan. **Política de ventana:** al llenarse se descartan
 #: las preguntas más antiguas, nunca el sujeto de la conversación, que ocupa
-#: unas pocas palabras y es lo único que la pregunta de seguimiento necesita
-#: de verdad. Las respuestas no se conservan en ningún caso: no entran en el
-#: prompt desde IT-37, porque el modelo copiaba de ellas datos que ya no venían
-#: a cuento. Así la conversación no puede desplazar al contexto recuperado, que
-#: es lo que llenaba la ventana de 8.192 *tokens*.
+#: unas pocas palabras y es lo único que la pregunta de seguimiento necesita de
+#: verdad. Las respuestas no se conservan en ningún caso ni entran en el prompt
+#: (IT-37), porque el modelo copiaba de ellas datos que no venían a cuento; así
+#: la conversación tampoco puede desplazar al contexto recuperado dentro de la
+#: ventana de 8.192 *tokens*.
 TURNOS_RECORDADOS: Final[int] = 3
 
 #: Palabras que no aportan tema. Sirven para decidir si una pregunta dice algo
@@ -176,13 +176,13 @@ def recorta_lo_anterior(pregunta: str) -> bool:
     no puede ser la referencia de las siguientes, porque arrastraría su propio
     recorte a preguntas que ya no lo piden.
 
-    Medido el 17/08/2026: «¿Y en el segundo?» heredó de «¿y cuántas **de esas**
-    son optativas?». La consulta quedó dominada por «optativas», el listado de
-    segundo curso no entró en el contexto y el modelo rellenó el hueco con
+    Sin esa distinción, «¿Y en el segundo?» hereda de «¿y cuántas **de esas**
+    son optativas?»: la consulta queda dominada por «optativas», el listado de
+    segundo curso no entra en el contexto y el modelo rellena el hueco con
     **seis asignaturas que no existen**.
 
-    No vale con mirar si empieza por «y». Medido el 18/08/2026 sobre la
-    conversación real: «¿Y qué asignaturas tiene en primero?» empieza por «y»
+    No vale con mirar si empieza por «y»: «¿Y qué asignaturas tiene en
+    primero?» empieza por «y»
     pero sí plantea tema, y descartarla dejaba a la siguiente heredando de
     «soy de bachillerato y me gustan los videojuegos», que no dice nada del
     plan de estudios. Lo que distingue a una de otra es la anáfora.
@@ -237,11 +237,10 @@ class Consulta:
         decision: Quién y qué decidió el ámbito de este turno: una de las
             cuatro clases de :mod:`tfg_uja.ambito`, ``FALLO`` si había decisor
             y no pudo, o cadena vacía si no lo había. Viaja hasta el registro
-            del chat, y no es adorno: el 27/08/2026, con dos clientes hablando
-            a la vez con el mismo servidor de inferencia, todas las decisiones
-            fallaron en silencio y la conversación se comportó como antes de
-            esta tarjeta. Se tardó en verlo porque la única pista eran los
-            tiempos.
+            del chat, y no es adorno: con dos clientes hablando a la vez con
+            el mismo servidor de inferencia, todas las decisiones fallan en
+            silencio y la conversación se comporta como si no las hubiera,
+            sin más pista que los tiempos.
     """
 
     texto: str
@@ -359,11 +358,11 @@ class Conversacion:
             # quitarlas dejaba la frase descosida («tiene primero»).
             #
             # El ordinal heredado solo sobra **si la pregunta de ahora trae el
-            # suyo**. Medido el 18/08/2026 con la conversación real: heredando
-            # «¿y qué asignaturas tiene en primero?» entera, a «¿y en segundo?»
-            # le seguían llegando los listados de *primer* curso; quitándolo
-            # siempre, «¿y en el grado de electrónica?» perdía el curso del que
-            # se venía hablando y dejaba de recuperar ningún plan.
+            # suyo**: heredando «¿y qué asignaturas tiene en primero?» entera,
+            # a «¿y en segundo?» le seguían llegando los listados de *primer*
+            # curso; quitándolo siempre, «¿y en el grado de electrónica?»
+            # perdía el curso del que se venía hablando y dejaba de recuperar
+            # ningún plan.
             sobran = palabras_distintivas(self.catalogo)
             if palabras(pregunta) & ORDINALES:
                 sobran = sobran | ORDINALES
