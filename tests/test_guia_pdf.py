@@ -188,9 +188,9 @@ def test_una_guia_correcta_no_necesita_motivo() -> None:
 #
 # Los cuatro motivos existen porque durante el rastreo los cuatro casos eran
 # indistinguibles y se llamaban todos «PDF ilegible», que era falso: los seis
-# casos reales del 29/07/2026 se leían perfectamente y lo vacío eran las
-# secciones en el origen. Distinguirlos es lo que permite decir en la memoria
-# que 86 asignaturas no tienen contenido SIN afirmar que el extractor falla.
+# casos reales del corpus se leen perfectamente y lo vacío son las secciones en
+# el origen. Distinguirlos es lo que permite decir en la memoria que 86
+# asignaturas no tienen contenido SIN afirmar que el extractor falla.
 
 
 def test_un_pdf_corrupto_se_declara_ilegible():
