@@ -293,7 +293,7 @@ def test_un_fallo_del_servidor_no_tumba_el_turno():
 
 
 def test_un_tropiezo_del_servidor_se_reintenta_una_vez():
-    """Es el caso real del 27/08/2026, y no se ve venir.
+    """Es un caso real, y no se ve venir.
 
     Con dos clientes hablando a la vez con el mismo servidor de inferencia, la
     llamada de decisión se llevó un 500. El sistema cayó al mecanismo
