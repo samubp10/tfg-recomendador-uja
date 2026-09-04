@@ -46,7 +46,7 @@ deterministas, reproducibles e independientes del modelo evaluado.
 - **El destinatario es un estudiante de bachillerato**, y una respuesta correcta
   pero ilegible no le sirve.
 
-## Instrumento de medida
+### Instrumento de medida
 
 El banco de preguntas lo genera `scripts/bancos/generar_banco_generacion.py` a partir de
 `data/grados.json`: **ni las preguntas ni las respuestas correctas se escriben a
@@ -70,7 +70,7 @@ igual que una correcta y bien redactada. Las familias sin respuesta computable
 —temario, salidas— **no entran en la decisión**: se observan en sesiones a mano
 y se reportan como modos de fallo.
 
-## Umbrales, fijados antes de medir
+### Umbrales, fijados antes de medir
 
 Se escriben aquí antes de la primera medición, por el mismo motivo que en el
 ADR-0004: un umbral que se fija después es un umbral que se acomoda al candidato
@@ -209,7 +209,7 @@ inferencia, y una tabla que mezcla dos versiones compara además los servidores.
 - **mistral-7b** se inventó tres titulaciones enteras, que es el umbral
   eliminatorio U1.
 
-## Resultados del experimento
+### Resultados del experimento
 
 <!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_generacion.py) -->
 
@@ -312,13 +312,9 @@ que este banco no los distingue, que es una afirmación más débil y la única 
 los datos sostienen. Lo que acota cuánta diferencia podría quedar sin verse es
 la anchura de los intervalos, y con 67 y 70 casos siguen siendo anchos.
 
-**Así que la decisión no puede tomarse sobre las medidas descriptivas.** La
-versión anterior de este apartado la tomaba ahí, cuando `gemma3:12b` era el más
-alto en acierto escalar. Esa ventaja no era del modelo: una parte medía el
-corpus. Mientras una guía compartida entre varias titulaciones afirmaba de todas
-el curso de la primera, los tres candidatos fallaban las mismas preguntas de
-curso porque recibían el mismo dato equivocado. Corregido el corpus, los tres
-las aciertan.
+**La decisión no puede tomarse sobre las medidas descriptivas:** los tres
+candidatos grandes obtienen los mismos resultados y el banco no demuestra que
+sean equivalentes, solo que no permite distinguirlos.
 
 ### El umbral eliminatorio sí separa, y decide
 
