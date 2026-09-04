@@ -171,8 +171,8 @@ MODELOS: Final[tuple[str, ...]] = (
 #:
 #: El tope existe porque un estudiante espera delante de la pantalla, pero
 #: **descartar por tiempo exige una máquina en condiciones controladas** y esta
-#: no lo está: las respuestas se miden mientras el equipo hace otras cosas, y el
-#: 18/08/2026 una respuesta de 581 caracteres marcó 16.677 s porque el sistema
+#: no lo está: las respuestas se miden mientras el equipo hace otras cosas, y
+#: una respuesta de 581 caracteres llegó a marcar 16.677 s porque el sistema
 #: estaba paginando a disco. Con esa varianza, el tiempo describe la máquina y
 #: no al candidato, así que se informa pero no elimina. Se activa a propósito,
 #: con ``--presupuesto``, cuando se pueda medir en reposo.
@@ -235,12 +235,11 @@ def universo(
     existe. Nombrar algo real que no venía a cuento no es inventárselo, y ese
     fallo lo recoge la cobertura, que sí depende de la pregunta.
 
-    Restringirlo por familia ---como se hizo antes--- mezcla en una sola cifra
-    la invención y la pertinencia, y ha fallado en las dos direcciones. Medido
-    el 18/08/2026, comprobando las trece preguntas de mención contra los
-    nombres de asignatura, los tres candidatos daban precisión 0,59-0,62 por
-    enumerar bien las menciones pedidas. Medido el 19/08/2026, con el conjunto
-    ya restringido a las menciones, ``command-r7b`` sacaba precisión 0,136 en
+    Restringirlo por familia mezcla en una sola cifra la invención y la
+    pertinencia, y falla en las dos direcciones. Comprobando las trece
+    preguntas de mención contra los nombres de asignatura, los tres candidatos
+    daban precisión 0,59-0,62 por enumerar bien las menciones pedidas; con el
+    conjunto ya restringido a las menciones, ``command-r7b`` sacaba 0,136 en
     ``G-MEN-003`` por enumerar además las asignaturas de cada mención, que son
     diecinueve nombres reales del corpus.
 
@@ -400,9 +399,9 @@ def responder_una(
 def version_del_servidor(servidor: str = SERVIDOR) -> str:
     """Versión del servidor de inferencia que está respondiendo.
 
-    Se anota en cada respuesta porque el servidor **se actualiza solo**. El
-    19/08/2026 saltó de la 0.23.2 a la 0.32.14 en mitad del cribado, entre las
-    240 respuestas ya medidas y las que faltaban. Sin este dato, la diferencia
+    Se anota en cada respuesta porque el servidor **se actualiza solo**: saltó
+    de la 0.23.2 a la 0.32.14 en mitad de un cribado, entre las 240 respuestas
+    ya medidas y las que faltaban. Sin este dato, la diferencia
     entre unos candidatos y otros podría venir del tiempo de ejecución y no del
     modelo, y nadie se habría enterado.
 
@@ -517,9 +516,9 @@ def exigir_tanda_completa(
     que midió todo, y sus medias salían de las pocas respuestas que llegaron a
     entrar.
 
-    Pasó el 01/09/2026. Ollama se cayó en la tercera pregunta del primer
-    modelo, el proceso terminó sin quejarse y la tabla del ADR se quedó con las
-    cifras de la tanda anterior, que ya no correspondían al corpus vigente. Es
+    Ha pasado: Ollama se cayó en la tercera pregunta del primer modelo, el
+    proceso terminó sin quejarse y la tabla del ADR se quedó con las cifras de
+    la tanda anterior, que ya no correspondían al corpus vigente. Es
     la misma familia de defecto que este proyecto lleva encontrando desde
     IT-10: **el instrumento dice «hecho» sin haber hecho nada**, y aquí el
     precio sería publicar una métrica calculada sobre un trozo del banco.
