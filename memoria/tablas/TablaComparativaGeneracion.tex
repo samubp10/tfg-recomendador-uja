@@ -1,7 +1,4 @@
 % !TEX root = ../main.tex
-% Resultados literales de la tanda definitiva, repuntuada en IT-110.
-% Fuente: el bloque automatico de docs/adr/adr-0005-modelo-de-generacion.md,
-% que escribe scripts/experimentos/experimento_generacion.py --adr.
 \begin{table}[htbp]
   \centering
   \small
@@ -18,26 +15,26 @@
                                        & \textbf{Mediana} & \textbf{p90}   \\
     \midrule
     \texttt{ministral-8b:latest}       & \textbf{0}    & \textbf{1,000}
-                                       & \sout{0,996} \textcolor{borrador2}{0,971}
-                                       & \sout{0,957} \textcolor{borrador2}{1,000}
-                                       & \sout{12,1} \textcolor{borrador2}{24,4}
-                                       & \sout{42,1} \textcolor{borrador2}{87,2}   \\
-    \texttt{qwen3.5:9b}                & \textbf{0}    & \sout{0,996} \textcolor{borrador2}{\textbf{1,000}}
-                                       & \sout{0,997} \textcolor{borrador2}{0,971}
-                                       & \sout{0,957} \textcolor{borrador2}{1,000}
-                                       & \sout{18,2} \textcolor{borrador2}{17,4}
-                                       & \sout{67,2} \textcolor{borrador2}{47,7}   \\
+                                       & 0,971
+                                       & 1,000
+                                       & 24,4
+                                       & 87,2   \\
+    \texttt{qwen3.5:9b}                & \textbf{0}    & \textbf{1,000}
+                                       & 0,971
+                                       & 1,000
+                                       & 17,4
+                                       & 47,7   \\
     \texttt{gemma3:12b}                & \textbf{0}    & \textbf{1,000}
-                                       & \sout{\textbf{1,000}} \textcolor{borrador2}{0,971}
-                                       & \sout{\textbf{0,978}} \textcolor{borrador2}{1,000}
-                                       & \sout{21,6} \textcolor{borrador2}{26,0}
-                                       & \sout{74,4} \textcolor{borrador2}{72,1}   \\
+                                       & 0,971
+                                       & 1,000
+                                       & 26,0
+                                       & 72,1   \\
     \midrule
-    \texttt{salamandra-7b}             & \textbf{0}    & \sout{0,992} \textcolor{borrador2}{0,995}
-                                       & \sout{0,908} \textcolor{borrador2}{0,770}
-                                       & \sout{0,935} \textcolor{borrador2}{0,978}
-                                       & \sout{3,8} \textcolor{borrador2}{7,1}
-                                       & \sout{11,1} \textcolor{borrador2}{21,2}   \\
+    \texttt{salamandra-7b}             & \textbf{0}    & 0,995
+                                       & 0,770
+                                       & 0,978
+                                       & 7,1
+                                       & 21,2   \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
