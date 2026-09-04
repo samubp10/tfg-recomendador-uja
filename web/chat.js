@@ -479,7 +479,10 @@ async function preguntar(pregunta) {
 
     // El servidor emite una linea JSON por unidad verificada. Se corta por
     // saltos de linea y el ultimo trozo se guarda: puede venir a medias.
-    for (;;) {
+    //
+    // El bucle va etiquetado porque el cierre del turno se reconoce dentro
+    // del bucle de lineas y tiene que cortar los dos a la vez.
+    lectura: for (;;) {
       const { value, done } = await lector.read();
       if (done) {
         // Vaciar el decodificador: si el flujo se corto en medio de un
@@ -513,6 +516,14 @@ async function preguntar(pregunta) {
           // donde se retira la marca de «escribiendo».
           burbuja.removeAttribute("aria-busy");
           finRecibido = true;
+          // Y se deja de leer aqui mismo, en vez de seguir hasta el final del
+          // transporte. El cierre es el terminal del turno y manda: una parte
+          // rezagada se sumaba a un texto ya cerrado, y un `error` posterior
+          // convertia en fallo una respuesta que estaba completa. `resto` se
+          // tira por lo mismo, para que media linea de mas no se lea como una
+          // transmision cortada.
+          resto = "";
+          break lectura;
         }
         if (Array.isArray(suceso.sugerencias)) propuestas = suceso.sugerencias;
         if (Array.isArray(suceso.fuentes)) {

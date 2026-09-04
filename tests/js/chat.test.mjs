@@ -273,7 +273,7 @@ function relojFalso() {
  * `trozos` permite partir el cuerpo por donde se quiera, incluso a mitad de una
  * línea, que es el caso que obliga a `preguntar` a guardar el resto.
  */
-function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = {}) {
+function respuestaNdjson(sucesos, { ok = true, status = 200, trozos } = {}) {
   const partes = trozos ?? [sucesos.map((s) => JSON.stringify(s) + "\n").join("")];
   const codificador = new TextEncoder();
   let i = 0;
@@ -283,7 +283,6 @@ function respuestaNdjson(sucesos, { ok = true, status = 200, trozos, alLeer } = 
     body: {
       getReader: () => ({
         read() {
-          if (alLeer) alLeer();
           if (i >= partes.length) return Promise.resolve({ value: undefined, done: true });
           const parte = partes[i++];
           // Un trozo puede venir ya en bytes: es la unica forma de partir un
@@ -558,11 +557,13 @@ test("una respuesta que sí llega al modelo dice cuánto ha tardado", async () =
   const reloj = relojFalso();
   const m = montar({ reloj });
   await reposar();
-  m.responder(() =>
-    respuestaNdjson([{ parte: "Son 240 ECTS." }, { fin: true }], {
-      alLeer: () => reloj.avanzar(3),
-    })
-  );
+  // El reloj se adelanta al montar la respuesta, no a cada lectura: `inicio`
+  // ya esta tomado a estas alturas, asi que lo que mide la prueba es lo que
+  // tarda el turno y no cuantas veces entra el cliente a leer del flujo.
+  m.responder(() => {
+    reloj.avanzar(6);
+    return respuestaNdjson([{ parte: "Son 240 ECTS." }, { fin: true }]);
+  });
 
   await m.chat.preguntar("¿Cuántos créditos tiene el grado?");
 
@@ -773,6 +774,62 @@ test("un carácter partido entre dos lecturas se recompone", async () => {
   const m = montar();
   await reposar();
   m.responder(() => respuestaNdjson([], { trozos: [bytes.slice(0, corte), bytes.slice(corte)] }));
+
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+
+  const { fila, cuerpo } = ultimaRespuesta(m);
+  assert.ok(!fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(cuerpo.innerHTML.includes("Álgebra"), cuerpo.innerHTML);
+});
+
+test("nada de lo que llegue tras el cierre toca la respuesta", async () => {
+  /*
+    El cierre es el terminal del turno, y un terminal solo lo es si manda. Lo
+    que venga detrás llega tarde por definición: el turno ya está entregado y
+    el servidor no emite nada después de `fin`. Aun así el bucle seguía
+    leyendo, de modo que una parte rezagada se añadía a un texto ya cerrado
+    y ---peor--- un `error` posterior convertía en fallo una respuesta que
+    estaba completa. Las dos cosas van en el mismo flujo.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      { parte: "Se cursa Álgebra" },
+      { fin: true },
+      { parte: " y Cálculo" },
+      { error: "esto llega tarde" },
+    ])
+  );
+
+  await m.chat.preguntar("¿Qué se cursa en primero?");
+
+  const { fila, cuerpo, pie } = ultimaRespuesta(m);
+  assert.ok(!fila.classList.contains("mensaje--fallo"), fila.className);
+  assert.ok(pie.innerHTML.includes("Respuesta completa"), pie.innerHTML);
+  assert.ok(cuerpo.innerHTML.includes("Álgebra"), cuerpo.innerHTML);
+  assert.ok(!cuerpo.innerHTML.includes("Cálculo"), cuerpo.innerHTML);
+});
+
+test("media línea detrás del cierre no estropea un turno ya entregado", async () => {
+  /*
+    El mismo caso por otro camino: si lo rezagado es un JSON cortado se queda
+    en `resto`, y la comprobación de «cortada a la mitad» lo convertía en
+    fallo. El cierre ya había dicho que el turno terminó.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([], {
+      trozos: [
+        JSON.stringify({ parte: "Se cursa Álgebra" }) +
+          "\n" +
+          JSON.stringify({ fin: true }) +
+          "\n" +
+          '{"parte":"Cál',
+      ],
+    })
+  );
 
   await m.chat.preguntar("¿Qué se cursa en primero?");
 
