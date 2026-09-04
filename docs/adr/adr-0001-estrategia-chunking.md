@@ -368,7 +368,7 @@ verificador identifiquen una asignatura de la misma manera.
 - M. Nygard, "Documenting Architecture Decisions", cognitect.com
   ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
 
-## Anexo — las 45 configuraciones
+### Resultados automáticos de las 45 configuraciones
 
 <!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_fragmentacion.py) -->
 Generado por `scripts/experimentos/experimento_fragmentacion.py` sobre `data/grados.json`, con las
