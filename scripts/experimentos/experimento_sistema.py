@@ -173,10 +173,10 @@ def corregir_ambito(
 ) -> tuple[bool, str]:
     """Comprueba que la respuesta hable de la titulación que toca.
 
-    Es la comprobación que habría detectado el fallo del 19/08/2026, cuando a
-    una pregunta sobre las optativas de Organización Industrial el sistema
-    contestó con las quince de Ingeniería Mecánica: quince nombres reales, cero
-    invenciones y la titulación equivocada.
+    Es la comprobación que detecta el fallo de responder por otra titulación:
+    a una pregunta sobre las optativas de Organización Industrial el sistema
+    contestaba con las quince de Ingeniería Mecánica, quince nombres reales,
+    cero invenciones y la titulación equivocada.
 
     Args:
         respuesta: Lo que devolvió el sistema.
