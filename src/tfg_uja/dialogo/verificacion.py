@@ -169,23 +169,19 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
     IT-35: de seis titulaciones recomendadas a un estudiante, dos no existían
     en la EPSJ. Quien las lee no tiene forma de saberlo.
 
-    La comparación es por prefijo normalizado en los dos sentidos, porque una
-    respuesta puede recortar el nombre oficial ---«Grado en Ingeniería
-    Geomática» por «...y Topográfica (plan 2025)»--- sin estar inventándoselo.
-    Recortar no es inventar.
+    Se compara por prefijo normalizado en los dos sentidos, porque recortar el
+    nombre oficial ---«Grado en Ingeniería Geomática» por «…y Topográfica (plan
+    2025)»--- no es inventarlo. Y tampoco lo es **abreviar por dentro**: solo
+    con el prefijo, esta comprobación retiraba una respuesta entera y correcta
+    porque una de sus cuatro titulaciones reales venía escrita «Grado en
+    Mecánica», cuyas palabras están todas en «Grado en Ingeniería Mecánica».
+    Se admite, pues, que lo dicho sea un subconjunto de una titulación real.
 
-    Y tampoco lo es **abreviar por dentro**: comparando solo por prefijo, esta
-    comprobación retiraba una respuesta entera y correcta ---cuatro
-    titulaciones reales--- porque una venía escrita «Grado en Mecánica», cuyas
-    palabras están todas en «Grado en Ingeniería Mecánica». Se admite por
-    tanto que lo dicho sea un subconjunto de alguna titulación real.
-
-    El coste de admitirlo es un falso negativo posible: si la Escuela ofreciera
-    un doble grado y no el simple que lo compone, el simple pasaría por bueno.
-    Se acepta porque los dos errores no son simétricos. Dejar pasar un nombre
-    de una titulación que existe en otra combinación despista; retirar una
-    recomendación correcta y decirle al estudiante que se ha inventado algo lo
-    deja sin respuesta y sin motivo.
+    El coste es un falso negativo posible: si la Escuela ofreciera un doble
+    grado y no el simple que lo compone, el simple pasaría por bueno. Se acepta
+    porque los dos errores no son simétricos: dejar pasar ese nombre despista,
+    y retirar una recomendación correcta diciéndole al estudiante que se ha
+    inventado algo lo deja sin respuesta y sin motivo.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -316,20 +312,18 @@ def cotejar_listado(
     no inventarse nada y dejarse la mitad de la lista, que es lo que pasaba
     con las cincuenta obligatorias de Informática.
 
-    **La precisión solo existe si hay algo enumerado.** Cuando la respuesta
-    está redactada en prosa, `elementos_de_lista` no extrae ningún nombre y la
-    precisión es ``None``, no cero: no se ha encontrado nada falso, se ha
-    medido sobre nada. Devolver 0,0 puntuaba con la peor nota posible
-    respuestas correctas por el mero hecho de no usar viñetas, y ordenaba a los
-    modelos por su estilo de redacción en lugar de por su veracidad. Quien no
-    contestó de verdad ya queda retratado por la cobertura, que se mide sobre
-    el texto entero y no depende del formato.
+    **La precisión solo existe si hay algo enumerado.** Con la respuesta en
+    prosa, `elementos_de_lista` no extrae ningún nombre y la precisión es
+    ``None``, no cero: no se ha encontrado nada falso, se ha medido sobre nada.
+    Devolver 0,0 daba la peor nota a respuestas correctas por no usar viñetas y
+    ordenaba a los modelos por su estilo en vez de por su veracidad; a quien no
+    contestó ya lo retrata la cobertura, que se mide sobre el texto entero.
 
     Límite conocido: un nombre oficial formado por dos títulos unidos por un
-    punto solo se reconoce entero. «Smart Grids. Redes Eléctricas
-    Inteligentes» citada como «Redes Eléctricas Inteligentes» se cuenta como
-    inventada aunque exista. Es el único nombre así de todo el corpus, de modo
-    que una regla de alias se estaría escribiendo para un caso único.
+    punto solo se reconoce entero, así que «Smart Grids. Redes Eléctricas
+    Inteligentes» citada como «Redes Eléctricas Inteligentes» cuenta como
+    inventada aunque exista. Es el único nombre así del corpus, y una regla de
+    alias se estaría escribiendo para un caso único.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -503,17 +497,16 @@ class Atributos(NamedTuple):
 def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
     """Saca de los fragmentos lo que dicen del plan de cada asignatura.
 
-    Se leen los fragmentos y no ``grados.json`` a proposito. Lo que interesa
-    comprobar es la **fidelidad al contexto**: si la respuesta contradice algo
-    que estaba escrito, con esas palabras, en lo que se le entrego al modelo.
-    Cotejar contra el dataset mediria otra cosa ---si el sistema acierta---, y
-    ademas obligaria a este modulo a abrir un fichero, cuando hasta ahora solo
-    compara cadenas.
+    Se leen los fragmentos y no ``grados.json`` a proposito: lo que se comprueba
+    es la **fidelidad al contexto**, o sea si la respuesta contradice algo
+    escrito, con esas palabras, en lo que se le entrego al modelo. Cotejar
+    contra el dataset mediria otra cosa ---si el sistema acierta--- y obligaria
+    a este modulo a abrir un fichero, cuando solo compara cadenas.
 
     Se aprovecha que el encabezado lo redacta ``chunker`` con una plantilla:
     «Fotogrametria y teledeteccion III», asignatura obligatoria de 6 ECTS del
     Grado en... Se imparte en el primer cuatrimestre de tercer curso. Al ser
-    texto generado y no prosa de la fuente, se puede leer sin ambiguedad.
+    texto generado y no prosa de la fuente, se lee sin ambiguedad.
 
     Args:
         textos: Textos de los fragmentos entregados al modelo.
