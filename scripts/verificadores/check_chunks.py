@@ -550,11 +550,11 @@ def _exigir_toda_asignatura_representada(
 ) -> None:
     """Toda asignatura del dataset aparece en algún fragmento (IT-94).
 
-    Antes se comprobaba solo que las de `tiene_guia=False` tuvieran
-    informativo y que las guías tuvieran sus fragmentos, y entre ambas
-    comprobaciones quedaba un hueco: una asignatura con `tiene_guia=True` cuya
-    guía no llegó a emitirse (PDF ilegible, IT-67) no entraba en ninguna de
-    las dos y desaparecía del corpus mientras el verificador respondía «OK».
+    Se comprueba la cobertura entera y no las dos mitades por separado. Mirando
+    solo que las de `tiene_guia=False` tengan informativo y que las guías tengan
+    sus fragmentos queda un hueco entre ambas: una asignatura con
+    `tiene_guia=True` cuya guía no llegó a emitirse (PDF ilegible, IT-67) no
+    entra en ninguna y desaparece del corpus mientras el verificador dice «OK».
 
     Args:
         asignaturas: Items ``asignatura`` del dataset.
