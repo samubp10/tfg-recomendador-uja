@@ -581,11 +581,10 @@ def _informar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) ->
     cuentan aparte, porque no son lo mismo que una guía inexistente y su
     número mide directamente cuánto contenido se está perdiendo.
 
-    IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
-    apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
-    casos son la contraria: el PDF se lee entero y sus secciones de
-    contenido están vacías en el origen (DQA-0004). Tercer y último sitio
-    donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
+    La redacción no dice «no se ha podido extraer» (IT-97), que apuntaría a un
+    fallo propio: los cinco casos del corpus son la contraria, el PDF se lee
+    entero y sus secciones de contenido están vacías en el origen (DQA-0004).
+    La misma frase se corrige en check_dataset.py y chunker.py.
 
     Se calcula por correspondencia de claves y no restando dos totales. La
     resta da la cifra correcta solo mientras no haya nada más descuadrado: el
