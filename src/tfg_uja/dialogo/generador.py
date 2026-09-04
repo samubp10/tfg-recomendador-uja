@@ -37,6 +37,7 @@ import re
 import urllib.error
 import urllib.request
 from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Final
 
 from tfg_uja.indexacion.chunker import ORDEN_CURSOS
@@ -72,13 +73,9 @@ VENTANA: Final[int] = 8192
 #: Dimensionado sobre la respuesta más larga que el corpus puede exigir: las 67
 #: asignaturas de Ingeniería Informática, con sus créditos, ocupan 2.819
 #: caracteres, que a razón de unos 3,6 caracteres por *token* en español son
-#: unos 783. Con el tope anterior, de 400, esa respuesta se cortaba a mitad de
-#: palabra, y el corte no era del modelo sino nuestro.
-#:
-#: Se deja en 1.200 y no en los 783 justos porque una respuesta útil no es el
-#: listado pelado: lleva una frase de entrada, separa obligatorias de optativas
-#: y cierra con algo. Ese margen es el que evita que se corte la última línea,
-#: que es justo donde se notaba.
+#: unos 783. Se deja en 1.200 y no en los 783 justos porque una respuesta útil
+#: no es el listado pelado: lleva una frase de entrada, separa obligatorias de
+#: optativas y cierra con algo. Ese margen evita que se corte la última línea.
 TOPE_RESPUESTA: Final[int] = 1200
 
 #: Cuánto se espera una respuesta antes de darla por perdida, en segundos. No
@@ -91,13 +88,13 @@ ESPERA_MAXIMA: Final[int] = 600
 #: instrucciones ---esas van en :data:`INSTRUCCIONES`--- sino tapar el que trae
 #: cada modelo de fábrica.**
 #:
-#: Medido el 18/08/2026: al no mandar ninguno, Ollama aplica el de la plantilla
-#: del modelo, y cada candidato trae el suyo. Preguntados «¿quién eres?»,
-#: ministral-3 contestó «un modelo creado por Mistral AI» y gemma3 «entrenado
-#: por Google», sin que el proyecto hubiera escrito eso en ninguna parte. El de
-#: ministral-3 ocupa más de mil palabras, le hace creer que es «Le Chat», le
-#: manda usar herramientas y le dice que pida aclaraciones cuando la pregunta
-#: sea ambigua ---lo contrario de lo que pide este sistema.
+#: Al no mandar ninguno, Ollama aplica el de la plantilla del modelo, y cada
+#: candidato trae el suyo. Preguntados «¿quién eres?», ministral-3 contestaba
+#: «un modelo creado por Mistral AI» y gemma3 «entrenado por Google», sin que
+#: el proyecto hubiera escrito eso en ninguna parte. El de ministral-3 ocupa
+#: más de mil palabras, le hace creer que es «Le Chat», le manda usar
+#: herramientas y le dice que pida aclaraciones cuando la pregunta sea ambigua
+#: ---lo contrario de lo que pide este sistema.
 #:
 #: Comparar modelos así no mide los modelos: mide además el texto que cada uno
 #: lleva escondido. Un `system` vacío no sirve, porque Ollama lo trata como
@@ -151,12 +148,10 @@ class ErrorDelModelo(RuntimeError):
     """El servidor de inferencia no ha podido responder.
 
     Existe para que quien llama pueda distinguir «el modelo ha fallado» de un
-    fallo del propio sistema, y decidir qué hacer. El caso real que la motivó,
-    el 18/08/2026: descargando un modelo de 9 GB mientras se cargaba uno de 7B,
-    el servidor devolvió un 500 por falta de memoria y la excepción sin capturar
-    **se llevó por delante la sesión de pruebas entera**, con su conversación.
-    Una herramienta para probar a mano no puede perder el trabajo por un fallo
-    pasajero del servidor.
+    fallo del propio sistema, y decidir qué hacer. El caso real: descargando un
+    modelo de 9 GB mientras se cargaba uno de 7B, el servidor devuelve un 500
+    por falta de memoria, y sin capturar esa excepción se pierde la sesión de
+    pruebas entera con su conversación.
     """
 
 
@@ -190,18 +185,17 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
         mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
 
     # Los listados del plan se leen en el orden en que se cursan, no por
-    # proximidad. Medido: con el orden por distancia, las optativas caían entre
-    # los cursos segundo y primero, y el modelo enumeró los cuatro cursos y se
-    # dejó las diecisiete optativas fuera aunque las tenía delante.
+    # proximidad: con el orden por distancia, las optativas caían entre los
+    # cursos segundo y primero, y el modelo enumeraba los cuatro cursos
+    # dejándose fuera las diecisiete optativas que tenía delante.
     #
     # El ancla es **por titulación**, no una sola para todos los listados. Con
     # una sola, los cursos se ordenaban entre sí ignorando de qué titulación
-    # eran, y las titulaciones quedaban intercaladas: medido el 17/08/2026, a
-    # «¿y en el segundo?» el listado correcto llegaba el octavo de dieciocho,
-    # detrás de cinco listados de primer curso de otras titulaciones, y el
-    # modelo contestó por un doble grado que no se le había preguntado. Así
-    # cada titulación viaja entera y en orden, y entre titulaciones sigue
-    # mandando la proximidad.
+    # eran, y las titulaciones quedaban intercaladas: a «¿y en el segundo?» el
+    # listado correcto llegaba el octavo de dieciocho, detrás de cinco listados
+    # de primer curso de otras titulaciones, y el modelo contestó por un doble
+    # grado que no se le había preguntado. Así cada titulación viaja entera y
+    # en orden, y entre titulaciones sigue mandando la proximidad.
     anclas: dict[tuple[str, ...], float] = {}
     for f in fragmentos:
         if f.origen != "plan_de_estudios":
@@ -252,25 +246,15 @@ def _curso_del_listado(nombre: str) -> int:
 def _etiqueta(fragmento: Fragmento) -> str:
     """Compone la línea que encabeza un fragmento dentro del contexto.
 
-    **No lleva número de parte, y se quitó a la vista de dos medidas.** Se puso
-    para que el modelo supiera cuándo le faltaba un trozo de una lista, y no lo
-    consiguió: aun con una regla explícita prohibiéndolo, se lo contó al usuario
-    dos veces, la segunda inventándose una asignatura llamada «Sistemas
-    inteligentes de información (parte 3 de 4)» y afirmando que su guía no
-    estaba publicada. Es el mismo patrón que las titulaciones inventadas: una
-    instrucción no basta para impedir un comportamiento.
-
-    Además, lo que motivó la marca ---un listado de cincuenta asignaturas
-    partido en tres tercios alfabéticos--- lo resolvió IT-105 de raíz, partiendo
-    los listados por curso. El aviso costaba más de lo que evitaba.
-
-    **Tampoco lleva número de orden**, por lo mismo y con una medida más. El
-    número servía para citar, pero el modelo no cita fragmentos: cita
-    asignaturas, que es lo que le piden las instrucciones. Lo único que hizo
-    fue escaparse tal cual a la respuesta de un estudiante ---«...según el
-    contexto ([20])»---, que es una referencia interna del sistema y no
-    significa nada para quien la lee. Tercera vez que un dato puesto en el
-    encabezado para uso del modelo acaba en la pantalla del usuario.
+    **No lleva número de parte ni número de orden.** Los dos se probaron y los
+    dos acabaron en la pantalla del estudiante: el número de parte, como una
+    asignatura inventada llamada «Sistemas inteligentes de información (parte 3
+    de 4)»; el de orden, como una cita interna sin sentido para quien la lee
+    ---«…según el contexto ([20])»---. Ninguna regla del prompt lo impidió, que
+    es el mismo patrón que las titulaciones inventadas: una instrucción no
+    basta para impedir un comportamiento. Y lo que motivaba la marca de parte
+    ---un listado de cincuenta asignaturas partido en tercios alfabéticos--- lo
+    resuelve de raíz IT-105, partiendo los listados por curso.
 
     Args:
         fragmento: Fragmento que se va a encabezar.
@@ -377,10 +361,9 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
 #: todo cortesía.
 #:
 #: Las tres últimas no son españolas, y entran porque un estudiante abre en el
-#: idioma que le sale: medido el 17/08/2026, «Hallo» cayó en la respuesta de
-#: contexto vacío y se llevó un «no he encontrado información sobre eso». Lo
-#: que se reconoce es la apertura, no el idioma: el asistente sigue
-#: respondiendo en español.
+#: idioma que le sale: «Hallo» caía en la respuesta de contexto vacío y se
+#: llevaba un «no he encontrado información sobre eso». Lo que se reconoce es
+#: la apertura, no el idioma: el asistente sigue respondiendo en español.
 _SALUDO: Final[frozenset[str]] = frozenset(
     {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
 )
@@ -423,13 +406,6 @@ def cortesia(pregunta: str) -> str | None:
     return None
 
 
-#: Marcas de que el mensaje pregunta algo, aunque también dé las gracias. Es
-#: la condición que separa «gracias, ¿y qué asignaturas tiene?» de «me gusta la
-#: idea, muchas gracias»: la primera hay que responderla, la segunda no.
-#: Van también los imperativos de petición, que piden algo sin preguntar nada.
-#: Medido el 20/08/2026: «Dame una receta de tortilla de patatas» no lleva
-#: interrogación ni palabra interrogativa, así que los tres candidatos
-#: contestaron con la bienvenida en vez de decir que de eso no saben.
 #: Hasta cuántas palabras puede tener un mensaje sin fórmula conocida para que
 #: se le siga dando la bienvenida en vez de decirle que no se ha encontrado
 #: nada. Dos, porque un saludo que no está en la lista es «hei» o «q tal»; con
@@ -437,6 +413,14 @@ def cortesia(pregunta: str) -> str | None:
 #: convertiría en la respuesta a cualquier cosa que el sistema no entienda.
 _PALABRAS_DEL_SALUDO_DE_RESPALDO: Final[int] = 2
 
+#: Marcas de que el mensaje pregunta algo, aunque también dé las gracias. Es la
+#: condición que separa «gracias, ¿y qué asignaturas tiene?» de «me gusta la
+#: idea, muchas gracias»: la primera hay que responderla, la segunda no.
+#:
+#: Van también los imperativos de petición, que piden algo sin preguntar nada:
+#: «Dame una receta de tortilla de patatas» no lleva interrogación ni palabra
+#: interrogativa, y los tres candidatos contestaban con la bienvenida en vez de
+#: decir que de eso no saben.
 _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
     que cual cuales cuando cuanto cuanta cuantos cuantas como donde quien
     quienes dime cuentame hablame explicame ensename recomiendame dame damelo
@@ -462,8 +446,8 @@ RESPUESTA_OTRA_UNIVERSIDAD: Final[str] = (
 #: vocabulario es casi el mismo.
 #:
 #: Lo que identifica al centro es **el topónimo que va detrás del «de»**, no la
-#: palabra «universidad». Reconocer solo la fórmula «Universidad de X» dejaba
-#: pasar dos formas muy corrientes, medidas sobre el conjunto de validación:
+#: palabra «universidad»: la fórmula «Universidad de X» a secas deja pasar dos
+#: formas muy corrientes del conjunto de validación:
 #:
 #: * «Universidad **Politécnica** de Valencia», donde detrás de «universidad»
 #:   viene el adjetivo y no la preposición. De ahí el hueco opcional para uno o
@@ -541,42 +525,33 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
     que hace que la respuesta a un mismo mensaje no dependa de en qué turno se
     escriba.
 
-    Lo que **no** se puede relajar es la otra mitad de la regla de
-    :func:`cierre_de_conversacion`: que el mensaje no pregunte nada. Al
-    relajar la primera se perdió la segunda, y la despedida pasó a ganarle a
-    la pregunta que venía detrás. Fallo medido el 27/08/2026: «Vale, gracias,
-    me podrías decir cómo se harían unas costillas topográficas?» recibió «¡De
-    nada!» y la pregunta se quedó sin contestar. Se creía que no podía pasar
-    porque esta función solo se consulta con la recuperación vacía, y de ahí
-    se dedujo que el mensaje no preguntaba nada del dominio; volver vacía
-    significa que no se ha encontrado, no que no se haya preguntado.
+    Lo que **no** se relaja es la otra mitad de la regla de
+    :func:`cierre_de_conversacion`: que el mensaje no pregunte nada. Sin ella,
+    la despedida le gana a la pregunta que viene detrás y «Vale, gracias, me
+    podrías decir cómo se harían unas costillas topográficas?» recibe «¡De
+    nada!». Que la recuperación vuelva vacía significa que no se ha encontrado
+    nada, no que no se haya preguntado nada.
 
-    El signo de interrogación solo desactiva la **despedida**, no el saludo. Un
-    agradecimiento cierra algo, así que si el mensaje sigue preguntando, la
-    fórmula era el preámbulo y lo que hay que contestar es que eso no se ha
-    encontrado. Un saludo abre, y a «hola, ¿me puedes ayudar?» se le da la
-    bienvenida aunque no se recupere nada, que es justo lo que invita a
-    preguntar. Queda fuera del arreglo el mismo mensaje **sin** interrogación
-    escrita: no hay forma de separarlo de «buenas, quiero información» sin
-    perseguir casos, y perseguir casos es lo que ya falló con el vocabulario
-    interrogativo.
+    El signo de interrogación solo desactiva la **despedida**, no el saludo: un
+    agradecimiento cierra, así que si el mensaje sigue preguntando la fórmula
+    era el preámbulo; un saludo abre, y a «hola, ¿me puedes ayudar?» se le da
+    la bienvenida aunque no se recupere nada. El mismo mensaje **sin**
+    interrogación escrita queda fuera: no hay forma de separarlo de «buenas,
+    quiero información» sin perseguir casos.
 
-    Y cuando no trae fórmula ninguna se mira si **pregunta algo**. Sin
-    interrogación ni palabra interrogativa, y sin nada que recuperar, no hay
-    pregunta a la que contestar que no se ha encontrado: lo que hay es alguien
-    que ha escrito «hei» o «q tal», y a eso se le da la bienvenida. La regla
-    anterior lo resolvía mirando si era el primer mensaje, y por eso contestaba
-    distinto a la misma frase según el turno.
+    Sin fórmula ninguna se mira si **pregunta algo**. Sin interrogación, sin
+    palabra interrogativa y sin nada que recuperar, lo que hay es alguien que
+    ha escrito «hei» o «q tal», y a eso se le da la bienvenida ---mirando el
+    mensaje y no el número de turno, para que la misma frase reciba siempre la
+    misma respuesta.
 
-    Esa bienvenida de respaldo se limita a los mensajes **muy cortos**, y la
-    razón es un fallo medido: «Hazme un resumen de la Segunda Guerra Mundial» y
-    «Tradúceme al inglés...» no llevan interrogación, y sus verbos ---``hazme``,
-    ``traduceme``--- no están en el vocabulario interrogativo, que recoge unas
-    formas con pronombre enclítico y otras no. Las dos recibían un saludo.
-    Ampliar esa lista con cada verbo nuevo es perseguir casos; lo que separa de
-    verdad un saludo no reconocido de una petición ajena es la longitud, porque
-    un saludo que no está en la lista tiene una palabra o dos y una petición
-    tiene las que hagan falta para decir qué se pide.
+    Esa bienvenida de respaldo se limita a los mensajes **muy cortos**.
+    «Hazme un resumen de la Segunda Guerra Mundial» y «Tradúceme al inglés…»
+    no llevan interrogación y sus verbos no están en el vocabulario
+    interrogativo, que recoge unas formas con pronombre enclítico y otras no:
+    las dos recibían un saludo. Ampliar esa lista con cada verbo nuevo es
+    perseguir casos; lo que de verdad separa un saludo no reconocido de una
+    petición ajena es la longitud.
 
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
@@ -729,16 +704,14 @@ def responder(
     """Devuelve la respuesta del sistema a una pregunta, de una sola pieza.
 
     Es una envoltura de :func:`responder_por_partes`, y esa es toda la
-    diferencia entre las dos: **hay una sola implementacion de los desvios y
-    de las barreras**. Antes habia dos, una aqui y otra alli, y como el
-    experimento del sistema llama a esta y la aplicacion web a la otra, una
-    barrera puesta solo en una de ellas hacia que las cifras describieran un
-    sistema distinto del que se entrega. No es una posibilidad teorica: paso el
-    29/08/2026 con la correccion de atributos.
+    diferencia entre las dos: **hay una sola implementacion de los desvios y de
+    las barreras**. Con una implementacion por cada camino ---el experimento
+    del sistema llama a esta y la aplicacion web a la otra--- una barrera
+    puesta en uno solo hace que las cifras describan un sistema distinto del
+    que se entrega.
 
-    Se pide al modelo **sin flujo**, igual que antes, para que el experimento
-    haga la misma peticion de siempre y sus tiempos sigan siendo comparables
-    con los ya publicados.
+    Se pide al modelo **sin flujo**, para que el experimento haga siempre la
+    misma peticion y sus tiempos sean comparables con los ya publicados.
 
     Args:
         pregunta: Pregunta del usuario, tal cual la escribe.
@@ -754,8 +727,8 @@ def responder(
             experimentos si, porque sin el texto no hay forma de distinguir un
             modelo que se invento una titulacion de una barrera que descarto
             una respuesta buena, y las dos cosas se ven igual desde fuera: una
-            respuesta de rechazo. Ya paso ---una respuesta correcta se retiro
-            por escribir «Grado en Mecanica» en corto--- y no quedo rastro.
+            respuesta de rechazo. Ha pasado ---una respuesta correcta retirada
+            por escribir «Grado en Mecanica» en corto--- sin dejar rastro.
 
     Returns:
         La respuesta, del modelo o una de las fijas del modulo.
@@ -782,13 +755,13 @@ def responder(
 def _conversacion(historial: list[tuple[str, str]]) -> str:
     """Rehace los turnos anteriores. **Solo las preguntas.**
 
-    Las respuestas del propio modelo ya no entran. Entraban recortadas a 300
+    Las respuestas del propio modelo no entran. Entrando recortadas a 300
     caracteres y con la regla «los datos salen del CONTEXTO, nunca de tus
-    respuestas anteriores» escrita en las instrucciones, y no bastó: medido el
-    17/08/2026, preguntado por los dobles grados, el modelo cerró su respuesta
-    con «En el primer curso de todos los títulos mencionados se imparte
-    Matemáticas I», frase copiada de su propia respuesta dos turnos antes y sin
-    ninguna relación con lo que se le había preguntado.
+    respuestas anteriores» escrita en las instrucciones, no bastaba: preguntado
+    por los dobles grados, el modelo cerraba su respuesta con «En el primer
+    curso de todos los títulos mencionados se imparte Matemáticas I», frase
+    copiada de su propia respuesta dos turnos antes y sin ninguna relación con
+    lo que se le había preguntado.
 
     Es el patrón de siempre en este proyecto: una prohibición en el prompt no es
     un control. Lo que no está en el prompt no se puede copiar, y para entender
@@ -830,8 +803,8 @@ def construir_prompt(
 
     **El catálogo se declara siempre, y es un dato, no una prohibición.** El
     fallo más grave que se le ha visto al sistema es recomendar titulaciones
-    que no existen: el 16/08/2026 recomendó seis a un estudiante interesado en
-    electricidad y **dos no existen** en la EPSJ. Las instrucciones ya decían
+    que no existen: a un estudiante interesado en electricidad llegó a
+    recomendarle seis, y **dos no existen** en la EPSJ. Las instrucciones ya decían
     «usa ÚNICAMENTE la información del CONTEXTO», así que prohibirlo otra vez
     no habría cambiado nada. Lo que sí se puede hacer desde el prompt es que la
     lista verdadera esté delante en todas las consultas, cueste lo que cueste
@@ -866,8 +839,8 @@ def construir_prompt(
     # El ámbito se **declara como dato**, no como prohibición. 78 guías del
     # corpus se imparten en varias titulaciones y su encabezado las nombra
     # todas, así que acotar la búsqueda a una no impide que el modelo hable de
-    # las otras: medido, con el filtro puesto en Informática respondió con un
-    # apartado entero sobre Inteligencia Artificial y Ciberseguridad.
+    # las otras: con el filtro puesto en Informática, el modelo respondía con
+    # un apartado entero sobre Inteligencia Artificial y Ciberseguridad.
     encabezado = _encabezado_de_ambito(ambito)
     return (
         f"{INSTRUCCIONES}\n\n"
@@ -912,9 +885,8 @@ def cerrar_en_frase_completa(texto: str) -> str:
     """Recorta un texto hasta su última frase o línea terminada.
 
     El tope de la respuesta se agota a mitad de palabra ---«**Nota:** Todas las
-    titul», medido el 19/08/2026---, y entregar eso es peor que entregar menos:
-    la frase partida parece un fallo del sistema y además deja al lector sin
-    saber qué iba a decir.
+    titul»---, y entregar eso es peor que entregar menos: la frase partida
+    parece un fallo del sistema y deja al lector sin saber qué iba a decir.
 
     Se corta por el final de frase o de línea más avanzado de los dos, porque
     las respuestas alternan prosa y listas, y en una lista lo que cierra el
@@ -931,6 +903,100 @@ def cerrar_en_frase_completa(texto: str) -> str:
     if ultimo < 0:
         return texto
     return texto[: ultimo + 1].rstrip()
+
+
+def _peticion(
+    prompt: str,
+    modelo: str,
+    servidor: str,
+    ventana: int,
+    tope: int,
+    semilla: int,
+    sistema: str,
+    flujo: bool,
+) -> urllib.request.Request:
+    """Arma la peticion al servidor de inferencia.
+
+    La comparten las dos vias de generacion para que no puedan discrepar en los
+    parametros del muestreo: si una fijara la semilla y la otra no, la web y el
+    experimento estarian midiendo cosas distintas.
+
+    Args:
+        prompt: Texto que devuelve :func:`construir_prompt`.
+        modelo: Nombre del modelo en el servidor local.
+        servidor: Direccion del servidor de inferencia.
+        ventana: Ventana de contexto en *tokens*.
+        tope: Maximo de *tokens* de la respuesta.
+        semilla: Semilla del muestreo.
+        sistema: Mensaje de sistema.
+        flujo: Si se pide con ``stream`` o de una sola vez.
+
+    Returns:
+        La peticion, lista para :func:`urllib.request.urlopen`.
+    """
+    cuerpo = {
+        "model": modelo,
+        "prompt": prompt,
+        "system": sistema,
+        "stream": flujo,
+        "think": False,
+        "options": {
+            "num_ctx": ventana,
+            "temperature": 0,
+            "seed": semilla,
+            "num_predict": tope,
+        },
+    }
+    return urllib.request.Request(
+        f"{servidor}/api/generate",
+        data=json.dumps(cuerpo).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+
+
+@contextmanager
+def _errores_del_modelo(modelo: str, servidor: str) -> Iterator[None]:
+    """Traduce a :class:`ErrorDelModelo` los fallos de hablar con el servidor.
+
+    Las cuatro ramas son las cuatro formas en que se le ha visto fallar, y **el
+    orden importa**: ni ``TimeoutError`` ni ``ConnectionResetError`` son
+    ``URLError`` ---el segundo es un ``OSError``---, asi que sin rama propia se
+    escapan de la captura y suben hasta quien llame. Las dos han tumbado tandas
+    enteras: un modelo colgado se llevo las nueve horas siguientes de una tanda
+    de 560 respuestas, y el servidor muriendose con la conexion ya abierta
+    tumbo un experimento de cuatro modelos con una traza de socket. Un fallo
+    del servidor tiene que costar una pregunta, no la sesion.
+
+    Args:
+        modelo: Nombre del modelo, para el mensaje.
+        servidor: Direccion del servidor, para el mensaje.
+
+    Yields:
+        Nada: es un envoltorio.
+
+    Raises:
+        ErrorDelModelo: siempre que el servidor no responda como debe.
+    """
+    try:
+        yield
+    except urllib.error.HTTPError as error:
+        detalle = error.read().decode("utf-8", "replace").strip()
+        raise ErrorDelModelo(
+            f"el servidor respondió {error.code} al generar con «{modelo}»"
+            + (f": {detalle[:200]}" if detalle else "")
+        ) from error
+    except TimeoutError as error:
+        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
+    except urllib.error.URLError as error:
+        raise ErrorDelModelo(
+            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
+            "¿Está Ollama en marcha?"
+        ) from error
+    except ConnectionError as error:
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} cortó la conexión a media respuesta "
+            f"({error}). Suele ser que se ha quedado sin memoria."
+        ) from error
 
 
 def generar(
@@ -951,20 +1017,15 @@ def generar(
     devuelve una redacción y de la segunda en adelante devuelve otra. Las dos
     son estables y se repiten sin fallo, pero son distintas.
 
-    Durante un tiempo se sostuvo aquí que el resultado sí era estable, porque
-    entre dos pasadas del banco cambió la redacción de 27 de las 42 respuestas
-    generadas sin que se moviera ninguno de los 57 veredictos. **Esa
-    afirmación ya no se puede hacer.** Una tercera pasada, el 29/08/2026, dio
-    56 de 57: la misma pregunta sobre el curso de una asignatura se respondió
-    «quinto curso» en una tirada y «cuarto curso» en otra, y el veredicto
-    cambió con ella.
-
-    Lo que sigue siendo cierto es lo que explicaba aquella observación: los
-    correctores comparan hechos y no cómo están escritos, así que la mayoría de
-    los cambios de redacción no mueven nada. Lo que no se puede decir es que
-    ninguno lo haga. Una sola tirada del banco no fija el resultado, y repetirla
-    tampoco lo estrecha: dos tiradas de 57 preguntas siguen siendo 57
-    observaciones.
+    **El veredicto tampoco es reproducible.** Entre dos pasadas del banco
+    cambió la redacción de 27 de las 42 respuestas generadas sin que se moviera
+    ninguno de los 57 veredictos, pero una tercera dio 56 de 57: la misma
+    pregunta sobre el curso de una asignatura se respondió «quinto curso» en
+    una tirada y «cuarto curso» en otra. Los correctores comparan hechos y no
+    cómo están escritos, así que la mayoría de los cambios de redacción no
+    mueven nada; lo que no se puede decir es que ninguno lo haga. Una sola
+    tirada del banco no fija el resultado, y repetirla tampoco lo estrecha: dos
+    tiradas de 57 preguntas siguen siendo 57 observaciones.
 
     Args:
         prompt: Texto que devuelve :func:`construir_prompt`.
@@ -979,58 +1040,12 @@ def generar(
     Returns:
         La respuesta del modelo, sin espacios sobrantes.
     """
-    cuerpo = {
-        "model": modelo,
-        "prompt": prompt,
-        "system": sistema,
-        "stream": False,
-        "think": False,
-        "options": {
-            "num_ctx": ventana,
-            "temperature": 0,
-            "seed": semilla,
-            "num_predict": tope,
-        },
-    }
-    peticion = urllib.request.Request(
-        f"{servidor}/api/generate",
-        data=json.dumps(cuerpo).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+    peticion = _peticion(
+        prompt, modelo, servidor, ventana, tope, semilla, sistema, flujo=False
     )
-    try:
+    with _errores_del_modelo(modelo, servidor):
         with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             datos = json.loads(respuesta.read())
-    except urllib.error.HTTPError as error:
-        detalle = error.read().decode("utf-8", "replace").strip()
-        raise ErrorDelModelo(
-            f"el servidor respondió {error.code} al generar con «{modelo}»"
-            + (f": {detalle[:200]}" if detalle else "")
-        ) from error
-    # Va antes de URLError a propósito: agotar la espera de lectura levanta
-    # TimeoutError, que **no** es un URLError, así que sin esta rama se escapa
-    # de las dos y sube. El 19/08/2026 tumbó una tanda de 560 respuestas cuando
-    # llevaba 85: `command-r7b` se colgó en una pregunta y se perdieron las
-    # nueve horas siguientes. Un modelo colgado tiene que costar una pregunta,
-    # no la sesión.
-    except TimeoutError as error:
-        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
-    except urllib.error.URLError as error:
-        raise ErrorDelModelo(
-            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
-            "¿Está Ollama en marcha?"
-        ) from error
-    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
-    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
-    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
-    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
-    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
-    # entero con una traza de socket, en vez de contarse como la pregunta
-    # perdida que es.
-    except ConnectionError as error:
-        raise ErrorDelModelo(
-            f"el servidor en {servidor} cortó la conexión a media respuesta "
-            f"({error}). Suele ser que se ha quedado sin memoria."
-        ) from error
     escrito = str(datos.get("response", "")).strip()
     if datos.get("done_reason") == "length":
         return cerrar_en_frase_completa(escrito) + AVISO_RESPUESTA_CORTADA
@@ -1095,25 +1110,10 @@ def generar_por_partes(
     Raises:
         ErrorDelModelo: si el servidor no responde, tarda demasiado o falla.
     """
-    cuerpo = {
-        "model": modelo,
-        "prompt": prompt,
-        "system": sistema,
-        "stream": True,
-        "think": False,
-        "options": {
-            "num_ctx": ventana,
-            "temperature": 0,
-            "seed": semilla,
-            "num_predict": tope,
-        },
-    }
-    peticion = urllib.request.Request(
-        f"{servidor}/api/generate",
-        data=json.dumps(cuerpo).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+    peticion = _peticion(
+        prompt, modelo, servidor, ventana, tope, semilla, sistema, flujo=True
     )
-    try:
+    with _errores_del_modelo(modelo, servidor):
         with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             for linea in respuesta:
                 if not linea.strip():
@@ -1124,31 +1124,6 @@ def generar_por_partes(
                     yield trozo
                 if datos.get("done_reason") == "length":
                     yield AVISO_RESPUESTA_CORTADA
-    except urllib.error.HTTPError as error:
-        detalle = error.read().decode("utf-8", "replace").strip()
-        raise ErrorDelModelo(
-            f"el servidor respondió {error.code} al generar con «{modelo}»"
-            + (f": {detalle[:200]}" if detalle else "")
-        ) from error
-    except TimeoutError as error:
-        raise ErrorDelModelo(f"«{modelo}» no respondió en {ESPERA_MAXIMA} s") from error
-    except urllib.error.URLError as error:
-        raise ErrorDelModelo(
-            f"no se pudo hablar con el servidor en {servidor}: {error.reason}. "
-            "¿Está Ollama en marcha?"
-        ) from error
-    # El servidor puede morirse **con la conexión ya abierta**, y entonces el
-    # corte llega leyendo la respuesta: `ConnectionResetError` es un `OSError`,
-    # no un `URLError`, así que se colaba por encima de las dos ramas de arriba
-    # y reventaba a quien llamara. Medido el 01/09/2026: Ollama se cayó en la
-    # tercera pregunta de una tanda de cuatro modelos y tumbó el experimento
-    # entero con una traza de socket, en vez de contarse como la pregunta
-    # perdida que es.
-    except ConnectionError as error:
-        raise ErrorDelModelo(
-            f"el servidor en {servidor} cortó la conexión a media respuesta "
-            f"({error}). Suele ser que se ha quedado sin memoria."
-        ) from error
 
 
 def responder_por_partes(
