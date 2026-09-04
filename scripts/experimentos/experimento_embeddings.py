@@ -71,14 +71,14 @@ def escribir_en_el_adr(destino: Path, bloque: str) -> None:
 
 #: Puntos de corte del ranking para Recall@K.
 #:
-#: Vienen de la Definición de Hecho de IT-28 («al menos K=3 y K=5») y hasta el
-#: 01/08/2026 no estaban justificados en ninguna parte. La razón es el
-#: presupuesto de contexto del LLM local: con una mediana real de 264 tokens por
-#: fragmento, K=3 consume unos 790 tokens y K=5 unos 1.320, que caben de sobra
-#: junto al prompt y la respuesta en un modelo cuantizado ejecutable en esta
-#: máquina. No es un techo del modelo —los candidatos abiertos admiten de 32k
-#: tokens en adelante— sino una elección de coste: cada fragmento de más es
-#: tiempo de proceso del prompt y un distractor más para el generador.
+#: Vienen de la Definición de Hecho de IT-28 («al menos K=3 y K=5»), y la razón
+#: es el presupuesto de contexto del LLM local: con una mediana real de 264
+#: tokens por fragmento, K=3 consume unos 790 tokens y K=5 unos 1.320, que
+#: caben de sobra junto al prompt y la respuesta en un modelo cuantizado
+#: ejecutable en esta máquina. No es un techo del modelo —los candidatos
+#: abiertos admiten de 32k tokens en adelante— sino una elección de coste: cada
+#: fragmento de más es tiempo de proceso del prompt y un distractor más para el
+#: generador.
 #:
 #: CUIDADO, son dos K distintos que hoy coinciden por casualidad:
 #:   - el K de la MÉTRICA, que es este, y solo dice dónde se corta el ranking
@@ -113,11 +113,11 @@ class ModeloCandidato:
 #: Tamaño de lote de incrustación.
 #:
 #: Se fija explícitamente en vez de dejar el de sentence-transformers (32)
-#: porque en esta máquina la memoria es la restricción, no la velocidad: con
-#: 16 GB de RAM y unos 3,5 GB realmente libres, un modelo de 560M parámetros y
-#: lotes de 32 agota la memoria a mitad de la ejecución. Comprobado: la
-#: ejecución del 04/08/2026 murió cargando multilingual-e5-large. Con lotes de
-#: 8, ese mismo modelo termina dejando 2,3 GB libres en el pico.
+#: porque en esta máquina la memoria es la restricción, no la velocidad: con 16
+#: GB de RAM y unos 3,5 GB realmente libres, un modelo de 560M parámetros y
+#: lotes de 32 agota la memoria a mitad de la ejecución: la comparativa murió
+#: cargando multilingual-e5-large. Con lotes de 8, ese mismo modelo termina
+#: dejando 2,3 GB libres en el pico.
 TAMANO_LOTE: Final[int] = 8
 
 #: Modelos a comparar.
@@ -138,8 +138,8 @@ TAMANO_LOTE: Final[int] = 8
 #:   1. Ventana >= 512 tokens, para que ninguno lea menos corpus que otro.
 #:   2. Cuatro papeles distintos y complementarios, uno por candidato (abajo).
 #:   3. Licencia permisiva compatible con la GPL-3.0 del repositorio.
-#:      Verificadas el 04/08/2026 contra la API de Hugging Face, campo
-#:      `cardData.license`, no leyendo las fichas a ojo.
+#:      Verificadas contra la API de Hugging Face, campo `cardData.license`,
+#:      no leyendo las fichas a ojo.
 #:   4. Ejecutable en ESTA máquina (Ryzen 7 5800H, 16 GB, PyTorch solo-CPU).
 #:   5. Disponible en sentence-transformers sin código remoto.
 #:
@@ -153,11 +153,11 @@ TAMANO_LOTE: Final[int] = 8
 #: y se publica, esa cadena de suministro no compensa el beneficio marginal.
 #:
 #: DESCARTADO por inviable en esta máquina: Qwen/Qwen3-Embedding-0.6B (2025,
-#: Apache 2.0, ventana 32k). Es un modelo decodificador y, medido el 04/08/2026,
-#: no llegó a incrustar 100 fragmentos en diez minutos, frente a los ~10 min que
-#: tardan los dos grandes en incrustar los 797. El criterio «ejecutable en esta
-#: máquina» está en la lista desde IT-28: se aplica con una medición, no con una
-#: impresión. Con GPU disponible sería un candidato a reconsiderar.
+#: Apache 2.0, ventana 32k). Es un modelo decodificador y, medido, no llegó a
+#: incrustar 100 fragmentos en diez minutos, frente a los ~10 min que tardan
+#: los dos grandes en incrustar los 797. El criterio «ejecutable en esta
+#: máquina» está en la lista desde IT-28: se aplica con una medición, no con
+#: una impresión. Con GPU disponible sería un candidato a reconsiderar.
 #:
 #: RETIRADOS de la comparativa: los dos modelos *paraphrase* de ventana 128.
 #: No desaparecen del trabajo —sus cifras y el hallazgo del truncado están en
@@ -190,8 +190,8 @@ CANDIDATOS = [
     ),
     ModeloCandidato(
         "hiiamsid/sentence_similarity_spanish_es",
-        "ESPAÑOL. El mejor específico de español disponible: comprobado el "
-        "04/08/2026, es el único con uso real (22.500 descargas/mes) frente a "
+        "ESPAÑOL. El mejor específico de español disponible: comprobado, es el "
+        "único con uso real (22.500 descargas/mes) frente a "
         "derivados con decenas. Entrenado para similitud semántica y no para "
         "recuperación, que es la hipótesis que pone a prueba. 110M, Apache 2.0.",
     ),
@@ -651,8 +651,8 @@ def _pie_del_informe(
         "la calidad de sus representaciones.\n"
         "- **Tiempo** es reloj de pared de un portátil que está haciendo otras "
         "cosas, así que solo separa órdenes de magnitud. Medido: entre dos "
-        "ejecuciones seguidas del 04/08/2026 **todas las métricas salieron "
-        "idénticas a tres decimales**, pero los tiempos variaron hasta un 25 % "
+        "ejecuciones seguidas **todas las métricas salieron idénticas a tres "
+        "decimales**, pero los tiempos variaron hasta un 25 % "
         "y los dos modelos grandes llegaron a intercambiarse el orden. Sirve "
         "para decir «este tarda cinco veces más que aquel», no para ordenar "
         "dos modelos que quedan cerca.\n"
