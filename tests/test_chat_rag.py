@@ -632,7 +632,7 @@ def test_el_grado_puesto_a_mano_manda_sobre_el_deducido(
 def test_un_fallo_del_servidor_no_se_lleva_la_sesion(
     capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """El 18/08/2026 un 500 por falta de memoria costó la conversación entera."""
+    """Un 500 por falta de memoria costaba la conversación entera."""
     monkeypatch.setattr(
         chat,
         "responder",

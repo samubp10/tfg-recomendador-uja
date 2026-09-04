@@ -512,11 +512,11 @@ def test_la_fusion_termina_cuando_el_reparto_devuelve_mas_fragmentos():
 
 # --- IT-94: la guía anunciada que no llegó a extraerse ---
 
-# Caso real del rastreo del 28/07/2026: cinco asignaturas cuya guía se sirve
-# como PDF que `guia_pdf` no pudo leer. El rastreador ya había emitido la
-# asignatura con `tiene_guia=True`, porque en la tabla sí había enlace, y el
-# ítem de guía nunca llegó a emitirse. Se quedaban sin fragmento de guía y sin
-# fragmento informativo: desaparecían del corpus enteras.
+# Caso real del rastreo: cinco asignaturas cuya guía se sirve como PDF que
+# `guia_pdf` no pudo leer. El rastreador ya había emitido la asignatura con
+# `tiene_guia=True`, porque en la tabla sí había enlace, y el ítem de guía
+# nunca llegó a emitirse. Se quedaban sin fragmento de guía y sin fragmento
+# informativo: desaparecían del corpus enteras.
 _CRIPTOGRAFIA = {
     "tipo": "asignatura",
     "grado": "Grado en Inteligencia Artificial y Ciberseguridad",
@@ -633,10 +633,10 @@ def test_sin_curso_publicado_el_fragmento_no_se_lo_inventa():
 
 
 def test_el_hueco_del_curso_se_dice_en_vez_de_callarse():
-    # Medido el 16/08/2026: con el encabezado diciendo solo «Se imparte en el
-    # segundo cuatrimestre», el modelo respondió que la asignatura era
-    # «optativa en 2º curso», convirtiendo el cuatrimestre en un curso que la
-    # fuente no publica. Un hueco callado se rellena solo.
+    # Medido: con el encabezado diciendo solo «Se imparte en el segundo
+    # cuatrimestre», el modelo respondió que la asignatura era «optativa en 2º
+    # curso», convirtiendo el cuatrimestre en un curso que la fuente no
+    # publica. Un hueco callado se rellena solo.
     chunks = _de_origen(
         trocear_dataset(
             [
@@ -781,7 +781,7 @@ def test_cada_familia_tiene_su_propio_fragmento(derivados):
 
 
 def test_la_ficha_dice_cuantas_asignaturas_hay(derivados):
-    """Regresión del peor fallo del 17/08/2026.
+    """Regresión del peor fallo.
 
     Preguntado por cuántas asignaturas tiene Ingeniería Informática, el modelo
     contestó que **una**. La cifra no estaba en el corpus como texto: había que
@@ -856,7 +856,7 @@ def test_la_mencion_reune_sus_asignaturas(derivados):
 
 
 def test_hay_un_fragmento_que_dice_cuales_son_las_menciones(derivados):
-    """Regresión del turno 12 del 17/08/2026: dijo «dos menciones» y son tres.
+    """Regresión del turno 12: dijo «dos menciones» y son tres.
 
     La respuesta estaba repartida en una unidad por mención y ninguna decía
     cuántas hay. Se probó a meter la lista en la ficha de la titulación y la
@@ -889,7 +889,7 @@ def test_los_derivados_llevan_listas_paralelas_no_vacias(derivados):
 
 
 def test_lo_comun_a_todas_las_menciones_no_se_presenta_como_una_mencion():
-    """Regresión del 17/08/2026: «Mecánica tiene dos menciones» y una era esto.
+    """Regresión: «Mecánica tiene dos menciones» y una era esto.
 
     La fuente marca con ese rótulo las optativas que no pertenecen a ninguna
     mención concreta, y viaja en el mismo campo que ellas. Llamarlo mención en
@@ -915,7 +915,7 @@ def test_el_encabezado_dice_que_los_creditos_no_estan_publicados():
     «Sistemas Digitales» es la única de las 528 asignaturas del corpus sin
     créditos en la fuente. El encabezado se los saltaba en silencio, así que el
     fragmento era indistinguible de uno al que simplemente no le cupo el dato.
-    Medido el 18/08/2026, cuatro de cinco modelos generativos rellenaron el
+    Medido, cuatro de cinco modelos generativos rellenaron el
     hueco con una cifra inventada.
     """
     asignatura = {
@@ -956,8 +956,8 @@ def test_los_listados_declaran_el_credito_ausente():
 
     En el listado de la mención «Sistemas electrónicos» las otras tres
     asignaturas llevan «(6 ECTS)» y «Sistemas Digitales» no llevaba nada.
-    Medido el 19/08/2026: granite4.1:8b razonó que «las otras dos tienen 6
-    ECTS» y concluyó que esta también.
+    Un modelo razonó que «las otras dos tienen 6 ECTS» y concluyó que esta
+    también.
     """
     assert chunker._creditos({"ects": "6"}) == " (6 ECTS)"
     assert chunker._creditos({"ects": ""}) == " (créditos no publicados)"

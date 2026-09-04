@@ -2,23 +2,20 @@
 
 No es la aplicación web de la Fase 3 ni sustituye a la evaluación con métricas
 de IT-38: es la herramienta para sentarse delante y ver qué contesta el sistema,
-que es lo que ninguna cifra enseña. Permite cambiar de modelo sin reiniciar,
-para poder comparar candidatos con la misma pregunta.
+que es lo que ninguna cifra enseña. Cambia de modelo sin reiniciar, para
+comparar candidatos con la misma pregunta.
 
 La conversación la lleva :class:`tfg_uja.conversacion.Conversacion` (IT-106),
-que recuerda de qué titulación se habla ---también si la nombró el asistente y
-no el estudiante--- y acota la búsqueda con un filtro exacto. Sin eso, «¿y qué
-asignaturas tiene en primero?» recuperaba fragmentos de las doce titulaciones.
-
-De qué titulación se habla lo decide el modelo en cada turno
-(:mod:`tfg_uja.ambito`), porque las reglas deterministas sabían fijar el sujeto
-pero no soltarlo: una vez dentro de una titulación no se salía de ella ni
-escribiendo «olvídalo, cuéntame de topografía». Con ``--ambito-determinista`` se
+que recuerda de qué titulación se habla ---también si la nombró el asistente---
+y acota la búsqueda con un filtro exacto; sin eso, «¿y qué asignaturas tiene en
+primero?» recuperaba fragmentos de las doce. Quién es esa titulación lo decide
+el modelo en cada turno (:mod:`tfg_uja.ambito`), porque las reglas deterministas
+sabían fijar el sujeto pero no soltarlo: no se salía de una titulación ni
+escribiendo «olvídalo, cuéntame de topografía». ``--ambito-determinista``
 vuelve al mecanismo anterior, que es con lo que se comparan los dos.
 
 Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
-poder releer después qué se preguntó y qué se respondió sin que las pruebas
-acaben versionadas.
+releer después qué se preguntó sin que las pruebas acaben versionadas.
 
 Uso::
 
@@ -508,9 +505,8 @@ def _generar_respuesta(
             catalogo=catalogo,
         )
     except ErrorDelModelo as error:
-        # Se avisa y se sigue. Un fallo pasajero del servidor no puede
-        # costar la sesion entera: el 18/08/2026 un 500 por falta de
-        # memoria, con una descarga de 9 GB en marcha, se llevo por delante
+        # Se avisa y se sigue. Un fallo pasajero del servidor no puede costar
+        # la sesion entera: un 500 por falta de memoria se llevaba por delante
         # la conversacion de pruebas completa.
         print(
             f"\n  [!] {error}\n"

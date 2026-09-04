@@ -847,28 +847,27 @@ def _sql_literal(valor: str) -> str:
 
 
 def _esquema_lance(dimension: int) -> Any:
-    """Esquema Arrow explícito de la tabla, con el vector como lista de tamaño fijo."""
-    import pyarrow as pa
+    """Esquema Arrow de la tabla, el mismo que monta el indexador del sistema.
 
-    return pa.schema(
-        [
-            pa.field("id", pa.string()),
-            pa.field("vector", pa.list_(pa.float32(), dimension)),
-            pa.field("texto", pa.string()),
-            pa.field("origen", pa.string()),
-            pa.field("nombre", pa.string()),
-            pa.field("grados", pa.list_(pa.string())),
-            pa.field("codigos", pa.list_(pa.string())),
-            pa.field("tipo_asignatura", pa.string()),
-            # IT-105 anadio esta columna al esquema del indexador y aqui se
-            # quedo sin anadir. Como `medir_lancedb` reutiliza `indexar_chunks`,
-            # que emite el campo siempre, la tabla rechazaba cada lote y el
-            # experimento no podia medir a la candidata que el ADR-0004 elige.
-            pa.field("curso", pa.string()),
-            pa.field("chunk_index", pa.int64()),
-            pa.field("total_chunks", pa.int64()),
-        ]
-    )
+    Se importa en vez de declararse aparte porque las dos copias ya divergieron
+    una vez: al anadir la columna `curso` al indexador, esta se quedo sin ella,
+    y como `medir_lancedb` reutiliza `indexar_chunks` ---que emite el campo
+    siempre--- la tabla rechazaba cada lote y el experimento no podia medir a
+    la candidata que el ADR-0004 acaba eligiendo. Midiendo con el esquema real
+    eso no puede repetirse.
+
+    Los metadatos de coleccion van vacios: describen con que se construyo un
+    indice del sistema y aqui la tabla es de usar y tirar.
+
+    Args:
+        dimension: Longitud de los vectores que produce el incrustador.
+
+    Returns:
+        Esquema Arrow de la tabla.
+    """
+    from tfg_uja.indexacion.indexer import esquema_lance
+
+    return esquema_lance(dimension, {})
 
 
 class AlmacenLance:

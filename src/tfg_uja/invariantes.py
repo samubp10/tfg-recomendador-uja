@@ -29,14 +29,13 @@ class InvarianteRoto(AssertionError):
 def exigir(condicion: object, mensaje: str | Callable[[], str]) -> None:
     """Comprueba un invariante y aborta si no se cumple.
 
-    El mensaje admite una función sin argumentos, y esa no es una comodidad:
-    ``assert`` solo construye su mensaje **cuando la condición falla**, y una
+    El mensaje admite una función sin argumentos, y no es una comodidad:
+    ``assert`` construye su mensaje **solo cuando la condición falla**, y una
     llamada normal lo evalúa siempre. Varios mensajes de los verificadores
     muestran el primer elemento del conjunto que ha fallado
-    ---``descuadres[0]``, ``min(evitables)``---, de modo que al pasar de
-    ``assert`` a función reventaban con ``IndexError`` justo en el caso bueno,
-    cuando esa colección está vacía. Con una lambda el mensaje vuelve a ser
-    perezoso.
+    ---``descuadres[0]``, ``min(evitables)``---, así que reventarían con
+    ``IndexError`` justo en el caso bueno, con la colección vacía. Con una
+    lambda el mensaje vuelve a ser perezoso.
 
     Args:
         condicion: Lo que tiene que ser cierto. Se admite cualquier objeto y

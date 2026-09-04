@@ -8,7 +8,7 @@ filtrado la entiende LanceDB: una expresión mal escrita no da error, devuelve
 cero filas, y el resultado sería no ofrecer nunca esa pregunta.
 
 Los nombres de titulación y el reparto de orígenes son los del corpus real
----rastreo del 16/08/2026, troceado del 19/08/2026, curso 2026-27---:
+---curso 2026-27---:
 Informática con menciones y sin TFG indexado, Organización Industrial al
 revés, y el doble grado internacional con Schmalkalden, que no tiene ni una
 asignatura.

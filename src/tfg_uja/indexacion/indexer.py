@@ -4,26 +4,23 @@ Toma los chunks generados por el fragmentador (``chunks.json``), calcula la
 incrustación (*embedding*) de cada uno y los almacena, junto con sus
 metadatos, en un índice vectorial listo para la fase de recuperación del RAG.
 
-El índice se reconstruye completo en cada ejecución: reindexar es barato
-(minutos) frente al coste de mantener actualizaciones incrementales, y
-garantiza que el índice refleja exactamente el ``chunks.json`` de entrada,
-igual que re-fragmentar garantiza reflejar el dataset (mismo argumento de
-reproducibilidad que separa el spider del chunker).
+El índice se reconstruye completo en cada ejecución: reindexar cuesta minutos
+frente al coste de mantener actualizaciones incrementales, y garantiza que el
+índice refleja exactamente el ``chunks.json`` de entrada ---mismo argumento de
+reproducibilidad que separa el spider del chunker---.
 
 El **modelo de embeddings** lo fija el ADR-0003 (IT-98) y vive en
-``incrustaciones.py``, junto con la convención de prefijos que ese modelo
-exige. Este módulo no la conoce ni debe conocerla; recibe una función de
-incrustación ya construida, que es lo que además permite probarlo sin red.
+``incrustaciones.py``, con la convención de prefijos que exige. Este módulo no
+la conoce: recibe una función de incrustación ya construida, que es además lo
+que permite probarlo sin red.
 
-La **base vectorial es LanceDB**, que fija el ADR-0004 tras comparar tres
-candidatas contra una línea base de búsqueda exacta (IT-31). El recorrido
----leer, incrustar por lotes, componer metadatos--- sigue separado de dónde
-se guarda: :class:`AlmacenVectorial` describe lo único que el pipeline
-necesita de una base y :func:`crear_almacen_lance` es su implementación.
-Esa separación no es especulativa: es lo que permitió comparar tres bases
-escribiendo tres creadores en vez de tres pipelines, porque medir cada
-candidata con una implementación distinta habría comparado el código escrito
-para la ocasión y no las bases.
+La **base vectorial es LanceDB** (ADR-0004, IT-31), y el recorrido ---leer,
+incrustar por lotes, componer metadatos--- va separado de dónde se guarda:
+:class:`AlmacenVectorial` describe lo único que el pipeline necesita de una base
+y :func:`crear_almacen_lance` es su implementación. La separación no es
+especulativa: permitió comparar tres bases escribiendo tres creadores en vez de
+tres pipelines, y medir cada candidata con una implementación distinta habría
+comparado el código escrito para la ocasión y no las bases.
 
 Este módulo **escribe el índice y no lo consulta**. Lo que la recuperación
 necesita saber para no equivocarse ---con qué modelo se construyó, con qué

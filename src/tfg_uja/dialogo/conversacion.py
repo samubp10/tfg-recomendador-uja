@@ -1,9 +1,8 @@
 """Estado de la conversación con el asistente (IT-106).
 
-Lo que IT-37 dejó era lo mínimo para encadenar tres preguntas: pegar la
-pregunta anterior delante de la actual antes de incrustarla. Probándolo a mano
-aparecieron tres formas de romperlo, y las tres tienen la misma raíz: **pegar
-texto no es entender de qué se habla**.
+Pegar la pregunta anterior delante de la actual antes de incrustarla, que es lo
+mínimo para encadenar tres preguntas (IT-37), se rompe de tres formas, y las
+tres tienen la misma raíz: **pegar texto no es entender de qué se habla**.
 
 1. *El sujeto lo dice el asistente, no el estudiante.* «Me gustan los
    videojuegos» → el asistente recomienda Informática → «¿y qué asignaturas
@@ -21,20 +20,19 @@ la conversación **deduce la titulación de la que se habla y acota la búsqueda
 con un filtro exacto**. El filtro no depende de que el modelo obedezca ni de
 que la incrustación acierte: o el fragmento es de esa titulación o no lo es.
 
-El mecanismo de este módulo es determinista, y **sigue siéndolo**: reescribir la
-pregunta pidiéndoselo al modelo ---que es lo que hace la literatura--- está
-descartado, y ahora con una medida detrás y no solo con un argumento. Al
-reescribirlas, tres preguntas ajenas al dominio se convirtieron en preguntas
+El mecanismo de este módulo es determinista. Reescribir la pregunta
+pidiéndoselo al modelo ---lo que hace la literatura--- está descartado con una
+medida detrás: al reescribirlas, tres preguntas ajenas se convirtieron en
 legítimas y entraron en el corpus a 0,0494, más cerca que cualquier pregunta de
-dominio del conjunto de evaluación: el suelo de pertinencia mide el texto que
+dominio del conjunto de evaluación. El suelo de pertinencia mide el texto que
 escribe el estudiante y solo ese.
 
 Lo que sí se le pide al modelo, y de forma opcional, es **decidir de qué
-titulación se habla**, porque el mecanismo determinista de aquí no sabe soltar
-el sujeto: `_ambito` solo se sustituye, nunca se vacía. Esa decisión vive en
-:mod:`tfg_uja.ambito` y llega por el atributo ``decisor``, que se inyecta. Sin
-él, este módulo se comporta exactamente como antes y no necesita ningún
-servidor: es lo que permite que sus pruebas sigan sin hablar con nadie.
+titulación se habla**, porque el mecanismo de aquí no sabe soltar el sujeto:
+`_ambito` solo se sustituye, nunca se vacía. Esa decisión vive en
+:mod:`tfg_uja.ambito` y llega inyectada por el atributo ``decisor``; sin él este
+módulo no necesita ningún servidor, que es lo que permite que sus pruebas sigan
+sin hablar con nadie.
 """
 
 from __future__ import annotations
@@ -48,11 +46,11 @@ from tfg_uja.text_cleaner import normalizar, palabras
 
 #: Turnos que se conservan. **Política de ventana:** al llenarse se descartan
 #: las preguntas más antiguas, nunca el sujeto de la conversación, que ocupa
-#: unas pocas palabras y es lo único que la pregunta de seguimiento necesita
-#: de verdad. Las respuestas no se conservan en ningún caso: no entran en el
-#: prompt desde IT-37, porque el modelo copiaba de ellas datos que ya no venían
-#: a cuento. Así la conversación no puede desplazar al contexto recuperado, que
-#: es lo que llenaba la ventana de 8.192 *tokens*.
+#: unas pocas palabras y es lo único que la pregunta de seguimiento necesita de
+#: verdad. Las respuestas no se conservan en ningún caso ni entran en el prompt
+#: (IT-37), porque el modelo copiaba de ellas datos que no venían a cuento; así
+#: la conversación tampoco puede desplazar al contexto recuperado dentro de la
+#: ventana de 8.192 *tokens*.
 TURNOS_RECORDADOS: Final[int] = 3
 
 #: Palabras que no aportan tema. Sirven para decidir si una pregunta dice algo
@@ -176,13 +174,13 @@ def recorta_lo_anterior(pregunta: str) -> bool:
     no puede ser la referencia de las siguientes, porque arrastraría su propio
     recorte a preguntas que ya no lo piden.
 
-    Medido el 17/08/2026: «¿Y en el segundo?» heredó de «¿y cuántas **de esas**
-    son optativas?». La consulta quedó dominada por «optativas», el listado de
-    segundo curso no entró en el contexto y el modelo rellenó el hueco con
+    Sin esa distinción, «¿Y en el segundo?» hereda de «¿y cuántas **de esas**
+    son optativas?»: la consulta queda dominada por «optativas», el listado de
+    segundo curso no entra en el contexto y el modelo rellena el hueco con
     **seis asignaturas que no existen**.
 
-    No vale con mirar si empieza por «y». Medido el 18/08/2026 sobre la
-    conversación real: «¿Y qué asignaturas tiene en primero?» empieza por «y»
+    No vale con mirar si empieza por «y»: «¿Y qué asignaturas tiene en
+    primero?» empieza por «y»
     pero sí plantea tema, y descartarla dejaba a la siguiente heredando de
     «soy de bachillerato y me gustan los videojuegos», que no dice nada del
     plan de estudios. Lo que distingue a una de otra es la anáfora.
@@ -237,11 +235,10 @@ class Consulta:
         decision: Quién y qué decidió el ámbito de este turno: una de las
             cuatro clases de :mod:`tfg_uja.ambito`, ``FALLO`` si había decisor
             y no pudo, o cadena vacía si no lo había. Viaja hasta el registro
-            del chat, y no es adorno: el 27/08/2026, con dos clientes hablando
-            a la vez con el mismo servidor de inferencia, todas las decisiones
-            fallaron en silencio y la conversación se comportó como antes de
-            esta tarjeta. Se tardó en verlo porque la única pista eran los
-            tiempos.
+            del chat, y no es adorno: con dos clientes hablando a la vez con
+            el mismo servidor de inferencia, todas las decisiones fallan en
+            silencio y la conversación se comporta como si no las hubiera,
+            sin más pista que los tiempos.
     """
 
     texto: str
@@ -359,11 +356,11 @@ class Conversacion:
             # quitarlas dejaba la frase descosida («tiene primero»).
             #
             # El ordinal heredado solo sobra **si la pregunta de ahora trae el
-            # suyo**. Medido el 18/08/2026 con la conversación real: heredando
-            # «¿y qué asignaturas tiene en primero?» entera, a «¿y en segundo?»
-            # le seguían llegando los listados de *primer* curso; quitándolo
-            # siempre, «¿y en el grado de electrónica?» perdía el curso del que
-            # se venía hablando y dejaba de recuperar ningún plan.
+            # suyo**: heredando «¿y qué asignaturas tiene en primero?» entera,
+            # a «¿y en segundo?» le seguían llegando los listados de *primer*
+            # curso; quitándolo siempre, «¿y en el grado de electrónica?»
+            # perdía el curso del que se venía hablando y dejaba de recuperar
+            # ningún plan.
             sobran = palabras_distintivas(self.catalogo)
             if palabras(pregunta) & ORDINALES:
                 sobran = sobran | ORDINALES
@@ -413,29 +410,27 @@ class Conversacion:
     def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
         """Registra un turno y actualiza de qué se está hablando.
 
-        El sujeto se busca **también en la respuesta**, y esa es la corrección
+        El sujeto se busca **también en la respuesta**, que es la corrección
         central de IT-106: en «me gustan los videojuegos» → «el Grado en
         Ingeniería Informática te encaja» → «¿y qué asignaturas tiene en
-        primero?», la titulación no aparece en ninguna pregunta. Mirando solo
-        las preguntas, el sistema no sabía de qué se hablaba y respondía de
-        otra titulación con total seguridad.
+        primero?» la titulación no aparece en ninguna pregunta, y mirando solo
+        las preguntas el sistema respondía de otra titulación con total
+        seguridad.
 
-        **Con un decisor puesto, el ámbito no se toca aquí.** Lo decide él en
-        cada turno, y con el último turno completo delante, así que sigue viendo
-        la titulación que nombró el asistente ---el caso de IT-106--- sin que
-        haga falta deducirla otra vez con reglas. Dos mecanismos apuntando al
-        mismo dato se acaban contradiciendo: mandaría el último en escribir.
+        **Con un decisor puesto, el ámbito no se toca aquí**: lo decide él en
+        cada turno y con el último turno completo delante, así que sigue viendo
+        la titulación que nombró el asistente sin deducirla otra vez con reglas.
+        Dos mecanismos apuntando al mismo dato acaban contradiciéndose, y
+        mandaría el último en escribir.
 
         **Una respuesta fija no cambia de qué se habla**, y por eso existe
         ``cambia_ambito``. La cortesía, el cierre y la pregunta por otro centro
-        se resuelven antes de preparar la consulta, así que el decisor no llega
-        a opinar y esta función caía a la rama determinista, que deduce el
-        ámbito de las palabras de la pregunta. Medido con el catálogo real:
-        hablando de Informática, «¿La Universidad de Granada tiene el Grado en
-        Ingeniería Mecánica?» se rechaza correctamente por ser de otro centro
-        **y deja el ámbito apuntando a las cinco titulaciones de Mecánica**. Es
-        lo mismo que ya defiende el módulo para el saludo: un mensaje que no se
-        responde con el corpus no cambia el tema de la conversación.
+        se resuelven antes de preparar la consulta, así que el decisor no opina
+        y esta función caía a la rama determinista: hablando de Informática,
+        «¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?» se
+        rechaza bien por ser de otro centro **y dejaba el ámbito apuntando a las
+        cinco titulaciones de Mecánica**. Es lo que el módulo ya defiende para
+        el saludo: un mensaje que no se responde con el corpus no cambia el tema.
 
         Args:
             pregunta: Lo que se preguntó.

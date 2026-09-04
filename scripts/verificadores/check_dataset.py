@@ -229,9 +229,9 @@ def _exigir_nombres_limpios(asignaturas: list[dict], grados: list[dict]) -> None
     """Falla si en el nombre de una asignatura se ha colado texto ajeno.
 
     Un paréntesis en el nombre delata que se ha colado texto que no forma
-    parte de él. Este invariante lleva vigente desde IT-10 y saltó por primera
-    vez el 28/07/2026: la fuente había empezado a incrustar un enlace
-    «( Syllabus )» dentro de la celda del nombre (IT-93).
+    parte de él. Este invariante lleva vigente desde IT-10 y ha saltado una
+    vez: la fuente empezó a incrustar un enlace «( Syllabus )» dentro de la
+    celda del nombre (IT-93).
 
     IT-101 añade la única excepción legítima: los planes de los dobles grados
     anotan entre paréntesis el acrónimo del grado del que procede cada
@@ -304,10 +304,10 @@ def _avisar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) -> N
     no un error del rastreo, así que se avisa en vez de fallar; el
     fragmentador ya les da su fragmento informativo.
 
-    IT-97 corrige la redacción de este aviso. Decía «no se ha podido
-    extraer», que insinúa un fallo propio, y sobre las 293 guías del rastreo
-    del 29/07/2026 los cinco casos son la misma cosa y no es esa: la guía se
-    lee perfectamente y sus secciones de contenido están vacías en el origen.
+    El aviso no dice «no se ha podido extraer» (IT-97), que insinuaría un
+    fallo propio: sobre las 293 guías del corpus los cinco casos son la misma
+    cosa y no es esa, la guía se lee perfectamente y sus secciones de
+    contenido están vacías en el origen.
 
     Args:
         asignaturas: Items ``asignatura`` del dataset.

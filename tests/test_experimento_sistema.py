@@ -138,7 +138,7 @@ def test_la_respuesta_fija_de_contexto_vacio_es_un_rechazo_valido():
 
 
 def test_negar_con_ninguna_cuenta_igual_que_negar_con_no():
-    """Caso real del 23/08/2026, que el criterio anterior suspendía.
+    """Caso real, que el criterio anterior suspendía.
 
     A «me gusta el derecho penal, ¿qué carrera me pega?» el sistema contestó
     que ninguna de sus titulaciones encaja y que todas son de ingeniería. Es un
@@ -193,7 +193,7 @@ def test_hablar_de_la_titulacion_correcta_es_acertar():
 
 
 def test_responder_de_otra_titulacion_es_fallar():
-    """Regresión del turno 7 del 19/08/2026, que ninguna métrica detectaba.
+    """Regresión del turno 7, que ninguna métrica detectaba.
 
     Quince asignaturas reales, cero invenciones y la titulación equivocada: la
     precisión y la cobertura salían perfectas.

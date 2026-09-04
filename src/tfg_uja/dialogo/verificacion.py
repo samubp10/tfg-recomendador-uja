@@ -54,12 +54,12 @@ _TITULACION: Final[re.Pattern[str]] = re.compile(
 #: que usan de hecho los candidatos probados: guion, asterisco y numeración.
 _VINETA: Final[re.Pattern[str]] = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+(.+?)\s*$")
 
-#: Marcas de énfasis de Markdown que los modelos ponen alrededor del nombre.
-#: No forman parte de él, pero sí impedían reconocerlo: medido el 18/08/2026,
-#: ministral-3:3b y qwen3.5:4b enumeraron **las diez asignaturas correctas** de
-#: primer curso de Informática en negrita, y esta función devolvía
-#: «**Álgebra**», que no casa con ninguna del corpus. Las dos respuestas, que
-#: son perfectas, puntuaban precisión 0,000 y salían las peores de la tabla.
+#: Marcas de énfasis de Markdown que los modelos ponen alrededor del nombre. No
+#: forman parte de él, pero sí impiden reconocerlo: dos candidatos enumeraron
+#: **las diez asignaturas correctas** de primer curso de Informática en
+#: negrita, y esta función devolvía «**Álgebra**», que no casa con ninguna del
+#: corpus. Las dos respuestas, perfectas, puntuaban precisión 0,000 y salían
+#: las peores de la tabla.
 _ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
@@ -80,10 +80,10 @@ _COLA: Final[re.Pattern[str]] = re.compile(
 #: le pone los créditos detrás: «Algoritmos geométricos (6 ECTS), Minería web
 #: (6 ECTS)...».
 #:
-#: Hace falta porque los modelos no siempre usan viñetas. Medido el 17/08/2026:
-#: preguntado por las optativas de Informática, mistral-7b enumeró las
-#: diecisiete **en prosa separadas por comas**, y un extractor que solo mirase
-#: viñetas habría contado cero y puntuado 0,0 una respuesta correcta.
+#: Hace falta porque los modelos no siempre usan viñetas: preguntado por las
+#: optativas de Informática, un candidato enumeró las diecisiete **en prosa
+#: separadas por comas**, y un extractor que solo mirase viñetas habría contado
+#: cero y puntuado 0,0 una respuesta correcta.
 _ENUMERADA: Final[re.Pattern[str]] = re.compile(
     r"([^,;:.()\n]{3,90}?)\s*\(\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos)[^)]*\)",
     re.IGNORECASE,
@@ -128,10 +128,10 @@ def nucleo(nombre: str) -> str:
     cuál de las dos titulaciones de un doble grado pertenece. Comparando con él
     puesto, **una respuesta perfecta puntúa cero**.
 
-    No es una hipótesis: medido el 18/08/2026, ministral-8b enumeró las diez
-    obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
-    Electrónica Industrial y Mecánica, las diez correctas y ninguna de más, y
-    la cobertura salía 0,000 con las diez contadas como omitidas.
+    No es una hipótesis: un candidato enumeró las diez obligatorias de tercer
+    o cuarto curso del Doble Grado en Ingeniería Electrónica Industrial y
+    Mecánica, las diez correctas y ninguna de más, y la cobertura salía 0,000
+    con las diez contadas como omitidas.
 
     Quitar el calificador no confunde asignaturas distintas: comprobado sobre
     el corpus entero, los nombres que colapsan son la misma asignatura con y
@@ -166,27 +166,22 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
     """Titulaciones nombradas que no están en el catálogo del corpus.
 
     Es el fallo más grave del sistema y el que fija el umbral eliminatorio de
-    IT-35: el 16/08/2026 se recomendaron seis titulaciones a un estudiante y
-    dos no existen en la EPSJ. Un estudiante no tiene forma de saberlo.
+    IT-35: de seis titulaciones recomendadas a un estudiante, dos no existían
+    en la EPSJ. Quien las lee no tiene forma de saberlo.
 
-    La comparación es por prefijo normalizado en los dos sentidos, porque una
-    respuesta puede recortar el nombre oficial ---«Grado en Ingeniería
-    Geomática» por «...y Topográfica (plan 2025)»--- sin estar inventándoselo.
-    Recortar no es inventar.
+    Se compara por prefijo normalizado en los dos sentidos, porque recortar el
+    nombre oficial ---«Grado en Ingeniería Geomática» por «…y Topográfica (plan
+    2025)»--- no es inventarlo. Y tampoco lo es **abreviar por dentro**: solo
+    con el prefijo, esta comprobación retiraba una respuesta entera y correcta
+    porque una de sus cuatro titulaciones reales venía escrita «Grado en
+    Mecánica», cuyas palabras están todas en «Grado en Ingeniería Mecánica».
+    Se admite, pues, que lo dicho sea un subconjunto de una titulación real.
 
-    Y tampoco lo es **abreviar por dentro**. El 19/08/2026 esta comprobación
-    retiró una respuesta entera y correcta ---cuatro titulaciones reales
-    recomendadas a un estudiante--- porque una de ellas venía escrita «Grado en
-    Mecánica»: ningún prefijo casa, pero todas sus palabras están en «Grado en
-    Ingeniería Mecánica». Se admite por tanto que las palabras de lo dicho sean
-    un subconjunto de las de alguna titulación real.
-
-    El coste de admitirlo es un falso negativo posible: si la Escuela ofreciera
-    un doble grado y no el simple que lo compone, el simple pasaría por bueno.
-    Se acepta porque los dos errores no son simétricos. Dejar pasar un nombre
-    de una titulación que existe en otra combinación despista; retirar una
-    recomendación correcta y decirle al estudiante que se ha inventado algo lo
-    deja sin respuesta y sin motivo.
+    El coste es un falso negativo posible: si la Escuela ofreciera un doble
+    grado y no el simple que lo compone, el simple pasaría por bueno. Se acepta
+    porque los dos errores no son simétricos: dejar pasar ese nombre despista,
+    y retirar una recomendación correcta diciéndole al estudiante que se ha
+    inventado algo lo deja sin respuesta y sin motivo.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -258,10 +253,10 @@ def elementos_de_lista(respuesta: str) -> list[str]:
 #: enumerar doce titulaciones que empiezan igual, y es mejor prosa que repetir
 #: la fórmula doce veces.
 #:
-#: Medido el 20/08/2026: `ministral-8b` enumeró **las doce correctas** así y el
-#: cotejo devolvió «12 omitidas, 10 de más», porque comparaba «Ingeniería
-#: Informática» contra «Grado en Ingeniería Informática». Precisión y cobertura
-#: salían por los suelos en una respuesta perfecta.
+#: Sin reconocerlo, una respuesta que enumera **las doce correctas** así se
+#: cotejaba como «12 omitidas, 10 de más», porque comparaba «Ingeniería
+#: Informática» contra «Grado en Ingeniería Informática»: precisión y cobertura
+#: por los suelos en una respuesta perfecta.
 #:
 #: Solo se reconoce el encabezado que termina en «en:», que es la marca de que
 #: lo factorizado es el principio del nombre. «Primer curso:» no la lleva y no
@@ -314,23 +309,21 @@ def cotejar_listado(
     """Compara un listado generado con el que dice el dataset.
 
     Las dos cifras miden cosas distintas y las dos hacen falta: un modelo puede
-    no inventarse nada y dejarse la mitad de la lista, que es exactamente lo
-    que pasó el 16/08/2026 con las cincuenta obligatorias de Informática.
+    no inventarse nada y dejarse la mitad de la lista, que es lo que pasaba
+    con las cincuenta obligatorias de Informática.
 
-    **La precisión solo existe si hay algo enumerado.** Cuando la respuesta
-    está redactada en prosa, `elementos_de_lista` no extrae ningún nombre y la
-    precisión es ``None``, no cero: no se ha encontrado nada falso, se ha
-    medido sobre nada. Devolver 0,0 puntuaba con la peor nota posible
-    respuestas correctas por el mero hecho de no usar viñetas, y ordenaba a los
-    modelos por su estilo de redacción en lugar de por su veracidad. Quien no
-    contestó de verdad ya queda retratado por la cobertura, que se mide sobre
-    el texto entero y no depende del formato.
+    **La precisión solo existe si hay algo enumerado.** Con la respuesta en
+    prosa, `elementos_de_lista` no extrae ningún nombre y la precisión es
+    ``None``, no cero: no se ha encontrado nada falso, se ha medido sobre nada.
+    Devolver 0,0 daba la peor nota a respuestas correctas por no usar viñetas y
+    ordenaba a los modelos por su estilo en vez de por su veracidad; a quien no
+    contestó ya lo retrata la cobertura, que se mide sobre el texto entero.
 
     Límite conocido: un nombre oficial formado por dos títulos unidos por un
-    punto solo se reconoce entero. «Smart Grids. Redes Eléctricas
-    Inteligentes» citada como «Redes Eléctricas Inteligentes» se cuenta como
-    inventada aunque exista. Es el único nombre así de todo el corpus, de modo
-    que una regla de alias se estaría escribiendo para un caso único.
+    punto solo se reconoce entero, así que «Smart Grids. Redes Eléctricas
+    Inteligentes» citada como «Redes Eléctricas Inteligentes» cuenta como
+    inventada aunque exista. Es el único nombre así del corpus, y una regla de
+    alias se estaría escribiendo para un caso único.
 
     Args:
         respuesta: Texto tal como lo devuelve el modelo.
@@ -504,17 +497,16 @@ class Atributos(NamedTuple):
 def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
     """Saca de los fragmentos lo que dicen del plan de cada asignatura.
 
-    Se leen los fragmentos y no ``grados.json`` a proposito. Lo que interesa
-    comprobar es la **fidelidad al contexto**: si la respuesta contradice algo
-    que estaba escrito, con esas palabras, en lo que se le entrego al modelo.
-    Cotejar contra el dataset mediria otra cosa ---si el sistema acierta---, y
-    ademas obligaria a este modulo a abrir un fichero, cuando hasta ahora solo
-    compara cadenas.
+    Se leen los fragmentos y no ``grados.json`` a proposito: lo que se comprueba
+    es la **fidelidad al contexto**, o sea si la respuesta contradice algo
+    escrito, con esas palabras, en lo que se le entrego al modelo. Cotejar
+    contra el dataset mediria otra cosa ---si el sistema acierta--- y obligaria
+    a este modulo a abrir un fichero, cuando solo compara cadenas.
 
     Se aprovecha que el encabezado lo redacta ``chunker`` con una plantilla:
     «Fotogrametria y teledeteccion III», asignatura obligatoria de 6 ECTS del
     Grado en... Se imparte en el primer cuatrimestre de tercer curso. Al ser
-    texto generado y no prosa de la fuente, se puede leer sin ambiguedad.
+    texto generado y no prosa de la fuente, se lee sin ambiguedad.
 
     Args:
         textos: Textos de los fragmentos entregados al modelo.
@@ -688,13 +680,11 @@ def corregir_atributos(
 
     **El segmento es la linea, no la frase, y eso obliga a ``sujeto``.** Quien
     emite la respuesta por partes la corta antes en frases (ADR-0006), asi que
-    el nombre puede llegar en una llamada y el atributo en la siguiente. Medido
-    con «Automatica avanzada», que el contexto situa en el segundo cuatrimestre:
-    escrito «**Automatica avanzada** (6 ECTS) se imparte en el primer
-    cuatrimestre.» se corregia, y escrito con un punto en medio ---dos frases,
-    que es como se enumera en vinetas--- pasaba **sin corregir y sin aviso**,
-    porque la segunda frase no nombra a nadie. Con ``sujeto`` la asignatura de
-    la que se venia hablando sigue en pie hasta que la linea se cierra.
+    el nombre puede llegar en una llamada y el atributo en la siguiente: puesto
+    el punto en medio ---que es como se enumera en vinetas--- la segunda frase
+    no nombra a nadie y el atributo pasaba sin corregir y sin aviso. Con
+    ``sujeto`` la asignatura de la que se venia hablando sigue en pie hasta que
+    la linea se cierra.
 
     Args:
         texto: Lo que ha redactado el modelo.

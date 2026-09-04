@@ -7,14 +7,12 @@ lado:
 
 * una lista fija ofrece «¿qué menciones tiene?» en las siete titulaciones que
   no tienen ninguna ---los cinco dobles grados, Organización Industrial e
-  Inteligencia Artificial y Ciberseguridad, contado sobre el corpus del
-  19/08/2026, curso 2026-27---, y ahí la pregunta no la puede responder el
-  corpus. Medido sobre ese índice: «¿Qué menciones ofrece el Grado en
-  Ingeniería de Organización Industrial?», con el ámbito acotado a esa
-  titulación, recupera cinco fragmentos y ninguno es de mención; son de plan
-  de estudios, de salidas y de ficha. **Qué contesta el modelo con ese
-  contexto no se ha medido aquí**, pero venga lo que venga no puede salir del
-  corpus, porque el dato no está;
+  Inteligencia Artificial y Ciberseguridad, sobre el corpus del curso
+  2026-27---, y ahí el corpus no puede responderla: «¿Qué menciones ofrece el
+  Grado en Ingeniería de Organización Industrial?», acotada a esa titulación,
+  recupera cinco fragmentos y ninguno es de mención. **Qué contesta el modelo
+  con ese contexto no se ha medido aquí**, pero venga lo que venga no puede
+  salir del corpus, porque el dato no está;
 * pedírselas al modelo las inventa, que es justo lo que las tres barreras de
   restricción de dominio están ahí para impedir.
 
@@ -71,10 +69,10 @@ ARRANQUE_CATALOGO: Final[tuple[str, ...]] = (
 PETICION_DE_CONSEJO: Final[str] = "No sé qué estudiar, ¿qué me recomiendas?"
 
 #: El banco de preguntas: qué fragmento respalda a cada una. La condición se
-#: encadena con la de la titulación, así que cada pregunta se ofrece solo
-#: donde el índice tiene con qué responderla; ninguna está aquí sin haberse
-#: contado antes contra el índice completo. Entre paréntesis, en cuántas de
-#: las doce titulaciones hay respaldo (corpus del 19/08/2026, curso 2026-27).
+#: encadena con la de la titulación, así que cada pregunta se ofrece solo donde
+#: el índice tiene con qué responderla; ninguna está aquí sin haberse contado
+#: antes contra el índice completo. Entre paréntesis, en cuántas de las doce
+#: titulaciones hay respaldo (corpus del curso 2026-27).
 #:
 #: El orden importa dos veces. Es el orden en que se ofrecen, y es también el
 #: que hace que dos sugerencias seguidas no hablen de lo mismo: van alternando
@@ -284,10 +282,9 @@ def sugerencias_para(
     el catálogo y la petición de consejo--- y el resto para titulaciones de
     fuera del ámbito.
 
-    Los botones no proponen comparaciones de forma automática. RU-04 sí las
-    atiende cuando el estudiante las pide: el recuperador trae evidencia de
-    cada titulación por separado y el generador las contrasta. Elegir aquí dos
-    grados al azar produciría una sugerencia poco relacionada con el diálogo.
+    Los botones no proponen comparaciones automáticas, aunque RU-04 las atienda
+    cuando el estudiante las pide: elegir aquí dos grados al azar produciría una
+    sugerencia poco relacionada con el diálogo.
 
     Args:
         tabla: Tabla abierta con :func:`tfg_uja.recuperador.abrir_indice`.

@@ -1,18 +1,16 @@
 """De qué titulación se está hablando, decidido turno a turno por el modelo.
 
-`Conversacion` deducía el sujeto de la conversación con reglas deterministas y
-lo guardaba en `_ambito`, y ese ámbito **solo se sustituía, nunca se vaciaba**:
-en cuanto una titulación entraba, todas las preguntas siguientes se filtraban
-por ella. Siete formas distintas de cambiar de tema —«enséñame todas», «prefiero
-algo de máquinas y motores», «olvídalo, cuéntame de topografía»— no lo
-conseguían, y la última traía veinte fragmentos sin ninguno de Geomática.
+Deducir el sujeto con reglas deterministas dejaba un ámbito que **solo se
+sustituía y nunca se vaciaba**: en cuanto una titulación entraba, todas las
+preguntas siguientes se filtraban por ella. Siete formas distintas de cambiar de
+tema —«enséñame todas», «olvídalo, cuéntame de topografía»— no lo conseguían.
 
-El daño no era solo de navegación. Al ámbito se le pega su nombre detrás de la
-consulta antes de incrustarla, y ese texto añadido acerca **todo** al corpus:
-medido sobre las diez preguntas ajenas del conjunto de validación, el
-recuperador rechaza 5 en el primer turno de una conversación y **0 en el
-noveno**. «Hazme un resumen de la Segunda Guerra Mundial» pasa de cero a veinte
-fragmentos por llevar ocho turnos detrás.
+Y el daño no era solo de navegación: el nombre del ámbito se pega detrás de la
+consulta antes de incrustarla, y ese texto añadido acerca **todo** al corpus.
+Sobre las diez preguntas ajenas del conjunto de validación, el recuperador
+rechaza 5 en el primer turno y **0 en el noveno**; «Hazme un resumen de la
+Segunda Guerra Mundial» pasa de cero a veinte fragmentos por llevar ocho turnos
+detrás.
 
 Por qué lo decide el modelo y no una regla
 ------------------------------------------
@@ -42,15 +40,14 @@ siguen ejecutándose después.
 
 Y lo que el modelo escribe **no se cree: se comprueba** contra el catálogo del
 índice, igual que IT-87 comprueba la respuesta. Cuando se inventó una titulación
-—contestó «Grado en Administración y Dirección de Empresas» a una pregunta
-ajena— la comprobación la rechazó sola.
+—«Grado en Administración y Dirección de Empresas» a una pregunta ajena— la
+comprobación la rechazó sola.
 
-Lo que sí se midió que no se puede hacer es dejarle **reescribir** la pregunta,
+Lo que no se puede hacer, y está medido, es dejarle **reescribir** la pregunta,
 que es lo que recomienda la literatura: reescribió tres preguntas ajenas como
-preguntas legítimas del dominio y las metió en el corpus a 0,0494, más cerca que
-cualquier pregunta de dominio del conjunto de evaluación. El suelo mide el texto
-que escribe el estudiante y solo ese. Se puede decidir **sobre** ese texto; no se
-puede sustituirlo.
+preguntas legítimas y las metió en el corpus a 0,0494, más cerca que cualquier
+pregunta de dominio del conjunto de evaluación. El suelo mide el texto que
+escribe el estudiante y solo ese: se puede decidir **sobre** él, no sustituirlo.
 """
 
 from __future__ import annotations
@@ -102,12 +99,12 @@ LARGO_MINIMO_PARCIAL: Final[int] = 12
 
 #: Veces que se le pide la decisión al modelo antes de darla por perdida.
 #:
-#: Dos, y sale de un caso real del 27/08/2026: con dos clientes hablando a la
-#: vez con el mismo servidor de inferencia, la llamada de decisión se llevó un
-#: 500 y el sistema cayó al mecanismo determinista **sin que nada lo dijera**.
-#: Desde fuera eso se ve exactamente igual que el defecto que esta tarjeta
-#: corrige ---la conversación se queda pegada a la titulación anterior---, así
-#: que un tropiezo pasajero del servidor se lee como una regresión.
+#: Dos, y sale de un caso real: con dos clientes hablando a la vez con el mismo
+#: servidor de inferencia, la llamada de decisión se llevó un 500 y el sistema
+#: cayó al mecanismo determinista **sin que nada lo dijera**. Desde fuera eso
+#: se ve exactamente igual que el defecto que esta tarjeta corrige ---la
+#: conversación se queda pegada a la titulación anterior---, así que un
+#: tropiezo pasajero del servidor se lee como una regresión.
 #:
 #: Un reintento cuesta unos segundos en el único caso en que la alternativa es
 #: responder de la titulación equivocada. Más de uno no: si el servidor está
@@ -192,21 +189,19 @@ def construir_peticion(
     ha hablado todavía de ninguna titulación no hay nada a lo que seguir, y
     ofrecerla invitaba a contestar que sí a un mensaje que no continuaba nada.
 
-    La redacción no es la primera que se escribió: se eligió midiendo tres, con
-    el mismo material ---las siete formas de cambiar de tema, tres seguimientos
-    y las diez preguntas ajenas del conjunto de validación---, porque cambiarle
-    una frase a un prompt cambia lo que decide:
+    La redacción sale de medir tres con el mismo material ---las siete formas de
+    cambiar de tema, tres seguimientos y las diez ajenas del conjunto de
+    validación---, porque cambiarle una frase a un prompt cambia lo que decide:
 
-    * la que está aquí sale del atasco en 6 de 7, conserva los 3 seguimientos y
-      etiqueta bien 9 de las 10 ajenas;
-    * la misma con el bloque del turno anterior en su propio párrafo baja a
-      5 de 7 sin ganar nada;
+    * esta sale del atasco en 6 de 7, conserva los 3 seguimientos y etiqueta
+      bien 9 de las 10 ajenas;
+    * con el bloque del turno anterior en su propio párrafo baja a 5 de 7 sin
+      ganar nada;
     * y añadirle a ``TODAS`` un «o dice qué le gusta o qué busca» ---que parece
       inofensivo y resuelve un caso--- **derrumba el rechazo de ajenas a 6 de
       10**, porque «me gusta el derecho penal, ¿qué carrera me pega?» encaja en
-      esa frase palabra por palabra.
-
-    La última es la que hay que recordar antes de retocar este texto.
+      esa frase palabra por palabra. Es la que hay que recordar antes de
+      retocar este texto.
 
     Args:
         pregunta: Mensaje del usuario, tal cual lo escribe.
@@ -265,14 +260,14 @@ def interpretar(salida: str, catalogo: list[str]) -> Decision:
     declara el índice. Es la misma arquitectura con la que IT-87 comprueba la
     respuesta, aplicada a la consulta: el modelo propone y el catálogo dispone.
 
-    **Lo que no se entiende se trata como :data:`NINGUNA`**, y no como
-    :data:`SIGUE`, que sería quedarse con el ámbito anterior. Hay dos razones.
-    La primera es que el caso real de respuesta ilegible fue el modelo
-    contestando «Grado en Administración y Dirección de Empresas» a una pregunta
-    ajena: nombrar una titulación que la Escuela no imparte es señal de que el
-    mensaje va de otra cosa, no de que siga con la de antes. La segunda es que
-    :data:`NINGUNA` deja la consulta desnuda y sin filtro, que es el camino en el
-    que manda el suelo de pertinencia; es el estado neutro, no el peligroso.
+    **Lo que no se entiende se trata como :data:`NINGUNA`** y no como
+    :data:`SIGUE`, que sería quedarse con el ámbito anterior, por dos razones.
+    El caso real de respuesta ilegible fue el modelo contestando «Grado en
+    Administración y Dirección de Empresas» a una pregunta ajena, y nombrar una
+    titulación que la Escuela no imparte indica que el mensaje va de otra cosa,
+    no que siga con la de antes. Y :data:`NINGUNA` deja la consulta desnuda y
+    sin filtro, que es el camino donde manda el suelo de pertinencia: es el
+    estado neutro, no el peligroso.
 
     Args:
         salida: Lo que devolvió el modelo, tal cual.
@@ -351,9 +346,9 @@ def decisor_con_modelo(
     ámbito y el turno anterior los aporta la conversación en cada llamada.
 
     **Un fallo del servidor no pierde el turno.** Si el modelo no contesta se
-    devuelve ``None``, y la conversación se queda con su mecanismo determinista,
-    que es lo que hacía antes de esta tarjeta. Una decisión de ámbito no merece
-    tumbar una consulta que aún se puede responder.
+    devuelve ``None`` y la conversación se queda con su mecanismo
+    determinista: una decisión de ámbito no merece tumbar una consulta que
+    aún se puede responder.
 
     Args:
         catalogo: Titulaciones que declara el índice.

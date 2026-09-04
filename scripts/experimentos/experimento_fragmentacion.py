@@ -9,9 +9,8 @@ el fragmentador real: el guion sustituye ``chunker._chunks_de_unidad`` y deja
 que ``trocear_dataset`` haga el resto. Sin eso, cualquier diferencia medida
 podría venir de otra parte del proceso.
 
-**Las tres pasan por la misma fusión de residuos** (:data:`MINIMO`), que es lo
-que hace cierta esa frase: si una estrategia se la saltara, competiría con otro
-pipeline y las diferencias medidas no serían solo de dónde corta.
+**Las tres pasan por la misma fusión de residuos** (:data:`MINIMO`): si una se
+la saltara, competiría con otro pipeline y lo medido ya no sería solo el corte.
 
 - ``estructural``: la del ADR-0001. Corta por párrafos y, si hace falta, por
   frases. Su parámetro propio es el tamaño objetivo, como fracción del máximo.
@@ -24,21 +23,18 @@ pipeline y las diferencias medidas no serían solo de dónde corta.
 
 Qué NO mide
 -----------
-Conviene tenerlo delante al leer el informe, porque son cosas que la tabla
-podría sugerir y no sostiene:
+Tres cosas que la tabla puede sugerir y no sostiene:
 
-- **No mide el coste de construir la fragmentación.** El campo
-  ``segundos_evaluacion`` cronometra la evaluación y la tokenización, no el
-  troceo ni las incrustaciones que la estrategia semántica necesita para
-  decidir sus cortes. Esa estrategia es bastante más cara de construir que las
-  otras dos, y ese coste no aparece en ninguna columna.
-- **No mide la calidad del fragmento**, solo si se recupera. El ADR-0001 elige
-  la estructural sobre la de longitud por un argumento de calidad que esta
-  rejilla no puede sostener, y allí queda declarado.
-- **El eje de la rejilla son caracteres y el límite del modelo son tokens.**
-  La correspondencia depende del idioma y del texto, así que 1.500 caracteres
-  no son un número fijo de tokens. Por eso el truncado se cuenta con el
-  analizador léxico del modelo en vez de estimarse.
+- **El coste de construir la fragmentación.** ``segundos_evaluacion`` cronometra
+  la evaluación y la tokenización, no el troceo ni las incrustaciones que la
+  estrategia semántica necesita para decidir sus cortes; es bastante más cara
+  que las otras dos y ese coste no aparece en ninguna columna.
+- **La calidad del fragmento**, solo si se recupera. El ADR-0001 elige la
+  estructural por un argumento de calidad que esta rejilla no puede sostener, y
+  allí queda declarado.
+- **Tokens.** El eje de la rejilla son caracteres y el límite del modelo son
+  tokens, y la correspondencia depende del idioma y del texto. Por eso el
+  truncado se cuenta con el analizador léxico del modelo en vez de estimarse.
 
 Uso
 ---
@@ -96,9 +92,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _adr  # noqa: E402
 
 #: Marcas entre las que vive el bloque que escribe este guion. El resultado del
-#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos hizo
-#: que el 14/08/2026 cuatro cifras del cuerpo del ADR-0001 contradijeran a su
-#: propio anexo, porque una se refrescó y la otra no.
+#: experimento va **dentro del ADR** y no en un fichero aparte: separarlos dejó
+#: cuatro cifras del cuerpo del ADR-0001 contradiciendo a su propio anexo,
+#: porque una se refrescó y la otra no.
 MARCA_INICIO: Final[str] = _adr.marca_inicio(
     "scripts/experimentos/experimento_fragmentacion.py"
 )

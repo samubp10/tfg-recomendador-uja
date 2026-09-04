@@ -1028,8 +1028,8 @@ def test_la_guia_lleva_el_curso_deducido_de_su_url():
 # La EPSJ añadió en 2026-27 un segundo enlace a la celda del nombre, a un
 # documento «Syllabus». Como el nombre se componía juntando TODO el texto de la
 # celda, ese rótulo se pegaba al final: 43 de las 350 asignaturas del rastreo
-# del 28/07/2026 salieron como «... ( Syllabus )», y cuatro preguntas del
-# conjunto de evaluación dejaron de resolver.
+# salieron como «... ( Syllabus )», y cuatro preguntas del conjunto de
+# evaluación dejaron de resolver.
 #
 # IT-93 lo arregló borrando ese rótulo concreto. IT-96 cambia el criterio: el
 # nombre es el texto del enlace que lleva a su guía, así que cualquier otro

@@ -5,7 +5,7 @@ fallado dos veces en dos días y las dos con cifras verosímiles. Un cribado que
 mide mal no avisa de nada, simplemente elige el candidato equivocado.
 
 Los registros son copias literales de ``data/grados.json`` y de las respuestas
-que dieron los candidatos el 18/08/2026.
+que dieron los candidatos en el cribado.
 """
 
 from __future__ import annotations
@@ -86,7 +86,7 @@ def test_comun_a_todas_las_menciones_no_es_una_mencion():
     assert experimento.menciones_del_corpus(_DATOS) == {"Sistemas electrónicos"}
 
 
-# --- Contra qué se comprueba cada familia (regresión del 18/08/2026) ---
+# --- Contra qué se comprueba cada familia (regresión del cribado) ---
 
 _PREGUNTA_MENCIONES = {
     "familia": "menciones",
@@ -372,7 +372,7 @@ def test_el_informe_se_escribe_entero(tmp_path):
 
 
 def test_el_informe_avisa_si_se_mezclaron_dos_servidores(tmp_path):
-    """Regresión del 19/08/2026.
+    """Regresión.
 
     El servidor de inferencia se actualizó solo de la 0.23.2 a la 0.32.14 en
     mitad del cribado. Una diferencia entre candidatos medidos con versiones
@@ -412,7 +412,7 @@ def test_las_respuestas_viejas_sin_version_se_marcan_como_tales(tmp_path):
 def test_sin_presupuesto_no_hay_columna_de_descarte(tmp_path):
     """Eliminar por tiempo exige una máquina en condiciones controladas.
 
-    El 18/08/2026 una respuesta de 581 caracteres marcó 16.677 s porque el
+    Una respuesta de 581 caracteres llegó a marcar 16.677 s porque el
     equipo estaba paginando a disco. Con esa varianza el tiempo describe la
     máquina y no al candidato.
     """
@@ -479,7 +479,7 @@ def _fila_listado(id_: str, precision, cobertura, familia="menciones"):
 
 
 def test_la_prosa_no_entra_en_la_media_de_precision():
-    """Regresión del cribado del 22/08/2026.
+    """Regresión del cribado.
 
     Con la respuesta en prosa contando como 0,0 la media salía 0,500 y decía
     que la mitad de lo enumerado era falso. No se enumeró nada falso: no se
@@ -1068,7 +1068,7 @@ def test_una_tanda_completa_deja_seguir() -> None:
 
 
 def test_una_tanda_a_medias_no_escribe_informe() -> None:
-    """Regresión de IT-133, con el caso real del 01/09/2026.
+    """Regresión de IT-133, con su caso real.
 
     Ollama se cayó en la tercera pregunta del primer modelo. El bucle captura
     el fallo y sigue, que es lo correcto para una pregunta suelta, pero con el

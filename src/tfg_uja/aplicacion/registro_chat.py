@@ -6,38 +6,30 @@ volver a ejecutar nada: con qué se buscó de verdad ---que no es lo que se
 escribió---, qué fragmentos entraron en el contexto y a qué distancia, qué se
 entregó y cuánto se tardó.
 
-**El registro va a ``data/`` y no a otro sitio.** Es donde vive el registro en
-bruto de todos los experimentos del proyecto: la carpeta no se versiona, pero
-persiste entre ramas y árboles de trabajo. Escribirlo dentro del árbol de
-trabajo de una tarjeta ya costó perder las 320 respuestas del cribado de IT-35,
-y con ellas la posibilidad de volver a puntuarlas sin repetir la tanda.
+**El registro va a ``data/``**, donde vive el de todos los experimentos: la
+carpeta no se versiona pero persiste entre ramas y árboles de trabajo.
+Escribirlo dentro del árbol de trabajo de una tarjeta ya costó las 320
+respuestas del cribado de IT-35, y con ellas poder repuntuarlas sin repetir la
+tanda.
 
-**No se recoge ningún dato del visitante**: ni dirección IP, ni cabeceras del
-navegador, ni identificador del cliente. :func:`linea_de_turno` no recibe nada
-de eso, así que no puede colarse por descuido al añadir un campo más adelante.
-
-Lo que sí se conserva, íntegro, es **lo que la persona escribe**: la pregunta,
-la consulta derivada y la respuesta. Y ese texto es libre, de modo que puede
-contener un nombre, un correo, un teléfono o una circunstancia personal si a
-quien escribe le da por ponerlos. Por eso este fichero se trata como dato
-potencialmente personal: vive solo en la máquina, no se versiona y no sale de
-ahí.
+**No se recoge ningún dato del visitante**: ni IP, ni cabeceras, ni
+identificador de cliente. :func:`linea_de_turno` no los recibe, así que no
+pueden colarse al añadir un campo más adelante. Sí se conserva íntegro **lo que
+la persona escribe** ---pregunta, consulta derivada y respuesta---, que es texto
+libre y puede llevar un nombre o un teléfono si a quien escribe le da por
+ponerlos. Por eso el fichero se trata como dato potencialmente personal: vive
+solo en la máquina y no sale de ahí.
 
 **Esto no es el RNF-03 y no debe citarse como tal.** El RNF-03 dice «no
-incorporar datos personales *a la colección*», y la colección es el corpus que
-se indexa, no este cuaderno de campo. El requisito se cumple; lo que no se
-puede afirmar es la versión fuerte ---«aquí no hay ningún dato personal»---,
-que sería más de lo que este módulo puede garantizar.
+incorporar datos personales *a la colección*», y la colección es el corpus
+indexado, no este cuaderno de campo. El requisito se cumple; lo que no se puede
+afirmar es la versión fuerte, «aquí no hay ningún dato personal».
 
-**Registrar es una tarea auxiliar y se comporta como tal.**
-:func:`anotar_turno` no propaga ningún fallo: si el disco está lleno, el
-fichero bloqueado o la ruta no existe, se pierde la línea y el estudiante
-recibe igualmente su respuesta. Al revés ---tumbar la respuesta por no poder
-tomar nota de ella--- sería subordinar el sistema a su cuaderno de campo.
-
-Se descarta el módulo ``logging`` a propósito: lo que hace falta es un JSONL
-que se lea línea a línea con ``json.loads``, no un log de texto que haya que
-volver a analizar con expresiones regulares para contar cualquier cosa.
+**Registrar es auxiliar y se comporta como tal:** :func:`anotar_turno` no
+propaga ningún fallo, así que un disco lleno pierde la línea y no la respuesta.
+Se descarta ``logging`` a propósito: hace falta un JSONL que se lea con
+``json.loads``, no un log de texto que haya que analizar con expresiones
+regulares para contar cualquier cosa.
 """
 
 from __future__ import annotations
@@ -93,22 +85,20 @@ def linea_de_turno(
     """Compone la línea del registro. No toca disco, ni red, ni el modelo.
 
     Se separa de :func:`anotar_turno` por el mismo motivo por el que
-    :func:`tfg_uja.servidor.partes_de_la_respuesta` no sabe nada de HTTP: lo
-    que decide **qué** se guarda se prueba entero sin montar nada alrededor.
+    :func:`tfg_uja.servidor.partes_de_la_respuesta` no sabe nada de HTTP: lo que
+    decide **qué** se guarda se prueba entero sin montar nada alrededor.
 
     ``se_busco`` separa dos turnos que se leen igual y no lo son: el que no
-    recuperó nada porque la respuesta era fija ---un saludo ni siquiera llega
-    al índice--- y el que sí buscó y se quedó sin nada porque el suelo de
-    pertinencia lo descartó todo. En los dos ``recuperados`` vale cero, y no
-    hay forma de deducir cuál fue mirando la respuesta: «hola» y «hei» acaban
-    las dos en el mismo texto de bienvenida y solo una de las dos buscó.
+    recuperó nada porque la respuesta era fija ---un saludo no llega al índice---
+    y el que buscó y se quedó sin nada porque el suelo lo descartó todo. En los
+    dos ``recuperados`` vale cero, y «hola» y «hei» acaban en el mismo texto de
+    bienvenida aunque solo una de las dos buscara.
 
-    Se guardan la pregunta y la consulta por separado porque no son lo mismo:
-    la conversación reescribe la pregunta antes de buscar ---le hereda el
-    predicado o le añade la titulación de la que se venía hablando---, y sin
-    las dos no se puede saber si un fallo vino de lo que se escribió o de lo
-    que se buscó. La distancia de cada fragmento se guarda por lo mismo: es lo
-    único que permite comprobar después si actuó el suelo de pertinencia.
+    Pregunta y consulta se guardan por separado porque no son lo mismo: la
+    conversación reescribe la pregunta antes de buscar, y sin las dos no se sabe
+    si un fallo vino de lo que se escribió o de lo que se buscó. La distancia de
+    cada fragmento va por lo mismo: es lo único que permite comprobar después si
+    actuó el suelo de pertinencia.
 
     Args:
         pregunta: Lo que escribió el estudiante, tal cual.
@@ -140,8 +130,7 @@ def linea_de_turno(
             # Quién decidió el ámbito y qué dijo. Sin esto, un turno en el que
             # la decisión falló y otro en el que el modelo dijo «sigue» dejan
             # exactamente el mismo rastro, y el primero se confunde con el
-            # defecto del ámbito atascado. Pasó el 27/08/2026 y solo se vio
-            # comparando tiempos.
+            # defecto del ámbito atascado, que solo se vio comparando tiempos.
             "decision": consulta.decision,
             "abierta": consulta.abierta,
         },

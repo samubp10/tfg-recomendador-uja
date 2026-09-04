@@ -314,10 +314,10 @@ def test_las_palabras_comunes_del_catalogo_no_sirven_para_reconocer():
 
 
 #: El catálogo real que graba el índice del proyecto, copiado del corpus del
-#: 17/08/2026. Con tres nombres inventados la regla se comporta de otro modo:
-#: «eléctrica» aparece en dos de tres y deja de ser distintiva, mientras que en
-#: las doce reales está en tres y sí lo es. Un umbral relativo hay que probarlo
-#: contra el reparto de verdad.
+#: Con tres nombres inventados la regla se comporta de otro modo: «eléctrica»
+#: aparece en dos de tres y deja de ser distintiva, mientras que en las doce
+#: reales está en tres y sí lo es. Un umbral relativo hay que probarlo contra
+#: el reparto de verdad.
 CATALOGO_REAL = [
     "Doble Grado en Ingeniería Electrónica Industrial y Mecánica",
     "Doble Grado en Ingeniería Eléctrica y Electrónica Industrial",
@@ -529,7 +529,7 @@ def test_una_pregunta_real_sigue_pasando_el_suelo():
 
 
 def test_el_suelo_deja_pasar_la_pregunta_legitima_mas_lejana():
-    """Medido el 18/08/2026 sobre las 50 preguntas de IT-27.
+    """Medido sobre las 50 preguntas de IT-27.
 
     La más lejana ---«¿Qué temario tiene Ampliación de matemáticas?»--- tiene
     su mejor fragmento a 0,137. Un suelo por debajo de eso haría que el sistema
@@ -571,8 +571,8 @@ def test_el_suelo_conserva_la_peor_pregunta_legitima():
 def test_se_reconoce_a_quien_no_sabe_que_estudiar():
     """Caso real: sin las tres últimas palabras, el sistema no recuperaba nada.
 
-    Medido el 19/08/2026 contra el índice completo: «No sé qué estudiar, me
-    gusta la física y el dibujo técnico» tenía su mejor fragmento a 0,1466, por
+    Medido contra el índice completo: «No sé qué estudiar, me gusta la física
+    y el dibujo técnico» tenía su mejor fragmento a 0,1466, por
     encima del suelo de 0,142, y devolvía cero fragmentos. La misma frase con
     «¿qué me recomiendas?» detrás bajaba a 0,1339 y traía nueve.
     """
@@ -688,8 +688,8 @@ def test_una_peticion_de_consejo_se_amplia_y_no_se_acota(monkeypatch):
 def test_si_la_pregunta_se_queda_sin_contexto_se_reintenta_con_el_respaldo(monkeypatch):
     """Una pregunta de seguimiento que no se sostiene sola busca otra vez.
 
-    Medido el 20/08/2026: tras preguntar por las optativas de una titulación,
-    «¿y cuántas son en total?» tenía su mejor fragmento a 0,1722, por debajo del
+    Medido: tras preguntar por las optativas de una titulación, «¿y cuántas
+    son en total?» tenía su mejor fragmento a 0,1722, por debajo del
     suelo, y el sistema decía no haber encontrado información sobre lo que él
     mismo acababa de contestar. El reintento se dispara solo con la lista vacía,
     que es un hecho comprobado y no una conjetura sobre la frase.

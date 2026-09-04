@@ -8,34 +8,32 @@ Lo que se mide y por qué
 ------------------------
 
 Comparar generadores «a ojo» no se sostiene ante un tribunal: quien mira ya
-tiene una preferencia. Lo que sí es objetivo es contrastar la respuesta contra
-el corpus, porque el corpus contiene todos los nombres de titulación y de
-asignatura de la EPSJ. De ahí salen cuatro cifras, todas sin juez:
+tiene una preferencia. Lo objetivo es contrastar la respuesta contra el corpus,
+que contiene todos los nombres de titulación y de asignatura de la EPSJ. De ahí
+salen cuatro cifras, todas sin juez:
 
 * **Titulaciones inventadas.** Nombres con forma de titulación que no están en
-  el catálogo. Es el fallo más grave que puede cometer el sistema ---a un
-  preuniversitario recomendarle una carrera que no existe--- y por eso se trata
-  como criterio eliminatorio, no como una penalización más.
+  el catálogo. Es el fallo más grave del sistema ---recomendarle a un
+  preuniversitario una carrera que no existe---, así que es criterio
+  eliminatorio y no una penalización más.
 * **Precisión del listado.** De lo que el modelo enumera, cuánto existe.
 * **Cobertura del listado.** De lo que el dataset dice, cuánto aparece. Hacen
   falta las dos: un modelo puede no inventarse nada y dejarse media lista.
-* **Acierto escalar.** En las preguntas de créditos y de curso la respuesta es
-  un único valor, así que se compara con el del dataset.
+* **Acierto escalar.** En créditos y curso la respuesta es un único valor y se
+  compara con el del dataset.
 
-Y el tiempo, que se informa pero **no descarta**: eliminar por tiempo exige una
-máquina en condiciones controladas, y esta responde mientras hace otras cosas.
-Se activa con ``--presupuesto`` cuando se pueda medir en reposo.
+El tiempo se informa pero **no descarta**: eliminar por tiempo exige una máquina
+en condiciones controladas y esta responde mientras hace otras cosas. Se activa
+con ``--presupuesto`` cuando se pueda medir en reposo.
 
 Lo que NO se mide
 -----------------
 
 Si la respuesta está bien escrita, si la recomendación es buena o si el temario
-que resume es fiel. Nada de eso se computa del dataset, así que no entra en el
-criterio de decisión. Se observa aparte, a mano, y se cuenta como tal.
-
-La medición tampoco separa el fallo del modelo del fallo del recuperador: si no
-llega el fragmento, el modelo no puede acertar. Por eso se registra también
-cuántos fragmentos recibió cada respuesta.
+es fiel: nada de eso se computa del dataset, así que se observa a mano y se
+cuenta aparte, sin entrar en el criterio de decisión. Tampoco se separa el fallo
+del modelo del fallo del recuperador ---sin fragmento no hay acierto posible---,
+y por eso se registra cuántos recibió cada respuesta.
 
 Uso::
 
@@ -49,15 +47,13 @@ Opciones habituales::
     --recalcular         # repuntúa lo guardado
     --adr                # datos brutos al ADR-0005
 
-Las respuestas se van guardando según se producen y una ejecución nueva **no
-repite** lo ya medido: con modelos que tardan minutos por pregunta, perder dos
-horas por un corte del servidor no es aceptable.
+Las respuestas se guardan según se producen y una ejecución nueva **no repite**
+lo ya medido: con modelos que tardan minutos por pregunta, un corte del servidor
+no puede costar dos horas.
 
-El registro y el informe se escriben en ``data/``, que no se versiona pero
-persiste entre ramas y árboles de trabajo. Un cribado no es una decisión de
-arquitectura y su informe no tiene por qué versionarse; lo que sí hay que
-proteger es el registro en bruto, que cuesta horas de modelo y del que el
-informe se rehace en segundos.
+Registro e informe se escriben en ``data/``, que no se versiona pero persiste
+entre ramas y árboles de trabajo. Lo que hay que proteger es el registro en
+bruto, que cuesta horas de modelo; el informe se rehace de él en segundos.
 
 Con ``--adr`` se escriben además los datos brutos **dentro del ADR-0005**, entre
 sus marcas de resultados automáticos, que es donde este proyecto guarda los
@@ -171,8 +167,8 @@ MODELOS: Final[tuple[str, ...]] = (
 #:
 #: El tope existe porque un estudiante espera delante de la pantalla, pero
 #: **descartar por tiempo exige una máquina en condiciones controladas** y esta
-#: no lo está: las respuestas se miden mientras el equipo hace otras cosas, y el
-#: 18/08/2026 una respuesta de 581 caracteres marcó 16.677 s porque el sistema
+#: no lo está: las respuestas se miden mientras el equipo hace otras cosas, y
+#: una respuesta de 581 caracteres llegó a marcar 16.677 s porque el sistema
 #: estaba paginando a disco. Con esa varianza, el tiempo describe la máquina y
 #: no al candidato, así que se informa pero no elimina. Se activa a propósito,
 #: con ``--presupuesto``, cuando se pueda medir en reposo.
@@ -235,12 +231,11 @@ def universo(
     existe. Nombrar algo real que no venía a cuento no es inventárselo, y ese
     fallo lo recoge la cobertura, que sí depende de la pregunta.
 
-    Restringirlo por familia ---como se hizo antes--- mezcla en una sola cifra
-    la invención y la pertinencia, y ha fallado en las dos direcciones. Medido
-    el 18/08/2026, comprobando las trece preguntas de mención contra los
-    nombres de asignatura, los tres candidatos daban precisión 0,59-0,62 por
-    enumerar bien las menciones pedidas. Medido el 19/08/2026, con el conjunto
-    ya restringido a las menciones, ``command-r7b`` sacaba precisión 0,136 en
+    Restringirlo por familia mezcla en una sola cifra la invención y la
+    pertinencia, y falla en las dos direcciones. Comprobando las trece
+    preguntas de mención contra los nombres de asignatura, los tres candidatos
+    daban precisión 0,59-0,62 por enumerar bien las menciones pedidas; con el
+    conjunto ya restringido a las menciones, ``command-r7b`` sacaba 0,136 en
     ``G-MEN-003`` por enumerar además las asignaturas de cada mención, que son
     diecinueve nombres reales del corpus.
 
@@ -400,9 +395,9 @@ def responder_una(
 def version_del_servidor(servidor: str = SERVIDOR) -> str:
     """Versión del servidor de inferencia que está respondiendo.
 
-    Se anota en cada respuesta porque el servidor **se actualiza solo**. El
-    19/08/2026 saltó de la 0.23.2 a la 0.32.14 en mitad del cribado, entre las
-    240 respuestas ya medidas y las que faltaban. Sin este dato, la diferencia
+    Se anota en cada respuesta porque el servidor **se actualiza solo**: saltó
+    de la 0.23.2 a la 0.32.14 en mitad de un cribado, entre las 240 respuestas
+    ya medidas y las que faltaban. Sin este dato, la diferencia
     entre unos candidatos y otros podría venir del tiempo de ejecución y no del
     modelo, y nadie se habría enterado.
 
@@ -517,9 +512,9 @@ def exigir_tanda_completa(
     que midió todo, y sus medias salían de las pocas respuestas que llegaron a
     entrar.
 
-    Pasó el 01/09/2026. Ollama se cayó en la tercera pregunta del primer
-    modelo, el proceso terminó sin quejarse y la tabla del ADR se quedó con las
-    cifras de la tanda anterior, que ya no correspondían al corpus vigente. Es
+    Ha pasado: Ollama se cayó en la tercera pregunta del primer modelo, el
+    proceso terminó sin quejarse y la tabla del ADR se quedó con las cifras de
+    la tanda anterior, que ya no correspondían al corpus vigente. Es
     la misma familia de defecto que este proyecto lleva encontrando desde
     IT-10: **el instrumento dice «hecho» sin haber hecho nada**, y aquí el
     precio sería publicar una métrica calculada sobre un trozo del banco.

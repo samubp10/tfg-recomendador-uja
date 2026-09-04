@@ -7,9 +7,9 @@ conversación, así que el ámbito y la anáfora no se prueban; no hay cortesía
 que esas ramas no se ejecutan ni una vez; y casi no hay peticiones de consejo,
 que es el caso de uso que da sentido al asistente.
 
-Los siete fallos de la sesión del 19/08/2026 los encontró una conversación a
-mano, no el experimento. Este banco existe para que la próxima vez los encuentre
-el experimento.
+Los siete fallos que motivan este banco los encontró una conversación a mano,
+no el experimento. Existe para que la próxima vez los encuentre el
+experimento.
 
 **Cómo se comprueba cada familia, siempre sin juez:**
 
@@ -116,7 +116,7 @@ def conversaciones() -> list[dict[str, Any]]:
         {
             "id": "S-CONV-002",
             "familia": "conversacion",
-            "que_prueba": "regresión del turno 7 del 19/08/2026: el doble grado "
+            "que_prueba": "regresión: el doble grado "
             "no puede arrastrar al simple que contiene",
             "turnos": [
                 "Háblame del Doble Grado en Ingeniería Mecánica y Organización "

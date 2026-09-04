@@ -1,7 +1,7 @@
 """Pruebas de la gestión de la conversación (IT-106).
 
 Las conversaciones de este fichero no son inventadas: son las que fallaron de
-verdad al probar el sistema a mano los días 17 y 18/08/2026, con los turnos en
+verdad al probar el sistema a mano, con los turnos en
 el mismo orden. Una prueba escrita con diálogos imaginarios no reproduce la
 forma en que se rompe una conversación real.
 
@@ -62,7 +62,7 @@ def test_una_pregunta_situa_por_su_nombre_corto():
 def test_un_nombre_ambiguo_devuelve_todas_las_que_encajan():
     """«electrónica» está en tres titulaciones; elegir una sería inventar.
 
-    El 18/08/2026 el sistema contestó sobre el Grado en Ingeniería Eléctrica a
+    El sistema contestaba sobre el Grado en Ingeniería Eléctrica a
     «¿y en el grado de electrónica?». Devolver las tres y dejar que el filtro
     las admita todas es lo honesto: la pregunta es ambigua de verdad.
     """
@@ -107,7 +107,7 @@ def test_una_pregunta_elipsis_no_aporta_contenido():
 
 
 def test_el_sujeto_puede_venir_de_la_respuesta_del_asistente():
-    """Conversación real del 18/08/2026, turnos 13 y 14 de gemma3:12b.
+    """Conversación real, turnos 13 y 14 de gemma3:12b.
 
     El estudiante nunca nombró la titulación: la nombró el asistente al
     recomendársela. Mirando solo las preguntas, el sistema no sabía de qué se
@@ -125,7 +125,7 @@ def test_el_sujeto_puede_venir_de_la_respuesta_del_asistente():
 
 
 def test_una_pregunta_que_solo_cambia_el_sujeto_recupera_el_predicado():
-    """Turno 10 del 18/08/2026: «Y en el grado de electrónica?».
+    """Turno 10 de la conversación real: «Y en el grado de electrónica?».
 
     Nombra una titulación, así que el mecanismo de IT-37 la daba por
     autosuficiente y la incrustaba sola. Pero «electrónica» suelta es un
@@ -152,7 +152,7 @@ def test_al_cambiar_de_sujeto_no_se_arrastra_el_anterior():
 
 
 def test_no_se_arrastra_el_texto_de_una_pregunta_sin_predicado():
-    """Regresión del 17/08/2026: seis asignaturas inventadas.
+    """Regresión: seis asignaturas inventadas.
 
     A «¿Y en el segundo?» se le antepusieron las dos preguntas anteriores
     literalmente, y una era «¿y cuántas de esas son optativas?». La consulta
@@ -170,10 +170,10 @@ def test_no_se_arrastra_el_texto_de_una_pregunta_sin_predicado():
 def test_una_pregunta_que_se_sostiene_sola_no_se_toca():
     """Arrastrar lo que no hace falta estropea la consulta.
 
-    Medido el 17/08/2026: a «¿cuántas asignaturas tiene el Grado en Ingeniería
-    Informática?» se le antepuso una pregunta sobre una asignatura suelta, el
-    vector quedó dominado por ella y el sistema respondió que la titulación
-    entera «cuenta con una sola asignatura».
+    Anteponiendo a «¿cuántas asignaturas tiene el Grado en Ingeniería
+    Informática?» una pregunta sobre una asignatura suelta, el vector queda
+    dominado por ella y el sistema respondía que la titulación entera «cuenta
+    con una sola asignatura».
     """
     c = Conversacion(CATALOGO)
     c.anotar("¿Qué se ve en Álgebra?", "Matrices y determinantes.")
@@ -206,7 +206,7 @@ def test_un_ordinal_solo_no_dice_que_se_pregunta():
 def test_solo_recorta_la_que_se_refiere_a_lo_anterior():
     """Empezar por «y» no basta para descartarla como predicado.
 
-    Medido el 18/08/2026 sobre la conversación real: «¿Y qué asignaturas tiene
+    Medido sobre la conversación real: «¿Y qué asignaturas tiene
     en primero?» empieza por «y» pero sí plantea tema, y descartarla dejaba a
     la siguiente heredando de «soy de bachillerato y me gustan los
     videojuegos», que no dice nada del plan de estudios.
@@ -230,9 +230,9 @@ def test_una_pregunta_que_solo_lleva_ordinal_hereda_el_predicado_original():
 def test_el_ordinal_heredado_lo_sustituye_el_de_la_pregunta():
     """Si la pregunta trae su curso, el del predicado heredado sobra.
 
-    Medido el 18/08/2026 con la conversación real: heredando «¿y qué
-    asignaturas tiene en primero?» entera, a «¿y en segundo?» le seguían
-    llegando los listados de *primer* curso.
+    Medido con la conversación real: heredando «¿y qué asignaturas tiene en
+    primero?» entera, a «¿y en segundo?» le seguían llegando los listados de
+    *primer* curso.
     """
     c = Conversacion(CATALOGO)
     c.anotar("¿Y qué asignaturas tiene en primero del Grado en Informática?", "...")
@@ -346,7 +346,7 @@ def test_el_ambito_que_se_devuelve_es_una_copia():
 
 
 def test_el_doble_grado_no_arrastra_al_simple_que_contiene():
-    """Regresión: turno 6 de la sesión del 19/08/2026 con `ministral-8b`.
+    """Regresión: turno 6 de la sesión a mano con `ministral-8b`.
 
     La respuesta nombró el Doble Grado en Ingeniería Mecánica y Organización
     Industrial, y el ámbito se quedó también con el Grado en Ingeniería
@@ -391,7 +391,7 @@ def test_el_simple_repetido_dentro_del_doble_sigue_sin_contar():
 
 
 def test_la_pregunta_de_seguimiento_lleva_respaldo():
-    """Regresión medida el 20/08/2026 sobre el índice completo.
+    """Regresión sobre el índice completo.
 
     «¿Y cuántas son en total?» tiene palabras de contenido ---«total», «son»---
     así que no se la trata como elíptica y se incrusta tal cual. Su mejor
@@ -734,7 +734,7 @@ def test_regresion_una_respuesta_fija_no_reapunta_el_ambito() -> None:
 
 
 def test_regresion_una_respuesta_fija_tampoco_pisa_el_predicado() -> None:
-    """La otra mitad del mismo defecto, encontrada el 02/09/2026.
+    """La otra mitad del mismo defecto.
 
     IT-121 protegió la titulación, pero no el asunto. La asignación del
     predicado iba por delante del `return`, así que un saludo intercalado lo

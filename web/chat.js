@@ -225,7 +225,7 @@ function abrirRespuesta() {
  * cuanto llegan es que la recuperación terminó y quien tarda es el modelo. Un
  * umbral de segundos habría dicho «redactando» aunque la búsqueda siguiera.
  *
- * Medido el 24/08/2026 sobre el banco del sistema: una pregunta de un turno que
+ * Medido sobre el banco del sistema: una pregunta de un turno que
  * llega al modelo tarda 62,7 s de mediana y el percentil 90 pasa de los dos
  * minutos. Un minuto sin ninguna senal es indistinguible de una aplicacion
  * colgada, asi que se cuenta el tiempo en voz alta y, pasado el umbral, se

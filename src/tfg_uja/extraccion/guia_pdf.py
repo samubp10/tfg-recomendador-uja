@@ -33,25 +33,16 @@ from tfg_uja.text_cleaner import limpiar_texto
 # logger para que un PDF corrupto no ensucie la salida del rastreo.
 logging.getLogger("pypdf").setLevel(logging.ERROR)
 
-#: Rótulos de sección de la plantilla de guía docente de la UJA. Sirven como
-#: FRONTERAS: una sección abarca desde su rótulo hasta el siguiente rótulo
-#: conocido. No confundir con los títulos de tema del temario, que también van
-#: en mayúsculas ("INTRODUCCIÓN A LA CARTOGRAFÍA Y SIG") pero NO están en este
-#: conjunto y, por tanto, se conservan como contenido en lugar de cortar la
-#: sección. Se recogen las variantes observadas (singular/plural) porque la UJA
-#: no es consistente entre planes.
-_ROTULOS_SECCION: Final[frozenset[str]] = frozenset(
+#: Rótulos que la plantilla de la UJA trae en TODAS las guías: medidos sobre
+#: 293 guías rastreadas, estos trece aparecen en las 293.
+_ROTULOS_ESPERADOS: Final[frozenset[str]] = frozenset(
     {
         "FICHA IDENTIFICATIVA",
         "PROFESORADO",
         "RESUMEN",
-        "COMPETENCIAS",
         "COMPETENCIAS / RESULTADOS DEL PROCESO DE FORMACIÓN Y APRENDIZAJE",
-        "RESULTADOS DE APRENDIZAJE",
         "DESCRIPCIÓN DE CONTENIDOS",
-        "METODOLOGÍA DOCENTE",
         "METODOLOGÍAS DOCENTES Y ACTIVIDADES FORMATIVAS",
-        "SISTEMA DE EVALUACIÓN",
         "SISTEMAS DE EVALUACIÓN",
         "BIBLIOGRAFÍA",
         "OBJETIVOS DE DESARROLLO SOSTENIBLE",
@@ -59,6 +50,32 @@ _ROTULOS_SECCION: Final[frozenset[str]] = frozenset(
         "PLAN DE CONTINGENCIA",
         "CLÁUSULAS",
         "COMPROMISO CON LA IGUALDAD Y LA PERSPECTIVA DE GÉNERO",
+    }
+)
+
+#: Rótulos de sección de la plantilla, los constantes y los que varían. Sirven
+#: como FRONTERAS: una sección abarca desde su rótulo hasta el siguiente rótulo
+#: conocido. No confundir con los títulos de tema del temario, que también van
+#: en mayúsculas ("INTRODUCCIÓN A LA CARTOGRAFÍA Y SIG") pero NO están en este
+#: conjunto y, por tanto, se conservan como contenido en lugar de cortar la
+#: sección.
+#:
+#: Se construye a partir del anterior en lugar de repetir sus trece nombres,
+#: porque la relación entre los dos conjuntos no es casual: todo rótulo que
+#: siempre aparece tiene que servir de frontera. Escritos por separado, corregir
+#: una tilde en uno solo rompería esa relación sin que nada lo dijera.
+#:
+#: Los añadidos son las variantes que unas veces salen y otras no
+#: («COMPETENCIAS» en 33 guías, «SISTEMA DE EVALUACIÓN» en 5) o que ya no
+#: aparecen nunca («RESULTADOS DE APRENDIZAJE», «METODOLOGÍA DOCENTE»): siguen
+#: aquí porque como frontera no estorban, pero exigirlas sería inventarse un
+#: invariante que la fuente no cumple.
+_ROTULOS_SECCION: Final[frozenset[str]] = _ROTULOS_ESPERADOS | frozenset(
+    {
+        "COMPETENCIAS",
+        "RESULTADOS DE APRENDIZAJE",
+        "METODOLOGÍA DOCENTE",
+        "SISTEMA DE EVALUACIÓN",
     }
 )
 
@@ -79,31 +96,6 @@ _RUIDO_PAGINA: Final[tuple[re.Pattern[str], ...]] = (
 #: como red de seguridad final sobre lo ya filtrado por la lista de permitidos.
 _CORREO: Final[re.Pattern[str]] = re.compile(r"[\w.\-]+@[\w.\-]+\.\w+")
 _TELEFONO: Final[re.Pattern[str]] = re.compile(r"\b\d{9}\b")
-
-#: Rótulos que la plantilla de la UJA trae en TODAS las guías. Medido sobre
-#: las 293 guías del rastreo del 29/07/2026: estos trece aparecen en las 293.
-#: El resto de `_ROTULOS_SECCION` son variantes que unas veces salen y otras no
-#: («COMPETENCIAS» en 33, «SISTEMA DE EVALUACIÓN» en 5) o que ya no aparecen
-#: nunca («RESULTADOS DE APRENDIZAJE», «METODOLOGÍA DOCENTE»); siguen en el
-#: conjunto porque como frontera no estorban, pero exigirlas sería inventarse
-#: un invariante que la fuente no cumple.
-_ROTULOS_ESPERADOS: Final[frozenset[str]] = frozenset(
-    {
-        "FICHA IDENTIFICATIVA",
-        "PROFESORADO",
-        "RESUMEN",
-        "COMPETENCIAS / RESULTADOS DEL PROCESO DE FORMACIÓN Y APRENDIZAJE",
-        "DESCRIPCIÓN DE CONTENIDOS",
-        "METODOLOGÍAS DOCENTES Y ACTIVIDADES FORMATIVAS",
-        "SISTEMAS DE EVALUACIÓN",
-        "BIBLIOGRAFÍA",
-        "OBJETIVOS DE DESARROLLO SOSTENIBLE",
-        "ESTUDIANTADO CON NECESIDADES ESPECÍFICAS DE APOYO EDUCATIVO",
-        "PLAN DE CONTINGENCIA",
-        "CLÁUSULAS",
-        "COMPROMISO CON LA IGUALDAD Y LA PERSPECTIVA DE GÉNERO",
-    }
-)
 
 
 def rotulos_presentes(datos: bytes) -> list[str]:
@@ -326,10 +318,9 @@ def motivo_sin_guia(datos: bytes) -> str:
     """Explica por qué un PDF no ha dado ni resumen ni temario.
 
     Se llama solo cuando :func:`extraer_guia` ha devuelto ``None``, para poder
-    registrar qué ha pasado en vez de un aviso genérico. Hasta IT-95 los cuatro
-    casos eran indistinguibles y el rastreo los llamaba a todos «PDF ilegible»,
-    que resultó ser falso: los seis casos reales observados el 29/07/2026 se
-    leían perfectamente y lo que estaba vacío eran las secciones en el origen.
+    registrar qué ha pasado en vez de un aviso genérico (IT-95). Llamarlos a
+    todos «PDF ilegible» sería falso: los seis casos reales del corpus se leen
+    perfectamente y lo que está vacío son sus secciones en el origen.
 
     Args:
         datos: Bytes del PDF descargado.

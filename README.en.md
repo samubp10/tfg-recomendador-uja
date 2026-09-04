@@ -290,13 +290,26 @@ data/               # generated artefacts (NOT versioned)
 
 - **Kanban** on GitHub Projects: every task is an `IT-XX` issue with its phase,
   MoSCoW priority and milestone.
-- **Conventional Commits** (`type(IT-XX): description`), with a mandatory body
-  explaining the *why* of each decision.
-- Short-lived branches off `main` (code) or `doc` (thesis); always merged with a
-  *merge commit*, never *squash*.
+- Short-lived branches off `main` (code) or `doc` (thesis), named
+  `IT-XX-short-description`; always merged with a *merge commit*, never
+  *squash*.
+- **Conventional Commits** (`type(IT-XX): description`), the type in English as
+  part of the standard and the description in Spanish. The types in use are
+  `feat`, `fix`, `docs`, `test`, `refactor`, `chore` and `ci`. The body is
+  mandatory and explains the *why* of the decision, not the what.
+- Every branch is closed by a pull request linking its issue (`Closes #NN`),
+  and is not merged until CI is green.
 - Design decisions recorded as **ADRs** in `docs/adr/`; data-source anomalies as
   **DQAs** in `docs/dqa/`.
 - CI on GitHub Actions: `pytest` + `mypy` on every push and pull request.
+
+### Definition of Done
+
+A task is finished once it meets all six criteria: it **works** ---executed,
+not merely read---, it **has tests** with real cases, it **is documented**
+(docstrings, commit body and an ADR where applicable), it **is integrated**
+into `main` with CI green, it **is defensible** in two minutes, and it **is
+reflected in the thesis**.
 
 ## Design decisions
 

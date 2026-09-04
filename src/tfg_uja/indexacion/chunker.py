@@ -12,10 +12,10 @@ en un solo chunk del tamaño que admite el modelo de incrustaciones elegido,
 por lo que se trocea respetando párrafos y frases, y cada chunk se hace
 autocontenido anteponiendo un encabezado con la asignatura y el grado.
 
-Los tamaños dejaron de ser provisionales en IT-16: salen de una búsqueda en
-rejilla de 45 configuraciones (tres estrategias × cinco máximos × tres
-valores del parámetro propio de cada una) medida sobre el conjunto de
-evaluación, no de una estimación de cuántos tokens caben en un carácter.
+Los tamaños salen de una búsqueda en rejilla de 45 configuraciones (tres
+estrategias × cinco máximos × tres valores del parámetro propio de cada una)
+medida sobre el conjunto de evaluación (IT-16), no de una estimación de
+cuántos tokens caben en un carácter.
 """
 
 from __future__ import annotations
@@ -33,23 +33,16 @@ from tfg_uja.text_cleaner import normalizar_rotulo
 #: máximo: la rejilla de IT-16 midió las tres proporciones (60 %, 80 % y
 #: 100 % del máximo) y la de 100 % fue la mejor de la estrategia estructural,
 #: así que no hay motivo para dejar hueco sin usar.
-#:
-#: Valía 1200, elegido como aproximación a los ~512 tokens que se suponía que
-#: admitían los modelos multilingües habituales. Esa premisa resultó falsa
-#: —dos de los cuatro candidatos de IT-28 servían 128 tokens— y la estimación
-#: nunca se contrastó con el analizador léxico del modelo que acabó
-#: eligiéndose. Ahora sale de la medición y no de una regla de tres.
 TAMANO_OBJETIVO: Final[int] = 900
 
 #: Tamaño máximo estricto de un chunk. Ningún chunk lo supera: un párrafo
 #: más largo se divide por frases.
 #:
-#: Valía 1500. La rejilla de IT-16 recorrió 600, 900, 1200, 1500 y 1800 con
-#: las tres estrategias y encontró que este parámetro pesa mucho más que la
-#: estrategia: a igualdad de estrategia, cuanto menor es el máximo, mejor se
-#: recupera. Se elige 900 y no 600 porque 600 gana en las métricas pero
-#: multiplica los fragmentos, y esa ventaja no sobrevive al controlar por su
-#: número; la de 900 sí (ver ADR-0001).
+#: La rejilla de IT-16 recorrió 600, 900, 1200, 1500 y 1800 y encontró que este
+#: parámetro pesa mucho más que la estrategia: a igualdad de estrategia, cuanto
+#: menor es el máximo, mejor se recupera. Se elige 900 y no 600 porque 600 gana
+#: en las métricas pero multiplica los fragmentos, y esa ventaja no sobrevive
+#: al controlar por su número; la de 900 sí (ver ADR-0001).
 #:
 #: El argumento que no depende de ninguna métrica discutible es el truncado:
 #: con 900 ningún fragmento supera la ventana del modelo de incrustaciones,
@@ -108,10 +101,10 @@ _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
 #: Rótulo con el que la fuente marca las optativas que no pertenecen a ninguna
 #: mención concreta. **No es una mención**, aunque viaje en el mismo campo que
-#: ellas, y presentarlo como tal induce a error: medido el 17/08/2026, el
-#: sistema contestó que Ingeniería Mecánica «tiene dos menciones» y una de las
-#: dos era este rótulo. Se compara normalizado porque la fuente no es
-#: consistente con mayúsculas ni tildes.
+#: ellas, y presentarlo como tal induce a error: el sistema llegó a contestar
+#: que Ingeniería Mecánica «tiene dos menciones» y una de las dos era este
+#: rótulo. Se compara normalizado porque la fuente no es consistente con
+#: mayúsculas ni tildes.
 _COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
 
 
@@ -120,10 +113,6 @@ _COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
 #: (GIE)», «MARKETING INDUSTRIAL (GIOI)». No forma parte del nombre con el que
 #: la asignatura figura en su grado simple.
 _SUFIJO_GRADO: Final[re.Pattern[str]] = re.compile(r"\s*\([A-Z]{2,8}\)\s*$")
-
-
-# La normalizacion de nombres vive en `text_cleaner.normalizar_rotulo`,
-# compartida con el rastreador. Aqui habia una copia.
 
 
 def _dividir_en_piezas(texto: str, maximo: int) -> list[str]:
@@ -202,35 +191,22 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
     embeddings se truncaría en silencio, perdiendo contenido); el mínimo es
     una preferencia de calidad.
 
-    Esa jerarquía es la que decide el caso en el que reequilibrar no sirve
-    de nada. El texto combinado solo se puede repartir por sus fronteras
-    naturales (párrafos y frases), y a veces las únicas disponibles son las
-    que ya separaban el par: el reempaquetado devuelve entonces el mismo
-    reparto de partida. Como el par no cabe junto sin superar el máximo y no
-    hay forma de repartirlo mejor, se acepta el fragmento corto y se sigue
-    adelante: incumplir una preferencia es admisible, romper la restricción
-    dura no lo es.
+    Esa jerarquía decide el caso en el que reequilibrar no sirve de nada. El
+    texto combinado solo se puede repartir por sus fronteras naturales
+    (párrafos y frases), y a veces las únicas disponibles son las que ya
+    separaban el par: el reempaquetado devuelve entonces el mismo reparto de
+    partida. Como el par no cabe junto sin superar el máximo y no hay forma de
+    repartirlo mejor, se acepta el fragmento corto: incumplir una preferencia
+    es admisible, romper la restricción dura no lo es.
 
-    Reconocer ese caso es además parte de lo que garantiza que el bucle
-    termine. Solo se vuelve a empezar cuando el número de fragmentos ha
-    disminuido de verdad; en cualquier otra situación se avanza. Sin esa
-    condición, un par irreducible hacía que la función no terminara nunca
-    (caso real: «Minería web», 13313008, en el corpus de 2026-27).
-
-    Eso, por sí solo, resultó no bastar. El argumento de terminación suponía
-    que el número de fragmentos únicamente podía bajar, y **el reparto también
-    puede subirlo**: devolver tres fragmentos donde había dos. Alternando
-    fusiones que lo bajan con repartos que lo suben, el recuento oscilaba
-    (7, 8, 7, 8...) y no se llegaba nunca al final. Por eso se descarta todo
-    reparto que produzca más fragmentos de los que había: así el recuento es
-    monótono no creciente, no puede bajar de uno, y los reinicios quedan
-    acotados.
-
-    Con los tamaños del ADR-0001 el caso no se alcanzaba, y salió a la luz al
-    hacerlos parametrizables y probar valores pequeños: con un
-    máximo de 380 caracteres, el fragmentador se colgaba sobre el dataset
-    completo. Es la segunda vez que esta función no termina por un motivo que
-    las pruebas en verde no veían.
+    Terminación. Dos condiciones la garantizan, y las dos son necesarias:
+    solo se reinicia el recorrido cuando el número de fragmentos ha bajado de
+    verdad ---sin eso, un par irreducible como «Minería web» (13313008) deja
+    la función dando vueltas---, y se descarta todo reparto que devuelva más
+    fragmentos de los que había ---sin eso, alternar fusiones que bajan el
+    recuento con repartos que lo suben lo hace oscilar (7, 8, 7, 8...)---.
+    Juntas hacen el recuento monótono no creciente, y como no puede bajar de
+    uno, los reinicios quedan acotados.
 
     Args:
         chunks: Chunks de una misma unidad semántica, en orden.
@@ -262,16 +238,9 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
         reequilibrado = _empaquetar(piezas, objetivo_local, maximo)
         if len(reequilibrado) > segundo - primero + 1:
             # El reparto devuelve MÁS fragmentos de los que había: no
-            # reequilibra, empeora. Se descarta y se acepta el fragmento
-            # corto, igual que cuando el reparto no cambia nada.
-            #
-            # Esto es lo que garantiza que el bucle termine, y es la parte que
-            # a IT-92 se le escapó. Aquel arreglo razonaba que el número de
-            # fragmentos solo podía bajar, y por eso reiniciar en `i = 0` tras
-            # cada fusión estaba acotado. Pero el reparto SÍ podía subirlo, de
-            # 2 a 3, con lo que el recuento oscilaba (7, 8, 7, 8...) y el
-            # bucle no acababa nunca. Con esta guarda el número de fragmentos
-            # es monótono no creciente, así que los reinicios están acotados.
+            # reequilibra, empeora. Se descarta y se acepta el fragmento corto.
+            # Es la guarda que hace el recuento monótono no creciente y, con
+            # ella, acotados los reinicios en `i = 0`.
             i = segundo + 1
             continue
         resultado[primero : segundo + 1] = reequilibrado
@@ -294,33 +263,27 @@ def _por_metadatos_del_plan(
     Una guía se comparte cuando su **contenido** es idéntico, y ese sigue
     siendo el criterio de deduplicación. Pero el encabezado que se antepone al
     contenido no habla del contenido: habla del plan de estudios, y ahí las
-    titulaciones sí discrepan. Medido sobre el corpus, de las 210 unidades de
-    guía hay **41 cuyas titulaciones no coinciden en el curso** y **9 que no
-    coinciden en el tipo**, y el escalar salía de la primera de la lista.
+    titulaciones sí discrepan. En el corpus hay 41 unidades cuyas titulaciones
+    no coinciden en el curso y 9 que no coinciden en el tipo.
 
-    El daño no era solo de metadatos. El encabezado se vectoriza, así que el
-    fragmento de «Centrales eléctricas II» decía, en la misma frase que
+    El daño no es solo de metadatos: el encabezado se vectoriza. El fragmento
+    de «Centrales eléctricas II» llegaba a decir, en la misma frase que
     enumeraba sus tres titulaciones, que se imparte en cuarto curso: cierto en
     el grado simple y falso en los dos dobles, donde es de quinto. Un modelo
     fiel al contexto respondía en falso, y la causa no estaba en la generación.
 
-    La regla que se adopta es la que hace verdadera cada frase del encabezado:
-    **una unidad solo agrupa titulaciones que coinciden en todo lo que el
-    encabezado afirma de ellas.** Por eso la clave lleva los cuatro campos que
-    aparecen ahí y no solo los dos que hoy varían: si mañana el encabezado deja
-    de afirmar uno, o empieza a afirmar otro, la clave se mueve con él en vez de
-    quedarse describiendo una versión anterior del texto.
+    La regla hace verdadera cada frase del encabezado: **una unidad solo agrupa
+    titulaciones que coinciden en todo lo que el encabezado afirma de ellas.**
+    La clave lleva los cuatro campos que aparecen ahí y no solo los dos que hoy
+    varían, para que se mueva con el texto si deja de afirmar uno o empieza a
+    afirmar otro; ECTS y cuatrimestre no varían en ninguna unidad del corpus
+    ---comprobado, no supuesto---, y los otros dos llevan las 210 unidades a 283.
 
-    De los cuatro, ECTS y cuatrimestre **no varían en ninguna unidad del corpus
-    actual** ---comprobado, no supuesto---, así que hoy no parten nada. Los
-    otros dos llevan las 210 unidades a 283.
-
-    Esto revisa la premisa del ADR-0001 de que tipo y ECTS nunca varían entre
-    titulaciones que comparten guía. Era cierta cuando se midió, sobre 28
-    grupos y sin dobles grados en el corpus; dejó de serlo al incorporarlos en
-    IT-101. La deduplicación por ``(nombre, contenido)`` no cambia: lo que
-    cambia es que el resultado ya no se presenta como una sola unidad cuando
-    sus titulaciones no comparten plan.
+    Esto acota la premisa del ADR-0001 de que tipo y ECTS nunca varían entre
+    titulaciones que comparten guía: vale para los grados simples y no para los
+    dobles (IT-101). La deduplicación por ``(nombre, contenido)`` no cambia; lo
+    que cambia es que el grupo no se presenta como una sola unidad cuando sus
+    titulaciones no comparten plan.
 
     Args:
         pares: ``(grado, codigo)`` de cada titulación de la guía, en el orden
@@ -331,7 +294,7 @@ def _por_metadatos_del_plan(
     Returns:
         Un subgrupo por combinación distinta, conservando el orden de entrada.
         Con una sola combinación ---el caso de 160 de las 210 unidades--- se
-        devuelve un único subgrupo y el resultado es el de antes.
+        devuelve un único subgrupo.
     """
     subgrupos: dict[tuple[Any, ...], list[tuple[str, str | None]]] = {}
     for grado, codigo in pares:
@@ -363,11 +326,7 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
 
     **Todo lo que se afirma aquí vale para todas las titulaciones que se
     enuncian**, y eso lo garantiza :func:`_por_metadatos_del_plan`, que no
-    agrupa dos titulaciones si discrepan en alguno de esos datos. La versión
-    anterior tomaba tipo, ECTS y curso de la primera de la lista amparándose en
-    que no variaban: era cierto en el corpus con el que se comprobó y dejó de
-    serlo con los dobles grados, y entonces el encabezado afirmaba de tres
-    titulaciones un curso que solo valía para una.
+    agrupa dos titulaciones si discrepan en alguno de esos datos.
 
     Args:
         asignatura: Item de tipo ``asignatura`` del dataset (aporta tipo,
@@ -392,10 +351,10 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
     encabezado = " ".join(partes)
     if len(grados) == 1 and asignatura.get("menciones"):
         encabezado += f" (mención: {', '.join(asignatura['menciones'])})"
-    # IT-105: el curso va DENTRO del texto y no solo como metadato. Un dato que
-    # no aparece en el fragmento el modelo generativo no lo ve, y sin verlo se
-    # lo inventa: preguntado por el primer año, respondió con el listado entero
-    # del grado y atribuyó cursos y cuatrimestres que nadie le había dado.
+    # El curso va DENTRO del texto y no solo como metadato (IT-105). Un dato
+    # que no aparece en el fragmento el modelo generativo no lo ve, y sin verlo
+    # se lo inventa: preguntado por el primer año, respondía con el listado
+    # entero del grado y atribuía cursos que nadie le había dado.
     situacion = _situacion_en_el_plan(asignatura)
     if situacion:
         encabezado += f". Se imparte en {situacion}"
@@ -403,11 +362,9 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
         encabezado += ". No ofertada en el curso rastreado"
     # El dato ausente se dice, no se omite. Callarlo deja al modelo generativo
     # sin forma de distinguir «esto no está publicado» de «esto no cabía en el
-    # fragmento», y entonces lo rellena: medido el 18/08/2026 sobre la única
-    # asignatura de 528 sin créditos en la fuente, cuatro de cinco candidatos
-    # se inventaron una cifra ---9, 6 y 6 ECTS--- y uno de ellos negó además
-    # que la asignatura perteneciese a su titulación. Es la misma regla que ya
-    # aplica a las guías sin publicar, que sí traen su fragmento diciéndolo.
+    # fragmento», y entonces lo rellena: sobre la única asignatura de 528 sin
+    # créditos en la fuente, cuatro de cinco candidatos se inventaron la cifra.
+    # Es la misma regla que aplica a las guías sin publicar.
     if not asignatura.get("ects"):
         encabezado += ". La web de la EPSJ no publica sus créditos"
     return encabezado + "."
@@ -434,10 +391,10 @@ def _situacion_en_el_plan(asignatura: dict[str, Any]) -> str:
     if curso:
         return f"el {curso.lower()}"
     if cuatrimestre:
-        # El hueco se dice, no se deja en blanco. Medido el 16/08/2026: con el
-        # encabezado diciendo solo «Se imparte en el segundo cuatrimestre», el
-        # modelo respondió que la asignatura era «optativa en 2º curso»,
-        # convirtiendo el cuatrimestre en un curso que la fuente no publica.
+        # El hueco se dice, no se deja en blanco. Con el encabezado diciendo
+        # solo «Se imparte en el segundo cuatrimestre», el modelo respondió que
+        # la asignatura era «optativa en 2º curso», convirtiendo el
+        # cuatrimestre en un curso que la fuente no publica.
         return f"el {cuatrimestre.lower()}, sin curso asignado en el plan"
     return ""
 
@@ -537,11 +494,10 @@ def _creditos(asignatura: dict[str, Any]) -> str:
 
     El dato ausente se **escribe**, no se omite. Omitirlo deja un hueco en una
     lista donde todo lo demás lo lleva, y eso no es reflejar la ausencia: es
-    invitar a rellenarla. Medido el 19/08/2026 sobre el listado de la mención
-    «Sistemas electrónicos», donde las otras tres asignaturas llevan «(6
-    ECTS)» y esta no llevaba nada: granite4.1:8b razonó que «las otras dos
-    tienen 6 ECTS» y concluyó que esta también, declarando por escrito que lo
-    estaba infiriendo.
+    invitar a rellenarla. En el listado de la mención «Sistemas electrónicos»,
+    donde las otras tres asignaturas llevan «(6 ECTS)», un modelo razonó que
+    «las otras dos tienen 6 ECTS» y concluyó que esta también, declarando por
+    escrito que lo estaba infiriendo.
 
     Args:
         asignatura: Item de tipo ``asignatura`` del dataset.
@@ -560,23 +516,20 @@ def _chunks_de_plan_de_estudios(
 ) -> list[dict[str, Any]]:
     """Genera el listado de asignaturas de cada titulación, por grupo (IT-100).
 
-    Resuelve un problema que el troceo por asignatura no puede resolver. Una
-    pregunta como «dime todas las obligatorias de Informática» tiene, en el
-    corpus troceado por asignatura, **118 fragmentos relevantes**: ningún
-    top-K razonable los recupera, y no por un fallo del recuperador sino
-    porque es una pregunta de agregación y la recuperación devuelve los K
-    mejores, no todos. Medido el 01/08/2026: el techo de Recall@5 de esa
-    pregunta es 0,042.
-
-    Con el listado ya agregado en el corpus, la misma pregunta pasa a tener
-    **un solo fragmento relevante**. Y el generador copia una lista completa
-    en vez de reconstruirla a partir de cincuenta trozos, que es donde se deja
+    Resuelve lo que el troceo por asignatura no puede. «Dime todas las
+    obligatorias de Informática» tiene, troceando por asignatura, **118
+    fragmentos relevantes**, y ningún top-K razonable los recupera: no es un
+    fallo del recuperador sino una pregunta de agregación, y la recuperación
+    devuelve los K mejores y no todos ---el techo de Recall@5 es 0,042---. Con
+    el listado ya agregado en el corpus la pregunta pasa a tener **un solo
+    fragmento relevante**, y el generador copia la lista entera en vez de
+    reconstruirla a partir de cincuenta trozos, que es donde se deja
     asignaturas.
 
-    Es contenido **derivado**, no literal de la fuente, igual que los
-    fragmentos informativos de las asignaturas sin guía (IT-09) y por el mismo
-    motivo: se compone de forma determinista a partir de datos que la fuente
-    sí publica, sin añadir nada. Queda declarado en el ADR-0001.
+    Es contenido **derivado** y no literal de la fuente, como los fragmentos
+    informativos de las asignaturas sin guía (IT-09) y por el mismo motivo: se
+    compone de forma determinista con datos que la fuente sí publica, sin añadir
+    nada. Queda declarado en el ADR-0001.
 
     Args:
         items: Dataset completo tal como lo exporta el spider.
@@ -665,9 +618,9 @@ def _chunks_de_catalogo(
     preuniversitario y el corpus **no la contestaba**: la respuesta está
     repartida entre doce titulaciones y ningún fragmento la reúne, así que la
     recuperación no traía nada pertinente y el sistema contestaba que no tenía
-    información. Medido el 17/08/2026: preguntado por las titulaciones de la
-    rama industrial, un modelo de 7B nombró cinco reales y se inventó una
-    especialidad que no existe.
+    información. Preguntado por las titulaciones de la rama industrial, un
+    modelo de 7B nombraba cinco reales y se inventaba una especialidad que no
+    existe.
 
     Args:
         items: Dataset completo tal como lo exporta el spider.
@@ -714,8 +667,8 @@ def _chunks_de_catalogo(
         tamanos,
     )
 
-    # Y uno por familia. No es redundancia gratuita: medido sobre el índice
-    # completo, «¿qué dobles grados hay?» no recuperaba el catálogo sino
+    # Y uno por familia. No es redundancia gratuita: sobre el índice completo,
+    # «¿qué dobles grados hay?» no recuperaba el catálogo sino
     # **veinte fichas** de titulaciones sueltas, porque los nombres propios
     # («Doble Grado en Ingeniería Eléctrica y Mecánica») se parecen más a la
     # pregunta que un encabezado que habla de las doce a la vez. Con su propio
@@ -746,9 +699,9 @@ def _chunks_de_ficha(
 
     Contesta las preguntas de recuento ---cuántas asignaturas tiene, cuántas
     optativas, cuántos cursos dura--- que el corpus contenía pero no decía.
-    Medido el 17/08/2026: preguntado por cuántas asignaturas tiene Ingeniería
-    Informática, un modelo de 7B contestó que **una**. La cifra real es 67 y no
-    existía en el corpus como texto: había que contar 67 fragmentos.
+    Preguntado por cuántas asignaturas tiene Ingeniería Informática, un modelo
+    de 7B contestaba que **una**: la cifra real es 67 y no existía en el corpus
+    como texto, había que contar 67 fragmentos.
 
     **No se emite el total de créditos.** Sumar los ECTS de todo lo que se
     oferta da 408 en Informática, y un grado son 240: la diferencia son las
@@ -757,9 +710,9 @@ def _chunks_de_ficha(
     sería peor que no darlo.
 
     Una titulación sin asignaturas en el corpus recibe **su propio fragmento
-    diciéndolo**, en vez de quedarse fuera. Es el mismo criterio que aplica
-    IT-09 a las asignaturas sin guía: un hueco silencioso hace que el sistema
-    responda como si la titulación no existiera, y sí existe.
+    diciéndolo** en vez de quedarse fuera, con el criterio que IT-09 aplica a
+    las asignaturas sin guía: un hueco silencioso hace que el sistema responda
+    como si la titulación no existiera.
 
     Args:
         items: Dataset completo tal como lo exporta el spider.
@@ -815,11 +768,10 @@ def _chunks_de_ficha(
             frases.append(
                 "La web de la EPSJ no publica optativas para esta titulación."
             )
-        # Cuáles son las menciones, no solo qué asignaturas tiene cada una.
-        # Medido el 17/08/2026: a «¿qué menciones tiene Ingeniería Mecánica?» el
-        # sistema contestó «dos» y son tres, porque el corpus tenía el listado
-        # de cada mención pero ninguna unidad decía cuántas hay ni cómo se
-        # llaman. Misma carencia de agregación que resolvió el resto de IT-107.
+        # Cuáles son las menciones, no solo qué asignaturas tiene cada una: a
+        # «¿qué menciones tiene Ingeniería Mecánica?» el sistema contestaba
+        # «dos» y son tres, porque el corpus tenía el listado de cada mención
+        # pero ninguna unidad decía cuántas hay ni cómo se llaman.
         menciones = sorted(
             {
                 m
@@ -859,9 +811,9 @@ def _chunks_de_mencion(
 
     La mención viaja como metadato de cada asignatura y aparece en el
     encabezado de su fragmento, pero ninguna unidad reúne las de una misma
-    mención. Medido el 17/08/2026: preguntado por las asignaturas de una
-    mención concreta de Informática, el sistema contestó que no estaban en el
-    contexto. Estaban en el corpus, repartidas en cuatro unidades distintas.
+    mención: preguntado por las de una mención concreta de Informática, el
+    sistema contestaba que no estaban en el contexto, y estaban repartidas en
+    cuatro unidades distintas.
 
     Los nombres son **los que publica la fuente, sin desarrollar**. Dos de
     Geomática son las siglas «TIA» y «TIG», y el corpus no dice qué significan:
@@ -883,12 +835,10 @@ def _chunks_de_mencion(
 
     chunks: list[dict[str, Any]] = []
 
-    # Cuáles son, antes de qué tiene cada una. Medido el 17/08/2026: a «¿qué
-    # menciones tiene Ingeniería Mecánica?» el sistema contestó «dos» y son
-    # tres. La respuesta estaba repartida en cuatro unidades y ninguna decía
-    # cuántas hay. Se probó a meter la lista en la ficha de la titulación y la
-    # recuperación no la traía: su encabezado, «Datos generales del…», no se
-    # parece a la pregunta. Con encabezado propio sí.
+    # Cuáles son, antes de qué tiene cada una: la respuesta estaba repartida en
+    # cuatro unidades y ninguna decía cuántas hay. La lista necesita encabezado
+    # propio; metida en la ficha de la titulación la recuperación no la traía,
+    # porque «Datos generales del…» no se parece a la pregunta.
     por_grado: dict[str, list[str]] = {}
     for grado, mencion in por_mencion:
         if normalizar_rotulo(mencion) != _COMUN_A_TODAS:
@@ -945,11 +895,10 @@ def _por_curso(
 ) -> list[tuple[str, list[dict[str, Any]]]]:
     """Agrupa un listado por el curso en que se imparte (IT-105).
 
-    Antes el listado se troceaba por tamaño, y salían tercios alfabéticos: las
-    cincuenta obligatorias de Informática se partían en tres fragmentos que
-    repetían el mismo encabezado «En total son 50» y ninguno decía cuál era.
-    Medido el 16/08/2026, el modelo recibió los tres y aun así se dejó diez
-    asignaturas sin nombrar, las del tercero.
+    Trocear el listado por tamaño produce tercios alfabéticos: las cincuenta
+    obligatorias de Informática se parten en tres fragmentos que repiten el
+    mismo encabezado «En total son 50» sin decir cuál es cuál, y el modelo,
+    recibiendo los tres, se dejaba diez asignaturas sin nombrar.
 
     Por curso, cada fragmento es una unidad que significa algo por sí sola
     ---«las obligatorias de primer curso»---, cabe entera y además contesta
@@ -1009,14 +958,14 @@ def trocear_dataset(
     }
     chunks: list[dict[str, Any]] = []
 
-    # Deduplicación de guías compartidas (ADR-0001, decisión revisada): muchas
-    # asignaturas de primeros cursos (Matemáticas I, Física...) se imparten en
-    # varias titulaciones con la MISMA guía, byte a byte. Se agrupan por
-    # (nombre, contenido) para no repetir su texto en el índice: la clave
-    # incluye el nombre y no solo el contenido porque el fallback de IT-06
-    # puede producir texto idéntico para asignaturas DISTINTAS, y fusionarlas
-    # sería un error. Cada grupo produce una sola unidad con la lista de
-    # titulaciones en las que se imparte.
+    # Deduplicación de guías compartidas (ADR-0001): muchas asignaturas de
+    # primeros cursos (Matemáticas I, Física...) se imparten en varias
+    # titulaciones con la MISMA guía, byte a byte. Se agrupan por (nombre,
+    # contenido) para no repetir su texto en el índice: la clave incluye el
+    # nombre y no solo el contenido porque el fallback de IT-06 puede producir
+    # texto idéntico para asignaturas DISTINTAS, y fusionarlas sería un error.
+    # Cada grupo produce una sola unidad con la lista de titulaciones en las
+    # que se imparte.
     grupos_guia: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for item in items:
         if item["tipo"] != "guia":
@@ -1031,14 +980,15 @@ def trocear_dataset(
             )
         grupos_guia.setdefault((item["nombre"], texto), []).append(item)
 
-    # IT-101: un doble grado no publica guías propias. Sus asignaturas son, casi
-    # todas, las mismas que las de sus dos grados base, pero con códigos de otra
-    # serie, así que no se pueden cruzar por código: se cruzan por nombre. En vez
-    # de duplicar el temario bajo la titulación doble ---unos 200 fragmentos de
-    # contenido idéntico, que además rompería la deduplicación de arriba--- se
-    # añade el doble grado a la lista de titulaciones de la unidad que ya existe.
-    # El fragmento recuperado dice entonces que esa asignatura se imparte también
-    # en el doble grado, sin que el corpus crezca ni un carácter.
+    # Un doble grado no publica guías propias (IT-101). Sus asignaturas son,
+    # casi todas, las mismas que las de sus dos grados base, pero con códigos
+    # de otra serie, así que no se pueden cruzar por código: se cruzan por
+    # nombre. En vez de duplicar el temario bajo la titulación doble ---unos
+    # 200 fragmentos de contenido idéntico, que además rompería la
+    # deduplicación de arriba--- se añade el doble grado a la lista de
+    # titulaciones de la unidad que ya existe. El fragmento recuperado dice
+    # entonces que esa asignatura se imparte también en el doble grado, sin que
+    # el corpus crezca ni un carácter.
     dobles = {
         g["nombre"] for g in items if g["tipo"] == "grado" and g.get("es_doble_grado")
     }
@@ -1082,9 +1032,8 @@ def trocear_dataset(
         )
 
     if ambiguas:
-        # Un nombre que casa con varios grupos de guía no se reparte a ojo. Se
-        # avisa porque este proyecto ya ha pagado cuatro veces el precio de un
-        # dato que se pierde sin decir nada.
+        # Un nombre que casa con varios grupos de guía no se reparte a ojo, y
+        # el descarte se avisa: un dato que se pierde en silencio no se ve.
         print(
             f"AVISO: {len(ambiguas)} asignaturas de dobles grados con nombre "
             "ambiguo entre varias guías; no se enganchan a ninguna.",
@@ -1120,12 +1069,11 @@ def trocear_dataset(
                 if asignatura
                 else _encabezado_sin_metadatos(nombre, grados)
             )
-            # IT-100: el tipo viaja también como metadato, no solo dentro del
-            # encabezado. Sin él no se puede filtrar el índice por
+            # El tipo viaja también como metadato, no solo dentro del
+            # encabezado (IT-100): sin él no se puede filtrar el índice por
             # «obligatorias» ni anotar una pregunta de listado sin enumerar
-            # cincuenta nombres. Desde IT-125 el escalar es correcto para todas
-            # las titulaciones de la unidad, porque la unidad solo agrupa
-            # titulaciones que coinciden en él.
+            # cincuenta nombres. El escalar vale para todas las titulaciones de
+            # la unidad, porque la unidad solo agrupa las que coinciden en él.
             base = {
                 "grados": grados,
                 "codigos": codigos,
@@ -1154,7 +1102,7 @@ def trocear_dataset(
 
     chunks.extend(_chunks_de_plan_de_estudios(items, tamanos))
 
-    # IT-107: fragmentos derivados que contestan las preguntas de agregación.
+    # Fragmentos derivados que contestan las preguntas de agregación (IT-107).
     # Mismo argumento que el listado del plan y la misma frontera: todo sale de
     # contar y agrupar lo que la fuente publica. Nada de comparar titulaciones
     # ni de agrupar asignaturas por tema, que serían criterios nuestros metidos
@@ -1163,18 +1111,17 @@ def trocear_dataset(
     chunks.extend(_chunks_de_ficha(items, tamanos))
     chunks.extend(_chunks_de_mencion(items, tamanos))
 
-    # IT-09: las asignaturas sin guía generan un chunk informativo explícito,
-    # no un hueco silencioso: el RAG debe poder nombrarlas y situarlas. No se
+    # Las asignaturas sin guía generan un chunk informativo explícito, no un
+    # hueco silencioso (IT-09): el RAG debe poder nombrarlas y situarlas. No se
     # deduplican entre titulaciones porque su chunk solo contiene metadatos y
     # son casi todas de las titulaciones en implantación (sin solapamiento).
     #
-    # IT-94: «sin guía» se decide por lo que hay en el dataset, no por lo que
-    # el rastreador anunció en `tiene_guia`. Una guía servida como PDF
-    # ilegible no llega a emitirse (IT-67), pero su asignatura ya salió con
-    # `tiene_guia=True` porque en la tabla sí había enlace. Fiarse de ese
-    # campo dejaba a esas asignaturas sin chunk de guía y sin chunk
-    # informativo: desaparecían del corpus (5 casos en el rastreo del
-    # 28/07/2026). El fragmentador ve el dataset entero y puede comprobarlo.
+    # «Sin guía» se decide por lo que hay en el dataset, no por lo que el
+    # rastreador anunció en `tiene_guia` (IT-94). Una guía servida como PDF
+    # ilegible no llega a emitirse (IT-67), pero su asignatura sale con
+    # `tiene_guia=True` porque en la tabla sí había enlace; fiarse de ese campo
+    # deja a esas asignaturas sin chunk de guía y sin chunk informativo, o sea
+    # fuera del corpus. El fragmentador ve el dataset entero y lo comprueba.
     guias_presentes = {
         _clave_asignatura(g["grado"], g["codigo"], g["nombre"])
         for g in items
@@ -1186,8 +1133,8 @@ def trocear_dataset(
         if a["tipo"] == "asignatura"
         and _clave_asignatura(a["grado"], a["codigo"], a["nombre"])
         not in guias_presentes
-        # IT-101: las asignaturas de un doble grado que ya se han enganchado a
-        # la guía de su grado base no van por aquí. Emitirles un fragmento
+        # Las asignaturas de un doble grado ya enganchadas a la guía de su
+        # grado base no van por aquí (IT-101). Emitirles un fragmento
         # informativo diciendo que «no tiene guía publicada» sería falso: la
         # tiene, y está en el corpus bajo la titulación simple.
         and _clave_asignatura(a["grado"], a["codigo"], a["nombre"]) not in atendidas
@@ -1196,13 +1143,9 @@ def trocear_dataset(
         # Los dos motivos por los que una asignatura se queda sin guía no son
         # el mismo, y el corpus no puede afirmar el que no es: decir que no
         # está publicada cuando sí lo está sería dar por buena una respuesta
-        # falsa al estudiante que pregunte por ella.
-        #
-        # IT-95 corrige el segundo texto. Decía «no ha podido obtenerse», que
-        # insinúa un fallo del sistema, y resultó ser falso: descargadas las
-        # seis guías implicadas el 29/07/2026, las seis se leen perfectamente y
-        # lo que está vacío son sus secciones de contenido en el origen. El
-        # corpus tampoco puede atribuirse un fallo que no ha cometido.
+        # falsa al estudiante que pregunte por ella. Ninguno de los dos textos
+        # insinúa un fallo del sistema (IT-95): las guías se leen bien, lo que
+        # está vacío son sus secciones de contenido en el origen.
         if asignatura["tiene_guia"]:
             texto = (
                 "La guía docente de esta asignatura está publicada en la web de "
@@ -1312,9 +1255,9 @@ def main(
 
 
 if __name__ == "__main__":
-    # Los tamaños son opcionales y solo se pasan para experimentar (IT-100:
-    # re-trocear a la ventana de los modelos de 128 tokens para compararlos en
-    # igualdad de condiciones). Sin ellos, el comportamiento es el de siempre.
+    # Los tamaños son opcionales y solo se pasan para experimentar: re-trocear
+    # a la ventana de los modelos de 128 tokens para compararlos en igualdad de
+    # condiciones. Sin ellos rigen los del ADR-0001.
     #
     #     py -m tfg_uja.indexacion.chunker entrada.json salida.json
     #         [objetivo maximo minimo]

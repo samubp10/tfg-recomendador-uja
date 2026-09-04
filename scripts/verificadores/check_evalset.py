@@ -274,8 +274,8 @@ def _resolver_selectores(
             # Un selector sin `grado` sobre un nombre que se repite en varias
             # titulaciones no señala una unidad: las señala todas. Los
             # fragmentos de las otras entran como relevantes y el Recall sale
-            # más alto de lo que corresponde. En el corpus del 05/08/2026 hay
-            # 14 nombres así ---«Prácticas externas», «Trabajo fin de Grado»,
+            # más alto de lo que corresponde. En el corpus hay 14 nombres así
+            # ---«Prácticas externas», «Trabajo fin de Grado»,
             # «Estadística»---, y ningún selector cae hoy sobre ellos.
             juegos = unidades[(selector["origen"], selector["nombre"])]
             if (
@@ -303,8 +303,8 @@ def _informar_cobertura(
 
     Se dan dos cifras de titulaciones y no una. «Grados cubiertos» decía 11/11
     contando también las titulaciones a las que ninguna pregunta apunta y que
-    solo aparecen porque comparten una guía con otra: sobre el corpus del
-    05/08/2026, las cuatro dobles entran así. Que una asignatura suya salga
+    solo aparecen porque comparten una guía con otra: las cuatro dobles entran
+    así. Que una asignatura suya salga
     recuperada al preguntar por Mecánica no acredita que el conjunto pruebe esa
     titulación.
 

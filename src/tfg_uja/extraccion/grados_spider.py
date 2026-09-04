@@ -10,21 +10,21 @@ Dos caminos para extraer una guía docente, y solo uno está vivo
 
 La guía se puede servir como HTML o como PDF, y :meth:`GradosSpider.parse_guia`
 elige por el tipo real de la respuesta. Al empezar el proyecto todas eran HTML;
-durante el curso 2026-27 la EPSJ migró al PDF, y en el rastreo del 28/07/2026
-**las 288 guías del corpus vienen de PDF y ninguna de HTML** (DQA-0002).
+durante el curso 2026-27 la EPSJ migró al PDF, y hoy **las 288 guías del
+corpus vienen de PDF y ninguna de HTML** (DQA-0002).
 
-El camino HTML se conserva a propósito, como **retrocompatibilidad**, no por
-descuido: la fuente ha cambiado de formato dos veces en un año y servir un PDF
-detrás de una URL acabada en ``.html`` parece más un artefacto de migración que
-una decisión firme. Conservarlo no cuesta nada apreciable; retirarlo costaría
-reescribirlo si la Escuela revierte.
+El camino HTML se conserva como **retrocompatibilidad**, no por descuido: la
+fuente ha cambiado de formato dos veces en un año y servir un PDF detrás de una
+URL acabada en ``.html`` parece más un artefacto de migración que una decisión
+firme. Conservarlo no cuesta nada apreciable; retirarlo costaría reescribirlo si
+la Escuela revierte.
 
-Lo que hoy **no se ejecuta ni una vez** y hay que leer sabiéndolo:
+Lo que **no se ejecuta ni una vez** y hay que leer sabiéndolo:
 :meth:`GradosSpider._contenido_seccion`, :data:`GradosSpider.UMBRAL_CONTENIDO_GUIA`,
 :meth:`GradosSpider._limpieza_general` y el campo ``cuerpo_general`` que produce.
-Sus pruebas seguirán pasando, porque usan fixtures HTML de 2025-26 que ya no se
-corresponden con lo que sirve la web: comprueban bien un escenario que hoy no
-ocurre. Todo el esfuerzo de mejora va al camino PDF (:mod:`tfg_uja.guia_pdf`).
+Sus pruebas pasan porque usan fixtures HTML de 2025-26: comprueban bien un
+escenario que hoy no ocurre. El esfuerzo de mejora va al camino PDF
+(:mod:`tfg_uja.guia_pdf`).
 """
 
 from __future__ import annotations
@@ -192,17 +192,15 @@ class GradosSpider(scrapy.Spider):
         contienen la palabra «Grado»), emite una petición a su portada,
         llevando el nombre del grado en los metadatos.
 
-        Antes de nada emite el item ``procedencia`` con la fecha del rastreo
-        (IT-90). Se emite aquí, en el primer callback, y no al terminar,
-        porque Scrapy no permite emitir items una vez cerrado el spider; el
-        curso no hace falta en este item, porque cada guía trae el suyo
-        deducido de su URL y el conjunto se calcula después.
+        Lo primero que emite es el item ``procedencia`` con la fecha del rastreo
+        (IT-90), y va en este primer callback y no al terminar porque Scrapy no
+        deja emitir items con el spider ya cerrado. El curso no hace falta
+        aquí: cada guía trae el suyo deducido de su URL.
 
-        Las titulaciones en extinción se descartan aquí, antes de rastrearlas
-        (IT-77): el sistema orienta a estudiantes preuniversitarios y un grado
-        en extinción no admite nuevas matrículas, así que recomendárselo sería
-        un error. Se descarta en el origen y no más adelante para no gastar
-        peticiones en la web de la UJA sobre datos que no van a usarse.
+        Las titulaciones en extinción se descartan antes de rastrearlas
+        (IT-77), porque un grado que no admite nuevas matrículas no se le puede
+        recomendar a un preuniversitario, y descartarlo en el origen no gasta
+        peticiones a la web de la UJA en datos que no van a usarse.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de grados.
@@ -254,15 +252,14 @@ class GradosSpider(scrapy.Spider):
         para descargar la tabla de asignaturas del grado, y otra para sus
         salidas profesionales si están publicadas.
 
-        Las salidas de los dobles grados se excluían a propósito, dando por
-        supuesto que eran la unión exacta de las de sus dos grados base.
-        **IT-101 comprobó que no lo son**: la página del Doble Grado en
-        Ingeniería Eléctrica y Mecánica enuncia además a qué profesiones
-        reguladas da acceso la doble titulación, que es justo lo que un
-        estudiante preuniversitario quiere saber, y no repite las salidas
-        comunes a los dos grados. Reproducir eso uniendo dos textos exigiría
-        deduplicar y redactar la frase de cabecera; leer la página que ya lo
-        dice es más simple y más fiel.
+        Las salidas de los dobles grados se leen de su propia página y no se
+        deducen de las de sus dos grados base, que es lo que parecía: **no son
+        su unión exacta** (IT-101). La del Doble Grado en Ingeniería Eléctrica
+        y Mecánica enuncia además a qué profesiones reguladas da acceso la doble
+        titulación ---justo lo que un preuniversitario quiere saber--- y no
+        repite las salidas comunes. Reproducirlo uniendo dos textos exigiría
+        deduplicar y redactar la cabecera; leer la página es más simple y más
+        fiel.
 
         Args:
             response (scrapy.http.Response): Respuesta de la portada del grado.
@@ -632,9 +629,9 @@ class GradosSpider(scrapy.Spider):
     #: secciones; 200 deja margen amplio para no activarse en guías
     #: legítimas y sí detectar una estructura rota.
     #:
-    #: SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo): el
-    #: rastreo del 28/07/2026 no lo activa ni una vez, porque las 288 guías
-    #: llegan como PDF y la extracción de PDF no pasa por este umbral.
+    #: SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo). No
+    #: se activa ni una vez sobre el corpus actual, porque las 288 guías llegan
+    #: como PDF y la extracción de PDF no pasa por este umbral.
     UMBRAL_CONTENIDO_GUIA: Final[int] = 200
 
     #: IDs de las secciones que se excluyen del fallback de limpieza general
@@ -661,11 +658,10 @@ class GradosSpider(scrapy.Spider):
         una URL sin contenido), no se emite ningún item, para no introducir
         registros vacíos.
 
-        Los párrafos de presentación **no se recogían hasta IT-101** y se
-        perdían en silencio, en las siete titulaciones. Son los que dicen a qué
-        profesiones reguladas da acceso el título, que es información que la
-        lista de viñetas no contiene y que un estudiante preuniversitario sí
-        pregunta.
+        Los párrafos de presentación se recogen además de las viñetas
+        (IT-101): son los que dicen a qué profesiones reguladas da acceso el
+        título, información que la lista de viñetas no contiene y que un
+        estudiante preuniversitario sí pregunta.
 
         Args:
             response (scrapy.http.Response): Respuesta de la página de
@@ -796,10 +792,10 @@ class GradosSpider(scrapy.Spider):
         self._guardar_pdf(codigo, response.body)
         datos = extraer_guia(response.body)
         if datos is None:
-            # El motivo importa: hasta IT-95 los cuatro casos posibles se
-            # anunciaban como «PDF ilegible», y resultó ser falso. Los seis
-            # casos reales del rastreo del 28/07/2026 se leían perfectamente
-            # y lo vacío eran las secciones en el origen.
+            # El motivo importa (IT-95): anunciar los cuatro casos posibles
+            # como «PDF ilegible» sería falso, porque los seis casos reales del
+            # corpus se leen perfectamente y lo vacío son sus secciones en el
+            # origen.
             self.logger.warning(
                 "Guía %s sin contenido extraíble (motivo: %s); se omite y la "
                 "asignatura queda como «sin guía».",
@@ -900,8 +896,8 @@ class GradosSpider(scrapy.Spider):
         """Extrae texto general de la ficha cuando falla la estructura.
 
         SOLO CAMINO HTML (retrocompatibilidad, ver el docstring del módulo).
-        Es el mecanismo de respaldo, y hoy no se activa ninguna vez: 0 de 288
-        guías en el rastreo del 28/07/2026. Una guía en PDF que no se pueda
+        Es el mecanismo de respaldo, y no se activa ninguna vez sobre el corpus
+        actual: 0 de 288 guías. Una guía en PDF que no se pueda
         extraer NO llega aquí a propósito, porque volcaría el binario en la
         colección; queda como «sin guía» (DQA-0002).
 

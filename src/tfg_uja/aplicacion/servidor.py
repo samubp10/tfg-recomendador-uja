@@ -4,42 +4,35 @@ Sirve la interfaz de ``web/`` y atiende ``POST /api/chat``, que devuelve la
 respuesta **por partes** según la decisión del ADR-0006: una línea JSON por
 unidad ya verificada.
 
-**Por qué la biblioteca estándar y no un marco de trabajo.** Medido el
-24/08/2026 con ``pip install --dry-run`` contra lo que el sistema necesita para
-funcionar: ``http.server`` añade 0 paquetes, Starlette 2, FastAPI 3 y Flask 4.
+**Por qué la biblioteca estándar y no un marco de trabajo.** Medido con
+``pip install --dry-run`` contra lo que el sistema necesita para funcionar:
+``http.server`` añade 0 paquetes, Starlette 2, FastAPI 3 y Flask 4.
 Lo que hay que atender es un endpoint y unos ficheros estáticos, y el cuello de
 botella es el modelo, que responde con una mediana de 62,7 s: ninguna capa HTTP
 cambia eso.
 
 ⚠️ **No es apto para producción**, y así está declarado: no da HTTPS ni limita
-la tasa de peticiones. El despliegue en producción está fuera del alcance de
-este trabajo (reparto MoSCoW del Capítulo 4). Para llevarlo allí harían falta un
-servidor WSGI/ASGI real tras un proxy inverso, HTTPS, límites de tasa,
-conversación por sesión, y sobre todo resolver que el modelo atiende de uno en
-uno.
+la tasa de peticiones, y el despliegue queda fuera del alcance de este trabajo
+(reparto MoSCoW del Capítulo 4). Llevarlo allí exigiría un servidor WSGI/ASGI
+tras un proxy inverso, HTTPS, límites de tasa, conversación por sesión y, sobre
+todo, resolver que el modelo atiende de uno en uno.
 
 **El alcance es una demostración local para un solo visitante, y el servidor
-está construido para exactamente eso.** Atiende de una petición en una
----:class:`HTTPServer` y no ``ThreadingHTTPServer``---, y de ahí se siguen tres
-cosas que antes no eran ciertas:
+está construido para eso.** Atiende de una petición en una ---:class:`HTTPServer`
+y no ``ThreadingHTTPServer``---, y de ahí se siguen tres cosas:
 
-* El estado de la conversación es uno solo para todo el proceso, y ahora eso es
-  correcto en vez de una carrera: con hilos, dos pestañas o dos peticiones
-  solapadas ---una persona sola llega a eso cancelando y volviendo a
-  preguntar--- compartían sujeto y contador de turno sin ninguna
-  sincronización.
-* No hay hilos que agotar. Una llamada al modelo puede ocupar hasta
-  :data:`tfg_uja.generador.ESPERA_MAXIMA` segundos, y con hilos nada impedía
-  abrir tantas como se pidieran.
-* Se paga un precio y conviene decirlo: **mientras se redacta una respuesta el
-  servidor no atiende nada más**. Recargar la página a mitad de una respuesta
-  espera a que termine. Para un visitante que pregunta y lee es invisible; para
-  dos, no lo sería, y por eso el alcance dice uno.
+* El estado de la conversación, único para todo el proceso, es correcto en vez
+  de una carrera. Con hilos, dos peticiones solapadas ---una persona sola llega
+  a eso cancelando y volviendo a preguntar--- compartían sujeto y contador de
+  turno sin ninguna sincronización.
+* No hay hilos que agotar, y una llamada al modelo puede ocupar hasta
+  :data:`tfg_uja.generador.ESPERA_MAXIMA` segundos.
+* El precio, que conviene decir: **mientras se redacta una respuesta no se
+  atiende nada más**. Para un visitante que pregunta y lee es invisible; para
+  dos no lo sería, y por eso el alcance dice uno.
 
-Lo que el navegador manda también se comprueba: ver
-:data:`ORIGENES_PERMITIDOS`. No es CORS abierto, es lo contrario.
-
-El tamaño del cuerpo sí está acotado, en :data:`MAXIMO_CUERPO`.
+Lo que el navegador manda se comprueba (:data:`ORIGENES_PERMITIDOS`): no es CORS
+abierto, es lo contrario. Y el cuerpo va acotado en :data:`MAXIMO_CUERPO`.
 
 **La lógica no vive en el manejador.** :func:`partes_de_la_respuesta` no sabe
 nada de HTTP y se prueba entera sin red y sin modelo; el manejador solo la
@@ -201,14 +194,13 @@ _ENLACE_DE_LA_TITULACION: Final[dict[str, str]] = {
 def enlaces_oficiales(datos: Path = DATASET) -> dict[tuple[str, str], str]:
     """Direccion oficial de la EPSJ para cada unidad de la coleccion.
 
-    El cuadro de fuentes decia de donde salia cada cosa pero no dejaba llegar
-    hasta ella, asi que para comprobar un dato habia que buscarlo a mano en la
-    web de la Escuela. La direccion ya estaba en el dataset ---la extrae el
-    spider por su ``href`` real, nunca por patron--- y solo faltaba traerla.
+    El cuadro de fuentes dice de donde sale cada cosa, y sin enlace habria que
+    buscar el documento a mano en la web de la Escuela para comprobar un dato.
+    La direccion la extrae el spider por su ``href`` real, nunca por patron.
 
-    Se resuelve aqui y no en el indice a proposito: es un dato de presentacion
-    y meterlo en la coleccion obligaria a reconstruirla entera para una columna
-    que el recuperador no usa para nada.
+    Se resuelve aqui y no en el indice a proposito: es un dato de presentacion,
+    y meterlo en la coleccion obligaria a reconstruirla entera por una columna
+    que el recuperador no usa.
 
     La clave es ``(titulacion, nombre de la unidad)``. La regla del proyecto es
     identificar una asignatura por ``(grado, codigo or nombre)``, y aqui solo
@@ -347,19 +339,17 @@ def partes_de_la_respuesta(
     No toca HTTP: devuelve los objetos tal cual, y quien los serialice decide
     cómo. Así se prueba el recorrido entero sin levantar un socket.
 
-    Lo primero que se mira es si la pregunta se contesta con texto fijo, y se
-    mira **antes de recuperar**: un saludo no llega al modelo, así que buscarle
-    contexto es trabajo tirado y anunciar lo encontrado como fuentes es
-    presentar como respaldo de la respuesta algo que nadie usó para
-    redactarla. La respuesta fija la sigue produciendo
-    :func:`tfg_uja.generador.responder_por_partes`, que ya sabe darla: aquí
-    solo se evita el trabajo, y así sigue habiendo una única forma de redactar
-    cada respuesta.
+    Lo primero es mirar si la pregunta se contesta con texto fijo, y se mira
+    **antes de recuperar**: un saludo no llega al modelo, así que buscarle
+    contexto es trabajo tirado y anunciar lo encontrado como fuentes presenta
+    como respaldo algo que nadie usó para redactar. La respuesta fija la produce
+    igualmente :func:`tfg_uja.generador.responder_por_partes`, para que siga
+    habiendo una única forma de redactar cada respuesta.
 
     Al terminar el turno ---responda el modelo o falle--- se deja una línea en
     ``data/registro_chat.jsonl``. Se registra aquí y no en el manejador porque
-    aquí está lo que hay que registrar: la consulta con la que de verdad se
-    buscó y las distancias de los fragmentos, que el manejador ya no ve.
+    aquí está lo que hay que registrar: la consulta con la que se buscó de
+    verdad y las distancias de los fragmentos, que el manejador ya no ve.
 
     Args:
         pregunta: Lo que ha escrito el estudiante.

@@ -1,7 +1,7 @@
 """Pruebas de las comprobaciones deterministas de la respuesta (IT-35).
 
 Los casos no son inventados: salen de las respuestas reales que dieron gemma3
-y mistral-7b los días 16 y 17/08/2026, que están recogidas en las sesiones de
+y mistral-7b, que están recogidas en las sesiones de
 prueba. Una comprobación calibrada con texto inventado no reconocería la forma
 en que fallan de verdad los modelos.
 """
@@ -48,7 +48,7 @@ def test_reconoce_las_titulaciones_que_nombra_una_respuesta():
 
 
 def test_caza_las_dos_titulaciones_inventadas_del_caso_real():
-    """El caso del 16/08/2026, literal.
+    """El caso que motivó la barrera, literal.
 
     A un estudiante interesado en electricidad le recomendó seis titulaciones.
     «Grado en Ingeniería de Energía» y «Grado en Ingeniería Ambiental» no
@@ -165,7 +165,7 @@ def test_no_enumerar_nada_deja_la_precision_sin_medir_y_lo_caza_la_cobertura():
 
 
 def test_una_respuesta_correcta_en_prosa_no_puntua_cero():
-    """Regresión de G-MEN-001, del cribado del 22/08/2026.
+    """Regresión de G-MEN-001, del cribado.
 
     `gemma3:12b` nombró las tres menciones correctas en prosa y la métrica le
     puso precisión 0,000 con cero invenciones y cero omisiones. Puntuar así
@@ -216,7 +216,7 @@ def test_el_nombre_partido_entero_si_se_reconoce():
     assert not inventadas
 
 
-# --- Enumeración en prosa (calibrado contra la sesión del 17/08/2026) ---
+# --- Enumeración en prosa (calibrado contra la sesión a mano) ---
 
 #: Fragmento literal de la respuesta de mistral-7b a «¿qué asignaturas
 #: optativas ofrece Ingeniería Informática?». Las enumeró las diecisiete en
@@ -257,7 +257,7 @@ def test_la_cobertura_no_premia_un_formato_sobre_otro():
     assert cotejar_listado(vinetas, corpus, corpus)[1] == 1.0
 
 
-# --- El formato del modelo no puede cambiar la nota (18/08/2026) ---
+# --- El formato del modelo no puede cambiar la nota ---
 
 #: Respuesta literal de ministral-3:3b, correcta y en negrita. Es el caso que
 #: destapó el fallo: la negrita se colaba dentro del nombre.
@@ -327,7 +327,7 @@ def test_la_negrita_tambien_se_quita_en_la_enumeracion_en_prosa():
     assert (precision, cobertura) == (1.0, 1.0)
 
 
-# --- El calificador de doble grado (caso real del 18/08/2026) ---
+# --- El calificador de doble grado (Caso real) ---
 
 #: Las diez obligatorias de tercer o cuarto curso del Doble Grado en Ingeniería
 #: Electrónica Industrial y Mecánica, tal como las publica la fuente: con la
@@ -363,7 +363,7 @@ def test_la_abreviatura_de_la_fuente_se_resuelve():
 
 
 def test_un_listado_correcto_sin_la_sigla_no_puntua_cero():
-    """Regresión del 18/08/2026.
+    """Regresión.
 
     Con el calificador puesto en la comparación, esta respuesta ---que enumera
     las tres esperadas, ninguna de más y ninguna de menos--- daba cobertura
@@ -397,7 +397,7 @@ _CATALOGO_EPSJ = {
 def test_nombrar_la_titulacion_sin_la_formula_grado_en():
     """Regresión de G-CAT-001.
 
-    El 19/08/2026 «command-r7b» enumeró las doce titulaciones de la EPSJ, las
+    «command-r7b» enumeró las doce titulaciones de la EPSJ, las
     doce correctas y ninguna de más, agrupadas bajo dos rótulos que decían
     cuáles eran grados y cuáles dobles. Como escribía «Ingeniería Eléctrica» y
     no «Grado en Ingeniería Eléctrica», la respuesta puntuaba precisión 0,083 y
@@ -444,7 +444,7 @@ def test_sin_tipo_de_estudios_deja_intacto_lo_que_no_lo_lleva():
 
 
 def test_abreviar_el_nombre_por_dentro_no_es_inventarlo():
-    """Regresión: la barrera retiró una respuesta correcta el 19/08/2026.
+    """Regresión: la barrera retiraba una respuesta correcta.
 
     `ministral-8b` recomendó cuatro titulaciones reales y escribió una de
     ellas «Grado en Mecánica». Ningún prefijo casa con «Grado en Ingeniería
@@ -559,7 +559,7 @@ def test_elementos_en_prosa_sin_ninguna_mayuscula_se_dejan_enteros():
 # ------------------------------------------- los atributos de plan (IT-118)
 #
 # El defecto que da origen a todo esto es real y esta fechado. Preguntado por
-# Topografia el 29/08/2026, el sistema contesto:
+# Topografia, el sistema contesto:
 #
 #     **Fotogrametria y teledeteccion III (6 ECTS):** Se imparte en el segundo
 #     cuatrimestre.
@@ -598,8 +598,8 @@ def test_el_contexto_se_lee_con_la_plantilla_del_troceador() -> None:
 
 
 def test_regresion_el_cuatrimestre_prestado_por_la_asignatura_hermana() -> None:
-    # La respuesta literal del 29/08/2026, contra el contexto literal que se le
-    # dio. Es el caso que justifica el modulo entero.
+    # La respuesta literal, contra el contexto literal que se le dio. Es el
+    # caso que justifica el modulo entero.
     atributos = atributos_del_contexto(_contexto_real("Fotogrametría"))
 
     corregida, avisos = corregir_atributos(

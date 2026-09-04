@@ -550,11 +550,11 @@ def _exigir_toda_asignatura_representada(
 ) -> None:
     """Toda asignatura del dataset aparece en algún fragmento (IT-94).
 
-    Antes se comprobaba solo que las de `tiene_guia=False` tuvieran
-    informativo y que las guías tuvieran sus fragmentos, y entre ambas
-    comprobaciones quedaba un hueco: una asignatura con `tiene_guia=True` cuya
-    guía no llegó a emitirse (PDF ilegible, IT-67) no entraba en ninguna de
-    las dos y desaparecía del corpus mientras el verificador respondía «OK».
+    Se comprueba la cobertura entera y no las dos mitades por separado. Mirando
+    solo que las de `tiene_guia=False` tengan informativo y que las guías tengan
+    sus fragmentos queda un hueco entre ambas: una asignatura con
+    `tiene_guia=True` cuya guía no llegó a emitirse (PDF ilegible, IT-67) no
+    entra en ninguna y desaparece del corpus mientras el verificador dice «OK».
 
     Args:
         asignaturas: Items ``asignatura`` del dataset.
@@ -581,11 +581,10 @@ def _informar_guias_sin_contenido(asignaturas: list[dict], guias: list[dict]) ->
     cuentan aparte, porque no son lo mismo que una guía inexistente y su
     número mide directamente cuánto contenido se está perdiendo.
 
-    IT-97 corrige la redacción, que decía «no se ha podido extraer». Eso
-    apunta a un fallo propio, y sobre el rastreo del 29/07/2026 los cinco
-    casos son la contraria: el PDF se lee entero y sus secciones de
-    contenido están vacías en el origen (DQA-0004). Tercer y último sitio
-    donde vivía la frase; los otros dos son check_dataset.py y chunker.py.
+    La redacción no dice «no se ha podido extraer» (IT-97), que apuntaría a un
+    fallo propio: los cinco casos del corpus son la contraria, el PDF se lee
+    entero y sus secciones de contenido están vacías en el origen (DQA-0004).
+    La misma frase se corrige en check_dataset.py y chunker.py.
 
     Se calcula por correspondencia de claves y no restando dos totales. La
     resta da la cifra correcta solo mientras no haya nada más descuadrado: el

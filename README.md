@@ -260,17 +260,34 @@ memoria/            # memoria del TFG en LaTeX (plantilla EPSJ)
 data/               # artefactos generados (NO versionados)
 ```
 
+De cada figura se versiona **solo el fichero que compila LaTeX**, que es el
+`.pdf`. La fuente editable (`.svg` y sus exportaciones a `.png`) se guarda
+fuera del repositorio: dos formatos del mismo dibujo obligan a saber cuál es el
+bueno, y el que manda es el que aparece en el `\includegraphics`.
+
 ## Metodología
 
 - **Kanban** en GitHub Projects: cada tarea es una *issue* `IT-XX` con fase,
   prioridad MoSCoW y *milestone*.
-- **Conventional Commits** (`tipo(IT-XX): descripción`), con cuerpo
-  obligatorio que explica el *porqué* de cada decisión.
-- Ramas efímeras desde `main` (código) o `doc` (memoria); fusión siempre con
-  *merge commit*, nunca *squash*.
+- Ramas efímeras desde `main` (código) o `doc` (memoria), nombradas
+  `IT-XX-descripcion-corta`; fusión siempre con *merge commit*, nunca *squash*.
+- **Conventional Commits** (`tipo(IT-XX): descripción`), con el tipo en inglés
+  por ser parte del estándar y la descripción en español. Los tipos en uso son
+  `feat`, `fix`, `docs`, `test`, `refactor`, `chore` y `ci`. El cuerpo es
+  obligatorio y explica el *porqué* de la decisión, no el qué.
+- Cada rama se cierra con un *pull request* que enlaza su *issue*
+  (`Closes #NN`) y no se fusiona hasta que la CI está en verde.
 - Decisiones de diseño registradas como **ADR** en `docs/adr/`; anomalías de la
   fuente de datos como **DQA** en `docs/dqa/`.
 - CI en GitHub Actions: `pytest` + `mypy` en cada *push* y *pull request*.
+
+### Definición de Hecho
+
+Una tarea se da por terminada cuando cumple los seis criterios: **funciona**
+---ejecutado, no solo leído---, **tiene pruebas** con casos reales, **está
+documentada** (docstrings, cuerpo del commit y ADR si procede), **está
+integrada** en `main` con la CI en verde, **es defendible** en dos minutos y
+**está reflejada en la memoria**.
 
 ## Alcance
 

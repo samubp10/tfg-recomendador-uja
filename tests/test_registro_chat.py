@@ -207,7 +207,7 @@ def test_una_respuesta_fija_queda_marcada_como_turno_sin_modelo(fija: str) -> No
 
 
 def test_el_decisor_consultado_sale_de_donde_ocurre_y_no_del_texto() -> None:
-    """Regresión de la auditoría del 02/09/2026.
+    """Regresión de la auditoría.
 
     El campo antiguo se llamaba ``modelo_llamado`` y se deducía del texto
     entregado. Un turno en el que el decisor de ámbito sí opinó y después no
