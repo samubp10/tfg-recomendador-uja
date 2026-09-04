@@ -26,6 +26,7 @@ from tfg_uja.aplicacion import registro_chat, servidor
 # implementacion de verdad y no el sustituto vacio.
 from tfg_uja.aplicacion.servidor import enlaces_oficiales as _ENLACES_REALES
 from tfg_uja.aplicacion.servidor import paginas_de_titulacion as _PAGINAS_REALES
+from tfg_uja.aplicacion.sugerencias import sugerencias_para as _SUGERENCIAS_REALES
 from tfg_uja.dialogo.conversacion import Consulta, Conversacion
 from tfg_uja.dialogo.recuperador import Fragmento
 from tfg_uja.dialogo.generador import (
@@ -192,6 +193,10 @@ def test_si_el_modelo_no_responde_sale_un_error_y_no_un_cuelgue(
     )
 
     assert sucesos[-1] == {"error": "Ollama no responde"}
+    # Terminal de error, no de éxito: el cliente da la respuesta por completa
+    # cuando ve `fin`, así que emitirlo tras un fallo presentaría como
+    # terminada una respuesta que no existe.
+    assert not any("fin" in suceso for suceso in sucesos)
 
 
 # --------------------------------------------------------------- el manejador
@@ -907,14 +912,20 @@ def test_que_fallen_las_sugerencias_no_se_lleva_por_delante_la_respuesta(
         servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
     )
 
-    def sugerencias_rotas(*a: Any, **k: Any) -> list[str]:
-        raise RuntimeError("el índice no responde")
+    class IndiceRoto:
+        """Una tabla que revienta al contarle filas, como con el índice caído."""
 
-    monkeypatch.setattr(servidor, "sugerencias_para", sugerencias_rotas)
+        def count_rows(self, filtro: str) -> int:
+            raise RuntimeError("el índice no responde")
 
-    sucesos = list(
-        servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
-    )
+    # Aquí NO se dobla `sugerencias_para`: se deja el de verdad y se rompe el
+    # índice por debajo, que es el camino que se reprodujo. Doblar la función
+    # entera comprobaría la captura, pero no que el fallo de `count_rows`
+    # llegue hasta ella, que es justo lo que estaba sin comprobar.
+    monkeypatch.setattr(servidor, "sugerencias_para", _SUGERENCIAS_REALES)
+    sistema = (IndiceRoto(), *SISTEMA_FALSO[1:])
+
+    sucesos = list(servidor.partes_de_la_respuesta("¿Y?", sistema, ConversacionFalsa()))
 
     assert {"parte": "Hola."} in sucesos
     assert {"sugerencias": []} in sucesos
