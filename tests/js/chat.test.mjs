@@ -398,7 +398,7 @@ function ultimaRespuesta(montaje) {
 
 test("al arrancar NO se toca /api/chat: el saludo tiene su propia ruta", async () => {
   /*
-    Prueba de regresión del defecto que destapó la auditoría del 29/08/2026.
+    Prueba de regresión del defecto que destapó la auditoría.
     El saludo se pedía a `/api/chat` con la palabra «Hola», y el servidor anota
     en el registro todo lo que entra por ahí: cada apertura de la página metía
     un turno que nadie había escrito, así que cualquier recuento sobre el
@@ -722,7 +722,7 @@ test("un flujo sin texto ninguno no se da por respuesta buena", async () => {
 
 test("un flujo con texto pero sin el cierre del servidor no se da por bueno", async () => {
   /*
-    Regresión del defecto que destapó la auditoría del 02/09/2026. El bucle
+    Regresión del defecto que destapó la auditoría. El bucle
     terminaba al agotarse el transporte y lo único que se comprobaba después
     era que hubiera texto. Medido entonces: el mismo texto con `fin` y sin
     `fin` producía una burbuja IDÉNTICA byte a byte, con el pie «Respuesta
@@ -783,7 +783,7 @@ test("un carácter partido entre dos lecturas se recompone", async () => {
 
 test("un saludo que llega tarde no se cuela debajo de la conversación", async () => {
   /*
-    Regresión de la auditoría del 02/09/2026. El saludo y las sugerencias de
+    Regresión de la auditoría. El saludo y las sugerencias de
     arranque se piden en dos peticiones aparte y no se descartaban al llegar
     tarde: si la persona preguntaba antes de que contestaran, el saludo se
     añadía DEBAJO de su pregunta y de la respuesta, y las sugerencias del
