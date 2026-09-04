@@ -190,8 +190,8 @@ def test_un_dataset_sin_binario_pasa():
 
 
 def test_un_parentesis_en_el_nombre_delata_texto_colado():
-    # Caso real del 28/07/2026: la fuente empezó a incrustar un enlace
-    # «( Syllabus )» dentro de la celda del nombre (IT-93).
+    # Caso real: la fuente empezó a incrustar un enlace «( Syllabus )» dentro
+    # de la celda del nombre (IT-93).
     asignaturas = [_asig(nombre="Matemática discreta ( Syllabus )")]
     grados = [_grado("Grado en Ingeniería Informática", "https://eps.ujaen.es/a")]
 
@@ -345,8 +345,8 @@ def test_el_reparto_de_formatos_se_informa(capsys):
 
 
 def test_una_guia_sin_formato_pide_regenerar(capsys):
-    # Entre el 23 y el 28/07/2026 el corpus pasó de 62 de 296 guías en PDF a
-    # las 288 de 288, y solo se supo mucho después.
+    # En cinco días el corpus pasó de 62 de 296 guías en PDF a las 288 de 288,
+    # y solo se supo mucho después.
     check_dataset._informar_formatos([_guia(formato=None)])
 
     salida = capsys.readouterr().out
