@@ -1,9 +1,4 @@
 % !TeX spellcheck = es_ES
-% Decisión explícita (IT-70): la guía de estilo pide la numeración de página en
-% el margen "inferior derecho"; con "twoside" va al borde exterior (derecha en
-% impares, izquierda en pares), que es el estándar de una memoria a doble cara
-% y no contradice la intención de la norma (evitar el margen interior, de
-% encuadernación). Se mantiene "twoside" en vez de pasar a "oneside".
 \documentclass[12pt, a4paper, twoside]{report}   % Tamaño de papel, de fuente y márgenes
 \usepackage[spanish]{babel}  % Idioma y codificación, para poder usar
 \usepackage[utf8x]{inputenc} % tildes, eñes, etc., sin problemas
@@ -13,51 +8,25 @@
 \usepackage{pgfgantt}
 \usepackage{longtable}  % Tabla del backlog, que ocupa varias páginas
 \usepackage{xltabular}
-% Columna X de xltabular alineada a la izquierda (no justificada): evita el
-% warning "Infinite glue shrinkage found in box being split" al partir filas
-% largas entre páginas, propio de columnas X justificadas en tablas paginadas.
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \usepackage{booktabs}   % Reglas horizontales de la tabla (\toprule, \midrule)
 
 \usepackage{amsmath}    % Comandos matemáticos adicionales como \text{}
-% hyperref lo carga Portada.tex, y tiene que ser DESPUES de setspace: si va
-% antes, setspace vuelve a definir \@footnotetext y se lleva por delante el
-% destino que hyperref pone dentro de cada nota al pie, con lo que el numero
-% volado deja de ser un enlace (pdflatex lo avisa con name{Hfootnote.N} has
-% been referenced but does not exist). Aqui se cargaba por duplicado, y por
-% eso mandaba el orden equivocado.
 \usepackage{xcolor}
-% ulem con [normalem]: sin esa opcion, ulem redefine \emph como subrayado en
-% lugar de cursiva y cambiaria el aspecto de todo el documento. Se cargaba dos
-% veces (la segunda sin opciones), lo que no daba error pero era una bomba de
-% relojeria: si alguien cambiaba el orden, el segundo \usepackage habria pasado
-% a ser el que manda y \emph se habria subrayado en toda la memoria.
 \usepackage[normalem]{ulem}   % \sout para tachar texto pendiente de corregir
 \usepackage{xstring}
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, fit, shapes.geometric, backgrounds, shapes.multipart}
 \usepackage{titlesec}
-% Subapartados en cursiva (normativa EPSJ, criteriosYestilo_TFG.pdf p.3: "los
-% subapartados en cursiva"). La clase report pone \subsection en negrita por
-% defecto, igual que \section, sin distinguir ambos niveles. Se conserva el
-% mismo tamaño (\large) y el mismo espaciado antes/después del original de la
-% clase; solo cambia \bfseries por \itshape.
 \titleformat{\subsection}{\normalfont\large\itshape}{\thesubsection}{1em}{}
 \titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
-% Estilo común para los diagramas hechos en TikZ, con los mismos colores que
-% los generados con Mermaid (lavanda para nodos, amarillo pálido para grupos),
-% de modo que ambas familias de figuras sean visualmente coherentes.
 \definecolor{diagNodo}{HTML}{ECECFF}
 \definecolor{diagNodoBorde}{HTML}{9370DB}
 \definecolor{diagGrupo}{HTML}{FFFFDE}
 \definecolor{diagGrupoBorde}{HTML}{AAAA33}
-% Mismo tono que el borde de nodo, más oscuro y con el trazo más grueso. Sirve
-% para señalar una o dos piezas de una figura sin meter un color nuevo que el
-% resto de los diagramas no tienen.
 \definecolor{diagFocoBorde}{HTML}{5B3FA0}
 \definecolor{diagFocoFondo}{HTML}{DCD8F7}
-
 
 \definecolor{borrador2}{HTML}{2AB7B7}
 \tikzset{
@@ -69,22 +38,8 @@
     flechaPunteada/.style={-{Latex[length=2.5mm]}, thick, densely dotted},
 }
 
-% Iconos dibujados en TikZ, para las figuras que se leen mejor con un dibujo
-% que con una caja de texto. Va aqui y no dentro de una figura porque son
-% definiciones de comandos y tienen que existir antes de usarse.
 \input{diagramas/iconos.tex}
 
-
-
-% Remision al capitulo de definiciones y abreviaturas.
-%
-% \glenlace{texto mostrado}{clave} marca la PRIMERA aparicion de un termino:
-% lo convierte en enlace a su entrada del glosario. En las siguientes lo deja
-% tal cual, sin enlace.
-%
-% El destino del salto lo pone \gldestino{clave} en el propio glosario, para
-% que el enlace aterrice en la entrada concreta y no al principio del
-% capitulo, que es a lo unico que puede apuntar un \ref.
 \newcommand{\glenlace}[2]{%
   \expandafter\ifx\csname glvisto@#2\endcsname\relax
     \expandafter\gdef\csname glvisto@#2\endcsname{1}%
@@ -93,54 +48,27 @@
     #1%
   \fi
 }
-% La nota al pie que explica la convencion sale UNA sola vez en todo el
-% documento, colgada del primer termino que se marque. Una nota por termino
-% serian decenas de llamadas repitiendo la misma frase.
 \newcommand{\glaviso}{%
   \ifx\glavisodado\undefined
     \gdef\glavisodado{1}%
-    \footnote{\textcolor{borrador2}{Los términos enlazados de este modo están
+    \footnote{Los términos enlazados de este modo están
               recogidos en el Capítulo~\ref{cap:definiciones} (Definiciones y
-              abreviaturas).}}%
+              abreviaturas).}%
   \fi
 }
-% \gldestino{clave}: destino del salto. Va dentro del \item[...] de la
-% entrada correspondiente del glosario. La clave tiene que ser identica a la
-% que se le pasa a \gl / \glr / \glp / \sig; si no coincide, pdflatex avisa
-% de que el destino no existe.
 \newcommand{\gldestino}[1]{\hypertarget{gl:#1}{}}
-% \gl{termino}: cursiva + enlace, solo la primera vez
 \newcommand{\gl}[1]{\glenlace{\textit{#1}}{#1}}
-% \glr{termino mostrado}{clave}: cuando el texto mostrado varia (plural, genero)
 \newcommand{\glr}[2]{\glenlace{\textit{#1}}{#2}}
-% \glp{termino mostrado}{clave}: como \glr pero en redonda, para los terminos
-% que no son extranjerismos y por tanto no llevan cursiva.
 \newcommand{\glp}[2]{\glenlace{#1}{#2}}
-% \sig{SIGLA}: \glp cuando el texto mostrado y la clave coinciden. Sin cursiva,
-% porque los acronimos no se escriben en cursiva.
 \newcommand{\sig}[1]{\glp{#1}{#1}}
 \setlength{\headheight}{14.5pt}
 
-
-% \sloppy solo aqui dentro: estos bloques llevan nombres de fichero y de
-% funcion en \texttt que no se pueden partir, y en una lista con sangria se
-% salian del margen. Cuatro de los siete desbordamientos visibles del
-% documento eran de aqui. Aflojando el ajuste de linea dentro del entorno
-% ---y solo dentro--- los desbordamientos que queden en el log son ya del
-% documento de verdad, en vez de ruido de texto que se va a borrar. El texto
-% del autor no se ve afectado: \sloppy muere con el entorno.
 \newenvironment{borrador}{%
     \par\noindent\textcolor{violet}{\footnotesize\textbf{BORRADOR  --- ideas a desarrollar, no es texto final:}}\par
     \begin{itemize}\sloppy\setlength{\itemsep}{1pt}\small\color{violet!70!black}
 }{%
     \end{itemize}\normalsize
 }
-% \raggedbottom en vez del \flushbottom por defecto (report a doble cara):
-% el documento mezcla texto, figuras grandes de ancho fijo y apartados
-% todavía sin redactar (solo el encabezado de la subsección), y forzar el
-% ajuste exacto a \textheight en cada página producía desbordamientos
-% verticales (overfull \vbox) allí donde no cabía una figura entera y
-% huecos forzados (underfull \vbox) en páginas con poco contenido.
 \raggedbottom
 
 % ============================================================|
@@ -183,10 +111,6 @@
 \def\TituloAbreviado{Sistema de recomendación de titulaciones}
 
 % ==== Introducir aquí la fecha de presentación del TFG en el formato día/mes/año
-% Confirmado el 16/07/2026 contra el calendario oficial real
-% ("Calendario TFG curso 2025_26.pdf" de la EPSJ): Extraordinaria II del
-% curso 2025/26. Entrega: 3/9/2026 (periodo de entrega 27/7-3/9). Defensa:
-% 9/9/2026. Cierre de acta: 11/9/2026.
 \def\Fecha{3/9/2026}
 
 \input{Portada.tex}
