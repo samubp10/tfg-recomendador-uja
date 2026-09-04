@@ -61,9 +61,9 @@ def _chunk(
     }
 
 
-#: Corpus mínimo con la trampa que tiene el real: dos asignaturas distintas
-#: que se llaman igual en titulaciones distintas. En el corpus del 05/08/2026
-#: hay 14 nombres así («Prácticas externas», «Trabajo fin de Grado»...).
+#: Corpus mínimo con la trampa que tiene el real: dos asignaturas distintas que
+#: se llaman igual en titulaciones distintas. En el corpus hay 14 nombres así
+#: («Prácticas externas», «Trabajo fin de Grado»...).
 #:
 #: Los dos «Estadística» llevan cuerpos distintos **porque son asignaturas
 #: distintas**, que es lo que este corpus dice representar. Antes compartían el
