@@ -9,20 +9,19 @@
       bando/.style={rounded corners=6pt, draw=diagGrupoBorde, fill=diagGrupo,
           inner sep=12pt}
     ]
-    % --- Bando izquierdo: modelos propietarios ---
     \node[insignia, fill=marcaOpenAI] (gpt)    at (0,3.1) {GPT\\[-1pt]{\footnotesize\mdseries OpenAI}};
     \node[insignia, fill=marcaClaude] (claude) at (0,1.8) {Claude\\[-1pt]{\footnotesize\mdseries Anthropic}};
     \node[insignia, fill=marcaGemini] (gemini) at (0,0.5) {Gemini\\[-1pt]{\footnotesize\mdseries Google}};
     \node[subt] (subP) at (0,-0.9) {Pesos cerrados\\Acceso mediante API};
-    % --- Bando derecho: modelos de pesos abiertos ---
+
     \node[insignia, fill=marcaLlama]   (llama)   at (7,3.1) {Llama\\[-1pt]{\footnotesize\mdseries Meta}};
     \node[insignia, fill=marcaMistral] (mistral) at (7,1.8) {Mistral\\[-1pt]{\footnotesize\mdseries Mistral AI}};
     \node[insignia, fill=marcaQwen]    (qwen)    at (7,0.5) {Qwen\\[-1pt]{\footnotesize\mdseries Alibaba}};
     \node[subt] (subA) at (7,-0.9) {Parámetros descargables\\Ejecución local · control de los datos};
-    % --- VS central ---
+
     \node[circle, draw=diagNodoBorde, fill=white, line width=1pt,
       minimum size=1.25cm, font=\LARGE\bfseries, text=diagNodoBorde] (vs) at (3.0,1.8) {VS};
-    % Paneles de fondo con su título
+
     \begin{scope}[on background layer]
       \node[bando, fit=(gpt)(gemini)(subP),
         label={[font=\bfseries]north:Modelos propietarios}] {};
