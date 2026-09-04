@@ -102,12 +102,12 @@ LARGO_MINIMO_PARCIAL: Final[int] = 12
 
 #: Veces que se le pide la decisión al modelo antes de darla por perdida.
 #:
-#: Dos, y sale de un caso real del 27/08/2026: con dos clientes hablando a la
-#: vez con el mismo servidor de inferencia, la llamada de decisión se llevó un
-#: 500 y el sistema cayó al mecanismo determinista **sin que nada lo dijera**.
-#: Desde fuera eso se ve exactamente igual que el defecto que esta tarjeta
-#: corrige ---la conversación se queda pegada a la titulación anterior---, así
-#: que un tropiezo pasajero del servidor se lee como una regresión.
+#: Dos, y sale de un caso real: con dos clientes hablando a la vez con el mismo
+#: servidor de inferencia, la llamada de decisión se llevó un 500 y el sistema
+#: cayó al mecanismo determinista **sin que nada lo dijera**. Desde fuera eso
+#: se ve exactamente igual que el defecto que esta tarjeta corrige ---la
+#: conversación se queda pegada a la titulación anterior---, así que un
+#: tropiezo pasajero del servidor se lee como una regresión.
 #:
 #: Un reintento cuesta unos segundos en el único caso en que la alternativa es
 #: responder de la titulación equivocada. Más de uno no: si el servidor está
@@ -351,9 +351,9 @@ def decisor_con_modelo(
     ámbito y el turno anterior los aporta la conversación en cada llamada.
 
     **Un fallo del servidor no pierde el turno.** Si el modelo no contesta se
-    devuelve ``None``, y la conversación se queda con su mecanismo determinista,
-    que es lo que hacía antes de esta tarjeta. Una decisión de ámbito no merece
-    tumbar una consulta que aún se puede responder.
+    devuelve ``None`` y la conversación se queda con su mecanismo
+    determinista: una decisión de ámbito no merece tumbar una consulta que
+    aún se puede responder.
 
     Args:
         catalogo: Titulaciones que declara el índice.
