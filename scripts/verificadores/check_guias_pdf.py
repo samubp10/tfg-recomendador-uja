@@ -42,13 +42,12 @@ def _pdf_de(carpeta: Path, guia: dict) -> Path | None:
     """Ruta del PDF guardado para una guía, o ``None`` si no se puede saber.
 
     El nombre del fichero es el código de la asignatura, así que una guía sin
-    código no tiene PDF identificable. Antes se le daba el nombre de reserva
-    ``sin_codigo.pdf``, y con eso **todas** las guías sin código habrían
-    apuntado al mismo fichero: cada una se habría auditado contra el PDF de
-    otra, y las que no coincidieran habrían salido como discrepancias sin
-    que el motivo real apareciera por ningún lado. Hoy las 288 guías del
-    corpus traen código y ninguna entra por aquí; el caso se declara
-    inauditable en vez de resolverse con un nombre inventado.
+    código no tiene PDF identificable. Darle un nombre de reserva como
+    ``sin_codigo.pdf`` haría que **todas** las guías sin código apuntaran al
+    mismo fichero, auditando cada una contra el PDF de otra y sacando las
+    discrepancias sin su motivo real. Hoy las 288 guías del corpus traen código
+    y ninguna entra por aquí; el caso se declara inauditable en vez de
+    resolverse con un nombre inventado.
 
     Args:
         carpeta: Carpeta donde el rastreo guarda los PDF.
