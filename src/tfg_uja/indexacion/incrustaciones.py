@@ -88,19 +88,18 @@ def cargar_modelo(nombre: str = MODELO) -> Incrustador:
     ejecución real la necesita (extra ``[index]`` del proyecto, que arrastra
     PyTorch); las pruebas inyectan un incrustador falso.
 
-    Rara vez hay que llamar a esta función directamente: para indexar y para
-    consultar están :func:`incrustador_de_documentos` e
-    :func:`incrustador_de_consultas`, que ya aplican el prefijo que toca.
-    Queda pública porque el experimento comparativo sí necesita incrustar
-    sin prefijo, al evaluar modelos que no usan esa convención.
+    Rara vez hay que llamarla directamente: para indexar y para consultar están
+    :func:`incrustador_de_documentos` e :func:`incrustador_de_consultas`, que ya
+    aplican el prefijo que toca. Queda pública porque el experimento comparativo
+    sí necesita incrustar sin prefijo, al evaluar modelos que no usan esa
+    convención.
 
-    El modelo se carga **solo desde la caché local**. El sistema promete
-    funcionar entero sin conexión, y sin esta restricción no lo cumplía:
-    ``SentenceTransformer`` consulta el Hub aunque el modelo ya esté
-    descargado, así que en un equipo sin red el servidor no llegaba a
-    levantar. Para la primera descarga está :data:`VARIABLE_DESCARGA`, que es
-    una decisión explícita de quien instala y no algo que ocurra a espaldas
-    de quien solo quiere ejecutar el sistema.
+    El modelo se carga **solo desde la caché local**, porque el sistema promete
+    funcionar entero sin conexión: ``SentenceTransformer`` consulta el Hub
+    aunque el modelo ya esté descargado, y en un equipo sin red el servidor no
+    llegaba a levantar. Para la primera descarga está :data:`VARIABLE_DESCARGA`,
+    que es una decisión explícita de quien instala y no algo que ocurra a
+    espaldas de quien solo quiere ejecutar el sistema.
 
     Args:
         nombre: Nombre del modelo en el Hub de Hugging Face.
