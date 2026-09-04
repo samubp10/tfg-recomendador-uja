@@ -11,12 +11,6 @@ Lo que hay que atender es un endpoint y unos ficheros estáticos, y el cuello de
 botella es el modelo, que responde con una mediana de 62,7 s: ninguna capa HTTP
 cambia eso.
 
-⚠️ **No es apto para producción**, y así está declarado: no da HTTPS ni limita
-la tasa de peticiones, y el despliegue queda fuera del alcance de este trabajo
-(reparto MoSCoW del Capítulo 4). Llevarlo allí exigiría un servidor WSGI/ASGI
-tras un proxy inverso, HTTPS, límites de tasa, conversación por sesión y, sobre
-todo, resolver que el modelo atiende de uno en uno.
-
 **El alcance es una demostración local para un solo visitante, y el servidor
 está construido para eso.** Atiende de una petición en una ---:class:`HTTPServer`
 y no ``ThreadingHTTPServer``---, y de ahí se siguen tres cosas:
@@ -303,7 +297,7 @@ def fuentes_de(fragmentos: list[Any]) -> list[dict[str, str]]:
     del sistema: el nombre de la unidad junto a las titulaciones en las que se
     imparte.
 
-    ⚠️ Lo que devuelve es **lo que se le entregó al modelo**, no lo que el
+    Lo que devuelve es **lo que se le entregó al modelo**, no lo que el
     modelo usó al redactar. El sistema no sabe lo segundo, y presentarlo como
     si lo supiera sería afirmar de más.
 
