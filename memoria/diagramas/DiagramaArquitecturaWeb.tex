@@ -13,26 +13,17 @@
         text width=3.2cm, minimum height=5.3cm},
       rotuloCapa/.style={font=\scriptsize\bfseries, text=diagNodoBorde},
       tituloCapa/.style={font=\normalsize\bfseries},
-      % El detalle va en \footnotesize y no en \scriptsize porque `resizebox`
-      % encoge la figura hasta el ancho de la caja de texto: a \scriptsize la
-      % letra acababa a 5\,pt en la página, que es la queja que hay que evitar.
       detalle/.style={font=\footnotesize, align=right},
       rotulo/.style={font=\scriptsize, inner sep=2pt},
       flechaDoble/.style={{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick},
       ]
 
-      % ── Las cinco capas ────────────────────────────────────────────────────
       \node[capaCliente] (l1) {};
       \node[capa,     below=0.7cm of l1] (l2) {};
       \node[capa,     below=0.7cm of l2] (l3) {};
       \node[capaFoco, below=0.7cm of l3] (l4) {};
       \node[capaDisco,below=0.7cm of l4] (l5) {};
 
-      % El contenido va anclado a cada banda, no colocado a mano: el rótulo
-      % arriba a la izquierda, el nombre abajo a la izquierda y el detalle
-      % técnico a la derecha, alineado por su margen derecho. Se escribe banda
-      % a banda y no con un bucle: los títulos llevan comas, y el bucle las
-      % toma por separadores de su propia lista.
       \node[rotuloCapa, anchor=north west]
       at ([xshift=5mm, yshift=-4mm]l1.north west) {QUIÉN PREGUNTA};
       \node[tituloCapa, anchor=south west]
@@ -54,9 +45,6 @@
       \node[tituloCapa, anchor=south west]
       at ([xshift=5mm, yshift=4mm]l3.south west) {Conversación y ámbito};
       \node[detalle, anchor=east] at ([xshift=-5mm]l3.east)
-      % Cada línea del detalle se queda por debajo de 5,5\,cm: el título está
-      % anclado a la misma altura por la izquierda, y una línea más larga se le
-      % sienta encima.
       {ventana de tres turnos\\
         el sujeto lo decide el modelo};
 
