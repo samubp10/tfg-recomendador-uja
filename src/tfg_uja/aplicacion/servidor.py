@@ -4,9 +4,9 @@ Sirve la interfaz de ``web/`` y atiende ``POST /api/chat``, que devuelve la
 respuesta **por partes** según la decisión del ADR-0006: una línea JSON por
 unidad ya verificada.
 
-**Por qué la biblioteca estándar y no un marco de trabajo.** Medido el
-24/08/2026 con ``pip install --dry-run`` contra lo que el sistema necesita para
-funcionar: ``http.server`` añade 0 paquetes, Starlette 2, FastAPI 3 y Flask 4.
+**Por qué la biblioteca estándar y no un marco de trabajo.** Medido con
+``pip install --dry-run`` contra lo que el sistema necesita para funcionar:
+``http.server`` añade 0 paquetes, Starlette 2, FastAPI 3 y Flask 4.
 Lo que hay que atender es un endpoint y unos ficheros estáticos, y el cuello de
 botella es el modelo, que responde con una mediana de 62,7 s: ninguna capa HTTP
 cambia eso.
