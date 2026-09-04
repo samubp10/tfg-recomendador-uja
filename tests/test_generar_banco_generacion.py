@@ -195,7 +195,7 @@ def test_no_se_pregunta_por_lo_que_el_corpus_no_puede_responder():
 
     Se computa sin problema del dataset ---en qué titulaciones se imparte una
     asignatura compartida---, pero los fragmentos se componen por titulación y
-    curso y nadie los cruza. Medido el 18/08/2026, los dos modelos contestaron
+    curso y nadie los cruza. Medido, los dos modelos contestaron
     2 y 6 titulaciones donde el dataset dice 10, habiendo leído bien lo que se
     les dio. Eran 86 preguntas que habrían suspendido a todos los candidatos
     por un hueco del corpus.
