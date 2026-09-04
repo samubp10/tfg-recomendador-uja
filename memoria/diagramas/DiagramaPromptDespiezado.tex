@@ -1,32 +1,4 @@
 % !TEX root = ../main.tex
-% Despiece de lo que recibe el modelo generativo (IT-37).
-%
-% La version anterior de esta figura dibujaba CUATRO piezas y `construir_prompt`
-% arma OCHO. Faltaban el catalogo de titulaciones, el ambito, la pregunta y la
-% marca de cierre. La ausencia del catalogo era la que mas pesaba: es la medida
-% contra las titulaciones inventadas, y la figura la negaba.
-%
-% Los dos mensajes van separados a proposito. El de sistema NO se concatena:
-% viaja en el campo `system` de la peticion a Ollama, distinto del campo
-% `prompt`. Dibujarlos juntos daria a entender que el modelo los recibe como
-% un solo texto, que es justo lo que no pasa.
-%
-% Las dos piezas de la fila de arriba NO llevan flecha de entrada, y esa
-% ausencia es el dibujo: no dependen de la consulta, son las mismas siempre.
-% La pregunta tampoco la lleva porque su origen es el estudiante y no hace
-% falta dibujarlo.
-%
-% Lo que la figura existe para ensenar sigue siendo lo mismo que antes: de la
-% conversacion viajan las PREGUNTAS y no las RESPUESTAS. Es lo que impide que
-% un dato equivocado en un turno se convierta en fuente del siguiente.
-%
-% Las cajas se encadenan con `right=of` y `below`, y las flechas salen de sus
-% anclas. Dar las alturas a mano NO vale: `minimum height` es un minimo y una
-% caja crece con su texto, asi que las de abajo se metian dentro de las de
-% arriba y las flechas apuntaban al aire.
-%
-% Ojo al salto de linea dentro de un grupo: el \\ va FUERA de las llaves del
-% \scriptsize, o TikZ rompe el alineado con errores ilegibles.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -39,20 +11,14 @@
       rotulo/.style={font=\scriptsize, inner sep=2pt},
       ]
 
-      % ── El mensaje de sistema, que viaja aparte ────────────────────────────
       \node[piezaAncha] (sis) at (0,0)
       {\textbf{\texttt{SISTEMA}}\\{\scriptsize quién es el asistente}\\{\scriptsize y para quién escribe}};
 
-      % ── El mensaje de usuario ──────────────────────────────────────────────
-      % Fila de arriba: las dos piezas que no dependen de la consulta.
       \node[piezaAncha] (ins) at (0,-4.6)
       {\textbf{\texttt{INSTRUCCIONES}}\\{\scriptsize usar solo el contexto y decir cuándo no basta,}\\{\scriptsize distinguir la guía no publicada de la asignatura}\\{\scriptsize inexistente, y citar la procedencia}};
       \node[piezaAncha, right=0.5cm of ins] (cat)
       {\textbf{Oferta de la Escuela}\\{\scriptsize las doce titulaciones, en todas las consultas:}\\{\scriptsize unas 150 fichas de las 8.192 de la ventana.}\\{\scriptsize Es un dato, no una prohibición}};
 
-      % Fila de abajo: las cuatro que cambian con cada consulta. Se cuelgan de
-      % la esquina de `ins` y se encadenan entre ellas, para que ni se pisen ni
-      % dependan de que yo acierte con la altura de cada caja.
       \node[pieza, anchor=north west] (amb) at ([yshift=-0.9cm]ins.south west)
       {\textbf{Ámbito}\\{\scriptsize de qué titulación}\\{\scriptsize se está hablando}};
       \node[piezaFoco, right=0.3cm of amb] (hist)
@@ -62,9 +28,6 @@
       \node[pieza, right=0.3cm of ctx] (pre)
       {\textbf{\texttt{PREGUNTA}}\\{\scriptsize tal cual la escribe,}\\{\scriptsize y la marca de cierre}};
 
-      % ── Los dos mensajes, al fondo para no tapar los nodos ─────────────────
-      % El rótulo va anclado por su SUR al norte del grupo, o cuelga hacia
-      % dentro y se sienta encima de la primera caja.
       \begin{scope}[on background layer]
         \node[grupoDiag, inner xsep=14pt, inner ysep=12pt, fit=(sis),
         label={[tituloGrupo, anchor=south]north:Mensaje de sistema: viaja aparte}] {};
@@ -73,16 +36,12 @@
         label={[tituloGrupo, anchor=south]north:Mensaje de usuario: se arma en cada consulta}] {};
       \end{scope}
 
-      % ── Solo las piezas que cambian tienen origen dibujado ─────────────────
       \path (amb.south) -- (hist.south) node[midway] (entre) {};
       \node[fuente, anchor=north] (conv) at ([yshift=-2.2cm]entre.center)
       {\textbf{La conversación}\\{\scriptsize vive en el servidor}};
       \node[fuente, anchor=north] (indice) at (ctx.south |- conv.north)
       {\textbf{El índice vectorial}\\{\scriptsize LanceDB}};
 
-      % Los dos codos salen de puntos distintos del borde de `conv` y giran a
-      % alturas distintas: con la misma abscisa o la misma altura, una flecha
-      % taparía a la otra.
       \coordinate (s1) at ([xshift=-8mm]conv.north);
       \coordinate (s2) at ([xshift=8mm]conv.north);
       \coordinate (a1) at ([yshift=11mm]s1);
@@ -100,21 +59,15 @@
       \node[rotulo, anchor=west] at ([xshift=2mm, yshift=6mm]indice.north)
       {los fragmentos que pasan el suelo};
 
-      % ── Lo que la conversación NO manda, que es el motivo de la figura ─────
       \node[rotulo, anchor=north west, text width=8.2cm, align=left]
       at ([yshift=-6mm]conv.south west)
       {Las respuestas anteriores se leen para saber de qué titulación se habla,
         pero \textbf{no entran aquí} como fuente de datos.};
     \end{tikzpicture}%
   }
-  \caption[Despiece del \textit{prompt} que recibe el modelo]{\textcolor{borrador2}{Las
+  \caption[Despiece del \textit{prompt} que recibe el modelo]{Las
       piezas con las que se compone lo que recibe el modelo generativo. El
       mensaje de sistema viaja en un campo aparte y no se concatena con el
-      resto. De las seis piezas del mensaje de usuario, las dos de arriba no
-      tienen origen dibujado porque no dependen de la consulta: son las mismas
-      siempre. De la conversación viajan las preguntas y no las respuestas, y
-      esa es la razón de que una respuesta equivocada en un turno no pueda
-      convertirse en fuente del siguiente: lo que no está en el \textit{prompt}
-      no se puede copiar. Fuente: Elaboración propia.}}
+      resto. De la conversación viajan las preguntas y no las respuestas Fuente: Elaboración propia.}
   \label{fig:prompt_despiezado}
 \end{figure}
