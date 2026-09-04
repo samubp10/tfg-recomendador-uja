@@ -8,24 +8,20 @@
       nodoAux/.style={nodoDiag, densely dashed},
       flechaDoble/.style={{Latex[length=2.5mm]}-{Latex[length=2.5mm]}, thick},
       flechaAux/.style={-{Latex[length=2.5mm]}, densely dashed},
-      % La máscara evita que la flecha se lea por debajo del rótulo. Su color
-      % es el del fondo sobre el que cae, que no es el mismo en las dos bandas.
       rotuloEnGrupo/.style={font=\scriptsize, fill=diagGrupo, inner sep=1.5pt},
       rotuloFuera/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
       ]
 
-      % ── Banda de arriba: se ejecuta una vez ────────────────────────────────
       \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (web) at (0,0)
       {Web de la EPSJ\\{\scriptsize \texttt{eps.ujaen.es}}};
       \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (grados) at (5,0)
       {\texttt{grados.json}\\{\scriptsize 528 asignaturas}};
       \node[nodoDiag, minimum width=2.8cm, minimum height=1.3cm] (chunks) at (10,0)
-      {\texttt{chunks.json}\\{\scriptsize \textcolor{borrador2}{1.922} fragmentos}};
+      {\texttt{chunks.json}\\{\scriptsize 1.922 fragmentos}};
       \node[nodoFoco, cylinder, shape border rotate=90, aspect=0.15,
       minimum width=2.8cm, minimum height=1.3cm] (indice) at (15,0)
       {Índice vectorial\\{\scriptsize LanceDB · e5-small}};
 
-      % ── Banda de abajo: se ejecuta en cada pregunta ────────────────────────
       \node[nodoDiag, minimum width=3.6cm, minimum height=1.3cm] (navegador) at (0.6,-5)
       {Navegador\\{\scriptsize sin cuenta de usuario}};
       \node[nodoFoco, minimum width=5.4cm, minimum height=1.3cm] (servidor) at (7.5,-5)
@@ -35,9 +31,6 @@
       \node[nodoAux, minimum width=3.6cm, minimum height=1cm] (registro) at (14.4,-7.6)
       {\texttt{registro\_chat.jsonl}\\{\scriptsize sin datos personales}};
 
-      % ── Las dos bandas ─────────────────────────────────────────────────────
-      % Las esquinas se dan a mano para que los dos rectángulos midan lo mismo:
-      % el contenido de la banda de abajo es algo más estrecho que el de arriba.
       \begin{scope}[on background layer]
         \node[grupoDiag, fit={(-1.9,1.25) (16.9,-1.25) (web) (indice)},
         label={[tituloGrupo, anchor=south]north:Construcción del índice: se ejecuta una vez}] {};
@@ -46,26 +39,21 @@
         label={[tituloGrupo]south:Atención de una consulta: se ejecuta en cada pregunta}] {};
       \end{scope}
 
-      % ── La cadena de construcción ──────────────────────────────────────────
       \draw[flechaDiag] (web) -- node[rotuloEnGrupo, above=2pt]{rastreador} (grados);
       \draw[flechaDiag] (grados) -- node[rotuloEnGrupo, above=2pt]{fragmentador} (chunks);
       \draw[flechaDiag] (chunks) -- node[rotuloEnGrupo, above=2pt]{indexador} (indice);
 
-      % ── El diálogo de una consulta ─────────────────────────────────────────
       \draw[flechaDoble] (navegador) -- node[rotuloEnGrupo, above=2pt]{eventos} (servidor);
       \draw[flechaDoble] (servidor) -- node[rotuloEnGrupo, above=2pt]{generación} (inferencia);
 
-      % ── Lo único que une las dos bandas ────────────────────────────────────
       \draw[flechaDoble, rounded corners=6pt]
       (servidor.north) -- (7.5,-2.3) -- (15,-2.3) -- (indice.south);
       \node[rotuloFuera, above=2pt] at (11.25,-2.3) {búsqueda};
 
-      % ── Anotar es tarea auxiliar: si falla, la respuesta se entrega igual ──
       \draw[flechaAux, rounded corners=6pt]
       (servidor.south) -- (7.5,-7.6) -- (registro.west);
       \node[rotuloEnGrupo, anchor=west] at (7.65,-6.4) {traza};
 
-      % ── Leyenda, fuera de las bandas ───────────────────────────────────────
       \draw[diagFocoBorde, very thick] (-1.9,-10.1) -- (-1.1,-10.1);
       \node[font=\scriptsize, anchor=west] at (-0.9,-10.1)
       {pieza que sostiene las decisiones de este capítulo};
