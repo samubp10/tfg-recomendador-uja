@@ -1,10 +1,4 @@
 % !TEX root = ../main.tex
-% Resultados literales de la ejecucion sobre el corpus del curso 2026-27.
-% Fuente: docs/experimentos/it38-recuperacion.md, escrito por el propio script.
-% NO editar estas cifras a mano: si cambian, se vuelve a ejecutar
-%   py scripts/experimentos/experimento_recuperacion.py
-% y se copian de ahi. Corpus de 1.922 fragmentos y 56 preguntas de dominio
-% (antes de IT-125 eran 1.499, y las cifras de entonces estan tachadas).
 \begin{table}[htbp]
   \centering
   \small
@@ -16,15 +10,15 @@
     \toprule
     \textbf{K} & \textbf{R@K} & \textbf{Techo de R@K} & \textbf{RU@K}  & \textbf{MRR}            \\
     \midrule
-    3          & \sout{0,652} \textcolor{borrador2}{0,644}
-               & \sout{0,754} \textcolor{borrador2}{0,756}
-               & 0,906          & \sout{0,926} \textcolor{borrador2}{0,914}  \\
-    5          & \sout{0,789} \textcolor{borrador2}{0,777}
-               & \sout{0,906} \textcolor{borrador2}{0,905}
-               & 0,973          & \sout{0,926} \textcolor{borrador2}{0,914}  \\
-    10         & \sout{0,881} \textcolor{borrador2}{0,865}
-               & \sout{0,966} \textcolor{borrador2}{0,964}
-               & \textbf{0,991} & \sout{0,926} \textcolor{borrador2}{0,914}  \\
+    3          & 0,644
+               & 0,756
+               & 0,906          & 0,914  \\
+    5          & 0,777
+               & 0,905
+               & 0,973          & 0,914  \\
+    10         & 0,865
+               & 0,964
+               & \textbf{0,991} & 0,914  \\
     \bottomrule
   \end{tabular}
   \begin{minipage}{0.95\textwidth}
