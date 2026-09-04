@@ -1,11 +1,10 @@
 % !TEX root = ../main.tex
 \chapter{ANTECEDENTES Y ESTADO DEL ARTE}
 \label{cap:antecedentes}
-
 \textcolor{red}{[jccuevas] Los antecedentes serían de donde tú partes o parte tu trabajo, y como mucho sería los comentarios de la información que tienen los estudiantes y lo que hay en al web de la EPSJ- Eñ estado del arte, realmente serían los chatbots que ya existen hoy en día para aconsejar sobre esto. El propio de la UJA de información genérico, u otros que puedas encontrar. Lo demás que pones aquí no es en sí estado del arte, sino una revisión de la tecnología que debería ir en el apartado siguiente, o si quieres en éste, como un concepto más general de 'estado del arte'.}
 
-
 %[jccuevas} \section{Introducción}
+
 \textcolor{red}{[jccuevas] Comienza a comentar directamente lo que vas a poner en este capítulo. No tengas secciones o capítulos en los que directamente pones ya una subsección.}
 
 \textcolor{blue}{[sbp] Corregido: el capítulo comienza directamente con el texto introductorio, sin sección propia. He reescrito además estos párrafos en impersonal.}
@@ -28,8 +27,8 @@ Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante s
 Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (\sig{TGNA}) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\,\% en las universidades públicas y un 13,20\,\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (\sig{TGBA}) de esa misma cohorte alcanzó el 25,72\,\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
 
 
-
 \textcolor{red}{[jccuevas] Aquí falta desarrollar el tema.}
+
 
 
 \subsection{Recursos de orientación existentes y sus limitaciones}
@@ -59,10 +58,10 @@ En esta sección de exponen los conceptos teóricos y las tecnologías que suste
 La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
-
 \textcolor{red}{[jccuevas] Lo que te he comentado antes, no pases de un título a otro sin explicar.}
 
 \textcolor{red}{[jccuevas] Lo que vas a detallar aquí está bien, pero dale más profundidad a lo que no veáis en asignaturas, aunque, como mucho, esta parte que te lleve un par de páginas por cada apartado 2.2, 2.3, etc., alguno puede tener más, pero esto no es tu trabajo, es la tecnología, sintetiza.}
+
 
 El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Aunque comenzó con sistemas simbólicos basados en reglas formales\cite{chomsky1957syntactic}, la disciplina evolucionó hacia modelos estadísticos y redes neuronales impulsada por el aumento de datos y cómputo\cite{hirschberg2015advances}. Esta trayectoria ha culminado en los actuales modelos de lenguaje de gran tamaño\cite{delso2024evolucion}, sustentados en la arquitectura \textit{Transformer}.
 
@@ -395,7 +394,7 @@ La alternativa elegida es evitar el problema en el origen, ya que el sistema no 
 Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción. Para cumplir con esto, la interfaz de la aplicación incorpora un aviso permanente en la cabecera del chat e incluye en cada respuesta las referencias exactas a las guías docentes consultadas.
 
 En cuanto a las licencias, el código fuente del proyecto se distribuye bajo la licencia libre GNU General Public License v3 (GPLv3)\cite{gpl3}. Para la parte de inferencia, se restringe la selección a modelos exclusivamente de pesos abiertos, asegurando la soberanía de los datos procesados en local.
-
+ 
 \subsection{Accesibilidad del servicio web}
 
-La interfaz web del asistente se ha creado bajo las pautas técnicas \textit{WCAG 2.2}\cite{wcag22} en su nivel \sout{de conformidad}\textcolor{borrador2}{AA, y su cumplimiento se comprueba de forma automática: un verificador del repositorio\cite{repo_tfg} mide sobre el propio código las razones de contraste de las combinaciones que la interfaz pinta, el tamaño de cada control, la existencia de una regla de foco propia para todos ellos y el marcado del que dependen el nombre accesible, el orden de tabulación, el idioma y las alternativas textuales. Lo que ese verificador no puede cubrir ---el comportamiento con un lector de pantalla real y el recorrido del foco al abrir el cuadro modal--- exige ejecutar la página y queda declarado como tal en el Apartado~\ref{secc:fase3_accesibilidad}}\sout{AA}. En el marco legal español, el Real Decreto 1112/\allowbreak 2018\cite{rd1112_2018} exige garantizar la accesibilidad en los sitios web del sector público, entorno en el que se integran las universidades públicas a través de la remisión de su artículo 2.1.d al artículo 2.2 de la Ley 39/\allowbreak 2015.
+La interfaz web del asistente se ha creado bajo las pautas técnicas \textit{WCAG 2.2}\cite{wcag22} en su nivel AA, y su cumplimiento se comprueba de forma automática con código. En el marco legal español, el Real Decreto 1112/\allowbreak 2018\cite{rd1112_2018} exige garantizar la accesibilidad en los sitios web del sector público, entorno en el que se integran las universidades públicas a través de la remisión de su artículo 2.1.d al artículo 2.2 de la Ley 39/\allowbreak 2015.

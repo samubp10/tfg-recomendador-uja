@@ -1,19 +1,4 @@
-% Guion grafico de la pantalla de chat (IT-43).
-%
-% Se dibuja ANTES de programar la interfaz (IT-45): es una decision de diseno,
-% no documentacion a posteriori de lo que resulto comodo de implementar.
-%
-% Los dos textos del asistente NO son inventados:
-%   - El de la izquierda es la respuesta real de gemma3:12b a la pregunta
-%     G-MEN-002 del banco de evaluacion, tal cual la devolvio el sistema.
-%   - El de la derecha es literalmente RESPUESTA_SIN_CONTEXTO de generador.py,
-%     que es una constante del codigo y no una redaccion de ejemplo.
-% La pregunta de la derecha es V-001 del conjunto de preguntas ajenas.
-%
-% Lo que este guion decide, y es su motivo de existir: el bloque de fuentes
-% aparece SOLO cuando hay fragmentos recuperados. Su ausencia es la senal de
-% que el sistema no esta citando nada, y por eso no se sustituye por un bloque
-% vacio ni por un aviso generico.
+% !TEX root = ../main.tex
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -36,7 +21,6 @@
       rotulo/.style={font=\small\bfseries, anchor=north},
       ]
 
-      % ================= CASO NORMAL =================
       \node[pantalla, minimum width=8cm, minimum height=10.6cm] (p1) at (4,5.3) {};
       \node[barra, minimum width=7.4cm] at (4,9.9) {Asistente de titulaciones · EPSJ};
       \node[usuario, text width=4.6cm, anchor=north east] at (7.7,9.2)
@@ -54,7 +38,6 @@
       {Escribe tu pregunta\ldots};
       \node[rotulo] at (4,-0.1) {Caso normal};
 
-      % ================= CASO SIN INFORMACION =================
       \begin{scope}[shift={(9.6,0)}]
         \node[pantalla, minimum width=8cm, minimum height=10.6cm] (p2) at (4,5.3) {};
         \node[barra, minimum width=7.4cm] at (4,9.9) {Asistente de titulaciones · EPSJ};
@@ -76,12 +59,8 @@
       \end{scope}
     \end{tikzpicture}%
   }
-  \caption[Guion gráfico de la pantalla de chat]{\textcolor{borrador2}{Guion
+  \caption[Guion gráfico de la pantalla de chat]{Guion
       gráfico de la pantalla de chat, en el caso normal y en el caso en que el
-      sistema no encuentra información con la que responder. Las dos respuestas
-      del asistente son reales: la de la izquierda es la que devolvió el sistema
-      a la pregunta \texttt{G-MEN-002} del banco de evaluación, y la de la
-      derecha es la constante con la que responde cuando la recuperación vuelve
-      vacía. Fuente: Elaboración propia.}}
+      sistema no encuentra información con la que responder.  Fuente: Elaboración propia.}
   \label{fig:storyboard_chat}
 \end{figure}

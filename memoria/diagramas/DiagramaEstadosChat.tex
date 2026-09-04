@@ -1,23 +1,4 @@
 % !TEX root = ../main.tex
-% Los tres estados de la pantalla de chat (IT-43).
-%
-% NADA de lo que se dibuja aqui esta inventado:
-%   - Las preguntas y las respuestas salen de una conversacion ejecutada contra
-%     el sistema el 24/08/2026, con sus tiempos medidos.
-%   - Los textos de la espera son literalmente los que compone `contarLaEspera`
-%     en la interfaz.
-%
-% Corregido el 29/08/2026: la nota decia que la primera fase se llamaba
-% «Buscando en las guias docentes» y que el cambio de texto ocurria a los 12 s.
-% Las dos cosas dejaron de ser ciertas en IT-45. El rotulo es ahora «Buscando en
-% la informacion de la Escuela», y la fase la marca la LLEGADA DE LAS FUENTES,
-% que es el suceso real que cierra la recuperacion; con el cronometro anterior
-% podia anunciar «redactando» con la busqueda todavia en marcha.
-%   - El pie «respuesta inmediata» es la marca que la interfaz pone cuando la
-%     respuesta no llego a consultar al modelo.
-%
-% No se dibuja bloque de fuentes: el sistema no cita fragmentos en la
-% respuesta, y dibujarlo prometeria algo que no hace.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -39,7 +20,6 @@
       rotulo/.style={font=\small\bfseries, anchor=north},
       ]
 
-      % ===================== 1. CASO NORMAL =====================
       \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
       \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
       \node[usuario, text width=4.4cm, anchor=north east] at (7.4,9.6)
@@ -54,7 +34,6 @@
       {Escribe tu pregunta\ldots};
       \node[rotulo] at (3.8,-0.2) {1 · Respuesta elaborada};
 
-      % ===================== 2. LA ESPERA =====================
       \begin{scope}[shift={(8.6,0)}]
         \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
         \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
@@ -76,7 +55,6 @@
         \node[rotulo] at (3.8,-0.2) {2 · La espera};
       \end{scope}
 
-      % ============ 3. INMEDIATA Y SIN INFORMACION ============
       \begin{scope}[shift={(17.2,0)}]
         \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
         \node[barra, minimum width=7cm] at (3.8,10.3) {Asistente de titulaciones · EPSJ};
@@ -102,6 +80,5 @@
     \end{tikzpicture}%
   }
    \caption[Estados de interacción de la pantalla de conversación]{Comportamiento de la interfaz ante respuestas elaboradas, tiempos de espera, respuestas inmediatas y rechazo de consultas. Fuente: Elaboración propia.}
-
   \label{fig:estados_chat}
 \end{figure}

@@ -1,10 +1,4 @@
 % !TEX root = ../main.tex
-% Ejemplo de conversacion de tres turnos (IT-106).
-%
-% El caso esta elegido para que se vea el mecanismo y no para que quede bonito:
-% la titulacion NO aparece en ninguna de las dos preguntas del usuario, solo en
-% la respuesta del asistente. Es el unico ejemplo en el que se distingue mirar
-% las preguntas de mirar tambien la respuesta, que es la correccion de IT-106.
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
@@ -22,7 +16,6 @@
       \node[rotulo] at (0,0.9) {Conversación};
       \node[rotulo] at (8.4,0.9) {De qué se está hablando};
 
-      % --- Turno 1 ---
       \node[turno, anchor=north west] (p1) at (0,0.4)
         {\textbf{Estudiante:} me gustan los videojuegos};
       \node[asistente, anchor=north west] (r1) at (0,-1.0)
@@ -32,14 +25,12 @@
         {Grado en Ingeniería Informática\\{\footnotesize sale de la
          \textbf{respuesta}}};
 
-      % --- Turno 2 ---
       \node[turno, anchor=north west] (p2) at (0,-3.4)
         {\textbf{Estudiante:} ¿y qué asignaturas tiene en primero?};
       \node[sujeto, anchor=north west] (s2) at (8.4,-3.4)
         {Grado en Ingeniería Informática\\{\footnotesize se \textbf{hereda}: la
          pregunta no nombra ninguna}};
 
-      % --- Turno 3 ---
       \node[turno, anchor=north west] (p3) at (0,-5.6)
         {\textbf{Estudiante:} ¿y en Mecánica?};
       \node[sujeto, anchor=north west] (s3) at (8.4,-5.6)

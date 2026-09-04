@@ -1,31 +1,4 @@
 % !TEX root = ../main.tex
-% Requisitos no funcionales del sistema (IT-59).
-%
-% RNF-04 no es un requisito de rendimiento disfrazado: dice el ORDEN DE
-% PRELACION entre fidelidad y tiempo de respuesta, que es la decision que
-% gobierna la eleccion del modelo generativo. Fijar en su lugar un umbral de
-% latencia habria descartado por norma el modelo que se eligio, y lo habria
-% hecho midiendo el equipo en vez del sistema.
-%
-% RNF-06 y RNF-07 dicen menos de lo que decian, y a proposito.
-%
-% El RNF-06 prometia seguir siendo correcto ante CUALQUIER cambio de la oferta
-% sin tocar el codigo, y el propio capitulo 4 cuenta dos veces que hubo que
-% tocarlo: cuando la Escuela intercalo una columna en el plan de Geomatica
-% (IT-76) y cuando las guias pasaron de HTML a PDF (IT-67). Lo que el sistema
-% si absorbe solo es el CONTENIDO --otra asignatura, otra guia, otro plan--;
-% lo que no absorbe es que cambie la ESTRUCTURA de la fuente.
-%
-% El RNF-07 declaraba conformidad con el nivel AA sin comprobarla, y estuvo
-% una temporada rebajado a «objetivo de diseno» por ese motivo. Se afirma otra
-% vez, pero acotado y con respaldo ejecutable:
-% scripts/verificadores/check_accesibilidad.py mide sobre el codigo el
-% contraste, el tamano de cada control, su regla de foco y el marcado del que
-% dependen el nombre accesible, el orden de tabulacion, el idioma y las
-% alternativas textuales. Lo que exige ejecutar la pagina ---lector de
-% pantalla, foco del cuadro modal, reflujo a 320 px--- sigue sin comprobarse, y
-% por eso el requisito dice «los criterios comprobables sobre el codigo» y no
-% «conformidad AA» a secas.
 \begin{table}[htbp]
   \centering
   \small

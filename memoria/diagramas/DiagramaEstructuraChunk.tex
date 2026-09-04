@@ -2,62 +2,60 @@
 \begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[                                                                                                                                                    
-      font=\footnotesize,
-      bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
-          inner sep=7pt, rounded corners=2pt},
-      titulo/.style={font=\footnotesize\bfseries, anchor=north west,
-          text=diagGrupoBorde!55!black}
-    ]
-    % --- Columna izquierda: el campo que se incrusta ---
-    \node[bloque, text width=9.2cm] (enc) {%
-      \textbf{Encabezado autocontenido} \hfill \textit{generado, no extraído}\\[3pt]
-      <<Automática industrial>>, asignatura obligatoria de 6 ECTS impartida en
-      4 titulaciones: Grado en Ingeniería Electrónica Industrial; Grado en
-      Ingeniería Eléctrica; Grado en Ingeniería Mecánica; Grado en Ingeniería
-      de Organización Industrial.};
-    \node[bloque, text width=9.2cm, below=4mm of enc.south west,
-      anchor=north west] (cue) {%
-      \textbf{Cuerpo} \hfill \textit{texto de la guía docente}\\[3pt]
-      Teoría. Tema 1: Introducción. 1.1 ¿Qué es la automática (industrial)?
-      1.2 Sistemas (en automática).\dots};
-    
-    % --- Columna derecha: metadatos ---
-    \node[bloque, text width=5.6cm, right=9mm of enc.north east,
-    anchor=north west] (met) {%
-    \textbf{Metadatos}\\[3pt]
-    \texttt{origen}: guia\\
-    \texttt{nombre}: Automática industrial\\
-    \texttt{grados}: [4 titulaciones]\\
-    \texttt{codigos}: [13112002, 13512002,\\ \hphantom{\texttt{codigos}: [}13412001, 13012001]\\
-    \texttt{chunk\_index}: 1\\
-    \texttt{total\_chunks}: 5};
-    
-    % --- Agrupaciones ---
-    \begin{scope}[on background layer]
-      \node[grupoDiag, rounded corners=3pt, fit=(enc)(cue)] (gtxt) {};
-      \node[grupoDiag, rounded corners=3pt, fit=(met)] (gmet) {};
-    \end{scope}
-    \node[titulo, anchor=south west] (ltxt)
-    at ([yshift=1.4mm]gtxt.north west) {campo \texttt{texto}: lo único que se convierte en vector};
-    \node[titulo, anchor=south west] (lmet)
-    at ([yshift=1.4mm]gmet.north west) {acompañan al vector, no se buscan};
-    
-    % --- Marco exterior (engloba también los rótulos de cada grupo) ---
-    \begin{scope}[on background layer]
-      \node[draw=diagNodoBorde, thick, rounded corners=4pt, inner sep=9pt,
-        fit=(gtxt)(gmet)(ltxt)(lmet)] (marco) {};
-    \end{scope}
-    \node[font=\footnotesize\bfseries, anchor=south west]
-    at ([yshift=1.8mm]marco.north west)
-    {Segundo fragmento de 5 de <<Automática industrial>>};
-  \end{tikzpicture}%
+    \begin{tikzpicture}[
+        font=\footnotesize,
+        bloque/.style={draw=diagNodoBorde, fill=diagNodo, align=left,
+            inner sep=7pt, rounded corners=2pt},
+        titulo/.style={font=\footnotesize\bfseries, anchor=north west,
+            text=diagGrupoBorde!55!black}
+      ]
+      \node[bloque, text width=9.2cm] (enc) {%
+        \textbf{Encabezado autocontenido} \hfill \textit{generado, no extraído}\\[3pt]
+        <<Automática industrial>>, asignatura obligatoria de
+        6 ECTS impartida en 8 titulaciones: Grado en Ingeniería Electrónica
+        Industrial; Grado en Ingeniería Eléctrica; Grado en Ingeniería Mecánica;
+        Grado en Ingeniería de Organización Industrial; y los dobles grados en
+        Electrónica Industrial y Mecánica, Eléctrica y Electrónica Industrial,
+        Eléctrica y Mecánica, y Mecánica y Organización Industrial.};
+      \node[bloque, text width=9.2cm, below=4mm of enc.south west,
+        anchor=north west] (cue) {%
+        \textbf{Cuerpo} \hfill \textit{texto de la guía docente}\\[3pt]
+        Teoría. Tema 1: Introducción. 1.1 ¿Qué es la automática (industrial)?
+        1.2 Sistemas (en automática).\dots};
+
+      \node[bloque, text width=5.6cm, right=9mm of enc.north east,
+        anchor=north west] (met) {%
+        \textbf{Metadatos}\\[3pt]
+        \texttt{origen}: guia\\
+        \texttt{nombre}: Automática industrial\\
+        \texttt{grados}: [8 titulaciones]\\
+        \texttt{codigos}: [13112002, 13512002,\\ \hphantom{\texttt{codigos}: [}13412001, 13012001,\\ \hphantom{\texttt{codigos}: [}13912002, 13712003,\\ \hphantom{\texttt{codigos}: [}13612002, 13812001]\\
+        \texttt{chunk\_index}: 1\\
+        \texttt{total\_chunks}: 14};
+
+      \begin{scope}[on background layer]
+        \node[grupoDiag, rounded corners=3pt, fit=(enc)(cue)] (gtxt) {};
+        \node[grupoDiag, rounded corners=3pt, fit=(met)] (gmet) {};
+      \end{scope}
+      \node[titulo, anchor=south west] (ltxt)
+      at ([yshift=1.4mm]gtxt.north west) {campo \texttt{texto}: lo único que se convierte en vector};
+      \node[titulo, anchor=south west] (lmet)
+      at ([yshift=1.4mm]gmet.north west) {acompañan al vector, no se buscan};
+
+      \begin{scope}[on background layer]
+        \node[draw=diagNodoBorde, thick, rounded corners=4pt, inner sep=9pt,
+          fit=(gtxt)(gmet)(ltxt)(lmet)] (marco) {};
+      \end{scope}
+      \node[font=\footnotesize\bfseries, anchor=south west]
+      at ([yshift=1.8mm]marco.north west)
+      {Segundo fragmento de 14 de <<Automática industrial>>};
+    \end{tikzpicture}%
   }
   \caption[Estructura de un fragmento (\textit{chunk})]{Estructura de un
     fragmento de la colección, sobre un caso real de \texttt{chunks.json}. El
     encabezado se antepone al cuerpo para que el fragmento siga teniendo sentido
     al recuperarse aislado; los campos \texttt{grados} y \texttt{codigos} son
-    listas porque esta guía está deduplicada y se imparte en cuatro
-    titulaciones. Fuente: Elaboración propia.}
+    listas porque esta guía está deduplicada y se imparte en
+    ocho titulaciones. Fuente: Elaboración propia.}
   \label{fig:estructura_chunk}
 \end{figure}

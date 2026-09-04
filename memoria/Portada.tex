@@ -40,20 +40,7 @@
 \usepackage[numbers]{natbib}
 \usepackage{csquotes}
 
-% Los once avisos de «destination with the same identifier» NO se arreglan
-% con `plainpages=false` ni con `pdfpagelabels`: se probaron los dos en una
-% copia aislada del documento y siguen saliendo once. La causa es que
-% main.tex reinicia la numeracion romana para la bibliografia, de modo que
-% las paginas I a VII existen dos veces dentro del mismo PDF. Quitar ese
-% reinicio cambiaria los numeros de pagina que se VEN, asi que es una
-% decision de maquetacion y no un ajuste tecnico. Los avisos no afectan a
-% como se imprime el documento, solo a los anclajes internos del PDF.
 \usepackage{hyperref}  % Para URL como enlaces
-% xurl va DESPUES de hyperref, que es donde tiene efecto. Sin el, una URL solo
-% se puede partir por unos pocos caracteres, y la nota al pie de la noticia de
-% la UAH ---172 caracteres sin ninguno de ellos--- se salia 179,9 pt de la
-% caja: mas de seis centimetros de texto impreso fuera del margen. Con xurl la
-% URL puede romperse por cualquier sitio y cabe.
 \usepackage{xurl}
 \hypersetup{
   colorlinks=true,
@@ -131,9 +118,6 @@
 }
 
 \renewcommand{\familydefault}{\sfdefault}
-% Decisión explícita (IT-70): la guía de estilo pide "sin espaciado especial
-% entre párrafos", y este \parskip lo añade. Se mantiene sin cambios porque
-% viene de la plantilla oficial del Dpto. de Informática (Charte)
 \setlength{\parskip}{1em}
 
 % Configuración de encabezado y pie
@@ -156,8 +140,6 @@
   \ULCornerWallPaper{1}{imagenes/portada.pdf}
   \begin{textblock*}{18.45cm}(1.4cm,12cm)
     \centering
-    % Tamaños de portada por normativa (criteriosYestilo_TFG.pdf, p.3): TÍTULO
-    % 30-36pt; resto de campos (grado, autor, fecha) 16-18pt.
     {\fontsize{30}{52}\selectfont \textbf{\color{naranja}\TituloTFG}}
     \vspace{.5cm}
 

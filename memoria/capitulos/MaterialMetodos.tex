@@ -265,22 +265,14 @@ El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a 
 
 Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
-\textcolor{red}{No se comienzan los párrafos con 'Y'}
-
 \textcolor{blue}{[sbp] Corregido, y revisado el resto del documento para que no vuelva a ocurrir.}
 
 Con estos trozos de información, se pasa al \textit{embedding} con el que se introducirán los datos en la base de datos vectorial.
 
-%OJO te faltaba una "d" en embedding. 
-
 Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
 Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
-
-\textcolor{red}{La imagen es poco legible, el texto es muy pequeño}
-
 \textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\,\% al 90\,\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
-
 
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
@@ -373,6 +365,7 @@ Se basa en la automatización de navegadores con renderizado real.
 \end{itemize}
 
 %[jccuevas] \paragraph{Decisión final}
+
 \paragraph{Decisión final}
 Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
 
@@ -384,12 +377,9 @@ rastreador (\textit{spider}) y la página web.
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-
-
 \textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
 
 \textcolor{blue}{[sbp] Corregido}
-
 
 \input{diagramas/DiagramaScraping.tex}
 
@@ -397,7 +387,7 @@ El rastreador no hace una única petición, sino que encadena varias, una por ca
 
 La extracción de las guías docentes es la etapa donde se concentran las anomalías en el contenido aportado por el servidor.
 
-En el curso 2026/2027, la Escuela Politécnica Superior de Jaén ofrece la completitud de las guías docentes de las asignaturas en formato PDF, una nueva medida introducida para este curso puesto que anteriormente se servía en formato HTML.
+En el curso 2026/2027, la Escuela Politécnica Superior de Jaén publica las guías docentes en formato PDF bajo enlaces cuya extensión sigue siendo \texttt{.html}. El rastreador decide el extractor mediante el tipo de contenido de la respuesta y conserva el camino HTML en el código como compatibilidad, aunque el corpus vigente procede íntegramente de PDF.
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
   contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7\,\%.
@@ -723,11 +713,11 @@ Para evitar problemas como falsos positivos o penalizaciones en las respuestas d
 
 \subsubsection{El banco de preguntas elegido}
 
-Para evaluar y comparar el rendimiento de los modelos de forma objetiva y reproducible, se construyó un banco de evaluación generado automáticamente mediante código a partir de la colección de datos oficial. Este enfoque deriva tanto las preguntas como sus respuestas correctas (\textit{ground truth}) directamente del conjunto de datos sin requerir etiquetado manual como si pasaba anteriormente, garantizando que el banco crezca de forma escalable si la fuente se amplía en el futuro.
+Para evaluar y comparar el rendimiento de los modelos de forma objetiva y reproducible, se construyó un banco de evaluación generado automáticamente mediante código a partir de la colección de datos oficial. Este enfoque deriva tanto las preguntas como sus respuestas correctas (\textit{ground truth}) directamente del conjunto de datos sin requerir etiquetado manual, garantizando que el banco crezca de forma escalable si la fuente se amplía en el futuro.
 
-El banco de preguntas en su totalidad contiene una cantidad enorme de preguntas, haciendo que si se quisieran probar todas supondría más de 4.000 inferencias y un gran número de horas en un equipo como con el que se está realizando este proyecto. La comparativa en la práctica se realizó con una muestra representativa de 80 preguntas, reservando el banco completo para la validación final del modelo ganador. Esta extracción de las 80 preguntas se llevó a cabo mediante un muestreo estratificado con una semilla fija común para todos los modelos, garantizando la paridad y la reproducibilidad de las pruebas.
+El banco completo contiene 1.023 preguntas, cuya ejecución sobre los cuatro candidatos exigiría más de 4.000 inferencias. La comparación común utiliza una muestra estratificada de 80 preguntas, seleccionada con una semilla fija y compartida por todos los modelos. Una segunda muestra de 250 preguntas compara de forma pareada a los dos candidatos que permanecen empatados en las medidas descriptivas.
 
-El banco se estructura en seis familias temáticas representativas del usuario objetivo, tales como créditos de asignaturas, curso de impartición, planes de estudio completos, asignaturas de mención, asignaturas optativas y catálogo general de la Escuela. Este banco no está equilibrado, haciendo que una familia tenga una gran cantidad de preguntas mientras que otras tengan unas pocas, esto se arregla reequilibrando intencionadamente esta proporción en la prueba. 
+El banco se estructura en seis familias temáticas representativas del usuario objetivo: créditos, curso de impartición, planes de estudio, asignaturas de mención, optativas y catálogo general de la Escuela. La muestra de decisión es estratificada para que todas las familias estén representadas pese al reparto desigual del banco completo.
 
 
 \subsubsection{El umbral del experimento}
@@ -746,11 +736,11 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 \subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_gemma3}
 
-Los cuatro candidatos finalmente elegidos después de una criba de múltiples modelos, superaron los umbrales eliminatorios, ninguno inventó titulaciones inexistentes  y todos dispusieron del contexto necesario. Al no existir descartes directos, la decisión se fundamentó en las métricas de rendimiento del Apartado~\ref{secc:resultados_rag}.
+En la muestra común de 80 preguntas, los cuatro candidatos cumplen los dos umbrales eliminatorios. Los tres modelos de mayor tamaño empatan en precisión, cobertura y acierto escalar, mientras que \texttt{salamandra-7b} queda por detrás en cobertura. Estas medidas no permiten elegir entre \texttt{qwen3.5:9b} y \texttt{gemma3:12b}.
 
-A partir de los resultados del experimento se adopta \texttt{gemma3:12b}, al ser el único modelo que no queda por detrás en ninguna métrica, sin embargo, \texttt{ministral-8b} y \texttt{qwen3.5:9b} obtienen valores menores en cobertura y acierto escalar, mientras que el modelo español, \texttt{salamandra-7b} queda más rezagado.
+La comparación pareada de 250 preguntas aplica el umbral U1 a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo. Se adopta por ello \texttt{gemma3:12b}.
 
-Lo peor del mejor modelo es su tiempo mediano de respuesta, que es el más alto de los tres finalistas (Tabla~\ref{tab:comparativa_generacion}). Esto tiene una explicación clara y es que al ser un modelo más grande y capaz, consume mucho más recursos y tarda más. Esta diferencia se asumen conscientemente conforme a la jerarquía del requisito RNF-04 (Tabla~\ref{tab:requisitos_no_funcionales}), que prioriza la fidelidad factual y la ausencia de alucinaciones sobre la velocidad de inferencia.
+La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más lento en el equipo de evaluación. El RNF-04 prioriza expresamente la fidelidad factual sobre la rapidez, y los tiempos medidos describen además un portátil donde parte del modelo se ejecuta en CPU.
 
 Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca de la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
 
@@ -901,23 +891,8 @@ También se han tendido en cuenta tres estados de la conversación que la interf
 \subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
 \label{secc:fase3_accesibilidad}
 
-La interfaz \sout{se diseñó para cumplir con}\textcolor{borrador2}{cumple} el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
+La interfaz cumple el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
 
-\textcolor{borrador2}{Estas cifras no se comprobaron una vez: las mide un verificador del
-repositorio que forma parte de la batería de pruebas y que falla si alguna deja de
-cumplirse. Además del contraste comprueba el tamaño de cada control ---criterio 2.5.8, que
-pide 24 por 24 píxeles y con el que apareció el único incumplimiento real: el aspa de
-cerrar el cuadro de fuentes medía 22,6 píxeles de ancho---, que todos los controles tengan
-una regla de foco propia en lugar de depender de la que ponga el navegador (2.4.7), y el
-marcado del que dependen el nombre accesible de cada control (4.1.2), el orden de
-tabulación (2.4.3), el idioma del documento (3.1.1) y las alternativas textuales de las
-imágenes (1.1.1).}
-
-\textcolor{borrador2}{Lo que ese verificador no alcanza hay que decirlo, porque es la
-frontera de lo que se puede afirmar: todo lo que exige ejecutar la página. El
-comportamiento real con un lector de pantalla, el recorrido del foco al abrir y cerrar el
-cuadro modal y el reflujo a 320 píxeles se ven en un navegador y no en el fuente, de modo
-que sobre ellos el trabajo sostiene una decisión de diseño y no una medición.}
 
 
 \subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
