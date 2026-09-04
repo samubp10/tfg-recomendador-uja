@@ -22,10 +22,10 @@ Y hay una condición más, que costó descubrir: **la respuesta tiene que estar 
 el corpus**. Se generó durante un tiempo una familia que preguntaba en qué
 titulaciones se imparte una asignatura compartida. La respuesta se computa sin
 problema del dataset, pero ningún fragmento la contiene: los fragmentos se
-componen por titulación y curso, y nadie los cruza. Medido el 18/08/2026, los
-dos modelos probados contestaron 2 y 6 titulaciones donde el dataset dice 10,
-y los dos habían leído bien lo que se les dio. Eran 86 preguntas que habrían
-suspendido a todos los candidatos por un hueco del corpus, no por el modelo.
+componen por titulación y curso, y nadie los cruza. Los dos modelos probados
+contestaron 2 y 6 titulaciones donde el dataset dice 10, habiendo leído bien
+lo que se les dio: eran 86 preguntas que habrían suspendido a todos los
+candidatos por un hueco del corpus, no por el modelo.
 
 Uso::
 
@@ -102,8 +102,8 @@ def _titulaciones(datos: list[dict[str, Any]]) -> list[str]:
 def preguntas_de_catalogo(datos: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Qué titulaciones existen. La respuesta correcta es el catálogo entero.
 
-    Es la pregunta que más daño hace fallada: el 16/08/2026 el sistema
-    recomendó seis titulaciones y dos no existen en la EPSJ.
+    Es la pregunta que más daño hace fallada: de seis titulaciones
+    recomendadas por el sistema, dos no existían en la EPSJ.
     """
     titulaciones = _titulaciones(datos)
     return [
