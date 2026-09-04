@@ -268,7 +268,7 @@ suficiente como para agotar la ventana de 512 _tokens_.
 - M. Nygard, "Documenting Architecture Decisions", cognitect.com
   ([2011-11-15](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
 
-## Anexo — resultados del experimento
+### Resultados automáticos del experimento
 
 <!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_embeddings.py) -->
 Generado el 06/08/2026 ejecutando `py scripts/experimentos/experimento_embeddings.py` contra `data/chunks.json` (1334 fragmentos, 50 preguntas de `eval/preguntas_evaluacion.json`), en **CPU**.
