@@ -687,13 +687,11 @@ def corregir_atributos(
 
     **El segmento es la linea, no la frase, y eso obliga a ``sujeto``.** Quien
     emite la respuesta por partes la corta antes en frases (ADR-0006), asi que
-    el nombre puede llegar en una llamada y el atributo en la siguiente. Medido
-    con «Automatica avanzada», que el contexto situa en el segundo cuatrimestre:
-    escrito «**Automatica avanzada** (6 ECTS) se imparte en el primer
-    cuatrimestre.» se corregia, y escrito con un punto en medio ---dos frases,
-    que es como se enumera en vinetas--- pasaba **sin corregir y sin aviso**,
-    porque la segunda frase no nombra a nadie. Con ``sujeto`` la asignatura de
-    la que se venia hablando sigue en pie hasta que la linea se cierra.
+    el nombre puede llegar en una llamada y el atributo en la siguiente: puesto
+    el punto en medio ---que es como se enumera en vinetas--- la segunda frase
+    no nombra a nadie y el atributo pasaba sin corregir y sin aviso. Con
+    ``sujeto`` la asignatura de la que se venia hablando sigue en pie hasta que
+    la linea se cierra.
 
     Args:
         texto: Lo que ha redactado el modelo.
