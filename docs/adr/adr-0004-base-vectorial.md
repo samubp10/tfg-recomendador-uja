@@ -178,7 +178,7 @@ descarté por esto»:
 Es una exclusión legítima —no se puede medir todo— pero se presenta como lo que
 es: de ellas no hay cifras, y este es el motivo por el que no entraron.
 
-## Resultados del experimento
+### Resultados del experimento
 
 <!-- INICIO RESULTADOS AUTOMÁTICOS (scripts/experimentos/experimento_vectordb.py) -->
 
