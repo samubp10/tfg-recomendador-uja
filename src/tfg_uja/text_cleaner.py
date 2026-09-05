@@ -1,9 +1,4 @@
-"""Utilidades para limpiar texto y URLs extraídos de las páginas de la EPSJ.
-
-La web publica el contenido con ruido que no aporta significado: espacios
-duros, caracteres de ancho cero y, en el caso de las guías docentes, URLs
-con el sufijo ".html" duplicado por un error de generación del propio sitio.
-"""
+"""Utilidades para limpiar texto y URLs extraídos de las páginas de la EPSJ."""
 
 from __future__ import annotations
 
@@ -16,55 +11,19 @@ _ANCHO_CERO: Final[str] = "\u200b"
 
 
 def normalizar(texto: str) -> str:
-    """Deja un texto en minúsculas y sin tildes, para poder compararlo.
-
-    Nada de lo que se compara en este proyecto viene escrito de forma
-    consistente: los rótulos de la fuente mezclan mayúsculas y minúsculas,
-    y lo que escribe un usuario en el chat rara vez lleva las tildes.
-    Comparar por igualdad literal falla en los dos casos.
-
-    Args:
-        texto (str): Texto a normalizar.
-
-    Returns:
-        str: El texto en minúsculas, sin marcas diacríticas y con los
-            espacios colapsados.
-    """
+    """Normaliza texto libre con NFD; conserva símbolos y colapsa espacios."""
     descompuesto = unicodedata.normalize("NFD", texto.lower())
     limpio = "".join(c for c in descompuesto if unicodedata.category(c) != "Mn")
     return " ".join(limpio.split())
 
 
 def normalizar_rotulo(texto: str) -> str:
-    """Deja comparable un rótulo o un nombre **que viene de la fuente**.
+    """Normaliza rótulos con NFKD y ASCII, colapsando espacios interiores.
 
-    Es el contrato de la extracción y de la fragmentación: los rótulos de las
-    tablas de la EPSJ y los nombres de asignatura, que llegan escritos de
-    cualquier manera ---«Mención» y «Mencion», «MATEMÁTICAS I» y «Matemáticas
-    I», «carácter» donde otro plan pone «tipo»---.
-
-    **Por qué no es :func:`normalizar` y por qué no se fusionan.** Esta
-    descompone en NFKD y pasa por ASCII, de modo que lo que no tiene
-    equivalente ASCII desaparece; :func:`normalizar` descompone en NFD y solo
-    descarta las marcas diacríticas, así que lo conserva. La diferencia no
-    importa en los rótulos de la fuente, que son nombres académicos en
-    castellano, y sí importa en el texto libre que escribe una persona o que
-    redacta el modelo, que es donde trabaja la otra.
-
-    Vive aquí y no repetida en el rastreador y el fragmentador, que es donde se
-    usa: dos copias discrepaban en los espacios interiores ---una los colapsaba
-    y la otra solo recortaba los extremos---. Se conserva la que colapsa,
-    comprobado antes que no cambia nada de lo que hay: sobre las 841 cadenas de
-    ``data/grados.json`` las dos dan el mismo resultado, y sobre los 825 nodos
-    de las fixtures HTML discrepan en 8 por dobles espacios interiores, ninguno
-    en los tres puntos de llamada.
-
-    Args:
-        texto: Rótulo o nombre tal como llega de la fuente.
-
-    Returns:
-        El texto en minúsculas, sin tildes, sin caracteres ajenos al ASCII y
-        con los espacios colapsados.
+    A diferencia de ``normalizar``, descarta caracteres sin equivalente ASCII.
+    IT-137 sustituyó los dos ``_normalizar``: el del fragmentador colapsaba
+    espacios interiores y el del spider solo recortaba extremos. No eran
+    intercambiables en general; se unificaron tras contrastar los usos reales.
     """
     sin_tildes = (
         unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
@@ -73,21 +32,7 @@ def normalizar_rotulo(texto: str) -> str:
 
 
 def palabras(texto: str) -> set[str]:
-    """Descompone un texto en el conjunto de sus palabras comparables.
-
-    Se separa de :func:`normalizar` porque comparar frases enteras y comparar
-    palabra a palabra son dos operaciones distintas: la primera sirve para
-    reconocer un nombre completo y la segunda para reconocerlo dentro de una
-    pregunta escrita a mano. Los signos se descartan, de modo que
-    «¿informática?» y «Informática» dan la misma palabra.
-
-    Args:
-        texto (str): Texto a descomponer.
-
-    Returns:
-        set[str]: Palabras normalizadas y sin signos, sin repetir. Las que se
-            quedan vacías al quitarles los signos no entran.
-    """
+    """Descompone un texto en el conjunto de sus palabras comparables."""
     return {
         limpia
         for palabra in normalizar(texto).split()
@@ -96,19 +41,7 @@ def palabras(texto: str) -> set[str]:
 
 
 def limpiar_texto(texto: str | None) -> str:
-    """Normaliza un texto extraído de la web.
-
-    Sustituye los espacios duros por espacios normales, elimina los
-    caracteres de ancho cero y colapsa los espacios múltiples y los saltos
-    de línea en uno solo.
-
-    Args:
-        texto (str): Texto tal como se extrajo del HTML.
-
-    Returns:
-        str: Texto normalizado, sin espacios sobrantes al principio ni al
-            final.
-    """
+    """Normaliza un texto extraído de la web."""
     if not texto:
         return ""
     texto = texto.replace(_ESPACIO_DURO, " ").replace(_ANCHO_CERO, "")
@@ -117,20 +50,7 @@ def limpiar_texto(texto: str | None) -> str:
 
 
 def reparar_url(url: str | None) -> str | None:
-    """Repara una URL de guía docente con el sufijo ".html" duplicado.
-
-    Se ha observado que algunas URLs del catálogo de guías docentes
-    incluyen contenido sobrante después de la extensión ".html" (por
-    ejemplo, "...es.htmles.html" o "...es.html13312025_es.html"). Al no
-    existir ningún caso legítimo con contenido útil tras el primer
-    ".html", se trunca la URL en ese punto.
-
-    Args:
-        url (str): URL tal como se extrajo del HTML.
-
-    Returns:
-        str: URL reparada, o la URL original si no contiene ".html".
-    """
+    """Repara una URL de guía docente con el sufijo ".html" duplicado."""
     if not url:
         return url
     indice = url.find(".html")
@@ -140,55 +60,20 @@ def reparar_url(url: str | None) -> str | None:
 
 
 def quitar_nota_al_pie(nombre: str | None) -> str | None:
-    """Elimina el marcador de nota al pie del nombre de una asignatura.
-
-    En las tablas de asignaturas, algunos nombres arrastran un asterisco
-    final que remite a una nota al pie de la tabla (por ejemplo,
-    "Prácticas externas *"). Ese asterisco no forma parte del nombre de la
-    asignatura, por lo que se retira. Los asteriscos que no estén al final
-    del texto no se tocan.
-
-    Args:
-        nombre (str): Nombre de la asignatura, ya limpio.
-
-    Returns:
-        str: Nombre sin el asterisco final ni los espacios que lo rodean.
-    """
+    """Elimina el marcador de nota al pie del nombre de una asignatura."""
     if not nombre:
         return nombre
     return re.sub(r"\s*\*+\s*$", "", nombre).strip()
 
 
-#: Marca de asignatura no ofertada, añadida al final del nombre (por ejemplo,
-#: "Métodos cuantitativos avanzados (No ofertada en 2025/26)"). El patrón es
-#: genérico respecto al curso (no fija ningún año) y al género gramatical, pero
-#: reconoce solo la fórmula observada ("no ofertad{a,o} ..."), para no capturar
-#: paréntesis legítimos. Otras redacciones futuras se añadirían con evidencia.
+# Reconoce la nota de no ofertada sin fijar el curso ni confundir otros paréntesis.
 _NO_OFERTADA: Final[re.Pattern[str]] = re.compile(
     r"\s*\(\s*no\s+ofertad[ao][^)]*\)\s*$", re.IGNORECASE
 )
 
 
 def separar_oferta(nombre: str | None) -> tuple[str | None, bool]:
-    """Separa del nombre la marca de asignatura no ofertada.
-
-    Algunas asignaturas (optativas que no se imparten en el curso) llevan al
-    final del nombre el estado "(No ofertada en 2025/26)". Ese estado no es
-    parte del nombre, sino un dato aparte, por lo que se extrae a un valor
-    booleano y se devuelve el nombre limpio. El patrón no depende de un año
-    concreto, de modo que sigue funcionando en cursos posteriores.
-
-    El valor devuelto es relativo al curso rastreado: una asignatura no
-    ofertada este curso puede volver a ofertarse en otro, por lo que este
-    dato debe interpretarse como una foto del momento de la extracción.
-
-    Args:
-        nombre (str): Nombre de la asignatura, ya limpio de espacios.
-
-    Returns:
-        tuple[str, bool]: El nombre sin la marca y ``True`` si la asignatura
-            se oferta, ``False`` si lleva la marca de no ofertada.
-    """
+    """Separa del nombre la marca de asignatura no ofertada."""
     if not nombre:
         return nombre, True
     if _NO_OFERTADA.search(nombre):
