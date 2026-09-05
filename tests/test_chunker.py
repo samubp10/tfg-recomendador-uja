@@ -1332,3 +1332,15 @@ def test_el_encabezado_usa_el_nombre_de_la_unidad_y_no_el_de_la_ficha():
     assert len(guias) >= 2
     for chunk in guias:
         assert chunk["texto"].startswith("«Centrales eléctricas II»")
+
+
+def test_refactor_conserva_la_salida_completa_de_la_muestra(muestra):
+    """Conserva todos los fragmentos y metadatos medidos antes de IT-111 (35c249b)."""
+    import hashlib
+
+    serializado = json.dumps(
+        trocear_dataset(muestra), sort_keys=True, ensure_ascii=False
+    ).encode("utf-8")
+    assert hashlib.sha256(serializado).hexdigest() == (
+        "56c12759d3511d731880bf47ebafc9aa4b7e61ade9db786a86d3d992713b8810"
+    )

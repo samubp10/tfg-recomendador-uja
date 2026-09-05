@@ -1,33 +1,4 @@
-"""Generación de la respuesta a partir del contexto recuperado (IT-37).
-
-Cierra el recorrido: la pregunta llega, :mod:`tfg_uja.recuperador` trae los
-fragmentos pertinentes y aquí se arma el texto que lee el modelo y se le pide
-la respuesta.
-
-El **diseño fino del prompt es IT-34**, y el **guardarraíl de dominio, IT-87**.
-Lo que hay aquí es lo que el recorrido necesita para funcionar de extremo a
-extremo, con dos decisiones que no son de redacción sino de arquitectura:
-
-* **El contexto va identificado.** Cada fragmento entra con el nombre de su
-  unidad y su titulación, no como un montón de texto anónimo, para que la
-  respuesta pueda decir de dónde sale cada dato y para que el modelo no mezcle
-  asignaturas.
-* **El contexto va ordenado por unidad, no por distancia.** El recuperador
-  entrega los fragmentos de más a menos próximo, y una unidad partida en varios
-  llega intercalada con otras. Preguntado por las asignaturas de Informática,
-  el listado del plan llegaba en el orden 3, optativas, 2, 1, y la respuesta
-  reproducía ese orden: empezaba por la mitad de la lista y volvía al principio
-  más abajo. Aquí se vuelven a juntar las partes de cada unidad y se ponen en
-  su orden.
-* **Cada parte dice cuál es.** Las tres partes del listado de obligatorias de
-  Informática repiten el mismo encabezado, «En total son 50», y ninguna dice de
-  cuál se trata. Si llega una sola, el modelo lee que son cincuenta, ve once y
-  presenta once como si fueran las cincuenta, sin ninguna señal de que le falta
-  contexto.
-* **La ventana se declara.** El valor por defecto del servidor es de cientos de
-  miles de *tokens*, y con él el modelo no cabe entero en una tarjeta de 6 GB:
-  se reparte con la CPU y rinde a un tercio. Medido, no supuesto.
-"""
+"""Generación de la respuesta a partir del contexto recuperado (IT-37)."""
 
 from __future__ import annotations
 
@@ -51,51 +22,33 @@ from tfg_uja.dialogo.verificacion import (
     titulaciones_inventadas,
 )
 
-#: Registro del módulo. Existe solo para dejar constancia de las respuestas
-#: retiradas: una barrera que descarta en silencio no se puede auditar, y la
-#: cifra de cuántas veces salta es lo que dice si está haciendo algo o si
-#: estorba. Quien use la biblioteca decide dónde va y con qué nivel.
+# Registra las respuestas retiradas para poder auditar la barrera de dominio.
 _registro: Final[logging.Logger] = logging.getLogger(__name__)
 
 #: Servidor de inferencia local. No se consulta ningún servicio externo: el
 #: sistema tiene que poder ejecutarse entero en el equipo del autor.
 SERVIDOR: Final[str] = "http://127.0.0.1:11434"
 
-#: Ventana de contexto, en *tokens*. Dimensionada para lo que arma el sistema
-#: ---diez fragmentos de 900 caracteres, más las instrucciones y la respuesta---
-#: y no para el máximo que admita el modelo: con la ventana por defecto el
-#: caché no cabe en la tarjeta y expulsa parte del modelo a la CPU.
+# Ventana de contexto acotada para que la caché no desplace el modelo a CPU.
 VENTANA: Final[int] = 8192
 
 #: Tope de la respuesta. Acota lo que puede tardar y evita que un modelo
 #: locuaz convierta una consulta de chat en un minuto de espera.
-#:
-#: Dimensionado sobre la respuesta más larga que el corpus puede exigir: las 67
-#: asignaturas de Ingeniería Informática, con sus créditos, ocupan 2.819
-#: caracteres, que a razón de unos 3,6 caracteres por *token* en español son
-#: unos 783. Se deja en 1.200 y no en los 783 justos porque una respuesta útil
-#: no es el listado pelado: lleva una frase de entrada, separa obligatorias de
-#: optativas y cierra con algo. Ese margen evita que se corte la última línea.
+
+# 1.200 tokens cubren el listado de 67 asignaturas de Informática (2.819 caracteres) y
+# su presentación.
 TOPE_RESPUESTA: Final[int] = 1200
 
-#: Cuánto se espera una respuesta antes de darla por perdida, en segundos. No
-#: es un criterio de calidad ---el tiempo se mide aparte---, sino el punto a
-#: partir del cual se asume que el modelo se ha colgado: diez minutos para una
-#: respuesta de mil doscientos *tokens* no es lentitud, es que no va a llegar.
+# Tiempo máximo de espera, en segundos; la latencia se evalúa por separado.
 ESPERA_MAXIMA: Final[int] = 600
 
-#: Mensaje de sistema que se manda con cada petición. **Su función no es dar
+#: Mensaje de sistema que se manda con cada petición. Su función no es dar
 #: instrucciones ---esas van en :data:`INSTRUCCIONES`--- sino tapar el que trae
-#: cada modelo de fábrica.**
-#:
-#: Al no mandar ninguno, Ollama aplica el de la plantilla del modelo, y cada
-#: candidato trae el suyo. Preguntados «¿quién eres?», ministral-3 contestaba
-#: «un modelo creado por Mistral AI» y gemma3 «entrenado por Google», sin que
-#: el proyecto hubiera escrito eso en ninguna parte. El de ministral-3 ocupa
-#: más de mil palabras, le hace creer que es «Le Chat», le manda usar
-#: herramientas y le dice que pida aclaraciones cuando la pregunta sea ambigua
-#: ---lo contrario de lo que pide este sistema.
-#:
+#: cada modelo de fábrica.
+
+# Un mensaje de sistema explícito sustituye las instrucciones predeterminadas de cada
+# modelo en Ollama.
+
 #: Comparar modelos así no mide los modelos: mide además el texto que cada uno
 #: lleva escondido. Un `system` vacío no sirve, porque Ollama lo trata como
 #: ausente y vuelve a poner el de la plantilla; hace falta uno con contenido.
@@ -139,63 +92,25 @@ INSTRUCCIONES: Final[str] = (
     "- Tutea al estudiante y escribe cercano y directo."
 )
 
-#: Cuántas preguntas anteriores se le recuerdan al modelo. Son **preguntas**,
+#: Cuántas preguntas anteriores se le recuerdan al modelo. Son preguntas,
 #: no respuestas: ver :func:`_conversacion`.
 TURNOS_EN_EL_PROMPT: Final[int] = 3
 
 
 class ErrorDelModelo(RuntimeError):
-    """El servidor de inferencia no ha podido responder.
-
-    Existe para que quien llama pueda distinguir «el modelo ha fallado» de un
-    fallo del propio sistema, y decidir qué hacer. El caso real: descargando un
-    modelo de 9 GB mientras se cargaba uno de 7B, el servidor devuelve un 500
-    por falta de memoria, y sin capturar esa excepción se pierde la sesión de
-    pruebas entera con su conversación.
-    """
+    """El servidor de inferencia no ha podido responder."""
 
 
 def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
-    """Reagrupa las partes de cada unidad y las pone en su orden.
-
-    El recuperador ordena por distancia, que es lo correcto para decidir **qué**
-    entra en el contexto pero no para decidir **en qué orden** se lee. Una
-    unidad partida en tres llega con sus partes separadas por fragmentos de
-    otras unidades, y el modelo redacta siguiendo el orden en que lo recibe.
-
-    Cada unidad conserva el sitio que le da su fragmento más próximo, de modo
-    que la relevancia sigue mandando entre unidades; lo único que cambia es que
-    los trozos de una misma unidad viajan juntos y en orden.
-
-    Args:
-        fragmentos: Fragmentos recuperados, en cualquier orden.
-
-    Returns:
-        Los mismos fragmentos, agrupados por unidad y ordenados dentro de ella.
-    """
-    # La titulación forma parte de la identidad de la unidad, como ya la
-    # consideran `evaluacion.unidad_de_chunk()` y `servidor.fuentes_de()`. Ocho
-    # nombres de guía del corpus son más de una unidad ---«Trabajo fin de
-    # Grado» y «Prácticas externas» son cinco cada uno---, y sin la titulación
-    # las homónimas compartían la mejor distancia de las dos: la menos
-    # pertinente ascendía y sus partes se intercalaban con las de la otra.
+    """Reagrupa las partes de cada unidad y las pone en su orden."""
+    # La titulación distingue unidades homónimas y evita intercalar sus fragmentos.
     mejor: dict[tuple[str, str, tuple[str, ...]], float] = {}
     for f in fragmentos:
         clave = (f.origen, f.nombre, tuple(f.grados))
         mejor[clave] = min(mejor.get(clave, f.distancia), f.distancia)
 
-    # Los listados del plan se leen en el orden en que se cursan, no por
-    # proximidad: con el orden por distancia, las optativas caían entre los
-    # cursos segundo y primero, y el modelo enumeraba los cuatro cursos
-    # dejándose fuera las diecisiete optativas que tenía delante.
-    #
-    # El ancla es **por titulación**, no una sola para todos los listados. Con
-    # una sola, los cursos se ordenaban entre sí ignorando de qué titulación
-    # eran, y las titulaciones quedaban intercaladas: a «¿y en el segundo?» el
-    # listado correcto llegaba el octavo de dieciocho, detrás de cinco listados
-    # de primer curso de otras titulaciones, y el modelo contestó por un doble
-    # grado que no se le había preguntado. Así cada titulación viaja entera y
-    # en orden, y entre titulaciones sigue mandando la proximidad.
+    # Ordena los cursos dentro de cada titulación; entre titulaciones manda la
+    # distancia.
     anclas: dict[tuple[str, ...], float] = {}
     for f in fragmentos:
         if f.origen != "plan_de_estudios":
@@ -223,19 +138,7 @@ def ordenar_contexto(fragmentos: list[Fragmento]) -> list[Fragmento]:
 
 
 def _curso_del_listado(nombre: str) -> int:
-    """Sitúa un listado del plan en el curso que enuncia su propio nombre.
-
-    El fragmentador los llama «Asignaturas obligatorias de primer curso del…»,
-    así que el curso está en el nombre y no hace falta una columna nueva en el
-    índice para ordenarlos. Los que no nombran ninguno ---las optativas, que no
-    tienen curso publicado--- van al final.
-
-    Args:
-        nombre: Nombre de la unidad, tal como lo compone el fragmentador.
-
-    Returns:
-        Posición del curso, o un valor mayor que cualquiera si no lo nombra.
-    """
+    """Sitúa un listado del plan en el curso que enuncia su propio nombre."""
     bajo = nombre.lower()
     for posicion, ordinal in enumerate(ORDEN_CURSOS, start=1):
         if f"de {ordinal}" in bajo:
@@ -244,24 +147,7 @@ def _curso_del_listado(nombre: str) -> int:
 
 
 def _etiqueta(fragmento: Fragmento) -> str:
-    """Compone la línea que encabeza un fragmento dentro del contexto.
-
-    **No lleva número de parte ni número de orden.** Los dos se probaron y los
-    dos acabaron en la pantalla del estudiante: el número de parte, como una
-    asignatura inventada llamada «Sistemas inteligentes de información (parte 3
-    de 4)»; el de orden, como una cita interna sin sentido para quien la lee
-    ---«…según el contexto ([20])»---. Ninguna regla del prompt lo impidió, que
-    es el mismo patrón que las titulaciones inventadas: una instrucción no
-    basta para impedir un comportamiento. Y lo que motivaba la marca de parte
-    ---un listado de cincuenta asignaturas partido en tercios alfabéticos--- lo
-    resuelve de raíz IT-105, partiendo los listados por curso.
-
-    Args:
-        fragmento: Fragmento que se va a encabezar.
-
-    Returns:
-        La línea de encabezado, sin el texto del fragmento.
-    """
+    """Compone la línea que encabeza un fragmento dentro del contexto."""
     return f"{fragmento.nombre} — {', '.join(fragmento.grados)}"
 
 
@@ -275,11 +161,8 @@ RESPUESTA_SIN_CONTEXTO: Final[str] = (
     "salidas profesionales tienen. ¿Sobre cuál te gustaría saber?"
 )
 
-#: Con lo que se responde cuando la comprobación posterior encuentra una
-#: titulación que no existe. Se retira la respuesta entera y no solo el nombre
-#: inventado: el estudiante lee una lista, no una nota al pie, y una
-#: recomendación falsa entre tres verdaderas se lee con la misma confianza que
-#: las otras tres.
+# Una titulación inexistente retira la respuesta completa para no entregar
+# recomendaciones falsas.
 RESPUESTA_TITULACION_INVENTADA: Final[str] = (
     "No puedo darte esa respuesta: al redactarla he nombrado titulaciones que "
     "no se imparten en la Escuela Politécnica Superior de Jaén. Prueba a "
@@ -305,10 +188,7 @@ RESPUESTA_DESPEDIDA: Final[str] = (
     "Escuela Politécnica Superior de Jaén, aquí estoy."
 )
 
-#: Vocabulario con el que se puede escribir un mensaje entero sin preguntar
-#: nada. Es una lista **cerrada** y se exige que **todas** las palabras del
-#: mensaje estén en ella, de modo que «hola, ¿qué asignaturas tiene
-#: Informática?» no se toma por un saludo y sigue su camino normal.
+# Solo es cortesía si todas las palabras pertenecen a esta lista.
 _CORTESIA: Final[frozenset[str]] = frozenset(
     {
         "hola",
@@ -359,11 +239,8 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
 #: Las que además tienen que aparecer para que el mensaje sea un saludo. Sin
 #: esta condición, un resto de frase como «vale» o «y a mí» entraría por ser
 #: todo cortesía.
-#:
-#: Las tres últimas no son españolas, y entran porque un estudiante abre en el
-#: idioma que le sale: «Hallo» caía en la respuesta de contexto vacío y se
-#: llevaba un «no he encontrado información sobre eso». Lo que se reconoce es
-#: la apertura, no el idioma: el asistente sigue respondiendo en español.
+
+# Reconoce también saludos en otros idiomas; la respuesta sigue en español.
 _SALUDO: Final[frozenset[str]] = frozenset(
     {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
 )
@@ -375,27 +252,7 @@ _DESPEDIDA: Final[frozenset[str]] = frozenset(
 
 
 def cortesia(pregunta: str) -> str | None:
-    """Devuelve la respuesta fija si el mensaje es solo cortesía.
-
-    Un «hola» no recupera nada, porque no se parece a ningún fragmento del
-    corpus, y el suelo de pertinencia lo rechaza como debe. El problema es lo
-    que venía después: el sistema contestaba «no he encontrado información
-    sobre eso», que para un saludo no tiene ningún sentido y deja al estudiante
-    pensando que ha preguntado mal en su primera frase.
-
-    Se reconoce por vocabulario cerrado y exigiendo que **todo** el mensaje
-    quepa en él, no por buscar «hola» dentro del texto: si no, «hola, ¿qué
-    asignaturas tiene Informática?» se quedaría sin responder. Es el mismo
-    criterio que el resto del módulo ---un mecanismo que no depende de que el
-    modelo obedezca--- y por eso no se le pide al modelo que salude.
-
-    Args:
-        pregunta: Mensaje del usuario, tal cual lo escribe.
-
-    Returns:
-        La respuesta fija que corresponda, o ``None`` si el mensaje pregunta
-        algo y hay que seguir el camino normal.
-    """
+    """Devuelve la respuesta fija si el mensaje es solo cortesía."""
     dichas = palabras(pregunta)
     if not dichas or not dichas <= _CORTESIA:
         return None
@@ -406,21 +263,14 @@ def cortesia(pregunta: str) -> str | None:
     return None
 
 
-#: Hasta cuántas palabras puede tener un mensaje sin fórmula conocida para que
-#: se le siga dando la bienvenida en vez de decirle que no se ha encontrado
-#: nada. Dos, porque un saludo que no está en la lista es «hei» o «q tal»; con
-#: tres ya cabe una petición («resumeme la guerra») y el saludo de respaldo se
-#: convertiría en la respuesta a cualquier cosa que el sistema no entienda.
+# Dos palabras admiten «q tal»; tres ya permiten peticiones como «resúmeme la guerra».
 _PALABRAS_DEL_SALUDO_DE_RESPALDO: Final[int] = 2
 
 #: Marcas de que el mensaje pregunta algo, aunque también dé las gracias. Es la
 #: condición que separa «gracias, ¿y qué asignaturas tiene?» de «me gusta la
 #: idea, muchas gracias»: la primera hay que responderla, la segunda no.
-#:
-#: Van también los imperativos de petición, que piden algo sin preguntar nada:
-#: «Dame una receta de tortilla de patatas» no lleva interrogación ni palabra
-#: interrogativa, y los tres candidatos contestaban con la bienvenida en vez de
-#: decir que de eso no saben.
+
+# Los imperativos también piden contenido, aunque no lleven interrogación.
 _INTERROGATIVAS: Final[frozenset[str]] = frozenset("""
     que cual cuales cuando cuanto cuanta cuantos cuantas como donde quien
     quienes dime cuentame hablame explicame ensename recomiendame dame damelo
@@ -437,27 +287,15 @@ RESPUESTA_OTRA_UNIVERSIDAD: Final[str] = (
     "de Jaén, tendrás que consultar su web. ¿Te ayudo con las de aquí?"
 )
 
-#: Cómo se nombra un centro universitario dentro de una pregunta. Sirve para
-#: reconocer que se pregunta por **otro centro**, que es algo que el suelo de
-#: pertinencia no puede detectar: «¿La Universidad de Granada tiene Ingeniería
-#: Informática?» tiene su mejor fragmento a 0,1185 ---más cerca que la mayoría
-#: de las preguntas legítimas--- porque nombra una titulación que sí existe
-#: aquí. La distancia entre vectores mide parecido de vocabulario, y el
-#: vocabulario es casi el mismo.
-#:
-#: Lo que identifica al centro es **el topónimo que va detrás del «de»**, no la
+# El centro ajeno se comprueba aparte: la similitud puede ser alta si coincide la
+# titulación.
+
+#: Lo que identifica al centro es el topónimo que va detrás del «de», no la
 #: palabra «universidad»: la fórmula «Universidad de X» a secas deja pasar dos
 #: formas muy corrientes del conjunto de validación:
-#:
-#: * «Universidad **Politécnica** de Valencia», donde detrás de «universidad»
-#:   viene el adjetivo y no la preposición. De ahí el hueco opcional para uno o
-#:   dos adjetivos.
-#: * «**Escuela** Politécnica Superior de **Linares**», que no contiene la
-#:   palabra «universidad» en absoluto. Y es el caso incómodo, porque la EPS de
-#:   Linares es un centro real de la propia Universidad de Jaén cuyo nombre se
-#:   distingue del de la EPS de Jaén en una sola palabra: un preuniversitario
-#:   de la provincia puede confundirlas sin ninguna mala intención.
-#:
+
+# Admite adjetivos en «Universidad Politécnica» y centros como la EPS de Linares.
+
 #: Se sigue sin usar una lista de universidades, que nunca estaría completa.
 _OTRA_UNIVERSIDAD: Final[re.Pattern[str]] = re.compile(
     r"(?:universidad|universitat|escuela|facultad|campus)"
@@ -466,18 +304,7 @@ _OTRA_UNIVERSIDAD: Final[re.Pattern[str]] = re.compile(
 
 
 def pregunta_por_otro_centro(pregunta: str) -> str | None:
-    """Respuesta fija si la pregunta nombra una universidad que no es la de Jaén.
-
-    Se reconoce por la fórmula «Universidad de X» y no por una lista de
-    universidades, que nunca estaría completa. Lo que se comprueba es lo único
-    que se sabe con certeza: de qué centro informa este asistente.
-
-    Args:
-        pregunta: Mensaje del usuario, tal cual lo escribe.
-
-    Returns:
-        La respuesta fija, o ``None`` si no nombra otra universidad.
-    """
+    """Respuesta fija si la pregunta nombra una universidad que no es la de Jaén."""
     for encontrado in _OTRA_UNIVERSIDAD.finditer(normalizar(pregunta)):
         if encontrado.group(1) != "jaen":
             return RESPUESTA_OTRA_UNIVERSIDAD
@@ -485,25 +312,7 @@ def pregunta_por_otro_centro(pregunta: str) -> str | None:
 
 
 def cierre_de_conversacion(pregunta: str) -> str | None:
-    """Respuesta fija para un mensaje que agradece y no pregunta nada.
-
-    «Me gusta la idea, muchas gracias» no cabe en :func:`cortesia`, que exige
-    que el mensaje entero sea cortesía, y acababa recibiendo «no he encontrado
-    información sobre eso». Aquí basta con que aparezca la fórmula, y lo que se
-    exige a cambio es que **no haya pregunta**: ni signo de interrogación ni
-    palabra interrogativa.
-
-    Se comprueba antes de buscar en el índice, porque un agradecimiento no es
-    una consulta: si se dejara pasar, la ampliación de la consulta que hace
-    :func:`tfg_uja.recuperador.pide_recomendacion` le encontraría contexto y el
-    modelo respondería a una pregunta que nadie ha hecho.
-
-    Args:
-        pregunta: Mensaje del usuario, tal cual lo escribe.
-
-    Returns:
-        La despedida, o ``None`` si el mensaje pregunta algo o no agradece.
-    """
+    """Respuesta fija para un mensaje que agradece y no pregunta nada."""
     dichas = palabras(pregunta)
     if not dichas & _DESPEDIDA:
         return None
@@ -513,40 +322,7 @@ def cierre_de_conversacion(pregunta: str) -> str | None:
 
 
 def cortesia_sin_contexto(pregunta: str) -> str | None:
-    """Respuesta fija para un mensaje cortés del que no se recuperó nada.
-
-    Donde :func:`cortesia` exige que **todo** el mensaje sea fórmula, aquí
-    basta con que la fórmula aparezca: «me gusta la idea, muchas gracias» no
-    pregunta nada, no recupera nada, y recibía «no he encontrado información
-    sobre eso». Cuatro reglas, en el orden en que se aplican:
-
-    * **Despedida**, si agradece y no lleva interrogación. Esa segunda mitad no
-      se puede relajar: sin ella, «Vale, gracias, me podrías decir cómo se
-      harían unas costillas topográficas?» recibe «¡De nada!» y la pregunta se
-      queda sin contestar. Que la recuperación vuelva vacía significa que no se
-      ha encontrado nada, no que no se haya preguntado nada.
-    * **Saludo**, siempre que lo haya. La interrogación no lo desactiva porque
-      un saludo abre y un agradecimiento cierra: a «hola, ¿me puedes ayudar?»
-      se le da la bienvenida aunque no se recupere nada.
-    * **Nada**, si pregunta algo. Queda fuera del arreglo el mismo mensaje sin
-      interrogación escrita: no hay forma de separarlo de «buenas, quiero
-      información» sin perseguir casos.
-    * **Bienvenida de respaldo** para lo muy corto, que es como se saluda sin
-      usar una fórmula conocida ---«hei», «q tal»---. El límite es la longitud
-      y no el vocabulario porque «Hazme un resumen de la Segunda Guerra
-      Mundial» tampoco lleva interrogación, y ampliar la lista de verbos con
-      cada caso nuevo es perseguir casos.
-
-    Se mira el mensaje y no el número de turno, para que la misma frase reciba
-    siempre la misma respuesta.
-
-    Args:
-        pregunta: Mensaje del usuario, tal cual lo escribe.
-
-    Returns:
-        La respuesta fija que corresponda, o ``None`` si el mensaje pregunta
-        algo que no se ha encontrado.
-    """
+    """Respuesta fija para un mensaje cortés del que no se recuperó nada."""
     dichas = palabras(pregunta)
     if dichas & _DESPEDIDA and "?" not in pregunta:
         return RESPUESTA_DESPEDIDA
@@ -560,23 +336,7 @@ def cortesia_sin_contexto(pregunta: str) -> str | None:
 
 
 def respuesta_fija(pregunta: str) -> str | None:
-    """La respuesta que no necesita ni contexto recuperado ni modelo, si la hay.
-
-    Reúne las tres salidas anticipadas que se deciden mirando solo lo que se ha
-    escrito: la cortesía, el cierre de la conversación y la pregunta por otro
-    centro. Existe como función propia, y no repetida en cada sitio, porque
-    quien la llama necesita saber **antes de recuperar** si el modelo va a
-    intervenir: recuperar para un saludo es trabajo tirado, y anunciar los
-    fragmentos de un saludo es peor que tirar el trabajo, porque presenta como
-    respaldo de la respuesta algo que nadie ha usado para redactarla.
-
-    Args:
-        pregunta: Lo que ha escrito el estudiante.
-
-    Returns:
-        El texto fijo con el que se contesta, o ``None`` si esta pregunta hay
-        que responderla de verdad.
-    """
+    """La respuesta que no necesita ni contexto recuperado ni modelo, si la hay."""
     return (
         cortesia(pregunta)
         or cierre_de_conversacion(pregunta)
@@ -590,19 +350,7 @@ def _anotar_retirada(
     catalogo: list[str] | None,
     traza: dict[str, object] | None,
 ) -> None:
-    """Deja constancia de una respuesta retirada por nombrar lo que no existe.
-
-    Una barrera que descarta en silencio no se puede auditar despues, y sin el
-    texto retirado no hay forma de distinguir un modelo que se invento una
-    titulacion de una barrera que descarto una respuesta buena: las dos cosas
-    se ven igual desde fuera, como una respuesta de rechazo.
-
-    Args:
-        pregunta: La que se estaba respondiendo.
-        texto: Lo que se retira.
-        catalogo: Titulaciones que declara el indice.
-        traza: Donde anotarlo, si quien llama la pide.
-    """
+    """Deja constancia de una respuesta retirada por nombrar lo que no existe."""
     inventadas = sorted(titulaciones_inventadas(texto, catalogo) if catalogo else set())
     _registro.warning(
         "Respuesta retirada: nombra titulaciones que no existen (%s). "
@@ -619,21 +367,7 @@ def _anotar_retirada(
 def _sujeto_tras(
     unidad: str, del_plan: dict[str, Atributos], sujeto: str | None
 ) -> str | None:
-    """De que asignatura se sigue hablando cuando termina esta unidad.
-
-    El salto de linea cierra la vineta y con ella el sujeto: lo que venga
-    despues habla de otra asignatura, y arrastrarlo le atribuiria a la primera
-    lo que se dice de la segunda. Dentro de la misma linea, en cambio, el
-    sujeto se sostiene hasta que otra asignatura lo releva.
-
-    Args:
-        unidad: Trozo ya cerrado por una frontera segura.
-        del_plan: Lo que el contexto dice de cada asignatura.
-        sujeto: De quien se venia hablando antes de esta unidad.
-
-    Returns:
-        La asignatura en pie al terminar, o ``None`` si no hay ninguna.
-    """
+    """De que asignatura se sigue hablando cuando termina esta unidad."""
     if "\n" in unidad:
         return asignatura_del_segmento(unidad.rsplit("\n", 1)[1], del_plan)
     return asignatura_del_segmento(unidad, del_plan) or sujeto
@@ -645,30 +379,7 @@ def _con_el_plan_corregido(
     pregunta: str,
     sujeto: str | None = None,
 ) -> str:
-    """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota.
-
-    Aqui **no se retira** la respuesta, a diferencia de lo que pasa con una
-    titulacion inventada, y la razon es que los dos fallos no se parecen.
-    Nombrar una titulacion que no existe invalida la respuesta entera: no hay
-    nada que salvar. Equivocar el cuatrimestre de una asignatura entre diez
-    correctas deja una respuesta que sigue siendo util, y tirarla completa
-    castigaria al estudiante por un fallo de una linea.
-
-    Lo que se corrige sale del propio contexto que se le entrego al modelo, no
-    de un criterio nuestro: si el fragmento decia «primer cuatrimestre», eso es
-    lo que se escribe. Cada cambio se registra, porque un sistema que corrige
-    en silencio no se puede auditar despues.
-
-    Args:
-        unidad: Trozo de respuesta ya cerrado por una frontera segura.
-        del_plan: Lo que el contexto dice de cada asignatura.
-        pregunta: Solo para el registro, si hay algo que anotar.
-        sujeto: Asignatura de la que venia hablando la linea. Sin el, una
-            afirmacion escrita en frase aparte de su nombre no se corrige.
-
-    Returns:
-        La unidad, con los atributos que contradecian al contexto corregidos.
-    """
+    """Pone curso, cuatrimestre y ECTS a lo que dice el contexto, y lo anota."""
     corregida, avisos = corregir_atributos(unidad, del_plan, sujeto)
     for aviso in avisos:
         _registro.warning(
@@ -688,38 +399,7 @@ def responder(
     catalogo: list[str] | None = None,
     traza: dict[str, object] | None = None,
 ) -> str:
-    """Devuelve la respuesta del sistema a una pregunta, de una sola pieza.
-
-    Es una envoltura de :func:`responder_por_partes`, y esa es toda la
-    diferencia entre las dos: **hay una sola implementacion de los desvios y de
-    las barreras**. Con una implementacion por cada camino ---el experimento
-    del sistema llama a esta y la aplicacion web a la otra--- una barrera
-    puesta en uno solo hace que las cifras describan un sistema distinto del
-    que se entrega.
-
-    Se pide al modelo **sin flujo**, para que el experimento haga siempre la
-    misma peticion y sus tiempos sean comparables con los ya publicados.
-
-    Args:
-        pregunta: Pregunta del usuario, tal cual la escribe.
-        fragmentos: Fragmentos recuperados, ya acotados.
-        modelo: Nombre del modelo en el servidor local.
-        historial: Turnos anteriores de la conversacion, si los hay.
-        ambito: Titulacion o titulaciones a las que esta acotada la busqueda.
-        catalogo: Titulaciones que declara el indice, para que el prompt las
-            enumere.
-        traza: Diccionario donde dejar constancia de lo que la barrera retira.
-            Si se pasa, y solo entonces, se rellena con las titulaciones que la
-            dispararon y con el texto retirado. El chat no lo necesita; los
-            experimentos si, porque sin el texto no hay forma de distinguir un
-            modelo que se invento una titulacion de una barrera que descarto
-            una respuesta buena, y las dos cosas se ven igual desde fuera: una
-            respuesta de rechazo. Ha pasado ---una respuesta correcta retirada
-            por escribir «Grado en Mecanica» en corto--- sin dejar rastro.
-
-    Returns:
-        La respuesta, del modelo o una de las fijas del modulo.
-    """
+    """Devuelve la respuesta del sistema a una pregunta, de una sola pieza."""
     partes: list[str] = []
     for parte in responder_por_partes(
         pregunta,
@@ -740,28 +420,7 @@ def responder(
 
 
 def _conversacion(historial: list[tuple[str, str]]) -> str:
-    """Rehace los turnos anteriores. **Solo las preguntas.**
-
-    Las respuestas del propio modelo no entran. Entrando recortadas a 300
-    caracteres y con la regla «los datos salen del CONTEXTO, nunca de tus
-    respuestas anteriores» escrita en las instrucciones, no bastaba: preguntado
-    por los dobles grados, el modelo cerraba su respuesta con «En el primer
-    curso de todos los títulos mencionados se imparte Matemáticas I», frase
-    copiada de su propia respuesta dos turnos antes y sin ninguna relación con
-    lo que se le había preguntado.
-
-    Es el patrón de siempre en este proyecto: una prohibición en el prompt no es
-    un control. Lo que no está en el prompt no se puede copiar, y para entender
-    a qué se refiere «¿y en el segundo?» basta con saber qué se preguntó antes;
-    lo que el modelo contestó no aporta nada y sí arrastra sus propios errores.
-
-    Args:
-        historial: Pares ``(pregunta, respuesta)``, del más antiguo al último.
-            La respuesta se ignora a propósito.
-
-    Returns:
-        El bloque de preguntas anteriores, o cadena vacía si no hay ninguna.
-    """
+    """Rehace los turnos anteriores. Solo las preguntas."""
     if not historial:
         return ""
     preguntas = [p for p, _ in historial[-TURNOS_EN_EL_PROMPT:]]
@@ -776,40 +435,7 @@ def construir_prompt(
     ambito: str | list[str] | None = None,
     catalogo: list[str] | None = None,
 ) -> str:
-    """Arma el texto que lee el modelo.
-
-    Cada fragmento entra encabezado por su unidad y su titulación: sin esa
-    etiqueta el modelo recibe varios textos seguidos sin saber de qué asignatura
-    es cada uno, y atribuir el temario de una a otra es el defecto que la
-    fragmentación evita desde la Fase 1.
-
-    El historial entra **separado del contexto y anunciado como tal**, o las
-    respuestas anteriores del propio modelo quedarían al mismo nivel que los
-    fragmentos del corpus y un dato inventado en un turno sería fuente para el
-    siguiente.
-
-    **El catálogo se declara siempre, y es un dato, no una prohibición.** El
-    fallo más grave del sistema es recomendar titulaciones que no existen: de
-    seis recomendadas a un estudiante interesado en electricidad, **dos no
-    existen** en la EPSJ. Prohibirlo otra vez no habría cambiado nada ---las
-    instrucciones ya decían «usa ÚNICAMENTE la información del CONTEXTO»---;
-    lo que sí se puede hacer desde el prompt es poner la lista verdadera delante
-    en todas las consultas, cueste lo que cueste ---unas 150 fichas de las 8.192
-    de la ventana---, en vez de esperar a que la recuperación la traiga.
-    Comprobar la respuesta contra ese catálogo, que es lo único que no depende
-    de que el modelo obedezca, es IT-87.
-
-    Args:
-        pregunta: Pregunta del usuario, tal cual la escribe.
-        fragmentos: Fragmentos recuperados, de más a menos próximo.
-        historial: Turnos anteriores de la conversación, si los hay.
-        ambito: Titulación o titulaciones a las que está acotada la búsqueda.
-        catalogo: Titulaciones que declara el índice. Si no se pasa, el prompt
-            no las enumera y el modelo solo cuenta con el contexto.
-
-    Returns:
-        Prompt completo, listo para enviar al modelo.
-    """
+    """Arma el texto que lee el modelo."""
     if not fragmentos:
         contexto = "(no se ha recuperado ningún fragmento)"
     else:
@@ -823,11 +449,7 @@ def construir_prompt(
         if catalogo
         else ""
     )
-    # El ámbito se **declara como dato**, no como prohibición. 78 guías del
-    # corpus se imparten en varias titulaciones y su encabezado las nombra
-    # todas, así que acotar la búsqueda a una no impide que el modelo hable de
-    # las otras: con el filtro puesto en Informática, el modelo respondía con
-    # un apartado entero sobre Inteligencia Artificial y Ciberseguridad.
+    # Declara el ámbito porque una guía compartida nombra también otras titulaciones.
     encabezado = _encabezado_de_ambito(ambito)
     return (
         f"{INSTRUCCIONES}\n\n"
@@ -841,14 +463,7 @@ def construir_prompt(
 
 
 def _encabezado_de_ambito(ambito: str | list[str] | None) -> str:
-    """Declara el sujeto de la consulta sin perder un ámbito comparativo.
-
-    Args:
-        ambito: Una titulación, varias o ninguna.
-
-    Returns:
-        Bloque que precede al contexto, o cadena vacía sin ámbito.
-    """
+    """Declara el sujeto de la consulta sin perder un ámbito comparativo."""
     if not ambito:
         return ""
     titulaciones = [ambito] if isinstance(ambito, str) else list(ambito)
@@ -858,10 +473,7 @@ def _encabezado_de_ambito(ambito: str | list[str] | None) -> str:
     return f"ÁMBITO: la consulta abarca estas titulaciones:\n{lista}\n\n"
 
 
-#: Con lo que se cierra una respuesta que el modelo no llegó a terminar. Se
-#: escribe siempre que el servidor diga que paró por longitud, porque el
-#: estudiante no tiene forma de distinguir una respuesta completa de una
-#: cortada, y una lista interrumpida se lee como si fuera la lista entera.
+# Avisa cuando el servidor detiene la respuesta por longitud.
 AVISO_RESPUESTA_CORTADA: Final[str] = (
     "\n\n*He tenido que cortar aquí: la respuesta se estaba haciendo muy "
     "larga. Pregúntame por la parte que te interese y te la cuento entera.*"
@@ -869,22 +481,7 @@ AVISO_RESPUESTA_CORTADA: Final[str] = (
 
 
 def cerrar_en_frase_completa(texto: str) -> str:
-    """Recorta un texto hasta su última frase o línea terminada.
-
-    El tope de la respuesta se agota a mitad de palabra ---«**Nota:** Todas las
-    titul»---, y entregar eso es peor que entregar menos: la frase partida
-    parece un fallo del sistema y deja al lector sin saber qué iba a decir.
-
-    Se corta por el final de frase o de línea más avanzado de los dos, porque
-    las respuestas alternan prosa y listas, y en una lista lo que cierra el
-    último elemento es el salto de línea, no el punto.
-
-    Args:
-        texto: Respuesta tal como la devolvió el modelo.
-
-    Returns:
-        El texto hasta el último cierre, o el texto entero si no hay ninguno.
-    """
+    """Recorta un texto hasta su última frase o línea terminada."""
     cierres = [texto.rfind(c) for c in (".", "!", "?", "\n")]
     ultimo = max(cierres)
     if ultimo < 0:
@@ -902,25 +499,7 @@ def _peticion(
     sistema: str,
     flujo: bool,
 ) -> urllib.request.Request:
-    """Arma la peticion al servidor de inferencia.
-
-    La comparten las dos vias de generacion para que no puedan discrepar en los
-    parametros del muestreo: si una fijara la semilla y la otra no, la web y el
-    experimento estarian midiendo cosas distintas.
-
-    Args:
-        prompt: Texto que devuelve :func:`construir_prompt`.
-        modelo: Nombre del modelo en el servidor local.
-        servidor: Direccion del servidor de inferencia.
-        ventana: Ventana de contexto en *tokens*.
-        tope: Maximo de *tokens* de la respuesta.
-        semilla: Semilla del muestreo.
-        sistema: Mensaje de sistema.
-        flujo: Si se pide con ``stream`` o de una sola vez.
-
-    Returns:
-        La peticion, lista para :func:`urllib.request.urlopen`.
-    """
+    """Arma la peticion al servidor de inferencia."""
     cuerpo = {
         "model": modelo,
         "prompt": prompt,
@@ -944,22 +523,6 @@ def _peticion(
 @contextmanager
 def _errores_del_modelo(modelo: str, servidor: str) -> Iterator[None]:
     """Traduce a :class:`ErrorDelModelo` los fallos de hablar con el servidor.
-
-    Las cuatro ramas son las cuatro formas en que se le ha visto fallar, y **el
-    orden importa**: ni ``TimeoutError`` ni ``ConnectionResetError`` son
-    ``URLError`` ---el segundo es un ``OSError``---, asi que sin rama propia se
-    escapan de la captura y suben hasta quien llame. Las dos han tumbado tandas
-    enteras: un modelo colgado se llevo las nueve horas siguientes de una tanda
-    de 560 respuestas, y el servidor muriendose con la conexion ya abierta
-    tumbo un experimento de cuatro modelos con una traza de socket. Un fallo
-    del servidor tiene que costar una pregunta, no la sesion.
-
-    Args:
-        modelo: Nombre del modelo, para el mensaje.
-        servidor: Direccion del servidor, para el mensaje.
-
-    Yields:
-        Nada: es un envoltorio.
 
     Raises:
         ErrorDelModelo: siempre que el servidor no responda como debe.
@@ -995,37 +558,7 @@ def generar(
     semilla: int = 42,
     sistema: str = SISTEMA,
 ) -> str:
-    """Pide la respuesta al modelo local.
-
-    La temperatura a cero y la semilla fijada quitan el azar del muestreo, y
-    **eso no basta para que el texto sea reproducible**: con la misma pregunta y
-    los mismos parámetros, la primera llamada tras cargar el modelo devuelve una
-    redacción y de la segunda en adelante devuelve otra. Las dos son estables y
-    se repiten sin fallo, pero son distintas.
-
-    **El veredicto tampoco es reproducible.** Entre dos pasadas del banco
-    cambió la redacción de 27 de las 42 respuestas generadas sin que se moviera
-    ninguno de los 57 veredictos, pero una tercera dio 56 de 57: la misma
-    pregunta sobre el curso de una asignatura se respondió «quinto curso» en
-    una tirada y «cuarto curso» en otra. Los correctores comparan hechos y no
-    cómo están escritos, así que la mayoría de los cambios de redacción no
-    mueven nada; lo que no se puede decir es que ninguno lo haga. Una sola
-    tirada del banco no fija el resultado, y repetirla tampoco lo estrecha: dos
-    tiradas de 57 preguntas siguen siendo 57 observaciones.
-
-    Args:
-        prompt: Texto que devuelve :func:`construir_prompt`.
-        modelo: Nombre del modelo en el servidor local.
-        servidor: Dirección del servidor de inferencia.
-        ventana: Ventana de contexto en *tokens*.
-        tope: Máximo de *tokens* de la respuesta.
-        semilla: Semilla del muestreo.
-        sistema: Mensaje de sistema. Se manda siempre, e igual para todos los
-            modelos, para que ninguno responda bajo el suyo de fábrica.
-
-    Returns:
-        La respuesta del modelo, sin espacios sobrantes.
-    """
+    """Pide la respuesta al modelo local."""
     peticion = _peticion(
         prompt, modelo, servidor, ventana, tope, semilla, sistema, flujo=False
     )
@@ -1038,23 +571,13 @@ def generar(
     return escrito
 
 
-#: Caracteres que cierran una unidad emitible. Son las **fronteras seguras** del
-#: ADR-0006: soltar un trozo cortado a mitad de palabra daria un falso positivo
-#: en `titulaciones_inventadas`, que admite subconjuntos de palabras. «Grado en
-#: Ingenieria» pasa la comprobacion; «Grado en Ingenieria Infor» no.
+# Verifica unidades completas: cortar una palabra puede producir falsas titulaciones
+# inventadas (ADR-0006).
 FRONTERAS: Final[str] = ".!?\n"
 
 
 def partir_en_unidades(texto: str) -> tuple[list[str], str]:
-    """Separa lo que ya se puede soltar de lo que hay que seguir acumulando.
-
-    Args:
-        texto: Todo lo que el modelo ha escrito y aun no se ha soltado.
-
-    Returns:
-        ``(unidades, resto)``. Cada unidad termina en una frontera segura y el
-        resto se queda en el acumulador hasta que llegue la suya.
-    """
+    """Separa lo que ya se puede soltar de lo que hay que seguir acumulando."""
     unidades: list[str] = []
     inicio = 0
     for i, caracter in enumerate(texto):
@@ -1074,24 +597,6 @@ def generar_por_partes(
     sistema: str = SISTEMA,
 ) -> Iterator[str]:
     """Lo mismo que :func:`generar`, pero devolviendo el texto segun se produce.
-
-    El servidor de inferencia manda un objeto JSON por linea con el trozo
-    recien escrito. Aqui solo se reenvian esos trozos: **no se comprueba nada**,
-    porque la comprobacion necesita fronteras seguras y de eso se encarga
-    :func:`responder_por_partes`.
-
-    Args:
-        prompt: Texto que devuelve :func:`construir_prompt`.
-        modelo: Nombre del modelo en el servidor local.
-        servidor: Direccion del servidor de inferencia.
-        ventana: Ventana de contexto en *tokens*.
-        tope: Maximo de *tokens* de la respuesta.
-        semilla: Semilla del muestreo.
-        sistema: Mensaje de sistema.
-
-    Yields:
-        Los trozos de texto en el orden en que los escribe el modelo, y al
-        final el aviso de respuesta cortada si se agoto el tope.
 
     Raises:
         ErrorDelModelo: si el servidor no responde, tarda demasiado o falla.
@@ -1122,38 +627,7 @@ def responder_por_partes(
     traza: dict[str, object] | None = None,
     flujo: bool = True,
 ) -> Iterator[str | None]:
-    """Devuelve la respuesta por partes, **cada una ya verificada** (ADR-0006).
-
-    Mismos desvios que :func:`responder`: la cortesia se atiende antes de mirar
-    el contexto y sin fragmentos no se llama al modelo. En esos dos casos sale
-    una sola parte con la respuesta fija.
-
-    Cuando si se llama al modelo, se acumula hasta una frontera segura y se pasa
-    el **texto acumulado entero** por :func:`titulaciones_inventadas` antes de
-    soltar nada. Verificar solo la unidad nueva dejaria pasar un nombre partido
-    entre dos unidades.
-
-    Si la comprobacion falla, se corta la emision y se emite
-    ``None`` como senal de que hay que **descartar lo ya emitido** y poner en su
-    lugar :data:`RESPUESTA_TITULACION_INVENTADA`, que llega justo despues.
-
-    Args:
-        pregunta: Lo que ha escrito el estudiante.
-        fragmentos: Los que ha traido el recuperador.
-        modelo: Nombre del modelo en el servidor local.
-        historial: Preguntas de los turnos anteriores.
-        ambito: Titulacion o titulaciones de las que se viene hablando.
-        catalogo: Titulaciones que declara el indice. Sin el no se comprueba.
-        traza: Donde anotar lo que la barrera retire. Solo lo usan los
-            experimentos; ver :func:`responder`.
-        flujo: Si se pide al modelo con ``stream`` o de una sola vez. Cambia
-            **como se pide**, no lo que se comprueba: las barreras son las
-            mismas en los dos casos.
-
-    Yields:
-        Cadenas con las partes verificadas. Un ``None`` significa «borra lo
-        emitido»: lo que venga despues sustituye a todo lo anterior.
-    """
+    """Devuelve la respuesta por partes, cada una ya verificada (ADR-0006)."""
     fija = respuesta_fija(pregunta)
     if fija is not None:
         yield fija
@@ -1168,10 +642,8 @@ def responder_por_partes(
     del_plan = atributos_del_contexto([f.texto for f in fragmentos])
     acumulado = ""
     pendiente = ""
-    # De que asignatura se viene hablando dentro de la linea en curso. Se
-    # arrastra entre unidades porque el corte por frases separa el nombre del
-    # atributo: «**Automatica avanzada** (6 ECTS). Se imparte en el primer
-    # cuatrimestre.» son dos unidades y la segunda no nombra a nadie.
+    # Conserva la asignatura entre frases para atribuirle los datos que no repiten su
+    # nombre.
     sujeto: str | None = None
     # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
     # cola al agotarse el tope: ver mas abajo.
@@ -1180,16 +652,8 @@ def responder_por_partes(
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
     for trozo in trozos:
-        # El tope agotado corta a mitad de palabra, y lo que queda sin cerrar
-        # frase es exactamente `pendiente`: todo lo anterior ya salio en
-        # unidades. Tirarlo aqui es lo mismo que hace `cerrar_en_frase_completa`
-        # en la via sin flujo, y sin ello la web entregaba «...todas las titul»
-        # mientras el camino que mide el experimento entregaba la frase entera.
-        #
-        # Se exige `hubo_frontera` porque `cerrar_en_frase_completa` devuelve el
-        # texto intacto cuando no hay ninguna frontera en el: sin esa condicion,
-        # una respuesta corta y cortada se quedaria solo en el aviso por un lado
-        # y entera por el otro, que es la divergencia que esto viene a cerrar.
+        # Al agotar el límite, descarta el resto incompleto solo si hubo una frontera;
+        # mantiene el criterio de la respuesta sin flujo.
         if trozo == AVISO_RESPUESTA_CORTADA and hubo_frontera:
             pendiente = ""
         pendiente += trozo
