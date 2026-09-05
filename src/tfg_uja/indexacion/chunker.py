@@ -1,22 +1,4 @@
-"""Troceado (chunking) del dataset extraído por el spider.
-
-Convierte los items del dataset (asignaturas, guías docentes y salidas
-profesionales) en chunks listos para indexar en el sistema RAG. Cada chunk
-pertenece a una única unidad semántica: una asignatura o el bloque de
-salidas de un grado; nunca se mezclan dos asignaturas en un mismo chunk.
-
-La estrategia y sus parámetros se justifican en el ADR-0001 a partir de la
-distribución real de tamaños del dataset (mediana de 2.656 caracteres por
-guía, percentil 90 de 6.023, máximo de 24.046): la mayoría de guías no cabe
-en un solo chunk del tamaño que admite el modelo de incrustaciones elegido,
-por lo que se trocea respetando párrafos y frases, y cada chunk se hace
-autocontenido anteponiendo un encabezado con la asignatura y el grado.
-
-Los tamaños salen de una búsqueda en rejilla de 45 configuraciones (tres
-estrategias × cinco máximos × tres valores del parámetro propio de cada una)
-medida sobre el conjunto de evaluación (IT-16), no de una estimación de
-cuántos tokens caben en un carácter.
-"""
+"""Troceado (chunking) del dataset extraído por el spider."""
 
 from __future__ import annotations
 
@@ -29,25 +11,18 @@ from typing import Any, Final
 
 from tfg_uja.text_cleaner import normalizar_rotulo
 
-#: Tamaño objetivo de un chunk, en caracteres. Coincide a propósito con el
-#: máximo: la rejilla de IT-16 midió las tres proporciones (60 %, 80 % y
-#: 100 % del máximo) y la de 100 % fue la mejor de la estrategia estructural,
-#: así que no hay motivo para dejar hueco sin usar.
+# El antiguo _normalizar colapsaba espacios interiores; el del spider no.
+# IT-137 sustituyó ambos tras verificar sus usos reales; véase normalizar_rotulo.
+
+# Objetivo elegido por la rejilla de IT-16: 100 % del máximo (ADR-0001).
 TAMANO_OBJETIVO: Final[int] = 900
 
 #: Tamaño máximo estricto de un chunk. Ningún chunk lo supera: un párrafo
 #: más largo se divide por frases.
-#:
-#: La rejilla de IT-16 recorrió 600, 900, 1200, 1500 y 1800 y encontró que este
-#: parámetro pesa mucho más que la estrategia: a igualdad de estrategia, cuanto
-#: menor es el máximo, mejor se recupera. Se elige 900 y no 600 porque 600 gana
-#: en las métricas pero multiplica los fragmentos, y esa ventaja no sobrevive
-#: al controlar por su número; la de 900 sí (ver ADR-0001).
-#:
-#: El argumento que no depende de ninguna métrica discutible es el truncado:
-#: con 900 ningún fragmento supera la ventana del modelo de incrustaciones,
-#: con 1500 aparecen los primeros y con 1800 llegan a 29. El modelo los
-#: recortaría en silencio, sin avisar ni fallar.
+
+# 900 conserva la mejora al controlar por número de fragmentos; 600 no (ADR-0001).
+
+# Con 900 ningún fragmento del experimento excedió la ventana del modelo.
 TAMANO_MAXIMO: Final[int] = 900
 
 #: Tamaño mínimo de un chunk. Un fragmento residual por debajo de este
@@ -69,12 +44,9 @@ _NOMBRE_TIPO: Final[dict[str, str]] = {
 #: Agrupaciones del plan de estudios que el corpus publica como listado
 #: (IT-100). La clave es el nombre que aparece en el encabezado del fragmento;
 #: el valor, los tipos de asignatura que agrupa.
-#:
-#: «Obligatorias» reúne formación básica, obligatorias comunes, obligatorias de
-#: especialidad y el TFG, porque desde el punto de vista de un estudiante
-#: preuniversitario son lo mismo: asignaturas que hay que superar sí o sí. La
-#: distinción entre FB y OB es administrativa y sigue estando en el fragmento
-#: de cada asignatura, que es donde importa.
+
+# El listado obligatorio reúne FB, OB, especialidades y TFG; cada fragmento conserva su
+# tipo concreto.
 _GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
     "obligatorias": frozenset({"FB", "OB", "OB-IS", "OB-SI", "OB-TI", "TFG"}),
     "optativas": frozenset({"OP"}),
@@ -83,11 +55,8 @@ _GRUPOS_PLAN: Final[dict[str, frozenset[str]]] = {
 #: Ordinales de curso, en el orden en que se estudian. Se usan para ordenar
 #: los listados por curso: un rótulo disyuntivo como «Tercer o cuarto curso»
 #: ordena por el primero que nombra, que es lo antes que puede cursarse.
-#:
-#: Es público porque el generador ordena con él los listados que llegan al
-#: contexto. Si cada módulo tuviera el suyo podrían discrepar en silencio, que
-#: es el mismo motivo por el que la convención de prefijos vive en un solo
-#: sitio desde el ADR-0003.
+
+# El generador comparte este orden para presentar los cursos sin discrepancias.
 ORDEN_CURSOS: Final[tuple[str, ...]] = (
     "primer",
     "segundo",
@@ -99,38 +68,17 @@ ORDEN_CURSOS: Final[tuple[str, ...]] = (
 
 _FRONTERA_FRASE: Final[re.Pattern[str]] = re.compile(r"(?<=[.;!?])\s+")
 
-#: Rótulo con el que la fuente marca las optativas que no pertenecen a ninguna
-#: mención concreta. **No es una mención**, aunque viaje en el mismo campo que
-#: ellas, y presentarlo como tal induce a error: el sistema llegó a contestar
-#: que Ingeniería Mecánica «tiene dos menciones» y una de las dos era este
-#: rótulo. Se compara normalizado porque la fuente no es consistente con
-#: mayúsculas ni tildes.
+# Este rótulo agrupa optativas comunes; no representa una mención.
 _COMUN_A_TODAS: Final[str] = "comun a todas las menciones"
 
 
-#: Acrónimo del grado de procedencia que los planes de los dobles grados
-#: añaden al final del nombre de una asignatura, entre paréntesis: «CIRCUITOS
-#: (GIE)», «MARKETING INDUSTRIAL (GIOI)». No forma parte del nombre con el que
-#: la asignatura figura en su grado simple.
+# El sufijo «(GIE)» o «(GIOI)» identifica el grado base y no pertenece al nombre de la
+# asignatura.
 _SUFIJO_GRADO: Final[re.Pattern[str]] = re.compile(r"\s*\([A-Z]{2,8}\)\s*$")
 
 
 def _dividir_en_piezas(texto: str, maximo: int) -> list[str]:
-    """Divide un texto en piezas que no superan el tamaño máximo.
-
-    Primero separa por párrafos (dobles saltos de línea); un párrafo que
-    exceda el máximo se subdivide por fronteras de frase. Solo como último
-    recurso (una "frase" más larga que el máximo, p. ej. un listado sin
-    puntuación) se corta por el último espacio antes del límite, nunca en
-    mitad de una palabra.
-
-    Args:
-        texto: Texto completo de la unidad semántica.
-        maximo: Longitud máxima de cada pieza, en caracteres.
-
-    Returns:
-        Piezas no vacías, en el orden original del texto.
-    """
+    """Divide un texto en piezas que no superan el tamaño máximo."""
     piezas: list[str] = []
     for parrafo in re.split(r"\n{2,}", texto):
         parrafo = parrafo.strip()
@@ -153,19 +101,7 @@ def _dividir_en_piezas(texto: str, maximo: int) -> list[str]:
 
 
 def _empaquetar(piezas: list[str], objetivo: int, maximo: int) -> list[str]:
-    """Agrupa piezas consecutivas en chunks cercanos al tamaño objetivo.
-
-    Acumula piezas mientras el resultado no supere el objetivo; nunca
-    produce un chunk por encima del máximo. El orden se conserva.
-
-    Args:
-        piezas: Fragmentos producidos por :func:`_dividir_en_piezas`.
-        objetivo: Tamaño al que se aspira por chunk.
-        maximo: Tamaño que ningún chunk debe superar.
-
-    Returns:
-        Textos de los chunks resultantes.
-    """
+    """Agrupa piezas consecutivas en chunks cercanos al tamaño objetivo."""
     chunks: list[str] = []
     actual = ""
     for pieza in piezas:
@@ -181,42 +117,7 @@ def _empaquetar(piezas: list[str], objetivo: int, maximo: int) -> list[str]:
 
 
 def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]:
-    """Fusiona con su vecino los chunks por debajo del mínimo (IT-09).
-
-    Un fragmento residual (típicamente el último de la unidad) se une al
-    chunk anterior. Si la suma superase el máximo, el par se reequilibra:
-    el texto combinado se reempaqueta en dos mitades, de modo que ninguna
-    supere el máximo y ambas queden por encima del mínimo. El máximo es la
-    restricción dura (un chunk que excede la ventana del modelo de
-    embeddings se truncaría en silencio, perdiendo contenido); el mínimo es
-    una preferencia de calidad.
-
-    Esa jerarquía decide el caso en el que reequilibrar no sirve de nada. El
-    texto combinado solo se puede repartir por sus fronteras naturales
-    (párrafos y frases), y a veces las únicas disponibles son las que ya
-    separaban el par: el reempaquetado devuelve entonces el mismo reparto de
-    partida. Como el par no cabe junto sin superar el máximo y no hay forma de
-    repartirlo mejor, se acepta el fragmento corto: incumplir una preferencia
-    es admisible, romper la restricción dura no lo es.
-
-    Terminación. Dos condiciones la garantizan, y las dos son necesarias:
-    solo se reinicia el recorrido cuando el número de fragmentos ha bajado de
-    verdad ---sin eso, un par irreducible como «Minería web» (13313008) deja
-    la función dando vueltas---, y se descarta todo reparto que devuelva más
-    fragmentos de los que había ---sin eso, alternar fusiones que bajan el
-    recuento con repartos que lo suben lo hace oscilar (7, 8, 7, 8...)---.
-    Juntas hacen el recuento monótono no creciente, y como no puede bajar de
-    uno, los reinicios quedan acotados.
-
-    Args:
-        chunks: Chunks de una misma unidad semántica, en orden.
-        minimo: Umbral por debajo del cual un chunk no tiene entidad.
-        maximo: Tamaño que ningún chunk resultante supera.
-
-    Returns:
-        Chunks tras la fusión, en orden. Ninguno supera el máximo; alguno
-        puede quedar por debajo del mínimo si no había manera de evitarlo.
-    """
+    """Fusiona con su vecino los chunks por debajo del mínimo (IT-09)."""
     resultado = list(chunks)
     i = 0
     while i < len(resultado):
@@ -237,10 +138,8 @@ def _fusionar_pequenos(chunks: list[str], minimo: int, maximo: int) -> list[str]
         piezas = _dividir_en_piezas(combinado, maximo)
         reequilibrado = _empaquetar(piezas, objetivo_local, maximo)
         if len(reequilibrado) > segundo - primero + 1:
-            # El reparto devuelve MÁS fragmentos de los que había: no
-            # reequilibra, empeora. Se descarta y se acepta el fragmento corto.
-            # Es la guarda que hace el recuento monótono no creciente y, con
-            # ella, acotados los reinicios en `i = 0`.
+            # Si el reparto aumenta los fragmentos, conserva el residual corto; así
+            # termina la recursión.
             i = segundo + 1
             continue
         resultado[primero : segundo + 1] = reequilibrado
@@ -258,44 +157,7 @@ def _por_metadatos_del_plan(
     nombre: str,
     asignaturas: dict[tuple[str, str], dict[str, Any]],
 ) -> dict[tuple[Any, ...], list[tuple[str, str | None]]]:
-    """Reparte las titulaciones de una guía según lo que el encabezado afirma.
-
-    Una guía se comparte cuando su **contenido** es idéntico, y ese sigue
-    siendo el criterio de deduplicación. Pero el encabezado que se antepone al
-    contenido no habla del contenido: habla del plan de estudios, y ahí las
-    titulaciones sí discrepan. En el corpus hay 41 unidades cuyas titulaciones
-    no coinciden en el curso y 9 que no coinciden en el tipo.
-
-    El daño no es solo de metadatos: el encabezado se vectoriza. El fragmento
-    de «Centrales eléctricas II» llegaba a decir, en la misma frase que
-    enumeraba sus tres titulaciones, que se imparte en cuarto curso: cierto en
-    el grado simple y falso en los dos dobles, donde es de quinto. Un modelo
-    fiel al contexto respondía en falso, y la causa no estaba en la generación.
-
-    La regla hace verdadera cada frase del encabezado: **una unidad solo agrupa
-    titulaciones que coinciden en todo lo que el encabezado afirma de ellas.**
-    La clave lleva los cuatro campos que aparecen ahí y no solo los dos que hoy
-    varían, para que se mueva con el texto si deja de afirmar uno o empieza a
-    afirmar otro; ECTS y cuatrimestre no varían en ninguna unidad del corpus
-    ---comprobado, no supuesto---, y los otros dos llevan las 210 unidades a 283.
-
-    Esto acota la premisa del ADR-0001 de que tipo y ECTS nunca varían entre
-    titulaciones que comparten guía: vale para los grados simples y no para los
-    dobles (IT-101). La deduplicación por ``(nombre, contenido)`` no cambia; lo
-    que cambia es que el grupo no se presenta como una sola unidad cuando sus
-    titulaciones no comparten plan.
-
-    Args:
-        pares: ``(grado, codigo)`` de cada titulación de la guía, en el orden
-            en que deben quedar: primero las que publican la guía.
-        nombre: Nombre de la asignatura, para resolverla cuando no hay código.
-        asignaturas: Asignaturas del dataset por su clave.
-
-    Returns:
-        Un subgrupo por combinación distinta, conservando el orden de entrada.
-        Con una sola combinación ---el caso de 160 de las 210 unidades--- se
-        devuelve un único subgrupo.
-    """
+    """Reparte las titulaciones de una guía según lo que el encabezado afirma."""
     subgrupos: dict[tuple[Any, ...], list[tuple[str, str | None]]] = {}
     for grado, codigo in pares:
         asignatura = asignaturas.get(_clave_asignatura(grado, codigo, nombre))
@@ -316,26 +178,7 @@ def _por_metadatos_del_plan(
 
 
 def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str:
-    """Compone el encabezado autocontenido de los chunks de una asignatura.
-
-    El encabezado repite los metadatos clave (nombre, tipo, créditos,
-    menciones y titulaciones) para que cada chunk tenga sentido por sí solo
-    al recuperarse de forma aislada en el RAG. Cuando la misma asignatura se
-    imparte en varias titulaciones (guías de contenido idéntico fusionadas
-    en una sola unidad), el encabezado las enuncia todas.
-
-    **Todo lo que se afirma aquí vale para todas las titulaciones que se
-    enuncian**, y eso lo garantiza :func:`_por_metadatos_del_plan`, que no
-    agrupa dos titulaciones si discrepan en alguno de esos datos.
-
-    Args:
-        asignatura: Item de tipo ``asignatura`` del dataset (aporta tipo,
-            ECTS, menciones y estado de oferta).
-        grados: Titulaciones en las que se imparte la asignatura, ordenadas.
-
-    Returns:
-        Encabezado en una sola línea, terminado en punto.
-    """
+    """Compone el encabezado autocontenido de los chunks de una asignatura."""
     tipo = _NOMBRE_TIPO.get(
         asignatura["tipo_asignatura"], f"asignatura ({asignatura['tipo_asignatura']})"
     )
@@ -351,39 +194,20 @@ def _encabezado_asignatura(asignatura: dict[str, Any], grados: list[str]) -> str
     encabezado = " ".join(partes)
     if len(grados) == 1 and asignatura.get("menciones"):
         encabezado += f" (mención: {', '.join(asignatura['menciones'])})"
-    # El curso va DENTRO del texto y no solo como metadato (IT-105). Un dato
-    # que no aparece en el fragmento el modelo generativo no lo ve, y sin verlo
-    # se lo inventa: preguntado por el primer año, respondía con el listado
-    # entero del grado y atribuía cursos que nadie le había dado.
+    # El modelo necesita leer el curso en el texto, además de disponer del metadato.
     situacion = _situacion_en_el_plan(asignatura)
     if situacion:
         encabezado += f". Se imparte en {situacion}"
     if not asignatura.get("ofertada", True):
         encabezado += ". No ofertada en el curso rastreado"
-    # El dato ausente se dice, no se omite. Callarlo deja al modelo generativo
-    # sin forma de distinguir «esto no está publicado» de «esto no cabía en el
-    # fragmento», y entonces lo rellena: sobre la única asignatura de 528 sin
-    # créditos en la fuente, cuatro de cinco candidatos se inventaron la cifra.
-    # Es la misma regla que aplica a las guías sin publicar.
+    # Explicita el dato ausente para que el modelo no lo complete por su cuenta.
     if not asignatura.get("ects"):
         encabezado += ". La web de la EPSJ no publica sus créditos"
     return encabezado + "."
 
 
 def _situacion_en_el_plan(asignatura: dict[str, Any]) -> str:
-    """Redacta en qué curso y cuatrimestre se imparte una asignatura.
-
-    Lo que no consta no se rellena (decisión 9). Las optativas de los grados
-    simples no llevan curso publicado, y los dobles grados lo publican de forma
-    disyuntiva ---«Tercer o cuarto curso»--- porque a partir de tercero el
-    estudiante elige por qué especialidad empieza.
-
-    Args:
-        asignatura: Item de tipo ``asignatura`` del dataset.
-
-    Returns:
-        La situación en el plan, o cadena vacía si la fuente no la publica.
-    """
+    """Redacta en qué curso y cuatrimestre se imparte una asignatura."""
     curso = (asignatura.get("curso") or "").strip()
     cuatrimestre = (asignatura.get("cuatrimestre") or "").strip()
     if curso and cuatrimestre:
@@ -391,24 +215,13 @@ def _situacion_en_el_plan(asignatura: dict[str, Any]) -> str:
     if curso:
         return f"el {curso.lower()}"
     if cuatrimestre:
-        # El hueco se dice, no se deja en blanco. Con el encabezado diciendo
-        # solo «Se imparte en el segundo cuatrimestre», el modelo respondió que
-        # la asignatura era «optativa en 2º curso», convirtiendo el
-        # cuatrimestre en un curso que la fuente no publica.
+        # Explicita el curso ausente: el cuatrimestre por sí solo no lo determina.
         return f"el {cuatrimestre.lower()}, sin curso asignado en el plan"
     return ""
 
 
 def _encabezado_sin_metadatos(nombre: str, grados: list[str]) -> str:
-    """Encabezado de respaldo cuando no hay asignatura asociada a la guía.
-
-    Args:
-        nombre: Nombre de la asignatura.
-        grados: Titulaciones en las que se imparte, ordenadas.
-
-    Returns:
-        Encabezado en una sola línea, terminado en punto.
-    """
+    """Encabezado de respaldo cuando no hay asignatura asociada a la guía."""
     if len(grados) == 1:
         return f"«{nombre}», asignatura del {grados[0]}."
     return f"«{nombre}», asignatura impartida en: {'; '.join(grados)}."
@@ -421,27 +234,9 @@ def _chunks_de_unidad(
     origen: str,
     tamanos: tuple[int, int, int] = (TAMANO_OBJETIVO, TAMANO_MAXIMO, TAMANO_MINIMO),
 ) -> list[dict[str, Any]]:
-    """Genera los chunks de una unidad semántica completa.
-
-    Divide, empaqueta y fusiona el texto, antepone el encabezado a cada
-    chunk y numera ``chunk_index``/``total_chunks`` de forma consistente.
-
-    Args:
-        encabezado: Línea de contexto que se antepone a cada chunk.
-        texto: Contenido de la unidad (guía, ficha o salidas).
-        base: Campos comunes del item (grado, codigo, nombre).
-        origen: Procedencia del contenido (``"guia"``,
-            ``"asignatura_sin_guia"``, ``"salidas"`` o ``"plan_de_estudios"``).
-        tamanos: Terna ``(objetivo, máximo, mínimo)`` en caracteres. Por
-            defecto, los del ADR-0001.
-
-    Returns:
-        Items de tipo ``chunk``, en orden.
-    """
-    # El encabezado y su salto de línea restan espacio al cuerpo: se
-    # descuentan del presupuesto para que el chunk completo (encabezado +
-    # cuerpo) nunca supere el máximo. Sin este descuento, 40 chunks del
-    # dataset real superaban el máximo (hasta 1.758 caracteres).
+    """Genera los chunks de una unidad semántica completa."""
+    # Descuenta encabezado y salto de línea para respetar el máximo del fragmento
+    # completo.
     tam_objetivo, tam_maximo, tam_minimo = tamanos
     hueco = len(encabezado) + 1
     maximo = max(tam_maximo - hueco, 1)
@@ -465,46 +260,12 @@ def _chunks_de_unidad(
 
 
 def _clave_asignatura(grado: str, codigo: str | None, nombre: str) -> tuple[str, str]:
-    """Identifica una asignatura dentro de su titulación.
-
-    El código no basta como identificador: las asignaturas de los planes de
-    implantación reciente todavía no lo tienen publicado (cadena vacía), y
-    agrupar solo por código las colapsa todas en una misma entrada, de modo
-    que la última sobrescribe en silencio a las anteriores. Cuando falta el
-    código se usa el nombre, que la fuente sí publica siempre.
-
-    Es la misma regla que aplican :mod:`~tfg_uja.grados_spider` al fusionar
-    las menciones y ``scripts/check_chunks.py`` al cotejar las unidades: los
-    tres deben identificar una asignatura igual o dejan de hablar del mismo
-    objeto. Cualquier código nuevo que necesite identificarla debe usarla.
-
-    Args:
-        grado: Titulación en la que se imparte la asignatura.
-        codigo: Código publicado por la fuente, o vacío si no lo hay.
-        nombre: Nombre de la asignatura.
-
-    Returns:
-        Par ``(grado, codigo_o_nombre)`` que identifica la asignatura.
-    """
+    """Identifica una asignatura dentro de su titulación."""
     return (grado, codigo or nombre)
 
 
 def _creditos(asignatura: dict[str, Any]) -> str:
-    """Compone el paréntesis de créditos de una línea de listado.
-
-    El dato ausente se **escribe**, no se omite. Omitirlo deja un hueco en una
-    lista donde todo lo demás lo lleva, y eso no es reflejar la ausencia: es
-    invitar a rellenarla. En el listado de la mención «Sistemas electrónicos»,
-    donde las otras tres asignaturas llevan «(6 ECTS)», un modelo razonó que
-    «las otras dos tienen 6 ECTS» y concluyó que esta también, declarando por
-    escrito que lo estaba infiriendo.
-
-    Args:
-        asignatura: Item de tipo ``asignatura`` del dataset.
-
-    Returns:
-        El paréntesis, con los créditos o con la ausencia declarada.
-    """
+    """Compone el paréntesis de créditos de una línea de listado."""
     if asignatura["ects"]:
         return f" ({asignatura['ects']} ECTS)"
     return " (créditos no publicados)"
@@ -514,30 +275,7 @@ def _chunks_de_plan_de_estudios(
     items: list[dict[str, Any]],
     tamanos: tuple[int, int, int],
 ) -> list[dict[str, Any]]:
-    """Genera el listado de asignaturas de cada titulación, por grupo (IT-100).
-
-    Resuelve lo que el troceo por asignatura no puede. «Dime todas las
-    obligatorias de Informática» tiene, troceando por asignatura, **118
-    fragmentos relevantes**, y ningún top-K razonable los recupera: no es un
-    fallo del recuperador sino una pregunta de agregación, y la recuperación
-    devuelve los K mejores y no todos ---el techo de Recall@5 es 0,042---. Con
-    el listado ya agregado en el corpus la pregunta pasa a tener **un solo
-    fragmento relevante**, y el generador copia la lista entera en vez de
-    reconstruirla a partir de cincuenta trozos, que es donde se deja
-    asignaturas.
-
-    Es contenido **derivado** y no literal de la fuente, como los fragmentos
-    informativos de las asignaturas sin guía (IT-09) y por el mismo motivo: se
-    compone de forma determinista con datos que la fuente sí publica, sin añadir
-    nada. Queda declarado en el ADR-0001.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider.
-
-    Returns:
-        Items ``chunk`` de origen ``plan_de_estudios``, uno o más por cada par
-        (titulación, grupo) que tenga asignaturas.
-    """
+    """Genera el listado de asignaturas de cada titulación, por grupo (IT-100)."""
     por_grado: dict[str, list[dict[str, Any]]] = {}
     for a in items:
         if a["tipo"] == "asignatura":
@@ -570,11 +308,8 @@ def _chunks_de_plan_de_estudios(
                 }
                 chunks.extend(
                     _chunks_de_unidad(
-                        # Cada asignatura es su propio párrafo, no una frase de
-                        # una lista corrida. Así el troceo corta siempre entre
-                        # asignaturas y nunca a mitad de una, y el formato es el
-                        # mismo tanto si el listado cabe en un fragmento como si
-                        # necesita dos.
+                        # Un párrafo por asignatura permite cortar entre asignaturas sin
+                        # mezclarlas.
                         encabezado,
                         "\n\n".join(lineas),
                         base,
@@ -586,19 +321,7 @@ def _chunks_de_plan_de_estudios(
 
 
 def _duracion_en_cursos(asignaturas: list[dict[str, Any]]) -> int:
-    """Cuántos cursos abarca un plan, según el ordinal más alto que rotula.
-
-    Se deduce de los rótulos que publica la fuente y no de una regla del tipo
-    «un grado dura cuatro años»: los dobles duran cinco y el corpus tiene los
-    dos casos. Un rótulo disyuntivo ---«Tercer o cuarto curso»--- cuenta por el
-    más alto que nombra, porque el plan llega hasta ahí.
-
-    Args:
-        asignaturas: Asignaturas de una misma titulación.
-
-    Returns:
-        Número de cursos, o 0 si ninguna asignatura lleva curso rotulado.
-    """
+    """Cuántos cursos abarca un plan, según el ordinal más alto que rotula."""
     tope = 0
     for asignatura in asignaturas:
         rotulo = (asignatura.get("curso") or "").lower()
@@ -612,23 +335,7 @@ def _chunks_de_catalogo(
     items: list[dict[str, Any]],
     tamanos: tuple[int, int, int],
 ) -> list[dict[str, Any]]:
-    """Genera el fragmento que enumera la oferta de la Escuela (IT-107).
-
-    «¿Qué se puede estudiar en la EPSJ?» es la primera pregunta de un
-    preuniversitario y el corpus **no la contestaba**: la respuesta está
-    repartida entre doce titulaciones y ningún fragmento la reúne, así que la
-    recuperación no traía nada pertinente y el sistema contestaba que no tenía
-    información. Preguntado por las titulaciones de la rama industrial, un
-    modelo de 7B nombraba cinco reales y se inventaba una especialidad que no
-    existe.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider.
-        tamanos: Objetivo, máximo y mínimo de fragmento.
-
-    Returns:
-        Los fragmentos del catálogo, de origen ``catalogo``.
-    """
+    """Genera el fragmento que enumera la oferta de la Escuela (IT-107)."""
     grados = sorted(
         (g for g in items if g["tipo"] == "grado"), key=lambda g: g["nombre"]
     )
@@ -667,12 +374,7 @@ def _chunks_de_catalogo(
         tamanos,
     )
 
-    # Y uno por familia. No es redundancia gratuita: sobre el índice completo,
-    # «¿qué dobles grados hay?» no recuperaba el catálogo sino
-    # **veinte fichas** de titulaciones sueltas, porque los nombres propios
-    # («Doble Grado en Ingeniería Eléctrica y Mecánica») se parecen más a la
-    # pregunta que un encabezado que habla de las doce a la vez. Con su propio
-    # fragmento, la pregunta cae donde tiene que caer.
+    # El catálogo por familia permite recuperar el listado completo de dobles grados.
     for familia, nombres in (("Grados", simples), ("Dobles grados", dobles)):
         if not nombres:
             continue
@@ -695,32 +397,7 @@ def _chunks_de_ficha(
     items: list[dict[str, Any]],
     tamanos: tuple[int, int, int],
 ) -> list[dict[str, Any]]:
-    """Genera la ficha de cifras de cada titulación (IT-107).
-
-    Contesta las preguntas de recuento ---cuántas asignaturas tiene, cuántas
-    optativas, cuántos cursos dura--- que el corpus contenía pero no decía.
-    Preguntado por cuántas asignaturas tiene Ingeniería Informática, un modelo
-    de 7B contestaba que **una**: la cifra real es 67 y no existía en el corpus
-    como texto, había que contar 67 fragmentos.
-
-    **No se emite el total de créditos.** Sumar los ECTS de todo lo que se
-    oferta da 408 en Informática, y un grado son 240: la diferencia son las
-    optativas, de las que solo se cursa una parte, y el corpus no publica
-    cuántas. Un número que se lee como «los créditos de la carrera» y no lo es
-    sería peor que no darlo.
-
-    Una titulación sin asignaturas en el corpus recibe **su propio fragmento
-    diciéndolo** en vez de quedarse fuera, con el criterio que IT-09 aplica a
-    las asignaturas sin guía: un hueco silencioso hace que el sistema responda
-    como si la titulación no existiera.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider.
-        tamanos: Objetivo, máximo y mínimo de fragmento.
-
-    Returns:
-        Los fragmentos de ficha, de origen ``ficha_titulacion``.
-    """
+    """Genera la ficha de cifras de cada titulación (IT-107)."""
     por_grado: dict[str, list[dict[str, Any]]] = {}
     for item in items:
         if item["tipo"] == "asignatura":
@@ -768,10 +445,8 @@ def _chunks_de_ficha(
             frases.append(
                 "La web de la EPSJ no publica optativas para esta titulación."
             )
-        # Cuáles son las menciones, no solo qué asignaturas tiene cada una: a
-        # «¿qué menciones tiene Ingeniería Mecánica?» el sistema contestaba
-        # «dos» y son tres, porque el corpus tenía el listado de cada mención
-        # pero ninguna unidad decía cuántas hay ni cómo se llaman.
+        # Enumera las menciones juntas para que el recuento no dependa de recuperar sus
+        # fichas sueltas.
         menciones = sorted(
             {
                 m
@@ -807,25 +482,7 @@ def _chunks_de_mencion(
     items: list[dict[str, Any]],
     tamanos: tuple[int, int, int],
 ) -> list[dict[str, Any]]:
-    """Genera el listado de asignaturas de cada mención (IT-107).
-
-    La mención viaja como metadato de cada asignatura y aparece en el
-    encabezado de su fragmento, pero ninguna unidad reúne las de una misma
-    mención: preguntado por las de una mención concreta de Informática, el
-    sistema contestaba que no estaban en el contexto, y estaban repartidas en
-    cuatro unidades distintas.
-
-    Los nombres son **los que publica la fuente, sin desarrollar**. Dos de
-    Geomática son las siglas «TIA» y «TIG», y el corpus no dice qué significan:
-    inventar el desarrollo sería añadir información que la EPSJ no publica.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider.
-        tamanos: Objetivo, máximo y mínimo de fragmento.
-
-    Returns:
-        Los fragmentos de mención, de origen ``mencion``.
-    """
+    """Genera el listado de asignaturas de cada mención (IT-107)."""
     por_mencion: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for item in items:
         if item["tipo"] != "asignatura":
@@ -835,10 +492,7 @@ def _chunks_de_mencion(
 
     chunks: list[dict[str, Any]] = []
 
-    # Cuáles son, antes de qué tiene cada una: la respuesta estaba repartida en
-    # cuatro unidades y ninguna decía cuántas hay. La lista necesita encabezado
-    # propio; metida en la ficha de la titulación la recuperación no la traía,
-    # porque «Datos generales del…» no se parece a la pregunta.
+    # El listado tiene encabezado propio para poder recuperarlo como unidad.
     por_grado: dict[str, list[str]] = {}
     for grado, mencion in por_mencion:
         if normalizar_rotulo(mencion) != _COMUN_A_TODAS:
@@ -893,28 +547,7 @@ def _chunks_de_mencion(
 def _por_curso(
     asignaturas: list[dict[str, Any]],
 ) -> list[tuple[str, list[dict[str, Any]]]]:
-    """Agrupa un listado por el curso en que se imparte (IT-105).
-
-    Trocear el listado por tamaño produce tercios alfabéticos: las cincuenta
-    obligatorias de Informática se parten en tres fragmentos que repiten el
-    mismo encabezado «En total son 50» sin decir cuál es cuál, y el modelo,
-    recibiendo los tres, se dejaba diez asignaturas sin nombrar.
-
-    Por curso, cada fragmento es una unidad que significa algo por sí sola
-    ---«las obligatorias de primer curso»---, cabe entera y además contesta
-    directamente la pregunta que un preuniversitario hace de verdad.
-
-    Los grupos salen ordenados por el primer curso que nombra el rótulo, de
-    modo que «Tercer o cuarto curso» va donde va tercero. Lo que no lleva curso
-    ---las optativas--- va al final, en un grupo propio.
-
-    Args:
-        asignaturas: Asignaturas de una misma titulación y un mismo grupo.
-
-    Returns:
-        Pares ``(curso, asignaturas)``. El curso es cadena vacía cuando la
-        fuente no lo publica.
-    """
+    """Agrupa un listado por el curso en que se imparte (IT-105)."""
     grupos: dict[str, list[dict[str, Any]]] = {}
     for a in asignaturas:
         grupos.setdefault((a.get("curso") or "").strip(), []).append(a)
@@ -930,42 +563,10 @@ def _por_curso(
     return [(curso, grupos[curso]) for curso in sorted(grupos, key=orden)]
 
 
-def trocear_dataset(
+def _agrupar_guias(
     items: list[dict[str, Any]],
-    tamanos: tuple[int, int, int] = (
-        TAMANO_OBJETIVO,
-        TAMANO_MAXIMO,
-        TAMANO_MINIMO,
-    ),
-) -> list[dict[str, Any]]:
-    """Convierte el dataset del spider en la lista de chunks del RAG.
-
-    Recorre las guías docentes (contenido principal), las asignaturas sin
-    guía (chunk informativo explícito, IT-09) y las salidas profesionales
-    de cada grado. Cada chunk pertenece a una sola unidad semántica.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider
-            (items ``grado``, ``asignatura``, ``guia`` y ``salidas``).
-
-    Returns:
-        Lista de items ``chunk`` con ``chunk_index``/``total_chunks``.
-    """
-    asignaturas = {
-        _clave_asignatura(a["grado"], a["codigo"], a["nombre"]): a
-        for a in items
-        if a["tipo"] == "asignatura"
-    }
-    chunks: list[dict[str, Any]] = []
-
-    # Deduplicación de guías compartidas (ADR-0001): muchas asignaturas de
-    # primeros cursos (Matemáticas I, Física...) se imparten en varias
-    # titulaciones con la MISMA guía, byte a byte. Se agrupan por (nombre,
-    # contenido) para no repetir su texto en el índice: la clave incluye el
-    # nombre y no solo el contenido porque el fallback de IT-06 puede producir
-    # texto idéntico para asignaturas DISTINTAS, y fusionarlas sería un error.
-    # Cada grupo produce una sola unidad con la lista de titulaciones en las
-    # que se imparte.
+) -> dict[tuple[str, str], list[dict[str, Any]]]:
+    """Agrupa por nombre y contenido; el contenido solo mezclaría asignaturas."""
     grupos_guia: dict[tuple[str, str], list[dict[str, Any]]] = {}
     for item in items:
         if item["tipo"] != "guia":
@@ -980,15 +581,14 @@ def trocear_dataset(
             )
         grupos_guia.setdefault((item["nombre"], texto), []).append(item)
 
-    # Un doble grado no publica guías propias (IT-101). Sus asignaturas son,
-    # casi todas, las mismas que las de sus dos grados base, pero con códigos
-    # de otra serie, así que no se pueden cruzar por código: se cruzan por
-    # nombre. En vez de duplicar el temario bajo la titulación doble ---unos
-    # 200 fragmentos de contenido idéntico, que además rompería la
-    # deduplicación de arriba--- se añade el doble grado a la lista de
-    # titulaciones de la unidad que ya existe. El fragmento recuperado dice
-    # entonces que esa asignatura se imparte también en el doble grado, sin que
-    # el corpus crezca ni un carácter.
+    return grupos_guia
+
+
+def _asociar_dobles(
+    items: list[dict[str, Any]],
+    grupos_guia: dict[tuple[str, str], list[dict[str, Any]]],
+) -> tuple[dict[tuple[str, str], list[tuple[str, str | None]]], set[tuple[str, str]]]:
+    """Asocia dobles por nombre; avisa y no asigna las coincidencias ambiguas."""
     dobles = {
         g["nombre"] for g in items if g["tipo"] == "grado" and g.get("es_doble_grado")
     }
@@ -1003,21 +603,13 @@ def trocear_dataset(
     ):
         candidatos = grupos_por_nombre.get(normalizar_rotulo(asig_doble["nombre"]), [])
         if not candidatos:
-            # El plan del doble grado desambigua algunas asignaturas anotando
-            # entre paréntesis el acrónimo del grado del que provienen
-            # («GESTIÓN FINANCIERA (GIOI)»). Ese sufijo no forma parte del
-            # nombre en el grado base, así que se reintenta sin él: recupera 90
-            # de las 98 que quedaban sueltas. Se prueba en segundo lugar para
-            # no arriesgar una coincidencia falsa cuando el nombre completo ya
-            # casa por sí solo.
+            # Reintenta sin el acrónimo del grado base solo si el nombre completo no
+            # coincide.
             candidatos = grupos_por_nombre.get(
                 normalizar_rotulo(_SUFIJO_GRADO.sub("", asig_doble["nombre"])), []
             )
         if len(candidatos) != 1:
-            # Ni se adivina ni se reparte entre varios: con más de un grupo
-            # candidato no se sabe de cuál cuelga, y con ninguno la asignatura
-            # es realmente propia del doble grado (los dos TFG). En ambos casos
-            # sigue su camino y acaba con su fragmento informativo.
+            # Una coincidencia ambigua o ausente conserva el fragmento informativo.
             if candidatos:
                 ambiguas.append((asig_doble["grado"], asig_doble["nombre"]))
             continue
@@ -1042,6 +634,17 @@ def trocear_dataset(
         for grado_doble, nombre_asig in ambiguas:
             print(f"   {grado_doble} - {nombre_asig}", file=sys.stderr)
 
+    return dobles_por_grupo, atendidas
+
+
+def _chunks_de_guias(
+    grupos_guia: dict[tuple[str, str], list[dict[str, Any]]],
+    dobles_por_grupo: dict[tuple[str, str], list[tuple[str, str | None]]],
+    asignaturas: dict[tuple[str, str], dict[str, Any]],
+    tamanos: tuple[int, int, int],
+) -> list[dict[str, Any]]:
+    """Trocea guías compartidas, separándolas si difieren sus datos del plan."""
+    chunks: list[dict[str, Any]] = []
     for (nombre, texto), guias in grupos_guia.items():
         # Orden estable de titulaciones para que el troceo sea determinista.
         guias = sorted(guias, key=lambda g: g["grado"])
@@ -1058,22 +661,14 @@ def trocear_dataset(
                 _clave_asignatura(grados[0], codigos[0], nombre)
             )
             encabezado = (
-                # El nombre es el de la unidad y no el de la ficha de la que
-                # salen los metadatos: los planes de los dobles grados escriben
-                # las asignaturas en mayúsculas y con el acrónimo del grado de
-                # procedencia («CENTRALES ELÉCTRICAS II (GIE)»). Un subgrupo
-                # formado solo por dobles titularía así el fragmento, que
-                # además dejaría de empezar por el nombre de su propia unidad
-                # ---lo que `check_chunks.py` comprueba desde IT-91.
+                # El encabezado usa el nombre de la unidad; los planes de dobles pueden
+                # añadir un acrónimo al suyo.
                 _encabezado_asignatura({**asignatura, "nombre": nombre}, grados)
                 if asignatura
                 else _encabezado_sin_metadatos(nombre, grados)
             )
-            # El tipo viaja también como metadato, no solo dentro del
-            # encabezado (IT-100): sin él no se puede filtrar el índice por
-            # «obligatorias» ni anotar una pregunta de listado sin enumerar
-            # cincuenta nombres. El escalar vale para todas las titulaciones de
-            # la unidad, porque la unidad solo agrupa las que coinciden en él.
+            # El tipo permite filtrar el índice y es común a todas las titulaciones del
+            # grupo.
             base = {
                 "grados": grados,
                 "codigos": codigos,
@@ -1083,45 +678,14 @@ def trocear_dataset(
             }
             chunks.extend(_chunks_de_unidad(encabezado, texto, base, "guia", tamanos))
 
-    for item in items:
-        if item["tipo"] == "salidas":
-            encabezado = f"Salidas profesionales del {item['grado']}:"
-            base = {
-                "grados": [item["grado"]],
-                "codigos": [None],
-                "nombre": item["grado"],
-                # Las salidas no son una asignatura: el campo queda vacío en
-                # lugar de inventarle un tipo, con el mismo criterio que se
-                # aplica al ECTS ausente. Lo mismo con el curso.
-                "tipo_asignatura": "",
-                "curso": "",
-            }
-            chunks.extend(
-                _chunks_de_unidad(encabezado, item["texto"], base, "salidas", tamanos)
-            )
+    return chunks
 
-    chunks.extend(_chunks_de_plan_de_estudios(items, tamanos))
 
-    # Fragmentos derivados que contestan las preguntas de agregación (IT-107).
-    # Mismo argumento que el listado del plan y la misma frontera: todo sale de
-    # contar y agrupar lo que la fuente publica. Nada de comparar titulaciones
-    # ni de agrupar asignaturas por tema, que serían criterios nuestros metidos
-    # en un corpus que se defiende por ser información oficial de la EPSJ.
-    chunks.extend(_chunks_de_catalogo(items, tamanos))
-    chunks.extend(_chunks_de_ficha(items, tamanos))
-    chunks.extend(_chunks_de_mencion(items, tamanos))
-
-    # Las asignaturas sin guía generan un chunk informativo explícito, no un
-    # hueco silencioso (IT-09): el RAG debe poder nombrarlas y situarlas. No se
-    # deduplican entre titulaciones porque su chunk solo contiene metadatos y
-    # son casi todas de las titulaciones en implantación (sin solapamiento).
-    #
-    # «Sin guía» se decide por lo que hay en el dataset, no por lo que el
-    # rastreador anunció en `tiene_guia` (IT-94). Una guía servida como PDF
-    # ilegible no llega a emitirse (IT-67), pero su asignatura sale con
-    # `tiene_guia=True` porque en la tabla sí había enlace; fiarse de ese campo
-    # deja a esas asignaturas sin chunk de guía y sin chunk informativo, o sea
-    # fuera del corpus. El fragmentador ve el dataset entero y lo comprueba.
+def _chunks_sin_guia(
+    items: list[dict[str, Any]], atendidas: set[tuple[str, str]]
+) -> list[dict[str, Any]]:
+    """Informa de asignaturas sin contenido, aunque la fuente enlace una guía."""
+    chunks: list[dict[str, Any]] = []
     guias_presentes = {
         _clave_asignatura(g["grado"], g["codigo"], g["nombre"])
         for g in items
@@ -1133,19 +697,11 @@ def trocear_dataset(
         if a["tipo"] == "asignatura"
         and _clave_asignatura(a["grado"], a["codigo"], a["nombre"])
         not in guias_presentes
-        # Las asignaturas de un doble grado ya enganchadas a la guía de su
-        # grado base no van por aquí (IT-101). Emitirles un fragmento
-        # informativo diciendo que «no tiene guía publicada» sería falso: la
-        # tiene, y está en el corpus bajo la titulación simple.
+        # Excluye los dobles que ya tienen contenido asociado a la guía del grado base.
         and _clave_asignatura(a["grado"], a["codigo"], a["nombre"]) not in atendidas
     ):
         encabezado = _encabezado_asignatura(asignatura, [asignatura["grado"]])
-        # Los dos motivos por los que una asignatura se queda sin guía no son
-        # el mismo, y el corpus no puede afirmar el que no es: decir que no
-        # está publicada cuando sí lo está sería dar por buena una respuesta
-        # falsa al estudiante que pregunte por ella. Ninguno de los dos textos
-        # insinúa un fallo del sistema (IT-95): las guías se leen bien, lo que
-        # está vacío son sus secciones de contenido en el origen.
+        # Distingue guía publicada sin contenido de guía no publicada (IT-95).
         if asignatura["tiene_guia"]:
             texto = (
                 "La guía docente de esta asignatura está publicada en la web de "
@@ -1177,22 +733,53 @@ def trocear_dataset(
     return chunks
 
 
+def trocear_dataset(
+    items: list[dict[str, Any]],
+    tamanos: tuple[int, int, int] = (
+        TAMANO_OBJETIVO,
+        TAMANO_MAXIMO,
+        TAMANO_MINIMO,
+    ),
+) -> list[dict[str, Any]]:
+    """Trocea el dataset sin mezclar asignaturas y conserva el orden de los orígenes."""
+    asignaturas = {
+        _clave_asignatura(a["grado"], a["codigo"], a["nombre"]): a
+        for a in items
+        if a["tipo"] == "asignatura"
+    }
+    grupos_guia = _agrupar_guias(items)
+    dobles_por_grupo, atendidas = _asociar_dobles(items, grupos_guia)
+    chunks = _chunks_de_guias(grupos_guia, dobles_por_grupo, asignaturas, tamanos)
+    for item in items:
+        if item["tipo"] == "salidas":
+            encabezado = f"Salidas profesionales del {item['grado']}:"
+            base = {
+                "grados": [item["grado"]],
+                "codigos": [None],
+                "nombre": item["grado"],
+                # Las salidas no son una asignatura: el campo queda vacío en
+                # lugar de inventarle un tipo, con el mismo criterio que se
+                # aplica al ECTS ausente. Lo mismo con el curso.
+                "tipo_asignatura": "",
+                "curso": "",
+            }
+            chunks.extend(
+                _chunks_de_unidad(encabezado, item["texto"], base, "salidas", tamanos)
+            )
+
+    chunks.extend(_chunks_de_plan_de_estudios(items, tamanos))
+
+    # Las agregaciones solo cuentan y agrupan datos publicados por la EPSJ.
+    chunks.extend(_chunks_de_catalogo(items, tamanos))
+    chunks.extend(_chunks_de_ficha(items, tamanos))
+    chunks.extend(_chunks_de_mencion(items, tamanos))
+
+    chunks.extend(_chunks_sin_guia(items, atendidas))
+    return chunks
+
+
 def procedencia_de(items: list[dict[str, Any]]) -> dict[str, Any]:
-    """Compone la procedencia de los fragmentos a partir del dataset (IT-90).
-
-    Arrastra la fecha de extracción que el spider dejó en el dataset y añade
-    los cursos académicos realmente presentes, leídos del campo ``curso`` de
-    cada guía (que el spider dedujo de su URL). Los cursos se enumeran todos:
-    desde que la EPSJ publica las guías de un curso nuevo según las va
-    teniendo, un mismo rastreo puede mezclar dos, y resumirlo a uno solo
-    ocultaría de qué año es cada parte del corpus.
-
-    Args:
-        items: Dataset completo tal como lo exporta el spider.
-
-    Returns:
-        Item ``procedencia`` listo para encabezar el ``chunks.json``.
-    """
+    """Compone la procedencia de los fragmentos a partir del dataset (IT-90)."""
     del_spider = next(
         (i for i in items if i.get("tipo") == "procedencia"),
         {},
@@ -1225,19 +812,7 @@ def main(
         TAMANO_MINIMO,
     ),
 ) -> None:
-    """Trocea un dataset JSON y escribe los chunks resultantes.
-
-    El fichero de salida empieza por el item ``procedencia`` (IT-90) para que
-    los fragmentos digan por sí mismos de cuándo y de qué curso son, sin
-    depender de una nota escrita aparte que se puede quedar atrás al copiar
-    el fichero.
-
-    Args:
-        ruta_entrada: Ruta del ``grados.json`` exportado por el spider.
-        ruta_salida: Ruta donde escribir el ``chunks.json`` resultante.
-        tamanos: Terna ``(objetivo, máximo, mínimo)`` en caracteres. Por
-            defecto, los del ADR-0001.
-    """
+    """Trocea un dataset JSON y escribe los chunks resultantes."""
     items = json.loads(Path(ruta_entrada).read_text(encoding="utf-8"))
     chunks = trocear_dataset(items, tamanos)
     procedencia = procedencia_de(items)
@@ -1255,12 +830,7 @@ def main(
 
 
 if __name__ == "__main__":
-    # Los tamaños son opcionales y solo se pasan para experimentar: re-trocear
-    # a la ventana de los modelos de 128 tokens para compararlos en igualdad de
-    # condiciones. Sin ellos rigen los del ADR-0001.
-    #
-    #     py -m tfg_uja.indexacion.chunker entrada.json salida.json
-    #         [objetivo maximo minimo]
+    # Parámetros opcionales para experimentos: entrada salida [objetivo maximo minimo].
     if len(sys.argv) >= 6:
         main(
             sys.argv[1],
