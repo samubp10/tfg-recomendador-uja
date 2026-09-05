@@ -1,22 +1,11 @@
-"""Validación de las filas extraídas de la tabla de asignaturas.
-
-La tabla de asignaturas de un grado mezcla asignaturas reales con filas que
-no lo son (marcadores de posición como "Optativa 1"). Este módulo decide qué
-filas representan una asignatura válida y cuáles deben descartarse.
-"""
+"""Validación de las filas extraídas de la tabla de asignaturas."""
 
 from __future__ import annotations
 
 import re
 from typing import Final
 
-#: Tipos de asignatura reconocidos en las tablas de la EPSJ.
-#: FB (formación básica), OB (obligatoria), OP (optativa) y las variantes
-#: de obligatoria de especialidad (OB-IS, OB-SI, OB-TI). TFG (trabajo fin de
-#: grado) aparece como carácter propio en algunos planes (p. ej. IA y
-#: Ciberseguridad), mientras que otros lo etiquetan como OB; se acepta tal
-#: cual para no perder la asignatura ni imponer una uniformidad que la fuente
-#: no tiene.
+# Tipos publicados: FB, OB, OP, obligatorias de especialidad y TFG.
 TIPOS_VALIDOS: Final[frozenset[str]] = frozenset(
     {"FB", "OB", "OP", "OB-IS", "OB-SI", "OB-TI", "TFG"}
 )
@@ -31,57 +20,26 @@ _MAPA_TIPOS: Final[dict[str, str]] = {
     "formación básica": "FB",
     "obligatoria": "OB",
     "optativa": "OP",
-    # Los planes de los dobles grados abrevian el carácter de otra forma
-    # (IT-101): su columna «CARÁCTER» trae «OBL» donde los grados simples
-    # escriben «OB». Sin esta entrada, es_asignatura_valida rechazaba las 44
-    # asignaturas del plan y la titulación entera se quedaba fuera del corpus.
+    # Los planes de dobles grados escriben OBL donde los simples usan OB.
     "obl": "OB",
 }
 
 
 def normalizar_tipo(tipo: str | None) -> str:
-    """Mapea tipos textuales a las abreviaturas esperadas.
-
-    Args:
-        tipo (str): Tipo de asignatura extraído de la web.
-
-    Returns:
-        str: El tipo convertido a abreviatura, o el tipo original si no mapea.
-    """
+    """Mapea tipos textuales a las abreviaturas esperadas."""
     tipo = (tipo or "").strip()
     return _MAPA_TIPOS.get(tipo.lower(), tipo)
 
 
 def es_placeholder(nombre: str | None) -> bool:
-    """Indica si un nombre es un marcador de posición, no una asignatura.
-
-    Args:
-        nombre (str): Nombre de la asignatura, ya limpio.
-
-    Returns:
-        bool: ``True`` si el nombre es del tipo "Optativa N".
-    """
+    """Indica si un nombre es un marcador de posición, no una asignatura."""
     return bool(_PLACEHOLDER.match((nombre or "").strip()))
 
 
 def es_asignatura_valida(
     codigo: str | None, nombre: str | None, tipo: str | None
 ) -> bool:
-    """Decide si una fila de la tabla es una asignatura real.
-
-    Una fila se considera asignatura válida cuando tiene un nombre que no es
-    un marcador de posición y un tipo reconocido. El código puede faltar en
-    algunos casos legítimos, por lo que no se exige, pero si el nombre es un
-    placeholder la fila se descarta aunque traiga otros datos.
-
-    Args:
-        codigo (str): Código de la asignatura, puede estar vacío.
-        nombre (str): Nombre de la asignatura, ya limpio.
-        tipo (str): Tipo de asignatura (FB, OB, OP, ...).
-
-    Returns:
-        bool: ``True`` si la fila representa una asignatura válida.
-    """
+    """Decide si una fila de la tabla es una asignatura real."""
     nombre = (nombre or "").strip()
     if not nombre or es_placeholder(nombre):
         return False

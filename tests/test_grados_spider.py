@@ -1339,3 +1339,62 @@ def test_sin_el_contenedor_de_la_ficha_se_limpia_la_pagina_entera():
     texto = GradosSpider._limpieza_general(resp)
 
     assert "Contenido de la guía docente." in texto
+
+
+@pytest.mark.parametrize(
+    "fixture, grado, huella",
+    [
+        (
+            "tabla_asignaturas.html",
+            "Grado en Ingeniería Informática",
+            "dae8e4cc67912ee04e02b0716c82709601bcbe89be94555a41d7fa1924b7b717",
+        ),
+        (
+            "tabla_asignaturas_iayc.html",
+            "Grado en Inteligencia Artificial y Ciberseguridad",
+            "e9ca3ff192ff9e360c0303e8d4f491fb2846b6588011cff27d4b9711b9a32974",
+        ),
+        (
+            "tabla_electrica.html",
+            "Grado en Ingeniería Eléctrica",
+            "008a475d78cae7d6d3f9eb37866242b1054872c4a72b50073c47cb54fa8de2e3",
+        ),
+        (
+            "tabla_geomatica_plan2025.html",
+            "Grado en Ingeniería Geomática y Topográfica (plan 2025)",
+            "f0355daf0f726288394eec649a4e8dfa3303f9141e224c3c24ac06b5e74e955e",
+        ),
+        (
+            "tabla_mecanica.html",
+            "Grado en Ingeniería Mecánica",
+            "4bfc88b76832767ba5ebb852e99e766c34935b92e31e88c43c8d64aad4df4a24",
+        ),
+        (
+            "plan_doble_electrica_mecanica.html",
+            "Doble Grado en Ingeniería Eléctrica y Mecánica",
+            "77ee4f9ecfd0552867ed486fc93ee4e536f03b6e9cafd1683643ca6dec789cb3",
+        ),
+    ],
+)
+def test_refactor_conserva_todos_los_campos_y_peticiones(fixture, grado, huella):
+    """Compara la salida completa con su SHA-256 anterior a IT-111 (35c249b).
+
+    Incluye el orden de los registros y de sus listas, las URLs y los callbacks.
+    Solo se ignora el orden de las claves de los diccionarios.
+    """
+    import hashlib
+    import json
+
+    respuesta = _respuesta(
+        fixture, url="https://eps.ujaen.es/grados/prueba", meta={"nombre": grado}
+    )
+    salida = [
+        (
+            {"request": item.url, "meta": item.meta, "callback": item.callback.__name__}
+            if isinstance(item, Request)
+            else item
+        )
+        for item in GradosSpider().parse_asignaturas(respuesta)
+    ]
+    serializado = json.dumps(salida, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    assert hashlib.sha256(serializado).hexdigest() == huella

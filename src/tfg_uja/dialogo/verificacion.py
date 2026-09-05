@@ -1,26 +1,4 @@
-"""Comprobaciones deterministas de una respuesta generada (IT-35).
-
-Existe para que elegir el modelo generativo deje de depender de la impresión
-que deja probarlo a mano. IT-28 e IT-31 comparaban candidatos con un número
-sobre una tarea de respuesta conocida; la generación de texto no ofrece eso, y
-la salida fácil ---una nota de calidad puesta por quien mira--- no se sostiene
-ante un tribunal.
-
-Lo que sí se puede medir sin juez y sin criterio propio es **si lo que la
-respuesta nombra existe**. El corpus contiene todos los nombres de titulación y
-de asignatura de la EPSJ, así que comprobar una respuesta contra él son
-comparaciones de cadena: sin modelo adicional, reproducible y del todo
-independiente del modelo que se esté evaluando.
-
-Dos límites que hay que tener presentes al leer estas cifras:
-
-* **No mide si la respuesta es buena**, mide si nombra cosas que existen y si
-  nombra las que debía. Una respuesta correcta y sosa puntúa igual que una
-  correcta y bien escrita.
-* **Solo aplica a las preguntas cuya respuesta se puede calcular** del dataset.
-  Sobre un temario no se puede: eso queda fuera del criterio de decisión y se
-  reporta aparte.
-"""
+"""Comprobaciones deterministas de una respuesta generada (IT-35)."""
 
 from __future__ import annotations
 
@@ -35,16 +13,9 @@ from tfg_uja.text_cleaner import normalizar, palabras
 _MAYUSCULA: Final[str] = r"[A-ZÁÉÍÓÚÑ][\wáéíóúñüÁÉÍÓÚÑÜ]*"
 _ENLACE: Final[str] = r"(?:y|e|de|del|la|las|los|con)"
 
-#: Cómo nombra la fuente a una titulación. Sirve para encontrar en una
-#: respuesta libre lo que el modelo presenta como titulación, incluso cuando se
-#: la ha inventado: no se puede enumerar lo que no existe, pero sí reconocer la
-#: forma con la que se escribe.
-#:
-#: Una partícula solo continúa el nombre si detrás va otra palabra en
-#: mayúscula. Sin esa condición el patrón se comía la frase entera: de «el
-#: Grado en Ingeniería Geomática es de la rama industrial» extraía «Grado en
-#: Ingeniería Geomática e», que no casa con el catálogo y contaba como
-#: titulación inventada.
+# Reconoce la forma de los nombres de titulación, incluso si no existen.
+
+# Una partícula continúa el nombre solo si la siguiente palabra empieza en mayúscula.
 _TITULACION: Final[re.Pattern[str]] = re.compile(
     rf"(?:Doble\s+Grado|Grado)\s+en\s+{_MAYUSCULA}"
     rf"(?:\s+(?:{_ENLACE}\s+)*{_MAYUSCULA})*"
@@ -54,46 +25,30 @@ _TITULACION: Final[re.Pattern[str]] = re.compile(
 #: que usan de hecho los candidatos probados: guion, asterisco y numeración.
 _VINETA: Final[re.Pattern[str]] = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+(.+?)\s*$")
 
-#: Marcas de énfasis de Markdown que los modelos ponen alrededor del nombre. No
-#: forman parte de él, pero sí impiden reconocerlo: dos candidatos enumeraron
-#: **las diez asignaturas correctas** de primer curso de Informática en
-#: negrita, y esta función devolvía «**Álgebra**», que no casa con ninguna del
-#: corpus. Las dos respuestas, perfectas, puntuaban precisión 0,000 y salían
-#: las peores de la tabla.
+# El énfasis Markdown no forma parte del nombre de una asignatura.
 _ENFASIS: Final[re.Pattern[str]] = re.compile(r"[*_`]+")
 
 #: Cola que los listados arrastran detrás del nombre: los créditos, el curso o
 #: el tipo. No forma parte del nombre de la asignatura.
-#:
-#: El guion corto solo separa cuando lleva espacio delante. Pegado a la palabra
-#: es parte del nombre, y cortando ahí se partían las dos asignaturas del
-#: corpus que lo llevan: «Interacción persona-ordenador» quedaba en
-#: «Interacción persona» y «Técnicas de animación 3D y post-procesamiento» en
-#: «...y post», ninguna de las dos casaba con el corpus y las dos respuestas,
-#: que eran correctas, perdían precisión.
+
+# El guion pegado pertenece al nombre, como en «Interacción persona-ordenador».
 _COLA: Final[re.Pattern[str]] = re.compile(
     r"\s*[(\[–—:,]\s*.*$|\s+-\s*.*$|\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos).*$",
     re.IGNORECASE,
 )
 
-#: Asignatura enumerada **dentro de un párrafo**, reconocida porque el modelo
+#: Asignatura enumerada dentro de un párrafo, reconocida porque el modelo
 #: le pone los créditos detrás: «Algoritmos geométricos (6 ECTS), Minería web
 #: (6 ECTS)...».
-#:
-#: Hace falta porque los modelos no siempre usan viñetas: preguntado por las
-#: optativas de Informática, un candidato enumeró las diecisiete **en prosa
-#: separadas por comas**, y un extractor que solo mirase viñetas habría contado
-#: cero y puntuado 0,0 una respuesta correcta.
+
+# Admite enumeraciones en prosa separadas por comas, además de viñetas.
 _ENUMERADA: Final[re.Pattern[str]] = re.compile(
     r"([^,;:.()\n]{3,90}?)\s*\(\s*\d+[.,]?\d*\s*(?:ECTS|cr[ée]ditos)[^)]*\)",
     re.IGNORECASE,
 )
 
 
-#: Paréntesis con el que la fuente distingue de qué titulación del doble grado
-#: viene una asignatura: «MÁQUINAS TÉRMICAS (GIM)», «CONTROL POR COMPUTADOR
-#: (GIEI)». Son 54 de los 316 nombres del corpus, y el mismo mecanismo marca el
-#: plan en «Grado en Ingeniería Geomática y Topográfica (plan 2025)».
+# El paréntesis distingue el grado base o la versión del plan.
 _CALIFICADOR: Final[re.Pattern[str]] = re.compile(r"\s*\([^)]*\)")
 
 #: Abreviaturas que la fuente usa dentro de un nombre. Son las de los seis
@@ -108,88 +63,23 @@ _TIPO_DE_ESTUDIOS: Final[re.Pattern[str]] = re.compile(r"^(?:doble\s+)?grado\s+e
 
 
 def sin_tipo_de_estudios(nombre: str) -> str:
-    """Quita la fórmula «Grado en» del principio de un nombre ya normalizado.
-
-    Args:
-        nombre: Nombre pasado antes por :func:`nucleo`.
-
-    Returns:
-        El nombre sin la fórmula. Si no la lleva, el nombre tal cual.
-    """
+    """Quita la fórmula «Grado en» del principio de un nombre ya normalizado."""
     return _TIPO_DE_ESTUDIOS.sub("", nombre)
 
 
 def nucleo(nombre: str) -> str:
-    """Deja un nombre en la forma con la que se puede comparar de verdad.
-
-    Normalizar no basta. El corpus escribe «AUTOMÁTICA AVANZADA (GIEI)» y
-    cualquier modelo responde «Automática Avanzada», porque el paréntesis no es
-    parte del nombre de la asignatura: es la marca con la que la fuente dice a
-    cuál de las dos titulaciones de un doble grado pertenece. Comparando con él
-    puesto, **una respuesta perfecta puntúa cero**.
-
-    No es una hipótesis: un candidato enumeró las diez obligatorias de tercer
-    o cuarto curso del Doble Grado en Ingeniería Electrónica Industrial y
-    Mecánica, las diez correctas y ninguna de más, y la cobertura salía 0,000
-    con las diez contadas como omitidas.
-
-    Quitar el calificador no confunde asignaturas distintas: comprobado sobre
-    el corpus entero, los nombres que colapsan son la misma asignatura con y
-    sin sigla ---la que se imparte en el grado simple y en el doble---, y
-    dentro de ninguna pregunta del banco colapsan dos respuestas esperadas.
-
-    Args:
-        nombre: Nombre tal como lo publica la fuente o como lo escribe el
-            modelo.
-
-    Returns:
-        El nombre en minúsculas, sin tildes, sin el calificador entre
-        paréntesis y con las abreviaturas de la fuente resueltas.
-    """
+    """Deja un nombre en la forma con la que se puede comparar de verdad."""
     limpio = normalizar(_CALIFICADOR.sub(" ", nombre))
     return " ".join(_ABREVIATURAS.get(p, p) for p in limpio.split())
 
 
 def titulaciones_nombradas(respuesta: str) -> set[str]:
-    """Titulaciones que la respuesta presenta como tales.
-
-    Args:
-        respuesta: Texto tal como lo devuelve el modelo.
-
-    Returns:
-        Los nombres encontrados, sin normalizar, tal como aparecen escritos.
-    """
+    """Titulaciones que la respuesta presenta como tales."""
     return {" ".join(m.group(0).split()) for m in _TITULACION.finditer(respuesta)}
 
 
 def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
-    """Titulaciones nombradas que no están en el catálogo del corpus.
-
-    Es el fallo más grave del sistema y el que fija el umbral eliminatorio de
-    IT-35: de seis titulaciones recomendadas a un estudiante, dos no existían
-    en la EPSJ. Quien las lee no tiene forma de saberlo.
-
-    Se compara por prefijo normalizado en los dos sentidos, porque recortar el
-    nombre oficial ---«Grado en Ingeniería Geomática» por «…y Topográfica (plan
-    2025)»--- no es inventarlo. Y tampoco lo es **abreviar por dentro**: solo
-    con el prefijo, esta comprobación retiraba una respuesta entera y correcta
-    porque una de sus cuatro titulaciones reales venía escrita «Grado en
-    Mecánica», cuyas palabras están todas en «Grado en Ingeniería Mecánica».
-    Se admite, pues, que lo dicho sea un subconjunto de una titulación real.
-
-    El coste es un falso negativo posible: si la Escuela ofreciera un doble
-    grado y no el simple que lo compone, el simple pasaría por bueno. Se acepta
-    porque los dos errores no son simétricos: dejar pasar ese nombre despista,
-    y retirar una recomendación correcta diciéndole al estudiante que se ha
-    inventado algo lo deja sin respuesta y sin motivo.
-
-    Args:
-        respuesta: Texto tal como lo devuelve el modelo.
-        catalogo: Titulaciones que declara el índice.
-
-    Returns:
-        Las que no casan con ninguna del catálogo.
-    """
+    """Titulaciones nombradas que no están en el catálogo del corpus."""
     reales = [normalizar(t) for t in catalogo]
     en_palabras = [palabras(t) for t in catalogo]
     inventadas = set()
@@ -204,24 +94,7 @@ def titulaciones_inventadas(respuesta: str, catalogo: list[str]) -> set[str]:
 
 
 def elementos_de_lista(respuesta: str) -> list[str]:
-    """Nombres que la respuesta presenta como elementos de una enumeración.
-
-    Se reconocen de dos formas, las dos observadas en las sesiones reales: como
-    elemento de viñeta, y dentro de un párrafo con los créditos detrás.
-
-    **Lo que la respuesta menciona en prosa corrida y sin créditos no se
-    considera enumerado**, y por tanto no entra en la precisión. Es una
-    limitación consciente: extraer nombres de prosa libre sin un modelo pediría
-    reglas que este corpus no permite fijar, y una regla frágil produciría
-    invenciones donde no las hay. Ese modo de fallo se recoge en el recuento
-    cualitativo, no en esta métrica.
-
-    Args:
-        respuesta: Texto tal como lo devuelve el modelo.
-
-    Returns:
-        Los nombres en el orden en que aparecen, sin créditos ni curso.
-    """
+    """Nombres que la respuesta presenta como elementos de una enumeración."""
     elementos = []
     encabezado = ""
     for linea in respuesta.splitlines():
@@ -230,10 +103,8 @@ def elementos_de_lista(respuesta: str) -> list[str]:
         if not encontrado:
             continue
         crudo = _ENFASIS.sub("", encontrado.group(1)).strip()
-        # Una viñeta que termina en dos puntos no enumera: encabeza la sublista
-        # que viene debajo. Gemma3 respondió «* Primer curso:» y luego las diez
-        # asignaturas, y contar el rótulo como una más daba una invención que
-        # no existe. Se mira antes de recortar la cola, que se come el signo.
+        # Un rótulo terminado en dos puntos no es un elemento; compruébalo antes de
+        # recortar.
         if crudo.endswith(":"):
             continue
         nombre = _COLA.sub("", crudo).strip(" .;:")
@@ -247,55 +118,24 @@ def elementos_de_lista(respuesta: str) -> list[str]:
     ]
 
 
-#: Encabezado que **saca el tipo de estudios fuera** de los elementos de la
-#: lista: «**Grado en:**» seguido de «Ingeniería Informática», «Ingeniería
-#: Mecánica»... No es un capricho de redacción, es lo que hace cualquiera al
-#: enumerar doce titulaciones que empiezan igual, y es mejor prosa que repetir
-#: la fórmula doce veces.
-#:
-#: Sin reconocerlo, una respuesta que enumera **las doce correctas** así se
-#: cotejaba como «12 omitidas, 10 de más», porque comparaba «Ingeniería
-#: Informática» contra «Grado en Ingeniería Informática»: precisión y cobertura
-#: por los suelos en una respuesta perfecta.
-#:
-#: Solo se reconoce el encabezado que termina en «en:», que es la marca de que
-#: lo factorizado es el principio del nombre. «Primer curso:» no la lleva y no
-#: se antepone a nada, que es lo correcto: ahí lo factorizado es el curso, no
-#: parte del nombre de la asignatura.
+# Recompone nombres cuyo prefijo común está en un encabezado «Grado en:».
+
+# Sin recomponer el prefijo, las titulaciones correctas contarían como omitidas.
+
+# Solo «en:» factoriza el nombre; «Primer curso:» no se antepone a las asignaturas.
 _ENCABEZADO_FACTOR: Final[re.Pattern[str]] = re.compile(
     r"^[\s*_#>-]*((?:doble\s+)?grado\s+en)\s*:\s*[*_]*\s*$", re.IGNORECASE
 )
 
 
 def _factoriza(linea: str) -> str:
-    """Devuelve el prefijo que esta línea saca fuera de la lista, si lo hace.
-
-    Args:
-        linea: Línea de la respuesta, tal cual.
-
-    Returns:
-        El prefijo sin los dos puntos, o cadena vacía si la línea no es uno de
-        esos encabezados.
-    """
+    """Devuelve el prefijo que esta línea saca fuera de la lista, si lo hace."""
     encontrado = _ENCABEZADO_FACTOR.match(linea.strip())
     return encontrado.group(1) if encontrado else ""
 
 
 def _desde_la_mayuscula(texto: str) -> str:
-    """Quita lo que el modelo antepone al nombre al redactar.
-
-    Dentro de un párrafo, el nombre llega precedido de lo que lo introducía:
-    «incluyendo Algoritmos geométricos», «y Web semántica y social». En la
-    fuente **todo nombre de asignatura empieza por mayúscula**, así que las
-    palabras iniciales en minúscula no son parte del nombre.
-
-    Args:
-        texto: Nombre tal como se extrajo del párrafo.
-
-    Returns:
-        El nombre desde su primera palabra en mayúscula. Si no hay ninguna, el
-        texto tal cual: no se puede recortar lo que no se sabe dónde empieza.
-    """
+    """Quita lo que el modelo antepone al nombre al redactar."""
     palabras = texto.split()
     for i, palabra in enumerate(palabras):
         if palabra[:1].isupper():
@@ -306,48 +146,13 @@ def _desde_la_mayuscula(texto: str) -> str:
 def cotejar_listado(
     respuesta: str, esperadas: set[str], del_corpus: set[str]
 ) -> tuple[float | None, float, set[str], set[str]]:
-    """Compara un listado generado con el que dice el dataset.
-
-    Las dos cifras miden cosas distintas y las dos hacen falta: un modelo puede
-    no inventarse nada y dejarse la mitad de la lista, que es lo que pasaba
-    con las cincuenta obligatorias de Informática.
-
-    **La precisión solo existe si hay algo enumerado.** Con la respuesta en
-    prosa, `elementos_de_lista` no extrae ningún nombre y la precisión es
-    ``None``, no cero: no se ha encontrado nada falso, se ha medido sobre nada.
-    Devolver 0,0 daba la peor nota a respuestas correctas por no usar viñetas y
-    ordenaba a los modelos por su estilo en vez de por su veracidad; a quien no
-    contestó ya lo retrata la cobertura, que se mide sobre el texto entero.
-
-    Límite conocido: un nombre oficial formado por dos títulos unidos por un
-    punto solo se reconoce entero, así que «Smart Grids. Redes Eléctricas
-    Inteligentes» citada como «Redes Eléctricas Inteligentes» cuenta como
-    inventada aunque exista. Es el único nombre así del corpus, y una regla de
-    alias se estaría escribiendo para un caso único.
-
-    Args:
-        respuesta: Texto tal como lo devuelve el modelo.
-        esperadas: Nombres que el dataset dice que debería enumerar.
-        del_corpus: Todos los nombres de asignatura del corpus, para poder
-            distinguir «se ha inventado esta» de «ha nombrado una de otra
-            titulación».
-
-    Returns:
-        ``(precision, cobertura, inventadas, omitidas)``. La precisión es la
-        proporción de lo enumerado que existe en el corpus, o ``None`` si la
-        respuesta no enumeró nada; la cobertura, la proporción de lo esperado
-        que aparece.
-    """
+    """Compara un listado generado con el que dice el dataset."""
     dichas = [nucleo(e) for e in elementos_de_lista(respuesta)]
     esperadas_norm = {nucleo(e) for e in esperadas}
     corpus_norm = {nucleo(e) for e in del_corpus}
     texto = nucleo(respuesta)
-    # La fuente escribe «Grado en Ingeniería Eléctrica» y un modelo puede
-    # escribir «Ingeniería Eléctrica»: es la misma titulación. Se decide una
-    # vez por respuesta, mirando si usa la fórmula, en vez de quitarla
-    # siempre; quitarla siempre juntaría el Grado en Ingeniería Mecánica con
-    # el Doble Grado en Ingeniería Mecánica (Internacional), que se
-    # distinguen justo por ahí una vez retirado el paréntesis.
+    # Adapta el prefijo al formato de la respuesta sin confundir grados simples con
+    # dobles.
     con_formula = "grado en" in texto
 
     def comparable(nombre: str) -> str:
@@ -362,16 +167,8 @@ def cotejar_listado(
         return any(dicha == c or dicha.endswith(" " + c) for c in comparables)
 
     inventadas = {d for d in dichas if not existe(d)}
-    # La cobertura se mide sobre el texto entero y no sobre lo enumerado: da
-    # igual si el modelo respondió con viñetas o en prosa, lo que se pregunta
-    # es si el nombre está. Así la métrica no premia un formato sobre otro.
-    #
-    # Se mira además lo enumerado, porque hay una forma de escribir el nombre
-    # que no deja rastro en el texto: sacar el tipo de estudios a un encabezado
-    # y listar debajo solo lo que cambia. La cadena «grado en ingenieria
-    # informatica» no aparece en ninguna parte de esa respuesta, y sin embargo
-    # la titulación está nombrada. `elementos_de_lista` ya devuelve el nombre
-    # recompuesto; aquí solo hay que hacerle caso.
+    # Busca en el texto completo y en los elementos recompuestos para admitir prosa y
+    # encabezados comunes.
     enumeradas = {comparable(nucleo(d)) for d in elementos_de_lista(respuesta)}
     aciertos = {
         e
@@ -404,12 +201,7 @@ _ORDINALES: Final[dict[str, int]] = {
     "cuarto": 4,
     "4": 4,
     "4o": 4,
-    # El indicador ordinal masculino, que es como se escribe de verdad en
-    # espanol y lo que el modelo produce la mitad de las veces. Sobrevive a
-    # `normalizar` ---no es una marca diacritica---, asi que sin estas cuatro
-    # entradas «2º cuatrimestre» no casaba con nada y la correccion no llegaba
-    # ni a intentarse. La alternancia de `_ORDINAL` va ordenada de mas larga a
-    # mas corta, de modo que «2º» gana a «2» y no deja el indicador suelto.
+    # Reconoce «2º» antes que «2» para no dejar el indicador ordinal sin consumir.
     "1º": 1,
     "2º": 2,
     "3º": 3,
@@ -481,13 +273,7 @@ _AFIRMA_ECTS: Final[re.Pattern[str]] = re.compile(
 
 
 class Atributos(NamedTuple):
-    """Lo que el contexto dice de una asignatura, o ``None`` si no lo dice.
-
-    Attributes:
-        cuatrimestre: 1 o 2, o ``None`` si el fragmento no lo enuncia.
-        curso: De 1 a 4, o ``None``.
-        ects: Creditos tal y como vienen escritos, o ``None``.
-    """
+    """Lo que el contexto dice de una asignatura, o ``None`` si no lo dice."""
 
     cuatrimestre: int | None = None
     curso: int | None = None
@@ -495,46 +281,8 @@ class Atributos(NamedTuple):
 
 
 def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
-    """Saca de los fragmentos lo que dicen del plan de cada asignatura.
-
-    Se leen los fragmentos y no ``grados.json`` a proposito: lo que se comprueba
-    es la **fidelidad al contexto**, o sea si la respuesta contradice algo
-    escrito, con esas palabras, en lo que se le entrego al modelo. Cotejar
-    contra el dataset mediria otra cosa ---si el sistema acierta--- y obligaria
-    a este modulo a abrir un fichero, cuando solo compara cadenas.
-
-    Se aprovecha que el encabezado lo redacta ``chunker`` con una plantilla:
-    «Fotogrametria y teledeteccion III», asignatura obligatoria de 6 ECTS del
-    Grado en... Se imparte en el primer cuatrimestre de tercer curso. Al ser
-    texto generado y no prosa de la fuente, se lee sin ambiguedad.
-
-    Args:
-        textos: Textos de los fragmentos entregados al modelo.
-
-    **Una unidad compartida no suministra el valor, pero si lo contradice.** Son
-    dos reglas y hacen falta las dos:
-
-    * La unidad compartida enuncia un solo curso para varias titulaciones y no
-      siempre coinciden ---medido: el curso cambia segun la titulacion en 26
-      asignaturas, el cuatrimestre en 2 y los ECTS en 1---, asi que no puede
-      ser la fuente del dato.
-    * Pero tiene que poder vetarlo, porque **dos asignaturas distintas pueden
-      llamarse igual**: hay una «Electronica digital» de 9 ECTS en Electronica
-      Industrial y otra de 6 en Informatica y en IAyC. Mirando solo las
-      unidades propias sobreviviria la de 9 y se reescribirian a 9 los 6
-      correctos.
-
-    Es la misma leccion que la clave de deduplicacion del troceador: el nombre
-    a solas no identifica una asignatura.
-
-    Returns:
-        Nombre normalizado de la asignatura -> lo que el contexto afirma. Si
-        dos fragmentos discrepan sobre una asignatura, se descarta: un
-        contexto que se contradice a si mismo no puede corregir a nadie.
-    """
-    # `dichos` recoge lo que dice CUALQUIER unidad; `propios`, solo lo que
-    # dicen las de una sola titulacion. La diferencia entre los dos es lo que
-    # hace segura la correccion, y se explica arriba.
+    """Saca de los fragmentos lo que dicen del plan de cada asignatura."""
+    # Solo corrige datos inequívocos respaldados por una unidad no compartida.
     dichos: dict[str, set[Atributos]] = {}
     propios: dict[str, set[Atributos]] = {}
     for texto in textos:
@@ -574,51 +322,18 @@ def atributos_del_contexto(textos: list[str]) -> dict[str, Atributos]:
 
 
 def _sin_adornos(nombre: str) -> str:
-    """Deja el nombre de una asignatura como para poder compararlo.
-
-    El modelo no lo escribe pelado: lo envuelve en negrita y le cuelga lo que
-    haga falta ---«**Fotogrametria y teledeteccion III (6 ECTS):**»---. Sin
-    quitar el calificador entre parentesis y los dos puntos finales, el nombre
-    no casa con el del contexto y la comprobacion no llega ni a intentarse.
-
-    Args:
-        nombre: Lo que el modelo escribio entre comillas o en negrita.
-
-    Returns:
-        El nombre normalizado, sin calificadores ni puntuacion de cierre.
-    """
+    """Deja el nombre de una asignatura como para poder compararlo."""
     return normalizar(_CALIFICADOR.sub("", nombre).strip(" :.,;-"))
 
 
 def asignatura_del_segmento(
     segmento: str, atributos: dict[str, Atributos]
 ) -> str | None:
-    """De que asignatura habla un segmento, si habla de una sola.
-
-    Con dos o mas nombres no se devuelve ninguno, y eso es deliberado: el error
-    que se persigue nace precisamente de mezclar asignaturas de nombre casi
-    igual, asi que atribuir a ciegas seria repetirlo desde el otro lado. Ante
-    la duda no se corrige nada.
-
-    Es publica porque quien emite la respuesta por partes necesita saber de que
-    asignatura se venia hablando: parte el texto en frases antes de que llegue
-    aqui, y sin ese dato la frase que lleva el atributo no sabe a quien se lo
-    esta atribuyendo. Ver el argumento entero en :func:`corregir_atributos`.
-
-    Args:
-        segmento: Un trozo de la respuesta.
-        atributos: Lo que el contexto dice de cada asignatura.
-
-    Returns:
-        El nombre normalizado, o ``None`` si hay cero o mas de uno.
-    """
+    """De que asignatura habla un segmento, si habla de una sola."""
     nombrados = {
         _sin_adornos(m.group(1) or m.group(2)) for m in _MENCION.finditer(segmento)
     }
-    # Y la forma mas comun de todas, que no lleva ningun adorno: la asignatura
-    # como elemento de lista. Se reutiliza la vineta que ya reconoce
-    # `elementos_de_lista`, para que las dos comprobaciones entiendan por
-    # «elemento» exactamente lo mismo.
+    # Reutiliza el reconocimiento de viñetas para identificar asignaturas sin énfasis.
     vineta = _VINETA.match(segmento)
     if vineta:
         crudo = _ENFASIS.sub("", vineta.group(1)).strip()
@@ -660,45 +375,7 @@ def _corrige_ordinal(
 def corregir_atributos(
     texto: str, atributos: dict[str, Atributos], sujeto: str | None = None
 ) -> tuple[str, list[str]]:
-    """Devuelve el texto con curso, cuatrimestre y ECTS puestos al del contexto.
-
-    Es la respuesta a un fallo real: preguntado por Topografia, el sistema dijo
-    que «Fotogrametria y teledeteccion III se imparte en el segundo
-    cuatrimestre» cuando su fragmento decia, con esas palabras, «primer
-    cuatrimestre». La asignatura existia, los creditos eran correctos y las
-    tres barreras de dominio la dejaron pasar, porque **comprueban identidades
-    y no afirmaciones**: lo unico falso era un atributo.
-
-    No hay ningun modelo juzgando a otro. Los tres atributos existen como dato
-    estructurado y el encabezado del fragmento los enuncia con una plantilla,
-    asi que la comprobacion es una comparacion de cadenas.
-
-    Se corrige por segmentos, y solo cuando el segmento nombra **una sola**
-    asignatura conocida. Un segmento que mezcle dos se deja intacto: el defecto
-    nace de confundir asignaturas casi homonimas y arriesgarse a atribuir mal
-    seria cometerlo al reves.
-
-    **El segmento es la linea, no la frase, y eso obliga a ``sujeto``.** Quien
-    emite la respuesta por partes la corta antes en frases (ADR-0006), asi que
-    el nombre puede llegar en una llamada y el atributo en la siguiente: puesto
-    el punto en medio ---que es como se enumera en vinetas--- la segunda frase
-    no nombra a nadie y el atributo pasaba sin corregir y sin aviso. Con
-    ``sujeto`` la asignatura de la que se venia hablando sigue en pie hasta que
-    la linea se cierra.
-
-    Args:
-        texto: Lo que ha redactado el modelo.
-        atributos: Lo que dice el contexto, de :func:`atributos_del_contexto`.
-        sujeto: Asignatura de la que venia hablando la linea, cuando este texto
-            es la continuacion de un trozo anterior. Solo se aplica al primer
-            segmento: a partir del primer salto de linea empieza una viñeta
-            nueva, y arrastrar el sujeto ahi atribuiria a una asignatura lo que
-            se dice de la siguiente.
-
-    Returns:
-        ``(texto corregido, avisos)``. Los avisos describen cada cambio, para
-        que quede registrado que se corrigio y por que.
-    """
+    """Devuelve el texto con curso, cuatrimestre y ECTS puestos al del contexto."""
     if not atributos:
         return texto, []
 

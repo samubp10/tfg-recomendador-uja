@@ -1,20 +1,4 @@
-"""Extracción de guías docentes servidas en PDF (IT-67).
-
-Desde el curso 2026-27, la EPSJ publica algunas guías docentes como PDF en
-lugar de HTML, pero detrás de una URL que sigue acabando en ``.html``. El
-spider las trata como HTML, no encuentra la estructura esperada y acaba
-guardando el binario del PDF en la colección. Este módulo extrae de esos PDF
-lo mismo que ``parse_guia`` saca del HTML —el resumen y el temario— y, sobre
-todo, deja fuera el bloque de profesorado, que en el PDF trae nombres, correos
-y teléfonos que la colección excluye a propósito (privacidad, RGPD).
-
-El criterio es una **lista de permitidos**, no de prohibidos: solo pasan al
-corpus las secciones «Resumen» y «Descripción de contenidos». Si la UJA añade
-mañana una sección nueva con datos personales, con una lista de prohibidos se
-colaría sola; con una de permitidos, se queda fuera por defecto. Como red de
-seguridad final, el texto extraído se redacta de cualquier correo o teléfono
-que se hubiera colado pese a todo.
-"""
+"""Extracción de guías docentes servidas en PDF (IT-67)."""
 
 from __future__ import annotations
 
@@ -53,23 +37,11 @@ _ROTULOS_ESPERADOS: Final[frozenset[str]] = frozenset(
     }
 )
 
-#: Rótulos de sección de la plantilla, los constantes y los que varían. Sirven
-#: como FRONTERAS: una sección abarca desde su rótulo hasta el siguiente rótulo
-#: conocido. No confundir con los títulos de tema del temario, que también van
-#: en mayúsculas ("INTRODUCCIÓN A LA CARTOGRAFÍA Y SIG") pero NO están en este
-#: conjunto y, por tanto, se conservan como contenido en lugar de cortar la
-#: sección.
-#:
-#: Se construye a partir del anterior en lugar de repetir sus trece nombres,
-#: porque la relación entre los dos conjuntos no es casual: todo rótulo que
-#: siempre aparece tiene que servir de frontera. Escritos por separado, corregir
-#: una tilde en uno solo rompería esa relación sin que nada lo dijera.
-#:
-#: Los añadidos son las variantes que unas veces salen y otras no
-#: («COMPETENCIAS» en 33 guías, «SISTEMA DE EVALUACIÓN» en 5) o que ya no
-#: aparecen nunca («RESULTADOS DE APRENDIZAJE», «METODOLOGÍA DOCENTE»): siguen
-#: aquí porque como frontera no estorban, pero exigirlas sería inventarse un
-#: invariante que la fuente no cumple.
+# Los rótulos de sección delimitan el contenido; los títulos de temas se conservan.
+
+# Todo rótulo obligatorio también delimita una sección.
+
+# Las variantes opcionales sirven de frontera, pero no se exigen a cada guía.
 _ROTULOS_SECCION: Final[frozenset[str]] = _ROTULOS_ESPERADOS | frozenset(
     {
         "COMPETENCIAS",
@@ -99,23 +71,7 @@ _TELEFONO: Final[re.Pattern[str]] = re.compile(r"\b\d{9}\b")
 
 
 def rotulos_presentes(datos: bytes) -> list[str]:
-    """Rótulos de sección conocidos que aparecen en el PDF, en orden de lectura.
-
-    Se localizan como línea completa, que es como los compone la plantilla y
-    como los usa :func:`_seccion` para delimitar. No se usa la tipografía: se
-    intentó (negrita a doce puntos) y **no funciona sobre el corpus real**,
-    porque la plantilla usa esa misma tipografía para resaltar contenido dentro
-    de las secciones —criterios de evaluación, títulos de capítulo del
-    temario— y para la segunda línea del nombre de la asignatura cuando no cabe
-    en la cabecera.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Los rótulos hallados, en el orden en que aparecen. Vacío si el PDF no
-        se puede leer.
-    """
+    """Rótulos de sección conocidos que aparecen en el PDF, en orden de lectura."""
     return [
         linea
         for linea in _lineas_utiles(_texto_del_pdf(datos))
@@ -124,52 +80,12 @@ def rotulos_presentes(datos: bytes) -> list[str]:
 
 
 def rotulos_ausentes(datos: bytes) -> list[str]:
-    """Rótulos que la plantilla debería traer y este PDF no trae.
-
-    Es la comprobación que sostiene toda la extracción, y va por ausencia y no
-    por presencia de rótulos desconocidos. El motivo es que buscar rótulos
-    desconocidos no se puede hacer sin falsos positivos: sobre las 293 guías
-    reales produce 68 avisos distintos, todos legítimos (``'tecnológica'`` es
-    la continuación del nombre de la asignatura en la cabecera; ``'Capítulo
-    I.- ...'`` es un título del temario). Un verificador que avisa siempre se
-    acaba ignorando.
-
-    Preguntar por ausencia sí es exacto, y cubre el caso que de verdad hace
-    daño: si la Universidad renombra o retira un rótulo, la sección que
-    delimitaba deja de terminar donde debe. Da igual que el rótulo perdido sea
-    uno de los dos permitidos —entonces se pierde su contenido— o el que venía
-    justo después —entonces la sección permitida se traga la siguiente—: en
-    ambos casos el rótulo desaparece de la lista esperada y se detecta.
-
-    Lo que **no** cubre, y conviene declararlo: una sección enteramente nueva
-    intercalada entre dos conocidas, con un rótulo que nunca se ha visto. Esa
-    sí se colaría dentro de la sección anterior. El daño queda acotado por la
-    lista de permitidos —solo dos secciones pasan al corpus— y por la redacción
-    final de correos y teléfonos, que se aplica sobre lo ya extraído.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Los rótulos esperados que faltan, ordenados. Vacío si están todos.
-    """
+    """Rótulos que la plantilla debería traer y este PDF no trae."""
     return sorted(_ROTULOS_ESPERADOS - set(rotulos_presentes(datos)))
 
 
 def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
-    """Indica si una respuesta es un PDF y no el HTML esperado.
-
-    Comprueba tanto la cabecera ``Content-Type`` como los primeros bytes del
-    cuerpo: el servidor de la UJA sirve estos PDF con la cabecera correcta,
-    pero mirar también la firma ``%PDF`` protege frente a cabeceras engañosas.
-
-    Args:
-        cabecera_tipo: Valor de la cabecera ``Content-Type`` de la respuesta.
-        cuerpo: Bytes del cuerpo de la respuesta.
-
-    Returns:
-        ``True`` si la respuesta es un PDF.
-    """
+    """Indica si una respuesta es un PDF y no el HTML esperado."""
     if cabecera_tipo is not None:
         tipo = (
             cabecera_tipo.decode("latin-1")
@@ -183,15 +99,7 @@ def es_pdf(cabecera_tipo: bytes | str | None, cuerpo: bytes) -> bool:
 
 @lru_cache(maxsize=1)
 def _texto_del_pdf(datos: bytes) -> str:
-    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede.
-
-    Se memoriza el último resultado porque al auditar se pregunta varias cosas
-    seguidas por el mismo PDF (rótulos, contenido y reparto por sección), y
-    volver a parsearlo cada vez multiplicaba por tres el trabajo: sobre las 288
-    guías del corpus, la diferencia entre medio minuto y un minuto y medio.
-    Basta con recordar uno, que es el patrón real de uso, y así no se acumulan
-    en memoria los megabytes de todo el corpus.
-    """
+    """Extrae el texto de un PDF en orden de lectura, o vacío si no se puede."""
     try:
         lector = PdfReader(io.BytesIO(datos))
         return "\n".join(pagina.extract_text() for pagina in lector.pages)
@@ -215,15 +123,7 @@ def _lineas_utiles(texto: str) -> list[str]:
 
 
 def _seccion(lineas: list[str], rotulo: str) -> str:
-    """Recoge el contenido de una sección, hasta el siguiente rótulo conocido.
-
-    Args:
-        lineas: Líneas útiles del PDF (sin cabecera/pie de página).
-        rotulo: Rótulo de la sección buscada (uno de los permitidos).
-
-    Returns:
-        El texto de la sección, una línea por renglón; vacío si no aparece.
-    """
+    """Recoge el contenido de una sección, hasta el siguiente rótulo conocido."""
     try:
         inicio = lineas.index(rotulo)
     except ValueError:
@@ -239,34 +139,14 @@ def _seccion(lineas: list[str], rotulo: str) -> str:
 
 
 def _redactar_datos_personales(texto: str) -> str:
-    """Elimina correos y teléfonos que hubieran escapado a la lista de permitidos.
-
-    Es la red de seguridad final: la lista de permitidos ya deja fuera el
-    bloque de profesorado, pero al tratarse de un requisito legal se comprueba
-    también el texto ya extraído, para que ni un descuido en los rótulos
-    pueda filtrar un dato personal.
-    """
+    """Elimina correos y teléfonos que hubieran escapado a la lista de permitidos."""
     texto = _CORREO.sub("", texto)
     texto = _TELEFONO.sub("", texto)
     return texto
 
 
 def extraer_guia(datos: bytes) -> dict[str, str] | None:
-    """Extrae resumen y temario de una guía docente en PDF.
-
-    Solo se conservan las secciones «Resumen» y «Descripción de contenidos»
-    (lista de permitidos); el resto del PDF, incluido el bloque de profesorado
-    con sus datos personales, se descarta.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Diccionario con ``resumen`` y ``temario``, o ``None`` si el PDF no se
-        puede leer o no contiene ninguna de las dos secciones. Devolver
-        ``None`` permite al spider tratar la asignatura como «sin guía» en
-        lugar de recurrir al mecanismo de respaldo.
-    """
+    """Extrae resumen y temario de una guía docente en PDF."""
     lineas = _lineas_utiles(_texto_del_pdf(datos))
     resumen = _redactar_datos_personales(_seccion(lineas, _RESUMEN))
     temario = _redactar_datos_personales(_seccion(lineas, _CONTENIDOS))
@@ -276,24 +156,8 @@ def extraer_guia(datos: bytes) -> dict[str, str] | None:
 
 
 def reparto_por_seccion(datos: bytes) -> dict[str, int]:
-    """Caracteres que aporta cada sección del PDF, esté permitida o no.
-
-    Sirve para que «se descarta la mayor parte del documento» deje de ser una
-    alarma suelta y pase a ser una lista de secciones con nombre, cada una
-    descartada a propósito. Sin esto no hay forma de distinguir una pérdida
-    deliberada —profesorado, bibliografía, cláusulas— de una accidental.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Caracteres por rótulo, en orden de aparición en el documento. Vacío si
-        el PDF no se puede leer.
-    """
-    # Se extrae el texto UNA vez y de ahí salen tanto los rótulos como sus
-    # contenidos: llamar a `rotulos_presentes` aquí volvería a parsear el PDF
-    # entero, y sobre las 288 guías del corpus eso se nota (el verificador
-    # pasaba de segundos a minutos).
+    """Caracteres que aporta cada sección del PDF, esté permitida o no."""
+    # Extrae el PDF una sola vez para obtener rótulos y contenido.
     lineas = _lineas_utiles(_texto_del_pdf(datos))
     rotulos = [linea for linea in lineas if linea in _ROTULOS_SECCION]
     return {rotulo: len(_seccion(lineas, rotulo)) for rotulo in rotulos}
@@ -304,10 +168,7 @@ def reparto_por_seccion(datos: bytes) -> dict[str, int]:
 PERMITIDOS: Final[tuple[str, str]] = (_RESUMEN, _CONTENIDOS)
 
 
-#: Motivos por los que una guía en PDF no aporta contenido. Se distinguen
-#: porque NO son lo mismo y el sistema no puede afirmar el que no es: decirle
-#: a un estudiante que la guía «no se ha podido obtener» cuando la Universidad
-#: la publica vacía es meter una afirmación falsa en la colección (IT-95).
+# Distingue un PDF ilegible de una guía publicada con secciones vacías (IT-95).
 ILEGIBLE: Final[str] = "ilegible"
 SIN_TEXTO: Final[str] = "sin_texto"
 ROTULOS_DESCONOCIDOS: Final[str] = "rotulos_desconocidos"
@@ -315,23 +176,7 @@ SECCIONES_VACIAS: Final[str] = "secciones_vacias"
 
 
 def motivo_sin_guia(datos: bytes) -> str:
-    """Explica por qué un PDF no ha dado ni resumen ni temario.
-
-    Se llama solo cuando :func:`extraer_guia` ha devuelto ``None``, para poder
-    registrar qué ha pasado en vez de un aviso genérico (IT-95). Llamarlos a
-    todos «PDF ilegible» sería falso: los seis casos reales del corpus se leen
-    perfectamente y lo que está vacío son sus secciones en el origen.
-
-    Args:
-        datos: Bytes del PDF descargado.
-
-    Returns:
-        Uno de :data:`ILEGIBLE` (el PDF está corrupto, cifrado o truncado),
-        :data:`SIN_TEXTO` (se abre pero no tiene capa de texto, típico de un
-        escaneo), :data:`ROTULOS_DESCONOCIDOS` (la plantilla ha cambiado y las
-        secciones permitidas no se localizan) o :data:`SECCIONES_VACIAS` (la
-        guía está publicada y sus secciones de contenido no traen nada).
-    """
+    """Explica por qué un PDF no ha dado ni resumen ni temario."""
     try:
         PdfReader(io.BytesIO(datos))
     except Exception:
