@@ -9,7 +9,7 @@
 
 | Modelo | Aciertos | Tasa | Mediana (s) |
 | --- | ---: | ---: | ---: |
-| `gemma3:12b` | 57 de 57 | 1.000 | 40.0 |
+| `gemma3:12b` | 57 de 57 | 1.000 | 39.4 |
 
 ## Aciertos por familia
 

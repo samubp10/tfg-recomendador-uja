@@ -203,16 +203,23 @@ distribución.
 El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente a cualquier consulta de un usuario.
 
 
-Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertinencia y tres por la comprobación de referencias a otros centros. Una pregunta llegó hasta el modelo, cuya respuesta fue retirada al detectar una titulación inexistente. Las tres preguntas restantes atravesaron todas las barreras del sistema y fue el propio modelo el que se negó a contestarlas.
+Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertinencia y tres por la comprobación de referencias a otros centros. \textcolor{borrador2}{[Actualizar el desglose: dos retiradas, S-AJE-007 y S-AJE-008, y dos rechazos redactados, S-AJE-001 y S-AJE-009.]}
 
 El pleno de 15 aciertos sobre las preguntas ajenas tampoco debe interpretarse como una medida general del rechazo fuera del dominio. El conjunto combina cinco preguntas ajenas evidentes y diez preguntas construidas para superar alguna de las barreras. Su finalidad es
-comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de cinco preguntas producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
+comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de \textcolor{borrador2}{seis de las diez preguntas de ajuste} producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
 barreras que actúan después de la recuperación.
 
-La mediana de tiempo sobre las 57 entradas es de 32,2 segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. Si se tienen en cuenta las preguntas que sí que llegan al modelo, la mediana asciende a 62,7 segundos. 
+La mediana de tiempo sobre las 57 entradas es de \textcolor{borrador2}{39,4} segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. \textcolor{borrador2}{[No trasladar la mediana restringida de 62,7 s de la tanda anterior: el registro actual mide entradas completas y no cuenta llamadas por turno.]}
 
 \subsection{Alcance de las métricas}
 \label{secc:metricas_no_capturan}
+
+\textcolor{borrador2}{[Completar el alcance de IT-135: ninguna de las ocho
+conversaciones intercala una respuesta fija antes de una continuación
+elíptica; S-CONV-006 termina en despedida. Este recorrido se comprueba con
+regresiones del servidor, no con el pleno del banco. El guion tampoco
+ejecuta el servidor web ni su decisor de ámbito opcional o el registro del
+cliente. Evidencia y comparación: docs/experimentos/it124-remedicion.md.]}
 
 Las métricas utilizadas permiten comprobar si los nombres
 y valores que aparecen en la respuesta coinciden con la información de la
