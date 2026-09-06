@@ -168,7 +168,7 @@ def test_el_registro_no_recoge_ningun_dato_del_visitante() -> None:
         "respuesta",
         "retirada",
         "segundos",
-        "respuesta_del_generador",
+        "coincide_con_respuesta_fija",
         "decisor_consultado",
         "error",
     }
@@ -201,9 +201,9 @@ def test_lo_que_escribe_la_persona_se_guarda_tal_cual() -> None:
 
 
 @pytest.mark.parametrize("fija", [RESPUESTA_SALUDO, RESPUESTA_SIN_CONTEXTO])
-def test_una_respuesta_fija_queda_marcada_como_turno_sin_modelo(fija: str) -> None:
-    """Un saludo o un contexto vacío no gastan modelo, y se ve en el registro."""
-    assert linea(respuesta=fija)["respuesta_del_generador"] is False
+def test_una_respuesta_fija_se_reconoce_por_su_texto(fija: str) -> None:
+    """La coincidencia con una respuesta fija no mide llamadas al modelo."""
+    assert linea(respuesta=fija)["coincide_con_respuesta_fija"] is True
 
 
 def test_el_decisor_consultado_sale_de_donde_ocurre_y_no_del_texto() -> None:
@@ -217,20 +217,15 @@ def test_el_decisor_consultado_sale_de_donde_ocurre_y_no_del_texto() -> None:
     """
     registro = linea(respuesta=RESPUESTA_SIN_CONTEXTO)
 
-    assert registro["respuesta_del_generador"] is False
+    assert registro["coincide_con_respuesta_fija"] is True
     assert registro["decisor_consultado"] == bool(registro["consulta"]["decision"])
 
 
-def test_la_retirada_cuenta_como_turno_con_modelo() -> None:
-    """Regresión: la respuesta de retirada también es fija, pero llega tarde.
-
-    Cuando se entrega, el modelo ya se había llamado y había redactado una
-    respuesta entera que luego se retiró. Contarla entre las fijas diría que
-    ese turno salió gratis, y es de los más caros que hay.
-    """
+def test_la_retirada_tambien_coincide_con_una_respuesta_fija() -> None:
+    """Retirar una respuesta implica generación previa y entrega un texto fijo."""
     registro = linea(respuesta=RESPUESTA_TITULACION_INVENTADA, retirada=True)
 
-    assert registro["respuesta_del_generador"] is True
+    assert registro["coincide_con_respuesta_fija"] is True
     assert registro["retirada"] is True
 
 
@@ -301,3 +296,20 @@ def test_una_linea_que_no_se_puede_serializar_tampoco_lanza(tmp_path: Path) -> N
     destino = tmp_path / "registro_chat.jsonl"
 
     assert anotar_turno({"raro": object()}, destino) is False
+
+
+def test_un_error_sin_texto_no_se_confunde_con_generacion() -> None:
+    """El vacío no coincide con el catálogo ni afirma que el modelo respondiera."""
+    registro = linea(respuesta="", error="Ollama no responde")
+    assert registro["coincide_con_respuesta_fija"] is False
+    assert "modelo_llamado" not in registro
+    assert "respuesta_del_generador" not in registro
+
+
+@pytest.mark.parametrize("decision", ["SIGUE", "FALLO"])
+def test_decisor_y_respuesta_fija_son_hechos_independientes(decision) -> None:
+    """Una decisión previa puede ir seguida de una respuesta fija por contexto vacío."""
+    consulta = Consulta(texto="¿Y en segundo?", ambito=[INFORMATICA], decision=decision)
+    registro = linea(consulta=consulta, respuesta=RESPUESTA_SIN_CONTEXTO)
+    assert registro["decisor_consultado"] is True
+    assert registro["coincide_con_respuesta_fija"] is True

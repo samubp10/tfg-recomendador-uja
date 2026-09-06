@@ -799,3 +799,17 @@ def test_olvidar_deja_el_objeto_como_recien_creado() -> None:
     assert conversacion.ambito == []
     assert conversacion.preguntas() == []
     assert conversacion._decidido is None
+
+
+def test_ventana_cero_no_borra_la_intencion() -> None:
+    """Cero suprime preguntas recordadas; el antecedente se conserva por separado."""
+    conversacion = Conversacion(CATALOGO, turnos_recordados=0)
+    conversacion.anotar(
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática en primero?",
+        "Tiene Álgebra.",
+    )
+    consulta = conversacion.preparar("¿Y en segundo?")
+    assert conversacion.preguntas() == []
+    assert "asignaturas" in consulta.texto
+    assert consulta.ambito == [INFORMATICA]
+    assert "primero" not in consulta.texto

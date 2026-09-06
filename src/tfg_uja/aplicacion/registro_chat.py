@@ -13,21 +13,20 @@ from tfg_uja.dialogo.generador import (
     RESPUESTA_OTRA_UNIVERSIDAD,
     RESPUESTA_SALUDO,
     RESPUESTA_SIN_CONTEXTO,
+    RESPUESTA_TITULACION_INVENTADA,
 )
 
 #: Fichero donde se acumulan los turnos, uno por línea.
 REGISTRO: Final[Path] = RAIZ / "data" / "registro_chat.jsonl"
 
-# Respuestas entregadas sin llamar al generador: cortesía, cierre, centro ajeno y
-# contexto vacío.
-
-# La retirada de una titulación inventada sí ocurre después de llamar al generador.
-RESPUESTAS_SIN_MODELO: Final[frozenset[str]] = frozenset(
+# Catálogo de textos fijos; una coincidencia no prueba quién produjo el texto.
+RESPUESTAS_FIJAS: Final[frozenset[str]] = frozenset(
     {
         RESPUESTA_SIN_CONTEXTO,
         RESPUESTA_SALUDO,
         RESPUESTA_DESPEDIDA,
         RESPUESTA_OTRA_UNIVERSIDAD,
+        RESPUESTA_TITULACION_INVENTADA,
     }
 )
 
@@ -75,9 +74,8 @@ def linea_de_turno(
         "respuesta": respuesta,
         "retirada": retirada,
         "segundos": round(segundos, 2),
-        # Clasifica el texto entregado; no cuenta llamadas al modelo, incluido el
-        # decisor de ámbito.
-        "respuesta_del_generador": respuesta not in RESPUESTAS_SIN_MODELO,
+        # La retirada también entrega texto fijo, aunque haya habido generación.
+        "coincide_con_respuesta_fija": respuesta in RESPUESTAS_FIJAS,
         # Si al decisor de ámbito se le llegó a preguntar en este turno. Sale
         # del punto donde ocurre y no de la redacción final.
         "decisor_consultado": bool(consulta.decision),

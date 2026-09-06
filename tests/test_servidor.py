@@ -826,7 +826,7 @@ def test_una_respuesta_retirada_se_registra_como_tal(
     (turno,) = turnos_de(registro)
     assert turno["retirada"] is True
     assert turno["respuesta"] == RESPUESTA_TITULACION_INVENTADA
-    assert turno["respuesta_del_generador"] is True
+    assert turno["coincide_con_respuesta_fija"] is True
 
 
 def test_un_turno_que_falla_tambien_se_registra(
@@ -972,7 +972,7 @@ def test_un_saludo_ni_llega_al_indice_ni_anuncia_fuentes(
     (turno,) = turnos_de(registro)
     assert turno["se_busco"] is False
     assert turno["recuperados"] == 0
-    assert turno["respuesta_del_generador"] is False
+    assert turno["coincide_con_respuesta_fija"] is True
 
 
 # ------------------------------------------------------ las sugerencias que rotan
@@ -1212,3 +1212,27 @@ def test_un_turno_normal_si_deja_cambiar_el_ambito(
     )
 
     assert conversacion.cambios_de_ambito == [True]
+
+
+@pytest.mark.parametrize(
+    "intermedio",
+    ["Hola", "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?"],
+)
+def test_respuesta_fija_intercalada_conserva_la_consulta(intermedio) -> None:
+    """El servidor conserva texto, ámbito y respaldo del antecedente."""
+    conversacion = Conversacion(SISTEMA_FALSO[2], turnos_recordados=2)
+    pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática en primero?"
+    conversacion.anotar(pregunta, "Tiene Álgebra.")
+    antes = conversacion.preparar("¿Y en segundo?")
+    list(servidor.partes_de_la_respuesta(intermedio, SISTEMA_FALSO, conversacion))
+    assert conversacion.preparar("¿Y en segundo?") == antes
+    assert conversacion.preguntas() == [pregunta, intermedio]
+
+
+def test_saludo_inicial_no_crea_antecedente() -> None:
+    """Una continuación tras el primer saludo equivale a preguntar sin antecedente."""
+    conversacion = Conversacion(SISTEMA_FALSO[2])
+    list(servidor.partes_de_la_respuesta("Hola", SISTEMA_FALSO, conversacion))
+    assert conversacion.preparar("¿Y en segundo?") == Conversacion(
+        SISTEMA_FALSO[2]
+    ).preparar("¿Y en segundo?")

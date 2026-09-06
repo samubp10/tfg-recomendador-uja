@@ -102,6 +102,7 @@ class Conversacion:
 
     catalogo: list[str]
     turnos_recordados: int = TURNOS_RECORDADOS
+    # Cero vacía el historial de preguntas; ámbito y predicado se conservan aparte.
     decisor: Decisor | None = None
     _preguntas: list[str] = field(default_factory=list, init=False)
     _ambito: list[str] = field(default_factory=list, init=False)
