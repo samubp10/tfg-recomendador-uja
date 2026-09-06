@@ -1,0 +1,210 @@
+\chapter{Instalación y puesta en marcha}\label{anexo:instalacion}
+
+Ruta comprobada los días 6 y 7 de septiembre de 2026 en dos contenedores nuevos,
+sin copiar el entorno Python, el corpus ni las cachés de modelos del equipo.
+La evidencia y sus límites están en \href{https://github.com/samubp10/tfg-recomendador-uja/blob/main/docs/experimentos/it54-instalacion.md}{el registro de IT-54}.
+
+\section{Requisitos}
+
+La prueba se hizo en Windows con Docker Desktop 4.69.0, motor Linux 29.4.0,
+16 GB de RAM y una NVIDIA RTX 3060 Laptop de 6 GB. Docker disponía de 7,47 GiB
+de RAM. Son las condiciones probadas, no unos mínimos medidos. Gemma ocupa
+8,1 GB en disco; además hacen falta espacio para imágenes, dependencias,
+incrustaciones y datos. Se necesita conexión para instalar, descargar modelos
+y extraer la web de la EPSJ.
+
+Esta dotación permitió la consulta web comprobada, pero una prueba de
+integración agotó 600 segundos con presión de memoria. Para tandas largas,
+comprobar los recursos disponibles y evitar otras consultas simultáneas.
+El registro distingue la consulta correcta de la suite con el LLM detenido.
+
+Instalar Docker Desktop con el motor WSL 2 y la compatibilidad NVIDIA descrita
+en la \href{https://docs.ollama.com/docker}{documentación de Ollama para Docker}.
+Comprobar \texttt{docker version}. Los puertos locales 8000 y 11454 deben estar libres.
+Los comandos del equipo anfitrión siguientes son para \textbf{PowerShell}; los de
+la sesión del contenedor son para \textbf{sh}. No se necesita Node.js: la interfaz
+se sirve desde Python y no tiene un paso de compilación.
+
+\section{Crear el entorno}
+
+En PowerShell, usar nombres nuevos si ya existen estos contenedores:
+
+\begingroup\footnotesize\begin{verbatim}
+docker run -d --name it54-app-20260906 `
+  -p 127.0.0.1:8000:8001 -p 127.0.0.1:11454:11434 `
+  python:3.13-slim sleep infinity
+docker run -d --name it54-ollama-20260906 `
+  --network container:it54-app-20260906 --gpus all `
+  -v it54-modelos-20260906:/root/.ollama `
+  ollama/ollama:0.32.14
+docker exec it54-ollama-20260906 nvidia-smi
+docker exec -it it54-app-20260906 sh
+\end{verbatim}\endgroup
+
+Los dos contenedores comparten la red porque la aplicación conecta con Ollama
+en \texttt{127.0.0.1:11434}. El volumen conserva los pesos del LLM. Los datos, el índice
+y la caché de incrustaciones quedan en el contenedor de la aplicación y sobreviven
+a \texttt{docker stop}, pero se perderían al eliminar ese contenedor.
+
+En la sesión \textbf{sh} recién abierta:
+
+\begingroup\footnotesize\begin{verbatim}
+apt-get update
+apt-get install -y --no-install-recommends git ca-certificates socat
+git clone https://github.com/samubp10/tfg-recomendador-uja.git /app
+cd /app
+git checkout 1ec0484
+python -m venv .venv
+.venv/bin/python -m pip install torch==2.13.0 \
+  --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/python -m pip install -e '.[dev,index]' -c constraints.txt
+.venv/bin/python -m pip check
+\end{verbatim}\endgroup
+
+El commit fija la versión ejecutada en esta comprobación. Para instalar otra
+revisión hay que seleccionar su commit y volver a verificarla. El fichero
+\texttt{constraints.txt} fija las dependencias; PyTorch se instala primero desde el
+repositorio CPU para que las incrustaciones no necesiten CUDA. Ollama utiliza
+la GPU por separado. \texttt{pip check} debe terminar sin dependencias rotas.
+
+\section{Configurar las incrustaciones y la base vectorial}
+
+En la misma sesión \textbf{sh}, descargar una vez el modelo elegido:
+
+\begingroup\footnotesize\begin{verbatim}
+export TFG_DESCARGAR_MODELO=1
+.venv/bin/python - <<'PY'
+from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
+print(len(incrustador_de_consultas()(['Ingenieria Informatica'])[0]))
+PY
+unset TFG_DESCARGAR_MODELO
+export HF_HUB_OFFLINE=1
+.venv/bin/python - <<'PY'
+from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
+print(len(incrustador_de_consultas()(['Ingenieria Informatica'])[0]))
+PY
+\end{verbatim}\endgroup
+
+Ambas llamadas deben imprimir \texttt{384}. Se usa \texttt{intfloat/multilingual-e5-small},
+guardado en \texttt{/root/.cache/huggingface}. La segunda llamada comprueba la carga
+desde caché con el Hub desconectado; no prueba que todo el sistema carezca de
+acceso a internet. Las variables se describen en la
+\href{https://huggingface.co/docs/huggingface_hub/en/package_reference/environment_variables}{documentación de Hugging Face}.
+El código añade \texttt{passage: } a los documentos y \texttt{query: } a las preguntas.
+
+Crear el corpus completo y el índice, todavía en \textbf{sh}:
+
+\begingroup\footnotesize\begin{verbatim}
+mkdir -p data
+.venv/bin/python -m scrapy runspider \
+  src/tfg_uja/extraccion/grados_spider.py -O data/grados.json
+.venv/bin/python scripts/verificadores/check_dataset.py
+.venv/bin/python -m tfg_uja.indexacion.chunker \
+  data/grados.json data/chunks.json
+.venv/bin/python scripts/verificadores/check_chunks.py
+.venv/bin/python scripts/verificadores/check_evalset.py
+.venv/bin/python scripts/verificadores/check_guias_pdf.py
+.venv/bin/python -m tfg_uja.indexacion.indexer \
+  data/chunks.json data/indice_lance
+\end{verbatim}\endgroup
+
+El rastreo consulta la web real y respeta sus retardos; no repetirlo para cada
+arranque. El verificador de PDF también puede consultar la fuente.
+El corpus no está incluido en Git. La web cambia: los recuentos de otra fecha
+no tienen por qué coincidir con los del registro de esta prueba.
+
+LanceDB es una biblioteca embebida: no hay servidor, contraseña ni contenedor
+de base de datos adicional. El indexador crea \texttt{data/indice\_lance}, con la tabla
+\texttt{chunks\_epsj}, y reconstruye la tabla al repetirlo. No cambiar el modelo de
+incrustaciones solo en uno de los dos extremos, indexación o consulta.
+
+Salir al anfitrión con \texttt{exit}.
+
+\section{Descargar el LLM y arrancar la aplicación}
+
+En \textbf{PowerShell}:
+
+\begingroup\footnotesize\begin{verbatim}
+docker exec it54-ollama-20260906 ollama pull gemma3:12b
+docker exec it54-ollama-20260906 ollama list
+docker exec -d it54-app-20260906 socat `
+  TCP-LISTEN:8001,bind=0.0.0.0,reuseaddr,fork TCP:127.0.0.1:8000
+docker exec -it -w /app -e HF_HUB_OFFLINE=1 `
+  it54-app-20260906 .venv/bin/python -u -m tfg_uja.aplicacion.servidor
+\end{verbatim}\endgroup
+
+\texttt{ollama list} debe mostrar \texttt{gemma3:12b}. El contenedor ya ejecuta el servicio;
+no lanzar otro \texttt{ollama serve}. La primera descarga falló por un tiempo de
+espera agotado en el alojamiento de los pesos; al recuperar la conexión,
+repetir \texttt{ollama pull gemma3:12b} terminó correctamente. No cambiar de modelo
+para dar por superada esta comprobación.
+
+Abrir \textbf{http://127.0.0.1:8000}. \texttt{socat} permite llegar al servidor, que escucha
+solo en el bucle local del contenedor. El puerto publicado del anfitrión sigue
+limitado a \texttt{127.0.0.1}. No publicar el servicio en una interfaz de red externa.
+La aplicación usa por defecto \texttt{gemma3:12b}, las incrustaciones anteriores y
+\texttt{data/indice\_lance}; no requiere un fichero \texttt{.env} ni claves de servicios remotos.
+
+\section{Comprobar y volver a arrancar}
+
+Preguntar en la interfaz: «¿Cuántos créditos tiene Álgebra en el Grado en
+Ingeniería Informática?». Comprobar que llega una respuesta y sus fuentes,
+contrastándola con el corpus. Un saludo por sí solo no verifica el LLM.
+Para conservar la respuesta HTTP, desde otra ventana de \textbf{PowerShell}:
+
+\begingroup\footnotesize\begin{verbatim}
+$cuerpo = @{
+  pregunta='¿Cuántos créditos tiene Álgebra en el Grado en Ingeniería Informática?'
+} | ConvertTo-Json -Compress
+Invoke-WebRequest http://127.0.0.1:8000/api/chat -Method Post `
+  -ContentType 'application/json; charset=utf-8' `
+  -Body ([System.Text.Encoding]::UTF8.GetBytes($cuerpo)) `
+  -TimeoutSec 600 -OutFile consulta.ndjson
+\end{verbatim}\endgroup
+
+El fichero contiene los sucesos de la respuesta, uno por línea. La llegada de
+HTTP 200 no basta: hay que revisar el contenido y el suceso final \texttt{fin}.
+
+Pruebas del código instalado, sin otra consulta en curso:
+
+\begingroup\footnotesize\begin{verbatim}
+docker exec it54-app-20260906 apt-get install -y --no-install-recommends nodejs
+docker exec -w /app it54-app-20260906 .venv/bin/python -m pytest `
+  --cov=src/tfg_uja --cov=scripts --cov-report=term-missing `
+  --cov-fail-under=100
+\end{verbatim}\endgroup
+
+Node se instala aquí para las pruebas del cliente JavaScript; no lo usa el
+servidor al atender consultas.
+
+Para parar, pulsar Ctrl+C en la sesión del servidor y ejecutar:
+
+\begingroup\footnotesize\begin{verbatim}
+docker stop it54-ollama-20260906 it54-app-20260906
+\end{verbatim}\endgroup
+
+Para otro uso, arrancar los contenedores:
+
+\begingroup\footnotesize\begin{verbatim}
+docker start it54-app-20260906 it54-ollama-20260906
+\end{verbatim}\endgroup
+
+Repetir
+solo los dos comandos de \texttt{socat} y del servidor del apartado 4. No volver a
+clonar, instalar, rastrear o indexar. No ejecutar dos proxies ni dos servidores
+a la vez. Para conservar datos fuera del contenedor antes de eliminarlo:
+
+\begingroup\footnotesize\begin{verbatim}
+docker cp it54-app-20260906:/app/data ./datos-instalacion
+\end{verbatim}\endgroup
+
+Si falta el índice, terminar el apartado 3; si falta la caché de
+incrustaciones, repetir su descarga autorizada. Si el LLM no responde,
+comprobar la memoria disponible y consultar:
+
+\begingroup\footnotesize\begin{verbatim}
+docker logs it54-ollama-20260906
+docker exec it54-ollama-20260906 ollama list
+\end{verbatim}\endgroup
+
+Un error de conexión del modelo no es una respuesta válida.

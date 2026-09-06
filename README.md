@@ -76,13 +76,16 @@ Se descargan una vez y se quedan en local:
 | Modelo | Tamaño en disco | Cómo llega |
 | --- | ---: | --- |
 | `gemma3:12b` — generación (ADR-0005) | 8,1 GB | `ollama pull gemma3:12b` |
-| `intfloat/multilingual-e5-small` — incrustaciones (ADR-0003) | ~0,5 GB | lo descarga solo `sentence-transformers` la primera vez |
+| `intfloat/multilingual-e5-small` — incrustaciones (ADR-0003) | ~0,5 GB | autorizar la primera descarga con `TFG_DESCARGAR_MODELO=1` |
 
 > El modelo de incrustaciones es el pequeño y no el grande **a propósito**: los
 > dos tienen que convivir en memoria con el generativo, y la primera ejecución
 > de la comparativa murió por falta de memoria cargando el grande (ADR-0003).
 
 ## Instalación
+
+La [guía de instalación completa](docs/instalacion.md) recoge la ruta probada
+en contenedores nuevos, incluidos los modelos, LanceDB y la aplicación web.
 
 ### 1. Entorno de Python
 
@@ -129,6 +132,14 @@ donde el sistema lo busca. En Windows y macOS la aplicación de escritorio de
 Ollama ya lo levanta al arrancar.
 
 ## Uso
+
+Antes de la primera indexación hay que autorizar la descarga de las
+incrustaciones. En PowerShell: `$env:TFG_DESCARGAR_MODELO='1'`; en CMD:
+`set TFG_DESCARGAR_MODELO=1`; en Linux o Git Bash:
+`export TFG_DESCARGAR_MODELO=1`. Tras descargar el modelo, quitar esa variable
+(`Remove-Item Env:TFG_DESCARGAR_MODELO`, `set TFG_DESCARGAR_MODELO=` o
+`unset TFG_DESCARGAR_MODELO`, respectivamente). Las siguientes ejecuciones
+cargan la caché local. El procedimiento completo comprueba también esa carga.
 
 Los datos generados viven en `data/` y **no se versionan**: se regeneran con
 el propio *pipeline* (esa regeneración es la garantía de reproducibilidad).
