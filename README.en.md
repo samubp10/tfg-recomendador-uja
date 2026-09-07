@@ -34,8 +34,15 @@ University of Jaén, academic year 2025/2026.
 | 1 | Chunking strategy and embeddings comparison | ✅ Complete |
 | 2 | Vector database, local LLM and full RAG pipeline | ✅ Complete |
 | 3 | Web chat application | ✅ Complete |
-| 4 | User validation and ablation study | 🚧 In progress |
-| 5 | Wrap-up and defence | Pending |
+| 4 | System evaluation and ablation study | ✅ Complete¹ |
+| 5 | Wrap-up and defence | 🚧 In progress |
+
+> ¹ **Validation with real users was left out of scope**: there was no room to
+> design it with the guarantees it would require (sample, consent, protocol).
+> It is not replaced by any approximation — it is declared as a limitation in
+> the thesis, which also lists the questions that remain unanswered because of
+> it. Everything else is measured, with the question banks and checkers
+> described below.
 
 ## Architecture
 
@@ -65,7 +72,7 @@ throughout the year, so they change on every crawl. Both `grados.json` and
 | Metric | Value |
 | --- | ---: |
 | Crawled on | 2026-08-16 (academic year 2026-27) |
-| Chunked on | 2026-08-19 |
+| Chunked on | 2026-09-01 |
 | Degrees (5 of them double degrees) | 12 |
 | Degrees with subjects of their own | 11 |
 | Subjects | 528 |
@@ -73,8 +80,11 @@ throughout the year, so they change on every crawl. Both `grados.json` and
 | Syllabus coverage | 83.7 % |
 | Subjects with no syllabus content | 86 |
 | Career-prospects blocks | 8 |
-| **Chunks after deduplication** | **1,499** |
-| Units they belong to (81 shared between degrees) | 398 |
+| **Chunks after deduplication** | **1,922** |
+| Units they belong to (63 shared between degrees) | 471 |
+
+Chunks by source: 1,719 syllabus · 86 subject-without-syllabus · 56 curriculum ·
+24 specialisation · 22 career prospects · 12 degree record · 3 catalogue.
 
 The twelfth degree is a double degree run jointly with a German university and
 publishes no curriculum of its own, so it contributes no chunks.
@@ -84,6 +94,43 @@ corpus**, chunk by chunk.
 
 Verify any of these figures yourself with the checkers below — do not trust this
 table, it is only as fresh as the last time someone edited it.
+
+## Results
+
+The figures are written by the scripts themselves into `docs/experimentos/` and
+into the automatic block of each ADR. **They hold for the corpus they were
+measured on** ---1,922 chunks, academic year 2026-27---; they are not constants
+of the project.
+
+**Retrieval**, over the 56 in-domain questions of the evaluation set
+([`it38-recuperacion.md`](docs/experimentos/it38-recuperacion.md)):
+
+| K | Recall@K | Ceiling | Unit Recall@K |
+| ---: | ---: | ---: | ---: |
+| 3 | 0.644 | 0.756 | 0.906 |
+| 5 | 0.777 | 0.905 | 0.973 |
+| 10 | 0.865 | 0.964 | 0.991 |
+
+**MRR: 0.914.** The ceiling is the highest Recall@K can reach for that K, since
+some questions have more relevant units than K: every figure is read against
+its ceiling, not against 1.
+
+**End-to-end system**, over the 57-entry bank
+([`it38-sistema.md`](docs/experimentos/it38-sistema.md)): **57 out of 57**, and
+all 15 questions about other schools are rejected.
+
+Two readings those figures do **not** support:
+
+- **57 out of 57 is not an accuracy of 1.** With 57 observations the 95 % lower
+  bound is **0.949**; for the fifteen out-of-domain questions, **0.819**. And
+  re-running the bank does not tighten those bounds, because they come from the
+  size of the bank and not from the number of runs: two passes over 57 questions
+  are 57 observations, not 114. Only different questions tighten them.
+- **The 15 out of 15 is not all the system's doing.** Eleven rejections come
+  from a barrier of its own (8 the relevance floor, 3 the other-school check)
+  and one from withdrawing the answer; the **remaining three are rejected by the
+  model on its own initiative**, and that is not a control: swapping the model
+  would be enough to lose it.
 
 ## Requirements
 
@@ -106,13 +153,16 @@ Downloaded once, then kept locally:
 | Model | On-disk size | How it gets there |
 | --- | ---: | --- |
 | `gemma3:12b` — generation (ADR-0005) | 8.1 GB | `ollama pull gemma3:12b` |
-| `intfloat/multilingual-e5-small` — embeddings (ADR-0003) | ~0.5 GB | downloaded automatically by `sentence-transformers` on first use |
+| `intfloat/multilingual-e5-small` — embeddings (ADR-0003) | ~0.5 GB | the first download must be authorised with `TFG_DESCARGAR_MODELO=1` |
 
 > The small embeddings model was chosen over the large one **deliberately**: both
 > have to share memory with the generative model, and the first run of the
 > comparison died out of memory loading the large one (ADR-0003).
 
 ## Installation
+
+The [full installation guide](docs/instalacion.md) walks through the route
+tested on clean containers, models, LanceDB and the web application included.
 
 ### 1. Python environment
 
@@ -159,6 +209,13 @@ where the system looks for it. On Windows and macOS the Ollama desktop app
 starts it on login.
 
 ## Usage
+
+Before the first indexing run, the embeddings download has to be authorised.
+In PowerShell: `$env:TFG_DESCARGAR_MODELO='1'`; in CMD:
+`set TFG_DESCARGAR_MODELO=1`; on Linux or Git Bash:
+`export TFG_DESCARGAR_MODELO=1`. Once the model is on disk, remove that
+variable (`Remove-Item Env:TFG_DESCARGAR_MODELO`, `set TFG_DESCARGAR_MODELO=`
+or `unset TFG_DESCARGAR_MODELO`). Later runs load it from the local cache.
 
 Generated data lives in `data/` and is **not versioned**: it is regenerated by
 the pipeline itself, and that regeneration is what guarantees reproducibility.
@@ -283,8 +340,9 @@ memoria/            # the thesis itself, in LaTeX (EPSJ template)
 data/               # generated artefacts (NOT versioned)
 ```
 
-> **Note:** the thesis document (*memoria*), written in LaTeX, lives in the
-> **`doc`** branch, not in `main`.
+> **Note:** the thesis document (*memoria*), written in LaTeX, is developed on
+> the **`doc`** branch — code changes go through `main`, thesis changes through
+> `doc` — and both branches carry it.
 
 ## Methodology
 
