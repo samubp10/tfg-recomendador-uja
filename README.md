@@ -32,8 +32,15 @@ Ingeniería Informática de la Universidad de Jaén, curso 2025/2026.
 | 1 | Estrategia de troceado y comparativa de *embeddings* | ✅ Completa |
 | 2 | Base de datos vectorial, LLM local y *pipeline* RAG | ✅ Completa |
 | 3 | Aplicación web de chat | ✅ Completa |
-| 4 | Validación y estudio de ablación | 🚧 En curso |
-| 5 | Cierre y defensa | Pendiente |
+| 4 | Evaluación del sistema y estudio de ablación | ✅ Completa¹ |
+| 5 | Cierre y defensa | 🚧 En curso |
+
+> ¹ La **validación con usuarios reales quedó fuera del alcance** del trabajo por
+> falta de margen para diseñarla con las garantías que exigiría (muestra,
+> consentimiento y protocolo). No se sustituye por ninguna aproximación: se
+> declara como limitación en la memoria y se enumera allí qué preguntas quedan
+> sin responder por ello. Lo que sí se mide es todo lo demás, con los bancos y
+> los verificadores que se describen más abajo.
 
 ## Arquitectura
 
@@ -53,6 +60,78 @@ universidad, por lo que solo se hace cuando cambia la fuente.
 La aplicación web es **un solo proceso de Python** que sirve la interfaz y
 atiende las consultas, e importa el flujo de recuperación y generación como
 biblioteca. Lo único que corre aparte es el servidor de inferencia.
+
+## Conjunto de datos
+
+Las cifras son una **fotografía, no una constante**: la EPSJ publica guías
+nuevas a lo largo del curso, así que cambian en cada rastreo. Tanto
+`grados.json` como `chunks.json` llevan dentro su propia fecha de extracción y
+su curso académico.
+
+| Métrica | Valor |
+| --- | ---: |
+| Rastreado el | 2026-08-16 (curso 2026-27) |
+| Troceado el | 2026-09-01 |
+| Titulaciones (5 de ellas dobles grados) | 12 |
+| Titulaciones con asignaturas propias | 11 |
+| Asignaturas | 528 |
+| Guías docentes (todas servidas en PDF) | 288 |
+| Cobertura de guías | 83,7 % |
+| Asignaturas sin contenido de guía | 86 |
+| Bloques de salidas profesionales | 8 |
+| **Fragmentos tras deduplicar** | **1 922** |
+| Unidades a las que pertenecen (63 compartidas entre titulaciones) | 471 |
+
+Reparto de fragmentos por origen: 1 719 de guía · 86 de asignatura sin guía ·
+56 de plan de estudios · 24 de mención · 22 de salidas · 12 de ficha de
+titulación · 3 de catálogo.
+
+La titulación número doce es un doble grado internacional con una universidad
+alemana que no publica plan de estudios propio, de modo que no aporta
+fragmentos.
+
+Dos rastreos con un día de diferencia (2026-07-29 y 2026-07-30) produjeron un
+corpus **idéntico byte a byte**, fragmento por fragmento.
+
+No te fíes de esta tabla: comprueba cualquiera de estas cifras con los
+verificadores que aparecen más abajo, porque solo está tan fresca como la
+última vez que alguien la editó.
+
+## Resultados
+
+Las cifras las escriben los propios guiones en `docs/experimentos/` y en el
+bloque automático de cada ADR. **Valen para el corpus con el que se midieron**
+---1 922 fragmentos, curso 2026-27---, no son constantes del proyecto.
+
+**Recuperación**, sobre las 56 preguntas de dominio del conjunto de evaluación
+([`it38-recuperacion.md`](docs/experimentos/it38-recuperacion.md)):
+
+| K | Recall@K | Techo | Recall de unidad@K |
+| ---: | ---: | ---: | ---: |
+| 3 | 0,644 | 0,756 | 0,906 |
+| 5 | 0,777 | 0,905 | 0,973 |
+| 10 | 0,865 | 0,964 | 0,991 |
+
+**MRR: 0,914.** El techo es el máximo que Recall@K puede alcanzar con esa K,
+porque hay preguntas con más unidades relevantes que K: cada cifra se lee
+contra su techo y no contra 1.
+
+**Sistema completo**, sobre el banco de 57 entradas
+([`it38-sistema.md`](docs/experimentos/it38-sistema.md)): **57 de 57**, y las
+15 preguntas ajenas al centro se rechazan todas.
+
+Dos lecturas que esas cifras **no** admiten:
+
+- **57 de 57 no es una tasa de acierto de 1.** Con 57 observaciones la cota
+  inferior al 95 % es **0,949**; la de las quince ajenas, **0,819**. Y repetir
+  la tanda no estrecha esas cotas, porque salen del tamaño del banco y no del
+  número de ejecuciones: dos tiradas de 57 preguntas son 57 observaciones, no
+  114. Lo único que las estrecha es añadir preguntas distintas.
+- **El 15 de 15 no es todo mérito del sistema.** Once rechazos los produce una
+  barrera propia (8 el suelo de pertinencia, 3 la comprobación de centro ajeno)
+  y uno la retirada de la respuesta; los **tres restantes los rechaza el modelo
+  por su cuenta**, y eso no es un control: cambiar de modelo bastaría para
+  perderlo.
 
 ## Requisitos
 
@@ -300,6 +379,20 @@ documentada** (docstrings, cuerpo del commit y ADR si procede), **está
 integrada** en `main` con la CI en verde, **es defendible** en dos minutos y
 **está reflejada en la memoria**.
 
+## Decisiones de diseño
+
+Las decisiones de arquitectura se documentan como ADR, cada una con las
+alternativas consideradas y la evidencia que la resolvió:
+
+| ADR | Decisión |
+| --- | --- |
+| [ADR-0001](docs/adr/adr-0001-estrategia-chunking.md) | Estrategia de fragmentación y deduplicación |
+| [ADR-0002](docs/adr/adr-0002-alternativas-extraccion-datos.md) | Scrapy como marco de extracción |
+| [ADR-0003](docs/adr/adr-0003-modelo-de-embeddings.md) | Modelo de incrustaciones |
+| [ADR-0004](docs/adr/adr-0004-base-vectorial.md) | Base de datos vectorial |
+| [ADR-0005](docs/adr/adr-0005-modelo-de-generacion.md) | Modelo generativo |
+| [ADR-0006](docs/adr/adr-0006-emision-de-la-respuesta.md) | Cómo se emite la respuesta |
+
 ## Alcance
 
 La primera versión cubre las titulaciones de grado de la EPSJ. El sistema se
@@ -309,6 +402,20 @@ de recuperación y generación. **Que el diseño admita crecer está justificado
 que el sistema escale no está medido.** El profesorado se excluye
 deliberadamente de los datos extraídos (privacidad).
 
+## Aviso legal y ético
+
+- Se respeta `robots.txt` (`ROBOTSTXT_OBEY = True`) y se aplica retardo entre
+  peticiones (`DOWNLOAD_DELAY`) hacia el servidor de la UJA.
+- Solo se extraen **datos públicos** de naturaleza académica.
+- **El profesorado se excluye** por privacidad. Las guías servidas en PDF sí
+  traen un bloque de profesorado con nombres, correos y teléfonos: se extraen
+  únicamente las secciones *Resumen* y *Descripción de contenidos* ---una lista
+  de permitidos, no de prohibidos--- y después se redactan correos y teléfonos
+  como red de seguridad. **Ningún dato personal llega a la base vectorial.**
+- «Los principios de la protección de datos no deben aplicarse a la información
+  anónima, es decir, información que no guarda relación con una persona física
+  identificada o identificable» (considerando 26, Reglamento (UE) 2016/679).
+
 ## Licencia
 
-[GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html)
+[GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html). Véase [`LICENSE`](LICENSE).
