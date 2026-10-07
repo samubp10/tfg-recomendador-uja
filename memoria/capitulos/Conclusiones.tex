@@ -50,6 +50,12 @@ Para garantizar el rigor científico de las conclusiones y evitar interpretacion
   \item \textbf{De cada respuesta se comprueba que no
       invente}: Se comprueba que la respuesta no contenga o no sea en sí una alucinación y sea fidedigna a las entidades oficiales, pero no se valoran dimensiones cualitativas como la claridad de las respuestas, o la utilidad pedagógica 
     (Apartado~\ref{secc:metricas_no_capturan}).
+    \begin{borrador}
+      \item \textbf{Fase:} 5 (IT-52)
+      \item No se comprueba que no haya ninguna alucinación: se comprueba que no nombre
+        titulaciones fuera del catálogo y se corrigen curso, cuatrimestre y ECTS contra el
+        contexto. Un rótulo cambiado o un superlativo invertido no se detectan.
+    \end{borrador}
 
   \item \textbf{Sesgo inherente en el diseño del banco de evaluación:} Tanto las preguntas de prueba como los algoritmos de corrección han sido desarrollados por mí sin que nadie más los revisase, lo que introduce un sesgo metodológico respecto a una evaluación externa o ciega
     (Apartado~\ref{secc:amenazas_validez}).
@@ -82,4 +88,14 @@ A partir de las limitaciones identificadas en el apartado anterior y de las evid
 
   \item \textbf{Llevar la aplicación a condiciones de
       producción}: Implementar soporte para concurrencia de peticiones en paralelo, comunicaciones cifradas mediante HTTPS y mecanismos de control de frecuencia y volumen por cliente.
+
+  \item \textcolor{borrador2}{\textbf{Estudiar la escalabilidad del sistema en local y en
+      la nube:} En local, el límite lo pone la memoria del equipo (Tabla~\ref{tab:equipo}),
+      que comparten el modelo generativo y el de incrustaciones, y el servidor atiende una
+      sola conversación a la vez (Apartado~\ref{secc:fase3_punto_entrada}). En la nube, el
+      modelo generativo pasaría a ser un servicio aparte con GPU, el índice vectorial un
+      almacenamiento compartido y la conversación tendría que guardarse por usuario en lugar
+      de en el propio proceso. Desplegarlo fuera del equipo obligaría además a revisar el
+      RNF-02, ya que las preguntas saldrían de él. Ninguna de estas configuraciones se ha
+      medido, así que su rendimiento y su coste quedan por evaluar.}
 \end{itemize}
