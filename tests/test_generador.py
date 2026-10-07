@@ -541,7 +541,19 @@ def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
 
 @pytest.mark.parametrize(
     "saludo",
-    ["hola", "Hola!", "buenas", "Buenos días", "hola buenas tardes", "¿qué tal?, hola"],
+    [
+        "hola",
+        "Hola!",
+        "buenas",
+        "Buenos días",
+        "hola buenas tardes",
+        "¿qué tal?, hola",
+        # IT-139: saludos de dos palabras sin ninguna palabra de saludo suelta.
+        "Que tal",
+        "¿Qué tal?",
+        "q tal",
+        "¿Cómo estás?",
+    ],
 )
 def test_un_saludo_se_contesta_como_un_saludo(saludo):
     """Regresión del caso real: a un «hola», «no he encontrado información».
@@ -1713,3 +1725,15 @@ def test_si_el_servidor_muere_a_media_respuesta_se_cuenta_como_fallo(
         resultado = funcion("prompt", "un-modelo")
         # `generar_por_partes` es un generador: no se ejecuta hasta que se lee.
         list(resultado) if generador_bajo_prueba == "generar_por_partes" else None
+
+
+def test_las_palabras_del_saludo_de_dos_palabras_no_saludan_por_separado():
+    """«estas» o «tal» sueltos aparecen en preguntas de verdad (IT-139).
+
+    Por eso el par se exige entero, y por eso no entran en ``_SALUDO``:
+    ``cortesia_sin_contexto`` lo aplica sin exigir que todo sea cortesía, y
+    una pregunta sin fragmentos que empezara por «qué tal» recibiría un saludo.
+    """
+    assert cortesia("¿y estas?") is None
+    assert cortesia("¿Qué tal es la asignatura de Álgebra?") is None
+    assert cortesia_sin_contexto("¿Qué tal se vive en Jaén?") is None
