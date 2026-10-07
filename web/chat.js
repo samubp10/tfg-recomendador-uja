@@ -226,8 +226,8 @@ function abrirRespuesta() {
  * umbral de segundos habría dicho «redactando» aunque la búsqueda siguiera.
  *
  * Medido sobre el banco del sistema: una pregunta de un turno que
- * llega al modelo tarda 62,7 s de mediana y el percentil 90 pasa de los dos
- * minutos. Un minuto sin ninguna senal es indistinguible de una aplicacion
+ * llega al modelo tarda 44,6 s de mediana y el percentil 90 ronda los dos
+ * minutos. Esperar tanto sin ninguna senal es indistinguible de una aplicacion
  * colgada, asi que se cuenta el tiempo en voz alta y, pasado el umbral, se
  * explica que el modelo se ejecuta en local.
  *
