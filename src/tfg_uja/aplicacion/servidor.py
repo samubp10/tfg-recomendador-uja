@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import sys
@@ -213,8 +214,14 @@ def partes_de_la_respuesta(
     sistema: tuple[Any, Any, list[str], str],
     conversacion: Conversacion,
     turno: int = 0,
+    con_registro: bool = False,
 ) -> Iterator[dict[str, object]]:
-    """Recorre el sistema y va soltando lo que hay que mandar al navegador."""
+    """Recorre el sistema y va soltando lo que hay que mandar al navegador.
+
+    ``con_registro`` guarda cada turno en ``data/registro_chat.jsonl``. Es
+    para analizar las pruebas durante el desarrollo; por defecto no se guarda
+    ninguna conversación.
+    """
     tabla, incrustar, catalogo, distancia = sistema
     arranque = time.monotonic()
     # El ámbito se copia ANTES de preparar la consulta: preparar no lo cambia,
@@ -254,6 +261,8 @@ def partes_de_la_respuesta(
 
     def registrar(fallo: str = "") -> None:
         """Deja el turno en el registro con el estado tal como esté ahora."""
+        if not con_registro:
+            return
         if anotar_turno(
             linea_de_turno(
                 pregunta=pregunta,
@@ -328,7 +337,9 @@ def abrir_sistema() -> tuple[Any, Any, list[str], str]:
     )
 
 
-def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
+def manejador(
+    sistema: tuple[Any, Any, list[str], str], con_registro: bool = False
+) -> type:
     """Construye el manejador con el sistema ya abierto dentro."""
 
     class Manejador(SimpleHTTPRequestHandler):
@@ -461,7 +472,11 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
             self.end_headers()
             type(self).turno += 1
             for suceso in partes_de_la_respuesta(
-                pregunta, sistema, type(self).conversacion, type(self).turno
+                pregunta,
+                sistema,
+                type(self).conversacion,
+                type(self).turno,
+                con_registro=con_registro,
             ):
                 self.wfile.write(json.dumps(suceso, ensure_ascii=False).encode("utf-8"))
                 self.wfile.write(b"\n")
@@ -472,9 +487,16 @@ def manejador(sistema: tuple[Any, Any, list[str], str]) -> type:
     return Manejador
 
 
-def main() -> None:
+def main(argumentos: list[str]) -> None:
     """Levanta el servidor."""
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+    analizador = argparse.ArgumentParser(description="Asistente de titulaciones.")
+    analizador.add_argument(
+        "--registrar",
+        action="store_true",
+        help="guarda cada turno en data/registro_chat.jsonl (solo para desarrollo)",
+    )
+    opciones = analizador.parse_args(argumentos)
     if not INDICE.exists():
         print(
             f"No hay índice en {INDICE}. Se construye con "
@@ -482,10 +504,17 @@ def main() -> None:
         )
         raise SystemExit(1)
     print(f"Abriendo el índice de {INDICE}…")
-    atender = partial(manejador(abrir_sistema()), directory=str(WEB))
+    atender = partial(
+        manejador(abrir_sistema(), con_registro=opciones.registrar),
+        directory=str(WEB),
+    )
     # El servidor serial permite compartir una conversación sin carreras.
     servidor = HTTPServer(("127.0.0.1", PUERTO), atender)
     print(f"Asistente en http://127.0.0.1:{PUERTO}  (Ctrl+C para parar)")
+    estado = (
+        "activado (data/registro_chat.jsonl)" if opciones.registrar else "desactivado"
+    )
+    print(f"Registro de conversaciones: {estado}")
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:
@@ -493,4 +522,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

@@ -205,6 +205,7 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
         "hey",
         "ey",
         "que",
+        "q",
         "tal",
         "como",
         "estas",
@@ -245,6 +246,15 @@ _SALUDO: Final[frozenset[str]] = frozenset(
     {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
 )
 
+#: Saludos de dos palabras que por separado no lo son. «tal» o «estas» sueltos
+#: aparecen en preguntas ---«¿y estas?»---, así que no pueden ir en ``_SALUDO``,
+#: que ``cortesia_sin_contexto`` aplica sin exigir que todo sea cortesía.
+_SALUDO_DE_DOS_PALABRAS: Final[tuple[frozenset[str], ...]] = (
+    frozenset({"que", "tal"}),
+    frozenset({"q", "tal"}),
+    frozenset({"como", "estas"}),
+)
+
 #: Y las que lo convierten en una despedida o un agradecimiento.
 _DESPEDIDA: Final[frozenset[str]] = frozenset(
     {"gracias", "adios", "chao", "hasta", "luego", "pronto"}
@@ -258,7 +268,7 @@ def cortesia(pregunta: str) -> str | None:
         return None
     if dichas & _DESPEDIDA:
         return RESPUESTA_DESPEDIDA
-    if dichas & _SALUDO:
+    if dichas & _SALUDO or any(par <= dichas for par in _SALUDO_DE_DOS_PALABRAS):
         return RESPUESTA_SALUDO
     return None
 
