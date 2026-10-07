@@ -5,7 +5,6 @@
 Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 
-
 \section{Metodología de trabajo}
 
 Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
@@ -84,8 +83,6 @@ recuperado y su pertinencia.
 Esta actividad no puede automatizarse en la integración continua por dos motivos: necesita descargar modelos para la experimentación y comprobación de cuál es mejor (de varios cientos de megabytes) y su
 resultado no es un fallo que arreglar, sino una comparación que interpretar.
 Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
-
-
 
 
 \subsection{Criterios de finalización (Definición de Hecho)}
@@ -265,14 +262,12 @@ El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a 
 
 Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
-\textcolor{blue}{[sbp] Corregido, y revisado el resto del documento para que no vuelva a ocurrir.}
 
 Con estos trozos de información, se pasa al \textit{embedding} con el que se introducirán los datos en la base de datos vectorial.
 
 Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
 
 Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
-\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\,\% al 90\,\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
 
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
@@ -284,7 +279,6 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos trozos totales se ha dividido la unidad original (asignatura, salida o guía) y el índice del trozo de información.
 
 \input{diagramas/DiagramaModeloDatos.tex}
-
 
 
 \section{Fase 0: construcción de la colección documental}
@@ -305,7 +299,6 @@ Durante el estudio de la fuente de datos, se han documentado los siguientes obst
 \end{itemize}
 
 Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en los cinco registros DQA\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
-
 
 
 \subsection{Justificación del enfoque técnico}
@@ -364,7 +357,6 @@ Se basa en la automatización de navegadores con renderizado real.
   \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
 
-%[jccuevas] \paragraph{Decisión final}
 
 \paragraph{Decisión final}
 Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
@@ -377,9 +369,6 @@ rastreador (\textit{spider}) y la página web.
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
-
-\textcolor{blue}{[sbp] Corregido}
 
 \input{diagramas/DiagramaScraping.tex}
 
@@ -397,7 +386,6 @@ han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y C
 La figura que viene a continuación ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, nada más extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartado y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los diecisete rótulos los que pasan la limpieza y el resto se descarta.
 
 \input{diagramas/DiagramaAnatomiaGuia.tex}
-
 
 
 \subsection{Extracción de las salidas profesionales}
@@ -511,7 +499,6 @@ De cada configuración se registran las métricas para cada uno, tres, cinco, di
 Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera a repetir una y otra vez sin cambiar nada, daría los mismos resultados.
 
 
-
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
@@ -589,8 +576,6 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
 La fase 1 termina con la colección convertida en vectores. Lo que falta para que el sistema funcione correctamente son tres piezas, y esta fase las resuelve. La primera es dónde se guardan los vectores y con qué se consultan, que es lo que decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es qué modelo redacta la respuesta una vez recuperados los fragmentos que hacen falta y la última pieza es el \textit{pipeline} RAG que une las dos anteriores.
 
 
-
-
 \subsection[Selección de la base de datos vectorial]{Selección de la base de datos vectorial}
 \label{secc:fase2_vectordb}
 
@@ -610,10 +595,7 @@ Las tres candidatas tienen una licencia que casa con la de este proyecto, que es
 Se barajaron otras opciones pero se descartaron por estar en un estado de desarrollo muy prematuro, o por estar pensadas para corpus enormes.
 
 
-
 \subsubsection[Los umbrales fijados]{Los umbrales fijados}
-
-
 
 
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
@@ -655,15 +637,12 @@ Las titulaciones y asignaturas se guardan como listas paralelas y no como una so
 Por último, este índice registra tres datos importantes, como con qué modelo se calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos incrustados y con qué métrica de distancia consultarlo (similitud del coseno o euclídea). Esto se hace para que el buscador pueda verificar automáticamente al empezar que se están usando los mismos parámetros con los que se creó el índice para evitar errores.
 
 
-
 \subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
 \label{secc:fase2_conversacion}
 
 Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
 
 Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien lo cual no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
-
-
 
 
 \subsubsection{Estrategia de seguimiento del sujeto y resolución de anáforas}
@@ -683,7 +662,6 @@ Las tres estrategias (incrustar la pregunta sola, concatenar la
   anterior y deducir el sujeto) se midieron sobre 39 conversaciones derivadas de la
   propia colección.Las cifras están en el informe del experimento que
   recoge el repositorio\cite{repo_tfg}.
-
 
 
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
@@ -745,7 +723,6 @@ La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más
 Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca de la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
 
 
-
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
 \label{secc:fase2_pipeline}
 
@@ -771,7 +748,6 @@ Para plantear esta solución, el sistema utiliza una política de recuperación 
 
 
 Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
-
 
 
 \subsubsection{Estructura y composición del \textit{prompt}}
@@ -813,8 +789,6 @@ La tercera capa opera después de generar la respuesta como una validación del 
 las tres capas mecánicas actúan de forma secuencial y determinista, asegurando que cada una capture las anomalías que escapan a las demás. La distribución cuantitativa del rechazo obtenido por cada mecanismo se analiza en detalle en el Apartado~\ref{secc:resultados_rag_sistema}.
 
 
-
-
 \section[Fase 3: la aplicación web]{Fase 3: la aplicación web}
 \label{secc:fase3}
 
@@ -825,9 +799,6 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
-
-
-
 
 
 Para integrar el flujo de procesamiento en el servidor web existían dos opciones: ejecutarlo como un programa independiente en cada consulta o importarlo directamente como biblioteca dentro del servidor. Se eligió la segunda opción por dos motivos fundamentales:
@@ -892,7 +863,6 @@ También se han tendido en cuenta tres estados de la conversación que la interf
 \label{secc:fase3_accesibilidad}
 
 La interfaz cumple el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
-
 
 
 \subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
