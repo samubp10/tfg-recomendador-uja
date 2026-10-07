@@ -23,6 +23,9 @@ si alguno deja de cumplirse.
 * **4.1.2 Nombre, función y valor**: todo control tiene nombre accesible.
 * **3.1.1 Idioma** y **2.4.2 Título de la página**.
 
+El marcado se revisa en las dos páginas que sirve la aplicación: la del
+asistente y la de privacidad.
+
 **Qué NO comprueba, y hay que decirlo:** nada que exija ejecutar la página. El
 comportamiento con un lector de pantalla real, el recorrido del foco al abrir y
 cerrar el cuadro modal y el reflujo a 320 píxeles se ven en un navegador, no en
@@ -42,6 +45,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent.parent
 CSS = RAIZ / "web" / "estilos.css"
 HTML = RAIZ / "web" / "index.html"
+PRIVACIDAD = RAIZ / "web" / "privacidad.html"
 
 #: Letra base con la que se calculan los tamaños. Es el extremo pequeño del
 #: ``clamp()`` de la hoja: cualquier otro valor produce objetivos mayores, así
@@ -201,13 +205,18 @@ def revisar_marcado(html: str) -> list[str]:
 def main() -> int:
     """Ejecuta las comprobaciones y devuelve 0 si todas pasan."""
     css = CSS.read_text(encoding="utf-8")
-    html = HTML.read_text(encoding="utf-8")
+    # Cada fallo dice de qué página es: con dos, uno sin nombre no se encuentra.
+    marcado = [
+        f"{pagina.name}: {fallo}"
+        for pagina in (HTML, PRIVACIDAD)
+        for fallo in revisar_marcado(pagina.read_text(encoding="utf-8"))
+    ]
 
     bloques = [
         ("1.4.3 y 1.4.11 · contraste", revisar_contraste(css)),
         ("2.5.8 · tamaño del objetivo", revisar_objetivos()),
         ("2.4.7 · foco visible", revisar_foco(css)),
-        ("1.1.1, 2.4.2, 2.4.3, 3.1.1 y 4.1.2 · marcado", revisar_marcado(html)),
+        ("1.1.1, 2.4.2, 2.4.3, 3.1.1 y 4.1.2 · marcado", marcado),
     ]
     fallos = 0
     for titulo, problemas in bloques:
