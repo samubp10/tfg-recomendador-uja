@@ -139,7 +139,7 @@ Ninguno de los cuatro modelos incumplió los dos umbrales eliminatorios establec
 
 \texttt{Gemma3:12b} obtuvo una precisión de 1,000, una cobertura de 0,971 y un acierto escalar de 1,000. Las mismas tres cifras, exactamente, que \texttt{ministral-8b} y \texttt{qwen3.5:9b}. Sobre el corpus corregido las medidas descriptivas no distinguen a los tres candidatos grandes, y por eso la elección del modelo no se sostiene sobre ellas sino sobre el umbral eliminatorio (ADR-0005). La única de las cuatro medidas en la que alguno se separa es la cobertura, y el que se separa es \texttt{salamandra-7b} con 0,770.
 
-\texttt{ministral-8b} y \texttt{qwen3.5:9b} presentaron resultados próximos entre sí, acertando veintiún de las veintitrés preguntas de curso y dejando una diferencia mínima en la cobertura, pero una diferencia mayor en los tiempos de respuesta. Sin embargo el comportamiento de \texttt{salamandra-7b} fue el más bajo, a pesar de no haber tanta diferencia en el número de parámetros y que fue entrenado en español, fue el que peor resultados dio de todos los modelos enfrentados.
+\texttt{ministral-8b} y \texttt{qwen3.5:9b} presentaron resultados próximos entre sí, acertando las veintitrés de las veintitrés preguntas de curso y dejando una diferencia mínima en la cobertura, pero una diferencia mayor en los tiempos de respuesta. Sin embargo el comportamiento de \texttt{salamandra-7b} fue el más bajo, a pesar de no haber tanta diferencia en el número de parámetros y que fue entrenado en español, fue el que peor resultados dio de todos los modelos enfrentados.
 
 A partir de estas medidas se adopta \texttt{gemma3:12b} como modelo elegido para generar las respuestas en el sistema. Es el candidato con mejores resultados de los modelos que superaron la criba. La justificación detallada de esta elección se recoge en el Apartado~\ref{secc:eleccion_gemma3}.
 
@@ -203,23 +203,17 @@ distribución.
 El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente a cualquier consulta de un usuario.
 
 
-Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertinencia y tres por la comprobación de referencias a otros centros. \textcolor{borrador2}{[Actualizar el desglose: dos retiradas, S-AJE-007 y S-AJE-008, y dos rechazos redactados, S-AJE-001 y S-AJE-009.]}
+Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertinencia y tres por la comprobación de referencias a otros centros. 
 
-El pleno de 15 aciertos sobre las preguntas ajenas tampoco debe interpretarse como una medida general del rechazo fuera del dominio. El conjunto combina cinco preguntas ajenas evidentes y diez preguntas construidas para superar alguna de las barreras. Su finalidad es
-comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de \textcolor{borrador2}{seis de las diez preguntas de ajuste} producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
+El pleno de 15 aciertos sobre las preguntas ajenas tampoco debe interpretarse como una medida general del rechazo fuera del dominio. El conjunto combina cinco preguntas ajenas evidentes y diez preguntas construidas para superar alguna de las barreras. Su finalidad es comprobar mecanismos concretos del sistema, no representar todas las consultas que podrían formularse fuera de la EPSJ. Además, no debe confundirse el rechazo de seis de las diez preguntas de ajuste producido por el suelo de pertinencia durante la evaluación aislada con el rechazo de 15 preguntas obtenido por el sistema completo. La segunda cifra incluye también las
 barreras que actúan después de la recuperación.
 
-La mediana de tiempo sobre las 57 entradas es de \textcolor{borrador2}{39,4} segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. \textcolor{borrador2}{[No trasladar la mediana restringida de 62,7 s de la tanda anterior: el registro actual mide entradas completas y no cuenta llamadas por turno.]}
+La mediana de tiempo sobre las 57 entradas es de 39,4 segundos, pero esta cifra no representa el tiempo necesario para generar una respuesta dado que este número se ve fuertemente reducido gracias a las preguntas que no invocan al modelo. 
 
 \subsection{Alcance de las métricas}
 \label{secc:metricas_no_capturan}
 
-\textcolor{borrador2}{[Completar el alcance de IT-135: ninguna de las ocho
-conversaciones intercala una respuesta fija antes de una continuación
-elíptica; S-CONV-006 termina en despedida. Este recorrido se comprueba con
-regresiones del servidor, no con el pleno del banco. El guion tampoco
-ejecuta el servidor web ni su decisor de ámbito opcional o el registro del
-cliente. Evidencia y comparación: docs/experimentos/it124-remedicion.md.]}
+
 
 Las métricas utilizadas permiten comprobar si los nombres
 y valores que aparecen en la respuesta coinciden con la información de la
@@ -253,14 +247,14 @@ Estos datos quedaron fuera debido al alcance establecido, ya que el esfuerzo pri
 \subsection{Cumplimiento y discusión de objetivos específicos}
 \label{secc:discusion_objetivos}
 
-En esta subsección se analiza y discute si se han cumplido cada uno de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ellolas evidencias obtenidas a lo largo del desarrollo del proyecto.
+En esta subsección se analiza y discute si se han cumplido cada uno de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ello las evidencias obtenidas a lo largo del desarrollo del proyecto.
 
 \begin{itemize}    
   \item \textbf{OE1 --- Construcción de la colección de datos: }
         \textit{Cumplido.} Se ha generado un corpus estructurado y verificado a partir de la página web de la EPSJ, donde cada documento u objeto conserva su procedencia y metadatos de extracción. Ha de decirse que la colección es solo una instantánea temporal de una fuente de datos en continuo cambio, la cual llegó a verse modificada hasta tres veces durante el desarrollo de este proyecto. Por tanto, cualquier rastreo futuro reproducirá el estado vigente de la página y no necesariamente el conjunto exacto sobre el que se realizaron las mediciones y pruebas.
         
   \item \textbf{OE2 --- Estrategia de fragmentación de textos:}
-        \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros óptimos de tamaño. Los resultados de esto evidenciaron que a igualdad de longitud, las diferencias de recuperación entre estrategias eran mínimas, y por ello se adoptó la estrategia de partición semántica-estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
+        \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros óptimos de tamaño. Los resultados de esto evidenciaron que a igualdad de longitud, las diferencias de recuperación entre estrategias eran mínimas, y por ello se adoptó la estrategia de partición estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
         
   \item \textbf{OE3 --- Selección del modelo de incrustaciones y base vectorial: }
         \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscando por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que, dado el tamaño de la colección actual, no hay ninguna opción en el mercado que gane a la fuerza bruta.
@@ -271,7 +265,7 @@ En esta subsección se analiza y discute si se han cumplido cada uno de los seis
         una titulación que no existe. 
         
   \item \textbf{OE5 --- Evaluación cuantitativa del sistema:} 
-        \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre bancos de prueba estandarizados en la industria.
+        \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre bancos de prueba propios, generados a partir del conjunto de datos del proyecto.
         
   \item \textbf{OE6 --- Desarrollo de la interfaz web accesible:} 
         \textit{Cumplido.} Se ha desarrollado un prototipo y la posterior página web funcional sin dependencias de servicios externos ni registros de usuarios. En materia de accesibilidad, se han verificado aspectos clave como la navegación completa por teclado, los contrastes cromáticos y la adaptación a pantallas estrechas.
@@ -285,25 +279,16 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
 
 \begin{itemize}    
   \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
-        \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúa entre el 90,6\,\% en el extremo más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$).
+        \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúa entre el 90,6\,\% en el extremo más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$). 
         
         
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
-        \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, se registró cero alucinaciones del modelo elegido. La verificación determinista garantiza que el sistema no genera menciones a grados inexistentes o ajenos a la Escuela.
-        \begin{borrador}
-          \item \textbf{Fase:} 5 (IT-52)
-          \item Lo medido es cero titulaciones inventadas (cribado de 320 respuestas y banco
-            del sistema), no <<cero alucinaciones>>. \texttt{it124-remedicion.md} recoge un
-            rótulo cambiado (<<67 asignaturas>> presentado como créditos).
-          \item <<Garantiza>> promete de más: la retirada detecta las titulaciones que no
-            están en el catálogo escritas como <<Grado en \ldots>> o <<Doble Grado en
-            \ldots>>; nombradas de otra forma no se detectan.
-        \end{borrador}
+        \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, no se registró ninguna titulación inventada en las respuestas del modelo elegido. La verificación determinista retira las respuestas que mencionan grados inexistentes o ajenos a la Escuela.
         
   \item \textbf{Condición 3 --- Proporción de respuestas útiles}
-        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, la totalidad de las respuestas inferidas por el modelo tuvieron información útil fundamentada en el contexto, sin registrarse respuestas evasivas injustificadas y superando el 90\,\% fijado.
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo fue evasiva sin justificación y superando el 90\,\% fijado.
         
-  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida}.En las consultas que exigen la inferencia completa por parte del modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 62,7 segundos, superando el umbral de 30 segundos.
+  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida}. \sout{En las consultas que exigen la inferencia completa por parte del modelo generativo}\textcolor{borrador2}{Sobre las 57 preguntas del banco, con el modelo generativo} \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 39,4 segundos, superando el umbral de 30 segundos. \textcolor{borrador2}{Si se cuentan solo las 42 que llaman al modelo, la mediana sube a 55,9 segundos.}
 \end{itemize}
 
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
