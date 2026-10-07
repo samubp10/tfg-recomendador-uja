@@ -244,6 +244,14 @@ El paso 4 abre el asistente en **<http://127.0.0.1:8000>**. Necesita que
 existan `data/indice_lance` y `data/grados.json`, y que Ollama esté
 respondiendo; si falta el índice, el propio programa lo dice y no arranca.
 
+Por defecto el servidor no guarda ninguna conversación. Para analizar las pruebas
+durante el desarrollo se arranca con `--registrar`, que añade cada turno a
+`data/registro_chat.jsonl`:
+
+```console
+py -m tfg_uja.aplicacion.servidor --registrar
+```
+
 También hay un cliente de consola, útil para probar el flujo sin navegador:
 
 ```console
