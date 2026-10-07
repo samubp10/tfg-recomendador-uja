@@ -26,6 +26,7 @@ _spec.loader.exec_module(acc)
 
 CSS_REAL = (RAIZ / "web" / "estilos.css").read_text(encoding="utf-8")
 HTML_REAL = (RAIZ / "web" / "index.html").read_text(encoding="utf-8")
+PRIVACIDAD_REAL = (RAIZ / "web" / "privacidad.html").read_text(encoding="utf-8")
 
 
 # ------------------------------------------------------- la fórmula de contraste
@@ -192,3 +193,18 @@ def test_el_programa_falla_y_enumera_los_problemas(
     assert "FALLA" in salida
     assert "un control diminuto" in salida
     assert "1 problemas" in salida
+
+
+def test_la_pagina_de_privacidad_pasa_el_marcado():
+    assert acc.revisar_marcado(PRIVACIDAD_REAL) == []
+
+
+def test_un_fallo_de_marcado_dice_en_que_pagina_esta(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: Any
+):
+    rota = tmp_path / "privacidad.html"
+    rota.write_text('<html><body><img src="x.png"></body></html>', encoding="utf-8")
+    monkeypatch.setattr(acc, "PRIVACIDAD", rota)
+
+    assert acc.main() == 1
+    assert "privacidad.html: imagen sin alt" in capsys.readouterr().out
