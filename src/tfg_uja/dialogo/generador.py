@@ -691,21 +691,30 @@ def responder_por_partes(
     # por turno: son los mismos fragmentos para todas las partes.
     del_plan = atributos_del_contexto([f.texto for f in fragmentos])
     acumulado = ""
-    pendiente = ""
     # Conserva la asignatura entre frases para atribuirle los datos que no repiten su
     # nombre.
     sujeto: str | None = None
-    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
-    # cola al agotarse el tope: ver mas abajo.
-    hubo_frontera = False
-    # IT-140: el modelo abre con «¡Hola!» respuestas que nadie ha saludado (9 de
-    # las 57 del banco del 06/09); a mitad de conversación es un saludo más. Se
-    # retiene y solo sale si no llega nada detrás.
-    saluda = bool(palabras(pregunta) & _SALUDO)
-    retenido = ""
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
+    for unidad in _sin_saludo_inicial(_unidades_de(trozos), pregunta):
+        unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
+        sujeto = _sujeto_tras(unidad, del_plan, sujeto)
+        acumulado += unidad
+        if catalogo and titulaciones_inventadas(acumulado, catalogo):
+            _anotar_retirada(pregunta, acumulado, catalogo, traza)
+            yield None
+            yield RESPUESTA_TITULACION_INVENTADA
+            return
+        yield unidad
+
+
+def _unidades_de(trozos: Iterator[str]) -> Iterator[str]:
+    """Junta los trozos del modelo en unidades que acaban en frontera segura."""
+    pendiente = ""
+    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
+    # cola al agotarse el tope: ver mas abajo.
+    hubo_frontera = False
     for trozo in trozos:
         # Al agotar el límite, descarta el resto incompleto solo si hubo una frontera;
         # mantiene el criterio de la respuesta sin flujo.
@@ -714,33 +723,30 @@ def responder_por_partes(
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
         hubo_frontera = hubo_frontera or bool(unidades)
-        for unidad in unidades:
-            if not acumulado:
-                unidad = unidad.lstrip()
-                if not unidad:
-                    continue
-                if not saluda and cortesia(unidad) == RESPUESTA_SALUDO:
-                    retenido = unidad
-                    continue
-            unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
-            sujeto = _sujeto_tras(unidad, del_plan, sujeto)
-            acumulado += unidad
-            if catalogo and titulaciones_inventadas(acumulado, catalogo):
-                _anotar_retirada(pregunta, acumulado, catalogo, traza)
-                yield None
-                yield RESPUESTA_TITULACION_INVENTADA
-                return
-            yield unidad
-
+        yield from unidades
     # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
     if pendiente:
-        pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta, sujeto)
-        acumulado += pendiente
-        if catalogo and titulaciones_inventadas(acumulado, catalogo):
-            _anotar_retirada(pregunta, acumulado, catalogo, traza)
-            yield None
-            yield RESPUESTA_TITULACION_INVENTADA
-            return
         yield pendiente
-    if not acumulado and retenido:
+
+
+def _sin_saludo_inicial(unidades: Iterator[str], pregunta: str) -> Iterator[str]:
+    """Retiene el «¡Hola!» con el que abre el modelo si nadie lo ha saludado.
+
+    IT-140: el modelo abría así 6 de las 42 respuestas que redactó en el banco del
+    06/09, y a mitad de conversación se lee como un saludo más. Lo retenido solo
+    sale si no llega nada detrás.
+    """
+    saluda = bool(palabras(pregunta) & _SALUDO)
+    retenido = ""
+    for unidad in unidades:
+        unidad = unidad.lstrip()
+        if not unidad:
+            continue
+        if not saluda and cortesia(unidad) == RESPUESTA_SALUDO:
+            retenido = unidad
+            continue
+        yield unidad
+        yield from unidades
+        return
+    if retenido:
         yield retenido
