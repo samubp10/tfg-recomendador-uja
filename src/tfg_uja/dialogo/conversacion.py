@@ -24,6 +24,10 @@ PALABRAS_VACIAS: Final[frozenset[str]] = frozenset("""
     unas uno unos y ya
     """.split())
 
+#: Demostrativos con los que una pregunta señala lo que se acaba de decir. Solo
+#: los plurales: al normalizar, «esta» no se distingue de «está».
+DEMOSTRATIVOS: Final[frozenset[str]] = frozenset({"estas", "estos", "esas", "esos"})
+
 # Un ordinal indica posición en el plan y hereda el asunto de la pregunta anterior.
 ORDINALES: Final[frozenset[str]] = frozenset("""
     primer primero primera segundo segunda tercer tercero tercera cuarto
@@ -146,7 +150,14 @@ class Conversacion:
         if len(exactas) >= 2:
             self._ambito = list(exactas)
             ambito = exactas
-        abierta = decidida == TODAS and len(exactas) < 2
+        # IT-142: «¿Y cómo se evalúan estas asignaturas?» señala lo anterior y no la
+        # oferta entera, aunque el decisor diga TODAS. Abierta, se buscaba sin suelo
+        # de pertinencia y llegaban 20 fragmentos para un dato que no está.
+        abierta = (
+            decidida == TODAS
+            and len(exactas) < 2
+            and not palabras(pregunta) & DEMOSTRATIVOS
+        )
 
         texto = pregunta
         if not contenido(pregunta, self.catalogo) and self._predicado:
