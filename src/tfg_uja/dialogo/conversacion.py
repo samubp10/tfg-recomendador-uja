@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Final
 
 from tfg_uja.dialogo.ambito import CAMBIA, FALLO, NINGUNA, SIGUE, TODAS, Decisor
+from tfg_uja.dialogo.generador import respuesta_fija
 from tfg_uja.dialogo.recuperador import palabras_distintivas
 from tfg_uja.text_cleaner import normalizar, palabras
 
@@ -177,25 +178,25 @@ class Conversacion:
             decision=decidida,
         )
 
-    def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
+    def anotar(self, pregunta: str, respuesta: str) -> None:
         """Registra un turno y actualiza de qué se está hablando."""
+        decidido = self._decidido
+        self._decidido = None
+        # IT-140: un saludo, una despedida o un centro ajeno no son un turno. Ni
+        # entran en las preguntas que se le recuerdan al modelo ni cambian el
+        # sujeto. Decidirlo aquí vale para el servidor, la consola y el banco.
+        if respuesta_fija(pregunta) is not None:
+            return
         self._preguntas.append(pregunta)
         # El corte por el final también vacía la lista cuando la ventana vale cero.
         del self._preguntas[: len(self._preguntas) - self.turnos_recordados]
         self._ultimo_turno = (pregunta, respuesta)
 
-        # Un saludo no cambia el predicado que heredará la siguiente pregunta.
-        if (
-            cambia_ambito
-            and contenido(pregunta, self.catalogo)
-            and not recorta_lo_anterior(pregunta)
-        ):
+        if contenido(pregunta, self.catalogo) and not recorta_lo_anterior(pregunta):
             self._predicado = pregunta
 
         # Aplica el respaldo si el decisor falló en este turno, aunque esté configurado.
-        decidido = self._decidido
-        self._decidido = None
-        if decidido is not None or not cambia_ambito:
+        if decidido is not None:
             return
         nuevo = titulaciones_de_la_pregunta(
             pregunta, self.catalogo
