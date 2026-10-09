@@ -1762,3 +1762,46 @@ def test_las_palabras_del_saludo_de_dos_palabras_no_saludan_por_separado():
     assert cortesia("¿Qué pasa si suspendo?") is None
     assert cortesia("¿Cómo va la matrícula?") is None
     assert cortesia("¿Cómo está organizado el grado?") is None
+
+
+# --- IT-140: el «¡Hola!» con el que abre el modelo ---
+
+
+def _entregado(monkeypatch, pregunta: str, dicho: str, flujo: bool = True) -> str:
+    """Lo que le llega al estudiante si el modelo escribe ``dicho``."""
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+    monkeypatch.setattr(generador, "generar", lambda *a, **k: dicho)
+    contexto = [fragmento("Álgebra", "Matrices y determinantes.")]
+    partes = generador.responder_por_partes(pregunta, contexto, "m", flujo=flujo)
+    return "".join(p or "" for p in partes)
+
+
+@pytest.mark.parametrize("flujo", [True, False])
+def test_el_saludo_con_el_que_abre_el_modelo_no_llega_si_nadie_saludo(
+    monkeypatch, flujo
+) -> None:
+    """Prueba en vivo del 08/10 (H-B3): tras «hola», una tercera bienvenida.
+
+    El modelo abría así 6 de las 42 respuestas que redactó en la tanda del
+    06/09, casi todas de un solo turno: no lo provoca el historial.
+    """
+    dicho = "¡Hola!\n\nÁlgebra trata de matrices y determinantes."
+
+    entregado = _entregado(monkeypatch, "¿Qué se ve en Álgebra?", dicho, flujo)
+
+    assert entregado == "Álgebra trata de matrices y determinantes."
+
+
+def test_si_el_estudiante_saluda_el_modelo_puede_devolverle_el_saludo(
+    monkeypatch,
+) -> None:
+    dicho = "¡Hola! Álgebra trata de matrices."
+
+    entregado = _entregado(monkeypatch, "Hola, ¿qué se ve en Álgebra?", dicho)
+
+    assert entregado == dicho
+
+
+def test_un_saludo_sin_nada_detras_si_se_entrega(monkeypatch) -> None:
+    """Retenerlo no puede dejar al estudiante sin respuesta."""
+    assert _entregado(monkeypatch, "¿Qué se ve en Álgebra?", "¡Hola!") == "¡Hola!"
