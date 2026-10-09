@@ -146,20 +146,24 @@ R@3, **0,906** para R@5 y **0,968** para R@10. Lo que falta se mide contra ese
 techo, no contra 1.
 
 **Dónde se paga cada coste.** El factor más llamativo de la tabla —que el
-grande tarda ocho veces más en incrustar la colección— es justo el que **casi no
+grande tarda más de cinco veces más en incrustar la colección— es justo el que **casi no
 se paga**: reindexar es un proceso por lotes que se lanza cuando cambia el
-dataset, y que tarde uno u ocho minutos no lo nota nadie. Lo que se paga en cada
+dataset, y que tarde dos o diez minutos no lo nota nadie. Lo que se paga en cada
 consulta es incrustar la pregunta, que son milisegundos en los dos, y **tener el
 modelo residente en memoria**.
 
 | Operación | Cada cuánto | e5-small | e5-large |
 | --------- | ----------- | -------: | -------: |
-| Incrustar la colección | Al regenerar el dataset | 61 s | 486 s |
+| Incrustar la colección | Al regenerar el dataset | 108 s | 604 s |
 | Incrustar una consulta | En cada pregunta | ~ms | ~ms |
-| Recorrer el índice | En cada pregunta | 1,2 MB | 3,1 MB |
+| Recorrer el índice | En cada pregunta | 2,0 MB | 5,5 MB |
 | Tener el modelo cargado | Mientras el servicio viva | ~0,5 GB | ~2,2 GB |
 
-🔴 Por tanto **el argumento no es que el grande sea ocho veces más lento**, que
+Los tiempos de incrustar la colección son los de la tabla de la decisión, sobre
+1.334 fragmentos. Los tamaños del índice están calculados, no medidos en disco:
+1.334 vectores de 384 y de 1.024 componentes en coma flotante de 4 bytes.
+
+🔴 Por tanto **el argumento no es que el grande sea más de cinco veces más lento**, que
 mide lo que menos importa. Es que en la máquina donde este sistema se ejecuta el
 recuperador tiene que convivir con el modelo generativo, y 2,2 GB frente a
 0,5 GB sobre 16 GB es la diferencia entre que quepa y que no. **Es un coste de
