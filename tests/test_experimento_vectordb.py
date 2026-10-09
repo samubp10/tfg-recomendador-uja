@@ -971,6 +971,9 @@ class _ColeccionFalsa:
         for i, identificador in enumerate(ids):
             self.filas.append((identificador, list(embeddings[i]), metadatas[i]))
 
+    def count(self):
+        return len(self.filas)
+
     def query(self, query_embeddings, n_results, where=None):
         filas = self.filas
         if where:
@@ -1044,6 +1047,20 @@ def test_si_chroma_no_expone_su_configuracion_el_experimento_no_se_cae():
 
     assert "cosine" in modo
     assert "NO VERIFICABLE" in modo
+
+
+def test_el_numero_de_vectores_sale_de_la_coleccion(monkeypatch):
+    """H8 de la auditoría del 08/10/2026 (IT-143): estaba escrito «1.334».
+
+    Era el corpus con el que se midió, pero repetir el experimento sobre el de
+    1.922 fragmentos habría dejado en el bloque del ADR-0004 una cifra falsa.
+    """
+    coleccion = _ColeccionFalsa()
+    monkeypatch.setattr(coleccion, "count", lambda: 1922)
+
+    modo = experimento._modo_chroma(coleccion)
+
+    assert "si a 1.922 vectores responde" in modo
 
 
 def test_si_chroma_expone_su_configuracion_se_lee():
