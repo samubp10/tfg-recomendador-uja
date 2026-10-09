@@ -311,8 +311,9 @@ def partes_de_la_respuesta(
         registrar(str(fallo))
         yield {"error": str(fallo)}
         return
-    # Anota el texto entregado; una respuesta fija no modifica el ámbito.
-    conversacion.anotar(pregunta, entero, cambia_ambito=fija is None)
+    # Anota el texto entregado; la conversación descarta ella misma las respuestas
+    # fijas.
+    conversacion.anotar(pregunta, entero)
     # Se registra DESPUÉS de anotar, que es donde la conversación fija de qué
     # titulación se está hablando: registrarlo antes guardaría siempre el
     # ámbito del turno anterior.
@@ -408,6 +409,11 @@ def manejador(
             if self.path == "/api/saludo":
                 # El saludo tiene ruta propia para no registrar una pregunta que el
                 # visitante no escribió.
+
+                # IT-140: la página lo pide una vez al cargarse, así que recargar
+                # empieza una conversación nueva y no hereda una que ya no se ve.
+                type(self).conversacion.olvidar()
+                type(self).turno = 0
                 self.responder_json({"respuesta": RESPUESTA_SALUDO})
                 return
             if self.path != "/api/sugerencias":
