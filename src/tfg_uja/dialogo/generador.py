@@ -698,6 +698,11 @@ def responder_por_partes(
     # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
     # cola al agotarse el tope: ver mas abajo.
     hubo_frontera = False
+    # IT-140: el modelo abre con «¡Hola!» respuestas que nadie ha saludado (9 de
+    # las 57 del banco del 06/09); a mitad de conversación es un saludo más. Se
+    # retiene y solo sale si no llega nada detrás.
+    saluda = bool(palabras(pregunta) & _SALUDO)
+    retenido = ""
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
@@ -710,6 +715,13 @@ def responder_por_partes(
         unidades, pendiente = partir_en_unidades(pendiente)
         hubo_frontera = hubo_frontera or bool(unidades)
         for unidad in unidades:
+            if not acumulado:
+                unidad = unidad.lstrip()
+                if not unidad:
+                    continue
+                if not saluda and cortesia(unidad) == RESPUESTA_SALUDO:
+                    retenido = unidad
+                    continue
             unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
             sujeto = _sujeto_tras(unidad, del_plan, sujeto)
             acumulado += unidad
@@ -730,3 +742,5 @@ def responder_por_partes(
             yield RESPUESTA_TITULACION_INVENTADA
             return
         yield pendiente
+    if not acumulado and retenido:
+        yield retenido
