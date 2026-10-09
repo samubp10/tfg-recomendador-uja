@@ -252,8 +252,8 @@ def partes_de_la_respuesta(
             ambito=consulta.ambito,
         )
     # Las fuentes salen antes que el texto y no después: se conocen en cuanto
-    # termina la recuperación, y el modelo tarda un minuto en dar la primera
-    # frase. Esperar al final sería tener el dato guardado sin motivo.
+    # termina la recuperación, y el modelo tarda varios segundos más en dar la
+    # primera frase. Esperar al final sería tener el dato guardado sin motivo.
     if fragmentos:
         yield {"fuentes": fuentes_de(fragmentos)}
     entero = ""
