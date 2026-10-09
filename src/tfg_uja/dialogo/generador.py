@@ -531,6 +531,50 @@ AVISO_RESPUESTA_CORTADA: Final[str] = (
 )
 
 
+#: IT-141: lo que se añade cuando la pregunta nombra una asignatura cuya guía no
+#: ha entrado entera en el contexto. «¿Qué tal es la asignatura de Álgebra?»
+#: recibió «Aquí tienes el temario» con cuatro de sus seis temas (08/10).
+AVISO_GUIA_INCOMPLETA: Final[str] = (
+    "\n\n*No he podido consultar entera la guía docente de {asignaturas}, así "
+    "que puede faltar parte de su contenido. La tienes completa en la web de la "
+    "Escuela.*"
+)
+
+
+#: Lo que se pregunta del plan sale del encabezado, que llevan todas las partes de
+#: la guía: para eso no hace falta tenerla entera.
+_DATOS_DEL_PLAN: Final[frozenset[str]] = frozenset(
+    {"creditos", "credito", "ects", "curso", "cuatrimestre", "semestre"}
+)
+
+
+def guias_incompletas(pregunta: str, fragmentos: list[Fragmento]) -> list[str]:
+    """Asignaturas que nombra la pregunta y de cuya guía falta alguna parte.
+
+    Completar la guía no es la salida: las hay de hasta 49 fragmentos, que no
+    caben en la ventana del modelo. Lo que se puede garantizar es no presentar
+    como entero lo que no lo es.
+    """
+    if palabras(pregunta) & _DATOS_DEL_PLAN:
+        return []
+    vistas: dict[tuple[str, tuple[str, ...]], set[int]] = {}
+    totales: dict[tuple[str, tuple[str, ...]], int] = {}
+    for f in fragmentos:
+        if f.origen == "guia":
+            unidad = (f.nombre, tuple(f.grados))
+            vistas.setdefault(unidad, set()).add(f.chunk_index)
+            totales[unidad] = f.total_chunks
+    dicho = normalizar(pregunta)
+    return sorted(
+        {
+            nombre
+            for (nombre, grados), partes in vistas.items()
+            if len(partes) < totales[(nombre, grados)]
+            and re.search(rf"(?<!\w){re.escape(normalizar(nombre))}(?!\w)", dicho)
+        }
+    )
+
+
 def cerrar_en_frase_completa(texto: str) -> str:
     """Recorta un texto hasta su última frase o línea terminada."""
     cierres = [texto.rfind(c) for c in (".", "!", "?", "\n")]
@@ -726,6 +770,10 @@ def responder_por_partes(
             yield RESPUESTA_TITULACION_INVENTADA
             return
         yield unidad
+    incompletas = guias_incompletas(pregunta, fragmentos)
+    if acumulado and incompletas:
+        nombres = " y de ".join(f"«{nombre}»" for nombre in incompletas)
+        yield AVISO_GUIA_INCOMPLETA.format(asignaturas=nombres)
 
 
 def _unidades_de(trozos: Iterator[str]) -> Iterator[str]:
