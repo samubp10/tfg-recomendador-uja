@@ -320,13 +320,21 @@ def test_no_se_pregunta_por_menciones_a_quien_no_las_tiene(tabla):
         assert not any("menciones" in p for p in propias)
 
 
-def test_de_la_titulacion_sin_asignaturas_solo_se_ofrece_la_ficha(tabla):
-    """Al doble grado internacional la EPSJ no le publica ni una asignatura."""
-    preguntas = sugerencias_para(tabla, [SCHMALKALDEN], CATALOGO)
-    suyas = set(preguntas) & preguntas_de(SCHMALKALDEN)
-    assert suyas == {
-        f"¿Cuántas asignaturas tiene el {SCHMALKALDEN} y cómo se reparten por curso?",
-    }
+def test_de_la_titulacion_sin_asignaturas_no_se_ofrece_nada_suyo(tabla):
+    """Al doble grado internacional la EPSJ no le publica ni una asignatura.
+
+    H-B7 de la prueba en vivo del 08/10/2026 (IT-143): se le ofrecía cuántas
+    asignaturas tiene y cómo se reparten, la respuesta era «no tengo
+    información» y la primera sugerencia volvía a ser la misma pregunta. Se
+    ofrecen las de otras titulaciones.
+    """
+    for desplazamiento in range(len(PLANTILLAS)):
+        preguntas = sugerencias_para(tabla, [SCHMALKALDEN], CATALOGO, desplazamiento)
+        assert not set(preguntas) & preguntas_de(SCHMALKALDEN)
+        assert preguntas
+    for desplazamiento in range(len(PLANTILLAS)):
+        arranque = sugerencias_para(tabla, [], CATALOGO, desplazamiento)
+        assert SCHMALKALDEN not in nombradas(arranque)
 
 
 def test_solo_se_ofrece_lo_que_el_indice_respalda(tabla):
