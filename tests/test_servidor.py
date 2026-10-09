@@ -369,6 +369,27 @@ def test_cancelar_desde_el_navegador_no_deja_una_traza(
     assert cerrada == [True]
 
 
+def test_la_pregunta_recien_hecha_no_se_vuelve_a_ofrecer(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
+) -> None:
+    """H-B7 de la prueba en vivo del 08/10/2026 (IT-143).
+
+    Tras pulsar la sugerencia del doble grado con Schmalkalden, la primera que
+    se devolvía era la misma pregunta.
+    """
+    pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática?"
+    monkeypatch.setattr(servidor, "responder_por_partes", lambda *a, **k: iter(["Sí."]))
+    monkeypatch.setattr(
+        servidor, "sugerencias_para", lambda *a, **k: [pregunta, "¿Y sus salidas?"]
+    )
+
+    sucesos = list(
+        servidor.partes_de_la_respuesta(pregunta, SISTEMA_FALSO, ConversacionFalsa())
+    )
+
+    assert {"sugerencias": ["¿Y sus salidas?"]} in sucesos
+
+
 def test_el_manejador_emite_una_linea_json_por_parte(
     monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
 ) -> None:
