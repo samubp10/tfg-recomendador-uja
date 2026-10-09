@@ -5,7 +5,7 @@
 
 
 
-Este capítulo presenta los resultados obtenidos durante las diferentes mediciones de los diferentes experimentos del sistema. Primero se describe la colección documental generada y su fragmentación, después la representación mediante incrustaciones y la indexación en la base de datos vectorial, y por último, se muestran los resultados de la evaluación del sistema RAG completo. La sección final discute el alcance de los resultados y las \sout{conclusiones que pueden extraerse de la evidencia obtenida}\textcolor{borrador2}{conclusiones que pueden extraerse de la evidencia obtenida.}
+Este capítulo presenta los resultados obtenidos durante las diferentes mediciones de los diferentes experimentos del sistema. Primero se describe la colección documental generada y su fragmentación, después la representación mediante incrustaciones y la indexación en la base de datos vectorial, y por último, se muestran los resultados de la evaluación del sistema RAG completo. La sección final discute el alcance de los resultados y las conclusiones que pueden extraerse de la evidencia obtenida.
 
 Todas las cifras proceden de la ejecución de los verificadores y experimentos ejecutados sobre el corpus completo correspondiente al curso 2026-27. En los experimentos de evaluación se especifica también el conjunto de preguntas utilizado y su tamaño. El Capítulo~\ref{cap:materialesymetodos} describe el procedimiento seguido y las comparaciones realizadas, este capítulo se reserva para presentar los resultados y discutir su alcance.
 
@@ -14,14 +14,14 @@ Todas las cifras proceden de la ejecución de los verificadores y experimentos e
 
 La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. \sout{Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo.}\textcolor{borrador2}{De las 86 restantes, 81 no se habían publicado en la fecha de recogida y 5 se publicaron con la plantilla vacía.} El reparto de estas guías faltantes \sout{no es uniforme, se concentran}\textcolor{borrador2}{no es uniforme: se concentran} en las titulaciones nuevas que todavía no se han completado, \sout{como el Grado en Inteligencia Artificial y Ciberseguridad, del que la Escuela no había publicado todavía las guías de tercero y cuarto curso en la fecha de recogida}\textcolor{borrador2}{como el Grado en Ingeniería Geomática y Topográfica (plan 2025), con 30, y el Grado en Inteligencia Artificial y Ciberseguridad, con 22, del que en la fecha de recogida no se habían publicado las guías de cuarto curso ni las de las optativas, y cuatro de las de tercero se publicaron vacías}. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. De las 86 restantes, 81 no se habían publicado en la fecha de recogida y 5 se publicaron con la plantilla vacía. El reparto de estas guías faltantes no es uniforme: se concentran en las titulaciones nuevas que todavía no se han completado, como el Grado en Ingeniería Geomática y Topográfica (plan 2025), con 30, y el Grado en Inteligencia Artificial y Ciberseguridad, con 22, del que en la fecha de recogida no se habían publicado las guías de cuarto curso ni las de las optativas, y cuatro de las de tercero se publicaron vacías. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
-Sobre esta recopilación de información, el fragmentador produce 1.922 fragmentos repartidos en 471 unidades, de las cuales 63 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.719 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos \sout{van desde los 96 a 900 caracteres}\textcolor{borrador2}{van desde los 96 hasta los 900 caracteres}, con una mediana de 846 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
+Sobre esta recopilación de información, el fragmentador produce 1.922 fragmentos repartidos en 471 unidades, de las cuales 63 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.719 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 hasta los 900 caracteres, con una mediana de 846 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
-Estas cifras recogidas no proceden de una fuente uniforme, \sout{lo que ha llevado a muchos problemas de recogida de datos durante el desarrollo de este proyecto}\textcolor{borrador2}{lo que complica su recogida}. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}. El
+Estas cifras recogidas no proceden de una fuente uniforme, lo que complica su recogida. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}. El
   Apartado~\ref{secc:fase0_situacion} describe estos obstáculos y cómo se trataron.
 
-La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que \sout{finaliza en .htmlSon las 288}\textcolor{borrador2}{finaliza en \texttt{.html}. Son las 288}, es decir, la totalidad de
+La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que finaliza en \texttt{.html}. Son las 288, es decir, la totalidad de
   las publicadas, ninguna se sirve ya en HTML.
 
 La segunda anomalía afecta a la estructura de las tablas de asignaturas, y es que esta no es la misma en todos los planes. Un ejemplo de ello es que los dobles grados rotulan «carácter» la columna
@@ -29,7 +29,7 @@ que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples es
 
 La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas coincida con el de la misma asignatura en los grados base.
 
-La cuarta anomalía afecta a las guías docentes, ya que \sout{de las 288 publicadas, cinco traen}\textcolor{borrador2}{además de las 288 con contenido, hay cinco publicadas que traen} la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
+La cuarta anomalía afecta a las guías docentes, ya que además de las 288 con contenido, hay cinco publicadas que traen la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
 
 
 La quinta son irregularidades menores, descritas una a una en el
@@ -45,7 +45,7 @@ La Tabla~\ref{tab:caracterizacion_corpus} recoge la composición de la
 
 
 
-\sout{También queda que estos datos son}\textcolor{borrador2}{Hay que tener en cuenta que estos datos son} una fotografía temporal del curso 2026/27 (extraídos el 16/08/2026). Debido a que la web de la EPSJ cambia y completa su oferta progresivamente, volver a ejecutar el proceso de extracción devolverá el estado más actual de la web, que no será el mismo que este.
+Hay que tener en cuenta que estos datos son una fotografía temporal del curso 2026/27 (extraídos el 16/08/2026). Debido a que la web de la EPSJ cambia y completa su oferta progresivamente, volver a ejecutar el proceso de extracción devolverá el estado más actual de la web, que no será el mismo que este.
 
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
@@ -64,7 +64,7 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-\sout{La tabla de arriba contesta}\textcolor{borrador2}{La tabla anterior contesta} a la duda que aborda esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
+La tabla anterior contesta a la duda que aborda esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
 
 Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo.
 
@@ -287,15 +287,15 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
         \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, no se registró ninguna titulación inventada en las respuestas del modelo elegido. La verificación determinista retira las respuestas que mencionan grados inexistentes o ajenos a la Escuela.
         
-  \item \textbf{Condición 3 --- \sout{Proporción de respuestas útiles}\textcolor{borrador2}{Proporción de respuestas no evasivas}}
-        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo \sout{fue evasiva sin justificación y superando el}\textcolor{borrador2}{fue evasiva sin justificación, lo que supera el} 90\,\% fijado.
+  \item \textbf{Condición 3 --- Proporción de respuestas útiles}
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo fue evasiva sin justificación, superando el 90\,\% fijado.
         
   \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida}. Sobre las 57 preguntas del banco, con el modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 39,4 segundos, superando el umbral de 30 segundos.
 \end{itemize}
 
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
 
-\sout{En consecuencia de lo visto anteriormente}\textcolor{borrador2}{Como consecuencia de lo anterior}, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
+En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
 
 
 \subsection[Comparación con los asistentes revisados]{Comparación con los asistentes revisados}
@@ -303,7 +303,7 @@ El incumplimiento de la cuarta condición es la consecuencia directa del requisi
 
 La evaluación del sistema no debe limitarse a comprobar si
 cumple la hipótesis planteada, sino que también es necesario valorar qué aporta respecto
-a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente \sout{en numerosas universidades españolas}\textcolor{borrador2}{en otras universidades españolas (ADA y LUCA)}, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
+a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente en numerosas universidades españolas, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
 
 Las preguntas realizadas a estos asistentes son comparables con las preguntas de listado incluidas en el banco de evaluación. En este caso, el sistema desarrollado devuelve directamente las asignaturas correspondientes, junto con el curso y el tipo de asignatura, a partir del plan de estudios publicado. La diferencia observada no se centra entonces en la redacción de la respuesta, sino en el nivel de elaboración que recibe el usuario: mientras que en un caso tiene que consultar un enlace, el otro le da una respuesta estructurada con los datos solicitados.
 
@@ -313,7 +313,7 @@ Las preguntas realizadas a estos asistentes son comparables con las preguntas de
 \label{secc:amenazas_validez}
 
 Los resultados deben interpretarse teniendo en cuenta
-varias limitaciones. Estas se exponen a continuación \sout{agrupadas según, con el objetivo}\textcolor{borrador2}{agrupadas según su tipo, con el objetivo} de delimitar qué permiten afirmar
+varias limitaciones. Estas se exponen a continuación agrupadas según su tipo, con el objetivo de delimitar qué permiten afirmar
 los experimentos y qué aspectos quedan fuera de su alcance.
 
 \subsection{Alcance de la evaluación}
@@ -384,7 +384,7 @@ Apartado~\ref{secc:fase2_llm}.
 La redacción exacta producida por el modelo tampoco es
 completamente reproducible, incluso manteniendo constantes los parámetros de
 generación. En las repeticiones realizadas cambiaron algunas formulaciones,
-\sout{aunque se mantuvieron los veredictos del banco de evaluación}\textcolor{borrador2}{aunque en esas dos tandas se mantuvieron los veredictos del banco de evaluación (en otra pasada, sobre el corpus anterior, cambió uno)}. Por ello, los
+aunque en esas dos tandas se mantuvieron los veredictos del banco de evaluación (en otra pasada, sobre el corpus anterior, cambió uno). Por ello, los
 resultados permiten valorar la estabilidad del comportamiento medido, pero no
 garantizan que dos ejecuciones produzcan literalmente la misma respuesta.
 
