@@ -192,8 +192,12 @@ RESPUESTA_DESPEDIDA: Final[str] = (
 _CORTESIA: Final[frozenset[str]] = frozenset(
     {
         "hola",
+        "holaa",
+        "wenas",
         "buenas",
         "buenos",
+        "buen",
+        "dia",
         "dias",
         "tardes",
         "noches",
@@ -206,10 +210,22 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
         "ey",
         "que",
         "q",
+        "k",
+        "ke",
+        "qtal",
         "tal",
         "como",
         "estas",
+        "esta",
+        "estais",
+        "andas",
+        "pasa",
         "va",
+        "vas",
+        "tu",
+        "ti",
+        "te",
+        "usted",
         "muy",
         "bien",
         "gracias",
@@ -243,16 +259,40 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
 
 # Reconoce también saludos en otros idiomas; la respuesta sigue en español.
 _SALUDO: Final[frozenset[str]] = frozenset(
-    {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
+    {
+        "hola",
+        "holaa",
+        "wenas",
+        "qtal",
+        "buenas",
+        "buenos",
+        "saludos",
+        "hey",
+        "ey",
+        "hello",
+        "hi",
+        "hallo",
+    }
 )
 
 #: Saludos de dos palabras que por separado no lo son. «tal» o «estas» sueltos
 #: aparecen en preguntas ---«¿y estas?»---, así que no pueden ir en ``_SALUDO``,
 #: que ``cortesia_sin_contexto`` aplica sin exigir que todo sea cortesía.
+
+# IT-140: «¿Cómo va?» y «¿Y tú qué tal?» llegaron al modelo en la prueba del 08/10.
 _SALUDO_DE_DOS_PALABRAS: Final[tuple[frozenset[str], ...]] = (
     frozenset({"que", "tal"}),
     frozenset({"q", "tal"}),
+    frozenset({"k", "tal"}),
+    frozenset({"ke", "tal"}),
+    frozenset({"que", "pasa"}),
     frozenset({"como", "estas"}),
+    frozenset({"como", "estais"}),
+    frozenset({"como", "usted"}),
+    frozenset({"como", "va"}),
+    frozenset({"como", "vas"}),
+    frozenset({"como", "andas"}),
+    frozenset({"buen", "dia"}),
 )
 
 #: Y las que lo convierten en una despedida o un agradecimiento.
