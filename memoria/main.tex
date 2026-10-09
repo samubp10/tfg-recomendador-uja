@@ -140,7 +140,7 @@
 %\clearpage\thispagestyle{empty}\cleardoublepage
 %\lstlistoflistings		% Índice de listados
 
-%\clearpage\thispagestyle{empty}\cleardoublepage
+\clearpage\thispagestyle{empty}\cleardoublepage
 \pagenumbering{arabic} % Numeración arábiga para el resto del documento
 
 % ===== Archivos LaTeX con los distintos capítulos que componen la memoria
@@ -168,10 +168,12 @@
 
 % ===== Configuración de la bibliografía
 
-\pagenumbering{roman}  % Numeración romana para el índice
+% La bibliografía sigue la numeración del documento y entra en el índice con la
+% página en la que empieza.
 \bibliographystyle{unsrtnat}
-\bibliography{bibliografia}
+\cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{Bibliografía}
+\bibliography{bibliografia}
 
 \clearpage\thispagestyle{empty}
 \begin{center}
