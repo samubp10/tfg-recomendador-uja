@@ -7,8 +7,8 @@
 
   Que este fichero NO hace, a proposito:
 
-  - No guarda el texto del saludo. Se lo pide al servidor al arrancar mandando
-    «Hola», que es una respuesta fija y vuelve en decimas de segundo. Copiarlo
+  - No guarda el texto del saludo. Se lo pide al servidor al arrancar por
+    `/api/saludo`, que vuelve en decimas de segundo. Copiarlo
     aqui crearia una segunda copia que se desincroniza de `generador.py` en
     cuanto alguien toque una de las dos. Ya paso con las preguntas ajenas
     (IT-39) y la leccion fue esa.
@@ -183,9 +183,9 @@ function pintarPregunta(texto) {
  * La burbuja nace con `aria-busy="true"`. De ese atributo cuelgan las dos
  * senales de que la respuesta sigue escribiendose: la palabra que la hoja de
  * estilo pinta debajo del texto y lo que anuncia un lector de pantalla. Hace
- * falta porque el texto llega por partes durante un minuto y, entre frase y
- * frase, no habia nada que distinguiera «esta pensando la siguiente» de «ya ha
- * terminado».
+ * falta porque el texto llega por partes durante unos 45 s de mediana y,
+ * entre frase y frase, no habia nada que distinguiera «esta pensando la
+ * siguiente» de «ya ha terminado».
  *
  * @returns {{fila: HTMLElement, burbuja: HTMLElement, cuerpo: HTMLElement,
  *   pie: HTMLElement}}
@@ -528,7 +528,7 @@ async function preguntar(pregunta) {
         if (Array.isArray(suceso.sugerencias)) propuestas = suceso.sugerencias;
         if (Array.isArray(suceso.fuentes)) {
           // Llegan antes que el texto: se conocen al terminar la recuperación
-          // y el modelo tarda un minuto en dar la primera frase.
+          // y el modelo tarda varios segundos más en dar la primera frase.
           fuentes = suceso.fuentes;
           espera.redactando();
         }
@@ -612,9 +612,9 @@ function bloquear(bloqueado) {
     boton.disabled = bloqueado;
   }
   // El envio NO se apaga mientras se responde: se convierte en cancelar. Una
-  // respuesta tarda alrededor de un minuto ---medido: 56,6 s, 63,2 s y
-  // 65,4 s--- y hasta ahora no habia forma de salir de una pregunta escrita
-  // por error. Es el mismo control, asi que no aparece nada nuevo en el
+  // respuesta que llega al modelo tarda 44,6 s de mediana y el percentil 90
+  // pasa de dos minutos (ADR-0006), y hasta ahora no habia forma de salir de
+  // una pregunta escrita por error. Es el mismo control, asi que no aparece nada nuevo en el
   // recorrido de teclado ni hay que colocar otro boton.
   botonEnviar.innerHTML = bloqueado ? ICONO_CANCELAR : ICONO_ENVIAR;
   botonEnviar.setAttribute(
@@ -682,10 +682,12 @@ sugerencias.addEventListener("click", (suceso) => {
  *
  * Se le pide al servidor, que es donde vive el texto: escribirlo aqui daria
  * dos copias que pueden separarse. Pero se pide por `/api/saludo` y no como
- * una consulta normal, porque el servidor anota en el registro todo lo que
- * entra por `/api/chat`: cada apertura de la pagina metia un turno con la
- * palabra «Hola» que nadie habia escrito, y eso inflaba cualquier recuento
- * que se hiciera despues sobre el registro.
+ * una consulta normal, porque con `--registrar` el servidor anota en el
+ * registro todo lo que entra por `/api/chat`: cada apertura de la pagina
+ * metia un turno con la palabra «Hola» que nadie habia escrito, y eso inflaba
+ * cualquier recuento que se hiciera despues sobre el registro. Pedirlo es
+ * ademas la senal de que la pagina se ha cargado: el servidor empieza ahi una
+ * conversacion nueva (IT-140).
  *
  * Si falla no se pinta nada y no se avisa. Es deliberado: nadie ha pedido
  * este saludo, asi que un error suyo no es un error de la persona, y la
