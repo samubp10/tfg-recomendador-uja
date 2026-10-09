@@ -471,10 +471,10 @@ perdería casi toda su fuerza.
 
 ### Negativas
 
-- **Hay que migrar el indexador.** `src/tfg_uja/indexacion/indexer.py` está escrito contra
-  ChromaDB (3 referencias) y `tests/test_indexer.py` monta una colección en
-  memoria (6 referencias). Las dos cosas hay que rehacerlas, y `chromadb` sale de
-  las dependencias de ejecución mientras entra `lancedb`.
+- **Obligó a rehacer el indexador** (IT-103). `src/tfg_uja/indexacion/indexer.py`
+  y `tests/test_indexer.py` estaban escritos contra ChromaDB y se reescribieron
+  sobre LanceDB; `chromadb` salió de las dependencias de ejecución y solo queda
+  en el grupo opcional `comparativa-vectordb`, para el experimento que la compara.
 - 🔴 **La distancia coseno hay que declararla en CADA consulta**, no una vez al
   crear la tabla: el valor por defecto de LanceDB es `l2`. Es un invariante del
   mismo tipo que los prefijos `"query: "` y `"passage: "` del ADR-0003 —se olvida
