@@ -68,7 +68,7 @@ La tabla anterior contesta a la duda que aborda esta subsección, y es que a igu
 
 Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo.
 
-Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud fija parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa, puesto que no se le estaría dando al usuario toda la información disponible de ese apartado.
+Lo que separa una estrategia de otra no aparece en ningún valor medido y es el de la metodología, y es que la estrategia estructural parte el texto por sus propias fronteras, mientras que la de longitud fija parte al alcanzar un número máximo de caracteres, con lo que empieza y termina a mitad de una frase y a veces a mitad de una palabra. Estas características para las medidas del experimento dan igual y dan incluso mejores resultados, pero esta información se le va a pasar a un modelo generativo del lenguaje para que redacte la respuesta y ahí una frase truncada a la mitad sí que importa, puesto que \sout{no se le estaría dando al usuario}\textcolor{borrador2}{no se estaría dando} toda la información disponible de ese apartado.
 
 
 
@@ -143,12 +143,12 @@ Ninguno de los cuatro modelos incumplió los dos umbrales eliminatorios establec
 
 A partir de estas medidas se adopta \texttt{gemma3:12b} como modelo elegido para generar las respuestas en el sistema. \sout{Es el candidato con mejores resultados de los modelos que superaron la criba.}\textcolor{borrador2}{Empata en estas medidas con los otros dos modelos grandes y lo separa el umbral eliminatorio en la muestra de 250 preguntas.} La justificación detallada de esta elección se recoge en el Apartado~\ref{secc:eleccion_gemma3}.
 
-Cabe recalcar que la comparación presenta dos limitaciones que deben tenerse en cuenta. En primer lugar, \sout{la decisión se basa en 80 preguntas de las 1.023 disponibles en el banco}\textcolor{borrador2}{las medidas descriptivas se basan en 80 preguntas de las 1.023 disponibles en el banco, y el umbral que decide, en una muestra de 250}, aunque estas se seleccionaron mediante un procedimiento estratificado y con una semilla fija. En segundo lugar, estas medidas no evalúan la calidad de la redacción ni permiten determinar si una recomendación resulta adecuada para un estudiante concreto.
+Cabe recalcar que la comparación presenta dos limitaciones que deben tenerse en cuenta. En primer lugar, \sout{la decisión se basa en 80 preguntas de las 1.023 disponibles en el banco}\textcolor{borrador2}{las medidas descriptivas se basan en 80 preguntas de las 1.023 disponibles en el banco, y el umbral que decide, en una muestra de 250}, aunque estas se seleccionaron mediante un procedimiento estratificado y con una semilla fija. En segundo lugar, estas medidas no evalúan la calidad de la redacción ni permiten determinar si una recomendación resulta adecuada \sout{para un estudiante concreto}\textcolor{borrador2}{para una persona concreta}.
 
 \section[Evaluación del sistema completo]{Evaluación del sistema completo}
 \label{secc:resultados_sistema}
 
-Una vez seleccionados los componentes principales del sistema, se evaluó su comportamiento en dos niveles diferentes. En primer lugar, se analizó la recuperación para comprobar si los fragmentos relevantes aparecían entre los resultados. Después, se evaluó el recorrido del sistema completo, desde la entrada del usuario hasta la respuesta final.
+Una vez seleccionados los componentes principales del sistema, se evaluó su comportamiento en dos niveles diferentes. En primer lugar, se analizó la recuperación para comprobar si los fragmentos relevantes aparecían entre los resultados. Después, se evaluó el recorrido del sistema completo, \sout{desde la entrada del usuario}\textcolor{borrador2}{desde la pregunta} hasta la respuesta final.
 
 Antes de realizar esta evaluación se fijaron los
 parámetros de la recuperación adaptativa mediante una rejilla de 240
@@ -200,7 +200,7 @@ distribución.
 
 \input{tablas/TablaEvaluacionSistema.tex}
 
-El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente a cualquier consulta de un usuario.
+El sistema obtuvo un pleno de aciertos sobre las preguntas del banco. Las preguntas sobre datos se generan a partir de la propia colección y las preguntas de comportamiento representan casos diseñados para comprobar controles concretos. Por tanto, el resultado demuestra coherencia con las fuentes y con las situaciones evaluadas, pero no permite afirmar que el sistema responda correctamente \sout{a cualquier consulta de un usuario}\textcolor{borrador2}{a cualquier consulta}.
 
 
 Quince de las cincuenta y siete entradas se resolvieron sin invocar al modelo generativo, de las cuales cuatro corresponden a mensajes de cortesía como <<Hola>> o <<¿Qué tal?>> y once a preguntas ajenas al dominio como <<¿Cómo se prepara una paella?>>. Dentro de estas últimas, ocho fueron detenidas por el suelo de pertinencia y tres por la comprobación de referencias a otros centros. 
@@ -223,7 +223,7 @@ estudiante concreto. Una respuesta puede contener nombres y cifras reales y,
 aun así, relacionarlos de forma incorrecta, debido a que esto no se puede medir de forma determinista.
 
 En consecuencia, los resultados de este apartado permiten afirmar que el sistema recupera información pertinente y supera las comprobaciones definidas para el recorrido evaluado. No permiten afirmar que las respuestas sean siempre claras, que las recomendaciones sean
-educativamente adecuadas o que el sistema reproduzca el comportamiento de todos los estudiantes preuniversitarios. Valorar esas dimensiones exigiría una evaluación con
+educativamente adecuadas o que el sistema reproduzca el comportamiento \sout{de todos los estudiantes preuniversitarios}\textcolor{borrador2}{de todo el alumnado preuniversitario}. Valorar esas dimensiones exigiría una evaluación con
 usuarios, que no se ha hecho y cuyo motivo y consecuencias se explican en el
 Apartado~\ref{secc:validacion_usuarios}.
 
@@ -303,9 +303,9 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
 
 La evaluación del sistema no debe limitarse a comprobar si
 cumple la hipótesis planteada, sino que también es necesario valorar qué aporta respecto
-a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente en numerosas universidades españolas, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
+a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente en numerosas universidades españolas, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, \sout{el usuario debía ir a la página y extraer los datos por su cuenta}\textcolor{borrador2}{había que ir a la página y extraer los datos por cuenta propia}.
 
-Las preguntas realizadas a estos asistentes son comparables con las preguntas de listado incluidas en el banco de evaluación. En este caso, el sistema desarrollado devuelve directamente las asignaturas correspondientes, junto con el curso y el tipo de asignatura, a partir del plan de estudios publicado. La diferencia observada no se centra entonces en la redacción de la respuesta, sino en el nivel de elaboración que recibe el usuario: mientras que en un caso tiene que consultar un enlace, el otro le da una respuesta estructurada con los datos solicitados.
+Las preguntas realizadas a estos asistentes son comparables con las preguntas de listado incluidas en el banco de evaluación. En este caso, el sistema desarrollado devuelve directamente las asignaturas correspondientes, junto con el curso y el tipo de asignatura, a partir del plan de estudios publicado. La diferencia observada no se centra entonces en la redacción de la respuesta, sino en el nivel de elaboración \sout{que recibe el usuario}\textcolor{borrador2}{que recibe quien pregunta}: mientras que en un caso tiene que consultar un enlace, el otro le da una respuesta estructurada con los datos solicitados.
 
 
 
@@ -334,7 +334,7 @@ La interpretación de Recall@k también está condicionada por el número máxim
 
 En este trabajo no se realizó una validación con usuarios reales. La participación de estudiantes preuniversitarios habría requerido o bien buscarlos individualmente o bien coordinarse con un centro de secundaria, preparar las sesiones y disponer de un calendario específico. El esfuerzo del proyecto se concentró en construir la colección documental, implementar el sistema y evaluar su funcionamiento técnico.
 
-La ausencia de usuarios reales y de las pruebas que estos realizan limita el alcance de los resultados obtenidos y del pulido de la aplicación. Las pruebas anteriores no permiten saber si las preguntas del banco representan las consultas habituales de un estudiante, si las respuestas se entienden bien, si resultan útiles para elegir una titulación o si el tiempo de espera provoca que el usuario abandone la conversación.
+La ausencia de usuarios reales y de las pruebas que estos realizan limita el alcance de los resultados obtenidos y del pulido de la aplicación. Las pruebas anteriores no permiten saber si las preguntas del banco representan las consultas habituales \sout{de un estudiante}\textcolor{borrador2}{del alumnado}, si las respuestas se entienden bien, si resultan útiles para elegir una titulación o si el tiempo de espera provoca \sout{que el usuario abandone}\textcolor{borrador2}{que se abandone} la conversación.
 
 Por tanto, las pruebas técnicas realizadas no se
 consideran equivalentes a una validación con usuarios. Esta limitación se
