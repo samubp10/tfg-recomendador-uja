@@ -100,8 +100,11 @@ verificadores que aparecen más abajo, porque solo está tan fresca como la
 ## Resultados
 
 Las cifras las escriben los propios guiones en `docs/experimentos/` y en el
-bloque automático de cada ADR. **Valen para el corpus con el que se midieron**
----1 922 fragmentos, curso 2026-27---, no son constantes del proyecto.
+bloque automático de cada ADR. **Valen para el corpus con el que se midieron**,
+que no es el mismo en todas: las de recuperación, generación y sistema son de
+1 922 fragmentos (curso 2026-27), y las de la Fase 1 (troceado, incrustaciones y
+base vectorial: ADR-0001, ADR-0003 y ADR-0004) son de 1 334 fragmentos y 50
+preguntas, porque no se repitieron. No son constantes del proyecto.
 
 **Recuperación**, sobre las 56 preguntas de dominio del conjunto de evaluación
 ([`it38-recuperacion.md`](docs/experimentos/it38-recuperacion.md)):
@@ -129,9 +132,11 @@ Dos lecturas que esas cifras **no** admiten:
   114. Lo único que las estrecha es añadir preguntas distintas.
 - **El 15 de 15 no es todo mérito del sistema.** Once rechazos los produce una
   barrera propia (8 el suelo de pertinencia, 3 la comprobación de centro ajeno)
-  y uno la retirada de la respuesta; los **tres restantes los rechaza el modelo
-  por su cuenta**, y eso no es un control: cambiar de modelo bastaría para
-  perderlo.
+  y dos la retirada de la respuesta (`S-AJE-007` y `S-AJE-008`); los **dos
+  restantes (`S-AJE-001` y `S-AJE-009`) los rechaza el modelo por su cuenta**,
+  y eso no es un control: cambiar de modelo bastaría para perderlo. El reparto
+  es el de la tanda de
+  [`it124-remedicion.md`](docs/experimentos/it124-remedicion.md).
 
 ## Requisitos
 
@@ -304,8 +309,14 @@ py scripts/experimentos/experimento_embeddings.py   # ADR-0003: compara modelos 
 py scripts/experimentos/experimento_vectordb.py     # ADR-0004: compara bases vectoriales
 py scripts/experimentos/experimento_generacion.py   # ADR-0005: compara modelos generativos
 py scripts/experimentos/experimento_recuperacion.py # Recall@K, MRR y rechazo de preguntas ajenas
-py scripts/experimentos/experimento_sistema.py      # el recorrido completo, de punta a punta
+py scripts/experimentos/experimento_sistema.py --modelos gemma3:12b \
+   --registro data/registro_sistema.jsonl \
+   --salida docs/experimentos/it38-sistema.md  # el recorrido completo, de punta a punta
 ```
+
+`experimento_sistema.py` exige `--registro` y `--salida`. El registro va
+siempre a `data/`, que no se versiona pero persiste: con él se puede repuntuar
+sin repetir la tanda.
 
 ⚠️ **No lances nada más contra Ollama mientras un experimento está midiendo.**
 Los tiempos dejan de significar nada, y con el modelo cargado la redacción
@@ -385,7 +396,8 @@ bueno, y el que manda es el que aparece en el `\includegraphics`.
   (`Closes #NN`) y no se fusiona hasta que la CI está en verde.
 - Decisiones de diseño registradas como **ADR** en `docs/adr/`; anomalías de la
   fuente de datos como **DQA** en `docs/dqa/`.
-- CI en GitHub Actions: `pytest` + `mypy` en cada *push* y *pull request*.
+- CI en GitHub Actions en cada *push* y *pull request*: `black --check`,
+  `flake8`, `pytest` con una cobertura mínima del 100 % y `mypy`.
 
 ### Definición de Hecho
 
