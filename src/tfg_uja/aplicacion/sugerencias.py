@@ -70,7 +70,7 @@ PLANTILLAS: Final[tuple[tuple[str, str], ...]] = (
         "tipo_asignatura = 'TFG'",
         "¿En qué consiste el Trabajo Fin de Grado del {titulacion}?",
     ),
-    # 10 de 12
+    # 6 de 12
     (
         "tipo_asignatura = 'FB'",
         "¿Qué asignaturas de formación básica se cursan en el {titulacion}?",
@@ -96,23 +96,28 @@ def _hay(tabla: Any, filtro: str) -> bool:
     return tabla.count_rows(filtro) > 0
 
 
-def _preguntas(tabla: Any, titulacion: str, desplazamiento: int) -> Iterator[str]:
+def _preguntas(
+    tabla: Any, titulacion: str, desplazamiento: int, hecha: str = ""
+) -> Iterator[str]:
     """Va soltando las preguntas que el índice respalda para una titulación."""
     # La pertenencia exacta evita arrastrar dobles grados por coincidencia parcial.
     suya = f"array_has_any(grados, ['{escapar(titulacion)}'])"
     for condicion, pregunta in _rotar(PLANTILLAS, desplazamiento):
-        if _hay(tabla, f"{suya} AND {condicion}"):
-            yield pregunta.format(titulacion=titulacion)
+        propuesta = pregunta.format(titulacion=titulacion)
+        if propuesta != hecha and _hay(tabla, f"{suya} AND {condicion}"):
+            yield propuesta
 
 
-def _del_ambito(tabla: Any, conocidas: list[str], desplazamiento: int) -> list[str]:
+def _del_ambito(
+    tabla: Any, conocidas: list[str], desplazamiento: int, hecha: str
+) -> list[str]:
     """Preguntas de las titulaciones de las que se está hablando."""
     cada_una = max(1, DEL_AMBITO // len(conocidas))
     return [
         pregunta
         for indice, titulacion in enumerate(conocidas)
         for pregunta in islice(
-            _preguntas(tabla, titulacion, desplazamiento + indice), cada_una
+            _preguntas(tabla, titulacion, desplazamiento + indice, hecha), cada_una
         )
     ][:DEL_AMBITO]
 
@@ -125,26 +130,38 @@ def _de_arranque(tabla: Any, desplazamiento: int) -> list[str]:
 
 
 def _de_otras(
-    tabla: Any, otras: list[str], desplazamiento: int, cuantas: int
+    tabla: Any, otras: list[str], desplazamiento: int, cuantas: int, hecha: str
 ) -> list[str]:
     """Una pregunta de cada una de otras titulaciones, para abrir el abanico."""
     elegidas: list[str] = []
     for indice, titulacion in enumerate(_rotar(otras, desplazamiento)):
         if len(elegidas) >= cuantas:
             break
-        elegidas += islice(_preguntas(tabla, titulacion, desplazamiento + indice), 1)
+        elegidas += islice(
+            _preguntas(tabla, titulacion, desplazamiento + indice, hecha), 1
+        )
     return elegidas
 
 
 def sugerencias_para(
-    tabla: Any, ambito: list[str], catalogo: list[str], desplazamiento: int = 0
+    tabla: Any,
+    ambito: list[str],
+    catalogo: list[str],
+    desplazamiento: int = 0,
+    hecha: str = "",
 ) -> list[str]:
-    """Preguntas que ofrecerle al estudiante en el punto en que va el diálogo."""
+    """Preguntas que ofrecerle al estudiante en el punto en que va el diálogo.
+
+    ``hecha`` es la pregunta que se acaba de hacer: no se vuelve a ofrecer, y
+    su hueco lo ocupa otra (IT-143).
+    """
     # Solo interpola nombres del catálogo del índice en el filtro SQL.
     conocidas = [t for t in ambito if t in catalogo]
     if conocidas:
-        propias = _del_ambito(tabla, conocidas, desplazamiento)
+        propias = _del_ambito(tabla, conocidas, desplazamiento, hecha)
     else:
-        propias = _de_arranque(tabla, desplazamiento)
+        propias = [p for p in _de_arranque(tabla, desplazamiento) if p != hecha]
     otras = [t for t in catalogo if t not in conocidas]
-    return propias + _de_otras(tabla, otras, desplazamiento, MAXIMO - len(propias))
+    return propias + _de_otras(
+        tabla, otras, desplazamiento, MAXIMO - len(propias), hecha
+    )
