@@ -337,6 +337,25 @@ def test_de_la_titulacion_sin_asignaturas_no_se_ofrece_nada_suyo(tabla):
         assert SCHMALKALDEN not in nombradas(arranque)
 
 
+def test_la_pregunta_recien_hecha_no_se_ofrece_y_su_hueco_se_rellena(tabla):
+    """H-B7 (IT-143): tras pulsar una sugerencia volvía a salir la misma.
+
+    Se excluye aquí y no en el servidor para que su sitio lo ocupe otra y sigan
+    saliendo cuatro, que es lo que se ofrece.
+    """
+    for desplazamiento in range(len(PLANTILLAS)):
+        for ambito in ([INFORMATICA], []):
+            antes = sugerencias_para(tabla, ambito, CATALOGO, desplazamiento)
+            hecha = antes[0]
+
+            despues = sugerencias_para(
+                tabla, ambito, CATALOGO, desplazamiento, hecha=hecha
+            )
+
+            assert hecha not in despues
+            assert len(despues) == len(antes)
+
+
 def test_solo_se_ofrece_lo_que_el_indice_respalda(tabla):
     """Ninguna pregunta habla de algo que su titulación no tenga indexado.
 
