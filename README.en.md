@@ -99,8 +99,11 @@ table, it is only as fresh as the last time someone edited it.
 
 The figures are written by the scripts themselves into `docs/experimentos/` and
 into the automatic block of each ADR. **They hold for the corpus they were
-measured on** ---1,922 chunks, academic year 2026-27---; they are not constants
-of the project.
+measured on**, which is not the same for all of them: retrieval, generation and
+the end-to-end system were measured on 1,922 chunks (academic year 2026-27),
+while Phase 1 (chunking, embeddings and vector database: ADR-0001, ADR-0003 and
+ADR-0004) was measured on 1,334 chunks and 50 questions and was not re-run.
+They are not constants of the project.
 
 **Retrieval**, over the 56 in-domain questions of the evaluation set
 ([`it38-recuperacion.md`](docs/experimentos/it38-recuperacion.md)):
@@ -128,9 +131,11 @@ Two readings those figures do **not** support:
   are 57 observations, not 114. Only different questions tighten them.
 - **The 15 out of 15 is not all the system's doing.** Eleven rejections come
   from a barrier of its own (8 the relevance floor, 3 the other-school check)
-  and one from withdrawing the answer; the **remaining three are rejected by the
-  model on its own initiative**, and that is not a control: swapping the model
-  would be enough to lose it.
+  and two from withdrawing the answer (`S-AJE-007` and `S-AJE-008`); the
+  **remaining two (`S-AJE-001` and `S-AJE-009`) are rejected by the model on its
+  own initiative**, and that is not a control: swapping the model would be
+  enough to lose it. The split is the one from the run in
+  [`it124-remedicion.md`](docs/experimentos/it124-remedicion.md).
 
 ## Requirements
 
@@ -293,8 +298,14 @@ py scripts/experimentos/experimento_embeddings.py   # ADR-0003: compares embeddi
 py scripts/experimentos/experimento_vectordb.py     # ADR-0004: compares vector databases
 py scripts/experimentos/experimento_generacion.py   # ADR-0005: compares generative models
 py scripts/experimentos/experimento_recuperacion.py # Recall@K, MRR and out-of-domain rejection
-py scripts/experimentos/experimento_sistema.py      # the full end-to-end run
+py scripts/experimentos/experimento_sistema.py --modelos gemma3:12b \
+   --registro data/registro_sistema.jsonl \
+   --salida docs/experimentos/it38-sistema.md  # the full end-to-end run
 ```
+
+`experimento_sistema.py` requires `--registro` and `--salida`. The log always
+goes to `data/`, which is not versioned but persists: with it the answers can be
+re-scored without repeating the run.
 
 ⚠️ **Do not send anything else to Ollama while an experiment is measuring.** The
 timings stop meaning anything, and with the model loaded the wording changes
@@ -374,7 +385,8 @@ data/               # generated artefacts (NOT versioned)
   and is not merged until CI is green.
 - Design decisions recorded as **ADRs** in `docs/adr/`; data-source anomalies as
   **DQAs** in `docs/dqa/`.
-- CI on GitHub Actions: `pytest` + `mypy` on every push and pull request.
+- CI on GitHub Actions on every push and pull request: `black --check`,
+  `flake8`, `pytest` with a 100 % minimum coverage, and `mypy`.
 
 ### Definition of Done
 
