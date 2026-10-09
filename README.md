@@ -166,8 +166,8 @@ Se descargan una vez y se quedan en local:
 La [guía de instalación completa](docs/instalacion.md) es la referencia para
 instalar el sistema desde cero. Recoge la ruta probada los días 6 y 7 de
 septiembre de 2026 en dos contenedores nuevos, incluidos los modelos, LanceDB y
-la aplicación web, con Docker Desktop, 16 GB de RAM y una NVIDIA RTX 3060 de
-6 GB. Son las condiciones probadas, no unos mínimos medidos. La evidencia y sus
+la aplicación web, con Docker Desktop, 16 GB de RAM y una NVIDIA RTX 3060 Laptop
+de 6 GB. Son las condiciones probadas, no unos mínimos medidos. La evidencia y sus
 límites están en [el registro de IT-54](docs/experimentos/it54-instalacion.md).
 
 Los pasos de este apartado son el camino corto para trabajar en local.
@@ -258,7 +258,9 @@ durante el desarrollo se arranca con `--registrar`, que añade cada turno a
 py -m tfg_uja.aplicacion.servidor --registrar
 ```
 
-También hay un cliente de consola, útil para probar el flujo sin navegador:
+También hay un cliente de consola, útil para probar el flujo sin navegador. Este sí
+guarda por defecto cada sesión, en `data/pruebas_chat`; con `--sin-registro` no
+guarda nada:
 
 ```console
 py scripts/chat_rag.py
