@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Generator
 from functools import cache, partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -215,7 +215,7 @@ def partes_de_la_respuesta(
     conversacion: Conversacion,
     turno: int = 0,
     con_registro: bool = False,
-) -> Iterator[dict[str, object]]:
+) -> Generator[dict[str, object]]:
     """Recorre el sistema y va soltando lo que hay que mandar al navegador.
 
     ``con_registro`` guarda cada turno en ``data/registro_chat.jsonl``. Es
@@ -477,18 +477,27 @@ def manejador(
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             type(self).turno += 1
-            for suceso in partes_de_la_respuesta(
+            sucesos = partes_de_la_respuesta(
                 pregunta,
                 sistema,
                 type(self).conversacion,
                 type(self).turno,
                 con_registro=con_registro,
-            ):
-                self.wfile.write(json.dumps(suceso, ensure_ascii=False).encode("utf-8"))
-                self.wfile.write(b"\n")
-                # Sin esto el texto se queda en el buffer y llega todo junto al
-                # final, que es exactamente lo que la emision por partes evita.
-                self.wfile.flush()
+            )
+            try:
+                for suceso in sucesos:
+                    linea = json.dumps(suceso, ensure_ascii=False).encode("utf-8")
+                    self.wfile.write(linea + b"\n")
+                    # Sin esto el texto se queda en el buffer y llega todo junto
+                    # al final, que es lo que la emision por partes evita.
+                    self.wfile.flush()
+            except ConnectionError:
+                # IT-143: cancelar en el navegador cierra la conexión, y sin esto
+                # cada cancelación dejaba la pila entera en la consola.
+                _registro.info("La consulta se canceló desde el navegador.")
+            finally:
+                # Cierra también la petición al modelo, que deja de generar.
+                sucesos.close()
 
     return Manejador
 
