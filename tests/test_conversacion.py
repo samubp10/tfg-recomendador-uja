@@ -569,6 +569,27 @@ def test_una_pregunta_por_la_oferta_entera_no_se_acota_y_va_abierta():
     assert consulta.abierta is True
 
 
+def test_una_pregunta_que_senala_lo_anterior_no_va_abierta_aunque_lo_diga_el_decisor():
+    """Prueba en vivo del 08/10/2026 (H-B1, IT-142).
+
+    Tras «¿En qué curso se dan matemáticas?», el decisor respondió TODAS a
+    «¿Y cómo se evalúan estas asignaturas?». Abierta, se buscó sin suelo de
+    pertinencia y el modelo recibió 20 fragmentos para un dato que el corpus no
+    tiene; cerrada, el suelo la deja sin contexto y sale la respuesta fija.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(Decision(NINGUNA, []), Decision(TODAS, [])),
+    )
+    c.preparar("¿En qué curso se dan matemáticas?")
+    c.anotar("¿En qué curso se dan matemáticas?", "En primero.")
+
+    consulta = c.preparar("¿Y cómo se evalúan estas asignaturas?")
+
+    assert consulta.abierta is False
+    assert consulta.decision == TODAS
+
+
 def test_un_mensaje_ajeno_suelta_el_ambito_pero_no_abre_la_consulta():
     """`NINGUNA` deja la consulta desnuda y sin filtro: es el estado neutro."""
     c = Conversacion(
