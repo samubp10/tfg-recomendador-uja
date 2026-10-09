@@ -241,6 +241,14 @@ Step 4 opens the assistant at **<http://127.0.0.1:8000>**. It needs
 `data/indice_lance` and `data/grados.json` to exist and Ollama to be answering;
 if the index is missing the program says so and refuses to start.
 
+By default the server keeps no conversation. To analyse test sessions during
+development, start it with `--registrar`, which appends every turn to
+`data/registro_chat.jsonl`:
+
+```console
+py -m tfg_uja.aplicacion.servidor --registrar
+```
+
 There is also a console client, handy for exercising the pipeline without a
 browser:
 

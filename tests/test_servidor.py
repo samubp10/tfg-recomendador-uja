@@ -548,6 +548,16 @@ def test_una_peticion_head_a_la_api_no_lleva_cuerpo() -> None:
     assert m.wfile.getvalue() == b""
 
 
+class ServidorQueSePara:
+    """Sustituye a ``HTTPServer``: se para en cuanto se pone a escuchar."""
+
+    def __init__(self, *a: Any, **k: Any) -> None:
+        pass
+
+    def serve_forever(self) -> None:
+        raise KeyboardInterrupt
+
+
 def test_sin_indice_el_arranque_avisa_en_vez_de_reventar(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -555,7 +565,7 @@ def test_sin_indice_el_arranque_avisa_en_vez_de_reventar(
     monkeypatch.setattr(servidor, "INDICE", tmp_path / "no-existe")
 
     with pytest.raises(SystemExit):
-        servidor.main()
+        servidor.main([])
 
     assert "py -m tfg_uja.indexacion.indexer" in capsys.readouterr().out
 
@@ -567,17 +577,9 @@ def test_el_arranque_levanta_el_servidor_y_se_para_con_ctrl_c(
     (tmp_path / "indice").mkdir()
     monkeypatch.setattr(servidor, "INDICE", tmp_path / "indice")
     monkeypatch.setattr(servidor, "abrir_sistema", lambda: SISTEMA_FALSO)
+    monkeypatch.setattr(servidor, "HTTPServer", ServidorQueSePara)
 
-    class ServidorFalso:
-        def __init__(self, *a: Any, **k: Any) -> None:
-            pass
-
-        def serve_forever(self) -> None:
-            raise KeyboardInterrupt
-
-    monkeypatch.setattr(servidor, "HTTPServer", ServidorFalso)
-
-    servidor.main()
+    servidor.main([])
 
     assert "Parando." in capsys.readouterr().out
 
@@ -691,9 +693,9 @@ def sin_enlaces_del_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(servidor, "paginas_de_titulacion", lambda *a, **k: {})
 
 
-def manejador_get(ruta: str):
+def manejador_get(ruta: str, con_registro: bool = False):
     """Un manejador preparado para una petición GET, también sin socket."""
-    Clase = servidor.manejador(SISTEMA_FALSO)
+    Clase = servidor.manejador(SISTEMA_FALSO, con_registro=con_registro)
     m = Clase.__new__(Clase)
     m.path = ruta
     m.wfile = io.BytesIO()
@@ -726,7 +728,7 @@ def test_el_saludo_sale_por_una_ruta_que_no_anota_nada(registro: Path) -> None:
     el registro salía inflado. Lo que hay que proteger no es que el saludo se
     devuelva ---eso ya pasaba--- sino que devolverlo no escriba nada.
     """
-    m = manejador_get("/api/saludo")
+    m = manejador_get("/api/saludo", con_registro=True)
 
     m.do_GET()
 
@@ -786,7 +788,9 @@ def test_cada_turno_deja_una_linea_con_lo_que_hace_falta_para_analizarlo(
     conversacion = Conversacion(SISTEMA_FALSO[2])
 
     list(
-        servidor.partes_de_la_respuesta("¿qué se estudia?", SISTEMA_FALSO, conversacion)
+        servidor.partes_de_la_respuesta(
+            "¿qué se estudia?", SISTEMA_FALSO, conversacion, con_registro=True
+        )
     )
 
     (turno,) = turnos_de(registro)
@@ -821,7 +825,11 @@ def test_una_respuesta_retirada_se_registra_como_tal(
         ),
     )
 
-    list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa()))
+    list(
+        servidor.partes_de_la_respuesta(
+            "¿Y?", SISTEMA_FALSO, ConversacionFalsa(), con_registro=True
+        )
+    )
 
     (turno,) = turnos_de(registro)
     assert turno["retirada"] is True
@@ -840,7 +848,11 @@ def test_un_turno_que_falla_tambien_se_registra(
 
     monkeypatch.setattr(servidor, "responder_por_partes", revienta)
 
-    list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa()))
+    list(
+        servidor.partes_de_la_respuesta(
+            "¿Y?", SISTEMA_FALSO, ConversacionFalsa(), con_registro=True
+        )
+    )
 
     (turno,) = turnos_de(registro)
     assert turno["error"] == "Ollama no responde"
@@ -862,7 +874,9 @@ def test_que_falle_el_registro_no_deja_al_estudiante_sin_respuesta(
     )
 
     sucesos = list(
-        servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa())
+        servidor.partes_de_la_respuesta(
+            "¿Y?", SISTEMA_FALSO, ConversacionFalsa(), con_registro=True
+        )
     )
 
     assert {"parte": "Hola."} in sucesos
@@ -889,7 +903,10 @@ def test_que_falle_el_registro_deja_aviso_en_el_canal_diagnostico(
     with caplog.at_level(logging.WARNING):
         list(
             servidor.partes_de_la_respuesta(
-                "¿Cuántos créditos tiene Álgebra?", SISTEMA_FALSO, ConversacionFalsa()
+                "¿Cuántos créditos tiene Álgebra?",
+                SISTEMA_FALSO,
+                ConversacionFalsa(),
+                con_registro=True,
             )
         )
 
@@ -960,7 +977,11 @@ def test_un_saludo_ni_llega_al_indice_ni_anuncia_fuentes(
     monkeypatch.setattr(servidor, "contexto_para", no_deberia_buscarse)
     conversacion = Conversacion(SISTEMA_FALSO[2])
 
-    sucesos = list(servidor.partes_de_la_respuesta("Hola", SISTEMA_FALSO, conversacion))
+    sucesos = list(
+        servidor.partes_de_la_respuesta(
+            "Hola", SISTEMA_FALSO, conversacion, con_registro=True
+        )
+    )
 
     assert not any("fuentes" in suceso for suceso in sucesos)
     assert sucesos[0] == {"parte": RESPUESTA_SALUDO}
@@ -1236,3 +1257,115 @@ def test_saludo_inicial_no_crea_antecedente() -> None:
     assert conversacion.preparar("¿Y en segundo?") == Conversacion(
         SISTEMA_FALSO[2]
     ).preparar("¿Y en segundo?")
+
+
+# --- IT-139: el registro solo se activa a mano ---
+
+
+def test_sin_la_opcion_no_se_guarda_ninguna_conversacion(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None, registro: Path
+) -> None:
+    """Es lo que promete la página de privacidad: por defecto no queda nada."""
+    monkeypatch.setattr(
+        servidor, "responder_por_partes", lambda *a, **k: iter(["Hola."])
+    )
+
+    list(servidor.partes_de_la_respuesta("¿Y?", SISTEMA_FALSO, ConversacionFalsa()))
+
+    assert not registro.exists()
+
+
+def test_el_manejador_pasa_la_opcion_de_registro(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """La opción de arranque tiene que llegar hasta donde se registra."""
+    recibido: list[object] = []
+
+    def partes_falsas(*a: Any, **k: Any):
+        recibido.append(k.get("con_registro"))
+        yield {"fin": True}
+
+    monkeypatch.setattr(servidor, "partes_de_la_respuesta", partes_falsas)
+    Clase = servidor.manejador(SISTEMA_FALSO, con_registro=True)
+    m = manejador_falso(b'{"pregunta":"x"}', Clase=Clase)
+
+    m.do_POST()
+
+    assert recibido == [True]
+
+
+@pytest.mark.parametrize(
+    ("argumentos", "activado"), [([], False), (["--registrar"], True)]
+)
+def test_el_registro_solo_se_activa_con_la_opcion(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    argumentos: list[str],
+    activado: bool,
+) -> None:
+    """Sin ``--registrar`` el servidor arranca sin guardar conversaciones."""
+    (tmp_path / "indice").mkdir()
+    monkeypatch.setattr(servidor, "INDICE", tmp_path / "indice")
+    monkeypatch.setattr(servidor, "abrir_sistema", lambda: SISTEMA_FALSO)
+    monkeypatch.setattr(servidor, "HTTPServer", ServidorQueSePara)
+    recibido: list[bool] = []
+    original = servidor.manejador
+
+    def manejador_espia(sistema: Any, con_registro: bool = False) -> type:
+        recibido.append(con_registro)
+        return original(sistema, con_registro=con_registro)
+
+    monkeypatch.setattr(servidor, "manejador", manejador_espia)
+
+    servidor.main(argumentos)
+
+    assert recibido == [activado]
+    esperado = "activado (data/registro_chat.jsonl)" if activado else "desactivado"
+    assert f"Registro de conversaciones: {esperado}" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("saludo", ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?"])
+def test_un_saludo_con_ambito_heredado_no_llega_al_indice(
+    monkeypatch: pytest.MonkeyPatch, saludo: str
+) -> None:
+    """Regresión de la demo del 06/10/2026.
+
+    Tras una pregunta sobre Informática, «Que tal» heredó el ámbito, se buscó
+    como «Que tal Grado en Ingeniería Informática», se recuperaron cinco
+    fragmentos y el modelo contestó con datos del grado en vez de saludar.
+    """
+
+    def no_deberia_buscarse(*a: Any, **k: Any) -> Any:
+        raise AssertionError("un saludo no puede llegar al índice")
+
+    monkeypatch.setattr(servidor, "contexto_para", no_deberia_buscarse)
+    conversacion = Conversacion(SISTEMA_FALSO[2])
+    # La respuesta nombra la titulación entera: con un catálogo de una sola
+    # titulación no hay palabras distintivas y la pregunta no fija el ámbito.
+    conversacion.anotar(
+        "¿Qué asignaturas optativas se pueden elegir en el Grado en Ingeniería "
+        "Informática?",
+        "El Grado en Ingeniería Informática tiene optativas.",
+    )
+
+    sucesos = list(servidor.partes_de_la_respuesta(saludo, SISTEMA_FALSO, conversacion))
+
+    assert sucesos[0] == {"parte": RESPUESTA_SALUDO}
+    # Un saludo no cambia de qué se está hablando.
+    assert conversacion.ambito == SISTEMA_FALSO[2]
+
+
+def test_la_cabecera_presenta_el_asistente_y_no_a_la_escuela() -> None:
+    """Petición del tutor: que no parezca una página oficial de la Escuela."""
+    indice = (servidor.WEB / "index.html").read_text(encoding="utf-8")
+    assert "<title>Asistente Virtual de Titulaciones · TFG</title>" in indice
+    assert ">Asistente Virtual de Titulaciones</h1>" in indice
+    assert "Trabajo Fin de Grado · Samuel Blanco Palmero" in indice
+
+
+def test_la_interfaz_enlaza_la_pagina_de_privacidad() -> None:
+    """La página existe y se llega a ella desde el pie de la interfaz."""
+    assert (servidor.WEB / "privacidad.html").is_file()
+    indice = (servidor.WEB / "index.html").read_text(encoding="utf-8")
+    assert 'href="privacidad.html"' in indice

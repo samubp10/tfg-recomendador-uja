@@ -111,7 +111,8 @@ body {
 .conversacion__mensajes,
 .sugerencias,
 .redaccion,
-.aviso-ia {
+.aviso-ia,
+.legal {
   padding-inline: max(var(--margen), (100% - var(--columna)) / 2);
 }
 
@@ -929,4 +930,29 @@ body {
   .sugerencia {
     border-width: 2px;
   }
+}
+
+/* ------------------------------------------------ IT-139: página de privacidad
+
+   Es una página de texto: se lee de arriba abajo y no lleva la columna de
+   altura fija del chat. El ancho del párrafo se limita para que la línea se
+   pueda seguir. */
+
+.legal {
+  padding-block: 8px 32px;
+}
+
+.legal h1 {
+  font-family: var(--letra-titulo);
+  font-size: 1.3rem;
+}
+
+.legal h2 {
+  margin: 1.6em 0 0.4em;
+  font-family: var(--letra-titulo);
+  font-size: 1.05rem;
+}
+
+.legal p {
+  max-width: 70ch;
 }
