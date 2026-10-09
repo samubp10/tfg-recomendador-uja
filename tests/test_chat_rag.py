@@ -840,6 +840,47 @@ def test_sin_registro_no_se_escribe_nada(
     assert list(tmp_path.glob("sesion_*.md")) == []
 
 
+def test_las_sesiones_se_guardan_por_defecto_dentro_del_clon_y_sin_versionar():
+    """Iban a ``../Notas_TFG/pruebas_chat``, una carpeta fuera del clon (H5).
+
+    Quien clonara el repositorio y probara la consola creaba una carpeta junto a
+    su copia con el nombre de las notas privadas del autor. ``data/`` está en
+    ``.gitignore`` entero, así que las sesiones no acaban versionadas.
+    """
+    assert chat.CARPETA_REGISTRO.is_relative_to(chat.RAIZ / "data")
+
+
+def test_un_saludo_no_borra_el_sujeto_de_la_pregunta_siguiente(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regresión de H4 (auditoría del 08/10/2026, IT-140).
+
+    La consola anotaba el saludo como un turno más y la elíptica siguiente se
+    buscaba como «Qué tal ¿Y en segundo?»; el servidor, con la misma
+    conversación, conservaba el asunto.
+    """
+    pregunta = (
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática en primer curso?"
+    )
+    preparar_main(monkeypatch, [pregunta, "Qué tal", "¿Y en segundo?"])
+    monkeypatch.setattr(
+        chat, "cortesia", lambda e: "¡Hola!" if e == "Qué tal" else None
+    )
+    buscadas: list[str] = []
+
+    def recuperar_espia(entrada, conversacion, *resto):
+        buscadas.append(conversacion.preparar(entrada).texto)
+        return [frag()], [CATALOGO[7]]
+
+    monkeypatch.setattr(chat, "_recuperar_contexto", recuperar_espia)
+
+    chat.main(["--ambito-determinista", "--registro", str(tmp_path)])
+
+    sin_saludo = Conversacion(CATALOGO)
+    sin_saludo.anotar(pregunta, "Pues esto.")
+    assert buscadas[-1] == sin_saludo.preparar("¿Y en segundo?").texto
+
+
 def test_cortar_con_ctrl_c_cierra_la_sesion(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
