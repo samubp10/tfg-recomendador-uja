@@ -1325,7 +1325,10 @@ def test_el_registro_solo_se_activa_con_la_opcion(
     assert f"Registro de conversaciones: {esperado}" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("saludo", ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?"])
+@pytest.mark.parametrize(
+    "saludo",
+    ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?", "¿Cómo va?", "¿Y tú qué tal?"],
+)
 def test_un_saludo_con_ambito_heredado_no_llega_al_indice(
     monkeypatch: pytest.MonkeyPatch, saludo: str
 ) -> None:
