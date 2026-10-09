@@ -21,7 +21,7 @@
       ]
 
       \node[pantalla, minimum width=7.6cm, minimum height=11cm] at (3.8,5.5) {};
-      \node[barra, minimum width=7cm] at (3.8,10.3) {SAsistente Virtual de Titulaciones};
+      \node[barra, minimum width=7cm] at (3.8,10.3) {\sout{SAsistente}\textcolor{borrador2}{Asistente} Virtual de Titulaciones};
       \node[usuario, text width=4.4cm, anchor=north east] at (7.4,9.6)
       {Me gustan los videojuegos y la programación, ¿qué me recomiendas?};
       \node[asistente, text width=5.8cm, anchor=north west] (r1) at (0.3,7.9)
@@ -49,7 +49,7 @@
         \node[nota, text width=5.6cm, anchor=north west] at (0.4,5.4)
         {La cuenta empieza en «Buscando en la información de la Escuela» y cambia
           a este texto cuando llegan las fuentes, no al cabo de un tiempo fijo.
-          Mediana medida:44,6 s; percentil 90: 120,5 s (las 34 preguntas de un turno que llaman al modelo).};
+          Mediana \sout{medida:44,6 s; percentil 90: 120,5 s}\textcolor{borrador2}{medida: 44,6 s; percentil 90: 124,3 s} (las 34 preguntas de un turno que llaman al modelo).};
         \node[entrada, text width=6.5cm, anchor=north west] at (0.3,1.5)
         {Escribe tu pregunta\ldots};
         \node[rotulo] at (3.8,-0.2) {2 · La espera};
