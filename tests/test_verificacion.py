@@ -915,3 +915,27 @@ def test_el_ordinal_masculino_casa_igual_que_la_forma_ascii() -> None:
     assert "primer cuatrimestre" in corregida
     assert "2º cuatrimestre" not in corregida
     assert len(avisos) == 1
+
+
+def test_regresion_el_quinto_curso_de_los_dobles_grados_tambien_se_corrige() -> None:
+    """H9 de la auditoría del 08/10/2026 (IT-143).
+
+    Los ordinales llegaban hasta «cuarto»: del encabezado de quinto curso el
+    corrector sacaba ``curso=None`` y dejaba pasar «cuarto», que es justo el
+    error que motivó IT-125. Encabezado literal de ``data/chunks.json``; hay
+    nueve unidades de guía de quinto curso.
+    """
+    contexto = (
+        "«Centrales eléctricas I», asignatura obligatoria de 6 ECTS del Doble "
+        "Grado en Ingeniería Eléctrica y Electrónica Industrial. Se imparte en el "
+        "primer cuatrimestre de quinto curso."
+    )
+    del_plan = atributos_del_contexto([contexto])
+
+    corregida, avisos = corregir_atributos(
+        "«Centrales eléctricas I» se imparte en cuarto curso.", del_plan
+    )
+
+    assert del_plan["centrales electricas i"].curso == 5
+    assert corregida == "«Centrales eléctricas I» se imparte en quinto curso."
+    assert len(avisos) == 1
