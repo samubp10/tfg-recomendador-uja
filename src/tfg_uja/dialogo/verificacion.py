@@ -201,11 +201,17 @@ _ORDINALES: Final[dict[str, int]] = {
     "cuarto": 4,
     "4": 4,
     "4o": 4,
+    # IT-143: los dobles grados tienen quinto curso; sin él no se corregía justo el
+    # error que motivó IT-125, afirmar cuarto donde es quinto.
+    "quinto": 5,
+    "5": 5,
+    "5o": 5,
     # Reconoce «2º» antes que «2» para no dejar el indicador ordinal sin consumir.
     "1º": 1,
     "2º": 2,
     "3º": 3,
     "4º": 4,
+    "5º": 5,
 }
 
 #: Como se escribe cada ordinal al corregir. Se usa la forma del troceador,
@@ -215,6 +221,7 @@ _ORDINAL_ESCRITO: Final[dict[int, str]] = {
     2: "segundo",
     3: "tercer",
     4: "cuarto",
+    5: "quinto",
 }
 
 _ORDINAL: Final[str] = "|".join(sorted(_ORDINALES, key=len, reverse=True))
