@@ -28,7 +28,7 @@ Para aislar los entornos de desarrollo y proteger la integridad del sistema, se 
         \begin{figure}[H]
           \centering
           \includegraphics[width=0.8\textwidth]{imagenes/GitFlow.pdf}
-          \caption{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
+          \caption[\textcolor{borrador2}{Estrategia de ramificación y versionado}]{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
           \label{fig:git_flow}
         \end{figure}
         
@@ -55,9 +55,9 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales, en HTML y PDF, descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a \sout{la Integración Continua (CI)}\textcolor{borrador2}{la integración continua}, excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
-Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar PEP~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y las variables de entorno. Además, el formato del código se estandariza mediante \texttt{flake8}, y la comprobación de tipos se delega en \texttt{mypy}.
+Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar PEP~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y \sout{las variables de entorno}\textcolor{borrador2}{los valores devueltos y las excepciones}. Además, \sout{el formato del código se estandariza mediante \texttt{flake8}, y}\textcolor{borrador2}{el formato del código lo fija \texttt{black}, el estilo lo comprueba \texttt{flake8} y} la comprobación de tipos se delega en \texttt{mypy}.
 
 \subsection{Tipos de pruebas del proyecto}
 \label{secc:niveles_de_prueba}
@@ -128,7 +128,7 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 \begin{figure}[H]
   \centering
   \includegraphics[width=1 \textwidth]{imagenes/tableroKanBan.png}
-  \caption{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
+  \caption[\textcolor{borrador2}{Tablero Kanban del proyecto}]{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
   \label{fig:tablero_kanban}
 \end{figure}
 
