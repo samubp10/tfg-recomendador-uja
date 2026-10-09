@@ -73,13 +73,6 @@ a lo largo de la memoria, ordenados alfabéticamente.
         parecidos queden próximos entre sí. Es lo que permite buscar por
         significado y no solo por palabras literales.
         
-    \item[\gldestino{Minería de textos y datos}Minería de textos y datos] Conjunto de técnicas 
-        automatizadas para analizar textos y datos digitales con el fin de extraer 
-        información, patrones o estructuras. Se recoge la definición legal del 
-        Real Decreto-ley 24/2021\cite{rdl24_2021} (artículo 66.1), marco jurídico bajo 
-        el que se ampara la extracción automatizada de este trabajo (Sección~\ref{secc:marcolegal}).
-
-
   \item[\gldestino{integración continua}Integración Continua] Práctica de ingeniería que ejecuta de forma
         automática la batería de pruebas cada vez que se sube código al
         repositorio, de modo que un fallo se detecta en el momento de introducirlo.
@@ -87,6 +80,12 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[\gldestino{Kanban}Kanban] Método ágil de gestión del trabajo basado en la
         visualización del flujo de tareas en un tablero y en limitar el trabajo
         en curso. Es la metodología con la que se ha gestionado este proyecto.
+        
+    \item[\gldestino{Minería de textos y datos}Minería de textos y datos] Conjunto de técnicas 
+        automatizadas para analizar textos y datos digitales con el fin de extraer 
+        información, patrones o estructuras. Se recoge la definición legal del 
+        Real Decreto-ley 24/2021\cite{rdl24_2021} (artículo 66.1), marco jurídico bajo 
+        el que se ampara la extracción automatizada de este trabajo (Sección~\ref{secc:marcolegal}).
         
   \item[\gldestino{modelo de lenguaje grande}Modelo de lenguaje grande (LLM)] Sistema computacional entrenado
         sobre grandes volúmenes de texto para predecir la palabra más probable a
@@ -136,9 +135,9 @@ a lo largo de la memoria, ordenados alfabéticamente.
         
   \item[\gldestino{ventana de contexto}Ventana de contexto] Cantidad máxima de texto,
         medida en \textit{tokens}, que un modelo puede procesar en una sola
-        operación. El texto que excede ese límite se descarta sin aviso, por lo que
+        operación. El texto que excede ese límite se descarta sin aviso, \sout{por lo que
         la ventana del modelo de incrustaciones es la que fija el tamaño máximo
-        admisible de un fragmento.
+        admisible de un fragmento.}\textcolor{borrador2}{por lo que ningún fragmento puede superar la ventana del modelo de incrustaciones: con el máximo de 900 caracteres, el más largo ocupa 335 de sus 510 \textit{tokens} útiles.}
         
 \end{description}
 
@@ -148,7 +147,9 @@ a lo largo de la memoria, ordenados alfabéticamente.
   \item[\gldestino{ADR}ADR] Registro de decisión de arquitectura (\textit{Architecture
           Decision Record}). Documento breve que deja constancia de una decisión
         técnica, sus alternativas y sus motivos.
+  \item[\gldestino{API}\textcolor{borrador2}{API}] \textcolor{borrador2}{Interfaz de programación de aplicaciones (\textit{Application Programming Interface}).}
   \item[\gldestino{CI}CI] Integración continua (\textit{Continuous Integration}).
+  \item[\gldestino{CPU}\textcolor{borrador2}{CPU}] \textcolor{borrador2}{Unidad central de procesamiento (\textit{Central Processing Unit}).}
   \item[\gldestino{CSS}CSS] Hojas de estilo en cascada
         (\textit{Cascading Style Sheets}), lenguaje utilizado para definir la
         presentación visual y el diseño de la interfaz web.
@@ -158,6 +159,7 @@ a lo largo de la memoria, ordenados alfabéticamente.
         qué se observó en la fuente, dónde y qué tratamiento recibió.
   \item[\gldestino{ECTS}ECTS] Sistema europeo de transferencia y acumulación de créditos.
   \item[\gldestino{EPSJ}EPSJ] Escuela Politécnica Superior de Jaén.
+  \item[\gldestino{GPU}\textcolor{borrador2}{GPU}] \textcolor{borrador2}{Unidad de procesamiento gráfico (\textit{Graphics Processing Unit}).}
   \item[\gldestino{HTML}HTML] Lenguaje de marcado de hipertexto, en el que se publican las
         páginas web de las que se extraen los datos.
     \item[\gldestino{HTTP}HTTP] Protocolo de transferencia de hipertexto (\textit{Hypertext Transfer Protocol}), 
@@ -178,15 +180,22 @@ a lo largo de la memoria, ordenados alfabéticamente.
           Generation}), la vertiente del PLN dedicada a producir texto.
   \item[\gldestino{NLP}NLP] Procesamiento del lenguaje natural (\textit{Natural Language
           Processing}); véase PLN.
+  \item[\gldestino{PDI}\textcolor{borrador2}{PDI}] \textcolor{borrador2}{Personal docente e investigador.}
+  \item[\gldestino{PEP}\textcolor{borrador2}{PEP}] \textcolor{borrador2}{Propuesta de mejora de Python (\textit{Python Enhancement Proposal}).}
   \item[\gldestino{PLN}PLN] Procesamiento del lenguaje natural.
+  \item[\gldestino{PTGAS}\textcolor{borrador2}{PTGAS}] \textcolor{borrador2}{Personal técnico, de gestión y de administración y servicios.}
   \item[\gldestino{RAG}RAG] Generación aumentada por recuperación (\textit{Retrieval-Augmented Generation}).
+  \item[\gldestino{REST}\textcolor{borrador2}{REST}] \textcolor{borrador2}{Transferencia de estado representacional (\textit{Representational State Transfer}), estilo de arquitectura para servicios web.}
   \item[\gldestino{RGPD}\textcolor{borrador2}{RGPD}] \textcolor{borrador2}{Reglamento General de Protección de Datos (Reglamento (UE) 2016/679).}
   \item[\gldestino{RNF}\textcolor{borrador2}{RNF}] \textcolor{borrador2}{Requisito no funcional.}
+  \item[\gldestino{SPA}\textcolor{borrador2}{SPA}] \textcolor{borrador2}{Aplicación de una sola página (\textit{Single Page Application}).}
   \item[\gldestino{TFG}TFG] Trabajo Fin de Grado.
   \item[\gldestino{TGBA}TGBA] Tasa Global Bruta de Abandono.
   \item[\gldestino{TGNA}TGNA] Tasa Global Neta de Abandono.
+  \item[\gldestino{TLS}\textcolor{borrador2}{TLS}] \textcolor{borrador2}{Seguridad de la capa de transporte (\textit{Transport Layer Security}).}
   \item[\gldestino{UJA}UJA] Universidad de Jaén.
   \item[\gldestino{URL}URL] Localizador uniforme de recursos; la dirección de una página web.
+  \item[\gldestino{VRAM}\textcolor{borrador2}{VRAM}] \textcolor{borrador2}{Memoria de vídeo de la tarjeta gráfica (\textit{Video Random Access Memory}).}
     \item[\gldestino{WCAG}WCAG] Pautas de accesibilidad para el contenido web (\textit{Web Content 
         Accessibility Guidelines}), estándar técnico internacional que establece los criterios 
         para garantizar que una aplicación web sea accesible a personas con diversidad funcional 
