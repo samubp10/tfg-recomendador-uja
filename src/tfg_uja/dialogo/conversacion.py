@@ -189,7 +189,9 @@ class Conversacion:
             return
         self._preguntas.append(pregunta)
         # El corte por el final también vacía la lista cuando la ventana vale cero.
-        del self._preguntas[: len(self._preguntas) - self.turnos_recordados]
+        # Sin el `max`, mientras la lista es más corta que la ventana el índice sale
+        # negativo y cuenta desde el final: con tres turnos solo quedaba uno.
+        del self._preguntas[: max(0, len(self._preguntas) - self.turnos_recordados)]
         self._ultimo_turno = (pregunta, respuesta)
 
         if contenido(pregunta, self.catalogo) and not recorta_lo_anterior(pregunta):
