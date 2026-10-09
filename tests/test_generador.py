@@ -1876,3 +1876,87 @@ def test_un_cuerpo_cortado_es_un_fallo_del_modelo(monkeypatch) -> None:
 
     with pytest.raises(generador.ErrorDelModelo, match="a medias"):
         generar("prompt", "un-modelo")
+
+
+# --- IT-141: la guía que no ha entrado entera ---
+
+
+def _algebra(*partes: int, total: int = 4) -> list[Fragmento]:
+    """Partes de la guía de Álgebra, de un total de ``total``."""
+    return [fragmento("Álgebra", f"Parte {p}.", parte=p, total=total) for p in partes]
+
+
+def test_una_guia_a_medias_que_nombra_la_pregunta_se_avisa(monkeypatch) -> None:
+    """H-B2 de la prueba en vivo del 08/10/2026.
+
+    «¿Qué tal es la asignatura de Álgebra?» recuperó las partes 0, 1 y 3 de las
+    cuatro de su guía: la 2 se quedó fuera por el tope de 20 fragmentos. El
+    modelo contestó «Aquí tienes el temario» con los temas 1 a 4 de seis.
+    """
+    pregunta = "¿Qué tal es la asignatura de Álgebra?"
+    monkeypatch.setattr(
+        generador, "generar_por_partes", lambda *a, **k: iter(["Aquí tienes."])
+    )
+
+    entregado = "".join(
+        p or ""
+        for p in generador.responder_por_partes(pregunta, _algebra(0, 1, 3), "m")
+    )
+
+    assert generador.guias_incompletas(pregunta, _algebra(0, 1, 3)) == ["Álgebra"]
+    assert entregado == "Aquí tienes." + generador.AVISO_GUIA_INCOMPLETA.format(
+        asignaturas="«Álgebra»"
+    )
+
+
+def test_una_guia_entera_no_lleva_aviso() -> None:
+    pregunta = "¿Qué temas tiene Álgebra?"
+    assert generador.guias_incompletas(pregunta, _algebra(0, 1, 2, 3)) == []
+
+
+def test_un_dato_del_plan_no_necesita_la_guia_entera() -> None:
+    """Créditos y curso van en el encabezado de todas las partes.
+
+    Sin esta excepción el aviso salía en cinco entradas del banco del sistema,
+    las cinco de créditos o de curso, donde no dice nada útil.
+    """
+    for pregunta in ("¿Cuántos créditos tiene Álgebra?", "¿En qué curso va Álgebra?"):
+        assert generador.guias_incompletas(pregunta, _algebra(0)) == []
+
+
+def test_solo_se_avisa_de_la_asignatura_que_nombra_la_pregunta() -> None:
+    """Ni de otra ni de una que la contenga: «Álgebra» no es «Álgebra lineal»."""
+    otra = [fragmento("Matemáticas I", "Parte.", parte=0, total=3)]
+    assert generador.guias_incompletas("¿Qué se ve en Álgebra?", otra) == []
+    assert generador.guias_incompletas("¿Qué se ve en Matemáticas II?", otra) == []
+    assert generador.guias_incompletas("¿Qué se ve en Álgebra lineal?", otra) == []
+
+
+def test_varias_guias_a_medias_se_avisan_juntas(monkeypatch) -> None:
+    contexto = _algebra(0) + [fragmento("Cálculo", "Parte.", parte=0, total=2)]
+    monkeypatch.setattr(
+        generador, "generar_por_partes", lambda *a, **k: iter(["Esto."])
+    )
+
+    entregado = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Qué se ve en Álgebra y en Cálculo?", contexto, "m"
+        )
+    )
+
+    assert entregado.endswith(
+        "guía docente de «Cálculo» y de «Álgebra», así que "
+        "puede faltar parte de su contenido. La tienes "
+        "completa en la web de la Escuela.*"
+    )
+
+
+def test_sin_respuesta_no_se_entrega_solo_el_aviso(monkeypatch) -> None:
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([" "]))
+
+    partes = list(
+        generador.responder_por_partes("¿Qué se ve en Álgebra?", _algebra(0), "m")
+    )
+
+    assert partes == []
