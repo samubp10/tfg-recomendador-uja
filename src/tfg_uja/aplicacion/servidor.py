@@ -496,7 +496,11 @@ def manejador(
 def main(argumentos: list[str]) -> None:
     """Levanta el servidor."""
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-    analizador = argparse.ArgumentParser(description="Asistente de titulaciones.")
+    # IT-143: sin `allow_abbrev`, «--registra» o «--r» activaban el registro, que es
+    # el interruptor de privacidad: solo lo enciende el nombre exacto.
+    analizador = argparse.ArgumentParser(
+        description="Asistente Virtual de Titulaciones.", allow_abbrev=False
+    )
     analizador.add_argument(
         "--registrar",
         action="store_true",
