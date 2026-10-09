@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import logging
 import re
@@ -597,6 +598,12 @@ def _errores_del_modelo(modelo: str, servidor: str) -> Iterator[None]:
             f"el servidor en {servidor} cortó la conexión a media respuesta "
             f"({error}). Suele ser que se ha quedado sin memoria."
         ) from error
+    except http.client.HTTPException as error:
+        # IT-141: un cuerpo cortado con cierre limpio llega como IncompleteRead,
+        # que no es ninguna de las anteriores.
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} dejó la respuesta a medias ({error!r})"
+        ) from error
 
 
 def generar(
@@ -654,17 +661,29 @@ def generar_por_partes(
     peticion = _peticion(
         prompt, modelo, servidor, ventana, tope, semilla, sistema, flujo=True
     )
+    terminado = False
     with _errores_del_modelo(modelo, servidor):
         with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             for linea in respuesta:
                 if not linea.strip():
                     continue
                 datos = json.loads(linea)
+                # IT-141: si el modelo falla ya empezado, Ollama mantiene el 200 y
+                # manda el error como una línea más del flujo.
+                if "error" in datos:
+                    raise ErrorDelModelo(
+                        f"«{modelo}» falló a media respuesta: {datos['error']}"
+                    )
                 trozo = str(datos.get("response", ""))
                 if trozo:
                     yield trozo
                 if datos.get("done_reason") == "length":
                     yield AVISO_RESPUESTA_CORTADA
+                terminado = terminado or bool(datos.get("done"))
+    # Un flujo que se acaba sin la línea final es una respuesta cortada, no una
+    # respuesta completa: es la misma regla que aplica el navegador.
+    if not terminado:
+        raise ErrorDelModelo(f"la respuesta de «{modelo}» terminó sin su cierre")
 
 
 def responder_por_partes(
