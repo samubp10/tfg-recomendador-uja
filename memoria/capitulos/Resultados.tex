@@ -14,7 +14,7 @@ Todas las cifras proceden de la ejecución de los verificadores y experimentos e
 
 La colección documental o \textit{corpus} resultante recoge las 12 titulaciones disponibles en la EPSJ en el curso 2026-27, siete grados y cinco dobles grados, con sus 528 asignaturas, las 288 guías docentes publicadas y 8 bloques de salidas profesionales.
 
-De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado, como el Grado en Inteligencia Artificial y Ciberseguridad, del que la Escuela no había publicado todavía las guías de tercero y cuarto curso en la fecha de recogida. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
+De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. \sout{Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo.}\textcolor{borrador2}{De las 86 restantes, 81 no se habían publicado en la fecha de recogida y 5 se publicaron con la plantilla vacía.} El reparto de estas guías faltantes \sout{no es uniforme, se concentran}\textcolor{borrador2}{no es uniforme: se concentran} en las titulaciones nuevas que todavía no se han completado, \sout{como el Grado en Inteligencia Artificial y Ciberseguridad, del que la Escuela no había publicado todavía las guías de tercero y cuarto curso en la fecha de recogida}\textcolor{borrador2}{como el Grado en Ingeniería Geomática y Topográfica (plan 2025), con 30, y el Grado en Inteligencia Artificial y Ciberseguridad, con 22, del que en la fecha de recogida no se habían publicado las guías de cuarto curso ni las de las optativas, y cuatro de las de tercero se publicaron vacías}. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
 Sobre esta recopilación de información, el fragmentador produce 1.922 fragmentos repartidos en 471 unidades, de las cuales 63 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.719 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos \sout{van desde los 96 a 900 caracteres}\textcolor{borrador2}{van desde los 96 hasta los 900 caracteres}, con una mediana de 846 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
@@ -190,8 +190,8 @@ contexto proporcionado.
 \label{secc:resultados_rag_sistema}
 
 La evaluación anterior se centraba únicamente en la
-recuperación. En esta subsección se analiza el sistema tal y como lo utiliza un
-estudiante, incluyendo la gestión de la conversación, las respuestas fijas,
+recuperación. En esta subsección \sout{se analiza el sistema tal y como lo utiliza un
+estudiante,}\textcolor{borrador2}{se analiza el recorrido completo de los módulos que usa la aplicación, sin el servidor web,} incluyendo la gestión de la conversación, las respuestas fijas,
 la restricción del dominio, la recuperación y la generación. El banco del
 sistema contiene 57 entradas organizadas en seis familias de preguntas sobre
 datos de la colección y cinco familias destinadas a comprobar el
@@ -230,6 +230,8 @@ Apartado~\ref{secc:validacion_usuarios}.
 \section[Discusión]{Discusión}
 \label{secc:discusion}
 
+\textcolor{borrador2}{Esta sección pone los resultados anteriores frente a lo que se propuso al empezar. Primero aclara respecto a qué objetivos se juzga el trabajo y después discute el cumplimiento de cada objetivo específico, la hipótesis de trabajo y la comparación con los asistentes revisados en el Capítulo~\ref{cap:antecedentes}.}
+
 \subsection[Correspondencia con la propuesta original]{Correspondencia con la propuesta original}
 \label{secc:discusion_correspondencia}
 
@@ -241,7 +243,7 @@ La correspondencia entre ambos conjuntos de objetivos no es de uno a uno, puesto
 
 También existe una diferencia en el alcance del primer objetivo. La propuesta original contemplaba la recopilación de titulaciones, guías docentes, memorias de grado y datos estadísticos, como las tasas de titulación, egreso e inserción laboral. La colección finalmente construida incluye titulaciones, guías docentes, planes de estudio y salidas profesionales, pero no incorpora los datos estadísticos.
 
-Estos datos quedaron fuera debido al alcance establecido, ya que el esfuerzo principal se concentró en la información docente y orientativa accesible desde la web del centro (guías, planes y salidas profesionales) y en el desarrollo del pipeline RAG. La incorporación de las memorias de verificación de grado y de los datos estadísticos oficiales queda planteada como una línea de trabajo futuro (Apartado~\ref{secc:trabajo_futuro}).
+Estos datos quedaron fuera debido al alcance establecido, ya que el esfuerzo principal se concentró en la información docente y orientativa accesible desde la web del centro (guías, planes y salidas profesionales) y \sout{en el desarrollo del pipeline RAG.}\textcolor{borrador2}{en el desarrollo del \textit{pipeline} RAG.} La incorporación de las memorias de verificación de grado y de los datos estadísticos oficiales queda planteada como una línea de trabajo futuro (Apartado~\ref{secc:trabajo_futuro}).
 
 
 \subsection{Cumplimiento y discusión de objetivos específicos}
