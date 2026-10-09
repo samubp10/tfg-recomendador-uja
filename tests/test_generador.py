@@ -9,6 +9,7 @@ ejecución reproducible viajan de verdad en la petición.
 
 from __future__ import annotations
 
+import http.client
 import io
 import json
 from typing import Any
@@ -1292,8 +1293,14 @@ class FlujoFalso:
         return None
 
 
-def flujo_de(monkeypatch, trozos: list[dict[str, Any]]) -> None:
-    """Hace que la llamada al modelo devuelva ese flujo."""
+def flujo_de(monkeypatch, trozos: list[dict[str, Any]], cerrado: bool = True) -> None:
+    """Hace que la llamada al modelo devuelva ese flujo.
+
+    Como en Ollama, la última línea lleva ``"done": true``. ``cerrado=False``
+    la quita, que es lo que llega si la conexión se cierra a media respuesta.
+    """
+    if cerrado:
+        trozos = trozos[:-1] + [{**trozos[-1], "done": True}]
     monkeypatch.setattr(
         generador.urllib.request, "urlopen", lambda *a, **k: FlujoFalso(trozos)
     )
@@ -1805,3 +1812,67 @@ def test_si_el_estudiante_saluda_el_modelo_puede_devolverle_el_saludo(
 def test_un_saludo_sin_nada_detras_si_se_entrega(monkeypatch) -> None:
     """Retenerlo no puede dejar al estudiante sin respuesta."""
     assert _entregado(monkeypatch, "¿Qué se ve en Álgebra?", "¡Hola!") == "¡Hola!"
+
+
+# --- IT-141: una respuesta cortada no se presenta como completa ---
+
+
+def test_un_error_a_media_respuesta_es_un_fallo_del_modelo(monkeypatch) -> None:
+    """H1 de la auditoría del 08/10/2026.
+
+    Si el modelo falla ya empezado, Ollama mantiene el 200 y manda el error
+    como una línea más (docs.ollama.com/api/errors). El bucle solo leía
+    `response`, así que el flujo terminaba sin excepción y el navegador recibía
+    «fin»: una respuesta cortada presentada como completa.
+    """
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "Primera frase completa. "},
+            {"error": "an error was encountered while running the model"},
+        ],
+        cerrado=False,
+    )
+    recibido: list[str] = []
+
+    with pytest.raises(generador.ErrorDelModelo, match="a media respuesta"):
+        for trozo in generador.generar_por_partes("prompt", "un-modelo"):
+            recibido.append(trozo)
+
+    assert recibido == ["Primera frase completa. "]
+
+
+def test_un_flujo_que_se_acaba_sin_su_cierre_es_un_fallo(monkeypatch) -> None:
+    """La conexión cerrada limpia, sin la línea final, también corta (H1)."""
+    flujo_de(monkeypatch, [{"response": "Primera frase completa. "}], cerrado=False)
+
+    with pytest.raises(generador.ErrorDelModelo, match="sin su cierre"):
+        list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+class CuerpoCortado:
+    """Respuesta sin flujo cuyo cuerpo llega a medias con un cierre limpio."""
+
+    def __enter__(self) -> "CuerpoCortado":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        raise http.client.IncompleteRead(b'{"response": "Primera', 36)
+
+
+def test_un_cuerpo_cortado_es_un_fallo_del_modelo(monkeypatch) -> None:
+    """H2: `IncompleteRead` se escapaba de la traducción a `ErrorDelModelo`.
+
+    Los cuatro sitios que llaman a `generar` solo capturan `ErrorDelModelo`:
+    en el decisor de ámbito se saltaba el reintento y la excepción salía del
+    servidor con el 200 ya enviado.
+    """
+    monkeypatch.setattr(
+        generador.urllib.request, "urlopen", lambda *a, **k: CuerpoCortado()
+    )
+
+    with pytest.raises(generador.ErrorDelModelo, match="a medias"):
+        generar("prompt", "un-modelo")
