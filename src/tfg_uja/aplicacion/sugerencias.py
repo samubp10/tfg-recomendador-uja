@@ -53,10 +53,11 @@ PLANTILLAS: Final[tuple[tuple[str, str], ...]] = (
         "tipo_asignatura = 'OP'",
         "¿Qué asignaturas optativas se pueden elegir en el {titulacion}?",
     ),
-    # 12 de 12: la ficha es lo único que tienen todas, incluido el doble grado
-    # internacional, al que la Escuela no le publica ni una asignatura.
+    # 11 de 12. IT-143: exige el plan y no la ficha. Ficha tienen las doce, pero
+    # al doble grado internacional la Escuela no le publica ni una asignatura, y
+    # la pregunta acababa en «no tengo información» y se volvía a ofrecer.
     (
-        "origen = 'ficha_titulacion'",
+        "origen = 'plan_de_estudios'",
         "¿Cuántas asignaturas tiene el {titulacion} y cómo se reparten por curso?",
     ),
     # 11 de 12
