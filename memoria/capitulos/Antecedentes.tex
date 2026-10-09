@@ -12,7 +12,7 @@ La orientación académica preuniversitaria tiene como finalidad ayudar al alumn
 \subsection{El problema de la elección de titulación}
 
 
-Al llegar a Bachillerato o a un ciclo de Formación Profesional, el estudiante se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso materializadas en la nota de corte y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
+Al llegar a Bachillerato o a un ciclo de Formación Profesional, \sout{el estudiante}\textcolor{borrador2}{el alumnado} se enfrenta a la decisión de qué titulación cursar, en la que pesan factores muy distintos: la afinidad entre las asignaturas que ha cursado y las que oferta cada grado, las expectativas de salidas profesionales, las exigencias de acceso materializadas en la nota de corte y, en caso de tener que mudarse, la cercanía de la universidad y el coste de vida de la ciudad.
 
 Según los datos del informe \textit{La universidad española en cifras}, la Tasa Global Neta de Abandono (\sig{TGNA}) en las universidades presenciales para la cohorte de entrada de 2017/2018 se situó en un 13,65\,\% en las universidades públicas y un 13,20\,\% en las privadas, evidenciando una convergencia estructural entre ambos modelos\cite{uec_abandono2024}. El abandono del estudio concreto elegido es aún mayor: la tasa global bruta de abandono (\sig{TGBA}) de esa misma cohorte alcanzó el 25,72\,\% en las universidades públicas presenciales, es decir, aproximadamente uno de cada cuatro estudiantes no continuó en la titulación que eligió, aunque cerca de la mitad de estos cambió a otro estudio en lugar de abandonar el sistema universitario\cite{uec_abandono2024}. Este fenómeno se podría relacionar en gran parte con expectativas mal formadas en el momento de elegir; una mejor orientación previa actuaría justo sobre ese punto reduciendo estas cifras.
 
@@ -30,7 +30,7 @@ Todas las universidades disponen hoy en día de un portal web en el que aparece 
 
 La propia Universidad de Jaén ofrece, además, jornadas de puertas abiertas donde no solo se enseñan las instalaciones, sino que también se orienta al alumnado sobre los grados ofertados en toda la universidad. Su problema es la rigidez del formato: la inmensa mayoría son presenciales, en fechas y horas preestablecidas y poco flexibles, lo que acota mucho la cantidad de personas que pueden asistir.
 
-Por último, existen en internet comparadores genéricos y \textit{rankings} que ordenan las universidades según parámetros como el volumen de investigación o la empleabilidad. Estos parámetros describen a la universidad como institución, no a una titulación concreta, así que no informan directamente sobre la decisión que necesita tomar un estudiante de nuevo ingreso: qué carrera elegir.
+Por último, existen en internet comparadores genéricos y \textit{rankings} que ordenan las universidades según parámetros como el volumen de investigación o la empleabilidad. Estos parámetros describen a la universidad como institución, no a una titulación concreta, así que no informan directamente sobre la decisión que necesita tomar \sout{un estudiante de nuevo ingreso}\textcolor{borrador2}{el alumnado de nuevo ingreso}: qué carrera elegir.
 
 
 \section[Fundamentos técnicos]{Fundamentos técnicos}
@@ -86,7 +86,7 @@ Este enfoque presenta dos ventajas principales. En primer lugar, permite actuali
 \subsection{Modelos propietarios frente a modelos de pesos abiertos}
 \label{subsec:propietarios_abiertos}
 
-Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicamente y a los que se accede normalmente mediante una aplicación o una interfaz de programación de aplicaciones (API) gestionada por el proveedor. GPT (OpenAI)~\cite{openai_api2020}, Claude (Anthropic)~\cite{anthropic_claude2026} y Gemini (Google)~\cite{google_gemini2026} son ejemplos destacados de esta categoría. En este modelo de distribución, la empresa desarrolladora conserva el control sobre los pesos, la infraestructura de ejecución y la información técnica que publica acerca de la arquitectura y del proceso de entrenamiento.
+Los modelos propietarios son aquellos cuyos pesos no se distribuyen públicamente y a los que se accede normalmente mediante una aplicación o una interfaz de programación de aplicaciones (\sout{API}\textcolor{borrador2}{\sig{API}}) gestionada por el proveedor. GPT (OpenAI)~\cite{openai_api2020}, Claude (Anthropic)~\cite{anthropic_claude2026} y Gemini (Google)~\cite{google_gemini2026} son ejemplos destacados de esta categoría. En este modelo de distribución, la empresa desarrolladora conserva el control sobre los pesos, la infraestructura de ejecución y la información técnica que publica acerca de la arquitectura y del proceso de entrenamiento.
 
 En contraposición, los modelos de pesos abiertos permiten descargar los parámetros aprendidos por la red neuronal y, cuando la licencia y los recursos disponibles lo permiten, ejecutarlos en infraestructura propia. Esta disponibilidad no implica por sí sola que el sistema completo sea de código abierto o software libre, pues el código de entrenamiento, los datos utilizados y otros componentes pueden no publicarse~\cite{osi_osaid2024}. Entre las familias que han publicado versiones con pesos abiertos se encuentran Llama (Meta)~\cite{meta_llama31_license2024}, Mistral (Mistral AI)~\cite{mistral_models2026} y Qwen (Alibaba)~\cite{qwen3_2025}.
 
@@ -122,7 +122,7 @@ mientras que uno demasiado pequeño pierde el contexto necesario para que el fra
 \subsection[Incrustaciones de texto]{Incrustaciones de texto}
 \label{subsec:incrustaciones_concepto}
 
-Una incrustación de texto o \textit{embedding} es la representación de un texto dado como un vector de números reales de dimensión fija. La idea es que la posición del vector en ese espacio de dimensiones codifique el significado del texto, de modo que dos textos que hablan de lo mismo caigan cerca aunque no compartan ni una palabra igual (como se haría en una simple búsqueda de palabras). Esto permite que un usuario de la aplicación recupere información de una guía docente redactada con el vocabulario del profesor que la escribió con otros términos y vocabulario.
+Una incrustación de texto o \textit{embedding} es la representación de un texto dado como un vector de números reales de dimensión fija. La idea es que la posición del vector en ese espacio de dimensiones codifique el significado del texto, de modo que dos textos que hablan de lo mismo caigan cerca aunque no compartan ni una palabra igual (como se haría en una simple búsqueda de palabras). Esto permite que \sout{un usuario de la aplicación}\textcolor{borrador2}{quien usa la aplicación} recupere información de una guía docente redactada con el vocabulario del profesor que la escribió con otros términos y vocabulario.
 
 Los primeros modelos que hacían esto asignaban un vector a cada palabra a partir de los contextos en los que aparece\cite{mikolov2013word2vec}. Pero el problema venía cuando había que asignar esta idea a frases y párrafos completos ya que el significado de un texto no es la suma de las palabras que lo componen. Sentence-BERT\cite{reimers2019sbert} adapta un modelo de tipo \textit{transformer}\cite{vaswani2017attention} para que produzca directamente un vector por texto, solucionando lo anteriormente mencionado.
 
@@ -150,11 +150,11 @@ El denominador en esta división es lo que convierte el producto escalar en un c
 \subsection[Búsqueda semántica]{Búsqueda semántica}
 \label{subsec:busqueda_semantica_concepto}
 
-La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. Esta es la alternativa a la búsqueda léxica, que puntúa un documento en función de si las palabras a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
+La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. Esta es la alternativa a la búsqueda léxica, que puntúa un documento en función de si las palabras a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que \sout{un usuario}\textcolor{borrador2}{alguien} pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
 Con incrustaciones este funcionamiento cambia. Como se explica en el Apartado~\ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están más cerca del suyo en el espacio vectorial. Esto genera otro problema y es que ahora hay que encontrar los vecinos más próximos en un espacio de cientos de dimensiones, y este problema lo abarcarán las bases de datos vectoriales en el Apartado~\ref{subsec:vectordb_concepto}.
 
-Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
+Sobre este método de búsqueda hay dos decisiones importantes que afectan a \sout{lo que el usuario acaba recibiendo}\textcolor{borrador2}{lo que acaba recibiendo quien pregunta}:
 
 \begin{itemize}
   \item \textbf{Cuántos resultados se devuelven: } Un $K$ pequeño corre el riesgo de dejar fuera la respuesta, sin embargo uno grande arrastra información inútil hasta el modelo que redacta y consume su ventana de contexto.
@@ -196,7 +196,7 @@ Donde $\text{rank}(q)$ es la posición del primer resultado relevante para
   ningún resultado relevante aparece entre los recuperados, ese sumando se cuenta como cero, y
   no como el inverso de una posición que no existe.
 
-  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero lo que el usuario pregunta realmente son unidades completas, como asignaturas, bloques de salida de una titulación, etc., y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad puede verse de dos maneras diferentes:
+  Hay que diferenciar entre dos tipos de exhaustividad, ya que en una colección fragmentada como la que pertenece a este proyecto, lo que se recupera e indexa son fragmentos y no documentos enteros, pero \sout{lo que el usuario pregunta realmente}\textcolor{borrador2}{lo que se pregunta realmente} son unidades completas, como asignaturas, bloques de salida de una titulación, etc., y una unidad puede haberse partido en varios fragmentos, por lo que la exhaustividad puede verse de dos maneras diferentes:
 \begin{itemize}
   \item \textbf{Por fragmento} (\textit{R@K}): se cuenta qué proporción de los fragmentos relevantes ha entrado entre los $K$ primeros. 
   \item \textbf{Por unidad} (\textit{RU@K}): se considera aceptada la pregunta si es que aparece alguno de los fragmentos de la unidad preguntada.
@@ -249,7 +249,7 @@ un chatbot dirigido al alumnado de nuevo ingreso para resolver dudas sobre prueb
 matrícula y notas de corte\footnote{\url{https://www.ujaen.es/estudios/acceso-y-matricula/ada}}.
 La propia UJA advierte de que ADA <<no responde todavía a preguntas realizadas en otro idioma distinto del castellano
 y no responde a preguntas fuera de su ámbito>>, delimitando de antemano su alcance. Antes de iniciar la conversación,
-ADA pregunta si el usuario permite guardar la conversación como <<dato opcional>> para mejorar el servicio,
+ADA pregunta \sout{si el usuario permite}\textcolor{borrador2}{a quien la usa si permite} guardar la conversación como <<dato opcional>> para mejorar el servicio,
 ofreciendo explícitamente la alternativa de continuar sin ceder ese dato (Figura~\ref{fig:ada_privacidad}),
 consecuencia del RGPD~\cite{rgpd2016} y la LOPDGDD~\cite{lopdgdd2018} (Sección~\ref{secc:marcolegal}).
 
@@ -263,7 +263,7 @@ consecuencia del RGPD~\cite{rgpd2016} y la LOPDGDD~\cite{lopdgdd2018} (Sección~
 Se probó ADA con dos preguntas representativas del dominio de este trabajo: la nota de corte de
 los másteres de Ciberseguridad e Ingeniería Informática, y las asignaturas de primer curso del Grado en Ingeniería Informática.
 Ambas conversaciones, recogidas en las Figuras~\ref{fig:ada_pregunta1} y~\ref{fig:ada_pregunta2}, tuvieron un resultado idéntico: ADA no respondió el dato solicitado de manera natural como lo haría un ser humano o un LLM,
-sino que redirigió al usuario a un enlace de la oferta académica oficial para que lo consultara por su cuenta.
+sino que \sout{redirigió al usuario a}\textcolor{borrador2}{remitió a} un enlace de la oferta académica oficial para que lo consultara por su cuenta.
 Los enlaces ofrecidos eran correctos y la información buscada se encontraba en ellos, pero el asistente no mostró evidencia de recuperar ni de razonar sobre el contenido de esas páginas: su función se limita a enrutar la consulta a la fuente adecuada, no a leerla y responder con el dato concreto.
 
 \begin{figure}[H]
@@ -287,7 +287,7 @@ Al acceder a él, se observa que la estructura y la estética son muy similares,
 una empresa española de inteligencia artificial especializada en agentes conversacionales y chatbots,
 que entre sus sectores de actividad publicitados incluye el universitario\footnote{\url{https://1millionbot.com/}}.
 Al probar LUCA con una pregunta comparable (las asignaturas de primer curso del Grado en Enfermería),
-el patrón se repitió: tras pedir al usuario que se identificase con un perfil (alumnado, PTGAS o PDI),
+el patrón se repitió: tras pedir \sout{al usuario}\textcolor{borrador2}{a quien preguntaba} que se identificase con un perfil (alumnado, \sout{PTGAS o PDI}\textcolor{borrador2}{\sig{PTGAS} o \sig{PDI}}),
 LUCA respondió de nuevo redirigiendo a un enlace externo en lugar de procesar la respuesta (Figura~\ref{fig:luca_pregunta1}).
 Que dos despliegues distintos del mismo proveedor, en dos universidades diferentes,
 compartan esta limitación sugiere que se trata de una característica de la plataforma,
@@ -323,7 +323,7 @@ junto con estrategias basadas en contenido e híbridas, siendo estas últimas la
 Un enfoque distinto, de corte psicométrico, son los tests vocacionales, aquellos que son herramientas utilizadas en la
 orientación profesional y que por ejemplo, se implementan en sistemas expertos que automatizan la aplicación del
 \glp{Test de Holland}{test de Holland} para orientación vocacional, sustituyendo un cuestionario administrado por un orientador
-por reglas codificadas que infieren afinidades entre intereses del estudiante y perfiles profesionales~\cite{huayta2024vocational}.
+por reglas codificadas que infieren afinidades entre intereses \sout{del estudiante}\textcolor{borrador2}{del alumnado} y perfiles profesionales~\cite{huayta2024vocational}.
 
 Estructuralmente, ninguno de estos enfoques opera sobre lenguaje natural conversacional ni genera texto libre, sino que 
 todos devuelven una lista cerrada de recomendaciones (titulaciones, ramas profesionales) a partir de un perfil, un cuestionario
@@ -344,7 +344,7 @@ Este trabajo comparte con los sistemas analizados el propósito de orientar en l
 \section{Marco legal y ético}
 \label{secc:marcolegal}
 
-Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales pueden llegar a contener información de carácter personal del profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que los usuarios aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa de los usuarios pueden ser menores de edad. Estos dos tipos de información sitúan al proyecto bajo tres marcos normativos distintos: el que regula la extracción automatizada de información de la web, el de la protección de datos personales y el de la transparencia en el uso de la inteligencia artificial. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
+Este sistema trabaja con dos categorías de información sensible. Por un lado, las guías docentes descargadas directamente de la página web de la universidad, las cuales pueden llegar a contener información de carácter personal del profesorado. Por otro lado, la propia interacción conversacional con el asistente puede dar lugar a que \sout{los usuarios}\textcolor{borrador2}{las personas usuarias} aporten datos de carácter personal, circunstancia que adquiere una relevancia especial dado que el público objetivo es preuniversitario y, por tanto, una parte significativa \sout{de los usuarios}\textcolor{borrador2}{de las personas usuarias} pueden ser menores de edad. Estos dos tipos de información sitúan al proyecto bajo tres marcos normativos distintos: el que regula la extracción automatizada de información de la web, el de la protección de datos personales y el de la transparencia en el uso de la inteligencia artificial. Se recogen a continuación únicamente los aspectos que han condicionado alguna decisión concreta de diseño, sin pretender un análisis jurídico exhaustivo.
 
 \subsection{Extracción automatizada de información de la web}
 
@@ -357,13 +357,13 @@ No obstante, la legislación condiciona esta excepción a que el titular de los 
 
 \subsection{Protección de datos y usuarios menores de edad}
 
-La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a un estudiante de secundaria que solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
+La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento \sout{a un estudiante de secundaria que solo quiere}\textcolor{borrador2}{a quien cursa secundaria y solo quiere} preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
 
 La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
 
 \subsection{Transparencia en el uso de la inteligencia artificial}
 
-Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar al usuario de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción. Para cumplir con esto, la interfaz de la aplicación incorpora un aviso permanente bajo la caja de texto e incluye en cada respuesta redactada por el modelo las guías docentes que se le entregaron como contexto.
+Por último, en lo referente al uso de la inteligencia artificial generativa en la interacción conversacional, el sistema se encuentra sujeto a las obligaciones de transparencia del Reglamento de Inteligencia Artificial de la Unión Europea\cite{aiact2024}. En concreto, sus artículos 50.1 y 50.5 establecen la obligación de informar \sout{al usuario}\textcolor{borrador2}{a las personas} de manera clara y distinguible de que está interactuando con un sistema de \sig{IA} en el momento de la primera interacción. Para cumplir con esto, la interfaz de la aplicación incorpora un aviso permanente bajo la caja de texto e incluye en cada respuesta redactada por el modelo las guías docentes que se le entregaron como contexto.
 
 En cuanto a las licencias, el código fuente del proyecto se distribuye bajo la licencia libre GNU General Public License v3 (GPLv3)\cite{gpl3}. Para la parte de inferencia, se restringe la selección a modelos exclusivamente de pesos abiertos, asegurando la soberanía de los datos procesados en local.
  
