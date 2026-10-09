@@ -325,6 +325,50 @@ def sucesos_de(m: Any) -> list[dict[str, object]]:
     return [json.loads(linea) for linea in crudo.splitlines() if linea]
 
 
+class SalidaQueSeCorta(io.BytesIO):
+    """La conexión que cierra el navegador al cancelar: falla al segundo envío."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.envios = 0
+
+    def write(self, dato: Any) -> int:
+        self.envios += 1
+        if self.envios > 1:
+            raise ConnectionAbortedError(10053, "conexión anulada por el equipo")
+        return super().write(dato)
+
+
+def test_cancelar_desde_el_navegador_no_deja_una_traza(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """H-B6 de la prueba en vivo del 08/10/2026 (IT-143).
+
+    Cada cancelación dejaba en la consola la pila entera de `socketserver`
+    acabada en `ConnectionAbortedError`. Además se cierra la respuesta en curso,
+    que es lo que corta la petición al modelo.
+    """
+    cerrada: list[bool] = []
+
+    def partes_falsas(*a: Any, **k: Any):
+        try:
+            yield {"parte": "Una."}
+            yield {"parte": "Dos."}
+            yield {"fin": True}
+        except GeneratorExit:
+            cerrada.append(True)
+            raise
+
+    monkeypatch.setattr(servidor, "partes_de_la_respuesta", partes_falsas)
+    m = manejador_falso(b'{"pregunta":"x"}')
+    m.wfile = SalidaQueSeCorta()
+
+    m.do_POST()
+
+    assert sucesos_de(m) == [{"parte": "Una."}]
+    assert cerrada == [True]
+
+
 def test_el_manejador_emite_una_linea_json_por_parte(
     monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
 ) -> None:
