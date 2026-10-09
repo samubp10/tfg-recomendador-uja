@@ -5,7 +5,7 @@
 
 
 
-Este capítulo presenta los resultados obtenidos durante las diferentes mediciones de los diferentes experimentos del sistema. Primero se describe la colección documental generada y su fragmentación, después la representación mediante incrustaciones y la indexación en la base de datos vectorial, y por último, se muestran los resultados de la evaluación del sistema RAG completo. La sección final discute el alcance de los resultados y las conclusiones que pueden extraerse de la evidencia obtenida
+Este capítulo presenta los resultados obtenidos durante las diferentes mediciones de los diferentes experimentos del sistema. Primero se describe la colección documental generada y su fragmentación, después la representación mediante incrustaciones y la indexación en la base de datos vectorial, y por último, se muestran los resultados de la evaluación del sistema RAG completo. La sección final discute el alcance de los resultados y las \sout{conclusiones que pueden extraerse de la evidencia obtenida}\textcolor{borrador2}{conclusiones que pueden extraerse de la evidencia obtenida.}
 
 Todas las cifras proceden de la ejecución de los verificadores y experimentos ejecutados sobre el corpus completo correspondiente al curso 2026-27. En los experimentos de evaluación se especifica también el conjunto de preguntas utilizado y su tamaño. El Capítulo~\ref{cap:materialesymetodos} describe el procedimiento seguido y las comparaciones realizadas, este capítulo se reserva para presentar los resultados y discutir su alcance.
 
@@ -16,12 +16,12 @@ La colección documental o \textit{corpus} resultante recoge las 12 titulaciones
 
 De esas 528 asignaturas, 442 disponen de guía docente, una cobertura del 83,7\,\%. Las 86 restantes no la tienen ya que no se han publicado aún a fecha de este trabajo. El reparto de estas guías faltantes no es uniforme, se concentran en las titulaciones nuevas que todavía no se han completado, como el Grado en Inteligencia Artificial y Ciberseguridad, del que la Escuela no había publicado todavía las guías de tercero y cuarto curso en la fecha de recogida. Conviene tener este dato en cuenta al leer cualquier resultado posterior en esta memoria, porque significa que el sistema puede saber menos precisamente de las titulaciones más nuevas.
 
-Sobre esta recopilación de información, el fragmentador produce 1.922 fragmentos repartidos en 471 unidades, de las cuales 63 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.719 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos van desde los 96 a 900 caracteres, con una mediana de 846 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
+Sobre esta recopilación de información, el fragmentador produce 1.922 fragmentos repartidos en 471 unidades, de las cuales 63 se comparten entre varias titulaciones al repetirse en los diferentes grados. Los tipos son: 1.719 fragmentos de guías docentes, 86 nombres de asignaturas sin guía disponible, 56 de plan de estudios, 22 salidas profesionales, 24 menciones de una titulación, o las asignaturas de una mención concreta (ramas), 12 fichas con datos y cifras de cada grado (cuántas asignaturas tiene, cuántas obligatorias, ...), y por último 3 de catálogo, parecidas a las fichas con datos pero más en general, solamente de la Escuela en general. Los tamaños de estos fragmentos \sout{van desde los 96 a 900 caracteres}\textcolor{borrador2}{van desde los 96 hasta los 900 caracteres}, con una mediana de 846 y un percentil 90 de 895. Ninguno supera la ventana del modelo de incrustaciones.
 
-Estas cifras recogidas no proceden de una fuente uniforme, lo que ha llevado a muchos problemas de recogida de datos durante el desarrollo de este proyecto. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}. El
+Estas cifras recogidas no proceden de una fuente uniforme, \sout{lo que ha llevado a muchos problemas de recogida de datos durante el desarrollo de este proyecto}\textcolor{borrador2}{lo que complica su recogida}. La web de la EPSJ no publica ningún esquema de sus páginas, cada titulación genera su plantilla y no coinciden entre sí. El repositorio recoge cinco registros de anomalías de calidad de datos (bajo el nombre de DQA-nº) con la evidencia de cada una\cite{repo_tfg}. El
   Apartado~\ref{secc:fase0_situacion} describe estos obstáculos y cómo se trataron.
 
-La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que finaliza en .htmlSon las 288, es decir, la totalidad de
+La primera de las anomalías afecta al formato, ya que las 288 guías docentes recogidas del curso 2026/27 se sirven como PDF y no como HTML, aunque detrás de una dirección web que \sout{finaliza en .htmlSon las 288}\textcolor{borrador2}{finaliza en \texttt{.html}. Son las 288}, es decir, la totalidad de
   las publicadas, ninguna se sirve ya en HTML.
 
 La segunda anomalía afecta a la estructura de las tablas de asignaturas, y es que esta no es la misma en todos los planes. Un ejemplo de ello es que los dobles grados rotulan «carácter» la columna
@@ -29,7 +29,7 @@ que los grados simples rotulan «tipo», y abrevian «OBL» donde los simples es
 
 La tercera anomalía afecta a los dobles grados, que son cinco de las doce titulaciones. Publican su plan de estudios bajo una ruta distinta, escriben los nombres en mayúsculas y a veces con el acrónimo de las titulaciones de procedencia, y usan una serie de códigos propia, haciendo que ninguno de los códigos de sus asignaturas coincida con el de la misma asignatura en los grados base.
 
-La cuarta anomalía afecta a las guías docentes, ya que de las 288 publicadas, cinco traen la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
+La cuarta anomalía afecta a las guías docentes, ya que \sout{de las 288 publicadas, cinco traen}\textcolor{borrador2}{además de las 288 con contenido, hay cinco publicadas que traen} la plantilla completa y las secciones de resumen y de contenidos vacías. Son guías que están publicadas y al menos en la fecha de extracción de los datos, estaban vacías.
 
 
 La quinta son irregularidades menores, descritas una a una en el
@@ -45,7 +45,7 @@ La Tabla~\ref{tab:caracterizacion_corpus} recoge la composición de la
 
 
 
-También queda que estos datos son una fotografía temporal del curso 2026/27 (extraídos el 16/08/2026). Debido a que la web de la EPSJ cambia y completa su oferta progresivamente, volver a ejecutar el proceso de extracción devolverá el estado más actual de la web, que no será el mismo que este.
+\sout{También queda que estos datos son}\textcolor{borrador2}{Hay que tener en cuenta que estos datos son} una fotografía temporal del curso 2026/27 (extraídos el 16/08/2026). Debido a que la web de la EPSJ cambia y completa su oferta progresivamente, volver a ejecutar el proceso de extracción devolverá el estado más actual de la web, que no será el mismo que este.
 
 
 \section[Fragmentación de la colección de datos]{Fragmentación de la colección de datos}
@@ -64,7 +64,7 @@ de las tres estrategias. Las cuarenta y cinco están en el ADR-0001\cite{repo_tf
 
 \input{tablas/TablaRejillaFragmentacion.tex}
 
-La tabla de arriba contesta a la duda que aborda esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
+\sout{La tabla de arriba contesta}\textcolor{borrador2}{La tabla anterior contesta} a la duda que aborda esta subsección, y es que a igualdad de tamaño, las tres estrategias son prácticamente indistinguibles, dando resultados muy similares. Las nueve configuraciones diferentes (3 estructural, 3 de corte por longitud y 3 de corte semántico), que comparten el máximo de 900 caracteres, se reparten entre 0,890 y 0,935 de acierto en el primer resultado, valores que no son de vital importancia.
 
 Hay que aclarar que la recuperación no justifica por sí sola la estrategia elegida, ya que en el caso del troceado por longitud sin solape, con este mismo máximo, produce ciento seis fragmentos menos que la estructural y empata con ella en casi todas las medidas de acierto, de modo que, si solo contara el rendimiento medido, se elegiría esta sin dudarlo.
 
@@ -81,7 +81,7 @@ La segunda pregunta (cuánto importa el tamaño) se responde con la estrategia y
 
 \input{tablas/TablaTamanoFragmento.tex}
 
-El valor 900 es el único que gana en las tres métricas a la vez, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente es más alta.
+\sout{El valor 900 es el único que gana en las tres métricas a la vez}\textcolor{borrador2}{El valor 900 gana o empata en las tres métricas a la vez}, y lo consigue con la mitad de fragmentos que el de 600 caracteres. En el documento que recoge el experimento (\mbox{ADR-0001}) hay una cosa que se repite constantemente, y es que a más fragmentos, mejores métricas, ya que en un corte más fino, la probabilidad de pedir un fragmento y que el recogido sea ese exactamente es más alta.
 
 La última columna de esta tabla aporta un argumento que dejaba instantáneamente fuera a las configuraciones con máximos de 1.500 y 1.800, y es que estos truncaban los fragmentos y al hacer esto, mucha información se perdía en el camino, algo que es inadmisible.
 
@@ -92,7 +92,7 @@ En resumen de este apartado, la configuración es el corte estructural con un ta
 
 La comparativa se ejecutó sobre la colección de datos completa y las cincuenta preguntas anotadas del conjunto de evaluación. El diseño de la comparación (qué se compara, con qué instrumento y por qué esos cuatro candidatos) está en el Apartado~\ref{secc:fase1_embeddings}, y la decisión que se toma con estas cifras queda registrada en el ADR-0003\cite{repo_tfg}. La Tabla~\ref{tab:comparativa_embeddings} recoge los resultados de los cuatro candidatos.
 
-Una de las cosas que se puede observar y da más curiosidad es el hecho de que el peor modelo de lejos ha sido el que fue entrenado específicamente en español. Su resultado por unidad en los tres primeros resultados es de 0,410 frente al 0,985 del modelo multilingüe de tamaño equivalente. Obviamente este modelo tuvo las mismas condiciones que los demás, pero el problema reside en cómo este modelo fue entrenado. Básicamente este modelo se sometió a la tarea de reconocer si dos frases significan lo mismo (su ficha declara que se entrenó sobre un conjunto de similitud textual semántica con una función de pérdida de similitud del coseno\cite{hiiamsid_sts_es}), que no es lo que se le pide normalmente a un sistema de recuperación, donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no se le parece. La documentación del modelo separa estos dos casos de uso (búsqueda simétrica y asimétrica) y dice que elegir el modelo adecuado para cada tarea es crítico \cite{sbert_busqueda_semantica}.
+\sout{Una de las cosas que se puede observar y da más curiosidad es el hecho de que el peor modelo de lejos ha sido}\textcolor{borrador2}{Llama la atención que el peor modelo, con diferencia, haya sido} el que fue entrenado específicamente en español. Su resultado por unidad en los tres primeros resultados es de 0,410 frente al 0,985 del modelo multilingüe de tamaño equivalente. Obviamente este modelo tuvo las mismas condiciones que los demás, pero el problema reside en cómo este modelo fue entrenado. Básicamente este modelo se sometió a la tarea de reconocer si dos frases significan lo mismo (su ficha declara que se entrenó sobre un conjunto de similitud textual semántica con una función de pérdida de similitud del coseno\cite{hiiamsid_sts_es}), que no es lo que se le pide normalmente a un sistema de recuperación, donde una pregunta breve debe emparejarse con un documento extenso que la responde y que no se le parece. La documentación del modelo separa estos dos casos de uso (búsqueda simétrica y asimétrica) y dice que elegir el modelo adecuado para cada tarea es crítico \cite{sbert_busqueda_semantica}.
 
 
 
@@ -112,7 +112,7 @@ razones que desarrolla el Apartado~\ref{secc:eleccion_e5small}.
 \section[Comparativa de la base de datos vectorial]{Comparativa de la base de datos vectorial}
 \label{secc:resultados_vectordb}
 
-La comparativa enfrenta tres bases de datos vectoriales distintas, ChromaDB\cite{chromadb}, LanceDB\cite{lancedb} y Qdrant\cite{qdrant} sobre la colección de datos completa extraída hasta ahora y las preguntas del conjunto de evaluación, con una cuarta condición, la cual no es candidata pero merece la pena mencionar, que es la búsqueda exacta con NumPy, la cual sirve a la vez de referencia de fidelidad y de línea base de velocidad. El diseño de la comparación que abarca cosas como qué se compara, por qué esas tres candidatas y con qué umbrales, está en el Apartado~\ref{secc:fase2_vectordb}, y la decisión con los datos completos queda registrada en el ADR-0004\cite{repo_tfg}.
+La comparativa enfrenta tres bases de datos vectoriales distintas, ChromaDB\cite{chromadb}, LanceDB\cite{lancedb} y Qdrant\cite{qdrant} sobre la colección de datos completa \sout{extraída hasta ahora}\textcolor{borrador2}{extraída para la Fase 1} y las preguntas del conjunto de evaluación, con una cuarta condición, la cual no es candidata pero merece la pena mencionar, que es la búsqueda exacta con NumPy, la cual sirve a la vez de referencia de fidelidad y de línea base de velocidad. El diseño de la comparación que abarca cosas como qué se compara, por qué esas tres candidatas y con qué umbrales, está en el Apartado~\ref{secc:fase2_vectordb}, y la decisión con los datos completos queda registrada en el ADR-0004\cite{repo_tfg}.
 La Tabla~\ref{tab:comparativa_vectordb} reúne las cifras de fidelidad,
   latencia y memoria de las cuatro condiciones medidas.
 
@@ -126,7 +126,7 @@ Como se puede visualizar en la tabla, ChromaDB no alcanza la fidelidad exacta qu
 \section[Comparativa de modelos de generación]{Comparativa de modelos de generación}
 \label{secc:resultados_rag}
 
-Una vez fijados el modelo de incrustaciones y la base de datos vectorial, quedaba por seleccionar el modelo de lenguaje encargado de redactar las respuestas. Para ello se compararon cuatro modelos bajo las mismas condiciones experimentales, utilizando el mismo corpus, el mismo banco de preguntas y la misma versión del servidor de inferencia. El diseño de esta comparación se describe en el Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.
+Una vez fijados el modelo de incrustaciones y la base de datos vectorial, quedaba por seleccionar el modelo de lenguaje encargado de redactar las respuestas. Para ello se compararon cuatro modelos \sout{bajo las mismas condiciones experimentales}\textcolor{borrador2}{con el mismo banco y la misma configuración, aunque no en una máquina en condiciones controladas}, utilizando el mismo corpus, el mismo banco de preguntas y la misma versión del servidor de inferencia. El diseño de esta comparación se describe en el Apartado~\ref{secc:fase2_llm} del Capítulo~\ref{cap:materialesymetodos}.
 
 La comparación principal se realizó entre \texttt{ministral-8b}, \texttt{qwen3.5:9b} y \texttt{gemma3:12b}. Además, se incluyó \texttt{salamandra-7b} como referencia independiente, con el objetivo de comprobar si un modelo entrenado específicamente con corpus en español ofrecía un comportamiento superior sobre información de la EPSJ redactada en esta lengua.
 
@@ -134,16 +134,16 @@ Cada modelo respondió a las mismas ochenta preguntas seleccionadas del banco de
 
 \input{tablas/TablaComparativaGeneracion.tex}
 
-Ninguno de los cuatro modelos incumplió los dos umbrales eliminatorios establecidos. Ninguno generó el nombre de una titulación que no existiera en el catálogo de la EPSJ y ninguna pregunta quedó sin contexto recuperado. Por tanto, estos criterios no permitieron descartar a ningún candidato y la elección tuvo que basarse en las medidas descritas de precisión, cobertura y acierto escalar.
+Ninguno de los cuatro modelos incumplió los dos umbrales eliminatorios establecidos. Ninguno generó el nombre de una titulación que no existiera en el catálogo de la EPSJ y ninguna pregunta quedó sin contexto recuperado. Por tanto, estos criterios no permitieron descartar a ningún candidato \sout{y la elección tuvo que basarse en las medidas descritas de precisión, cobertura y acierto escalar.}\textcolor{borrador2}{y la elección tuvo que basarse en una muestra mayor, como se explica a continuación.}
 
 
-\texttt{Gemma3:12b} obtuvo una precisión de 1,000, una cobertura de 0,971 y un acierto escalar de 1,000. Las mismas tres cifras, exactamente, que \texttt{ministral-8b} y \texttt{qwen3.5:9b}. Sobre el corpus corregido las medidas descriptivas no distinguen a los tres candidatos grandes, y por eso la elección del modelo no se sostiene sobre ellas sino sobre el umbral eliminatorio (ADR-0005). La única de las cuatro medidas en la que alguno se separa es la cobertura, y el que se separa es \texttt{salamandra-7b} con 0,770.
+\texttt{\sout{Gemma3:12b}\textcolor{borrador2}{gemma3:12b}} obtuvo una precisión de 1,000, una cobertura de 0,971 y un acierto escalar de 1,000. Las mismas tres cifras, exactamente, que \texttt{ministral-8b} y \texttt{qwen3.5:9b}. \sout{Sobre el corpus corregido las medidas}\textcolor{borrador2}{Sobre el corpus vigente las medidas} descriptivas no distinguen a los tres candidatos grandes, y por eso la elección del modelo no se sostiene sobre ellas \sout{sino sobre el umbral eliminatorio}\textcolor{borrador2}{sino sobre el umbral eliminatorio aplicado a una muestra de 250 preguntas, en la que \texttt{qwen3.5:9b} nombró una titulación inexistente y \texttt{gemma3:12b} ninguna} (ADR-0005). \sout{La única de las cuatro medidas en la que alguno se separa es la cobertura, y el que se separa es}\textcolor{borrador2}{El único que se separa en estas medidas, sobre todo en cobertura (también en precisión, 0,995, y en acierto escalar, 0,978), es} \texttt{salamandra-7b} con 0,770.
 
-\texttt{ministral-8b} y \texttt{qwen3.5:9b} presentaron resultados próximos entre sí, acertando las veintitrés de las veintitrés preguntas de curso y dejando una diferencia mínima en la cobertura, pero una diferencia mayor en los tiempos de respuesta. Sin embargo el comportamiento de \texttt{salamandra-7b} fue el más bajo, a pesar de no haber tanta diferencia en el número de parámetros y que fue entrenado en español, fue el que peor resultados dio de todos los modelos enfrentados.
+\texttt{ministral-8b} y \texttt{qwen3.5:9b} presentaron resultados próximos entre sí, acertando las veintitrés de las veintitrés preguntas de curso \sout{y dejando una diferencia mínima en la cobertura, pero una diferencia mayor en los tiempos de respuesta}\textcolor{borrador2}{con la misma cobertura (0,971), y solo se separan en el tiempo de respuesta (24,4 frente a 17,4 s de mediana)}. Sin embargo el comportamiento de \texttt{salamandra-7b} fue el más bajo, a pesar de no haber tanta diferencia en el número de parámetros y que fue entrenado en español, \sout{fue el que peor resultados dio}\textcolor{borrador2}{fue el que peores resultados dio} de todos los modelos enfrentados.
 
-A partir de estas medidas se adopta \texttt{gemma3:12b} como modelo elegido para generar las respuestas en el sistema. Es el candidato con mejores resultados de los modelos que superaron la criba. La justificación detallada de esta elección se recoge en el Apartado~\ref{secc:eleccion_gemma3}.
+A partir de estas medidas se adopta \texttt{gemma3:12b} como modelo elegido para generar las respuestas en el sistema. \sout{Es el candidato con mejores resultados de los modelos que superaron la criba.}\textcolor{borrador2}{Empata en estas medidas con los otros dos modelos grandes y lo separa el umbral eliminatorio en la muestra de 250 preguntas.} La justificación detallada de esta elección se recoge en el Apartado~\ref{secc:eleccion_gemma3}.
 
-Cabe recalcar que la comparación presenta dos limitaciones que deben tenerse en cuenta. En primer lugar, la decisión se basa en 80 preguntas de las 1.023 disponibles en el banco, aunque estas se seleccionaron mediante un procedimiento estratificado y con una semilla fija. En segundo lugar, estas medidas no evalúan la calidad de la redacción ni permiten determinar si una recomendación resulta adecuada para un estudiante concreto.
+Cabe recalcar que la comparación presenta dos limitaciones que deben tenerse en cuenta. En primer lugar, \sout{la decisión se basa en 80 preguntas de las 1.023 disponibles en el banco}\textcolor{borrador2}{las medidas descriptivas se basan en 80 preguntas de las 1.023 disponibles en el banco, y el umbral que decide, en una muestra de 250}, aunque estas se seleccionaron mediante un procedimiento estratificado y con una semilla fija. En segundo lugar, estas medidas no evalúan la calidad de la redacción ni permiten determinar si una recomendación resulta adecuada para un estudiante concreto.
 
 \section[Evaluación del sistema completo]{Evaluación del sistema completo}
 \label{secc:resultados_sistema}
@@ -154,7 +154,7 @@ Antes de realizar esta evaluación se fijaron los
 parámetros de la recuperación adaptativa mediante una rejilla de 240
 configuraciones. La configuración adoptada utiliza una banda de entre 3 y 20
 fragmentos, un factor de corte relativo de 1,20 y un suelo de pertinencia de
-0,137. Se comprobó que si se recortaba el factor de corte relativo, los fragmentos se reducían pero esto hacía que se perdiera contexto necesario.
+0,137. \sout{Se comprobó que si se recortaba el factor de corte relativo, los fragmentos se reducían pero esto hacía que se perdiera contexto necesario.}\textcolor{borrador2}{Según una comprobación hecha sobre el banco anterior, recortar el factor de corte relativo reducía los fragmentos a costa de perder contexto necesario; no se ha repetido sobre el banco vigente.}
 
 
 \subsection{La recuperación}
@@ -247,17 +247,17 @@ Estos datos quedaron fuera debido al alcance establecido, ya que el esfuerzo pri
 \subsection{Cumplimiento y discusión de objetivos específicos}
 \label{secc:discusion_objetivos}
 
-En esta subsección se analiza y discute si se han cumplido cada uno de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ello las evidencias obtenidas a lo largo del desarrollo del proyecto.
+En esta subsección se analiza y discute \sout{si se han cumplido cada uno}\textcolor{borrador2}{si se ha cumplido cada uno} de los seis objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}, valorando para ello las evidencias obtenidas a lo largo del desarrollo del proyecto.
 
 \begin{itemize}    
   \item \textbf{OE1 --- Construcción de la colección de datos: }
         \textit{Cumplido.} Se ha generado un corpus estructurado y verificado a partir de la página web de la EPSJ, donde cada documento u objeto conserva su procedencia y metadatos de extracción. Ha de decirse que la colección es solo una instantánea temporal de una fuente de datos en continuo cambio, la cual llegó a verse modificada hasta tres veces durante el desarrollo de este proyecto. Por tanto, cualquier rastreo futuro reproducirá el estado vigente de la página y no necesariamente el conjunto exacto sobre el que se realizaron las mediciones y pruebas.
         
   \item \textbf{OE2 --- Estrategia de fragmentación de textos:}
-        \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros óptimos de tamaño. Los resultados de esto evidenciaron que a igualdad de longitud, las diferencias de recuperación entre estrategias eran mínimas, y por ello se adoptó la estrategia de partición estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
+        \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones \sout{permitió fijar los parámetros óptimos de tamaño}\textcolor{borrador2}{permitió fijar el tamaño máximo de fragmento}. Los resultados de esto evidenciaron que a igualdad de longitud, las diferencias de recuperación entre estrategias eran mínimas, y por ello se adoptó la estrategia de partición estructural \sout{para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa}\textcolor{borrador2}{para no cortar las frases a mitad; no mezclar asignaturas es una restricción común a las tres estrategias}.
         
   \item \textbf{OE3 --- Selección del modelo de incrustaciones y base vectorial: }
-        \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscando por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que, dado el tamaño de la colección actual, no hay ninguna opción en el mercado que gane a la fuerza bruta.
+        \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscando por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que, dado el tamaño de la colección actual, \sout{no hay ninguna opción en el mercado que gane a la fuerza bruta}\textcolor{borrador2}{ninguna de las tres candidatas medidas gana a la fuerza bruta}.
         
   \item \textbf{OE4 --- Implementación del flujo de procesamiento RAG en local:}
         \textit{Cumplido.} El sistema opera de extremo a extremo sobre hardware doméstico integrando una arquitectura de tres barreras de control desacopladas, que son las que describe el Apartado~\ref{secc:fase2_dominio}, el suelo de pertinencia, la
@@ -265,7 +265,7 @@ En esta subsección se analiza y discute si se han cumplido cada uno de los seis
         una titulación que no existe. 
         
   \item \textbf{OE5 --- Evaluación cuantitativa del sistema:} 
-        \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre bancos de prueba propios, generados a partir del conjunto de datos del proyecto.
+        \textit{Cumplido.} Se han evaluado cuantitativamente las etapas de recuperación y generación sobre \sout{bancos de prueba propios, generados a partir del conjunto de datos del proyecto}\textcolor{borrador2}{bancos de prueba propios: el de recuperación, anotado a mano, y los de generación y sistema, generados a partir del conjunto de datos del proyecto}.
         
   \item \textbf{OE6 --- Desarrollo de la interfaz web accesible:} 
         \textit{Cumplido.} Se ha desarrollado un prototipo y la posterior página web funcional sin dependencias de servicios externos ni registros de usuarios. En materia de accesibilidad, se han verificado aspectos clave como la navegación completa por teclado, los contrastes cromáticos y la adaptación a pantallas estrechas.
@@ -285,15 +285,15 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
         \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, no se registró ninguna titulación inventada en las respuestas del modelo elegido. La verificación determinista retira las respuestas que mencionan grados inexistentes o ajenos a la Escuela.
         
-  \item \textbf{Condición 3 --- Proporción de respuestas útiles}
-        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo fue evasiva sin justificación y superando el 90\,\% fijado.
+  \item \textbf{Condición 3 --- \sout{Proporción de respuestas útiles}\textcolor{borrador2}{Proporción de respuestas no evasivas}}
+        \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo \sout{fue evasiva sin justificación y superando el}\textcolor{borrador2}{fue evasiva sin justificación, lo que supera el} 90\,\% fijado.
         
   \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida}. Sobre las 57 preguntas del banco, con el modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 39,4 segundos, superando el umbral de 30 segundos.
 \end{itemize}
 
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
 
-En consecuencia de lo visto anteriormente, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
+\sout{En consecuencia de lo visto anteriormente}\textcolor{borrador2}{Como consecuencia de lo anterior}, el veredicto global es de confirmación parcial, ya que el sistema valida experimentalmente la viabilidad y fiabilidad del enfoque RAG local para el asesoramiento preuniversitario, pero con limitaciones en velocidad por las restricciones del hardware doméstico.
 
 
 \subsection[Comparación con los asistentes revisados]{Comparación con los asistentes revisados}
@@ -301,7 +301,7 @@ En consecuencia de lo visto anteriormente, el veredicto global es de confirmaci�
 
 La evaluación del sistema no debe limitarse a comprobar si
 cumple la hipótesis planteada, sino que también es necesario valorar qué aporta respecto
-a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente en numerosas universidades españolas, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
+a las soluciones revisadas en el Capítulo~\ref{cap:antecedentes}, para ver si la solución dada es útil o no. En los casos analizados que están aplicados actualmente \sout{en numerosas universidades españolas}\textcolor{borrador2}{en otras universidades españolas (ADA y LUCA)}, permitían localizar información sobre las asignaturas de un curso mediante enlaces a las páginas correspondientes, pero no presentaban una respuesta directa. Aunque la información que proporcionaban era correcta, y el enlace el correcto, el usuario debía ir a la página y extraer los datos por su cuenta.
 
 Las preguntas realizadas a estos asistentes son comparables con las preguntas de listado incluidas en el banco de evaluación. En este caso, el sistema desarrollado devuelve directamente las asignaturas correspondientes, junto con el curso y el tipo de asignatura, a partir del plan de estudios publicado. La diferencia observada no se centra entonces en la redacción de la respuesta, sino en el nivel de elaboración que recibe el usuario: mientras que en un caso tiene que consultar un enlace, el otro le da una respuesta estructurada con los datos solicitados.
 
@@ -311,7 +311,7 @@ Las preguntas realizadas a estos asistentes son comparables con las preguntas de
 \label{secc:amenazas_validez}
 
 Los resultados deben interpretarse teniendo en cuenta
-varias limitaciones. Estas se exponen a continuación agrupadas según, con el objetivo de delimitar qué permiten afirmar
+varias limitaciones. Estas se exponen a continuación \sout{agrupadas según, con el objetivo}\textcolor{borrador2}{agrupadas según su tipo, con el objetivo} de delimitar qué permiten afirmar
 los experimentos y qué aspectos quedan fuera de su alcance.
 
 \subsection{Alcance de la evaluación}
@@ -382,7 +382,7 @@ Apartado~\ref{secc:fase2_llm}.
 La redacción exacta producida por el modelo tampoco es
 completamente reproducible, incluso manteniendo constantes los parámetros de
 generación. En las repeticiones realizadas cambiaron algunas formulaciones,
-aunque se mantuvieron los veredictos del banco de evaluación. Por ello, los
+\sout{aunque se mantuvieron los veredictos del banco de evaluación}\textcolor{borrador2}{aunque en esas dos tandas se mantuvieron los veredictos del banco de evaluación (en otra pasada, sobre el corpus anterior, cambió uno)}. Por ello, los
 resultados permiten valorar la estabilidad del comportamiento medido, pero no
 garantizan que dos ejecuciones produzcan literalmente la misma respuesta.
 
