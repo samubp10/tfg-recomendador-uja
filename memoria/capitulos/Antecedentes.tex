@@ -19,12 +19,12 @@ Según los datos del informe \textit{La universidad española en cifras}, la Tas
 
 \subsection{Recursos de orientación existentes y sus limitaciones}
 
-Todas las universidades disponen hoy en día de un portal web en el que aparece la oferta de grados disponibles e información relacionada con estos. En el ámbito de este trabajo, la Escuela Politécnica Superior de Jaén cuenta con su página web oficial\cite{epsj_grados}, con la información actualizada año a año, cuya portada se muestra en la Figura~\ref{fig:foto_web_epsj}. Su principal limitación es el lenguaje: estas páginas manejan datos y terminologías difícilmente entendidos por alguien ajeno al entorno universitario; términos como ECTS, guías docentes o trabajos finales de carrera resultan poco comprensibles para un alumno de secundaria si nadie se los ha explicado con anterioridad.
+Todas las universidades disponen hoy en día de un portal web en el que aparece la oferta de grados disponibles e información relacionada con estos. En el ámbito de este trabajo, la Escuela Politécnica Superior de Jaén cuenta con su página web oficial\cite{epsj_grados}, con la información actualizada año a año, cuya portada se muestra en la Figura~\ref{fig:foto_web_epsj}. Su principal limitación es el lenguaje: estas páginas manejan datos y terminologías difícilmente entendidos por alguien ajeno al entorno universitario; términos como ECTS, guías docentes o trabajos finales de carrera resultan poco comprensibles \sout{para un alumno de secundaria si nadie}\textcolor{borrador2}{para el alumnado de secundaria si nadie} se los ha explicado con anterioridad.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\textwidth]{imagenes/foto_web_epsj.png}
-  \caption{Imagen de la página web oficial de la EPSJ. Fuente: Elaboración propia.}
+  \caption[Imagen de la página web oficial de la EPSJ]{Imagen de la página web oficial de la EPSJ. Fuente: \sout{Elaboración propia}\textcolor{borrador2}{captura propia de la web de la EPSJ (eps.ujaen.es)}.}
   \label{fig:foto_web_epsj}
 \end{figure}
 
@@ -152,7 +152,7 @@ El denominador en esta división es lo que convierte el producto escalar en un c
 
 La búsqueda semántica consiste en recuperar documentos por su significado y no por las palabras exactas que contienen. \sout{Esta, es la alternativa}\textcolor{borrador2}{Esta es la alternativa} a la búsqueda léxica, que puntúa un documento \sout{en función si las palabras}\textcolor{borrador2}{en función de si las palabras} a buscar están o no en él y con qué frecuencia, como hace BM25\cite{robertson2009bm25}. Este método es rápido pero falla en cuanto la pregunta y el documento nombran lo mismo pero con diferente vocabulario, como por ejemplo que un usuario pregunte por <<programar>> y la guía docente hable de <<desarrollo de software>>.
 
-Con incrustaciones este funcionamiento cambia. Como se explica en la sección \ref{subsec:incrustaciones_concepto}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están \sout{más cerca del suyo del espacio de dimensiones}\textcolor{borrador2}{más cerca del suyo en el espacio vectorial}. Esto genera otro problema y es que ahora hay que encontrar los vecinos más próximos en un espacio de cientos de dimensiones, y este problema lo abarcarán las bases de datos vectoriales en la sección \ref{subsec:vectordb_concepto}.
+Con incrustaciones este funcionamiento cambia. \sout{Como se explica en la sección \ref{subsec:incrustaciones_concepto}}\textcolor{borrador2}{Como se explica en el Apartado~\ref{subsec:incrustaciones_concepto}}, la colección se convierte en vectores una sola vez y se almacena, al llegar la consulta, esta también se convierte en un vector con el mismo modelo, todo esto para devolver los $k$ documentos cuyos vectores están \sout{más cerca del suyo del espacio de dimensiones}\textcolor{borrador2}{más cerca del suyo en el espacio vectorial}. Esto genera otro problema y es que ahora hay que encontrar los vecinos más próximos en un espacio de cientos de dimensiones, y este problema lo abarcarán las bases de datos vectoriales \sout{en la sección \ref{subsec:vectordb_concepto}}\textcolor{borrador2}{en el Apartado~\ref{subsec:vectordb_concepto}}.
 
 Sobre este método de búsqueda hay dos decisiones importantes que afectan a lo que el usuario acaba recibiendo:
 
@@ -339,7 +339,7 @@ no la síntesis de una fuente citable. Es precisamente esta capacidad la que dis
 Este trabajo comparte con los sistemas analizados el propósito de orientar en la elección académica, pero se diferencia de ellos en tres aspectos fundamentales:
 \begin{itemize}
   \item \textbf{La delimitación del dominio:} el conocimiento del sistema se ciñe únicamente al ámbito de la oferta académica oficial de la Escuela Politécnica Superior de Jaén (ver Sección~\ref{secc:alcance}), garantizando respuestas especializadas y acotadas a esa oferta.
-  \item \textbf{La generación fundamentada en fuentes oficiales:} frente a los asistentes comerciales actuales que se limitan a redirigir a enlaces web o los sistemas psicométricos que devuelven listas cerradas, este trabajo genera respuestas en lenguaje natural para que lo pueda entender un alumno no universitario.
+  \item \textbf{La generación fundamentada en fuentes oficiales:} frente a los asistentes comerciales actuales que se limitan a redirigir a enlaces web o los sistemas psicométricos que devuelven listas cerradas, este trabajo genera respuestas en lenguaje natural \sout{para que lo pueda entender un alumno no universitario}\textcolor{borrador2}{para que lo pueda entender el alumnado no universitario}.
   \item \textbf{El enfoque hacia el público preuniversitario:} el diseño se adapta a las dudas de estudiantes preuniversitarios que nunca han estado en la universidad y que no conocen la jerga, priorizando la claridad conceptual y la fiabilidad para evitar desorientar.
 \end{itemize}
 \section{Marco legal y ético}
