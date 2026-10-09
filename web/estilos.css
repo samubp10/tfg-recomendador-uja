@@ -263,7 +263,7 @@ body {
 
 /* La respuesta que el sistema devuelve sin llegar a consultar al modelo se
    marca con un filete verde azulado. No es decoracion: una respuesta fija
-   tarda decimas de segundo y una elaborada mas de un minuto, y sin
+   tarda decimas de segundo y una elaborada 45 s de mediana, y sin
    distinguirlas la rapida parece un error. */
 .mensaje--asistente.mensaje--inmediato .mensaje__burbuja {
   border-left: 3px solid var(--epsj-verdeazul);
@@ -302,10 +302,10 @@ body {
 /* --------------------------------------------------------------- la espera */
 
 /*
-  La mediana de una respuesta que llega al modelo es de 62,7 s y el percentil 90
-  pasa de dos minutos (medido el 24/08/2026 sobre el banco del sistema). Tres
-  puntitos rebotando durante un minuto se leen como una aplicacion colgada, asi
-  que la espera dice cuanto lleva y, pasado un umbral, explica por que tarda.
+  La mediana de una pregunta de un turno que llega al modelo es de 44,6 s y el
+  percentil 90 pasa de dos minutos (banco del sistema, ADR-0006). Tres puntitos
+  rebotando durante tanto rato se leen como una aplicacion colgada, asi que la
+  espera dice cuanto lleva y, pasado un umbral, explica por que tarda.
 */
 .espera__puntos {
   display: flex;
@@ -362,9 +362,9 @@ body {
 
 /* ------------------------------------------------- la respuesta en curso
 
-   El texto llega por partes a lo largo de un minuto y entre frase y frase no
-   habia forma de distinguir «esta escribiendo la siguiente» de «ya ha
-   terminado»: el aviso de espera se retira con la primera frase y el pie con
+   El texto llega por partes a lo largo de unos 45 s de mediana y entre frase
+   y frase no habia forma de distinguir «esta escribiendo la siguiente» de «ya
+   ha terminado»: el aviso de espera se retira con la primera frase y el pie con
    la hora y la duracion no se pinta hasta despues de la ultima. Ese hueco es
    el que cubre esta marca.
 
@@ -833,7 +833,8 @@ body {
 }
 
 /* Una respuesta que no llego a consultar al modelo tarda decimas de segundo y
-   una elaborada mas de un minuto. Sin distinguirlas, la rapida parece un fallo. */
+   una elaborada 45 s de mediana. Sin distinguirlas, la rapida parece un
+   fallo. */
 
 /* El fallo si conserva el recuadro: es la unica respuesta que hay que poder
    distinguir de un vistazo entre varias, y el color solo no basta para quien
