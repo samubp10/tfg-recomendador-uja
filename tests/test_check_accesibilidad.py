@@ -208,3 +208,19 @@ def test_un_fallo_de_marcado_dice_en_que_pagina_esta(
 
     assert acc.main() == 1
     assert "privacidad.html: imagen sin alt" in capsys.readouterr().out
+
+
+def test_los_enlaces_sueltos_llevan_de_verdad_los_24_px():
+    """H11 de la auditoría del 08/10/2026 (IT-143).
+
+    `CONTROLES` lleva los tamaños escritos a mano, así que por sí solo no ve
+    que alguien quite la clase del enlace o cambie la regla. Esto lo ata a la
+    hoja y al marcado reales.
+    """
+    regla = CSS_REAL.split(".enlace-suelto {", 1)[1].split("}", 1)[0]
+    assert "display: inline-block" in regla
+    assert "min-height: 24px" in regla
+    assert 'class="fuentes__enlace enlace-suelto" href="privacidad.html"' in HTML_REAL
+    assert 'class="fuentes__enlace enlace-suelto" href="/"' in PRIVACIDAD_REAL
+    nombres = {nombre for nombre, _ancho, _alto in acc.CONTROLES}
+    assert {"el enlace del pie", "«Volver al asistente»"} <= nombres

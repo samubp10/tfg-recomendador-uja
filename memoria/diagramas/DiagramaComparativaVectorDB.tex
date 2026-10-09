@@ -5,7 +5,7 @@
     \begin{tikzpicture}[node distance=0.7cm and 1.5cm]
       \node[nodoDiag] (chunks) {Colección\\de fragmentos};
       \node[nodoDiag, below=0.8cm of chunks] (preg) {Preguntas del\\conjunto de\\evaluación};
-      \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\textit{embeddings}};
+      \node[nodoDiag, right=of chunks] (emb) {Modelo de\\\sout{\textit{embeddings}}\textcolor{borrador2}{incrustaciones}};
       \node[nodoDiag, cylinder, shape border rotate=90, aspect=0.15,
             right=1.1cm of emb] (vec)
         {Vectores\\{\scriptsize incrustados}\\{\scriptsize una sola vez}};

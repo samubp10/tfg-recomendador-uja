@@ -42,7 +42,6 @@ class ConversacionFalsa:
     def __init__(self) -> None:
         self.anotado: list[tuple[str, str]] = []
         self.ambito: list[str] = []
-        self.cambios_de_ambito: list[bool] = []
 
     def preparar(self, texto: str) -> Consulta:
         # Se devuelve la `Consulta` de verdad y no un objeto inventado al
@@ -54,11 +53,8 @@ class ConversacionFalsa:
     def preguntas(self) -> list[str]:
         return [p for p, _ in self.anotado]
 
-    def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
+    def anotar(self, pregunta: str, respuesta: str) -> None:
         self.anotado.append((pregunta, respuesta))
-        # Se guarda para poder comprobar que una respuesta fija no reapunta el
-        # ámbito: es lo único que distingue ese turno de uno normal.
-        self.cambios_de_ambito.append(cambia_ambito)
 
 
 SISTEMA_FALSO: tuple[Any, Any, list[str], str] = (
@@ -327,6 +323,73 @@ def sucesos_de(m: Any) -> list[dict[str, object]]:
     """Lee lo que el manejador ha escrito, línea a línea."""
     crudo = m.wfile.getvalue().decode("utf-8")
     return [json.loads(linea) for linea in crudo.splitlines() if linea]
+
+
+class SalidaQueSeCorta(io.BytesIO):
+    """La conexión que cierra el navegador al cancelar: falla al segundo envío."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.envios = 0
+
+    def write(self, dato: Any) -> int:
+        self.envios += 1
+        if self.envios > 1:
+            raise ConnectionAbortedError(10053, "conexión anulada por el equipo")
+        return super().write(dato)
+
+
+def test_cancelar_desde_el_navegador_no_deja_una_traza(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """H-B6 de la prueba en vivo del 08/10/2026 (IT-143).
+
+    Cada cancelación dejaba en la consola la pila entera de `socketserver`
+    acabada en `ConnectionAbortedError`. Además se cierra la respuesta en curso,
+    que es lo que corta la petición al modelo.
+    """
+    cerrada: list[bool] = []
+
+    def partes_falsas(*a: Any, **k: Any):
+        try:
+            yield {"parte": "Una."}
+            yield {"parte": "Dos."}
+            yield {"fin": True}
+        except GeneratorExit:
+            cerrada.append(True)
+            raise
+
+    monkeypatch.setattr(servidor, "partes_de_la_respuesta", partes_falsas)
+    m = manejador_falso(b'{"pregunta":"x"}')
+    m.wfile = SalidaQueSeCorta()
+
+    m.do_POST()
+
+    assert sucesos_de(m) == [{"parte": "Una."}]
+    assert cerrada == [True]
+
+
+def test_la_pregunta_recien_hecha_no_se_vuelve_a_ofrecer(
+    monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
+) -> None:
+    """H-B7 de la prueba en vivo del 08/10/2026 (IT-143).
+
+    Tras pulsar la sugerencia del doble grado con Schmalkalden, la primera que
+    se devolvía era la misma pregunta.
+    """
+    pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática?"
+    recibida: list[str] = []
+    monkeypatch.setattr(servidor, "responder_por_partes", lambda *a, **k: iter(["Sí."]))
+    monkeypatch.setattr(
+        servidor,
+        "sugerencias_para",
+        lambda *a, hecha="", **k: recibida.append(hecha) or ["¿Y sus salidas?"],
+    )
+
+    list(servidor.partes_de_la_respuesta(pregunta, SISTEMA_FALSO, ConversacionFalsa()))
+
+    # Es el módulo de sugerencias quien la excluye y rellena el hueco.
+    assert recibida == [pregunta]
 
 
 def test_el_manejador_emite_una_linea_json_por_parte(
@@ -738,6 +801,29 @@ def test_el_saludo_sale_por_una_ruta_que_no_anota_nada(registro: Path) -> None:
     assert not registro.exists(), registro.read_text(encoding="utf-8")
 
 
+def test_recargar_la_pagina_empieza_una_conversacion_nueva() -> None:
+    """Regresión de la prueba en vivo del 08/10/2026 (IT-140).
+
+    Tras una pregunta sobre Informática se recargó la página y «¿Qué salidas
+    tiene?» se contestó sobre Informática con la pantalla en blanco: la
+    conversación vive en el proceso y recargar no la tocaba. La página pide el
+    saludo una sola vez al cargarse, así que es ahí donde se vacía.
+    """
+    m = manejador_get("/api/saludo")
+    Clase = type(m)
+    pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática?"
+    Clase.conversacion.anotar(pregunta, "El Grado en Ingeniería Informática tiene.")
+    Clase.turno = 3
+    assert Clase.conversacion.ambito == SISTEMA_FALSO[2]
+    assert Clase.conversacion.preguntas() == [pregunta]
+
+    m.do_GET()
+
+    assert Clase.conversacion.ambito == []
+    assert Clase.conversacion.preguntas() == []
+    assert Clase.turno == 0
+
+
 def test_el_texto_del_saludo_es_el_del_generador() -> None:
     # Deliberadamente rígida. La ruta existe para que el texto viva en un solo
     # sitio: si alguien lo copia aquí «para no importar el generador», vuelve a
@@ -1011,7 +1097,11 @@ def test_dos_turnos_seguidos_no_proponen_lo_mismo(
     pedidos: list[int] = []
 
     def anotar_desplazamiento(
-        tabla: Any, ambito: list[str], catalogo: list[str], desplazamiento: int = 0
+        tabla: Any,
+        ambito: list[str],
+        catalogo: list[str],
+        desplazamiento: int = 0,
+        hecha: str = "",
     ) -> list[str]:
         pedidos.append(desplazamiento)
         return []
@@ -1204,23 +1294,34 @@ def test_una_respuesta_fija_no_deja_cambiar_el_ambito() -> None:
     caeria a la deduccion por reglas: la pregunta nombra una titulacion de la
     EPSJ de pasada y el ambito se iba detras de ella.
     """
-    conversacion = ConversacionFalsa()
+    # Con menos de tres titulaciones ninguna palabra es distintiva y la pregunta
+    # no podría mover el ámbito: la prueba pasaría sin la protección.
+    catalogo = [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería Eléctrica",
+    ]
+    conversacion = Conversacion(catalogo)
+    conversacion.anotar(
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática?", "Álgebra."
+    )
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
 
     list(
         servidor.partes_de_la_respuesta(
             "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?",
-            SISTEMA_FALSO,
+            ("tabla", "incrustar", catalogo, "cosine"),
             conversacion,
         )
     )
 
-    assert conversacion.cambios_de_ambito == [False]
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
 
 
-def test_un_turno_normal_si_deja_cambiar_el_ambito(
+def test_un_turno_normal_si_se_anota(
     monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
 ) -> None:
-    """La otra mitad: sin respuesta fija, el ambito se sigue actualizando."""
+    """La otra mitad: sin respuesta fija, el turno llega a la conversación."""
     monkeypatch.setattr(
         servidor, "responder_por_partes", lambda *a, **k: iter(["Pues mira."])
     )
@@ -1232,7 +1333,7 @@ def test_un_turno_normal_si_deja_cambiar_el_ambito(
         )
     )
 
-    assert conversacion.cambios_de_ambito == [True]
+    assert conversacion.anotado == [("¿Qué asignaturas tiene?", "Pues mira.")]
 
 
 @pytest.mark.parametrize(
@@ -1247,7 +1348,8 @@ def test_respuesta_fija_intercalada_conserva_la_consulta(intermedio) -> None:
     antes = conversacion.preparar("¿Y en segundo?")
     list(servidor.partes_de_la_respuesta(intermedio, SISTEMA_FALSO, conversacion))
     assert conversacion.preparar("¿Y en segundo?") == antes
-    assert conversacion.preguntas() == [pregunta, intermedio]
+    # IT-140: la respuesta fija tampoco entra en las preguntas del modelo.
+    assert conversacion.preguntas() == [pregunta]
 
 
 def test_saludo_inicial_no_crea_antecedente() -> None:
@@ -1325,7 +1427,29 @@ def test_el_registro_solo_se_activa_con_la_opcion(
     assert f"Registro de conversaciones: {esperado}" in capsys.readouterr().out
 
 
-@pytest.mark.parametrize("saludo", ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?"])
+@pytest.mark.parametrize("abreviada", ["--registra", "--reg", "--r"])
+def test_el_registro_no_se_activa_con_una_abreviatura(
+    monkeypatch: pytest.MonkeyPatch, abreviada: str
+) -> None:
+    """H10 de la auditoría del 08/10/2026 (IT-143).
+
+    `argparse` acepta por defecto cualquier prefijo de una opción, así que
+    «--registra» arrancaba el servidor guardando las conversaciones. Es el
+    interruptor que promete la página de privacidad.
+    """
+    monkeypatch.setattr(servidor, "abrir_sistema", lambda: SISTEMA_FALSO)
+    monkeypatch.setattr(servidor, "HTTPServer", ServidorQueSePara)
+
+    with pytest.raises(SystemExit) as salida:
+        servidor.main([abreviada])
+
+    assert salida.value.code == 2
+
+
+@pytest.mark.parametrize(
+    "saludo",
+    ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?", "¿Cómo va?", "¿Y tú qué tal?"],
+)
 def test_un_saludo_con_ambito_heredado_no_llega_al_indice(
     monkeypatch: pytest.MonkeyPatch, saludo: str
 ) -> None:

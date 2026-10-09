@@ -2,13 +2,12 @@
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
-Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de la Fase 0. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
-
+Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de las fases 0 a 3. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 
 \section{Metodología de trabajo}
 
-Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminar, añadir o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas,pudiendo eliminarlas, añadirlas o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
@@ -54,9 +53,9 @@ Cada entrega de código exige no solo un título estandarizado, sino un cuerpo e
 \label{secc:Integracion_continua}
 El aseguramiento del correcto funcionamiento del \textit{software} se apoya en un sistema de Integración Continua (\sig{CI}) desplegado a través de \textit{GitHub Actions}. Este sistema intercepta cada actualización del repositorio y ejecuta automáticamente una batería de pruebas unitarias implementadas con \texttt{pytest}\cite{pytest}.
 
-Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales en PDF descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
+Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales, en HTML y PDF, descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web subida a un \textit{hosting}), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
 Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar PEP~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y las variables de entorno. Además, el formato del código se estandariza mediante \texttt{flake8}, y la comprobación de tipos se delega en \texttt{mypy}.
 
@@ -70,22 +69,19 @@ para asegurar que todas las partes del sistema funcionan correctamente y que los
 \textbf{El primer tipo son las pruebas del código}, escritas con
 \texttt{pytest} y ejecutadas antes de la ejecución del código que comprueban y cuando se suben al repositorio (explicado en la sección ~\ref{secc:Integracion_continua}). Comprueban que cada módulo o script hace lo que está previsto que haga, son deterministas y su resultado es de carácter booleano, es decir, pasan o no pasan. Cuando fallan, el defecto está en el código.
 
-\textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que contienen toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los chunks de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de los chunks supera el tamaño máximo o si el fragmento nombra a una unidad  (Asignatura, plan de estudio o Salida profesional) distinta a la suya.
+\textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que contienen toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los fragmentos de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de fragmentos supera el tamaño máximo o si el fragmento nombra a una unidad (Asignatura, plan de estudio o Salida profesional) distinta a la suya.
 
-Este tipo de pruebas se ejecutan a mano antes de cada subida al repositorio y no en la integración continua debido a que la colección de datos no se versiona ya que son ficheros grandes y con previsión a ser aún más grandes en el futuro (Sección~\ref{secc:verificacion_fase0}).
+Este tipo de pruebas se ejecuta a mano antes de cada subida al repositorio y no en la integración continua debido a que la colección de datos no se versiona ya que son ficheros grandes y con previsión de ser aún más grandes en el futuro (Sección~\ref{secc:verificacion_fase0}).
 
 \textbf{El tercer tipo es la evaluación del sistema}, la cual más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
 uno o varios números que solo tienen significado si se comparan con el de otra configuración.
 
 Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el usuario pudiera querer saber.
-sobre la generación de la respuesta se medirán la fidelidad de la respuesta al contexto
-recuperado y su pertinencia.
+Sobre la generación de la respuesta se miden de forma determinista las titulaciones inventadas, la precisión y la cobertura de los listados y el acierto en los valores únicos, en lugar de la fidelidad de la respuesta al contexto recuperado y su pertinencia.
 
-Esta actividad no puede automatizarse en la integración continua por dos motivos: necesita descargar modelos para la experimentación y comprobación de cuál es mejor (de varios cientos de megabytes) y su
+Esta actividad no puede automatizarse en la integración continua por dos motivos: necesita descargar modelos para la experimentación y comprobación de cuál es mejor (de cientos de megabytes a varios gigabytes) y su
 resultado no es un fallo que arreglar, sino una comparación que interpretar.
 Los resultados se recogen en el Capítulo~\ref{cap:resultados}.
-
-
 
 
 \subsection{Criterios de finalización (Definición de Hecho)}
@@ -100,7 +96,7 @@ Los tres criterios que valen para todas las tarjetas:
   \item \textbf{Integración:} el trabajo está fusionado en la rama principal y la integración continua está en verde.
 \end{enumerate}
 
-Los otros cinco tipos de tarjetas con sus criterios de finalización son:
+Los cinco tipos de tarjetas con sus criterios de finalización son:
 
 \begin{itemize}                                                                                                                  
   \item \textbf{Código.} El programa hace lo que promete, comprobado
@@ -116,18 +112,18 @@ Los otros cinco tipos de tarjetas con sus criterios de finalización son:
         salida de un experimento o un verificador, además de
         respetar la estructura y el estilo que fija la Escuela para los Trabajos Fin
         de Grado\cite{epsj_criterios}.
-  \item \textbf{Gestión.} Todos los cambios en el repositorio se comprueban a posteriori que no han roto nada.
+  \item \textbf{Gestión.} Se comprueba a posteriori que ningún cambio en el repositorio ha roto nada.
 \end{itemize}
 
 \section{Planificación temporal}
 
-Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificación temporal huye de las estimaciones predictivas rígidas tradicionales (como el modelo en cascada). Un sistema RAG requiere iteración y ajuste continuo ante los datos descubiertos, por lo que una planificación lineal resultaría irreal. En su lugar, se ha optado por una estrategia de planificación a dos niveles: una macro-planificación orientada a hitos de entrega y una micro-planificación diaria basada en flujo continuo.
+Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificación temporal huye de las estimaciones predictivas rígidas tradicionales (como el modelo en cascada). Un sistema RAG requiere iteración y ajuste continuo ante los datos descubiertos, por lo que una planificación lineal resultaría irreal. En su lugar, se ha optado por una estrategia de planificación a dos niveles: una macroplanificación orientada a hitos de entrega y una microplanificación diaria basada en flujo continuo.
 
 \subsection{Micro-planificación: Tablero Kanban}
 
 La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las  historias técnicas de usuario que componen el \textit{backlog} del proyecto.
 
-Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta micro-planificación es el límite de Trabajo en Curso (\glr{Work In Progress}{WIP}, WIP), que impide iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
+Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta microplanificación es el límite de Trabajo en Curso (\glr{Work In Progress}{WIP}, WIP), que, como norma de trabajo, no permite iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
 
 \begin{figure}[H]
   \centering
@@ -140,15 +136,15 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 
 Para proporcionar una visión global del cronograma y asegurar la viabilidad del proyecto de cara a la fecha de entrega del proyecto, el \textit{backlog} se ha agrupado en seis fases lógicas de desarrollo.
 
-Esta macro-planificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
+Esta macroplanificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
 \begin{itemize}                                                                                                                                                    
   \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos y los módulos de limpieza de texto.
         
-  \item \textbf{Fase 1 (Troceado e Incrustaciones):} Comprende la experimentación para la selección del algoritmo de troceado y la experimentación para la elección del modelo de \textit{embeddings}.
+  \item \textbf{Fase 1 (Troceado e Incrustaciones):} Comprende la experimentación para la selección del algoritmo de troceado y la experimentación para la elección del modelo de incrustaciones.
         
   \item \textbf{Fase 2 (Base de datos vectorial, Pipeline RAG y LLM):} Comprende la indexación de los fragmentos en la base de datos vectorial, el diseño del \textit{prompt} del sistema, la selección e integración del modelo de lenguaje grande y la evaluación cuantitativa exhaustiva de las respuestas generadas.
         
-  \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el \textit{backend}.
+  \item \textbf{Fase 3 (Aplicación web de chat):} Diseño de la arquitectura e implementación de la interfaz conversacional accesible (sin registro) y su conexión con el servidor.
         
   \item \textbf{Fase 4 (Validación experimental):} Estudios de ablación sobre los
         parámetros del recuperador y evaluación del sistema completo sobre el banco de
@@ -221,7 +217,7 @@ Las tallas empleadas son:
         completo).
 \end{itemize}
 
-El cruce de ambos criterios (MoSCoW y tallas de camisetas) es lo que determina el orden de trabajo, una historia
+El cruce de ambos criterios (MoSCoW y tallas de camiseta) es lo que determina el orden de trabajo, una historia
 \textit{must} de talla L (como la evaluación cuantitativa) se planifica con
 antelación y se le reserva más tiempo, mientras que una \textit{could} de talla L
 sería la primera candidata a quedar fuera.
@@ -231,7 +227,7 @@ sería la primera candidata a quedar fuera.
 Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
 la incidencia correspondiente en el repositorio, de modo que cualquier línea de código puede rastrearse hasta la necesidad que la originó.
 
-A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria a este proyecto de investigación. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de commits y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
+A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria para este proyecto de investigación. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de confirmaciones y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
 
 \input{tablas/TablaResumenBacklog.tex}
@@ -239,7 +235,7 @@ A lo largo del proyecto se han creado muchas historias de usuario de diferentes 
 
 \section{Tecnologías y herramientas}
 
-Antes de la descripción de la construcción del sistema, resulta necesario establecer dos premisas que determinan y enmarcan las decisiones técnicas posteriores. La primera concierne al enfoque arquitectónico, que consiste en establecer una estrategia para garantizar que el modelo de lenguaje genere respuestas veraces y no alucine, justificando el descarte de técnicas de reentrenamiento. La segunda premisa define las restricciones \textit{hardware} del equipo sobre el que se ejecuta el sistema. Esta limitación de memoria constituye un cuello de botella que condiciona de forma directa la selección posterior del modelo de incrustaciones, la base de datos vectorial y el modelo generativo.
+Antes de la descripción de la construcción del sistema, resulta necesario establecer dos premisas que determinan y enmarcan las decisiones técnicas posteriores. La primera concierne al enfoque arquitectónico, que consiste en establecer una estrategia para reducir al mínimo que el modelo de lenguaje invente datos, justificando el descarte de técnicas de reentrenamiento. La segunda premisa define las restricciones \textit{hardware} del equipo sobre el que se ejecuta el sistema. Esta limitación de memoria constituye un cuello de botella que condiciona de forma directa la selección posterior del modelo de incrustaciones, la base de datos vectorial y el modelo generativo.
 
 \subsection{RAG frente al ajuste fino}
 
@@ -263,16 +259,14 @@ El recurso que más pesa hoy en día en inteligencia artificial es, sin lugar a 
 
 \section{Arquitectura del sistema}
 
-Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que parte este en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
+Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que lo parte en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
-\textcolor{blue}{[sbp] Corregido, y revisado el resto del documento para que no vuelva a ocurrir.}
 
-Con estos trozos de información, se pasa al \textit{embedding} con el que se introducirán los datos en la base de datos vectorial.
+Con estos trozos de información se calculan sus incrustaciones, que son las que se introducen en la base de datos vectorial.
 
-Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con toda esta última fase se podrá interactuar mediante la aplicación web.
+Por último llega el \textit{pipeline} RAG: tras la pregunta del usuario, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con esta última fase se interactúa mediante la aplicación web.
 
 Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
-\textcolor{blue}{[sbp] Corregido: he ampliado la figura del 50\,\% al 90\,\% del ancho de página. Si no es lo suficientemente legible igual debería escalar la fuente.}
 
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
@@ -286,13 +280,14 @@ El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes 
 \input{diagramas/DiagramaModeloDatos.tex}
 
 
-
 \section{Fase 0: construcción de la colección documental}
+
+Esta fase construye la colección de datos sobre la que trabaja el resto del sistema. Parte de cómo publica la EPSJ su información, justifica la herramienta de extracción, describe cómo se extraen el catálogo, las guías docentes y las salidas profesionales, y termina con la deduplicación y la verificación de la colección.
 
 \subsection{Situación de partida}
 \label{secc:fase0_situacion}
 
-Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico a nivel de código (HTML en el catálogo de titulaciones, PDF en las guías docentes) preliminar de estas fuentes revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
+Para crear la arquitectura RAG propuesta, el requisito indispensable es disponer de la información oficial de manera precisa y actualizada. La EPSJ publica de forma abierta todos estos datos relativos a sus planes de estudio en su portal web oficial\cite{epsj_grados}. No obstante, un análisis técnico del código (HTML en el catálogo de titulaciones, PDF en las guías docentes) de estas fuentes, hecho antes de extraerlas, revela deficiencias estructurales que imposibilitan la búsqueda automatizada directa por parte de la IA.
 
 Durante el estudio de la fuente de datos, se han documentado los siguientes obstáculos técnicos:
 
@@ -301,11 +296,10 @@ Durante el estudio de la fuente de datos, se han documentado los siguientes obst
   \item \textbf{Tablas de datos híbridas y heterogéneas:} La relación de asignaturas no sigue un esquema tabular único. Se combinan listas de materias troncales con tablas de optativas agrupadas por mención, lo que provoca duplicidades en la fuente. Además, no existe una nomenclatura estandarizada entre planes (por ejemplo, el Trabajo Fin de Grado recibe clasificaciones distintas según la antigüedad de la titulación).
   \item \textbf{Ruido tipográfico y errores nativos de enlace:} En el código fuente se ha detectado la presencia de caracteres invisibles (espacios de no separación o de ancho cero) e iconos incrustados en el texto. Asimismo, la plataforma presenta errores de generación nativos, tales como URLs de guías docentes con sufijos duplicados (ej. \texttt{\dots\_es.htmles.html}) que derivan en enlaces rotos.
   \item \textbf{Datos incompletos y registros de relleno:} En titulaciones de reciente implantación (como el Grado en Inteligencia Artificial y Ciberseguridad), materias de cursos superiores carecen aún de guía docente publicada. Paralelamente, en las tablas de matriculación aparecen filas de relleno con nombres genéricos (ej. <<Optativa 1>>), sin código oficial, que no representan asignaturas reales.
-  \item \textbf{Cambio de formato de la fuente a mitad de curso:} los enlaces a las guías docentes del corpus cambiaron de formato para este curso lectivo, sirviendo ahora únicamente PDF, pero bajo URLs que conservan la extensión \texttt{.html}. Al no existir correspondencia entre la extensión del enlace y el recurso real, la naturaleza del archivo solo puede determinarse examinando la cabecera HTTP \texttt{Content-Type} (o la firma binaria del documento). 
+  \item \textbf{Cambio de formato de la fuente a mitad de curso:} los enlaces a las guías docentes del corpus cambiaron de formato en el curso 2026-27, en el que solo se sirven en PDF, pero bajo URLs que conservan la extensión \texttt{.html}. Al no existir correspondencia entre la extensión del enlace y el recurso real, la naturaleza del archivo solo puede determinarse examinando la cabecera HTTP \texttt{Content-Type} (o la firma binaria del documento). 
 \end{itemize}
 
 Cada una de estas anomalías, con la evidencia real que la respalda y el tratamiento aplicado en el código, se documenta en los cinco registros DQA\cite{repo_tfg}, aquí se recogen solo a alto nivel para no desviar la memoria hacia el detalle de problemas puntuales.
-
 
 
 \subsection{Justificación del enfoque técnico}
@@ -322,7 +316,7 @@ Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracc
 
 \subsubsection{Scrapy\cite{scrapy}}
 
-Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
+Scrapy\footnote{\url{https://scrapy.org/}} es un marco de trabajo (\textit{framework}) asíncrono completo de \textit{crawling} (rastreo web). Dadas sus características, las cuales se detallan a continuación, ha sido la opción elegida.
 
 \begin{itemize}                                                                                                                                                    
   \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
@@ -331,17 +325,17 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono c
           \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
           \item Cabecera HTTP \texttt{Content-Type}.
           \item Declaración de codificación dentro del propio documento (etiqueta \texttt{<meta>}).
-          \item Autodetección por parte del \textit{framework}.
+          \item Autodetección por parte del marco de trabajo.
         \end{enumerate}
         Las guías docentes de la UJA no llevan BOM, por lo que decide la cabecera HTTP: al anteponerla a la etiqueta \texttt{<meta>} del cuerpo, Scrapy decodifica correctamente unas guías servidas en ISO-8859-1 pese a que se declaren como UTF-8, resolviendo el problema de codificación sin necesidad de código adicional.
         
-  \item \textbf{Respeto a robots.txt:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
+  \item \textbf{Respeto a \texttt{robots.txt}:} Soporte nativo mediante \texttt{ROBOTSTXT\_OBEY = True}, que permite cumplir automáticamente con las directrices de rastreo del sitio.
         
   \item \textbf{Control de tasa (\textit{throttling}):} El \textit{framework} ofrece parámetros de configuración que permiten ajustar el proceso de rastreo para no saturar el servidor objetivo.
         
   \item \textbf{Pruebas sin conexión:} Permite simular respuestas HTML (con cuerpo, URL y cabeceras HTTP) directamente en memoria. Esto facilita la creación de pruebas unitarias sin necesidad de realizar peticiones de red reales.
         
-  \item \textbf{Madurez y soporte:} Es un \textit{framework} de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
+  \item \textbf{Madurez y soporte:} Es un marco de trabajo de referencia en la industria, mantenido activamente. Además, desde la serie 2.13, incluye soporte de tipado estático nativo (\texttt{py.typed}) conforme al estándar PEP 561.\cite{scrapydocs}
         
   \item \textbf{Desventaja:} Presenta una curva de aprendizaje inicial más pronunciada debido a su complejidad y al gran número de componentes integrados.
 \end{itemize}
@@ -349,25 +343,24 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un \textit{framework} asíncrono c
 
 \subsubsection{BeautifulSoup\cite{beautifulsoup}}
 
-Combina un \textit{parser} de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
+Combina un analizador de HTML (BeautifulSoup) con un cliente HTTP (\texttt{requests}).
 
 \begin{itemize}                                                                                                                                                    
-  \item \textbf{Pros:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
-  \item \textbf{Contras:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni \textit{rate limiting}); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
+  \item \textbf{Ventajas:} Gran simplicidad, ideal para tareas pequeñas y estáticas.
+  \item \textbf{Inconvenientes:} BeautifulSoup no es un rastreador web (no gestiona colas, reintentos ni control de tasa); \texttt{requests} no respeta \texttt{robots.txt} automáticamente; el manejo de la codificación (\textit{encoding}) queda completamente en manos del desarrollador. Se considera una herramienta demasiado simple para los requisitos del proyecto.
 \end{itemize}
 
 \subsubsection{Selenium \cite{selenium} / Playwright}
 Se basa en la automatización de navegadores con renderizado real.
 
 \begin{itemize}                                                                                                                                                    
-  \item \textbf{Pros:} Imprescindibles para Single Page Applications (SPAs) y contenido cargado dinámicamente mediante JavaScript.
-  \item \textbf{Contras:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
+  \item \textbf{Ventajas:} Imprescindibles para aplicaciones de una sola página (\textit{SPA}) y contenido cargado dinámicamente mediante JavaScript.
+  \item \textbf{Inconvenientes:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
 
-%[jccuevas] \paragraph{Decisión final}
 
 \paragraph{Decisión final}
-Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la testabilidad sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
+Conforme a lo comentado anteriormente, se adopta \textbf{Scrapy} como herramienta de extracción de datos de webs. La evidencia sobre la gestión correcta de la codificación fue el factor decisivo, reforzado por el soporte nativo de \texttt{robots.txt}, el control de tasa configurable, la posibilidad de probarlo sin conexión con \texttt{HtmlResponse} y la gran comunidad de soporte. Las alternativas analizadas requerían reimplementar manualmente dichas garantías o estaban sobredimensionadas para un sitio estático.
 
 \subsection{Extracción del catálogo de titulaciones y asignaturas}
 
@@ -377,9 +370,6 @@ rastreador (\textit{spider}) y la página web.
 
 El rastreador no hace una única petición, sino que encadena varias, una por cada tipo de página de la web, primero el listado de titulaciones, siguiendo siempre el enlace de cada grado, después la portada de cada grado, donde se identifica si es un doble grado por el nombre, a continuación la tabla de asignaturas, y por cada asignatura con enlace propio, su guía docente.
 
-\textcolor{red}{[jccuevas] Igual que antes un poco pequeño el texto. No tengas miedo de usar más espacio para que el texto sea legible.}
-
-\textcolor{blue}{[sbp] Corregido}
 
 \input{diagramas/DiagramaScraping.tex}
 
@@ -390,20 +380,19 @@ La extracción de las guías docentes es la etapa donde se concentran las anomal
 En el curso 2026/2027, la Escuela Politécnica Superior de Jaén publica las guías docentes en formato PDF bajo enlaces cuya extensión sigue siendo \texttt{.html}. El rastreador decide el extractor mediante el tipo de contenido de la respuesta y conserva el camino HTML en el código como compatibilidad, aunque el corpus vigente procede íntegramente de PDF.
 
 No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del catálogo, 442 cuentan con guía docente con
-  contenido y 86 no la tienen todavía, lo que supone una cobertura del 83,7\,\%.
+  contenido y 86 no la tienen (81 sin publicar y 5 publicadas vacías), lo que supone una cobertura del 83,7\,\%.
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
-La figura que viene a continuación ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, nada más extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartado y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los diecisete rótulos los que pasan la limpieza y el resto se descarta.
+La Figura ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, nada más extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartados y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los trece rótulos los que pasan la limpieza y el resto se descarta.
 
 \input{diagramas/DiagramaAnatomiaGuia.tex}
-
 
 
 \subsection{Extracción de las salidas profesionales}
 
 Las salidas profesionales se extraen como un bloque de texto por titulación. El catálogo produce 8 bloques de salidas,
-uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cual se extrae), los otros 4 se consideran sus salidas como la concatenación de los grados simples.
+uno por cada uno de los siete grados simples. En el caso de los dobles grados, solo hay uno que publica sus propias salidas profesionales (el cual se extrae), en los otros cuatro se toman como salidas la concatenación de las de sus grados simples.
 
 
   La Figura~\ref{fig:estructura_salidas} muestra la estructura de este tipo de elemento a partir de un caso real (las salidas profesionales del Grado en Ingeniería Informática). Consta de un solo bloque de texto continuo y se indexa únicamente con el nombre de la titulación.
@@ -431,25 +420,24 @@ La opción elegida fue la segunda, el par \texttt{(nombre, contenido)}. Lo que l
 
 \input{tablas/TablaClavesDeduplicacion.tex}
 
-
 \subsection[Verificación y reproducibilidad de la colección]{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
-La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. La primera es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
+La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. El primero es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
-Las pruebas unitarias se emplean en base a los ficheros reales descargados llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
+Las pruebas unitarias se basan en ficheros reales descargados, llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
 Para garantizar la trazabilidad del conjunto de datos, el rastreador web guarda automáticamente la fecha en la que realizó la extracción y cada guía docente incluye su curso académico, el cual se extrae de la propia URL de la ficha en el catálogo de la Universidad. 
 
-El conjunto de datos no se incluye en el repositorio en GitHub debido al tamaño actual y al que pudiera obtener en un futuro, la reproducibilidad se apoya en la capacidad de regenerarlo cuando sea y en el equipo que sea con el propio flujo de procesamiento del trabajo. Por ello, el rastreador y el fragmentador son módulos independientes, ya que el primero es lento y debe de dosificarse para no sobrecargar el servidor de la universidad, mientras que el segundo es rápido y se repite con frecuencia en los diferentes experimentos del proyecto.
+El conjunto de datos no se incluye en el repositorio en GitHub debido al tamaño actual y al que pudiera obtener en un futuro, la reproducibilidad se apoya en la capacidad de regenerarlo cuando sea y en el equipo que sea con el propio flujo de procesamiento del trabajo. Por ello, el rastreador y el fragmentador son módulos independientes, ya que el primero es lento y debe dosificarse para no sobrecargar el servidor de la universidad, mientras que el segundo es rápido y se repite con frecuencia en los diferentes experimentos del proyecto.
 
 
 \section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
 \label{secc:fase1}
 
-Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraídas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exige, pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se probarán de manera experimental.
+Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraídas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exige, pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores. Ambas se eligen de manera experimental.
 
-Primero se introducirá el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
+Primero se presenta el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
 
 
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
@@ -483,7 +471,7 @@ Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-Las otras tres opciones no se sabe solamente leyendo su descripción cuál es mejor que otra, así que
+De las otras tres opciones no se puede saber, solo leyendo su descripción, cuál es mejor, así que
 se miden. Lo que sigue es el diseño de esa comparación; sus cifras, por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
 
 
@@ -511,11 +499,10 @@ De cada configuración se registran las métricas para cada uno, tres, cinco, di
 Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera a repetir una y otra vez sin cambiar nada, daría los mismos resultados.
 
 
-
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
 \label{secc:troceado_algoritmo}
 
-La estrategia elegida como ganadora del experimento es la estructural (el resultado está en la
+La estrategia elegida es la estructural, aunque a igualdad de tamaño el experimento no la distingue de las otras (el resultado está en la
   Sección~\ref{secc:resultados_fragmentacion}), y funciona de la siguiente manera. 
   El algoritmo parte de la unidad completa y solo la divide cuando hace
 falta, primero corta por párrafos y, si algún fragmento sigue superando el tamaño máximo, lo subdivide por frases,
@@ -536,9 +523,9 @@ La Figura~\ref{fig:secuencia_chunking} detalla la secuencia global de procesamie
 A partir de esta consolidación, el algoritmo procesa la información mediante tres flujos diferenciados según la naturaleza del dato:
 
 \begin{enumerate}
-  \item \textbf{Contenido textual extenso (guías docentes y salidas profesionales):} Se genera un encabezado contextual con los metadatos de la asignatura (denominación, tipo, créditos ECTS y titulaciones vinculadas). A continuación, el cuerpo se particiona mediante el algoritmo estructural hasta ajustarse al tamaño objetivo (900 caracteres). Si el último fragmento resultante es menor de 200 caracteres, se fusiona con su predecesor siempre que la unión no exceda el límite máximo de la ventana.
+  \item \textbf{Contenido textual extenso (guías docentes y salidas profesionales):} Se genera un encabezado contextual con los metadatos de la asignatura (denominación, tipo, créditos ECTS y titulaciones vinculadas). A continuación, el cuerpo se particiona mediante el algoritmo estructural hasta ajustarse al tamaño objetivo (900 caracteres). Si el último fragmento resultante es menor de 200 caracteres, se fusiona con su predecesor siempre que la unión no exceda el máximo de 900 caracteres.
   \item  \textbf{Asignaturas sin guía docente publicada:} Cada una genera un fragmento informativo breve con sus datos básicos, sin requerir particionado.
-  \item \textbf{Fragmentos sintéticos y agregados:} Para optimizar las respuestas antes consultas globales de listado o recuento, se generan bloques estructurados directamente a partir del catálogo.
+  \item \textbf{Fragmentos sintéticos y agregados:} Para optimizar las respuestas ante consultas globales de listado o recuento, se generan bloques estructurados directamente a partir del catálogo.
 \end{enumerate}
 
 \input{diagramas/DiagramaChunking.tex}
@@ -568,7 +555,7 @@ La elección del modelo de incrustaciones o modelo de \textit{embedding} se reso
 
 Se emplean dos medidas: la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de en cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se delimitan las unidades.
 
-Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos es en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de menor tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
+Para la elección de los candidatos se buscó la mayor variedad posible, por lo que se eligió un modelo entrenado con español dado que toda la colección de datos está en español, y los otros tres multilingües, siendo uno de ellos más grande y de más capacidad que los otros de menor tamaño. Todos ellos a su vez comparten que la ventana de contexto es de al menos 512 para no tener que reducir la longitud de los fragmentos con los que se trabaja, también tienen una licencia compatible con la del repositorio y todos son ejecutables en el equipo donde se realizan los experimentos.
 
 
 \subsubsection{Elección final}
@@ -578,7 +565,7 @@ De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la 
 
 Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda bastante más (Apartado~\ref{secc:resultados_embeddings}) en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. El coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
-Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-e5-small), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
+Se elige por tanto de los dos mejores modelos, el modelo pequeño (\texttt{multilingual-e5-small}), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
                                  
   
 
@@ -589,8 +576,6 @@ Se elige por tanto de los dos mejores modelos, el modelo pequeño (multilingual-
 La fase 1 termina con la colección convertida en vectores. Lo que falta para que el sistema funcione correctamente son tres piezas, y esta fase las resuelve. La primera es dónde se guardan los vectores y con qué se consultan, que es lo que decide la comparativa de bases de datos vectoriales del apartado siguiente. La segunda es qué modelo redacta la respuesta una vez recuperados los fragmentos que hacen falta y la última pieza es el \textit{pipeline} RAG que une las dos anteriores.
 
 
-
-
 \subsection[Selección de la base de datos vectorial]{Selección de la base de datos vectorial}
 \label{secc:fase2_vectordb}
 
@@ -599,7 +584,7 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 
 \subsubsection[Diseño de la comparación]{Diseño de la comparación}
 
-Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se le añadió una extra, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con los datos de este trabajo, es la opción más rápida.
+Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, del cual ya se ha hablado anteriormente en esta memoria. A estas se les añadió una más, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, la cual es NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con los datos de este trabajo, es la opción más rápida.
 
 Para este experimento, se cogen las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que meter el índice en memoria y contaminaría la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
@@ -607,22 +592,21 @@ Para este experimento, se cogen las incrustaciones que se generan mediante el mo
 
 Las tres candidatas tienen una licencia que casa con la de este proyecto, que es la GPL versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante APIs REST.
 
-Se barajaron otras opciones pero se descartaron por estar en un estado de desarrollo muy prematuro, o por estar pensadas para corpus enormes.
-
+Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y Qdrant Edge por estar en un estado de desarrollo muy prematuro, Milvus y Weaviate por estar pensadas para corpus enormes, FAISS por ser una biblioteca de índices y no una base de datos, y pgvector por exigir un PostgreSQL completo (ADR-0004).
 
 
 \subsubsection[Los umbrales fijados]{Los umbrales fijados}
 
 
-
-
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
 
 \begin{itemize}
-    \item \textbf{Eliminatorios : } son condiciones que hay que cumplir sí o sí como la fidelidad exacta respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar.
-    \item \textbf{Comparativos : } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
-    \item \textbf{Desempate : } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
+    \item \textbf{Eliminatorios: } son condiciones que hay que cumplir sí o sí como la fidelidad exacta respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar, además de que los resultados se repitan al reconstruir el índice.
+    \item \textbf{Comparativos: } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
+    \item \textbf{Desempate: } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
 \end{itemize}
+
+
 
 
 \subsubsection[Elección final]{Elección final}
@@ -630,7 +614,7 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
 
 De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta en una parte de las reconstrucciones del índice (Apartado~\ref{secc:resultados_vectordb}). A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error es fatal.
 
-Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como ambos sobrepasan el umbral, no cabe fijarse en esto para establecer la decisión.
+Entre las otras dos opciones que quedan de pie, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, luego LanceDB gana en construcción a Qdrant pero como la diferencia cae dentro de la banda de indiferencia de 50 ms, no cabe fijarse en esto para establecer la decisión.
 
 Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. También ayuda que LanceDB es la opción que menos pesa de las tres.
 
@@ -643,17 +627,16 @@ La Figura~\ref{fig:comparativa_vectordb} resume el recorrido de la comparación 
 \subsection[Construcción del índice]{Construcción del índice}
 \label{secc:fase2_construccion_indice}
 
-El índice es una estructura de datos organizada y optimizada donde se almacena la colección de fragmentos generada por la fase anterior, del cual también se descarta el registro de procedencia que encabeza el fichero ya que este describe de cuándo es el corpus y no es contenido realmente útil para el sistema. El índice actúa como la memoria del sistema de este proyecto, de modo que cada fragmento de la colección queda registrado de forma indisociable junto a su vector de incrustación y a sus metadatos asociados (titulaciones, códigos de asignatura y tipología). 
+El índice es una estructura de datos organizada y optimizada donde se almacena la colección de fragmentos generada por la fase anterior, de la cual también se descarta el registro de procedencia que encabeza el fichero ya que este describe de cuándo es el corpus y no es contenido realmente útil para el sistema. El índice actúa como la memoria del sistema de este proyecto, de modo que cada fragmento de la colección queda registrado de forma indisociable junto a su vector de incrustación y a sus metadatos asociados (titulaciones, códigos de asignatura y tipología). 
 
 Este índice se reconstruye entero en cada ejecución en lugar de actualizarse de forma incremental, ya que reconstruirlo cuesta minutos y garantiza que el índice siempre coincida con la colección de fragmentos, mientras que hacer actualizaciones parciales obligaría a tener más factores en cuenta innecesarios a este coste de reconstrucción. El índice es un producto regenerable y derivado de la fuente de verdad que son los datos extraídos de la web de EPSJ.
 
 Los tipos de datos de cada columna se establecen antes de dejar que la base de datos adivine los tipos, pudiendo poner uno que no sea el correcto. Esto se hace así dado que la base de datos deduce el tipo de cada columna a partir de los valores del primer lote de datos, resultando que si este primer lote viniera sin códigos de asignatura, la base podría poner un tipo equivocado pensando que nunca hay códigos numéricos ahí.
 
-Las titulaciones y asignaturas se guardan como listas paralelas y no como una sola cadena de texto para garantizar un filtrado exacto. Esto evita que las búsquedas por subcadena arrastren fragmentos erróneos en grados cuyos nombres están contenidos dentro de otros más largos (como ocurre en el \texttt{Grado en Ingeniería eléctrica} frente al \texttt{Doble Grado con Mecánica}.) De este modo evitamos que se recojan más fragmentos de los que realmente es necesario para no contaminar el modelo generativo.
+Las titulaciones y asignaturas se guardan como listas paralelas y no como una sola cadena de texto para garantizar un filtrado exacto. Esto evita que las búsquedas por subcadena arrastren fragmentos erróneos en grados cuyos nombres están contenidos dentro de otros más largos (como ocurre en el \texttt{Grado en Ingeniería eléctrica} frente al \texttt{Doble Grado con Mecánica}.) De este modo se evita recoger más fragmentos de los necesarios para no contaminar el modelo generativo.
 
 
 Por último, este índice registra tres datos importantes, como con qué modelo se calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos incrustados y con qué métrica de distancia consultarlo (similitud del coseno o euclídea). Esto se hace para que el buscador pueda verificar automáticamente al empezar que se están usando los mismos parámetros con los que se creó el índice para evitar errores.
-
 
 
 \subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
@@ -661,19 +644,17 @@ Por último, este índice registra tres datos importantes, como con qué modelo 
 
 Un estudiante o un usuario objetivo de la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
 
-Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no lo tuviéramos en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que le tienes que hacer la consulta perfectamente para que te responda bien lo cual no es lo que se busca en este proyecto, sin embargo, si pones que almacene todo el contexto de la conversación, almacenará datos basura que ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
-
-
+Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no se tuviera en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que habría que formular cada consulta de forma perfecta para obtener una buena respuesta lo cual no es lo que se busca en este proyecto, sin embargo, si se almacena todo el contexto de la conversación, se acumulan datos basura que no ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
 
 \subsubsection{Estrategia de seguimiento del sujeto y resolución de anáforas}
 \label{secc:fase2_gestion_contexto}
 
-Para resolver este problema se diseñó un mecanismo determinista de seguimiento de estado en el que se desacopla la recuperación semántica del historial completo. El sistema gestiona el contexto mediante dos principios:
+Para resolver este problema se diseñó un mecanismo de seguimiento de estado en el que un modelo decide en cada turno de qué titulación se habla, con unas reglas deterministas de respaldo si falla en el que se desacopla la recuperación semántica del historial completo. El sistema gestiona el contexto mediante dos principios:
 
 \begin{enumerate}
   \item \textbf{Seguimiento y persistencia del sujeto activo:} El modelo monitoriza en cada turno la titulación mencionada. Si el usuario nombra un nuevo grado, el sujeto (el grado) se actualiza, si formula una pregunta del grado anteriormente descrito, el sistema hereda automáticamente la titulación del turno anterior. Además, si la titulación fue propuesta por el propio asistente en la última respuesta (por ejemplo, recomendando el Grado en Ingeniería Informática ante un interés por el desarrollo de software), esta se coge como sujeto activo.
-  \item \textbf{Ventana acotada de diálogo:} En el \textit{prompt} final hacia el LLM se incorporan únicamente los tres últimos turnos del usuario junto con el sujeto contextualizado, evitando la saturación del contexto.
+  \item \textbf{Ventana acotada de diálogo:} En el \textit{prompt} final hacia el LLM se incorporan únicamente los tres últimos turnos del usuario junto con el sujeto contextualizado, evitando la saturación del contexto. 
 \end{enumerate}
 
 La Figura~\ref{fig:conversacion_tres_turnos} ilustra la dinámica temporal de este mecanismo sobre un diálogo real de tres turnos.
@@ -681,16 +662,14 @@ La Figura~\ref{fig:conversacion_tres_turnos} ilustra la dinámica temporal de es
 
 Las tres estrategias (incrustar la pregunta sola, concatenar la
   anterior y deducir el sujeto) se midieron sobre 39 conversaciones derivadas de la
-  propia colección.Las cifras están en el informe del experimento que
-  recoge el repositorio\cite{repo_tfg}.
-
-
+  propia colección. Las cifras están en el informe del experimento que
+  recoge el repositorio\cite{repo_tfg}. 
 
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
 
   Ahora que se han extraído los datos, y se han fragmentado, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
-  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. En este apartado se hablará de este modelo que va a realizar esta acción.
+  utilice estos datos para elaborar la respuesta que satisfaga las dudas del usuario. çEn este apartado se trata el modelo que realiza esta acción.
 
 \subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
 
@@ -700,10 +679,10 @@ En el caso de las comparativas y experimentos anteriores (incrustaciones y base 
 Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cuatro medidas, todas ellas comparaciones de cadena contra la colección de datos:
 
 \begin{itemize}
-  \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tienen sentido que se den en una escuela Politécnica superior, no se encuentra en los datos recogidos.
+  \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tendría sentido que se dieran en una Escuela Politécnica Superior, no se encuentran en los datos recogidos.
   \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe de verdad en la colección.
   \item \textbf{Cobertura: }Qué proporción de lo que debía decir realmente aparece.
-  \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuyas respuestas es un único valor como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
+  \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuya respuesta es un único valor, como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
 \end{itemize}
 
 Cabe destacar que las cifras calculadas de estas cuatro medidas están en el Apartado~\ref{secc:resultados_rag}.
@@ -726,7 +705,7 @@ Los umbrales del experimento son dos:
 
 \begin{itemize}
   \item \textbf{Ninguna titulación inventada: }Es un umbral eliminatorio, lo que significa que si se llegase a inventar alguna, el modelo sería totalmente descartado.
-  \item \textbf{Ningún candidato se quede sin contexto: }Si a un modelo se le ofreciera menos fragmentos que los demás no se estarían comparando modelos, sino las recuperaciones que les tocaron.
+  \item \textbf{Que ningún candidato se quede sin contexto}: Si a un modelo se le ofrecieran menos fragmentos que a los demás no se estarían comparando modelos, sino las recuperaciones que les tocaron.
 \end{itemize}
 
 Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para la decisión del modelo. La primera es el tiempo que este tarda en responder ya que no todos los modelos se comprueban bajo las mismas condiciones controladas, y el equipo en el que se hacen es un portátil de desarrollo que tiene más aplicaciones abiertas. 
@@ -738,12 +717,11 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 
 En la muestra común de 80 preguntas, los cuatro candidatos cumplen los dos umbrales eliminatorios. Los tres modelos de mayor tamaño empatan en precisión, cobertura y acierto escalar, mientras que \texttt{salamandra-7b} queda por detrás en cobertura. Estas medidas no permiten elegir entre \texttt{qwen3.5:9b} y \texttt{gemma3:12b}.
 
-La comparación pareada de 250 preguntas aplica el umbral U1 a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo. Se adopta por ello \texttt{gemma3:12b}.
+La comparación pareada de 250 preguntas aplica el umbral de ninguna titulación inventada a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo: «Grado en Inteligencia Artificial y Cibersegurity», el de una titulación real mal escrito, que la comprobación cuenta igual que uno inventado. Se adopta, por ello \texttt{gemma3:12b}.
 
 La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más lento en el equipo de evaluación. El RNF-04 prioriza expresamente la fidelidad factual sobre la rapidez, y los tiempos medidos describen además un portátil donde parte del modelo se ejecuta en CPU.
 
 Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca de la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
-
 
 
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
@@ -752,26 +730,25 @@ Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo po
 Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle. Los fundamentos teóricos de la recuperación semántica y del paradigma \gl{RAG} se introdujeron en el Capítulo~\ref{cap:antecedentes}
   (Apartado~\ref{subsec:busqueda_semantica_concepto}), aquí se detalla su implementación concreta en la arquitectura del asistente.
 
-  La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada sin que llegue siquiera a llamar al modelo, ahorrando mucha capacidad de cómputo.
+  La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada: las dos primeras evitan llamar al modelo y la tercera retira la respuesta después de generarla, ahorrando mucha capacidad de cómputo.
 
 
 \input{diagramas/DiagramaSecuenciaRAG.tex}
 
 \subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación adaptativa y filtrado de fragmentos}
 
-El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, haciendo que si solo se necesita unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite.
+El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, haciendo que si solo se necesitan unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite.
 
 Para plantear esta solución, el sistema utiliza una política de recuperación dinámica que combina tres mecanismos complementarios:
 
 \begin{itemize}
-  \item \textbf{Banda de seguridad:} Acota el número de fragmentos a un rango admisible, garantizando un mínimo de 3 y un máximo de 20 fragmentos por consulta.
+  \item \textbf{Banda de seguridad:} Acota el número de fragmentos a un rango admisible, con un mínimo de 3 (salvo que el suelo de pertinencia deje menos, o ninguno) y un máximo de 20 fragmentos por consulta.
   \item \textbf{Corte relativo por distancia:} Dentro de dicha banda, se conservan únicamente aquellos fragmentos cuya distancia semántica no supere un factor proporcional respecto al mejor fragmento recuperado. De este modo, las consultas con una respuesta muy unívoca retienen muy pocos elementos, mientras que las de listado arrastran a todo su grupo semántico.
   \item \textbf{Suelo absoluto de pertinencia:} Establece un umbral de similitud mínima por debajo del cual no se entrega ningún fragmento, descartando información de baja calidad incluso si constituye el mejor resultado disponible.
 \end{itemize}
 
 
 Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
-
 
 
 \subsubsection{Estructura y composición del \textit{prompt}}
@@ -805,29 +782,26 @@ El objetivo del asistente es el de informar sobre la oferta de la Escuela y no d
 
 La primera capa es el suelo de pertinencia explicado en el apartado anterior. Si bien este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas preguntas que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras facultades) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
 
-Para cubrir las consultas que superan el suelo de pertinencia, la segunda capa actúa antes de la llamada al modelo mediante un filtro de centros externos. El sistema comprueba si se hace referencia a otra institución mediante patrones léxicos y si se encuentra esta opción, la consulta se detiene incluso antes de llamar al modelo.
+Para cubrir las consultas que superan el suelo de pertinencia, la segunda capa actúa antes incluso de la recuperación, como las respuestas fijas a saludos y despedidas, mediante un filtro de centros externos. El sistema comprueba si se hace referencia a otra institución mediante patrones léxicos y si se encuentra esta opción, la consulta se detiene incluso antes de llamar al modelo.
 
 
 La tercera capa opera después de generar la respuesta como una validación del catálogo oficial. Tras recibir el resultado de la inferencia redactada por el modelo, un extractor basado en expresiones regulares identifica todas las palabras con formato de titulación y las compara contra las doce titulaciones oficiales de la Escuela. Si se detecta cualquier titulación ajena o inventada, el sistema descarta la respuesta íntegra y entrega un mensaje informativo prefijado.
 
-las tres capas mecánicas actúan de forma secuencial y determinista, asegurando que cada una capture las anomalías que escapan a las demás. La distribución cuantitativa del rechazo obtenido por cada mecanismo se analiza en detalle en el Apartado~\ref{secc:resultados_rag_sistema}.
-
-
+Las tres capas mecánicas actúan de forma secuencial y determinista, asegurando que cada una capture las anomalías que escapan a las demás. La distribución cuantitativa del rechazo obtenido por cada mecanismo se analiza en detalle en el Apartado~\ref{secc:resultados_rag_sistema}.
 
 
 \section[Fase 3: la aplicación web]{Fase 3: la aplicación web}
 \label{secc:fase3}
 
+Esta fase convierte el sistema de la fase anterior en una aplicación web que se usa desde el navegador. Los apartados siguientes describen su arquitectura, el punto de entrada, cómo se emite la respuesta, la interfaz y el registro de actividad que se usa para experimentar.
+
 \subsection[Arquitectura de la aplicación]{Arquitectura de la aplicación}
 \label{secc:fase3_arquitectura}
 
-La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en la sección \ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura, dejando fuera el servidor de inferencia.
+La aplicación funciona con un solo proceso de servidor que atiende las preguntas y sirve la interfaz, el cual importa como biblioteca el flujo de procesamiento descrito en el Apartado~\ref{secc:fase2_pipeline}. La Figura~\ref{fig:arquitectura_web} recoge la arquitectura, dejando fuera el servidor de inferencia.
 
 
 \input{diagramas/DiagramaArquitecturaWeb.tex}
-
-
-
 
 
 Para integrar el flujo de procesamiento en el servidor web existían dos opciones: ejecutarlo como un programa independiente en cada consulta o importarlo directamente como biblioteca dentro del servidor. Se eligió la segunda opción por dos motivos fundamentales:
@@ -847,18 +821,18 @@ Otra razón es la simplicidad del servicio, la aplicación en el alcance estable
 
 En cuanto a las limitaciones técnicas de la tecnología usada, \texttt{http.server} no está concebido para entornos de producción, ya que procesa las solicitudes de forma secuencial, carece de soporte nativo para conexiones cifradas \sig{HTTPS} y la propia documentación oficial desaconseja su uso en producción. No obstante, estas restricciones no afectan al trabajo, ya que el despliegue multiusuario en producción se declaró fuera de alcance y el sistema está diseñado únicamente para ejecutarse en el equipo local. 
 
-La lógica y verificación no reside en el manejador de peticiones \sig{HTTP}, sino en una función desacoplada que recibe la consulta y emite progresivamente fragmentos de texto ya comprobado. Esto asegura una fácil sustitución de \texttt{http.server} por un marco de trabajo más complejo cuando se escale y se amplíe el alcance del proyecto.
+La lógica y la verificación no residen en el manejador de peticiones \sig{HTTP}, sino en una función desacoplada que recibe la consulta y emite progresivamente fragmentos de texto ya comprobado. Esto asegura una fácil sustitución de \texttt{http.server} por un marco de trabajo más complejo cuando se escale y se amplíe el alcance del proyecto.
 
 \subsection[La emisión de la respuesta]{La emisión de la respuesta}
 \label{secc:fase3_emision}
 
-El mecanismo el cual la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez obligaría al usuario a esperar frente a una interfaz estática durante más de un minuto, si antes de eso no pensara que el sistema se ha bloqueado.
+El mecanismo el cual la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez obligaría al usuario a esperar frente a una interfaz estática durante decenas de segundos, si antes de eso no pensara que el sistema se ha bloqueado.
 
 Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada que el usuario ya haya leído.
 
-Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detecta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia.
+Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detecta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia. Si el servidor de inferencia falla o la conexión se corta a mitad de la respuesta, la interfaz muestra un aviso de error en lugar de darla por terminada.
 
-Esta solución se asume aún siendo no lo mejor para la experiencia de usuario ya que este vería como un texto que se está generando de repente desaparece por un texto que dice que no ha podido generarle una respuesta. Sin embargo, la frecuencia de estas anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
+Esta solución se asume aun no siendo la mejor para la experiencia de usuario, ya que este vería cómo un texto que se está generando desaparece de repente y es sustituido por otro que dice que no se ha podido generar una respuesta. Sin embargo, la frecuencia de estas anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
 
 \subsection[La interfaz]{La interfaz}
 \label{secc:fase3_interfaz}
@@ -869,20 +843,20 @@ Dado el enfoque experimental del trabajo centrado en las tecnologías de generac
 \subsection[El guion gráfico de la pantalla]{El guion gráfico de la pantalla}
 \label{secc:fase3_storyboard}
 
-Antes de que se programara la interfaz web, se formalizó el diseño conceptual de la interacción mediante un guionb gráfico (\textit{storyboard}) que contempla tanto el caso en el que el asistente usa los fragmentos documentales recuperados, y el escenario en el que el corpus no contiene información suficiente para responder a la consulta (Figura~\ref{fig:storyboard_chat}).
+Antes de que se programara la interfaz web, se formalizó el diseño conceptual de la interacción mediante un guion gráfico (\textit{storyboard}) que contempla tanto el caso en el que el asistente usa los fragmentos documentales recuperados como el escenario en el que el corpus no contiene información suficiente para responder a la consulta (Figura~\ref{fig:storyboard_chat}).
 
 \input{diagramas/DiagramaStoryboardChat.tex}
 
-Una parte importante de la interfaz es el panel que muestra la fuentes documentales, este solo se muestra cuando existen fragmentos relevantes recuperados que respalden la afirmación de la repuesta. 
+Una parte importante de la interfaz es el panel que muestra la fuentes documentales, este solo se muestra cuando existen fragmentos relevantes recuperados que respalden la afirmación de la repuesta.
 
-También se han tendido en cuenta tres estados de la conversación que la interfaz debe resolver para mantener la usabilidad, mostrados coomo estados en al Figura~\ref{fig:estados_chat}:
+También se han tenido en cuenta tres estados de la conversación que la interfaz debe resolver para mantener la usabilidad, mostrados como estados en la Figura~\ref{fig:estados_chat}:
 
 \begin{itemize}
-  \item \textbf{La espera durante la inferencia:} La ejecución del modelo del lenguaje en el equipo local (RNF-01) y la prioridad de la fidelidad sobre la latencia (RNF-04) conlleva tiempos de inferencia más altos. Para evitar la sensación de bloqueo o congelamiento de la aplicación, la interfaz incorpora un indicador visual de la actividad con mensajes informativos sobre el estado actual de la respuesta (Apartado~\ref{secc:fase3_interaccion}).
+  \item \textbf{La espera durante la inferencia:} La ejecución del modelo de lenguaje en el equipo local (RNF-01) y la prioridad de la fidelidad sobre la latencia (RNF-04) conllevan tiempos de inferencia más altos. Para evitar la sensación de bloqueo o congelamiento de la aplicación, la interfaz incorpora un indicador visual de la actividad con mensajes informativos sobre el estado actual de la respuesta (Apartado~\ref{secc:fase3_interaccion}).
 
-  \item \textbf{La respuesta determinista inmediata:} Determinados mensajes como los saludos ("Hola", "buenos días", etc...) o cuando se detectan preguntas sobre centros ajenos a las EPSJ, se resuelven mediante respuestas prefijadas por reglas de control (RF-07). Al no requerir la inferencia del modelo, la respuesta la genera el código y es prácticamente instantánea y se muestra de forma directa en la conversación (Apartado~\ref{secc:fase2_dominio}).
+  \item \textbf{La respuesta determinista inmediata:} Determinados mensajes como los saludos (<<Hola>>, <<buenos días>>, etc.) o cuando se detectan preguntas sobre centros ajenos a la EPSJ, se resuelven mediante respuestas prefijadas por reglas de control (RF-07). Al no requerir la inferencia del modelo, la respuesta la genera el código y es prácticamente instantánea y se muestra de forma directa en la conversación (Apartado~\ref{secc:fase2_dominio}).
 
-  \item \textbf{La declaración de ausencia de información:} Cuando el ámbito de una pregunta excede el catálogo de información oficial disponible (como la solicitud de notas de corte o plazos de matrícula), el sistema informa expresamente de que les faltan estos datos para evitar alucinaciones (RU-03, RU-06). Se trata esto como en el caso anterior, como una respuesta válida, integrándola en el flujo de chat sin presentarla como un error.
+  \item \textbf{La declaración de ausencia de información:} Cuando el ámbito de una pregunta excede el catálogo de información oficial disponible (como la solicitud de notas de corte o plazos de matrícula), el sistema informa expresamente de que le faltan estos datos para evitar alucinaciones (RU-03, RU-06). Se trata esto como en el caso anterior, como una respuesta válida, integrándola en el flujo de chat sin presentarla como un error. Del mismo modo, si la pregunta nombra una asignatura cuya guía docente no ha entrado entera en el contexto, la respuesta termina con un aviso fijo que lo dice, para no presentar como completo un temario al que le faltan partes.
 \end{itemize}
 
 \input{diagramas/DiagramaEstadosChat.tex}
@@ -891,14 +865,13 @@ También se han tendido en cuenta tres estados de la conversación que la interf
 \subsection[Accesibilidad y contraste visual]{Accesibilidad y contraste visual}
 \label{secc:fase3_accesibilidad}
 
-La interfaz cumple el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 14,83:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
-
+La interfaz cumple el nivel AA de las pautas de accesibilidad \sig{WCAG} (RNF-07). Los textos se contrastan con el fondo en valores que oscilan entre 4,92:1 y 16,30:1, superando el umbral mínimo exigido de 4,5:1. También, los bordes de los controles interactivos se ajustaron para garantizar un contraste de 3,02:1 frente al fondo, satisfaciendo el criterio 1.4.11 (mínimo de 3,0:1 para elementos de la interfaz) y asegurando su correcta percepción visual.
 
 
 \subsection[Transparencia, sugerencias y control de espera]{Transparencia, sugerencias y control de espera}
 \label{secc:fase3_interaccion}
 
-El requisito RF-09 sobre trazabilidad pide mostrar junto a las respuestas las fuentes de la colección de las que sale. Esto se ha resuelto con una ventana emergente en lugar de un listado siempre visible para no saturar la interfaz de lectura (Figura~\ref{fig:app_fuentes}).
+El requisito RF-09 sobre trazabilidad pide mostrar junto a las respuestas las fuentes de la colección de las que salen. Esto se ha resuelto con una ventana emergente en lugar de un listado siempre visible para no saturar la interfaz de lectura (Figura~\ref{fig:app_fuentes}).
 
 \begin{figure}[htbp]
   \centering
@@ -908,20 +881,20 @@ El requisito RF-09 sobre trazabilidad pide mostrar junto a las respuestas las fu
   \label{fig:app_fuentes}
 \end{figure}
 
-Bajo el área de conversación se ofrecen cuatro posibles preguntas sugeridas a modo de atajo por si no sabes qué preguntar. Esta idea surgió de las aplicaciones web de las grandes compañías de la IA, como ChatGPT o Google Gemini que contienen funcionalidades parecidas. El servidor las genera comprobando previamente contra el índice vectorial la existencia de los fragmentos que las respaldan.
+Bajo el área de conversación se ofrecen cuatro posibles preguntas sugeridas a modo de atajo por si no se sabe qué preguntar. Esta idea surgió de las aplicaciones web de las grandes compañías de la IA, como ChatGPT o Google Gemini que contienen funcionalidades parecidas. El servidor las genera comprobando previamente contra el índice vectorial la existencia de los fragmentos que las respaldan.
 
-El sistema genera 10 plantillas parametrizadas con más de noventa preguntas válidas sobre el corpus. De las cuatro sugerencias mostradas, dos se reservan a la titulación tratada en la conversación actual y dos a otras titulaciones del catálogo. 
+El sistema genera 10 plantillas parametrizadas que dan 87 preguntas con respaldo en el corpus. De las cuatro sugerencias mostradas, dos se reservan a la titulación tratada en la conversación actual y dos a otras titulaciones del catálogo. 
 
 Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar que el usuario asuma que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
 
 La Figura~\ref{fig:app_inicio} recoge el estado inicial de la
-  aplicación, con la cabecera institucional y las cuatro sugerencias que resuelven la
+  aplicación, con la cabecera del asistente y las cuatro sugerencias que resuelven la
   pantalla vacía descrita más arriba.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{imagenes/app_inicio.png}
-\caption[Pantalla inicial de la aplicación web]{Vista inicial del asistente con la cabecera institucional, el mensaje de bienvenida y el bloque de preguntas sugeridas. Fuente: Elaboración propia.}
+\caption[Pantalla inicial de la aplicación web]{Vista inicial del asistente con la cabecera del asistente, el mensaje de bienvenida y el bloque de preguntas sugeridas. Fuente: Elaboración propia.}
 
   \label{fig:app_inicio}
 \end{figure}
@@ -952,5 +925,5 @@ Por último, la Figura~\ref{fig:app_movil} comprueba el requisito de
 \subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
 \label{secc:fase3_registro}
 
-Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor almacena el registro de la conversación actual. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
+Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor puede guardar el registro de las conversaciones si se arranca con la opción \texttt{-{}-registrar}; por defecto no guarda ninguna. La interfaz incluye además una página de privacidad y cookies que lo explica. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de los usuarios.
 

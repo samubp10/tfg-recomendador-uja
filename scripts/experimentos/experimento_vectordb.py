@@ -752,12 +752,15 @@ def _modo_chroma(coleccion: Any) -> str:
         metadatos_coleccion = coleccion.metadata or {}
         hnsw = {"space": metadatos_coleccion.get("hnsw:space", "no legible")}
 
+    # IT-143: el número sale de la colección. Escrito a mano, repetir el
+    # experimento sobre otro corpus dejaría en el ADR una cifra falsa sin avisar.
+    vectores = f"{coleccion.count():,}".replace(",", ".")
     return (
         "NO VERIFICABLE desde el cliente — la colección se configura con "
         f"HNSW (space={hnsw.get('space')}, ef_search={hnsw.get('ef_search')}, "
         f"max_neighbors={hnsw.get('max_neighbors')}), pero ChromaDB **no "
         "expone un contador de vectores indexados** como Qdrant, así que "
-        "no se puede comprobar por esta vía si a 1.334 vectores responde "
+        f"no se puede comprobar por esta vía si a {vectores} vectores responde "
         "recorriendo el grafo o el conjunto completo"
     )
 

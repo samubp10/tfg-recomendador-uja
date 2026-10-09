@@ -98,7 +98,9 @@ FACTOR_CORTE: Final[float] = 1.20
 #: admitir una ajena es lo que produce ese tipo de respuesta.
 
 # IT-49: 0,137 conserva las 56 preguntas de dominio y rechaza 8 de las 10 ajenas del
-# conjunto medido.
+# conjunto medido, aplicando solo el corte por distancia. El recuperador completo
+# rechaza 6 de 10 (docs/experimentos/it38-recuperacion.md): no es el rechazo del
+# sistema.
 
 # Las distancias de ambos grupos se solapan: el suelo por sí solo no filtra el dominio.
 SUELO_PERTINENCIA: Final[float] = 0.137

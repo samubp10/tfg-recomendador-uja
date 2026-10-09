@@ -292,6 +292,24 @@ def test_solo_se_conservan_los_ultimos_turnos():
     assert c.preguntas() == ["pregunta 3", "pregunta 4"]
 
 
+def test_la_ventana_por_defecto_recuerda_tres_preguntas_y_no_una():
+    """Regresión de IT-135: con la ventana de tres solo quedaba la última.
+
+    Mientras la lista era más corta que la ventana, el índice del recorte salía
+    negativo y contaba desde el final. La prueba de arriba usa una ventana de
+    dos, el único tamaño en el que el error no se nota.
+    """
+    c = Conversacion(CATALOGO)
+
+    c.anotar("pregunta 0", "respuesta")
+    c.anotar("pregunta 1", "respuesta")
+    assert c.preguntas() == ["pregunta 0", "pregunta 1"]
+
+    for i in range(2, 5):
+        c.anotar(f"pregunta {i}", "respuesta")
+    assert c.preguntas() == ["pregunta 2", "pregunta 3", "pregunta 4"]
+
+
 def test_al_recortar_la_ventana_no_se_pierde_el_sujeto():
     """Es la política: lo primero que se descarta son las preguntas viejas.
 
@@ -551,6 +569,27 @@ def test_una_pregunta_por_la_oferta_entera_no_se_acota_y_va_abierta():
     assert consulta.abierta is True
 
 
+def test_una_pregunta_que_senala_lo_anterior_no_va_abierta_aunque_lo_diga_el_decisor():
+    """Prueba en vivo del 08/10/2026 (H-B1, IT-142).
+
+    Tras «¿En qué curso se dan matemáticas?», el decisor respondió TODAS a
+    «¿Y cómo se evalúan estas asignaturas?». Abierta, se buscó sin suelo de
+    pertinencia y el modelo recibió 20 fragmentos para un dato que el corpus no
+    tiene; cerrada, el suelo la deja sin contexto y sale la respuesta fija.
+    """
+    c = Conversacion(
+        CATALOGO,
+        decisor=decisor_de_guion(Decision(NINGUNA, []), Decision(TODAS, [])),
+    )
+    c.preparar("¿En qué curso se dan matemáticas?")
+    c.anotar("¿En qué curso se dan matemáticas?", "En primero.")
+
+    consulta = c.preparar("¿Y cómo se evalúan estas asignaturas?")
+
+    assert consulta.abierta is False
+    assert consulta.decision == TODAS
+
+
 def test_un_mensaje_ajeno_suelta_el_ambito_pero_no_abre_la_consulta():
     """`NINGUNA` deja la consulta desnuda y sin filtro: es el estado neutro."""
     c = Conversacion(
@@ -727,7 +766,6 @@ def test_regresion_una_respuesta_fija_no_reapunta_el_ambito() -> None:
     conversacion.anotar(
         "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?",
         "Solo puedo informarte de la Escuela Politécnica Superior de Jaén.",
-        cambia_ambito=False,
     )
 
     assert conversacion.ambito == ["Grado en Ingeniería Informática"]
@@ -751,13 +789,44 @@ def test_regresion_una_respuesta_fija_tampoco_pisa_el_predicado() -> None:
         "Tiene Álgebra.",
     )
 
-    conversacion.anotar(
-        "Hola", "Hola, soy el asistente de la EPSJ.", cambia_ambito=False
-    )
+    conversacion.anotar("Hola", "Hola, soy el asistente de la EPSJ.")
 
     consulta = conversacion.preparar("¿Y en segundo?")
     assert "Hola" not in consulta.respaldo
     assert "Informática" in consulta.respaldo
+
+
+# --- IT-140: una respuesta fija no es un turno ---
+
+
+def test_un_saludo_no_entra_en_las_preguntas_que_se_le_recuerdan_al_modelo() -> None:
+    """Hipótesis de H-B3 (08/10): varias respuestas empezaban por «¡Hola!».
+
+    En las dos, la ventana de preguntas que recibía el modelo traía un saludo.
+    La causa no está demostrada, pero un saludo no sirve para entender a qué
+    se refiere la pregunta siguiente, que es para lo único que está la ventana.
+    """
+    conversacion = Conversacion(CATALOGO)
+    pregunta = "¿Qué menciones ofrece el Grado en Ingeniería Informática?"
+    conversacion.anotar(pregunta, "Ofrece cuatro.")
+
+    conversacion.anotar("hola", "¡Hola!")
+    conversacion.anotar("¿Cómo va?", "¡Hola!")
+
+    assert conversacion.preguntas() == [pregunta]
+
+
+def test_el_decisor_ve_el_ultimo_turno_de_verdad_y_no_el_saludo() -> None:
+    """Tras un saludo, el decisor juzgaba la pregunta contra «hola» y su saludo."""
+    llamadas: list[Llamada] = []
+    conversacion = Conversacion(CATALOGO, decisor=decisor_espia(llamadas))
+    turno = ("¿Qué salidas tiene el Grado en Ingeniería Informática?", "Muchas.")
+    conversacion.anotar(*turno)
+    conversacion.anotar("¿Y tú qué tal?", "¡Hola!")
+
+    conversacion.preparar("¿Y las optativas?")
+
+    assert llamadas[-1][2] == turno
 
 
 def test_una_ventana_de_cero_turnos_no_recuerda_ninguno() -> None:

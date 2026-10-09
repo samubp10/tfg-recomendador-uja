@@ -50,7 +50,7 @@ La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro c
         los fragmentos que el recuperador entrega, en al menos el
           90\,\% de las preguntas del conjunto de evaluación.
         
-  \item Ninguna respuesta del sistema tiene que contener información sobre un dato de una
+  \item Ninguna respuesta del sistema deberá contener información sobre un dato de una
         asignatura, sus créditos, su carácter o la titulación en que se imparte que no aparezca
         en los fragmentos recuperados. Contaría como error, pues, toda información que invente o alucine el modelo de lenguaje.
         
@@ -61,7 +61,7 @@ La hipótesis se dará por válida si, y solo si, el sistema cumple las cuatro c
         
   \item El sistema completo deberá ejecutarse en el equipo doméstico descrito en el
         Capítulo~\ref{cap:materialesymetodos}, y ser utilizable en él. Deberá dar una respuesta en menos de treinta segundos
-        de mediana sobre las preguntas de prueba. Este tiempo se elige puesto que por encima de esta cifra, un usuario abandonaría la aplicación.
+        de mediana sobre las preguntas de prueba. Es un umbral que se fija antes de medir como límite de una espera aceptable.
         
 \end{enumerate}
 
@@ -90,9 +90,9 @@ Los requisitos de usuario se formulan desde la perspectiva del estudiante preuni
 
 \subsection{Requisitos del sistema}
 
-Los requisitos del sistema son lo que el estudiante espera que el sistema haga, y se identifican con un código (RF-XX ó RNF-XX) para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
+\sout{Los requisitos del sistema son lo que el estudiante espera que el sistema haga}\textcolor{borrador2}{Los requisitos del sistema concretan qué debe hacer el sistema para cumplir los de usuario}, y se identifican con un código \sout{(RF-XX ó RNF-XX)}\textcolor{borrador2}{(RF-XX o RNF-XX)} para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
 
-En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura recogidas en los ADR.
+En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura \sout{recogidas en los ADR.}\textcolor{borrador2}{recogidas en los registros de decisión de arquitectura (ADR) del repositorio.}
 
 
 \input{tablas/TablaRequisitosFuncionales.tex}
@@ -102,7 +102,7 @@ En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo ori
 \subsection[Diseño conceptual de la interfaz]{Diseño conceptual de la interfaz}
 \label{secc:wireframe}
 
-Los requisitos descritos anteriormente determinan qué debe de hacer el sistema, pero no cómo se le presenta a quien va a usarlo. Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y única del aplicativo como se puede observar en la Figura~\ref{fig:wireframe}.
+Los requisitos descritos anteriormente determinan \sout{qué debe de hacer el sistema}\textcolor{borrador2}{qué debe hacer el sistema}, pero no cómo se le presenta a quien va a usarlo. Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y \sout{única del aplicativo}\textcolor{borrador2}{única de la aplicación} como se puede observar en la Figura~\ref{fig:wireframe}.
 
 
 \begin{figure}[H]

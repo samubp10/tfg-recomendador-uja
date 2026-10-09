@@ -64,7 +64,7 @@
       \node[detalle, anchor=east] at ([xshift=-5mm]l5.east)
       {índice \texttt{LanceDB} y \texttt{grados.json}\\
         se leen al arrancar\\
-        \texttt{registro\_chat.jsonl} se escribe};
+        \texttt{registro\_chat.jsonl} \sout{se escribe}\textcolor{borrador2}{se escribe solo con \texttt{-{}-registrar}}};
 
       \path (l3.north east) -- (l4.south east) node[midway] (medio) {};
       \node[externo] (ollama) at (9.7,0 |- medio)

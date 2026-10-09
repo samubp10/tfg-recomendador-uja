@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import json
 import logging
 import re
@@ -192,8 +193,12 @@ RESPUESTA_DESPEDIDA: Final[str] = (
 _CORTESIA: Final[frozenset[str]] = frozenset(
     {
         "hola",
+        "holaa",
+        "wenas",
         "buenas",
         "buenos",
+        "buen",
+        "dia",
         "dias",
         "tardes",
         "noches",
@@ -206,10 +211,22 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
         "ey",
         "que",
         "q",
+        "k",
+        "ke",
+        "qtal",
         "tal",
         "como",
         "estas",
+        "esta",
+        "estais",
+        "andas",
+        "pasa",
         "va",
+        "vas",
+        "tu",
+        "ti",
+        "te",
+        "usted",
         "muy",
         "bien",
         "gracias",
@@ -243,16 +260,40 @@ _CORTESIA: Final[frozenset[str]] = frozenset(
 
 # Reconoce también saludos en otros idiomas; la respuesta sigue en español.
 _SALUDO: Final[frozenset[str]] = frozenset(
-    {"hola", "buenas", "buenos", "saludos", "hey", "ey", "hello", "hi", "hallo"}
+    {
+        "hola",
+        "holaa",
+        "wenas",
+        "qtal",
+        "buenas",
+        "buenos",
+        "saludos",
+        "hey",
+        "ey",
+        "hello",
+        "hi",
+        "hallo",
+    }
 )
 
 #: Saludos de dos palabras que por separado no lo son. «tal» o «estas» sueltos
 #: aparecen en preguntas ---«¿y estas?»---, así que no pueden ir en ``_SALUDO``,
 #: que ``cortesia_sin_contexto`` aplica sin exigir que todo sea cortesía.
+
+# IT-140: «¿Cómo va?» y «¿Y tú qué tal?» llegaron al modelo en la prueba del 08/10.
 _SALUDO_DE_DOS_PALABRAS: Final[tuple[frozenset[str], ...]] = (
     frozenset({"que", "tal"}),
     frozenset({"q", "tal"}),
+    frozenset({"k", "tal"}),
+    frozenset({"ke", "tal"}),
+    frozenset({"que", "pasa"}),
     frozenset({"como", "estas"}),
+    frozenset({"como", "estais"}),
+    frozenset({"como", "usted"}),
+    frozenset({"como", "va"}),
+    frozenset({"como", "vas"}),
+    frozenset({"como", "andas"}),
+    frozenset({"buen", "dia"}),
 )
 
 #: Y las que lo convierten en una despedida o un agradecimiento.
@@ -490,6 +531,50 @@ AVISO_RESPUESTA_CORTADA: Final[str] = (
 )
 
 
+#: IT-141: lo que se añade cuando la pregunta nombra una asignatura cuya guía no
+#: ha entrado entera en el contexto. «¿Qué tal es la asignatura de Álgebra?»
+#: recibió «Aquí tienes el temario» con cuatro de sus seis temas (08/10).
+AVISO_GUIA_INCOMPLETA: Final[str] = (
+    "\n\n*No he podido consultar entera la guía docente de {asignaturas}, así "
+    "que puede faltar parte de su contenido. La tienes completa en la web de la "
+    "Escuela.*"
+)
+
+
+#: Lo que se pregunta del plan sale del encabezado, que llevan todas las partes de
+#: la guía: para eso no hace falta tenerla entera.
+_DATOS_DEL_PLAN: Final[frozenset[str]] = frozenset(
+    {"creditos", "credito", "ects", "curso", "cuatrimestre", "semestre"}
+)
+
+
+def guias_incompletas(pregunta: str, fragmentos: list[Fragmento]) -> list[str]:
+    """Asignaturas que nombra la pregunta y de cuya guía falta alguna parte.
+
+    Completar la guía no es la salida: las hay de hasta 49 fragmentos, que no
+    caben en la ventana del modelo. Lo que se puede garantizar es no presentar
+    como entero lo que no lo es.
+    """
+    if palabras(pregunta) & _DATOS_DEL_PLAN:
+        return []
+    vistas: dict[tuple[str, tuple[str, ...]], set[int]] = {}
+    totales: dict[tuple[str, tuple[str, ...]], int] = {}
+    for f in fragmentos:
+        if f.origen == "guia":
+            unidad = (f.nombre, tuple(f.grados))
+            vistas.setdefault(unidad, set()).add(f.chunk_index)
+            totales[unidad] = f.total_chunks
+    dicho = normalizar(pregunta)
+    return sorted(
+        {
+            nombre
+            for (nombre, grados), partes in vistas.items()
+            if len(partes) < totales[(nombre, grados)]
+            and re.search(rf"(?<!\w){re.escape(normalizar(nombre))}(?!\w)", dicho)
+        }
+    )
+
+
 def cerrar_en_frase_completa(texto: str) -> str:
     """Recorta un texto hasta su última frase o línea terminada."""
     cierres = [texto.rfind(c) for c in (".", "!", "?", "\n")]
@@ -557,6 +642,12 @@ def _errores_del_modelo(modelo: str, servidor: str) -> Iterator[None]:
             f"el servidor en {servidor} cortó la conexión a media respuesta "
             f"({error}). Suele ser que se ha quedado sin memoria."
         ) from error
+    except http.client.HTTPException as error:
+        # IT-141: un cuerpo cortado con cierre limpio llega como IncompleteRead,
+        # que no es ninguna de las anteriores.
+        raise ErrorDelModelo(
+            f"el servidor en {servidor} dejó la respuesta a medias ({error!r})"
+        ) from error
 
 
 def generar(
@@ -614,17 +705,29 @@ def generar_por_partes(
     peticion = _peticion(
         prompt, modelo, servidor, ventana, tope, semilla, sistema, flujo=True
     )
+    terminado = False
     with _errores_del_modelo(modelo, servidor):
         with urllib.request.urlopen(peticion, timeout=ESPERA_MAXIMA) as respuesta:
             for linea in respuesta:
                 if not linea.strip():
                     continue
                 datos = json.loads(linea)
+                # IT-141: si el modelo falla ya empezado, Ollama mantiene el 200 y
+                # manda el error como una línea más del flujo.
+                if "error" in datos:
+                    raise ErrorDelModelo(
+                        f"«{modelo}» falló a media respuesta: {datos['error']}"
+                    )
                 trozo = str(datos.get("response", ""))
                 if trozo:
                     yield trozo
                 if datos.get("done_reason") == "length":
                     yield AVISO_RESPUESTA_CORTADA
+                terminado = terminado or bool(datos.get("done"))
+    # Un flujo que se acaba sin la línea final es una respuesta cortada, no una
+    # respuesta completa: es la misma regla que aplica el navegador.
+    if not terminado:
+        raise ErrorDelModelo(f"la respuesta de «{modelo}» terminó sin su cierre")
 
 
 def responder_por_partes(
@@ -651,16 +754,34 @@ def responder_por_partes(
     # por turno: son los mismos fragmentos para todas las partes.
     del_plan = atributos_del_contexto([f.texto for f in fragmentos])
     acumulado = ""
-    pendiente = ""
     # Conserva la asignatura entre frases para atribuirle los datos que no repiten su
     # nombre.
     sujeto: str | None = None
-    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
-    # cola al agotarse el tope: ver mas abajo.
-    hubo_frontera = False
     trozos = (
         generar_por_partes(prompt, modelo) if flujo else iter([generar(prompt, modelo)])
     )
+    for unidad in _sin_saludo_inicial(_unidades_de(trozos), pregunta):
+        unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
+        sujeto = _sujeto_tras(unidad, del_plan, sujeto)
+        acumulado += unidad
+        if catalogo and titulaciones_inventadas(acumulado, catalogo):
+            _anotar_retirada(pregunta, acumulado, catalogo, traza)
+            yield None
+            yield RESPUESTA_TITULACION_INVENTADA
+            return
+        yield unidad
+    incompletas = guias_incompletas(pregunta, fragmentos)
+    if acumulado and incompletas:
+        nombres = " y de ".join(f"«{nombre}»" for nombre in incompletas)
+        yield AVISO_GUIA_INCOMPLETA.format(asignaturas=nombres)
+
+
+def _unidades_de(trozos: Iterator[str]) -> Iterator[str]:
+    """Junta los trozos del modelo en unidades que acaban en frontera segura."""
+    pendiente = ""
+    # Si se ha llegado a cerrar alguna frase. Solo entonces se puede tirar la
+    # cola al agotarse el tope: ver mas abajo.
+    hubo_frontera = False
     for trozo in trozos:
         # Al agotar el límite, descarta el resto incompleto solo si hubo una frontera;
         # mantiene el criterio de la respuesta sin flujo.
@@ -669,24 +790,30 @@ def responder_por_partes(
         pendiente += trozo
         unidades, pendiente = partir_en_unidades(pendiente)
         hubo_frontera = hubo_frontera or bool(unidades)
-        for unidad in unidades:
-            unidad = _con_el_plan_corregido(unidad, del_plan, pregunta, sujeto)
-            sujeto = _sujeto_tras(unidad, del_plan, sujeto)
-            acumulado += unidad
-            if catalogo and titulaciones_inventadas(acumulado, catalogo):
-                _anotar_retirada(pregunta, acumulado, catalogo, traza)
-                yield None
-                yield RESPUESTA_TITULACION_INVENTADA
-                return
-            yield unidad
-
+        yield from unidades
     # La cola que no llego a cerrar frontera se comprueba igual antes de salir.
     if pendiente:
-        pendiente = _con_el_plan_corregido(pendiente, del_plan, pregunta, sujeto)
-        acumulado += pendiente
-        if catalogo and titulaciones_inventadas(acumulado, catalogo):
-            _anotar_retirada(pregunta, acumulado, catalogo, traza)
-            yield None
-            yield RESPUESTA_TITULACION_INVENTADA
-            return
         yield pendiente
+
+
+def _sin_saludo_inicial(unidades: Iterator[str], pregunta: str) -> Iterator[str]:
+    """Retiene el «¡Hola!» con el que abre el modelo si nadie lo ha saludado.
+
+    IT-140: el modelo abría así 6 de las 42 respuestas que redactó en el banco del
+    06/09, y a mitad de conversación se lee como un saludo más. Lo retenido solo
+    sale si no llega nada detrás.
+    """
+    saluda = bool(palabras(pregunta) & _SALUDO)
+    retenido = ""
+    for unidad in unidades:
+        unidad = unidad.lstrip()
+        if not unidad:
+            continue
+        if not saluda and cortesia(unidad) == RESPUESTA_SALUDO:
+            retenido = unidad
+            continue
+        yield unidad
+        yield from unidades
+        return
+    if retenido:
+        yield retenido

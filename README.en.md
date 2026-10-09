@@ -161,8 +161,14 @@ Downloaded once, then kept locally:
 
 ## Installation
 
-The [full installation guide](docs/instalacion.md) walks through the route
-tested on clean containers, models, LanceDB and the web application included.
+The [full installation guide](docs/instalacion.md) is the reference for
+installing the system from scratch. It walks through the route tested on 6 and
+7 September 2026 on two clean containers, models, LanceDB and the web
+application included, with Docker Desktop, 16 GB of RAM and a 6 GB NVIDIA RTX
+3060 Laptop GPU. Those are the tested conditions, not measured minimums. The evidence and
+its limits are in [the IT-54 log](docs/experimentos/it54-instalacion.md).
+
+The steps in this section are the short path for working locally.
 
 ### 1. Python environment
 
@@ -250,7 +256,8 @@ py -m tfg_uja.aplicacion.servidor --registrar
 ```
 
 There is also a console client, handy for exercising the pipeline without a
-browser:
+browser. This one does save every session by default, in `data/pruebas_chat`;
+`--sin-registro` saves nothing:
 
 ```console
 py scripts/chat_rag.py

@@ -9,6 +9,7 @@ ejecución reproducible viajan de verdad en la petición.
 
 from __future__ import annotations
 
+import http.client
 import io
 import json
 from typing import Any
@@ -553,6 +554,26 @@ def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
         "¿Qué tal?",
         "q tal",
         "¿Cómo estás?",
+        # IT-140: «¿Cómo va?» y «¿Y tú qué tal?» llegaron al modelo el 08/10; el
+        # resto son las variantes que la misma auditoría sondeó sin saludo.
+        "¿Cómo va?",
+        "¿Y tú qué tal?",
+        "¿Qué tal te va?",
+        "¿Cómo te va?",
+        "¿Cómo va todo?",
+        "¿Cómo vas?",
+        "¿Cómo estás tú?",
+        "¿Cómo estáis?",
+        "¿Qué tal estáis?",
+        "¿Cómo andas?",
+        "¿Qué pasa?",
+        "¿Cómo está usted?",
+        "k tal",
+        "ke tal",
+        "qtal",
+        "Holaa",
+        "Wenas",
+        "Buen día",
     ],
 )
 def test_un_saludo_se_contesta_como_un_saludo(saludo):
@@ -1272,8 +1293,14 @@ class FlujoFalso:
         return None
 
 
-def flujo_de(monkeypatch, trozos: list[dict[str, Any]]) -> None:
-    """Hace que la llamada al modelo devuelva ese flujo."""
+def flujo_de(monkeypatch, trozos: list[dict[str, Any]], cerrado: bool = True) -> None:
+    """Hace que la llamada al modelo devuelva ese flujo.
+
+    Como en Ollama, la última línea lleva ``"done": true``. ``cerrado=False``
+    la quita, que es lo que llega si la conexión se cierra a media respuesta.
+    """
+    if cerrado:
+        trozos = trozos[:-1] + [{**trozos[-1], "done": True}]
     monkeypatch.setattr(
         generador.urllib.request, "urlopen", lambda *a, **k: FlujoFalso(trozos)
     )
@@ -1737,3 +1764,199 @@ def test_las_palabras_del_saludo_de_dos_palabras_no_saludan_por_separado():
     assert cortesia("¿y estas?") is None
     assert cortesia("¿Qué tal es la asignatura de Álgebra?") is None
     assert cortesia_sin_contexto("¿Qué tal se vive en Jaén?") is None
+    # IT-140: las palabras nuevas tampoco saludan fuera de su par.
+    assert cortesia("¿Y tú?") is None
+    assert cortesia("¿Qué pasa si suspendo?") is None
+    assert cortesia("¿Cómo va la matrícula?") is None
+    assert cortesia("¿Cómo está organizado el grado?") is None
+
+
+# --- IT-140: el «¡Hola!» con el que abre el modelo ---
+
+
+def _entregado(monkeypatch, pregunta: str, dicho: str, flujo: bool = True) -> str:
+    """Lo que le llega al estudiante si el modelo escribe ``dicho``."""
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([dicho]))
+    monkeypatch.setattr(generador, "generar", lambda *a, **k: dicho)
+    contexto = [fragmento("Álgebra", "Matrices y determinantes.")]
+    partes = generador.responder_por_partes(pregunta, contexto, "m", flujo=flujo)
+    return "".join(p or "" for p in partes)
+
+
+@pytest.mark.parametrize("flujo", [True, False])
+def test_el_saludo_con_el_que_abre_el_modelo_no_llega_si_nadie_saludo(
+    monkeypatch, flujo
+) -> None:
+    """Prueba en vivo del 08/10 (H-B3): tras «hola», una tercera bienvenida.
+
+    El modelo abría así 6 de las 42 respuestas que redactó en la tanda del
+    06/09, casi todas de un solo turno: no lo provoca el historial.
+    """
+    dicho = "¡Hola!\n\nÁlgebra trata de matrices y determinantes."
+
+    entregado = _entregado(monkeypatch, "¿Qué se ve en Álgebra?", dicho, flujo)
+
+    assert entregado == "Álgebra trata de matrices y determinantes."
+
+
+def test_si_el_estudiante_saluda_el_modelo_puede_devolverle_el_saludo(
+    monkeypatch,
+) -> None:
+    dicho = "¡Hola! Álgebra trata de matrices."
+
+    entregado = _entregado(monkeypatch, "Hola, ¿qué se ve en Álgebra?", dicho)
+
+    assert entregado == dicho
+
+
+def test_un_saludo_sin_nada_detras_si_se_entrega(monkeypatch) -> None:
+    """Retenerlo no puede dejar al estudiante sin respuesta."""
+    assert _entregado(monkeypatch, "¿Qué se ve en Álgebra?", "¡Hola!") == "¡Hola!"
+
+
+# --- IT-141: una respuesta cortada no se presenta como completa ---
+
+
+def test_un_error_a_media_respuesta_es_un_fallo_del_modelo(monkeypatch) -> None:
+    """H1 de la auditoría del 08/10/2026.
+
+    Si el modelo falla ya empezado, Ollama mantiene el 200 y manda el error
+    como una línea más (docs.ollama.com/api/errors). El bucle solo leía
+    `response`, así que el flujo terminaba sin excepción y el navegador recibía
+    «fin»: una respuesta cortada presentada como completa.
+    """
+    flujo_de(
+        monkeypatch,
+        [
+            {"response": "Primera frase completa. "},
+            {"error": "an error was encountered while running the model"},
+        ],
+        cerrado=False,
+    )
+    recibido: list[str] = []
+
+    with pytest.raises(generador.ErrorDelModelo, match="a media respuesta"):
+        for trozo in generador.generar_por_partes("prompt", "un-modelo"):
+            recibido.append(trozo)
+
+    assert recibido == ["Primera frase completa. "]
+
+
+def test_un_flujo_que_se_acaba_sin_su_cierre_es_un_fallo(monkeypatch) -> None:
+    """La conexión cerrada limpia, sin la línea final, también corta (H1)."""
+    flujo_de(monkeypatch, [{"response": "Primera frase completa. "}], cerrado=False)
+
+    with pytest.raises(generador.ErrorDelModelo, match="sin su cierre"):
+        list(generador.generar_por_partes("prompt", "un-modelo"))
+
+
+class CuerpoCortado:
+    """Respuesta sin flujo cuyo cuerpo llega a medias con un cierre limpio."""
+
+    def __enter__(self) -> "CuerpoCortado":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        raise http.client.IncompleteRead(b'{"response": "Primera', 36)
+
+
+def test_un_cuerpo_cortado_es_un_fallo_del_modelo(monkeypatch) -> None:
+    """H2: `IncompleteRead` se escapaba de la traducción a `ErrorDelModelo`.
+
+    Los cuatro sitios que llaman a `generar` solo capturan `ErrorDelModelo`:
+    en el decisor de ámbito se saltaba el reintento y la excepción salía del
+    servidor con el 200 ya enviado.
+    """
+    monkeypatch.setattr(
+        generador.urllib.request, "urlopen", lambda *a, **k: CuerpoCortado()
+    )
+
+    with pytest.raises(generador.ErrorDelModelo, match="a medias"):
+        generar("prompt", "un-modelo")
+
+
+# --- IT-141: la guía que no ha entrado entera ---
+
+
+def _algebra(*partes: int, total: int = 4) -> list[Fragmento]:
+    """Partes de la guía de Álgebra, de un total de ``total``."""
+    return [fragmento("Álgebra", f"Parte {p}.", parte=p, total=total) for p in partes]
+
+
+def test_una_guia_a_medias_que_nombra_la_pregunta_se_avisa(monkeypatch) -> None:
+    """H-B2 de la prueba en vivo del 08/10/2026.
+
+    «¿Qué tal es la asignatura de Álgebra?» recuperó las partes 0, 1 y 3 de las
+    cuatro de su guía: la 2 se quedó fuera por el tope de 20 fragmentos. El
+    modelo contestó «Aquí tienes el temario» con los temas 1 a 4 de seis.
+    """
+    pregunta = "¿Qué tal es la asignatura de Álgebra?"
+    monkeypatch.setattr(
+        generador, "generar_por_partes", lambda *a, **k: iter(["Aquí tienes."])
+    )
+
+    entregado = "".join(
+        p or ""
+        for p in generador.responder_por_partes(pregunta, _algebra(0, 1, 3), "m")
+    )
+
+    assert generador.guias_incompletas(pregunta, _algebra(0, 1, 3)) == ["Álgebra"]
+    assert entregado == "Aquí tienes." + generador.AVISO_GUIA_INCOMPLETA.format(
+        asignaturas="«Álgebra»"
+    )
+
+
+def test_una_guia_entera_no_lleva_aviso() -> None:
+    pregunta = "¿Qué temas tiene Álgebra?"
+    assert generador.guias_incompletas(pregunta, _algebra(0, 1, 2, 3)) == []
+
+
+def test_un_dato_del_plan_no_necesita_la_guia_entera() -> None:
+    """Créditos y curso van en el encabezado de todas las partes.
+
+    Sin esta excepción el aviso salía en cinco entradas del banco del sistema,
+    las cinco de créditos o de curso, donde no dice nada útil.
+    """
+    for pregunta in ("¿Cuántos créditos tiene Álgebra?", "¿En qué curso va Álgebra?"):
+        assert generador.guias_incompletas(pregunta, _algebra(0)) == []
+
+
+def test_solo_se_avisa_de_la_asignatura_que_nombra_la_pregunta() -> None:
+    """Ni de otra ni de una que la contenga: «Álgebra» no es «Álgebra lineal»."""
+    otra = [fragmento("Matemáticas I", "Parte.", parte=0, total=3)]
+    assert generador.guias_incompletas("¿Qué se ve en Álgebra?", otra) == []
+    assert generador.guias_incompletas("¿Qué se ve en Matemáticas II?", otra) == []
+    assert generador.guias_incompletas("¿Qué se ve en Álgebra lineal?", otra) == []
+
+
+def test_varias_guias_a_medias_se_avisan_juntas(monkeypatch) -> None:
+    contexto = _algebra(0) + [fragmento("Cálculo", "Parte.", parte=0, total=2)]
+    monkeypatch.setattr(
+        generador, "generar_por_partes", lambda *a, **k: iter(["Esto."])
+    )
+
+    entregado = "".join(
+        p or ""
+        for p in generador.responder_por_partes(
+            "¿Qué se ve en Álgebra y en Cálculo?", contexto, "m"
+        )
+    )
+
+    assert entregado.endswith(
+        "guía docente de «Cálculo» y de «Álgebra», así que "
+        "puede faltar parte de su contenido. La tienes "
+        "completa en la web de la Escuela.*"
+    )
+
+
+def test_sin_respuesta_no_se_entrega_solo_el_aviso(monkeypatch) -> None:
+    monkeypatch.setattr(generador, "generar_por_partes", lambda *a, **k: iter([" "]))
+
+    partes = list(
+        generador.responder_por_partes("¿Qué se ve en Álgebra?", _algebra(0), "m")
+    )
+
+    assert partes == []

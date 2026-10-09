@@ -103,7 +103,7 @@
 \def\Estudiante{Samuel Blanco Palmero}
 
 % ==== Introducir aquí el nombre de los tutores. Si solo hay uno dejar las llaves de \TutorB vacías
-\def\TutorA{Juan Carlos Cuevas Martinez}
+\def\TutorA{Juan Carlos \sout{Cuevas Martinez}Cuevas Martínez}
 \def\TutorB{}
 
 % ==== Introducir aquí el título de completo y abreviado (para las cabeceras) del TFG
@@ -111,7 +111,7 @@
 \def\TituloAbreviado{Sistema de recomendación de titulaciones}
 
 % ==== Introducir aquí la fecha de presentación del TFG en el formato día/mes/año
-\def\Fecha{3/9/2026}
+\def\Fecha{13/10/2026}
 
 \input{Portada.tex}
 
@@ -140,7 +140,7 @@
 %\clearpage\thispagestyle{empty}\cleardoublepage
 %\lstlistoflistings		% Índice de listados
 
-%\clearpage\thispagestyle{empty}\cleardoublepage
+\clearpage\thispagestyle{empty}\cleardoublepage
 \pagenumbering{arabic} % Numeración arábiga para el resto del documento
 
 % ===== Archivos LaTeX con los distintos capítulos que componen la memoria
@@ -166,18 +166,14 @@
 \input{capitulos/DefinicionesAbreviaturas.tex}
 \clearpage\thispagestyle{empty}\cleardoublepage
 
-\begingroup\color{borrador2}
-\appendix
-\input{anexos/Instalacion.tex}
-\clearpage\thispagestyle{empty}\cleardoublepage
-\endgroup
-
 % ===== Configuración de la bibliografía
 
-\pagenumbering{roman}  % Numeración romana para el índice
+% La bibliografía sigue la numeración del documento y entra en el índice con la
+% página en la que empieza.
 \bibliographystyle{unsrtnat}
-\bibliography{bibliografia}
+\cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{Bibliografía}
+\bibliography{bibliografia}
 
 \clearpage\thispagestyle{empty}
 \begin{center}

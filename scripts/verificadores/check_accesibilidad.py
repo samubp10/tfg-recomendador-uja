@@ -83,6 +83,10 @@ CONTROLES: list[tuple[str, float, float]] = [
     ("una pregunta sugerida", 24.0, 6 + 0.78 * BASE_PX * 1.55 + 6 + 2),
     ("el botón de fuentes", 24.0, 3 + 0.7 * BASE_PX * 1.55 + 3 + 2),
     ("el botón de cerrar el cuadro", 24.0, 24.0),
+    # IT-143: los enlaces que no van dentro de una frase. Sin `enlace-suelto`
+    # el del pie medía 0,72 x 16 x 1,5 = 17,3 de alto y no estaba en la lista.
+    ("el enlace del pie", 24.0, max(24.0, 3 + 0.72 * BASE_PX * 1.5 + 3)),
+    ("«Volver al asistente»", 24.0, max(24.0, 3 + BASE_PX * 1.55 + 3)),
 ]
 
 #: Objetivo mínimo del criterio 2.5.8 en su nivel AA.

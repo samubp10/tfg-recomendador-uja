@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Generator
 from functools import cache, partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
@@ -215,7 +215,7 @@ def partes_de_la_respuesta(
     conversacion: Conversacion,
     turno: int = 0,
     con_registro: bool = False,
-) -> Iterator[dict[str, object]]:
+) -> Generator[dict[str, object]]:
     """Recorre el sistema y va soltando lo que hay que mandar al navegador.
 
     ``con_registro`` guarda cada turno en ``data/registro_chat.jsonl``. Es
@@ -252,8 +252,8 @@ def partes_de_la_respuesta(
             ambito=consulta.ambito,
         )
     # Las fuentes salen antes que el texto y no después: se conocen en cuanto
-    # termina la recuperación, y el modelo tarda un minuto en dar la primera
-    # frase. Esperar al final sería tener el dato guardado sin motivo.
+    # termina la recuperación, y el modelo tarda varios segundos más en dar la
+    # primera frase. Esperar al final sería tener el dato guardado sin motivo.
     if fragmentos:
         yield {"fuentes": fuentes_de(fragmentos)}
     entero = ""
@@ -311,15 +311,19 @@ def partes_de_la_respuesta(
         registrar(str(fallo))
         yield {"error": str(fallo)}
         return
-    # Anota el texto entregado; una respuesta fija no modifica el ámbito.
-    conversacion.anotar(pregunta, entero, cambia_ambito=fija is None)
+    # Anota el texto entregado; la conversación descarta ella misma las respuestas
+    # fijas.
+    conversacion.anotar(pregunta, entero)
     # Se registra DESPUÉS de anotar, que es donde la conversación fija de qué
     # titulación se está hablando: registrarlo antes guardaría siempre el
     # ámbito del turno anterior.
     registrar()
     # Calcula las sugerencias después de actualizar el ámbito de la conversación.
     try:
-        propuestas = sugerencias_para(tabla, conversacion.ambito, catalogo, turno)
+        # IT-143: la pregunta que se acaba de hacer no se vuelve a ofrecer.
+        propuestas = sugerencias_para(
+            tabla, conversacion.ambito, catalogo, turno, hecha=pregunta
+        )
     except Exception as fallo:  # noqa: BLE001
         _registro.warning("No se han podido calcular las sugerencias: %s", fallo)
         propuestas = []
@@ -408,6 +412,11 @@ def manejador(
             if self.path == "/api/saludo":
                 # El saludo tiene ruta propia para no registrar una pregunta que el
                 # visitante no escribió.
+
+                # IT-140: la página lo pide una vez al cargarse, así que recargar
+                # empieza una conversación nueva y no hereda una que ya no se ve.
+                type(self).conversacion.olvidar()
+                type(self).turno = 0
                 self.responder_json({"respuesta": RESPUESTA_SALUDO})
                 return
             if self.path != "/api/sugerencias":
@@ -471,18 +480,27 @@ def manejador(
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             type(self).turno += 1
-            for suceso in partes_de_la_respuesta(
+            sucesos = partes_de_la_respuesta(
                 pregunta,
                 sistema,
                 type(self).conversacion,
                 type(self).turno,
                 con_registro=con_registro,
-            ):
-                self.wfile.write(json.dumps(suceso, ensure_ascii=False).encode("utf-8"))
-                self.wfile.write(b"\n")
-                # Sin esto el texto se queda en el buffer y llega todo junto al
-                # final, que es exactamente lo que la emision por partes evita.
-                self.wfile.flush()
+            )
+            try:
+                for suceso in sucesos:
+                    linea = json.dumps(suceso, ensure_ascii=False).encode("utf-8")
+                    self.wfile.write(linea + b"\n")
+                    # Sin esto el texto se queda en el buffer y llega todo junto
+                    # al final, que es lo que la emision por partes evita.
+                    self.wfile.flush()
+            except ConnectionError:
+                # IT-143: cancelar en el navegador cierra la conexión, y sin esto
+                # cada cancelación dejaba la pila entera en la consola.
+                _registro.info("La consulta se canceló desde el navegador.")
+            finally:
+                # Cierra también la petición al modelo, que deja de generar.
+                sucesos.close()
 
     return Manejador
 
@@ -490,7 +508,11 @@ def manejador(
 def main(argumentos: list[str]) -> None:
     """Levanta el servidor."""
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-    analizador = argparse.ArgumentParser(description="Asistente de titulaciones.")
+    # IT-143: sin `allow_abbrev`, «--registra» o «--r» activaban el registro, que es
+    # el interruptor de privacidad: solo lo enciende el nombre exacto.
+    analizador = argparse.ArgumentParser(
+        description="Asistente Virtual de Titulaciones.", allow_abbrev=False
+    )
     analizador.add_argument(
         "--registrar",
         action="store_true",

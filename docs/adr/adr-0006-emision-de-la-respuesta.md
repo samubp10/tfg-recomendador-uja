@@ -15,17 +15,23 @@ al modelo (n = 34, `gemma3:12b`, servidor de inferencia 0.32.14):
 
 | Estadístico | Segundos |
 | --- | ---: |
-| Mínimo | 10,8 |
-| Mediana | **62,7** |
-| Percentil 90 | 125,3 |
-| Máximo | 213,0 |
+| Mínimo | 11,2 |
+| Mediana | **44,6** |
+| Percentil 90 | 124,3 |
+| Máximo | 194,5 |
 
-El 100 % pasa de 10 segundos y el 62 % pasa de 30. Las respuestas fijas
-—cortesía, contexto vacío, centro ajeno— salen en 0,1 s porque no llegan a
-llamar al modelo.
+El percentil 90 es el valor del puesto 31 de los 34 ordenados; interpolando
+entre puestos, como hace NumPy por defecto, sale 120,5. Las cifras salen del
+registro de la tanda de `docs/experimentos/it38-sistema.md`
+(`data/registro_sistema_it124_20260906.jsonl`, sin versionar como todo `data/`).
 
-Con emisión síncrona el estudiante mira una pantalla sin cambios durante más de
-un minuto, que es indistinguible de una aplicación bloqueada. La historia de
+El 100 % pasa de 10 segundos y el 76 % pasa de 30. Las respuestas fijas
+—cortesía, contexto vacío, centro ajeno— salen en menos de 0,2 s porque no
+llegan a llamar al modelo.
+
+Con emisión síncrona el estudiante mira una pantalla sin cambios durante unos
+45 segundos de mediana y dos minutos en el percentil 90, que es indistinguible
+de una aplicación bloqueada. La historia de
 usuario de IT-44 pide responder «sin esperar tiempos absurdos», y el RNF-07
 obliga a que la interfaz sea usable con un lector de pantalla, que necesita algo
 que anunciar mientras la respuesta se compone.
@@ -51,7 +57,7 @@ frase o fin de línea de lista—, pasa el **texto acumulado** por
 comprobación falla, corta la emisión, descarta lo emitido y entrega la respuesta
 fija.
 
-- **Pros:** el primer texto aparece en segundos en lugar de en un minuto, y la
+- **Pros:** el primer texto aparece en segundos en lugar de tras 45 segundos de mediana, y la
   barrera de retirada sigue existiendo con el mismo poder de detección.
 - **Contras:** una titulación inventada detectada tarde obliga a borrar texto
   que el estudiante ya ha visto; y la verificación por unidades exige respetar
@@ -64,8 +70,8 @@ Se genera la respuesta entera y se entrega de una vez. Es lo que hace hoy
 
 - **Pros:** las tres barreras quedan intactas sin tocar una línea; el estudiante
   nunca ve texto que después se retire.
-- **Contras:** más de un minuto de pantalla sin cambios en la mediana, y más de
-  dos en el percentil 90.
+- **Contras:** unos 45 segundos de pantalla sin cambios en la mediana, y dos
+  minutos en el percentil 90.
 
 ### Opción C — Emisión por partes sin verificar
 
@@ -100,13 +106,14 @@ Lo que se pierde es la **discreción** de la retirada: hasta ahora el estudiante
 nunca sabía que había habido una, y con la emisión por partes puede ver
 desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
 **cero titulaciones inventadas en las 320 respuestas** del cribado de modelos
-(ADR-0005) y **una sola retirada en las 57 entradas** del banco del sistema.
+(ADR-0005) y **dos retiradas en las 57 entradas** del banco del sistema
+(S-AJE-007 y S-AJE-008).
 
 ## Consecuencias
 
 ### Positivas
 
-- El primer texto llega en segundos en lugar de en más de un minuto, sin tocar
+- El primer texto llega en segundos en lugar de tras 45 segundos de mediana, sin tocar
   el modelo ni reabrir el ADR-0005.
 - Las tres barreras de dominio siguen en pie. La restricción de dominio se sigue
   pudiendo defender sobre mecanismos y no sobre el buen comportamiento del
@@ -118,7 +125,7 @@ desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
 
 - Una retirada tardía es visible: el estudiante puede leer texto que después
   desaparece. Es peor experiencia que la de la opción B, y se asume a cambio de
-  no esperar un minuto en blanco.
+  no esperar en blanco a que termine la generación.
 - La respuesta deja de aparecer de golpe y aparece por frases, así que el tiempo
   total sigue siendo el mismo: **la emisión por partes no acelera nada**, solo
   cambia cuándo se ve lo primero. Presentarla como una mejora de rendimiento
@@ -134,5 +141,5 @@ desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
   subconjunto de palabras que obliga a la frontera segura.
 - `src/tfg_uja/dialogo/generador.py`, `responder()`: las tres barreras y el orden en que
   actúan.
-- `docs/experimentos/it38-sistema.md`: el banco de 57 entradas y la única
-  retirada registrada.
+- `docs/experimentos/it38-sistema.md`: el banco de 57 entradas. Las dos
+  retiradas y los tiempos de la tabla salen del registro de esa tanda.
