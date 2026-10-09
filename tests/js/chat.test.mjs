@@ -1295,9 +1295,9 @@ test("el cuadro de texto crece con lo escrito, hasta un tope", async () => {
 
 test("pasados los segundos del umbral, la espera explica por qué tarda", async () => {
   /*
-    Medido sobre el banco del sistema: una pregunta que llega al modelo tarda
-    62,7 s de mediana. Un minuto sin explicación es indistinguible de una
-    aplicación colgada.
+    Medido sobre el banco del sistema: una pregunta de un turno que llega al
+    modelo tarda 44,6 s de mediana (ADR-0006). Tanto rato sin explicación es
+    indistinguible de una aplicación colgada.
   */
   const reloj = relojFalso();
   const chat = cargarChat({ reloj });
