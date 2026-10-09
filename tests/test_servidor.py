@@ -378,16 +378,18 @@ def test_la_pregunta_recien_hecha_no_se_vuelve_a_ofrecer(
     se devolvía era la misma pregunta.
     """
     pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática?"
+    recibida: list[str] = []
     monkeypatch.setattr(servidor, "responder_por_partes", lambda *a, **k: iter(["Sí."]))
     monkeypatch.setattr(
-        servidor, "sugerencias_para", lambda *a, **k: [pregunta, "¿Y sus salidas?"]
+        servidor,
+        "sugerencias_para",
+        lambda *a, hecha="", **k: recibida.append(hecha) or ["¿Y sus salidas?"],
     )
 
-    sucesos = list(
-        servidor.partes_de_la_respuesta(pregunta, SISTEMA_FALSO, ConversacionFalsa())
-    )
+    list(servidor.partes_de_la_respuesta(pregunta, SISTEMA_FALSO, ConversacionFalsa()))
 
-    assert {"sugerencias": ["¿Y sus salidas?"]} in sucesos
+    # Es el módulo de sugerencias quien la excluye y rellena el hueco.
+    assert recibida == [pregunta]
 
 
 def test_el_manejador_emite_una_linea_json_por_parte(
@@ -1095,7 +1097,11 @@ def test_dos_turnos_seguidos_no_proponen_lo_mismo(
     pedidos: list[int] = []
 
     def anotar_desplazamiento(
-        tabla: Any, ambito: list[str], catalogo: list[str], desplazamiento: int = 0
+        tabla: Any,
+        ambito: list[str],
+        catalogo: list[str],
+        desplazamiento: int = 0,
+        hecha: str = "",
     ) -> list[str]:
         pedidos.append(desplazamiento)
         return []
