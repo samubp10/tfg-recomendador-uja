@@ -42,7 +42,6 @@ class ConversacionFalsa:
     def __init__(self) -> None:
         self.anotado: list[tuple[str, str]] = []
         self.ambito: list[str] = []
-        self.cambios_de_ambito: list[bool] = []
 
     def preparar(self, texto: str) -> Consulta:
         # Se devuelve la `Consulta` de verdad y no un objeto inventado al
@@ -54,11 +53,8 @@ class ConversacionFalsa:
     def preguntas(self) -> list[str]:
         return [p for p, _ in self.anotado]
 
-    def anotar(self, pregunta: str, respuesta: str, cambia_ambito: bool = True) -> None:
+    def anotar(self, pregunta: str, respuesta: str) -> None:
         self.anotado.append((pregunta, respuesta))
-        # Se guarda para poder comprobar que una respuesta fija no reapunta el
-        # ámbito: es lo único que distingue ese turno de uno normal.
-        self.cambios_de_ambito.append(cambia_ambito)
 
 
 SISTEMA_FALSO: tuple[Any, Any, list[str], str] = (
@@ -738,6 +734,29 @@ def test_el_saludo_sale_por_una_ruta_que_no_anota_nada(registro: Path) -> None:
     assert not registro.exists(), registro.read_text(encoding="utf-8")
 
 
+def test_recargar_la_pagina_empieza_una_conversacion_nueva() -> None:
+    """Regresión de la prueba en vivo del 08/10/2026 (IT-140).
+
+    Tras una pregunta sobre Informática se recargó la página y «¿Qué salidas
+    tiene?» se contestó sobre Informática con la pantalla en blanco: la
+    conversación vive en el proceso y recargar no la tocaba. La página pide el
+    saludo una sola vez al cargarse, así que es ahí donde se vacía.
+    """
+    m = manejador_get("/api/saludo")
+    Clase = type(m)
+    pregunta = "¿Qué asignaturas tiene el Grado en Ingeniería Informática?"
+    Clase.conversacion.anotar(pregunta, "El Grado en Ingeniería Informática tiene.")
+    Clase.turno = 3
+    assert Clase.conversacion.ambito == SISTEMA_FALSO[2]
+    assert Clase.conversacion.preguntas() == [pregunta]
+
+    m.do_GET()
+
+    assert Clase.conversacion.ambito == []
+    assert Clase.conversacion.preguntas() == []
+    assert Clase.turno == 0
+
+
 def test_el_texto_del_saludo_es_el_del_generador() -> None:
     # Deliberadamente rígida. La ruta existe para que el texto viva en un solo
     # sitio: si alguien lo copia aquí «para no importar el generador», vuelve a
@@ -1204,23 +1223,34 @@ def test_una_respuesta_fija_no_deja_cambiar_el_ambito() -> None:
     caeria a la deduccion por reglas: la pregunta nombra una titulacion de la
     EPSJ de pasada y el ambito se iba detras de ella.
     """
-    conversacion = ConversacionFalsa()
+    # Con menos de tres titulaciones ninguna palabra es distintiva y la pregunta
+    # no podría mover el ámbito: la prueba pasaría sin la protección.
+    catalogo = [
+        "Grado en Ingeniería Informática",
+        "Grado en Ingeniería Mecánica",
+        "Grado en Ingeniería Eléctrica",
+    ]
+    conversacion = Conversacion(catalogo)
+    conversacion.anotar(
+        "¿Qué asignaturas tiene el Grado en Ingeniería Informática?", "Álgebra."
+    )
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
 
     list(
         servidor.partes_de_la_respuesta(
             "¿La Universidad de Granada tiene el Grado en Ingeniería Mecánica?",
-            SISTEMA_FALSO,
+            ("tabla", "incrustar", catalogo, "cosine"),
             conversacion,
         )
     )
 
-    assert conversacion.cambios_de_ambito == [False]
+    assert conversacion.ambito == ["Grado en Ingeniería Informática"]
 
 
-def test_un_turno_normal_si_deja_cambiar_el_ambito(
+def test_un_turno_normal_si_se_anota(
     monkeypatch: pytest.MonkeyPatch, sin_recuperador: None
 ) -> None:
-    """La otra mitad: sin respuesta fija, el ambito se sigue actualizando."""
+    """La otra mitad: sin respuesta fija, el turno llega a la conversación."""
     monkeypatch.setattr(
         servidor, "responder_por_partes", lambda *a, **k: iter(["Pues mira."])
     )
@@ -1232,7 +1262,7 @@ def test_un_turno_normal_si_deja_cambiar_el_ambito(
         )
     )
 
-    assert conversacion.cambios_de_ambito == [True]
+    assert conversacion.anotado == [("¿Qué asignaturas tiene?", "Pues mira.")]
 
 
 @pytest.mark.parametrize(
@@ -1247,7 +1277,8 @@ def test_respuesta_fija_intercalada_conserva_la_consulta(intermedio) -> None:
     antes = conversacion.preparar("¿Y en segundo?")
     list(servidor.partes_de_la_respuesta(intermedio, SISTEMA_FALSO, conversacion))
     assert conversacion.preparar("¿Y en segundo?") == antes
-    assert conversacion.preguntas() == [pregunta, intermedio]
+    # IT-140: la respuesta fija tampoco entra en las preguntas del modelo.
+    assert conversacion.preguntas() == [pregunta]
 
 
 def test_saludo_inicial_no_crea_antecedente() -> None:
