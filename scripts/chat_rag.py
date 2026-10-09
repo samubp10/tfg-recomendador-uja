@@ -14,8 +14,9 @@ sabían fijar el sujeto pero no soltarlo: no se salía de una titulación ni
 escribiendo «olvídalo, cuéntame de topografía». ``--ambito-determinista``
 vuelve al mecanismo anterior, que es con lo que se comparan los dos.
 
-Cada sesión se guarda en un fichero de notas **fuera del repositorio**, para
-releer después qué se preguntó sin que las pruebas acaben versionadas.
+Cada sesión se guarda por defecto en ``data/pruebas_chat``, que no se versiona,
+para releer después qué se preguntó sin que las pruebas acaben en el
+repositorio. ``--sin-registro`` no guarda nada.
 
 Uso::
 
@@ -77,10 +78,10 @@ from tfg_uja.dialogo.recuperador import (  # noqa: E402
 #: no aportan y sí llenan la ventana con respuestas viejas.
 TURNOS_RECORDADOS = 3
 
-#: Dónde se guardan las sesiones. Está fuera del repositorio a propósito: son
+#: Dónde se guardan las sesiones. Va en ``data/``, que no se versiona: son
 #: pruebas manuales, no material versionable, y algunas contienen respuestas
 #: equivocadas que no deben confundirse con el corpus.
-CARPETA_REGISTRO = RAIZ.parent / "Notas_TFG" / "pruebas_chat"
+CARPETA_REGISTRO = RAIZ / "data" / "pruebas_chat"
 
 #: Recordatorio que se imprime cuando la orden tecleada no se reconoce.
 AYUDA_ORDENES = "  órdenes: /modelo /k /grado /curso /fuentes /ambito /olvida /salir\n"
@@ -615,7 +616,8 @@ def main(argumentos: list[str]) -> None:
         fija = cortesia(entrada)
         if fija is not None:
             print(f"\n{fija}\n")
-            conversacion.anotar(entrada, fija)
+            # Sin anotar: una respuesta fija no es un turno de la conversación, y
+            # anotarla borraba el sujeto de la pregunta siguiente (IT-140).
             turno += 1
             ultimos = []
             if registro is not None:
