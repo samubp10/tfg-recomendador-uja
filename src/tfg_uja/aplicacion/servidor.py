@@ -321,13 +321,9 @@ def partes_de_la_respuesta(
     # Calcula las sugerencias después de actualizar el ámbito de la conversación.
     try:
         # IT-143: la pregunta que se acaba de hacer no se vuelve a ofrecer.
-        propuestas = [
-            propuesta
-            for propuesta in sugerencias_para(
-                tabla, conversacion.ambito, catalogo, turno
-            )
-            if propuesta != pregunta
-        ]
+        propuestas = sugerencias_para(
+            tabla, conversacion.ambito, catalogo, turno, hecha=pregunta
+        )
     except Exception as fallo:  # noqa: BLE001
         _registro.warning("No se han podido calcular las sugerencias: %s", fallo)
         propuestas = []
