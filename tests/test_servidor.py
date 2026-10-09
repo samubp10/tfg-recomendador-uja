@@ -1356,6 +1356,25 @@ def test_el_registro_solo_se_activa_con_la_opcion(
     assert f"Registro de conversaciones: {esperado}" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize("abreviada", ["--registra", "--reg", "--r"])
+def test_el_registro_no_se_activa_con_una_abreviatura(
+    monkeypatch: pytest.MonkeyPatch, abreviada: str
+) -> None:
+    """H10 de la auditoría del 08/10/2026 (IT-143).
+
+    `argparse` acepta por defecto cualquier prefijo de una opción, así que
+    «--registra» arrancaba el servidor guardando las conversaciones. Es el
+    interruptor que promete la página de privacidad.
+    """
+    monkeypatch.setattr(servidor, "abrir_sistema", lambda: SISTEMA_FALSO)
+    monkeypatch.setattr(servidor, "HTTPServer", ServidorQueSePara)
+
+    with pytest.raises(SystemExit) as salida:
+        servidor.main([abreviada])
+
+    assert salida.value.code == 2
+
+
 @pytest.mark.parametrize(
     "saludo",
     ["Que tal", "¿Qué tal?", "q tal", "¿Cómo estás?", "¿Cómo va?", "¿Y tú qué tal?"],
