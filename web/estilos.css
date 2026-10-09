@@ -912,6 +912,16 @@ body {
   border-radius: 2px;
 }
 
+/* IT-143: los enlaces que no van dentro de una frase ---el del pie y «Volver al
+   asistente»--- no tienen la excepcion «en linea» del criterio 2.5.8 y necesitan
+   24 px de alto. Con la letra del aviso, el del pie se quedaba en 17,3. */
+.enlace-suelto {
+  display: inline-block;
+  box-sizing: border-box;
+  min-height: 24px;
+  padding-block: 3px;
+}
+
 /* ------------------------------------ IT-45 · D3: cuando se pide mas contraste
 
    `prefers-contrast: more` lo activa quien lo necesita desde su sistema. Se
