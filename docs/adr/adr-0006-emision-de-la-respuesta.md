@@ -17,8 +17,13 @@ al modelo (n = 34, `gemma3:12b`, servidor de inferencia 0.32.14):
 | --- | ---: |
 | Mínimo | 11,2 |
 | Mediana | **44,6** |
-| Percentil 90 | 120,5 |
+| Percentil 90 | 124,3 |
 | Máximo | 194,5 |
+
+El percentil 90 es el valor del puesto 31 de los 34 ordenados; interpolando
+entre puestos, como hace NumPy por defecto, sale 120,5. Las cifras salen del
+registro de la tanda de `docs/experimentos/it38-sistema.md`
+(`data/registro_sistema_it124_20260906.jsonl`, sin versionar como todo `data/`).
 
 El 100 % pasa de 10 segundos y el 76 % pasa de 30. Las respuestas fijas
 —cortesía, contexto vacío, centro ajeno— salen en menos de 0,2 s porque no
@@ -52,7 +57,7 @@ frase o fin de línea de lista—, pasa el **texto acumulado** por
 comprobación falla, corta la emisión, descarta lo emitido y entrega la respuesta
 fija.
 
-- **Pros:** el primer texto aparece en segundos en lugar de tras 45 de mediana, y la
+- **Pros:** el primer texto aparece en segundos en lugar de tras 45 segundos de mediana, y la
   barrera de retirada sigue existiendo con el mismo poder de detección.
 - **Contras:** una titulación inventada detectada tarde obliga a borrar texto
   que el estudiante ya ha visto; y la verificación por unidades exige respetar
@@ -101,13 +106,14 @@ Lo que se pierde es la **discreción** de la retirada: hasta ahora el estudiante
 nunca sabía que había habido una, y con la emisión por partes puede ver
 desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
 **cero titulaciones inventadas en las 320 respuestas** del cribado de modelos
-(ADR-0005) y **una sola retirada en las 57 entradas** del banco del sistema.
+(ADR-0005) y **dos retiradas en las 57 entradas** del banco del sistema
+(S-AJE-007 y S-AJE-008).
 
 ## Consecuencias
 
 ### Positivas
 
-- El primer texto llega en segundos en lugar de tras 45 de mediana, sin tocar
+- El primer texto llega en segundos en lugar de tras 45 segundos de mediana, sin tocar
   el modelo ni reabrir el ADR-0005.
 - Las tres barreras de dominio siguen en pie. La restricción de dominio se sigue
   pudiendo defender sobre mecanismos y no sobre el buen comportamiento del
@@ -135,5 +141,5 @@ desaparecer texto. Se acepta porque la evidencia dice que el suceso es raro:
   subconjunto de palabras que obliga a la frontera segura.
 - `src/tfg_uja/dialogo/generador.py`, `responder()`: las tres barreras y el orden en que
   actúan.
-- `docs/experimentos/it38-sistema.md`: el banco de 57 entradas y la única
-  retirada registrada.
+- `docs/experimentos/it38-sistema.md`: el banco de 57 entradas. Las dos
+  retiradas y los tiempos de la tabla salen del registro de esa tanda.
