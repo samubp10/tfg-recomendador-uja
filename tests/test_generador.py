@@ -553,6 +553,26 @@ def test_el_ambito_y_el_historial_llegan_a_traves_de_responder(espia):
         "¿Qué tal?",
         "q tal",
         "¿Cómo estás?",
+        # IT-140: «¿Cómo va?» y «¿Y tú qué tal?» llegaron al modelo el 08/10; el
+        # resto son las variantes que la misma auditoría sondeó sin saludo.
+        "¿Cómo va?",
+        "¿Y tú qué tal?",
+        "¿Qué tal te va?",
+        "¿Cómo te va?",
+        "¿Cómo va todo?",
+        "¿Cómo vas?",
+        "¿Cómo estás tú?",
+        "¿Cómo estáis?",
+        "¿Qué tal estáis?",
+        "¿Cómo andas?",
+        "¿Qué pasa?",
+        "¿Cómo está usted?",
+        "k tal",
+        "ke tal",
+        "qtal",
+        "Holaa",
+        "Wenas",
+        "Buen día",
     ],
 )
 def test_un_saludo_se_contesta_como_un_saludo(saludo):
@@ -1737,3 +1757,8 @@ def test_las_palabras_del_saludo_de_dos_palabras_no_saludan_por_separado():
     assert cortesia("¿y estas?") is None
     assert cortesia("¿Qué tal es la asignatura de Álgebra?") is None
     assert cortesia_sin_contexto("¿Qué tal se vive en Jaén?") is None
+    # IT-140: las palabras nuevas tampoco saludan fuera de su par.
+    assert cortesia("¿Y tú?") is None
+    assert cortesia("¿Qué pasa si suspendo?") is None
+    assert cortesia("¿Cómo va la matrícula?") is None
+    assert cortesia("¿Cómo está organizado el grado?") is None
