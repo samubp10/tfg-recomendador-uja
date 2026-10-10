@@ -2,7 +2,7 @@
 \chapter{MATERIAL Y MÉTODOS}
 \label{cap:materialesymetodos}
 
-Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de las fases 0 a 3. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su registro (\gl{ADR}) correspondiente, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\gl{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
+Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetivos} en decisiones técnicas concretas y en su justificación. Se organiza en torno a la metodología de trabajo seguida, la planificación temporal, las tecnologías y herramientas empleadas, la arquitectura general del sistema, el diseño de los datos y, por último, el desarrollo de las fases 0 a 3. Toda decisión técnica relevante se presenta con el mismo patrón: las alternativas consideradas, la evidencia que las distingue y la elección justificada, dejando las decisiones de arquitectura más importantes documentadas además en su \sig{ADR} correspondiente, en el formato breve que propuso Nygard\cite{nygard2011adr}: contexto, alternativas, decisión y consecuencias. Las anomalías de calidad de datos encontradas en la fuente siguen el mismo principio de evidencia, pero se recogen en un registro distinto (\sig{DQA}), porque ninguna de ellas es, por separado, una decisión de arquitectura.
 
 
 \section{Metodología de trabajo}
@@ -41,7 +41,7 @@ Para clasificar semánticamente los cambios, los tipos de confirmación (\textit
 \begin{itemize}                                                                                                                                                    
   \item \textbf{\texttt{feat}:} Incorporación de una nueva funcionalidad al sistema (ej. implementación de un nuevo módulo de extracción o lógica de procesamiento).
   \item \textbf{\texttt{fix}:} Corrección de errores o fallos detectados en el código existente.
-  \item \textbf{\texttt{docs}:} Creación o actualización de documentación, incluyendo la redacción de la presente memoria y el registro de decisiones arquitectónicas (ADR).
+  \item \textbf{\texttt{docs}:} Creación o actualización de documentación, incluyendo la redacción de la presente memoria y los ADR.
   \item \textbf{\texttt{test}:} Adición o corrección de pruebas automatizadas, asegurando la no regresión sin alterar el código de producción.
   \item \textbf{\texttt{refactor}:} Reestructuración interna del código que mejora su legibilidad, diseño o rendimiento, sin añadir nuevas funcionalidades ni corregir errores externos.
   \item \textbf{\texttt{chore}:} Tareas de mantenimiento, actualización de dependencias o configuración de las herramientas de integración continua.
@@ -55,7 +55,7 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales, en HTML y PDF, descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a la CI, excluyendo las prácticas de Despliegue Continuo (\sig{CD}), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
 Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar \sig{PEP}~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y los valores devueltos y las excepciones. Además, el formato del código lo fija \texttt{black}, el estilo lo comprueba \texttt{flake8} y la comprobación de tipos se delega en \texttt{mypy}.
 
@@ -123,7 +123,7 @@ Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificac
 
 La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las  historias técnicas de usuario que componen el \textit{backlog} del proyecto.
 
-Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta microplanificación es el límite de Trabajo en Curso (\glr{Work In Progress}{WIP}, WIP), que, como norma de trabajo, no permite iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
+Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta microplanificación es el límite de \glp{Trabajo en Curso}{trabajo en curso} (\glr{Work In Progress}{WIP}, WIP), que, como norma de trabajo, no permite iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
 
 \begin{figure}[H]
   \centering
@@ -322,7 +322,7 @@ Scrapy\footnote{\url{https://scrapy.org/}} es un marco de trabajo (\textit{frame
   \item \textbf{Codificación de textos:} Los objetos \texttt{TextResponse} y \texttt{HtmlResponse} resuelven la codificación automáticamente siguiendo este orden de prioridad:
         \begin{enumerate}                                                                                                                                                    
           \item Codificación indicada explícitamente al construir la respuesta.
-          \item BOM (\textit{Byte Order Mark}) al principio del cuerpo.
+          \item \sig{BOM} (\textit{Byte Order Mark}) al principio del cuerpo.
           \item Cabecera HTTP \texttt{Content-Type}.
           \item Declaración de codificación dentro del propio documento (etiqueta \texttt{<meta>}).
           \item Autodetección por parte del marco de trabajo.
@@ -589,7 +589,7 @@ Para este experimento, se cogen las incrustaciones que se generan mediante el mo
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
-Las tres candidatas tienen una licencia que casa con la de este proyecto, que es la GPL versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
+Las tres candidatas tienen una licencia que casa con la de este proyecto, que es la \sig{GPL} versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
 
 Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y Qdrant Edge por estar en un estado de desarrollo muy prematuro, Milvus y Weaviate por estar pensadas para corpus enormes, FAISS por ser una biblioteca de índices y no una base de datos, y pgvector por exigir un PostgreSQL completo (ADR-0004).
 
@@ -600,7 +600,7 @@ Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
 
 \begin{itemize}
-    \item \textbf{Eliminatorios: } son condiciones que hay que cumplir sí o sí como la fidelidad exacta respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar, además de que los resultados se repitan al reconstruir el índice.
+    \item \textbf{Eliminatorios: } son condiciones que hay que cumplir sí o sí como la \glp{fidelidad exacta}{fidelidad del índice} respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar, además de que los resultados se repitan al reconstruir el índice.
     \item \textbf{Comparativos: } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
     \item \textbf{Desempate: } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
 \end{itemize}
@@ -726,7 +726,7 @@ Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo po
 \subsection[El \textit{pipeline} RAG completo]{El \textit{pipeline} RAG completo}
 \label{secc:fase2_pipeline}
 
-Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle. Los fundamentos teóricos de la recuperación semántica y del paradigma \gl{RAG} se introdujeron en el Capítulo~\ref{cap:antecedentes}
+Con la colección de datos extraída, troceada e indexada y el modelo generativo elegido, este apartado describe el recorrido completo de qué se recupera, qué se le entrega al modelo y qué se hace cuando no hay nada que entregarle. Los fundamentos teóricos de la recuperación semántica y del paradigma RAG se introdujeron en el Capítulo~\ref{cap:antecedentes}
   (Apartado~\ref{subsec:busqueda_semantica_concepto}), aquí se detalla su implementación concreta en la arquitectura del asistente.
 
   La Figura~\ref{fig:secuencia_rag} resume el ciclo de vida mediante un diagrama de secuencia. El aspecto central de este flujo reside en los tres desvíos representados con trazo discontinuo, que constituyen las vías de salida anticipada: las dos primeras evitan llamar al modelo y la tercera retira la respuesta después de generarla, ahorrando mucha capacidad de cómputo.

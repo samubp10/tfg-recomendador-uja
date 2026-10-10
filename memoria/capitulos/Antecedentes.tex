@@ -3,7 +3,7 @@
 \label{cap:antecedentes}
 
 
-Este capítulo establece el contexto y el punto de partida del proyecto a través de tres bloques fundamentales. En primer lugar, se analiza la situación actual de la orientación académica preuniversitaria, identificando las principales dificultades que afronta el alumnado al elegir una titulación y las limitaciones de acceso y comprensión que presentan los canales oficiales de información. En segundo lugar, se revisa el estado del arte y las tecnologías fundamentales, desde la evolución del procesamiento del lenguaje natural y las alucinaciones, hasta la arquitectura de generación aumentada por recuperación (RAG), las bases de datos vectoriales y los modelos conversacionales universitarios ya existentes. Por último, se examina el marco legal y ético que condiciona el diseño del sistema en materia de extracción de datos, privacidad de usuarios menores de edad, transparencia en el uso de inteligencia artificial y accesibilidad web.
+Este capítulo establece el contexto y el punto de partida del proyecto a través de tres bloques fundamentales. En primer lugar, se analiza la situación actual de la orientación académica preuniversitaria, identificando las principales dificultades que afronta el alumnado al elegir una titulación y las limitaciones de acceso y comprensión que presentan los canales oficiales de información. En segundo lugar, se revisa el estado del arte y las tecnologías fundamentales, desde la evolución del procesamiento del lenguaje natural y las alucinaciones, hasta la arquitectura RAG, las bases de datos vectoriales y los modelos conversacionales universitarios ya existentes. Por último, se examina el marco legal y ético que condiciona el diseño del sistema en materia de extracción de datos, privacidad de usuarios menores de edad, transparencia en el uso de inteligencia artificial y accesibilidad web.
 
 \section{La orientación académica preuniversitaria}
 
@@ -37,17 +37,17 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \label{secc:estado_arte}
 
 
-En esta sección se exponen los conceptos teóricos y las tecnologías que sustentan el diseño del proyecto. En primer lugar, se examinan los modelos de lenguaje, el fenómeno de las alucinaciones y la necesidad de una arquitectura de Generación Aumentada por Recuperación (\sig{RAG}), contrastando el uso de modelos comerciales frente a opciones de pesos abiertos ejecutables en local. En segundo lugar, se detallan los elementos esenciales del tratamiento documental, como los procesos de extracción web, la fragmentación del texto, la generación de incrustaciones (\textit{embeddings}) y su almacenamiento en bases de datos vectoriales para posibilitar la búsqueda semántica. Finalmente, se definen las métricas matemáticas empleadas para evaluar tanto la calidad de la recuperación como la de las respuestas generadas.
+En esta sección se exponen los conceptos teóricos y las tecnologías que sustentan el diseño del proyecto. En primer lugar, se examinan los modelos de lenguaje, el fenómeno de las alucinaciones y la necesidad de una arquitectura RAG, contrastando el uso de modelos comerciales frente a opciones de pesos abiertos ejecutables en local. En segundo lugar, se detallan los elementos esenciales del tratamiento documental, como los procesos de extracción web, la fragmentación del texto, la generación de incrustaciones (\textit{embeddings}) y su almacenamiento en bases de datos vectoriales para posibilitar la búsqueda semántica. Finalmente, se definen las métricas matemáticas empleadas para evaluar tanto la calidad de la recuperación como la de las respuestas generadas.
 
 La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
 
 \subsection{Procesamiento del lenguaje natural, modelos de lenguaje y alucinaciones}
 
 
-El Procesamiento del Lenguaje Natural (PLN, o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Aunque comenzó con sistemas simbólicos basados en reglas formales\cite{chomsky1957syntactic}, la disciplina evolucionó hacia modelos estadísticos y redes neuronales impulsada por el aumento de datos y cómputo\cite{hirschberg2015advances}. Esta trayectoria ha culminado en los actuales modelos de lenguaje de gran tamaño\cite{delso2024evolucion}, sustentados en la arquitectura \textit{Transformer}.
+El PLN (o \sig{NLP} por sus siglas en inglés) tiene como objetivo dotar a los sistemas informáticos de la capacidad de comprender, interpretar y generar el lenguaje humano\cite{jurafsky2026slp3}. Aunque comenzó con sistemas simbólicos basados en reglas formales\cite{chomsky1957syntactic}, la disciplina evolucionó hacia modelos estadísticos y redes neuronales impulsada por el aumento de datos y cómputo\cite{hirschberg2015advances}. Esta trayectoria ha culminado en los actuales modelos de lenguaje de gran tamaño\cite{delso2024evolucion}, sustentados en la arquitectura \textit{Transformer}.
 
 
-Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir modelos de lenguaje grandes (LLM). Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
+Los \glp{transformadores}{transformador}, propuestos por Vaswani et al.\cite{vaswani2017attention}, son la arquitectura estándar hoy en día para construir LLM. Un LLM, en su definición técnica, es un sistema computacional diseñado para predecir la probabilidad de la siguiente palabra a partir de un contexto o historial de palabras anteriores dadas.
 
 Estos modelos sufren de un gran problema por lo que son gravemente criticados, y estas son las alucinaciones. Estas consisten en la generación de lenguaje natural (\sig{NLG}, por sus siglas en inglés) con aquellos contenidos generados que carecen de sentido o que no son fieles al texto de origen proporcionado y se pueden dividir en dos grandes categorías\cite{ji2023hallucination}:
 
@@ -58,7 +58,7 @@ Estos modelos sufren de un gran problema por lo que son gravemente criticados, y
 
 Uno de los factores por los que los modelos podrían alucinar son los datos de entrada, dado que muchos conjuntos de datos se construyen de forma automatizada, emparejando fuentes con textos de referencia que contienen información extra (por ejemplo, emparejar una tabla de datos de Wikipedia con el primer párrafo del artículo, el cual suele contener más datos que la tabla)\cite{ji2023hallucination}.
 
-Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios tales como inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la Escuela Politécnica Superior de Jaén (EPSJ), la respuesta incluye información falsa, tal como la oferta de titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas. Esto es un claro ejemplo de alucinación extrínseca dado que ha sacado la información de la página web, pero es que además ha añadido más carreras que aunque sí que se den en otras escuelas superiores, no es el caso de la EPSJ.
+Esto podría conllevar una inaceptable mala orientación a futuros estudiantes universitarios tales como inventar asignaturas, notas de corte o planes de estudio inexistentes. En la Figura~\ref{fig:alucinacion_deepseek} se muestra un \textit{prompt} real enviado a DeepSeek\footnote{\url{https://chat.deepseek.com/}}, un modelo de lenguaje que ha ido ganando popularidad por publicar versiones de pesos abiertos y por los límites amplios de su capa gratuita. Al pedirle todos los grados universitarios que se ofertan actualmente en la EPSJ, la respuesta incluye información falsa, tal como la oferta de titulaciones que no se imparten en el centro, como el Grado en Ingeniería Civil o el Grado en Ingeniería de Tecnologías Mineras, y las presenta con total seguridad, sin advertir de que puedan ser incorrectas. Esto es un claro ejemplo de alucinación extrínseca dado que ha sacado la información de la página web, pero es que además ha añadido más carreras que aunque sí que se den en otras escuelas superiores, no es el caso de la EPSJ.
 
 \begin{figure}[H]
   \centering
@@ -72,7 +72,7 @@ Esto podría conllevar una inaceptable mala orientación a futuros estudiantes u
   \label{fig:alucinacion_deepseek}
 \end{figure}
 
-Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura de generación aumentada por recuperación (RAG) que se describe en el apartado siguiente, su objetivo no es eliminar por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales y verídicos.
+Mitigar este riesgo sin renunciar a la naturalidad de la conversación es precisamente lo que persigue la arquitectura RAG que se describe en el apartado siguiente, su objetivo no es eliminar por completo las alucinaciones, pero las reduce al obligar al modelo a apoyarse en documentos reales y verídicos.
 
 \subsection[Generación aumentada por recuperación (RAG)]{Generación aumentada por recuperación (RAG)}
 \label{subsec:rag_concepto}
@@ -184,7 +184,7 @@ Una de ellas es \glr{Recall@K}{exhaustividad}, que mide qué proporción de los
 Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
   anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.
 
-El \textit{Mean Reciprocal Rank} (\sig{MRR}) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
+El \glr{Mean Reciprocal Rank}{rango recíproco medio} (\sig{MRR}) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
 
 \begin{equation}
   \text{MRR} = \frac{1}{|Q|} \sum_{q \in Q} \frac{1}{\text{rank}(q)}
@@ -228,8 +228,8 @@ Una distinción que hay que hacer es la de búsqueda exacta y búsqueda aproxima
 Para que la búsqueda aproximada no recorra todo el espacio, las bases vectoriales construyen un índice, de los cuales los más populares son:
 
 \begin{itemize}
-  \item \textbf{Grafos de proximidad}: como HNSW\cite{malkov2020hnsw}, que enlazan cada vector con sus vecinos en varias capas y navegan saltando de uno a otro hacia la consulta. Son los más usados hoy y los que mejor equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que abarca el grafo.
-  \item \textbf{Particionado del espacio}: como IVF\cite{jegou2011ivfpq}, que agrupa los vectores en celdas y solo examina las celdas más prometedoras. Necesita una fase previa de entrenamiento sobre los datos.
+  \item \textbf{Grafos de proximidad}: como \sig{HNSW}\cite{malkov2020hnsw}, que enlazan cada vector con sus vecinos en varias capas y navegan saltando de uno a otro hacia la consulta. Son los más usados hoy y los que mejor equilibrio ofrecen entre velocidad y vecinos recuperados, a costa de la memoria que abarca el grafo.
+  \item \textbf{Particionado del espacio}: como \sig{IVF}\cite{jegou2011ivfpq}, que agrupa los vectores en celdas y solo examina las celdas más prometedoras. Necesita una fase previa de entrenamiento sobre los datos.
   \item \textbf{Índices sobre disco}: como SPANN\cite{chen2021spann}, pensados para colecciones gigantescas que no caben en memoria principal.
 \end{itemize}
 
@@ -348,7 +348,7 @@ Este sistema trabaja con dos categorías de información sensible. Por un lado, 
 
 \subsection{Extracción automatizada de información de la web}
 
-Con respecto a la extracción automatizada de información de la web, el \textit{scraper} descarga los PDF de las guías docentes que contienen datos como direcciones de correo, nombres y teléfonos. De cada documento se extrae únicamente el resumen y la descripción de contenidos mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, el filtrado excluye el apartado de profesorado y reduce al mínimo los datos personales de la colección indexada. Gracias a esta actividad, el trabajo puede apoyarse en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
+Con respecto a la extracción automatizada de información de la web, el \textit{scraper} descarga los \sig{PDF} de las guías docentes que contienen datos como direcciones de correo, nombres y teléfonos. De cada documento se extrae únicamente el resumen y la descripción de contenidos mediante un filtrado de contenidos. A consecuencia de las acciones anteriores, el filtrado excluye el apartado de profesorado y reduce al mínimo los datos personales de la colección indexada. Gracias a esta actividad, el trabajo puede apoyarse en el principio de minimización del artículo 5.1.c del RGPD\cite{rgpd2016}, según el cual <<los datos personales serán adecuados, pertinentes y limitados a lo necesario en relación con los fines para los que son tratados>>.
 
 Siguiendo con la misma extracción/scraping y Propiedad Intelectual, en cuanto a la propiedad intelectual de lo extraído, la descarga se ampara en el artículo 67 del Real Decreto-ley 24/2021\cite{rdl24_2021}, cuyo apartado 1 establece que <<no será precisa la autorización del titular de los derechos de propiedad intelectual para las reproducciones de obras y otras prestaciones accesibles de forma legítima realizadas con fines de minería de textos y datos>>. Y precisamente esta forma legítima se respeta aquí puesto que el rastreador respeta el fichero \texttt{robots.txt}, espacia sus peticiones y en ningún momento se elude una medida de protección.
 
@@ -359,7 +359,7 @@ No obstante, la legislación condiciona esta excepción a que el titular de los 
 
 La otra categoría de información sensible es la del público objetivo preuniversitario, lo que podría implicar que una parte sustancial de las personas que utilizasen esta aplicación sean usuarios menores de edad. El artículo 7 de la Ley Orgánica de Protección de Datos Personales y Garantía de los Derechos Digitales (LOPDGDD)\cite{lopdgdd2018} fija en catorce años la edad a partir de la cual un menor puede consentir por sí mismo el tratamiento de sus datos. Reclamar ese consentimiento a quien cursa secundaria y solo quiere preguntar por una carrera supondría, en la práctica, una gran barrera de entrada.
 
-La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito RU-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
+La alternativa elegida es evitar el problema en el origen, ya que el sistema no exige registro ni identificación (requisito \sig{RU}-05, Tabla~\ref{tab:requisitos_usuario}) y no conserva ningún tipo de historial de las conversaciones, de modo que nunca llega a recogerse el dato que obligaría a pedir dicho consentimiento. El sistema visto anteriormente, ADA, resuelve el mismo problema de otra forma, solicitando permiso explícito y ofreciendo continuar sin cederlo (Figura~\ref{fig:ada_privacidad}).
 
 \subsection{Transparencia en el uso de la inteligencia artificial}
 
@@ -369,4 +369,4 @@ En cuanto a las licencias, el código fuente del proyecto se distribuye bajo la 
  
 \subsection{Accesibilidad del servicio web}
 
-La interfaz web del asistente se ha creado bajo las pautas de accesibilidad para el contenido web (\textit{WCAG 2.2})\cite{wcag22} en su nivel AA, y su cumplimiento se comprueba de forma automática con código. En el marco legal español, el Real Decreto 1112/\allowbreak 2018\cite{rd1112_2018} exige garantizar la accesibilidad en los sitios web del sector público, entorno en el que se integran las universidades públicas a través de la remisión de su artículo 2.1.d al artículo 2.2 de la Ley 39/\allowbreak 2015.
+La interfaz web del asistente se ha creado bajo las pautas de accesibilidad para el contenido web (\sig{WCAG}~2.2)\cite{wcag22} en su nivel AA, y su cumplimiento se comprueba de forma automática con código. En el marco legal español, el Real Decreto 1112/\allowbreak 2018\cite{rd1112_2018} exige garantizar la accesibilidad en los sitios web del sector público, entorno en el que se integran las universidades públicas a través de la remisión de su artículo 2.1.d al artículo 2.2 de la Ley 39/\allowbreak 2015.
