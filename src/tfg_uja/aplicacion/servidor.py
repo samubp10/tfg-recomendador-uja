@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import logging
 import sys
@@ -22,6 +24,7 @@ from tfg_uja.dialogo.generador import (
     respuesta_fija,
     responder_por_partes,
 )
+from tfg_uja.indexacion.chunker import agrupar_guias, asociar_dobles
 from tfg_uja.indexacion.incrustaciones import MODELO as MODELO_INCRUSTACIONES
 from tfg_uja.indexacion.incrustaciones import incrustador_de_consultas
 from tfg_uja.aplicacion.registro_chat import anotar_turno, linea_de_turno
@@ -156,6 +159,22 @@ def enlaces_oficiales(datos: Path = DATASET) -> dict[tuple[str, str], str]:
         enlaces[clave] = item["url_guia"]
     for clave in chocadas:
         del enlaces[clave]
+
+    # Los planes de los dobles grados no enlazan ninguna guía: la EPSJ remite a
+    # la del grado simple (IT-145). Se reutiliza la asociación del fragmentador
+    # para que el enlace lleve a la misma guía de la que salió el contenido. Su
+    # aviso de nombres ambiguos ya lo da el fragmentador al construir el corpus.
+    grupos = agrupar_guias(items)
+    with contextlib.redirect_stderr(io.StringIO()):
+        dobles, _ = asociar_dobles(items, grupos)
+    for (nombre, texto), pares in dobles.items():
+        simples = sorted(guia["grado"] for guia in grupos[(nombre, texto)])
+        url = next(
+            (enlaces[(g, nombre)] for g in simples if (g, nombre) in enlaces), None
+        )
+        if url:
+            for grado_doble, _ in pares:
+                enlaces.setdefault((grado_doble, nombre), url)
 
     return enlaces
 
