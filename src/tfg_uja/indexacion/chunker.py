@@ -563,7 +563,7 @@ def _por_curso(
     return [(curso, grupos[curso]) for curso in sorted(grupos, key=orden)]
 
 
-def _agrupar_guias(
+def agrupar_guias(
     items: list[dict[str, Any]],
 ) -> dict[tuple[str, str], list[dict[str, Any]]]:
     """Agrupa por nombre y contenido; el contenido solo mezclaría asignaturas."""
@@ -584,7 +584,7 @@ def _agrupar_guias(
     return grupos_guia
 
 
-def _asociar_dobles(
+def asociar_dobles(
     items: list[dict[str, Any]],
     grupos_guia: dict[tuple[str, str], list[dict[str, Any]]],
 ) -> tuple[dict[tuple[str, str], list[tuple[str, str | None]]], set[tuple[str, str]]]:
@@ -747,8 +747,8 @@ def trocear_dataset(
         for a in items
         if a["tipo"] == "asignatura"
     }
-    grupos_guia = _agrupar_guias(items)
-    dobles_por_grupo, atendidas = _asociar_dobles(items, grupos_guia)
+    grupos_guia = agrupar_guias(items)
+    dobles_por_grupo, atendidas = asociar_dobles(items, grupos_guia)
     chunks = _chunks_de_guias(grupos_guia, dobles_por_grupo, asignaturas, tamanos)
     for item in items:
         if item["tipo"] == "salidas":
