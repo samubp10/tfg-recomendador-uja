@@ -9,9 +9,9 @@ El capítulo se organiza en cuatro apartados. El primero evalúa el grado de con
 \section[Respuesta al objetivo general y a la hipótesis]{Respuesta al objetivo general y a la hipótesis}
 \label{secc:cumplimiento_objetivos}
 
- El objetivo de este Trabajo Fin de Grado consistía en diseñar, implementar y evaluar un asistente conversacional capaz de orientar \sout{a los estudiantes preuniversitarios}\textcolor{borrador2}{al alumnado preuniversitario} sobre la oferta académica de la EPSJ, basándose únicamente en la documentación oficial del centro y ejecutándose de forma autónoma en un equipo doméstico.
+ El objetivo de este Trabajo Fin de Grado consistía en diseñar, implementar y evaluar un asistente conversacional capaz de orientar al alumnado preuniversitario sobre la oferta académica de la EPSJ, basándose únicamente en la documentación oficial del centro y ejecutándose de forma autónoma en un equipo doméstico.
 
-La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} queda parcialmente confirmada. Los resultados validan plenamente sus tres primeras condiciones: el recuperador sitúa la unidad de respuesta dentro del contexto entregado, ninguna de las respuestas del modelo nombró titulaciones inexistentes y ninguna consulta del dominio le faltó fundamento documental. Por contra, la cuarta condición no se cumple ya que la mediana del tiempo de respuesta alcanza los 39,4 segundos, muy por encima de los 30 segundos que se establecieron en la hipótesis.  Lejos de constituir un defecto no controlado, este comportamiento es la consecuencia directa de la jerarquía de diseño establecida en el requisito \sig{RNF}-04, que antepone \sout{estrictamente la fidelidad factual y la ausencia de alucinaciones a la rapidez en la generación textual}\textcolor{borrador2}{la fidelidad de la respuesta al tiempo que se tarda en darla} (Apartado~\ref{secc:discusion_hipotesis}).
+La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} queda parcialmente confirmada. Los resultados validan plenamente sus tres primeras condiciones: el recuperador sitúa la unidad de respuesta dentro del contexto entregado, ninguna de las respuestas del modelo nombró titulaciones inexistentes y ninguna consulta del dominio le faltó fundamento documental. Por contra, la cuarta condición no se cumple ya que la mediana del tiempo de respuesta alcanza los 39,4 segundos, muy por encima de los 30 segundos que se establecieron en la hipótesis.  Lejos de constituir un defecto no controlado, este comportamiento es la consecuencia directa de la jerarquía de diseño establecida en el requisito \sig{RNF}-04, que antepone la fidelidad de la respuesta al tiempo que se tarda en darla (Apartado~\ref{secc:discusion_hipotesis}).
 
 
 \section[Contribuciones]{Contribuciones}
@@ -26,7 +26,7 @@ El desarrollo de este TFG aporta al campo de los asistentes conversacionales con
 
   \item \textbf{Una metodología de diseño arquitectónico sustentada en evidencia experimental:} Se han resuelto cinco decisiones de arquitectura mediante experimentos comparativos y umbrales definidos formalmente: la estrategia de fragmentación, el modelo de incrustaciones vectoriales, el motor de base de datos vectorial, el modelo de lenguaje generativo y el mecanismo de resolución de anáforas en la conversación. Cada elección queda respaldada por su correspondiente registro de decisión arquitectónica (\sig{ADR}) documentado en el repositorio (Secciones~\ref{secc:resultados_fragmentacion} a~\ref{secc:resultados_sistema}).
 
-   \item \textbf{Una canalización RAG autónoma y local sobre hardware de consumo:} El sistema opera en un ordenador convencional sin recurrir a servicios de terceros. Esta arquitectura preserva la confidencialidad de las consultas \sout{de los usuarios preuniversitarios}\textcolor{borrador2}{del alumnado preuniversitario} y se ha diseñado siguiendo el principio de minimización de datos del \sig{RGPD} y la \sig{LOPDGDD}.
+   \item \textbf{Una canalización RAG autónoma y local sobre hardware de consumo:} El sistema opera en un ordenador convencional sin recurrir a servicios de terceros. Esta arquitectura preserva la confidencialidad de las consultas del alumnado preuniversitario y se ha diseñado siguiendo el principio de minimización de datos del \sig{RGPD} y la \sig{LOPDGDD}.
 
   \item \textbf{Tres barreras deterministas que acotan el dominio:} Independientes entre sí y ejecutadas en el código y no pedidas al modelo, con el reparto medido de qué detiene cada una (Apartado~\ref{secc:resultados_rag_sistema}).
 
@@ -44,7 +44,7 @@ Para garantizar el rigor científico de las conclusiones y evitar interpretacion
 
 \begin{itemize}
   \item \textbf{El sistema no se ha probado con
-      usuarios:} El sistema no ha sido sometido a pruebas con estudiantes preuniversitarios reales. Por ello, no es posible asegurar que las preguntas del conjunto de evaluación reproduzcan \sout{el lenguaje que un usuario objetivo tendría}\textcolor{borrador2}{el lenguaje que usaría el público objetivo}, ni se ha evaluado la utilidad orientadora de las respuestas en la decisión vocacional 
+      usuarios:} El sistema no ha sido sometido a pruebas con estudiantes preuniversitarios reales. Por ello, no es posible asegurar que las preguntas del conjunto de evaluación reproduzcan el lenguaje que usaría el público objetivo, ni se ha evaluado la utilidad orientadora de las respuestas en la decisión vocacional 
     (Apartado~\ref{secc:validacion_usuarios}).
 
   \item \textbf{De cada respuesta se comprueba que no
@@ -72,7 +72,7 @@ A partir de las limitaciones identificadas en el apartado anterior y de las evid
   \item \textbf{Probar el sistema con estudiantes preuniversitarios:} Realizar pruebas de uso con alumnado o usuarios objetivos para comprobar si el sistema responde a la formulación real de sus dudas y si resulta comprensible como apoyo en la toma de una decisión.
 
   \item \textbf{Optimización del tiempo de inferencia y de
-      la arquitectura de diálogo:} Evaluar el despliegue del modelo generativo sobre el hardware con aceleración por \sout{GPU}\textcolor{borrador2}{\sig{GPU}} y simplificar el flujo conversacional para situar la latencia por debajo del umbral de los treinta segundos.
+      la arquitectura de diálogo:} Evaluar el despliegue del modelo generativo sobre el hardware con aceleración por \sig{GPU} y simplificar el flujo conversacional para situar la latencia por debajo del umbral de los treinta segundos.
 
   \item \textbf{Extender la colección al resto de centros
       de la Universidad:} Extender el alcance de la extracción a las demás facultades de la Universidad de Jaén y evaluar experimentalmente el impacto del crecimiento del índice vectorial en la precisión del recuperador y en los tiempos de búsqueda.
