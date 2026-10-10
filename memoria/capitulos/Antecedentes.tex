@@ -184,7 +184,7 @@ Una de ellas es \glr{Recall@K}{exhaustividad}, que mide qué proporción de los
 Donde $Q$ es el conjunto de preguntas, $R_q$ el de documentos relevantes
   anotados para la pregunta $q$ y $\text{Top}_K(q)$ los $K$ que el sistema devuelve para ella.
 
-El \textit{Mean Reciprocal Rank} (\sig{MRR}) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
+El \glr{Mean Reciprocal Rank}{rango recíproco medio} (\sig{MRR}) comprueba si el documento está en la posición correcta. Para cada pregunta toma el inverso del puesto en el que aparece el primer resultado correcto y promedia el valor sobre todas las preguntas. Premia colocar la respuesta arriba y no solo colocarla.
 
 \begin{equation}
   \text{MRR} = \frac{1}{|Q|} \sum_{q \in Q} \frac{1}{\text{rank}(q)}
