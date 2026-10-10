@@ -306,7 +306,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
 
 Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la implementación de un motor de extracción personalizado (\textit{web scraper}) y de limpieza de texto.
 
-Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad.
+Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, \sout{se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad}\textcolor{borrador2}{se reduce el riesgo de que la base de datos vectorial sobre la que operará el modelo contenga datos erróneos, aunque no se elimina}.
 
 
 \subsection[Elección de la herramienta de extracción]{Elección de la herramienta de extracción}
@@ -423,7 +423,7 @@ La opción elegida fue la segunda, el par \texttt{(nombre, contenido)}. Lo que l
 \subsection[Verificación y reproducibilidad de la colección]{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
-La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. El primero es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
+La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. El primero es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta \sout{las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy})}\textcolor{borrador2}{el formato (\texttt{black}), el estilo (\texttt{flake8}), las pruebas con una cobertura mínima del 100\,\% (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy})}.
 
 Las pruebas unitarias se basan en ficheros reales descargados, llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
@@ -694,7 +694,7 @@ Para evitar problemas como falsos positivos o penalizaciones en las respuestas d
 
 Para evaluar y comparar el rendimiento de los modelos de forma objetiva y reproducible, se construyó un banco de evaluación generado automáticamente mediante código a partir de la colección de datos oficial. Este enfoque deriva tanto las preguntas como sus respuestas correctas (\textit{ground truth}) directamente del conjunto de datos sin requerir etiquetado manual, garantizando que el banco crezca de forma escalable si la fuente se amplía en el futuro.
 
-El banco completo contiene 1.023 preguntas, cuya ejecución sobre los cuatro candidatos exigiría más de 4.000 inferencias. La comparación común utiliza una muestra estratificada de 80 preguntas, seleccionada con una semilla fija y compartida por todos los modelos. Una segunda muestra de 250 preguntas compara de forma pareada a los dos candidatos que permanecen empatados en las medidas descriptivas.
+El banco completo contiene 1.023 preguntas, cuya ejecución sobre los cuatro candidatos exigiría más de 4.000 inferencias. La comparación común utiliza una muestra estratificada de 80 preguntas, seleccionada con una semilla fija y compartida por todos los modelos. Una segunda muestra de 250 preguntas compara de forma pareada a \sout{los dos candidatos que permanecen empatados}\textcolor{borrador2}{dos de los tres candidatos que permanecen empatados (\texttt{qwen3.5:9b} y \texttt{gemma3:12b})} en las medidas descriptivas.
 
 El banco se estructura en seis familias temáticas representativas \sout{del usuario objetivo}\textcolor{borrador2}{del público objetivo}: créditos, curso de impartición, planes de estudio, asignaturas de mención, optativas y catálogo general de la Escuela. La muestra de decisión es estratificada para que todas las familias estén representadas pese al reparto desigual del banco completo.
 
@@ -748,7 +748,7 @@ Para plantear esta solución, el sistema utiliza una política de recuperación 
 \end{itemize}
 
 
-Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
+Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija \sout{sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación}\textcolor{borrador2}{sin pedir al modelo que redacte, de modo que en ese caso no hay texto generado que pueda inventar}.
 
 
 \subsubsection{Estructura y composición del \textit{prompt}}
