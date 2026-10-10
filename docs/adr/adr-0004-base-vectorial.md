@@ -400,7 +400,7 @@ holgura.
 ### Paso 3 — U8 se activa, y hay que decirlo, no esquivarlo
 
 🔴 **Ninguna de las tres candidatas gana a la fuerza bruta.** NumPy responde en
-**0,17 ms**, entre 7 y 33 veces más rápido que todas ellas. U8 estaba escrito
+**0,20 ms** de mediana, entre 7 y 37 veces más rápido que todas ellas. U8 estaba escrito
 antes de medir precisamente para este caso, y dice lo que hay que concluir: **la
 base de datos vectorial no se justifica por velocidad en este corpus.**
 
