@@ -37,7 +37,7 @@ Por último, existen en internet comparadores genéricos y \textit{rankings} que
 \label{secc:estado_arte}
 
 
-En esta sección se exponen los conceptos teóricos y las tecnologías que sustentan el diseño del proyecto. En primer lugar, se examinan los modelos de lenguaje, el fenómeno de las alucinaciones y la necesidad de una arquitectura de Generación Aumentada por Recuperación (\sig{RAG}), contrastando el uso de modelos comerciales frente a opciones de pesos abiertos ejecutables en local. En segundo lugar, se detallan los elementos esenciales del tratamiento documental, como los procesos de extracción web, la fragmentación semántica del texto, la generación de incrustaciones (\textit{embeddings}) y su almacenamiento en bases de datos vectoriales para posibilitar la búsqueda semántica. Finalmente, se definen las métricas matemáticas empleadas para evaluar tanto la calidad de la recuperación como la fidelidad de las respuestas generadas.
+En esta sección se exponen los conceptos teóricos y las tecnologías que sustentan el diseño del proyecto. En primer lugar, se examinan los modelos de lenguaje, el fenómeno de las alucinaciones y la necesidad de una arquitectura de Generación Aumentada por Recuperación (\sig{RAG}), contrastando el uso de modelos comerciales frente a opciones de pesos abiertos ejecutables en local. En segundo lugar, se detallan los elementos esenciales del tratamiento documental, como los procesos de extracción web, \sout{la fragmentación semántica del texto}\textcolor{borrador2}{la fragmentación del texto}, la generación de incrustaciones (\textit{embeddings}) y su almacenamiento en bases de datos vectoriales para posibilitar la búsqueda semántica. Finalmente, se definen las métricas matemáticas empleadas para evaluar tanto la calidad de la recuperación como \sout{la fidelidad de las respuestas generadas}\textcolor{borrador2}{la de las respuestas generadas}.
 
 La evaluación experimental y la justificación técnica de las herramientas seleccionadas se desarrollan en el Capítulo~\ref{cap:materialesymetodos}.
 
@@ -337,7 +337,7 @@ no la síntesis de una fuente citable. Es precisamente esta capacidad la que dis
 
 Este trabajo comparte con los sistemas analizados el propósito de orientar en la elección académica, pero se diferencia de ellos en tres aspectos fundamentales:
 \begin{itemize}
-  \item \textbf{La delimitación del dominio:} el conocimiento del sistema se ciñe únicamente al ámbito de la oferta académica oficial de la Escuela Politécnica Superior de Jaén (ver Sección~\ref{secc:alcance}), garantizando respuestas especializadas y acotadas a esa oferta.
+  \item \textbf{La delimitación del dominio:} el conocimiento del sistema se ciñe únicamente al ámbito de la oferta académica oficial de la Escuela Politécnica Superior de Jaén (ver Sección~\ref{secc:alcance}), \sout{garantizando}\textcolor{borrador2}{con el fin de dar} respuestas especializadas y acotadas a esa oferta.
   \item \textbf{La generación fundamentada en fuentes oficiales:} frente a los asistentes comerciales actuales que se limitan a redirigir a enlaces web o los sistemas psicométricos que devuelven listas cerradas, este trabajo genera respuestas en lenguaje natural para que lo pueda entender un alumno no universitario.
   \item \textbf{El enfoque hacia el público preuniversitario:} el diseño se adapta a las dudas de estudiantes preuniversitarios que nunca han estado en la universidad y que no conocen la jerga, priorizando la claridad conceptual y la fiabilidad para evitar desorientar.
 \end{itemize}
