@@ -2,14 +2,14 @@
 \chapter{OBJETIVOS}
 \label{cap:objetivos}
 
-La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura de generación aumentada por recuperación (RAG) sobre un modelo de lenguaje de pesos abiertos ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
+La motivación y la brecha de usabilidad descritas en el Capítulo~\ref{cap:introduccion} se concretan en este capítulo en objetivos y sus descripciones. El enfoque elegido para alcanzarlos es una arquitectura RAG sobre un modelo de lenguaje de pesos abiertos ejecutado localmente. El capítulo formula primero el objetivo general, lo desglosa en objetivos específicos, enuncia la hipótesis de trabajo y las restricciones del proyecto, y termina con los requisitos que debe satisfacer el sistema.
 
 \section{Objetivo general}
 
 Diseñar, implementar y evaluar un sistema conversacional capaz de responder, a
 partir de información oficial y actualizada, preguntas de estudiantes
 preuniversitarios sobre las titulaciones de la Escuela Politécnica Superior de
-Jaén, empleando una arquitectura de generación aumentada por recuperación (RAG)
+Jaén, empleando una arquitectura RAG
 sobre un modelo de lenguaje de pesos abiertos ejecutado en local.
 
 \section{Objetivos específicos}
@@ -90,9 +90,9 @@ Los requisitos de usuario se formulan desde la perspectiva del alumnado preunive
 
 \subsection{Requisitos del sistema}
 
-Los requisitos del sistema concretan qué debe hacer el sistema para cumplir los de usuario, y se identifican con un código (RF-XX o RNF-XX) para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
+Los requisitos del sistema concretan qué debe hacer el sistema para cumplir los de usuario, y se identifican con un código (\sig{RF}-XX o RNF-XX) para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
 
-En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura recogidas en los registros de decisión de arquitectura (ADR) del repositorio.
+En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura recogidas en los registros de decisión de arquitectura (\sig{ADR}) del repositorio.
 
 
 \input{tablas/TablaRequisitosFuncionales.tex}
