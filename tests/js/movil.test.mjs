@@ -136,6 +136,7 @@ async function abrirChrome(ejecutable) {
   que queda a la vista del recuadro de la conversación.
 */
 const MEDIR = `(() => {
+  if (!document.querySelector(".redaccion")) return null;
   document.querySelector(".redaccion").scrollIntoView({ block: "end" });
   const visible = (e) => {
     const r = e.getBoundingClientRect();
@@ -170,10 +171,12 @@ test("la aplicación cabe en un móvil de 320 px", { skip: chrome ? false : "Chr
     let medida;
     for (let i = 0; i < 50; i++) {
       await esperar(100);
-      medida = (await cdp("Runtime.evaluate", { expression: MEDIR, returnByValue: true })).result.value;
-      if (medida.sugerencias === SUGERENCIAS.length && medida.saludo > 0) break;
+      // Mientras la página navega, la evaluación puede fallar o no encontrar
+      // nada: se reintenta en vez de dar la medida por hecha.
+      medida = (await cdp("Runtime.evaluate", { expression: MEDIR, returnByValue: true }))?.result?.value;
+      if (medida?.sugerencias === SUGERENCIAS.length && medida.saludo > 0) break;
     }
-    assert.equal(medida.sugerencias, SUGERENCIAS.length, "no se han pintado las sugerencias");
+    assert.equal(medida?.sugerencias, SUGERENCIAS.length, "no se han pintado las sugerencias");
     return medida;
   }
 
