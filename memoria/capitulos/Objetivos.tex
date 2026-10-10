@@ -79,20 +79,20 @@ publicada.
 
 \section{Requisitos}
 
-Los requisitos del sistema se han dividido en dos grupos. Por un lado, los requisitos de usuario recogen lo que el estudiante espera del sistema, expresado desde su punto de vista. Por otro lado, los requisitos del sistema traducen esas expectativas en condiciones técnicas concretas que el software y el hardware deben cumplir.
+Los requisitos del sistema se han dividido en dos grupos. Por un lado, los requisitos de usuario recogen lo que \sout{el estudiante espera}\textcolor{borrador2}{el alumnado espera} del sistema, expresado desde su punto de vista. Por otro lado, los requisitos del sistema traducen esas expectativas en condiciones técnicas concretas que el software y el hardware deben cumplir.
 
 \subsection{Requisitos de usuario}
 
-Los requisitos de usuario se formulan desde la perspectiva del estudiante preuniversitario y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad \sig{MoSCoW} y el objetivo con el que se relacionan.
+Los requisitos de usuario se formulan desde la perspectiva \sout{del estudiante preuniversitario}\textcolor{borrador2}{del alumnado preuniversitario} y se identifican con un código (RU-XX) para poder rastrear cada uno hasta el objetivo específico que lo respalda. La Tabla~\ref{tab:requisitos_usuario} los recoge junto con su prioridad \sig{MoSCoW} y el objetivo con el que se relacionan.
 
 \input{tablas/TablaRequisitosUsuario.tex}
 
 
 \subsection{Requisitos del sistema}
 
-\sout{Los requisitos del sistema son lo que el estudiante espera que el sistema haga}\textcolor{borrador2}{Los requisitos del sistema concretan qué debe hacer el sistema para cumplir los de usuario}, y se identifican con un código \sout{(RF-XX ó RNF-XX)}\textcolor{borrador2}{(RF-XX o RNF-XX)} para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
+Los requisitos del sistema concretan qué debe hacer el sistema para cumplir los de usuario, y se identifican con un código (RF-XX o RNF-XX) para poder rastrear cada uno de los requisitos de usuario que lo origina y el objetivo específico que lo respalda. Se separan en dos grupos: la Tabla~\ref{tab:requisitos_funcionales} que recoge los requisitos funcionales, que dicen qué tiene que realizar el sistema, y la Tabla~\ref{tab:requisitos_no_funcionales} que recoge los requisitos no funcionales, que dicen bajo qué condiciones tiene que hacerlo.
 
-En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura \sout{recogidas en los ADR.}\textcolor{borrador2}{recogidas en los registros de decisión de arquitectura (ADR) del repositorio.}
+En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo origen. Unos salen de una decisión de diseño argumentada en el Capítulo~\ref{cap:materialesymetodos} y otros salen de decisiones de arquitectura recogidas en los registros de decisión de arquitectura (ADR) del repositorio.
 
 
 \input{tablas/TablaRequisitosFuncionales.tex}
@@ -102,7 +102,7 @@ En el caso de este proyecto, no todos los requisitos se obtuvieron del mismo ori
 \subsection[Diseño conceptual de la interfaz]{Diseño conceptual de la interfaz}
 \label{secc:wireframe}
 
-Los requisitos descritos anteriormente determinan \sout{qué debe de hacer el sistema}\textcolor{borrador2}{qué debe hacer el sistema}, pero no cómo se le presenta a quien va a usarlo. Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y \sout{única del aplicativo}\textcolor{borrador2}{única de la aplicación} como se puede observar en la Figura~\ref{fig:wireframe}.
+Los requisitos descritos anteriormente determinan qué debe hacer el sistema, pero no cómo se le presenta a quien va a usarlo. Antes de comenzar con el desarrollo de la interfaz web se definió la pantalla principal y única del aplicativo como se puede observar en la Figura~\ref{fig:wireframe}.
 
 
 \begin{figure}[H]
@@ -112,4 +112,4 @@ Los requisitos descritos anteriormente determinan \sout{qué debe de hacer el si
   \label{fig:wireframe}
 \end{figure}
 
-El boceto establece una pantalla sin registro ni instalación previa, dando cumplimiento al requisito RU-05, un cuadro de texto dando un saludo al usuario (RU-01) y el historial de mensajes sobre él. Se evitó sobrecargar la estética de funcionalidades innecesarias para hacer más sencillo su uso.
+El boceto establece una pantalla sin registro ni instalación previa, dando cumplimiento al requisito RU-05, un cuadro de texto \sout{dando un saludo al usuario}\textcolor{borrador2}{con un saludo de bienvenida} (RU-01) y el historial de mensajes sobre él. Se evitó sobrecargar la estética de funcionalidades innecesarias para hacer más sencillo su uso.

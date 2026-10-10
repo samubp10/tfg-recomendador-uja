@@ -282,18 +282,20 @@ una sola unidad que arrastra la lista de titulaciones en las que se imparte; de 
 que los campos `grados` y `codigos` de un fragmento sean listas y no cadenas.
 `grados.json` permanece intacto y fiel a la fuente: la deduplicación es una
 transformación de representación en el índice, no una pérdida de datos. Su efecto
-sobre el corpus es directo: los fragmentos de guía son 1.193 frente a los **3.631**
-que habría si cada titulación llevara su propia copia.
+sobre el corpus es directo: en el corpus de 1.922 fragmentos, los de guía son 1.719
+frente a los **3.515** que habría si cada titulación llevara su propia copia.
 
 #### Qué clave decide que dos guías son la misma
+
+Contado sobre las 288 guías de `grados.json`:
 
 | Clave                   | Grupos compartidos | Copias excedentes | Unidades resultantes |
 | ----------------------- | -----------------: | ----------------: | -------------------: |
 | Solo el contenido       |                 41 |                81 |                  207 |
-| **(nombre, contenido)** |             **39** |            **79** |              **209** |
+| **(nombre, contenido)** |             **38** |            **78** |              **210** |
 
-La diferencia exacta entre las dos claves son **dos parejas** con el mismo contenido
-publicado bajo nombres distintos:
+La diferencia exacta entre las dos claves son **tres parejas** con el mismo
+contenido publicado bajo nombres distintos:
 
 1. «Fundamentos de la programación» (Ingeniería Informática) y «Fundamentos de
    programación» (Inteligencia Artificial y Ciberseguridad), con 1.181 caracteres
@@ -304,14 +306,29 @@ publicado bajo nombres distintos:
    Informática), con 1.228 caracteres idénticos. Son **asignaturas distintas de
    titulaciones distintas** que comparten el texto de la guía: agruparlas atribuiría
    el contenido de una a la otra, y ahí la clave elegida **acierta**.
+3. «Fundamentos físicos de la Informática» (Inteligencia Artificial y
+   Ciberseguridad) y «Fundamentos físicos de la informática» (Ingeniería
+   Informática): la misma guía con una mayúscula distinta. **La clave elegida
+   tampoco las agrupa**, porque compara el nombre tal como lo publica la fuente.
 
 Se elige `(nombre, contenido)` aceptando ese balance a propósito, porque los dos
 errores no cuestan lo mismo: fusionar dos asignaturas distintas corrompe el índice y
 puede hacer que el sistema atribuya un temario a quien no le corresponde, mientras
 que no fusionar dos copias idénticas solo deja el índice ligeramente más grande.
 
-La comparación se hace además sobre el nombre normalizado —sin distinguir mayúsculas
-ni espacios sobrantes—, porque la fuente no es consistente al escribirlos.
+El nombre se compara tal como lo publica la fuente, sin normalizar. Compararlo sin
+distinguir mayúsculas ni espacios agruparía la tercera pareja (39 grupos, 79
+copias, 209 unidades); dejarla sin fusionar es el error barato de los dos, el
+mismo que con la primera.
+
+#### Un grupo no siempre es una sola unidad
+
+Que dos guías sean la misma no implica que sus titulaciones compartan plan. El
+encabezado de cada fragmento afirma el tipo, los créditos, el curso y el
+cuatrimestre de la asignatura, y se vectoriza con el texto, así que un grupo cuyas
+titulaciones discrepan en algo de eso se parte en una unidad por cada combinación
+(IT-125). Las 210 unidades de guía pasan a ser **283**; sin partirlas, el
+encabezado afirmaría de todas las titulaciones el curso y el tipo de la primera.
 
 ### Identidad de la asignatura dentro del fragmentador
 

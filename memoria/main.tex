@@ -103,7 +103,7 @@
 \def\Estudiante{Samuel Blanco Palmero}
 
 % ==== Introducir aquí el nombre de los tutores. Si solo hay uno dejar las llaves de \TutorB vacías
-\def\TutorA{Juan Carlos \sout{Cuevas Martinez}Cuevas Martínez}
+\def\TutorA{Juan Carlos Cuevas Martínez}
 \def\TutorB{}
 
 % ==== Introducir aquí el título de completo y abreviado (para las cabeceras) del TFG
@@ -117,7 +117,11 @@
 
 \begin{document}
 
-\Portada~			
+% La portada se numera con letras y se cierra con su página antes de pasar a
+% romanos: si no, sus páginas repiten los nombres de página.1-3 del capítulo 1
+% y la página.I de los agradecimientos, y el PDF ignora esos destinos.
+\pagenumbering{alph}
+\Portada\cleardoublepage
 
 \pagenumbering{roman}  % Numeración romana para los agradecimientos, dedicatoria y tablas de contenidos
 

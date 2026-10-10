@@ -301,7 +301,7 @@ def informe(
         "  recibir silencio, sino lo que sí se imparte aquí. Contarlas como fallo",
         "  del filtro sería contar como error el comportamiento que se busca.",
         f"* **{con_red} {'la para' if con_red == 1 else 'las para'} la comprobación",
-        "  de otro centro**, que actúa después del suelo y antes del modelo. Pasar",
+        "  de otro centro**, que no depende del suelo y actúa antes del modelo. Pasar",
         "  el suelo no es lo mismo que ser respondida.",
         f"* **{sin_red} {'pasa' if sin_red == 1 else 'pasan'} sin ninguna de las dos",
         "  cosas.** Esta es la cifra que mide de verdad el hueco, y la única que",

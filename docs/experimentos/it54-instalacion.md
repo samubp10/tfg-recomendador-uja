@@ -1,7 +1,7 @@
 # IT-54 — Comprobación de instalación en un entorno limpio
 
 Fecha: 6–7 de septiembre de 2026. Procedimiento:
-[instalación y puesta en marcha](../instalacion.md), reproducido en el anexo A.
+[instalación y puesta en marcha](../instalacion.md).
 
 ## Entorno y aislamiento
 

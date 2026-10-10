@@ -128,7 +128,6 @@ coinciden, la buena es la del fichero.
 Regenerar cambia el corpus, y con él todo lo que se haya medido sobre él:
 
 - Las cifras del **Capítulo 4** de la memoria.
-- El §4 de `Notas_TFG/ESTADO.md`.
 - **El experimento de embeddings (IT-28)**, que se midió sobre un número de fragmentos que ya
   no es el actual. Sus resultados no son comparables entre corpus distintos, así que hay que
   volver a ejecutarlo antes de apoyarse en ellos:

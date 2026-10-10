@@ -95,7 +95,7 @@ que convenga.
   describe la máquina, no al candidato.
 - **El reparto entre procesador y tarjeta gráfica**, por la razón dicha arriba:
   justificar la elección con él sería justificarla con el portátil de
-  desarrollo. Se registra para el anexo de instalación.
+  desarrollo.
 
 ## Alternativas consideradas
 
@@ -361,9 +361,12 @@ no para quien lo consulta por primera vez.
 
 ### Positivas
 
-- **El sistema no nombra titulaciones que no existen**, medido sobre 320
-  respuestas y no sobre una impresión. Es el requisito del que depende que el
-  trabajo tenga sentido.
+- **El modelo elegido no nombró ninguna titulación que no exista** en las 320
+  respuestas del cribado ni en las 250 de `it133-profundo.md`, medido y no por
+  impresión. En el banco del sistema dos respuestas sí nombraron titulaciones de
+  fuera de la Escuela (`S-AJE-007` y `S-AJE-008`) y la verificación las retiró
+  antes de entregarlas: lo garantizado es que no llegan, no que el modelo no las
+  escriba. Es el requisito del que depende que el trabajo tenga sentido.
 - **La elección no obliga a compensar en otro sitio.** No gana en cobertura ni
   en acierto escalar ---empata con los otros dos candidatos grandes---, pero
   tampoco pierde en ninguna: se adopta el que cumple el umbral sin sacrificar
