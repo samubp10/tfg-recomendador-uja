@@ -1197,6 +1197,87 @@ def test_dos_asignaturas_homonimas_se_quedan_sin_enlace(tmp_path: Path) -> None:
     assert _ENLACES_REALES.__wrapped__(datos) == {}
 
 
+#: Caso real de IT-145, tal como está en el dataset del 16/08/2026. La guía es
+#: la del grado en Mecánica; el doble la cursa con su propio código.
+_URL_CINEMATICA = (
+    "https://uvirtual.ujaen.es/pub/es/informacionacademica/"
+    "catalogofichasdocentesasignaturas/p/2026-27/4/134A/13412003/es/"
+    "2026-27-13412003_es.html"
+)
+_DOBLE = "Doble Grado en Ingeniería Eléctrica y Mecánica"
+
+
+def _dataset_de_cinematica(*extras: dict[str, Any]) -> list[dict[str, Any]]:
+    """El grado simple con su guía y el doble que la cursa sin enlazarla."""
+    return [
+        {"tipo": "grado", "nombre": _DOBLE, "es_doble_grado": True},
+        {
+            "tipo": "asignatura",
+            "grado": "Grado en Ingeniería Mecánica",
+            "codigo": "13412003",
+            "nombre": "Cinemática y dinámica de maquinas",
+            "url_guia": _URL_CINEMATICA,
+        },
+        {
+            "tipo": "guia",
+            "grado": "Grado en Ingeniería Mecánica",
+            "codigo": "13412003",
+            "nombre": "Cinemática y dinámica de maquinas",
+            "fallback": False,
+            "resumen": "Muy recomendable haber cursado Mecánica.",
+            "temario": "Tema 1: Introducción.",
+        },
+        {
+            "tipo": "asignatura",
+            "grado": _DOBLE,
+            "codigo": "13612005",
+            "nombre": "CINEMÁTICA Y DINÁMICA DE MÁQUINAS (GIM)",
+            "url_guia": None,
+        },
+        *extras,
+    ]
+
+
+def test_la_guia_de_un_doble_grado_enlaza_a_la_del_grado_simple(
+    tmp_path: Path,
+) -> None:
+    """IT-145: 537 fragmentos de guía de los dobles grados salían sin enlace.
+
+    El plan del doble no enlaza ninguna guía; la propia página remite a la
+    del grado individual. El contenido ya se tomaba de esa guía, así que el
+    enlace tiene que llevar a ella y no quedarse en blanco.
+    """
+    datos = tmp_path / "grados.json"
+    datos.write_text(
+        json.dumps(_dataset_de_cinematica(), ensure_ascii=False), encoding="utf-8"
+    )
+
+    enlaces = _ENLACES_REALES.__wrapped__(datos)
+
+    assert enlaces[(_DOBLE, "Cinemática y dinámica de maquinas")] == _URL_CINEMATICA
+
+
+def test_el_doble_no_toma_un_enlace_que_el_grado_simple_no_resuelve(
+    tmp_path: Path,
+) -> None:
+    # Si en el grado simple hay dos asignaturas homónimas con guías distintas,
+    # ya se quedan sin enlace; el doble no puede heredar una de ellas al azar.
+    homonima = {
+        "tipo": "asignatura",
+        "grado": "Grado en Ingeniería Mecánica",
+        "codigo": "13499999",
+        "nombre": "Cinemática y dinámica de maquinas",
+        "url_guia": "https://ejemplo/otra",
+    }
+    datos = tmp_path / "grados.json"
+    datos.write_text(
+        json.dumps(_dataset_de_cinematica(homonima), ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    assert _ENLACES_REALES.__wrapped__(datos) == {}
+
+
 def test_sin_dataset_las_fuentes_se_quedan_sin_enlace(tmp_path: Path) -> None:
     # El dataset no se versiona: en un clon recién hecho no existe todavía. La
     # aplicación tiene que seguir dando las fuentes, solo que sin enlazarlas.
