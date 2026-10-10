@@ -74,3 +74,33 @@ def test_se_prueba_el_fichero_que_se_sirve() -> None:
     assert 'join(AQUI, "..", "..", "web", "chat.js")' in doble.read_text(
         encoding="utf-8"
     )
+
+
+#: La medida en un navegador de verdad a 320 px (IT-144).
+PRUEBA_MOVIL: Path = RAIZ / "tests" / "js" / "movil.test.mjs"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node no está instalado")
+def test_la_aplicacion_cabe_en_un_movil() -> None:
+    """Lanza la medida a 320 px, que abre Chrome sin ventana.
+
+    Sin Chrome, `node --test` da la prueba por saltada y sale con 0. Aquí se
+    traduce a un salto de `pytest` para que no cuente como un verde.
+    """
+    resultado = subprocess.run(
+        ["node", "--test", "--test-reporter=tap", str(PRUEBA_MOVIL)],
+        cwd=RAIZ,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
+
+    if resultado.returncode != 0:
+        pytest.fail(
+            f"La aplicación no cabe en un móvil:\n\n{resultado.stdout}",
+            pytrace=False,
+        )
+    if "# skipped 1" in resultado.stdout:
+        pytest.skip("Chrome no está instalado: la medida a 320 px no se ha hecho")

@@ -101,6 +101,22 @@ body {
 }
 
 /*
+  Movil y ventanas bajas (IT-144). A 320 x 640 la conversacion se quedaba en
+  105 px: la cabecera, las sugerencias, el cuadro y los dos avisos no caben a
+  la vez en una pantalla. Aqui la parte del chat ocupa una pantalla entera y
+  los avisos quedan justo debajo, a un desplazamiento. El alto minimo deja
+  sitio a la conversacion cuando la ventana es muy baja (el zoom al 400 % de
+  1280 x 1024 son 320 x 256 px CSS): entonces se desplaza la pagina, que es el
+  reflujo que piden las WCAG, en vez de aplastar la conversacion.
+
+  En escritorio la envoltura no existe para la maquetacion: sus hijos siguen
+  siendo bandas de `.aplicacion`, como antes.
+*/
+.aplicacion__chat {
+  display: contents;
+}
+
+/*
   Cada banda ocupa el ancho completo y centra su contenido en la columna de
   lectura. El relleno lateral no se elige, se calcula: cuando la ventana es mas
   estrecha que la columna gana el margen minimo, y cuando es mas ancha gana la
@@ -966,4 +982,42 @@ body {
 
 .legal p {
   max-width: 70ch;
+}
+
+/* ---------------------------------------------------- movil y ventanas bajas
+
+   Va al final a proposito: tiene que ganar a las reglas de cada banda, que
+   tienen la misma especificidad. La explicacion, junto a `.aplicacion__chat`. */
+
+@media (max-width: 480px), (max-height: 500px) {
+  .aplicacion {
+    height: auto;
+  }
+
+  .aplicacion__chat {
+    display: flex;
+    flex-direction: column;
+    height: max(100dvh, 22rem);
+  }
+
+  /* El subtitulo (trabajo, autor y universidad) se oculta en las dos paginas:
+     a 320 px son dos lineas que la conversacion necesita. El escudo y el
+     titulo se quedan. */
+  .cabecera__subtitulo {
+    display: none;
+  }
+
+  .sugerencias {
+    max-height: 18dvh;
+  }
+}
+
+@media (max-height: 500px) {
+  .sugerencias {
+    max-height: 15dvh;
+  }
+
+  .redaccion {
+    padding-block: 4px 8px;
+  }
 }
