@@ -31,6 +31,13 @@
   -->
   <div class="aplicacion">
 
+    <!--
+      En una pantalla estrecha o baja, esta envoltura ocupa una pantalla y los
+      avisos de abajo quedan a un desplazamiento (IT-144). En escritorio no
+      existe para la maquetacion: lleva `display: contents`.
+    -->
+    <div class="aplicacion__chat">
+
     <header class="cabecera" aria-label="Asistente Virtual de Titulaciones">
       <img class="cabecera__escudo" src="logo-uja.png" alt="Universidad de Jaén">
       <div class="cabecera__textos">
@@ -73,7 +80,7 @@
       <div class="redaccion__caja">
         <label class="visualmente-oculto" for="entrada">Escribe tu consulta</label>
         <textarea id="entrada" class="redaccion__entrada" rows="1"
-          placeholder="Escribe tu consulta aquí… (Intro para enviar)"></textarea>
+          placeholder="Escribe tu consulta…"></textarea>
         <button type="submit" class="redaccion__enviar" id="enviar" aria-label="Enviar consulta">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
             <path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10.2 15.9 12 3.4 13.8z" />
@@ -84,6 +91,8 @@
         Responde solo sobre las titulaciones de grado de la Escuela Politécnica Superior de Jaén.
       </p>
     </form>
+
+    </div>
 
     <!--
       Dos avisos distintos y a proposito separados: el de arriba acota el
