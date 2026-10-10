@@ -49,7 +49,7 @@ fallo, y mezclarlas exagera el problema. Se separan en tres:
   recibir silencio, sino lo que sí se imparte aquí. Contarlas como fallo
   del filtro sería contar como error el comportamiento que se busca.
 * **0 las para la comprobación
-  de otro centro**, que actúa después del suelo y antes del modelo. Pasar
+  de otro centro**, que no depende del suelo y actúa antes del modelo. Pasar
   el suelo no es lo mismo que ser respondida.
 * **2 pasan sin ninguna de las dos
   cosas.** Esta es la cifra que mide de verdad el hueco, y la única que
