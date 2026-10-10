@@ -28,7 +28,7 @@ Para aislar los entornos de desarrollo y proteger la integridad del sistema, se 
         \begin{figure}[H]
           \centering
           \includegraphics[width=0.8\textwidth]{imagenes/GitFlow.pdf}
-          \caption[\textcolor{borrador2}{Estrategia de ramificación y versionado}]{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
+          \caption[Estrategia de ramificación y versionado]{Estrategia de ramificación y versionado empleada en el desarrollo. Fuente: Elaboración propia.}
           \label{fig:git_flow}
         \end{figure}
         
@@ -55,9 +55,9 @@ El aseguramiento del correcto funcionamiento del \textit{software} se apoya en u
 
 Un principio de esta metodología ha sido la validación contra la realidad. Las pruebas de los módulos de extracción web (\glr{spiders}{spider}) no se basan en datos inventados o simulados, sino en conjuntos de datos de prueba predefinidos, estáticos y reales, en HTML y PDF, descargados de la web de la Escuela Politécnica Superior de Jaén. Esto garantiza que las pruebas verifiquen el comportamiento del código ante las verdaderas anomalías de la fuente.
 
-Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a \sout{la Integración Continua (CI)}\textcolor{borrador2}{la integración continua}, excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
+Cabe destacar que, debido al alcance académico del proyecto y a la ausencia de un entorno de producción al público (una página web publicada en un servicio de alojamiento), el enfoque de este trabajo se limita estrictamente a la Integración Continua (CI), excluyendo las prácticas de Despliegue Continuo (CD), lo que permite concentrar los recursos en la experimentación y métricas de evaluación del modelo de lenguaje.
 
-Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar \sout{PEP}\textcolor{borrador2}{\sig{PEP}}~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y \sout{las variables de entorno}\textcolor{borrador2}{los valores devueltos y las excepciones}. Además, \sout{el formato del código se estandariza mediante \texttt{flake8}, y}\textcolor{borrador2}{el formato del código lo fija \texttt{black}, el estilo lo comprueba \texttt{flake8} y} la comprobación de tipos se delega en \texttt{mypy}.
+Junto a las pruebas funcionales, la integración continua automatiza la verificación del estilo y la calidad del código. La documentación de las funciones sigue el estándar \sig{PEP}~257\cite{pep257} y la guía de estilo de Google\cite{googlestyle}, estructurando explícitamente los argumentos y los valores devueltos y las excepciones. Además, el formato del código lo fija \texttt{black}, el estilo lo comprueba \texttt{flake8} y la comprobación de tipos se delega en \texttt{mypy}.
 
 \subsection{Tipos de pruebas del proyecto}
 \label{secc:niveles_de_prueba}
@@ -76,7 +76,7 @@ Este tipo de pruebas se ejecuta a mano antes de cada subida al repositorio y no 
 \textbf{El tercer tipo es la evaluación del sistema}, la cual más que una prueba es una medición cuantitativa. No produce un resultado booleano como en las pruebas anteriores, sino
 uno o varios números que solo tienen significado si se comparan con el de otra configuración.
 
-Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquetadas a mano, escritas pensando en \sout{lo que el usuario pudiera querer saber}\textcolor{borrador2}{lo que el público objetivo pudiera querer saber}.
+Sobre la recuperación de fragmentos, se utilizan las métricas de \textit{Recall@K} y \textit{MRR} contra un conjunto de preguntas etiquetadas a mano, escritas pensando en lo que el público objetivo pudiera querer saber.
 Sobre la generación de la respuesta se miden de forma determinista las titulaciones inventadas, la precisión y la cobertura de los listados y el acierto en los valores únicos, en lugar de la fidelidad de la respuesta al contexto recuperado y su pertinencia.
 
 Esta actividad no puede automatizarse en la integración continua por dos motivos: necesita descargar modelos para la experimentación y comprobación de cuál es mejor (de cientos de megabytes a varios gigabytes) y su
@@ -128,7 +128,7 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 \begin{figure}[H]
   \centering
   \includegraphics[width=1 \textwidth]{imagenes/tableroKanBan.png}
-  \caption[\textcolor{borrador2}{Tablero Kanban del proyecto}]{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
+  \caption[Tablero Kanban del proyecto]{Captura del tablero Kanban utilizado para la gestión ágil del proyecto en GitHub Projects. Fuente: Elaboración propia.}
   \label{fig:tablero_kanban}
 \end{figure}
 
@@ -264,7 +264,7 @@ Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtiene
 
 Con estos trozos de información se calculan sus incrustaciones, que son las que se introducen en la base de datos vectorial.
 
-Por último llega el \textit{pipeline} RAG: \sout{tras la pregunta del usuario}\textcolor{borrador2}{tras recibir la pregunta}, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con esta última fase se interactúa mediante la aplicación web.
+Por último llega el \textit{pipeline} RAG: tras recibir la pregunta, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con esta última fase se interactúa mediante la aplicación web.
 
 Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
 
@@ -306,7 +306,7 @@ Cada una de estas anomalías, con la evidencia real que la respalda y el tratami
 
 Por todo esto, se decidió desarrollar el primer bloque de este proyecto: la implementación de un motor de extracción personalizado (\textit{web scraper}) y de limpieza de texto.
 
-Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, \sout{se puede asegurar que la base de datos vectorial sobre la que operará la Inteligencia Artificial contenga una fuente de conocimiento íntegro y de alta calidad}\textcolor{borrador2}{se reduce el riesgo de que la base de datos vectorial sobre la que operará el modelo contenga datos erróneos, aunque no se elimina}.
+Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el antipatrón \textit{Garbage In, Garbage Out} (basura entra, basura sale). Por tanto, es obligatorio desplegar una fase inicial de recolección de datos que actúe como filtro determinista. Solo mediante la validación de filas, la limpieza de caracteres anómalos y la reparación de enlaces rotos, se reduce el riesgo de que la base de datos vectorial sobre la que operará el modelo contenga datos erróneos, aunque no se elimina.
 
 
 \subsection[Elección de la herramienta de extracción]{Elección de la herramienta de extracción}
@@ -354,7 +354,7 @@ Combina un analizador de HTML (BeautifulSoup) con un cliente HTTP (\texttt{reque
 Se basa en la automatización de navegadores con renderizado real.
 
 \begin{itemize}                                                                                                                                                    
-  \item \textbf{Ventajas:} Imprescindibles para aplicaciones de una sola página (\sout{\textit{SPA}}\textcolor{borrador2}{\sig{SPA}}) y contenido cargado dinámicamente mediante JavaScript.
+  \item \textbf{Ventajas:} Imprescindibles para aplicaciones de una sola página (\sig{SPA}) y contenido cargado dinámicamente mediante JavaScript.
   \item \textbf{Inconvenientes:} La web de la EPSJ está desarrollada en Drupal con contenido estático. Por tanto, el renderizado de JavaScript es innecesario, lo que haría que el programa fuera más lento y consumiera más recursos de los necesarios.
 \end{itemize}
 
@@ -423,7 +423,7 @@ La opción elegida fue la segunda, el par \texttt{(nombre, contenido)}. Lo que l
 \subsection[Verificación y reproducibilidad de la colección]{Verificación y reproducibilidad de la colección}
 \label{secc:verificacion_fase0}
 
-La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. El primero es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta \sout{las pruebas unitarias (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy})}\textcolor{borrador2}{el formato (\texttt{black}), el estilo (\texttt{flake8}), las pruebas con una cobertura mínima del 100\,\% (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy})}.
+La fiabilidad de la Fase 0 descansa en dos verificadores ejecutados en el conjunto de datos completo. El primero es \texttt{check\_dataset.py}, que comprueba la integridad de grados, asignaturas y guías docentes (número de entidades, la presencia de campos obligatorios y tipos de asignaturas). El segundo, \texttt{check\_chunks.py}, valida los fragmentos y la deduplicación. Ambos se ejecutan en local antes de subir cambios, mientras que la integración continua ejecuta el formato (\texttt{black}), el estilo (\texttt{flake8}), las pruebas con una cobertura mínima del 100\,\% (\texttt{pytest}) y la comprobación de tipos (\texttt{mypy}).
 
 Las pruebas unitarias se basan en ficheros reales descargados, llamados \textit{fixtures} de la web de la EPSJ. Es una decisión deliberada ya que los datos sintéticos no reproducen las anomalías reales de la fuente. Cada defecto encontrado se incorpora como caso de regresión con su HTML real.
 
@@ -443,8 +443,7 @@ Primero se presenta el instrumento con el que se mide, que es el conjunto de pre
 \subsection[El conjunto de evaluación como instrumento de medida]{El conjunto de evaluación como instrumento de medida}
 \label{secc:conjunto_evaluacion}
 
-Para la experimentación se ha usado el conjunto de datos extraídos y 66 preguntas creadas para abarcar todo tipo de cuestiones \sout{que el usuario promedio de}\textcolor{borrador2}{que el público objetivo de}
-la aplicación podría querer saber.
+Para la experimentación se ha usado el conjunto de datos extraídos y 66 preguntas creadas para abarcar todo tipo de cuestiones que el usuario promedio de la aplicación podría querer saber.
 
 Las preguntas abarcan seis tipos de cuestiones: el temario de una asignatura en concreto, listado de asignaturas de una
 titulación, salidas profesionales de un grado, metadatos de asignaturas (cuántos créditos tiene una asignatura y de qué tipo es) y asignaturas sin guía publicada (para comprobar si alucina o solo la nombra), y un sexto tipo que no pregunta por esta institución. La Tabla~\ref{tab:conjunto_evaluacion} recoge el reparto, con un ejemplo literal de cada tipo.
@@ -590,7 +589,7 @@ Para este experimento, se cogen las incrustaciones que se generan mediante el mo
 
 \subsubsection[Las candidatas y por qué esas]{Las candidatas y por qué esas}
 
-Las tres candidatas tienen una licencia que casa con la de este proyecto, que es la GPL versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante \sout{APIs REST}\textcolor{borrador2}{API \sig{REST}}.
+Las tres candidatas tienen una licencia que casa con la de este proyecto, que es la GPL versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
 
 Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y Qdrant Edge por estar en un estado de desarrollo muy prematuro, Milvus y Weaviate por estar pensadas para corpus enormes, FAISS por ser una biblioteca de índices y no una base de datos, y pgvector por exigir un PostgreSQL completo (ADR-0004).
 
@@ -642,7 +641,7 @@ Por último, este índice registra tres datos importantes, como con qué modelo 
 \subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
 \label{secc:fase2_conversacion}
 
-\sout{Un estudiante o un usuario objetivo de la aplicación}\textcolor{borrador2}{Quien usa la aplicación} no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
+Quien usa la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que se tiene que sacar por contexto anterior.
 
 Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no se tuviera en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que habría que formular cada consulta de forma perfecta para obtener una buena respuesta lo cual no es lo que se busca en este proyecto, sin embargo, si se almacena todo el contexto de la conversación, se acumulan datos basura que no ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
@@ -653,8 +652,8 @@ Esto genera un problema y es el del contexto de la conversación y es un problem
 Para resolver este problema se diseñó un mecanismo de seguimiento de estado en el que un modelo decide en cada turno de qué titulación se habla, con unas reglas deterministas de respaldo si falla en el que se desacopla la recuperación semántica del historial completo. El sistema gestiona el contexto mediante dos principios:
 
 \begin{enumerate}
-  \item \textbf{Seguimiento y persistencia del sujeto activo:} El modelo monitoriza en cada turno la titulación mencionada. \sout{Si el usuario nombra}\textcolor{borrador2}{Si la pregunta nombra} un nuevo grado, el sujeto (el grado) se actualiza, si formula una pregunta del grado anteriormente descrito, el sistema hereda automáticamente la titulación del turno anterior. Además, si la titulación fue propuesta por el propio asistente en la última respuesta (por ejemplo, recomendando el Grado en Ingeniería Informática ante un interés por el desarrollo de software), esta se coge como sujeto activo.
-  \item \textbf{Ventana acotada de diálogo:} En el \textit{prompt} final hacia el LLM se incorporan únicamente \sout{los tres últimos turnos del usuario}\textcolor{borrador2}{las tres últimas preguntas} junto con el sujeto contextualizado, evitando la saturación del contexto. 
+  \item \textbf{Seguimiento y persistencia del sujeto activo:} El modelo monitoriza en cada turno la titulación mencionada. Si la pregunta nombra un nuevo grado, el sujeto (el grado) se actualiza, si formula una pregunta del grado anteriormente descrito, el sistema hereda automáticamente la titulación del turno anterior. Además, si la titulación fue propuesta por el propio asistente en la última respuesta (por ejemplo, recomendando el Grado en Ingeniería Informática ante un interés por el desarrollo de software), esta se coge como sujeto activo.
+  \item \textbf{Ventana acotada de diálogo:} En el \textit{prompt} final hacia el LLM se incorporan únicamente las tres últimas preguntas junto con el sujeto contextualizado, evitando la saturación del contexto. 
 \end{enumerate}
 
 La Figura~\ref{fig:conversacion_tres_turnos} ilustra la dinámica temporal de este mecanismo sobre un diálogo real de tres turnos.
@@ -669,7 +668,7 @@ Las tres estrategias (incrustar la pregunta sola, concatenar la
 \label{secc:fase2_llm}
 
   Ahora que se han extraído los datos, y se han fragmentado, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
-  utilice estos datos para elaborar la respuesta que satisfaga \sout{las dudas del usuario}\textcolor{borrador2}{las dudas planteadas}. \sout{ç}En este apartado se trata el modelo que realiza esta acción.
+  utilice estos datos para elaborar la respuesta que satisfaga las dudas planteadas. En este apartado se trata el modelo que realiza esta acción.
 
 \subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
 
@@ -694,9 +693,9 @@ Para evitar problemas como falsos positivos o penalizaciones en las respuestas d
 
 Para evaluar y comparar el rendimiento de los modelos de forma objetiva y reproducible, se construyó un banco de evaluación generado automáticamente mediante código a partir de la colección de datos oficial. Este enfoque deriva tanto las preguntas como sus respuestas correctas (\textit{ground truth}) directamente del conjunto de datos sin requerir etiquetado manual, garantizando que el banco crezca de forma escalable si la fuente se amplía en el futuro.
 
-El banco completo contiene 1.023 preguntas, cuya ejecución sobre los cuatro candidatos exigiría más de 4.000 inferencias. La comparación común utiliza una muestra estratificada de 80 preguntas, seleccionada con una semilla fija y compartida por todos los modelos. Una segunda muestra de 250 preguntas compara de forma pareada a \sout{los dos candidatos que permanecen empatados}\textcolor{borrador2}{dos de los tres candidatos que permanecen empatados (\texttt{qwen3.5:9b} y \texttt{gemma3:12b})} en las medidas descriptivas.
+El banco completo contiene 1.023 preguntas, cuya ejecución sobre los cuatro candidatos exigiría más de 4.000 inferencias. La comparación común utiliza una muestra estratificada de 80 preguntas, seleccionada con una semilla fija y compartida por todos los modelos. Una segunda muestra de 250 preguntas compara de forma pareada a dos de los tres candidatos que permanecen empatados (\texttt{qwen3.5:9b} y \texttt{gemma3:12b}) en las medidas descriptivas.
 
-El banco se estructura en seis familias temáticas representativas \sout{del usuario objetivo}\textcolor{borrador2}{del público objetivo}: créditos, curso de impartición, planes de estudio, asignaturas de mención, optativas y catálogo general de la Escuela. La muestra de decisión es estratificada para que todas las familias estén representadas pese al reparto desigual del banco completo.
+El banco se estructura en seis familias temáticas representativas del público objetivo: créditos, curso de impartición, planes de estudio, asignaturas de mención, optativas y catálogo general de la Escuela. La muestra de decisión es estratificada para que todas las familias estén representadas pese al reparto desigual del banco completo.
 
 
 \subsubsection{El umbral del experimento}
@@ -719,7 +718,7 @@ En la muestra común de 80 preguntas, los cuatro candidatos cumplen los dos umbr
 
 La comparación pareada de 250 preguntas aplica el umbral de ninguna titulación inventada a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo: «Grado en Inteligencia Artificial y Cibersegurity», el de una titulación real mal escrito, que la comprobación cuenta igual que uno inventado. Se adopta, por ello \texttt{gemma3:12b}.
 
-La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más lento en el equipo de evaluación. El RNF-04 prioriza expresamente la fidelidad factual sobre la rapidez, y los tiempos medidos describen además un portátil donde parte del modelo se ejecuta en \sout{CPU}\textcolor{borrador2}{\sig{CPU}}.
+La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más lento en el equipo de evaluación. El RNF-04 prioriza expresamente la fidelidad factual sobre la rapidez, y los tiempos medidos describen además un portátil donde parte del modelo se ejecuta en \sig{CPU}.
 
 Asimismo, tal como se justificó en el apartado anterior, penalizar al modelo por su latencia, mediría las restricciones de memoria del hardware de desarrollo y no la capacidad intrínseca de la arquitectura (ADR-0005\cite{repo_tfg}), ya que gran parte del modelo debe ejecutarse en CPU al superar la capacidad de la tarjeta gráfica.
 
@@ -748,7 +747,7 @@ Para plantear esta solución, el sistema utiliza una política de recuperación 
 \end{itemize}
 
 
-Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija \sout{sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación}\textcolor{borrador2}{sin pedir al modelo que redacte, de modo que en ese caso no hay texto generado que pueda inventar}.
+Cuando ningún fragmento supera el suelo de pertinencia, el sistema devuelve una respuesta fija sin llegar siquiera a invocar al modelo para que razone, eliminando por completo la posibilidad de alucinación.
 
 
 \subsubsection{Estructura y composición del \textit{prompt}}
@@ -762,7 +761,7 @@ La instrucción de entrada que el generador ensambla y transmite al modelo de le
     \item \textbf{Instrucciones operativas fijas:} Directivas estrictas que obligan a responder únicamente con la evidencia del contexto, declarar la falta de información cuando proceda y citar la procedencia de cada dato.
     \item \textbf{Oferta oficial del centro:} Relación explícita de las doce titulaciones de la Escuela.
     \item \textbf{Ámbito conversacional:} Titulación activa deducida en el turno actual para contextualizar la búsqueda.
-    \item \textbf{Historial de preguntas del usuario:} Las tres últimas consultas \sout{planteadas por el estudiante}\textcolor{borrador2}{planteadas en la conversación}, utilizadas exclusivamente para resolver dependencias anafóricas.
+    \item \textbf{Historial de preguntas del usuario:} Las tres últimas consultas planteadas en la conversación, utilizadas exclusivamente para resolver dependencias anafóricas.
     \item \textbf{Contexto documental:} Bloques textuales recuperados por LanceDB que superan el umbral de pertinencia, acompañados de sus encabezados identificativos.
     \item \textbf{Pregunta actual:} Consulta del usuario delimitada formalmente para señalar el inicio de la generación.
   \end{itemize}
@@ -773,7 +772,7 @@ La Figura~\ref{fig:prompt_despiezado} despieza esa construcción y señala qué 
 \input{diagramas/DiagramaPromptDespiezado.tex}
 
 
-El mensaje de sistema viaja desacoplado para impedir que el modelo lo confunda con datos documentales. Asimismo, la inclusión exclusiva de \sout{las preguntas del usuario y no}\textcolor{borrador2}{las preguntas, y no} de las respuestas generadas por el asistente previene la retroalimentación de fallos por parte de este.
+El mensaje de sistema viaja desacoplado para impedir que el modelo lo confunda con datos documentales. Asimismo, la inclusión exclusiva de las preguntas del usuario y no de las respuestas generadas por el asistente previene la retroalimentación de fallos por parte de este.
 
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
@@ -806,7 +805,7 @@ La aplicación funciona con un solo proceso de servidor que atiende las pregunta
 
 Para integrar el flujo de procesamiento en el servidor web existían dos opciones: ejecutarlo como un programa independiente en cada consulta o importarlo directamente como biblioteca dentro del servidor. Se eligió la segunda opción por dos motivos fundamentales:
 \begin{itemize}
-  \item \textbf{Latencia:} ejecutarlo de forma independiente obligaría a cargar el modelo de incrustaciones y el índice vectorial desde cero en cada pregunta, haciendo \sout{esperar al usuario varios segundos}\textcolor{borrador2}{esperar varios segundos} en cada mensaje. Al importarlo como biblioteca, ambos se cargan una sola vez al arrancar y quedan listos para responder de inmediato.
+  \item \textbf{Latencia:} ejecutarlo de forma independiente obligaría a cargar el modelo de incrustaciones y el índice vectorial desde cero en cada pregunta, haciendo esperar varios segundos en cada mensaje. Al importarlo como biblioteca, ambos se cargan una sola vez al arrancar y quedan listos para responder de inmediato.
   \item \textbf{Gestión de memoria:} en un equipo doméstico donde el modelo generativo ya ocupa gran parte de la memoria disponible, crear procesos adicionales por cada petición competiría por los recursos restantes.
 \end{itemize}
 
@@ -826,9 +825,9 @@ La lógica y la verificación no residen en el manejador de peticiones \sig{HTTP
 \subsection[La emisión de la respuesta]{La emisión de la respuesta}
 \label{secc:fase3_emision}
 
-El mecanismo el cual la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez \sout{obligaría al usuario a esperar}\textcolor{borrador2}{obligaría a esperar} frente a una interfaz estática durante decenas de segundos, si antes de eso no pensara que el sistema se ha bloqueado.
+El mecanismo el cual la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez obligaría a esperar frente a una interfaz estática durante decenas de segundos, si antes de eso no pensara que el sistema se ha bloqueado.
 
-Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada \sout{que el usuario ya haya leído}\textcolor{borrador2}{que ya se haya leído}.
+Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada que ya se haya leído.
 
 Para juntar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detecta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia. Si el servidor de inferencia falla o la conexión se corta a mitad de la respuesta, la interfaz muestra un aviso de error en lugar de darla por terminada.
 
@@ -847,7 +846,7 @@ Antes de que se programara la interfaz web, se formalizó el diseño conceptual 
 
 \input{diagramas/DiagramaStoryboardChat.tex}
 
-Una parte importante de la interfaz es el panel que muestra la fuentes documentales, este solo se muestra cuando existen fragmentos relevantes recuperados que respalden la afirmación de la repuesta.
+Una parte importante de la interfaz es el panel que muestra las fuentes documentales, este solo se muestra cuando existen fragmentos relevantes recuperados que respalden la afirmación de la respuesta.
 
 También se han tenido en cuenta tres estados de la conversación que la interfaz debe resolver para mantener la usabilidad, mostrados como estados en la Figura~\ref{fig:estados_chat}:
 
@@ -885,7 +884,7 @@ Bajo el área de conversación se ofrecen cuatro posibles preguntas sugeridas a 
 
 El sistema genera 10 plantillas parametrizadas que dan 87 preguntas con respaldo en el corpus. De las cuatro sugerencias mostradas, dos se reservan a la titulación tratada en la conversación actual y dos a otras titulaciones del catálogo. 
 
-Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar \sout{que el usuario asuma}\textcolor{borrador2}{que quien espera asuma} que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
+Por último, la emisión progresiva por fases (Apartado~\ref{secc:fase3_emision}) mitiga la pantalla en blanco ante las grandes pausas entre las respuestas. Para evitar que el usuario asuma que la respuesta ha finalizado prematuramente, la interfaz mantiene un indicador de actividad continuo hasta recibir el cierre del flujo de inferencia.
 
 La Figura~\ref{fig:app_inicio} recoge el estado inicial de la
   aplicación, con la cabecera del asistente y las cuatro sugerencias que resuelven la
@@ -925,5 +924,5 @@ Por último, la Figura~\ref{fig:app_movil} comprueba el requisito de
 \subsection[Registro de actividad para experimentación]{Registro de actividad para experimentación}
 \label{secc:fase3_registro}
 
-Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor puede guardar el registro de las conversaciones si se arranca con la opción \texttt{-{}-registrar}; por defecto no guarda ninguna. La interfaz incluye además una página de privacidad y cookies que lo explica. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos \sout{de los usuarios}\textcolor{borrador2}{de las personas usuarias}.
+Durante la fase de pruebas y evaluación en el entorno local de desarrollo, el servidor puede guardar el registro de las conversaciones si se arranca con la opción \texttt{-{}-registrar}; por defecto no guarda ninguna. La interfaz incluye además una página de privacidad y cookies que lo explica. Este registro se ha pensado únicamente para esta etapa y sirve para auditar las sesiones, en un despliegue en producción no se almacenarían conversaciones ni recursos de las personas usuarias.
 
