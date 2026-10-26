@@ -289,6 +289,7 @@ py scripts/verificadores/check_dataset.py    # integridad de grados/asignaturas/
 py scripts/verificadores/check_chunks.py     # tamaños y deduplicación de los fragmentos
 py scripts/verificadores/check_evalset.py    # el conjunto de evaluación resuelve contra el dataset
 py scripts/verificadores/check_guias_pdf.py  # la extracción de los PDF es fiel a los originales
+py scripts/verificadores/check_accesibilidad.py  # contraste y objetivos WCAG 2.2 AA medibles sin navegador
 ```
 
 `check_guias_pdf.py` compara lo extraído con los PDF que el rastreo guarda en
@@ -309,6 +310,8 @@ py scripts/experimentos/experimento_embeddings.py   # ADR-0003: compara modelos 
 py scripts/experimentos/experimento_vectordb.py     # ADR-0004: compara bases vectoriales
 py scripts/experimentos/experimento_generacion.py   # ADR-0005: compara modelos generativos
 py scripts/experimentos/experimento_recuperacion.py # Recall@K, MRR y rechazo de preguntas ajenas
+py scripts/experimentos/experimento_fragmentacion.py # ADR-0001: rejilla de 45 configuraciones de troceado (≈1 h)
+py scripts/experimentos/comparar_dos_modelos.py     # comparación pareada sobre un registro ya medido (no llama a ningún modelo)
 py scripts/experimentos/experimento_sistema.py --modelos gemma3:12b \
    --registro data/registro_sistema.jsonl \
    --salida docs/experimentos/it38-sistema.md  # el recorrido completo, de punta a punta
@@ -386,8 +389,9 @@ bueno, y el que manda es el que aparece en el `\includegraphics`.
 
 - **Kanban** en GitHub Projects: cada tarea es una *issue* `IT-XX` con fase,
   prioridad MoSCoW y *milestone*.
-- Ramas efímeras desde `main` (código) o `doc` (memoria), nombradas
-  `IT-XX-descripcion-corta`; fusión siempre con *merge commit*, nunca *squash*.
+- Ramas efímeras desde `main`, nombradas `IT-XX-descripcion-corta`; fusión
+  siempre con *merge commit*, nunca *squash*. La memoria LaTeX vive en `memoria/`
+  de `main`, junto al código.
 - **Conventional Commits** (`tipo(IT-XX): descripción`), con el tipo en inglés
   por ser parte del estándar y la descripción en español. Los tipos en uso son
   `feat`, `fix`, `docs`, `test`, `refactor`, `chore` y `ci`. El cuerpo es
