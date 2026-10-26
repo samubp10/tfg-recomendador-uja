@@ -714,7 +714,7 @@ La otra magnitud es el reparto de uso entre la tarjeta gráfica y el procesador.
 
 En la muestra común de 80 preguntas, los cuatro candidatos cumplen los dos umbrales eliminatorios. Los tres modelos de mayor tamaño empatan en precisión, cobertura y acierto escalar, mientras que \texttt{salamandra-7b} queda por detrás en cobertura. Estas medidas no permiten elegir entre \texttt{qwen3.5:9b} y \texttt{gemma3:12b}.
 
-La comparación pareada de 250 preguntas aplica el umbral de ninguna titulación inventada a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo: «Grado en Inteligencia Artificial y Cibersegurity», el de una titulación real mal escrito, que la comprobación cuenta igual que uno inventado. Se adopta, por ello \texttt{gemma3:12b}.
+La comparación pareada de 250 preguntas aplica el umbral de ninguna titulación inventada a una muestra mayor: \texttt{gemma3:12b} no nombra ninguna titulación inexistente y \texttt{qwen3.5:9b} produce un nombre de titulación que no figura en el catálogo: «Grado en Inteligencia Artificial y Cibersegurity», el de una titulación real mal escrito, que la comprobación cuenta igual que uno inventado. Se adopta, por ello, \texttt{gemma3:12b}.
 
 La contrapartida es la latencia, ya que \texttt{gemma3:12b} es el candidato más lento en el equipo de evaluación. El RNF-04 prioriza expresamente la fidelidad factual sobre la rapidez, y los tiempos medidos describen además un portátil donde parte del modelo se ejecuta en \sig{CPU}.
 
