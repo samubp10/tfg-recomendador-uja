@@ -229,7 +229,7 @@ Apartado~\ref{secc:validacion_usuarios}.
 \section[Discusión]{Discusión}
 \label{secc:discusion}
 
-Una vez expuestos los resultados de las pruebas, en este apartado se contrasta lo obtenido frente a lo que se planteó al inicio del proyecto. Para ello, primero se revisa la relación con la propuesta original aprobada, después se analiza el cumplimiento de los objetivos y de la hipótesis de trabajo, y por último se compara el asistente con las soluciones que se revisaron en el Capítulo~\ref{cap:antecedentes}
+Una vez expuestos los resultados de las pruebas, en este apartado se contrasta lo obtenido frente a lo que se planteó al inicio del proyecto. Para ello, primero se revisa la relación con la propuesta original aprobada, después se analiza el cumplimiento de los objetivos y de la hipótesis de trabajo, y por último se compara el asistente con las soluciones que se revisaron en el Capítulo~\ref{cap:antecedentes}.
 
 \subsection[Correspondencia con la propuesta original]{Correspondencia con la propuesta original}
 \label{secc:discusion_correspondencia}
@@ -258,7 +258,7 @@ En esta subsección se analiza y discute si se ha cumplido cada uno de los seis 
         \textit{Cumplido.} La experimentación en rejilla de 45 configuraciones permitió fijar los parámetros óptimos de tamaño. Los resultados de esto evidenciaron que a igualdad de longitud, las diferencias de recuperación entre estrategias eran mínimas, y por ello se adoptó la estrategia de partición estructural para preservar las unidades temáticas completas y evitar la mezcla de asignaturas en la fase generativa.
         
   \item \textbf{OE3 --- Selección del modelo de incrustaciones y base vectorial: }
-        \textit{Cumplido}. La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscando por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que, dado el tamaño de la colección actual, ninguna de las tres candidatas medidas gana a la fuerza bruta.
+        \textit{Cumplido.} La elección del modelo de incrustaciones estuvo condicionada por el tamaño de este y el hecho de que tuviera que ser capaz de ejecutarse en la máquina de trabajo, buscando por ello un equilibrio entre calidad y consumo de recursos. Asimismo, la adopción de la base vectorial se justifica por la persistencia de datos, el tipado de metadatos y la reproducibilidad, asumiendo que, dado el tamaño de la colección actual, ninguna de las tres candidatas medidas gana a la fuerza bruta.
         
   \item \textbf{OE4 --- Implementación del flujo de procesamiento RAG en local:}
         \textit{Cumplido.} El sistema opera de extremo a extremo sobre hardware doméstico integrando una arquitectura de tres barreras de control desacopladas, que son las que describe el Apartado~\ref{secc:fase2_dominio}, el suelo de pertinencia, la
@@ -279,17 +279,17 @@ La hipótesis de trabajo formulada en la Sección~\ref{secc:hipotesis} sostenía
 
 
 \begin{itemize}    
-  \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados.} 
-        \textit{Cumplido.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúa entre el 90,6\,\% en el extremo más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$). 
+  \item \textbf{Condición 1 --- Inclusión de la unidad en los fragmentos recuperados:}
+        \textit{Cumplida.} La condición exige que el recuperador sitúe el fragmento requerido dentro del conjunto de fragmentos que se le entregan al modelo. En este sistema, el modelo no utiliza un número fijo de fragmentos, sino un valor de $k$ dinámico (una banda de entre 3 y 20 fragmentos regulada por corte relativo y suelo de pertinencia). Como reflejan las mediciones de la Tabla~\ref{tab:recuperacion}, la exhaustividad por unidad se sitúa entre el 90,6\,\% en el extremo más restrictivo ($k=3$) y el 99,1\,\% en el más permisivo ($k=10$). 
         
         
   \item \textbf{Condición 2 --- Ningún dato inventado:} 
-        \textit{Cumplido.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, no se registró ninguna titulación inventada en las respuestas del modelo elegido. La verificación determinista retira las respuestas que mencionan grados inexistentes o ajenos a la Escuela.
+        \textit{Cumplida.} Tanto en las preguntas del cribado de modelos generativos como en las evaluaciones del banco del sistema completo, no se registró ninguna titulación inventada en las respuestas del modelo elegido. La verificación determinista retira las respuestas que mencionan grados inexistentes o ajenos a la Escuela.
         
-  \item \textbf{Condición 3 --- Proporción de respuestas útiles}
+  \item \textbf{Condición 3 --- Proporción de respuestas útiles:}
         \textit{Cumplida.} Sobre las preguntas de dominio del banco del sistema, ninguna de las respuestas inferidas por el modelo fue evasiva sin justificación, superando el 90\,\% fijado.
         
-  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida}. Sobre las 57 preguntas del banco, con el modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 39,4 segundos, superando el umbral de 30 segundos.
+  \item \textbf{Condición 4 --- Mediana de tiempo de respuesta inferior a treinta segundos:} \textit{No cumplida.} Sobre las 57 preguntas del banco, con el modelo generativo \texttt{gemma3:12b} sobre el equipo doméstico, la mediana de tiempo de respuesta es de 39,4 segundos, superando el umbral de 30 segundos.
 \end{itemize}
 
 El incumplimiento de la cuarta condición es la consecuencia directa del requisito \textbf{RNF-04} (Tabla~\ref{tab:requisitos_no_funcionales}), que antepone la fidelidad de la respuesta por encima del tiempo de esta.
