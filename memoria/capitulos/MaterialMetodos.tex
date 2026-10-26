@@ -7,7 +7,7 @@ Este capítulo traduce los objetivos formulados en el Capítulo~\ref{cap:objetiv
 
 \section{Metodología de trabajo}
 
-Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las \coloquial{tareas,pudiendo}{tareas, pudiendo} eliminarlas, añadirlas o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
+Dada la naturaleza exploratoria y de investigación de este Trabajo Fin de Grado, se ha descartado el uso de metodologías tradicionales en cascada o de marcos ágiles rígidos diseñados para equipos grandes (como Scrum), cuyo sobrecoste de gestión resultaría ineficiente para un único desarrollador. En su lugar, se ha adoptado una metodología ágil basada en \textbf{\gl{Kanban}}\cite{anderson2010kanban}, priorizando la flexibilidad de las tareas, pudiendo eliminarlas, añadirlas o modificarlas, la entrega continua de valor y la adaptación del código ante los descubrimientos realizados sobre los datos de la fuente y los cambios de la misma.
 
 Además de esta metodología para la gestión de tareas, el proyecto se apoya en cuatro pilares de ingeniería de \textit{software}: gestión visual del trabajo, control de versiones trazable, \sig{integración continua} y un estándar de calidad.
 
@@ -152,7 +152,7 @@ Esta macroplanificación iterativa se ilustra en el diagrama de Gantt de la Figu
         preuniversitario, que quedaron fuera del alcance por las razones que expone el
         Apartado~\ref{secc:validacion_usuarios}.
         
-  \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral \coloquial{(Aunque la memoria se está haciendo a la par que el desarrollo)}{(la memoria se ha redactado en paralelo al desarrollo)}.
+  \item \textbf{Fase 5 (Cierre y memoria):} Volcado final de documentación técnica, revisión de los resultados experimentales y preparación del material de defensa oral (la memoria se ha redactado en paralelo al desarrollo).
         
 \end{itemize}
 
@@ -198,8 +198,7 @@ el \textit{backlog} es un artefacto vivo y ha crecido durante el desarrollo.
 Para estimar el coste se ha empleado la técnica de las \textbf{tallas de
   camiseta} (\textit{t-shirt sizing}), que asigna a cada historia una talla
 relativa en lugar de una cifra de horas. Las estimaciones en horas dan una falsa sensación de precisión y,
-en un trabajo con una fuerte componente de investigación \coloquial{(donde una tarde puede
-irse en descubrir que la web codifica mal sus propias páginas)}{(donde descubrir que la web codifica mal sus propias páginas puede llevar una sesión entera)}, resultan poco
+en un trabajo con una fuerte componente de investigación (donde descubrir que la web codifica mal sus propias páginas puede llevar una sesión entera), resultan poco
 fiables y variables. Comparar tamaños relativos es más honesto y, sobre todo, más útil.
 
 Las tallas empleadas son:
@@ -210,7 +209,7 @@ Las tallas empleadas son:
   \item \textbf{S:} una sola unidad de trabajo bien acotada, resoluble en una
         sesión (un script pequeño con sus pruebas, o un registro de decisión).
   \item \textbf{M:} exige varias sesiones o tomar decisiones de diseño no
-        triviales (\coloquial{una araña que debe lidiar con}{un rastreador que debe tratar} anomalías de la fuente).
+        triviales (un rastreador que debe tratar anomalías de la fuente).
   \item \textbf{L:} implica experimentación con resultados abiertos: no se
         sabe de antemano cuánto costará porque depende de lo que muestren los datos
         (la comparativa de modelos de incrustaciones o la evaluación del sistema
@@ -227,7 +226,7 @@ sería la primera candidata a quedar fuera.
 Cada historia se identifica con un código IT-XX que se usa en todo el proyecto: da nombre a la rama de trabajo, aparece en el ámbito de cada confirmación de código (\texttt{feat(IT-05): \ldots}) y etiqueta
 la incidencia correspondiente en el repositorio, de modo que cualquier línea de código puede rastrearse hasta la necesidad que la originó.
 
-A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y \coloquial{desarrollar todas y cada una de ellas aquí lo único que haría sería introducir datos e información poco útil y poco necesaria para este proyecto de investigación}{detallarlas aquí una a una aportaría poco a este trabajo}. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de confirmaciones y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
+A lo largo del proyecto se han creado muchas historias de usuario de diferentes tipos, dificultad y duración y detallarlas aquí una a una aportaría poco a este trabajo. Es por ello por lo que se ha recogido en la Tabla~\ref{tab:resumen_backlog} cuántas tarjetas hay en cada fase del proyecto y de qué tipo. El detalle de cada historia, así como su descripción, el historial de confirmaciones y otra información relevante queda accesible en el gestor de incidencias del repositorio \cite{repo_tfg}.
 
 
 \input{tablas/TablaResumenBacklog.tex}
@@ -252,7 +251,7 @@ y generación) ha sido probado y ejecutado sobre un único equipo portátil dom�
 características recoge la Tabla~\ref{tab:equipo}. Este equipo no es un detalle de implementación, sino que es una restricción de diseño que
 aparece nombrada en la hipótesis de trabajo (Sección~\ref{secc:hipotesis}) y que ha condicionado las decisiones tomadas al no poder contar con un equipo más potente que hubiera permitido emplear modelos mejores y más grandes.
 
-El recurso que más pesa hoy en día en inteligencia artificial \coloquial{es, sin lugar a dudas, la memoria principal}{es la memoria principal}, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.
+El recurso que más pesa hoy en día en inteligencia artificial es la memoria principal, y es el mayor limitante de este equipo: en ella tienen que convivir el modelo de incrustaciones, el modelo de lenguaje generativo con su contexto y la base de datos vectorial con las incrustaciones de la colección, y esa suma es la que impide elegir modelos de más prestaciones.
 
 \input{tablas/TablaEquipo.tex}
 
@@ -262,11 +261,11 @@ El recurso que más pesa hoy en día en inteligencia artificial \coloquial{es, s
 Como se observa en la Figura~\ref{fig:arquitectura_pipeline}, primero se obtienen los datos necesarios para las recomendaciones (grados, asignaturas, guías y salidas laborales). Antes de fragmentarse, ese texto pasa por el módulo de limpieza, que corrige la codificación y repara las \sig{URL} rotas de la fuente directamente extraída de la página web oficial. Este paso no aparece como caja propia en la Figura~\ref{fig:arquitectura_pipeline} porque se ejecuta dentro del propio rastreador, sobre cada ítem según se extrae, y no como una etapa posterior independiente. A continuación, el texto se pasa por el fragmentador (\textit{chunker}), que lo parte en fragmentos manejables para el modelo de incrustaciones, según se detalla en la Sección~\ref{subsec:chunking}.
 
 
-\coloquial{Con estos trozos de información}{Con estos fragmentos} se calculan sus incrustaciones, que son las que se introducen en la base de datos vectorial.
+Con estos fragmentos se calculan sus incrustaciones, que son las que se introducen en la base de datos vectorial.
 
 Por último llega el \textit{pipeline} RAG: tras recibir la pregunta, el sistema, utilizando como memoria la base de datos vectorial, recupera los fragmentos pertinentes a la pregunta y responde. Con esta última fase se interactúa mediante la aplicación web.
 
-Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: \coloquial{el primero no sabe nada de cómo se va a fragmentar el texto que extrae, y el segundo no sabe nada de cómo se obtuvo el texto que recibe, solo que le llega}{el primero desconoce cómo se fragmentará el texto que extrae y el segundo desconoce cómo se obtuvo el texto que recibe; solo trabaja sobre} el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
+Cabe recalcar que el rastreador y el fragmentador son dos módulos independientes: el primero desconoce cómo se fragmentará el texto que extrae y el segundo desconoce cómo se obtuvo el texto que recibe; solo trabaja sobre el fichero que contiene todos los datos en crudo. Esta separación es intencionada: volver a fragmentar es una operación barata que se repite muchas veces durante la experimentación, mientras que volver a rastrear la web es costoso y multiplica las peticiones al servidor de la universidad. El razonamiento completo, con la evidencia que lo sostiene, se recoge en la Sección~\ref{secc:verificacion_fase0} y en el ADR-0001.
 
 
 \input{diagramas/DiagramaArquitecturaPipeline.tex}
@@ -275,7 +274,7 @@ Cabe recalcar que el rastreador y el fragmentador son dos módulos independiente
 \section{Diseño de los datos}
 
 
-El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos \coloquial{trozos totales}{fragmentos} se ha dividido la unidad original (asignatura, salida o guía) y el índice del \coloquial{trozo de información}{fragmento}.
+El diagrama de clases de la Figura~\ref{fig:modelo_datos} recoge las diferentes estructuras de datos de la aplicación, que pueden dividirse en dos partes claras: la primera es la de los datos en crudo extraídos de la web, como la relacionada con los grados y las asignaturas, cada cual con su guía docente (si está disponible) y sus salidas. Toda esta información converge y se trocea para dar lugar a los fragmentos (\textit{chunks}), que además contienen un entero que indica en cuántos fragmentos se ha dividido la unidad original (asignatura, salida o guía) y el índice del fragmento.
 
 \input{diagramas/DiagramaModeloDatos.tex}
 
@@ -312,7 +311,7 @@ Alimentar un sistema RAG con datos ruidosos o enlaces rotos desencadenaría el a
 \subsection[Elección de la herramienta de extracción]{Elección de la herramienta de extracción}
 \label{sec:eleccion_herramientas}
 
-Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado \coloquial{tres claras opciones}{tres alternativas}, las cuales se comentan en los apartados siguientes.
+Como lenguaje base se ha utilizado Python en su versión 3.13 y, para la extracción de datos, se han estudiado tres alternativas, las cuales se comentan en los apartados siguientes.
 
 \subsubsection{Scrapy\cite{scrapy}}
 
@@ -384,7 +383,7 @@ No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
-La Figura ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, \coloquial{nada más extraída}{recién extraída} de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartados y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los trece rótulos los que pasan la limpieza y el resto se descarta.
+La Figura ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, recién extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartados y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los trece rótulos los que pasan la limpieza y el resto se descarta.
 
 \input{diagramas/DiagramaAnatomiaGuia.tex}
 
@@ -404,7 +403,7 @@ uno por cada uno de los siete grados simples. En el caso de los dobles grados, s
 
 Durante el análisis del corpus recopilado se detectó una notable redundancia estructural en la fuente oficial. Las asignaturas de los primeros cursos de las carreras de ingeniería (como \textit{Física} o \textit{Matemáticas I}) comparten una guía docente idéntica.
 
-Esta duplicidad afecta negativamente a la fase de recuperación del sistema RAG ya que varios fragmentos exactos \coloquial{pelearían por}{competirían por} un puesto limitado del \textit{ranking} ($Top\text{-}K$). Para solventarlo, se implementó un proceso de eliminación de duplicidades previo a la fragmentación, conservando un único documento por grupo y consolidando en listas paralelas los identificadores y grados donde se imparte (\texttt{grados} y \texttt{codigos}).
+Esta duplicidad afecta negativamente a la fase de recuperación del sistema RAG ya que varios fragmentos exactos competirían por un puesto limitado del \textit{ranking} ($Top\text{-}K$). Para solventarlo, se implementó un proceso de eliminación de duplicidades previo a la fragmentación, conservando un único documento por grupo y consolidando en listas paralelas los identificadores y grados donde se imparte (\texttt{grados} y \texttt{codigos}).
 
 \subsubsection{Criterio de identidad y selección de la clave (ADR-0001)}
 \label{secc:criterio_identidad_deduplicacion}
@@ -435,7 +434,7 @@ El conjunto de datos no se incluye en el repositorio en GitHub debido al tamaño
 \section[Fase 1: Fragmentación e Incrustaciones]{Fase 1: Fragmentación e Incrustaciones}
 \label{secc:fase1}
 
-Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraídas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exige, pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, \coloquial{en qué trozos se parte la colección (y cómo), y con qué modelo se convierten esos trozos en vectores}{cómo se divide la colección en fragmentos y con qué modelo se convierten esos fragmentos en vectores}. Ambas se eligen de manera experimental.
+Con la colección de datos ya recuperada, esta fase resuelve el problema de poder buscar en ella por el significado de las unidades extraídas y no por simple coincidencia de palabras que se podría hacer con un \texttt{grep}. Este procedimiento exige, pues, convertir cada texto extraído en un vector, y antes de eso, decidir dos cosas de este proceso, cómo se divide la colección en fragmentos y con qué modelo se convierten esos fragmentos en vectores. Ambas se eligen de manera experimental.
 
 Primero se presenta el instrumento con el que se mide, que es el conjunto de preguntas creadas, después el troceado, con el experimento que fija sus parámetros, y por último el modelo de incrustaciones.
 
@@ -455,14 +454,14 @@ Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuper
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
 
-\coloquial{Los datos o corpus se tienen que trocear debido a}{El corpus debe fragmentarse debido a} la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. \coloquial{El cómo se trocean y la cantidad en cada trozo es lo que se va a decidir en este apartado.}{Este apartado decide cómo se divide y qué tamaño tiene cada fragmento.}
+El corpus debe fragmentarse debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. Este apartado decide cómo se divide y qué tamaño tiene cada fragmento.
 
 \subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
 
-El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\,\% de las guías no caben en un fragmento de 900 caracteres y el 83\,\% tampoco en uno de 1.500. \coloquial{Si se dejaran tal cual}{Si no se dividieran}, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas \coloquial{perdiendo información en el camino}{con la consiguiente pérdida de información}.
+El cuerpo de una guía docente ocupa una mediana de 2.653 caracteres y algunas de ellas llegan hasta los 24.047 caracteres, de modo que el 99\,\% de las guías no caben en un fragmento de 900 caracteres y el 83\,\% tampoco en uno de 1.500. Si no se dividieran, el algoritmo de indexación obligaría al modelo a recortar la mayoría de estas con la consiguiente pérdida de información.
 
-A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede \coloquial{saltar,}{incumplir:}
+A esa restricción de tamaño se suma una restricción de diseño que el sistema no puede incumplir:
 un fragmento nunca puede mezclar contenido de dos asignaturas distintas, porque un fragmento así recuperado atribuiría a una asignatura el temario de otra.
 
 Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla~\ref{tab:alternativas_chunking}. Esta misma tabla dice el nombre de la estrategia y la descripción de lo que haría el algoritmo. La cuarta estrategia se nombra como una que se pensó en un inicio, pero por los argumentos dados anteriormente se descarta sin llegar a medirla, las otras tres pasan por el experimento. El registro de decisión de arquitectura ADR-0001\cite{repo_tfg} recoge el
@@ -470,8 +469,7 @@ Con esas dos condiciones se compararon cuatro estrategias, recogidas en la Tabla
 
 \input{tablas/TablaAlternativasChunking.tex}
 
-\coloquial{De las otras tres opciones no se puede saber, solo leyendo su descripción, cuál es mejor, así que
-se miden.}{La descripción de las otras tres no basta para saber cuál es mejor, por lo que se miden.} Lo que sigue es el diseño de esa comparación; sus cifras, por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
+La descripción de las otras tres no basta para saber cuál es mejor, por lo que se miden. Lo que sigue es el diseño de esa comparación; sus cifras, por la estructura que exige la memoria, están en el Capítulo~\ref{cap:resultados}.
 
 
 \subsubsection[Experimento en rejilla]{Experimento en rejilla}
@@ -487,7 +485,7 @@ Las tres estrategias y sus diferentes configuraciones trabajan bajo los mismos d
 El procedimiento seguido en este experimento en cada una de las cuarenta y cinco configuraciones es el mismo, se parte de la colección recogida con el rastreador web, y cada configuración tiene que trocear la colección entera desde el principio, para luego evaluar cómo lo hace con las preguntas del conjunto de evaluación.
 
 El modelo de incrustaciones elegido en el ADR-0003, el cual tiene su propio apartado en la Sección~\ref{secc:resultados_embeddings}, se carga una sola vez para toda la
-ejecución, y de él se toman dos funciones distintas: la primera convierte los \coloquial{trozos}{fragmentos} en vectores y la segunda es su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
+ejecución, y de él se toman dos funciones distintas: la primera convierte los fragmentos en vectores y la segunda es su analizador léxico, que se utiliza para saber cuántos fragmentos superan la ventana de contexto. 
 
 El recorrido del experimento se organiza por tamaño máximo, de menor a mayor. Antes de generar las diferentes configuraciones de cada tamaño en específico, se trocea una vez la colección con la estrategia de referencia (que en este caso es la estrategia estructural por unidad semántica), esto se hace para medir la distribución de distancias entre las incrustaciones de piezas consecutivas del texto. De esta distribución salen los tres umbrales de la estrategia semántica. Se ha elegido usar percentiles en vez de distancias absolutas debido a que estos se adaptan a la distribución creada por ese modelo en específico, y se recalcula para cada tamaño máximo que en las siguientes iteraciones cambiará.
 
@@ -495,7 +493,7 @@ Con los umbrales ya calculados de la estrategia de referencia, se generan las nu
 
 De cada configuración se registran las métricas para cada uno, tres, cinco, diez y quince resultados (valores de $k$), el número de fragmentos generados, su tamaño mediano y cuántos de ellos superan la ventana del modelo y se truncan por ello. Recogidos todos los valores anteriores, se restaura el conjunto de datos original antes de pasar a la siguiente configuración para que ninguna iteración quede contaminada por la anterior.
 
-\coloquial{Cabe recalcar que hacer de nuevo el experimento tarda alrededor de una hora y es determinista, por lo que si se volviera a repetir una y otra vez sin cambiar nada, daría los mismos resultados.}{Repetir el experimento lleva alrededor de una hora y, al ser determinista, produce los mismos resultados en cada ejecución.}
+Repetir el experimento lleva alrededor de una hora y, al ser determinista, produce los mismos resultados en cada ejecución.
 
 
 \subsubsection[El algoritmo de troceado y sus parámetros]{El algoritmo de troceado y sus parámetros}
@@ -540,7 +538,7 @@ A partir de la colección y en código, se ha decidido generar fragmentos deriva
 
 Estas preguntas son del tipo de conteo como <<¿Cuántas asignaturas tiene el Grado en Ingeniería Informática?>> o de agregación como <<¿Qué asignaturas optativas tiene el Grado en Ingeniería Informática?>>. Estas harían que se recogieran muchos fragmentos, incluso más que el $k$ establecido, degradando en gran medida la respuesta final.
 
-Sin embargo, \coloquial{si estas respuestas que se pueden calcular fácilmente se hacen previo a la indexación de la colección}{si estas respuestas, fáciles de calcular, se generan antes de indexar la colección}, se evita este problema y se hacen las respuestas más deterministas.
+Sin embargo, si estas respuestas, fáciles de calcular, se generan antes de indexar la colección, se evita este problema y se hacen las respuestas más deterministas.
 
 \subsection[Selección del modelo de incrustaciones]{Selección del modelo de incrustaciones}
 \label{secc:fase1_embeddings}
@@ -550,7 +548,7 @@ Las cifras resultantes del experimento (los cuatro modelos, sus métricas y el d
 
 \subsubsection{Diseño de la comparación}
 
-La elección del modelo de incrustaciones o modelo de \textit{embedding} se resolvió de forma experimental y no únicamente por ficha técnica \coloquial{u opiniones en internet}{}, comparando varios candidatos sobre los mismos fragmentos, los que produce la estrategia fijada en la Sección~\ref{secc:troceado_algoritmo} y sobre el conjunto de preguntas usadas también en el anterior experimento, lo único que varía de iteración a iteración es el modelo.
+La elección del modelo de incrustaciones o modelo de \textit{embedding} se resolvió de forma experimental y no únicamente por ficha técnica u opiniones en internet, comparando varios candidatos sobre los mismos fragmentos, los que produce la estrategia fijada en la Sección~\ref{secc:troceado_algoritmo} y sobre el conjunto de preguntas usadas también en el anterior experimento, lo único que varía de iteración a iteración es el modelo.
 
 Se emplean dos medidas: la primera cuenta cuántos fragmentos han sido recuperados y describe la cobertura del sistema, y la segunda cuenta unidades (la asignatura completa, independientemente de en cuántos fragmentos se haya dividido). Si estos son muy dispares hay un problema, por ejemplo, si el sistema encuentra la asignatura correcta pero no todos sus fragmentos, el problema no está en la recuperación sino en el criterio con el que se delimitan las unidades.
 
@@ -562,7 +560,7 @@ Para la elección de los candidatos se buscó la mayor variedad posible, por lo 
 
 De los cuatro candidatos, los dos que dieron mejores resultados pertenecen a la misma familia de modelos y se diferencian solamente en el tamaño, con casi cinco veces más parámetros el modelo mayor. Si se acude a los resultados del Apartado~\ref{secc:resultados_embeddings}, se observa que es el modelo más grande el que es más eficaz y arroja mejores resultados, sin embargo, la pregunta es otra: ¿se puede justificar la mejoría con el gasto en procesamiento extra que conlleva?
 
-Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda \coloquial{bastante más}{5,6 veces más} (Apartado~\ref{secc:resultados_embeddings}) en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. \coloquial{El coste que sí importa mayormente sería el que hay que pagar cuando el modelo está en ejecución, ya que esto en el caso de este proyecto es grave puesto que tendrá que convivir}{El coste determinante es el de ejecución, ya que el modelo tiene que convivir} en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
+Al llevar a cabo los experimentos, se pudo apreciar que el modelo grande tarda bastante más (Apartado~\ref{secc:resultados_embeddings}) en incrustar la colección completa, aunque esto no sea tan grave dado que este proceso de indexación solo se realiza cuando cambia la colección de datos. El coste determinante es el de ejecución, ya que el modelo tiene que convivir en memoria principal junto con el LLM pudiendo llegar incluso a fallar por falta de espacio.
 
 Se elige por tanto de los dos mejores modelos, el modelo pequeño (\texttt{multilingual-e5-small}), porque aunque no sea la opción más potente, dadas las circunstancias del trabajo es la opción más viable.
                                  
@@ -583,13 +581,13 @@ Este apartado recoge el diseño experimental, el cual conlleva hablar de qué se
 
 \subsubsection[Diseño de la comparación]{Diseño de la comparación}
 
-Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, \coloquial{del cual ya se ha hablado anteriormente en esta memoria}{descrito anteriormente}. \coloquial{A estas se les añadió una más, la cual es la fuerza bruta,}{A estas se añadió la búsqueda por fuerza bruta,} implementada con operaciones de álgebra matricial sobre la matriz de vectores. \coloquial{Esta última, la cual es NumPy, sirve}{Esta última, implementada con NumPy, sirve} para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con los datos de este trabajo, es la opción más rápida.
+Se comparan tres bases de datos vectoriales sobre el corpus completo y las preguntas del conjunto de evaluación, descrito anteriormente. A estas se les añadió una más, la cual es la fuerza bruta, implementada con operaciones de álgebra matricial sobre la matriz de vectores. Esta última, implementada con NumPy, sirve para dos cosas, ser la referencia con la que se comprueba si una base pierde vecinos y por ello contexto para la respuesta, y ser la línea base de velocidad, dado que con los datos de este trabajo, es la opción más rápida.
 
-Para este experimento, se \coloquial{cogen}{toman} las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal \coloquial{al tener que meter el índice en memoria y contaminaría}{al tener que cargar el índice en memoria, y contaminarían} la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
+Para este experimento, se toman las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que cargar el índice en memoria, y contaminarían la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
-\subsubsection[Las candidatas y por qué esas]{\coloquial{Las candidatas y por qué esas}{Justificación de las candidatas}}
+\subsubsection[Las candidatas y por qué esas]{Justificación de las candidatas}
 
-Las tres candidatas tienen una licencia \coloquial{que casa con}{compatible con} la de este proyecto, que es la \sig{GPL} versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
+Las tres candidatas tienen una licencia compatible con la de este proyecto, que es la \sig{GPL} versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
 
 Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y Qdrant Edge por estar en un estado de desarrollo muy prematuro, Milvus y Weaviate por estar pensadas para corpus enormes, FAISS por ser una biblioteca de índices y no una base de datos, y pgvector por exigir un PostgreSQL completo (ADR-0004).
 
@@ -600,7 +598,7 @@ Se barajaron otras opciones y se descartaron sin medirlas: \texttt{sqlite-vec} y
 Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX, siendo X el número del umbral. Estos se agrupan en tres clases:
 
 \begin{itemize}
-    \item \textbf{Eliminatorios: } son condiciones que hay que cumplir \coloquial{sí o sí}{obligatoriamente,} como la \glp{fidelidad exacta}{fidelidad del índice} respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar, además de que los resultados se repitan al reconstruir el índice.
+    \item \textbf{Eliminatorios: } son condiciones que hay que cumplir obligatoriamente, como la \glp{fidelidad exacta}{fidelidad del índice} respecto a la búsqueda por fuerza bruta, filtrado de metadatos sin ningún falso positivo, una cota superior de latencia que no se puede superar y otra cota de memoria residente que no puede sobrepasar, además de que los resultados se repitan al reconstruir el índice.
     \item \textbf{Comparativos: } contemplan un margen por debajo del cual dos candidatas se declaran equivalentes.
     \item \textbf{Desempate: } Se resuelve en hechos verificables como por ejemplo si hace falta levantar un servicio aparte, si hay que declarar un esquema, cuántos índices de apoyo hay que crear, es decir, se elige por simplicidad.
 \end{itemize}
@@ -611,13 +609,13 @@ Antes de realizar el experimento, se pusieron ocho umbrales etiquetados como UX,
 \subsubsection[Elección final]{Elección final}
 \label{secc:eleccion_lancedb}
 
-De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta en una parte de las reconstrucciones del índice (Apartado~\ref{secc:resultados_vectordb}). A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, \coloquial{este error es fatal}{este error resulta inaceptable}.
+De las tres candidatas, ChromaDB no alcanza la fidelidad exacta que exige el primer umbral ya que pierde fragmentos de cara a la respuesta en una parte de las reconstrucciones del índice (Apartado~\ref{secc:resultados_vectordb}). A una escala superior, esta pérdida sería minúscula y se compensaría con la velocidad de respuesta, pero a esta escala minúscula de datos, este error resulta inaceptable.
 
-Entre las otras dos opciones que \coloquial{quedan de pie}{quedan}, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, \coloquial{luego LanceDB gana}{mientras que LanceDB gana} en construcción a Qdrant pero como la diferencia cae dentro de la banda de indiferencia de 50 ms, no cabe fijarse en esto para establecer la decisión.
+Entre las otras dos opciones que quedan, no se decide únicamente por rendimiento. Qdrant responde algo más rápido que LanceDB, pero la diferencia es de milisegundos, mientras que LanceDB gana en construcción a Qdrant pero como la diferencia cae dentro de la banda de indiferencia de 50 ms, no cabe fijarse en esto para establecer la decisión.
 
-Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. \coloquial{También ayuda que LanceDB es la opción que menos pesa de las tres.}{Además, LanceDB es la opción que menos memoria ocupa de las tres.}
+Lo que decide la tecnología es el desempate por simplicidad, ya que Qdrant necesita un servicio aparte en un contenedor y LanceDB se ejecuta dentro del propio proceso. La aplicación web pasaría de tener una arquitectura monolítica a depender de que el mismo equipo u otro levante un contenedor. Además, LanceDB es la opción que menos memoria ocupa de las tres.
 
-La ganadora del experimento es por tanto \textbf{LanceDB}, \coloquial{pero hay que decir que ninguna candidata gana a la búsqueda exacta por fuerza bruta y es que en este caso la colección de datos es pequeña, pero si escaláramos estos datos a toda la universidad}{aunque ninguna candidata supera a la búsqueda exacta por fuerza bruta, ya que la colección es pequeña. Si los datos se extendieran a toda la universidad}, como la complejidad de este método es lineal, dejaría de ser efectiva, \coloquial{y es precisamente con este enfoque con el que se aborda este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.}{y la base vectorial permite que la colección crezca sin cambiar de herramienta.}
+La ganadora del experimento es por tanto \textbf{LanceDB}, aunque ninguna candidata supera a la búsqueda exacta por fuerza bruta, ya que la colección es pequeña. Si los datos se extendieran a toda la universidad, como la complejidad de este método es lineal, dejaría de ser efectiva, y es precisamente con este enfoque con el que se aborda este caso, obtener una herramienta ahora para el día de mañana aumentar los datos sin tener que tocar esta herramienta.
 
 La Figura~\ref{fig:comparativa_vectordb} resume el recorrido de la comparación que muestra qué se midió en cada candidata y qué umbral decidió el descarte.
 
@@ -628,9 +626,9 @@ La Figura~\ref{fig:comparativa_vectordb} resume el recorrido de la comparación 
 
 El índice es una estructura de datos organizada y optimizada donde se almacena la colección de fragmentos generada por la fase anterior, de la cual también se descarta el registro de procedencia que encabeza el fichero ya que este describe de cuándo es el corpus y no es contenido realmente útil para el sistema. El índice actúa como la memoria del sistema de este proyecto, de modo que cada fragmento de la colección queda registrado de forma indisociable junto a su vector de incrustación y a sus metadatos asociados (titulaciones, códigos de asignatura y tipología). 
 
-Este índice se reconstruye entero en cada ejecución en lugar de actualizarse de forma incremental, ya que reconstruirlo cuesta minutos y garantiza que el índice siempre coincida con la colección de fragmentos, mientras que hacer actualizaciones parciales \coloquial{obligaría a tener más factores en cuenta innecesarios a este coste de reconstrucción}{añadiría una complejidad innecesaria para un coste de reconstrucción tan bajo}. El índice es un producto regenerable y derivado de la fuente de verdad que son los datos extraídos de la web de EPSJ.
+Este índice se reconstruye entero en cada ejecución en lugar de actualizarse de forma incremental, ya que reconstruirlo cuesta minutos y garantiza que el índice siempre coincida con la colección de fragmentos, mientras que hacer actualizaciones parciales añadiría una complejidad innecesaria para un coste de reconstrucción tan bajo. El índice es un producto regenerable y derivado de la fuente de verdad que son los datos extraídos de la web de EPSJ.
 
-Los tipos de datos de cada columna se establecen \coloquial{antes de dejar que la base de datos adivine los tipos, pudiendo poner uno que no sea el correcto}{de forma explícita, en lugar de dejar que la base de datos los infiera y pueda equivocarse}. Esto se hace así dado que la base de datos deduce el tipo de cada columna a partir de los valores del primer lote de datos, resultando que si este primer lote viniera sin códigos de asignatura, la base podría poner un tipo equivocado pensando que nunca hay códigos numéricos ahí.
+Los tipos de datos de cada columna se establecen de forma explícita, en lugar de dejar que la base de datos los infiera y pueda equivocarse. Esto se hace así dado que la base de datos deduce el tipo de cada columna a partir de los valores del primer lote de datos, resultando que si este primer lote viniera sin códigos de asignatura, la base podría poner un tipo equivocado pensando que nunca hay códigos numéricos ahí.
 
 Las titulaciones y asignaturas se guardan como listas paralelas y no como una sola cadena de texto para garantizar un filtrado exacto. Esto evita que las búsquedas por subcadena arrastren fragmentos erróneos en grados cuyos nombres están contenidos dentro de otros más largos (como ocurre en el \texttt{Grado en Ingeniería eléctrica} frente al \texttt{Doble Grado con Mecánica}.) De este modo se evita recoger más fragmentos de los necesarios para no contaminar el modelo generativo.
 
@@ -641,9 +639,9 @@ Por último, este índice registra tres datos importantes, como con qué modelo 
 \subsection[La conversación con el asistente]{La conversación con el asistente y el problema con el contexto}
 \label{secc:fase2_conversacion}
 
-Quien usa la aplicación \coloquial{no tiene un guion montado sobre qué decir, es decir, no preguntará}{no sigue un guion: no formulará} cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, \coloquial{sino que se tiene que sacar por contexto anterior}{sino que debe deducirse del contexto anterior}.
+Quien usa la aplicación no tiene un guion montado sobre qué decir, es decir, no preguntará cuestiones perfectamente escritas, sino que hará referencia a anteriores respuestas y cuestiones y seguramente tenga faltas de ortografía, haciendo que el sistema pudiera no entender completamente las consultas. Estas preguntas implícitas podrían ser tales como <<¿Y segundo?>>, que no dice en la misma pregunta de qué titulación está hablando, o <<¿Y el doble grado?>>, que tampoco hace referencia a la titulación de la que se tiene que buscar la doble titulación, sino que debe deducirse del contexto anterior.
 
-\coloquial{Esto genera un problema y es el del contexto de la conversación y es un problema serio puesto que si no se tuviera en cuenta}{Esto plantea el problema del contexto de la conversación. Si no se tuviera en cuenta} y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que habría que formular cada consulta de forma perfecta para obtener una buena respuesta\coloquial{ lo cual no es lo que se busca en este proyecto, sin embargo,}{, algo contrario a lo que busca este proyecto. Sin embargo,} si se almacena todo el contexto de la conversación, se acumulan \coloquial{datos basura}{datos irrelevantes} que no ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
+Esto plantea el problema del contexto de la conversación. Si no se tuviera en cuenta y el agente solo se enfocase en la última pregunta se convertiría en una especie de base de datos a la que habría que formular cada consulta de forma perfecta para obtener una buena respuesta, algo contrario a lo que busca este proyecto. Sin embargo, si se almacena todo el contexto de la conversación, se acumulan datos irrelevantes que no ayudan en la respuesta y debido a la escasez de recursos no es una solución viable tampoco.
 
 
 \subsubsection{Estrategia de seguimiento del sujeto y resolución de anáforas}
@@ -652,7 +650,7 @@ Quien usa la aplicación \coloquial{no tiene un guion montado sobre qué decir, 
 Para resolver este problema se diseñó un mecanismo de seguimiento de estado en el que un modelo decide en cada turno de qué titulación se habla, con unas reglas deterministas de respaldo si falla en el que se desacopla la recuperación semántica del historial completo. El sistema gestiona el contexto mediante dos principios:
 
 \begin{enumerate}
-  \item \textbf{Seguimiento y persistencia del sujeto activo:} El modelo monitoriza en cada turno la titulación mencionada. Si la pregunta nombra un nuevo grado, el sujeto (el grado) se actualiza, si formula una pregunta del grado anteriormente descrito, el sistema hereda automáticamente la titulación del turno anterior. Además, si la titulación fue propuesta por el propio asistente en la última respuesta (por ejemplo, recomendando el Grado en Ingeniería Informática ante un interés por el desarrollo de software), esta se \coloquial{coge}{toma} como sujeto activo.
+  \item \textbf{Seguimiento y persistencia del sujeto activo:} El modelo monitoriza en cada turno la titulación mencionada. Si la pregunta nombra un nuevo grado, el sujeto (el grado) se actualiza, si formula una pregunta del grado anteriormente descrito, el sistema hereda automáticamente la titulación del turno anterior. Además, si la titulación fue propuesta por el propio asistente en la última respuesta (por ejemplo, recomendando el Grado en Ingeniería Informática ante un interés por el desarrollo de software), esta se toma como sujeto activo.
   \item \textbf{Ventana acotada de diálogo:} En el \textit{prompt} final hacia el LLM se incorporan únicamente las tres últimas preguntas junto con el sujeto contextualizado, evitando la saturación del contexto. 
 \end{enumerate}
 
@@ -667,7 +665,7 @@ Las tres estrategias (incrustar la pregunta sola, concatenar la
 \subsection[Selección del modelo de generación]{Selección del modelo de generación}
 \label{secc:fase2_llm}
 
-  \coloquial{Ahora que se han extraído los datos, y se han fragmentado,}{Con los datos extraídos y fragmentados,} el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
+  Con los datos extraídos y fragmentados, el siguiente paso es que un modelo de inteligencia artificial (modelo de lenguaje)
   utilice estos datos para elaborar la respuesta que satisfaga las dudas planteadas. En este apartado se trata el modelo que realiza esta acción.
 
 \subsubsection{Por qué la comparación no es tan objetiva como en ocasiones anteriores}
@@ -679,7 +677,7 @@ Sobre cada respuesta lanzada por el modelo que se está midiendo, se calculan cu
 
 \begin{itemize}
   \item \textbf{Titulaciones inventadas: } Nombres de titulaciones que si bien tendría sentido que se dieran en una Escuela Politécnica Superior, no se encuentran en los datos recogidos.
-  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe \coloquial{de verdad}{realmente} en la colección.
+  \item \textbf{Precisión: }Mide qué parte de la respuesta generada existe realmente en la colección.
   \item \textbf{Cobertura: }Qué proporción de lo que debía decir realmente aparece.
   \item \textbf{Acierto escalar: }Se aplica únicamente a las preguntas cuya respuesta es un único valor, como los créditos de una asignatura o el número de asignaturas optativas de una titulación.
 \end{itemize}
@@ -704,7 +702,7 @@ Los umbrales del experimento son dos:
 
 \begin{itemize}
   \item \textbf{Ninguna titulación inventada: }Es un umbral eliminatorio, lo que significa que si se llegase a inventar alguna, el modelo sería totalmente descartado.
-  \item \textbf{Que ningún candidato se quede sin contexto}: Si a un modelo se le ofrecieran menos fragmentos que a los demás no se estarían comparando modelos, sino \coloquial{las recuperaciones que les tocaron}{las recuperaciones que recibió cada uno}.
+  \item \textbf{Que ningún candidato se quede sin contexto}: Si a un modelo se le ofrecieran menos fragmentos que a los demás no se estarían comparando modelos, sino las recuperaciones que recibió cada uno.
 \end{itemize}
 
 Hay dos magnitudes que se miden del experimento pero no se tienen en cuenta para la decisión del modelo. La primera es el tiempo que este tarda en responder ya que no todos los modelos se comprueban bajo las mismas condiciones controladas, y el equipo en el que se hacen es un portátil de desarrollo que tiene más aplicaciones abiertas. 
@@ -736,7 +734,7 @@ Con la colección de datos extraída, troceada e indexada y el modelo generativo
 
 \subsubsection[Recuperación adaptativa y filtrado de fragmentos]{Recuperación adaptativa y filtrado de fragmentos}
 
-El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, \coloquial{haciendo que si solo se necesitan unos pocos fragmentos traiga esos y no más para no ensuciar la respuesta, mientras que si necesita una gran cantidad de fragmentos para construirla, lo haga sin problemas, siempre poniendo un límite}{de modo que una pregunta que necesita pocos fragmentos recibe solo esos, sin añadir ruido a la respuesta, y una que necesita muchos los recibe, siempre dentro de un límite}.
+El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que varía según el tipo de pregunta que se haga, de modo que una pregunta que necesita pocos fragmentos recibe solo esos, sin añadir ruido a la respuesta, y una que necesita muchos los recibe, siempre dentro de un límite.
 
 Para plantear esta solución, el sistema utiliza una política de recuperación dinámica que combina tres mecanismos complementarios:
 
@@ -777,7 +775,7 @@ El mensaje de sistema viaja desacoplado para impedir que el modelo lo confunda c
 \subsection[Restricción del dominio]{Restricción del dominio}
 \label{secc:fase2_dominio}
 
-El objetivo del asistente es el de informar sobre la oferta de la Escuela \coloquial{y no debería irse de este tema}{y no debe salirse de ese ámbito}. La necesidad de acotar el dominio radica en el riesgo de que el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para evitar que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en tres capas complementarias.
+El objetivo del asistente es el de informar sobre la oferta de la Escuela y no debe salirse de ese ámbito. La necesidad de acotar el dominio radica en el riesgo de que el modelo recomiende titulaciones inexistentes o ajenas al centro al intentar dar una respuesta coherente. Para evitar que el sistema induzca a error a futuros estudiantes universitarios, se implementó una estrategia de restricción articulada en tres capas complementarias.
 
 La primera capa es el suelo de pertinencia explicado en el apartado anterior. Si bien este umbral descarta una parte considerable de las consultas ajenas al dominio, no constituye un filtro completo que abarque todos los casos. Aquellas preguntas que emplean vocabulario formal o universitario sobre estudios externos (como preguntar si se puede estudiar medicina en el centro o por los planes de estudio de otras facultades) presentan vectores semánticamente muy próximos al corpus indexado, dejando pasar este tipo de consultas al compartir vocabulario con el centro.
 
@@ -814,7 +812,7 @@ Una alternativa que se barajó fue repartir el sistema en microservicios (uno de
 \subsection[El punto de entrada]{El punto de entrada}
 \label{secc:fase3_punto_entrada}
 
-Para atender las peticiones web y servir los archivos de la interfaz, el sistema utiliza directamente el módulo estándar \texttt{http.server} de Python, sin incorporar ningún marco ni tecnología externa. \coloquial{La decisión de mantener lo más simple es porque al medir el número de paquetes adicionales que cada una de las alternativas exigía instalar sobre el entorno base, era numeroso.}{Se opta por la solución más simple porque, al medir los paquetes adicionales que cada alternativa exigía instalar sobre el entorno base, su número resultó elevado.}
+Para atender las peticiones web y servir los archivos de la interfaz, el sistema utiliza directamente el módulo estándar \texttt{http.server} de Python, sin incorporar ningún marco ni tecnología externa. Se opta por la solución más simple porque, al medir los paquetes adicionales que cada alternativa exigía instalar sobre el entorno base, su número resultó elevado.
 
 Otra razón es la simplicidad del servicio, la aplicación en el alcance establecido solo necesita gestionar un único punto de entrada para las consultas y servir unos pocos archivos estáticos (\sig{HTML}, \sig{CSS} y \textit{JavaScript}). Las ventajas que justifican el uso de marcos de trabajo más complejos no resuelven ningún problema presente en esta arquitectura.
 
@@ -825,11 +823,11 @@ La lógica y la verificación no residen en el manejador de peticiones \sig{HTTP
 \subsection[La emisión de la respuesta]{La emisión de la respuesta}
 \label{secc:fase3_emision}
 
-\coloquial{El mecanismo el cual}{El mecanismo mediante el cual} la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez obligaría a esperar frente a una interfaz estática durante decenas de segundos, \coloquial{si antes de eso no pensara que el sistema se ha bloqueado}{con el riesgo de que el usuario pensara que el sistema se ha bloqueado}.
+El mecanismo mediante el cual la respuesta generada se transmite al navegador es una decisión crítica de diseño condicionada por la latencia del modelo en generar la respuesta. Al medir las consultas del banco de evaluación del sistema, se observó que la espera se mide en decenas de segundos, y que una de cada diez consultas que llegan al modelo pasa de los dos minutos (Apartado~\ref{secc:resultados_rag_sistema}). Entregar la respuesta de una sola vez obligaría a esperar frente a una interfaz estática durante decenas de segundos, con el riesgo de que el usuario pensara que el sistema se ha bloqueado.
 
 Una solución que se pensó en un inicio fue la emisión progresiva convencional, pero esto entra en conflicto directo con la tercera barrera de restricción del dominio (Apartado~\ref{secc:fase2_dominio}). Emitir el texto de forma continua a medida que el modelo genera cada palabra impediría eliminar una respuesta que incluya una titulación inventada que ya se haya leído.
 
-\coloquial{Para juntar ambos requisitos}{Para conciliar ambos requisitos}, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detecta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia. Si el servidor de inferencia falla o la conexión se corta a mitad de la respuesta, la interfaz muestra un aviso de error en lugar de darla por terminada.
+Para conciliar ambos requisitos, el sistema implementa una emisión progresiva validada por bloques. El servidor acumula la salida del modelo hasta identificar el cierre de una frase (punto, interrogación o exclamación) o un salto de línea. En ese momento, somete el texto del bloque a la validación léxica del catálogo y, únicamente si la supera, lo envía a la interfaz. Si en algún bloque se detecta una titulación incorrecta, el servidor interrumpe la generación de inmediato, ordena a la interfaz retirar el texto emitido hasta ahora y entrega el mensaje fijo de advertencia. Si el servidor de inferencia falla o la conexión se corta a mitad de la respuesta, la interfaz muestra un aviso de error en lugar de darla por terminada.
 
 Esta solución se asume aun no siendo la mejor para la experiencia de usuario, ya que este vería cómo un texto que se está generando desaparece de repente y es sustituido por otro que dice que no se ha podido generar una respuesta. Sin embargo, la frecuencia de estas anomalías es muy baja siendo cero en las múltiples respuestas de la comparativa de modelos. La comparación de las tres alternativas consideradas queda documentada formalmente en el ADR-0006\cite{repo_tfg}.
 
