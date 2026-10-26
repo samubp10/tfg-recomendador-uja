@@ -67,7 +67,7 @@ en momentos distintos y, sobre todo, no significan lo mismo cuando fallan. Estos
 para asegurar que todas las partes del sistema funcionan correctamente y que los resultados son fidedignos.
 
 \textbf{El primer tipo son las pruebas del código}, escritas con
-\texttt{pytest} y ejecutadas antes de la ejecución del código que comprueban y cuando se suben al repositorio (explicado en la sección ~\ref{secc:Integracion_continua}). Comprueban que cada módulo o script hace lo que está previsto que haga, son deterministas y su resultado es de carácter booleano, es decir, pasan o no pasan. Cuando fallan, el defecto está en el código.
+\texttt{pytest} y ejecutadas antes de la ejecución del código que comprueban y cuando se suben al repositorio (explicado en la Sección~\ref{secc:Integracion_continua}). Comprueban que cada módulo o script hace lo que está previsto que haga, son deterministas y su resultado es de carácter booleano, es decir, pasan o no pasan. Cuando fallan, el defecto está en el código.
 
 \textbf{El segundo tipo son los verificadores de las colecciones de datos}, que no examinan el código sino el resultado de ejecutarlo sobre los ficheros que contienen toda la información, como por ejemplo el que contiene todos los datos de la recolección web y el fichero que contiene los fragmentos de los anteriores. Comprueban que no hay anomalías en los datos, como por ejemplo que no falte ninguna titulación, si algún fragmento del fichero de fragmentos supera el tamaño máximo o si el fragmento nombra a una unidad (Asignatura, plan de estudio o Salida profesional) distinta a la suya.
 
@@ -100,8 +100,8 @@ Los cinco tipos de tarjetas con sus criterios de finalización son:
 
 \begin{itemize}                                                                                                                  
   \item \textbf{Código.} El programa hace lo que promete, comprobado
-        \emph{ejecutándolo} y con las pruebas automatizadas construidas sobre los datos reales de la fuente
-        , incluida la de regresión de cualquier defecto que se haya encontrado.
+        \emph{ejecutándolo} y con las pruebas automatizadas construidas sobre los datos reales de la fuente,
+        incluida la de regresión de cualquier defecto que se haya encontrado.
   \item \textbf{Experimento.} El guion que produce las cifras está
         versionado y es determinista, de modo que otra persona pueda repetirlo y obtener lo
         mismo, y este además se encuentra en la memoria y en un documento técnico.
@@ -123,7 +123,7 @@ Dado el enfoque ágil y experimental de este Trabajo Fin de Grado, la planificac
 
 La ejecución del día a día se rige por un tablero \textbf{Kanban} implementado mediante \textit{GitHub Projects}. Este tablero refleja el estado en tiempo real de las  historias técnicas de usuario que componen el \textit{backlog} del proyecto.
 
-Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta microplanificación es el límite de \glp{Trabajo en Curso}{trabajo en curso} (\glr{Work In Progress}{WIP}, WIP), que, como norma de trabajo, no permite iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
+Como se observa en la Figura~\ref{fig:tablero_kanban}, el flujo de trabajo se divide en columnas que representan el ciclo de vida de cada tarea. La regla principal de esta microplanificación es el límite de \glp{Trabajo en Curso}{trabajo en curso} (\glr{Work In Progress}{WIP}, WIP), que, como norma de trabajo, no permite iniciar nuevas tareas sin haber cerrado las anteriores. Esto garantiza un avance constante, previniendo el estancamiento y asegurando el cumplimiento estricto de la Definición de Hecho expuesta en la sección anterior.
 
 \begin{figure}[H]
   \centering
@@ -136,7 +136,7 @@ Como se observa en la Figura \ref{fig:tablero_kanban}, el flujo de trabajo se di
 
 Para proporcionar una visión global del cronograma y asegurar la viabilidad del proyecto de cara a la fecha de entrega del proyecto, el \textit{backlog} se ha agrupado en seis fases lógicas de desarrollo.
 
-Esta macroplanificación iterativa se ilustra en el diagrama de Gantt de la Figura \ref{fig:gantt}, estructurado de la siguiente manera:
+Esta macroplanificación iterativa se ilustra en el diagrama de Gantt de la Figura~\ref{fig:gantt}, estructurado de la siguiente manera:
 \begin{itemize}                                                                                                                                                    
   \item \textbf{Fase 0 (Minería de datos y extracción):} Abarca el desarrollo de los rastreadores web (\textit{spiders} en Scrapy), los validadores lógicos y los módulos de limpieza de texto.
         
@@ -383,7 +383,7 @@ No todas las asignaturas disponen de guía publicada: de las 528 asignaturas del
 Estas se concentran en las titulaciones de implantación reciente, cuyos cursos superiores aún no
 han publicado sus guías, como ocurre en el Grado en Inteligencia Artificial y Ciberseguridad.
 
-La Figura ~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, recién extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartados y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los trece rótulos los que pasan la limpieza y el resto se descarta.
+La Figura~\ref{fig:anatomia_guia} muestra un caso real que contiene una guía docente en crudo, recién extraída de la página web y cómo se limpia para obtener únicamente lo importante para el sistema. A la izquierda se encuentra la guía docente con sus apartados y a la derecha lo que se almacena de todo ello, siendo únicamente dos de los trece rótulos los que pasan la limpieza y el resto se descarta.
 
 \input{diagramas/DiagramaAnatomiaGuia.tex}
 
@@ -454,7 +454,7 @@ Cada pregunta lleva anotada la unidad o unidades que el sistema debería recuper
 \subsection[Troceado de la colección]{Troceado de la colección}
 \label{subsec:chunking}
 
-El corpus debe fragmentarse debido a la ventana de contexto explicada en el apartado~\ref{subsec:chunking_concepto}. Este apartado decide cómo se divide y qué tamaño tiene cada fragmento.
+El corpus debe fragmentarse debido a la ventana de contexto explicada en el Apartado~\ref{subsec:chunking_concepto}. Este apartado decide cómo se divide y qué tamaño tiene cada fragmento.
 
 \subsubsection[Restricciones del troceado]{Restricciones del troceado}
 \label{secc:troceado_restricciones}
@@ -585,7 +585,7 @@ Se comparan tres bases de datos vectoriales sobre el corpus completo y las pregu
 
 Para este experimento, se toman las incrustaciones que se generan mediante el modelo elegido anteriormente para este propósito y se dan a cada candidata en el mismo orden para que todas tengan la misma entrada. El procedimiento de medida elimina las primeras consultas de cada candidata, puesto que estas tardan más de lo normal al tener que cargar el índice en memoria, y contaminarían la mediana. Además, se repite cada consulta varias veces para quedarse con la mediana y el percentil 90 en lugar de con un único cronometraje.
 
-\subsubsection[Las candidatas y por qué esas]{Justificación de las candidatas}
+\subsubsection[Justificación de las candidatas]{Justificación de las candidatas}
 
 Las tres candidatas tienen una licencia compatible con la de este proyecto, que es la \sig{GPL} versión 3\cite{gpl3} y cubren tres maneras diferentes de resolver el mismo problema. ChromaDB se ejecuta directamente dentro del mismo proceso de Python de la aplicación, para la persistencia combina una base de datos SQLite para los metadatos y carpetas binarias locales para los índices vectoriales, LanceDB utiliza un motor de almacenamiento persistente optimizado para datos tabulares y vectoriales y sus búsquedas y filtrados los realiza mediante DataFusion, y por último Qdrant se despliega como un servidor independiente ejecutándose en un contenedor Docker, con una comunicación cliente-servidor mediante API \sig{REST}.
 
@@ -630,7 +630,7 @@ Este índice se reconstruye entero en cada ejecución en lugar de actualizarse d
 
 Los tipos de datos de cada columna se establecen de forma explícita, en lugar de dejar que la base de datos los infiera y pueda equivocarse. Esto se hace así dado que la base de datos deduce el tipo de cada columna a partir de los valores del primer lote de datos, resultando que si este primer lote viniera sin códigos de asignatura, la base podría poner un tipo equivocado pensando que nunca hay códigos numéricos ahí.
 
-Las titulaciones y asignaturas se guardan como listas paralelas y no como una sola cadena de texto para garantizar un filtrado exacto. Esto evita que las búsquedas por subcadena arrastren fragmentos erróneos en grados cuyos nombres están contenidos dentro de otros más largos (como ocurre en el \texttt{Grado en Ingeniería eléctrica} frente al \texttt{Doble Grado con Mecánica}.) De este modo se evita recoger más fragmentos de los necesarios para no contaminar el modelo generativo.
+Las titulaciones y asignaturas se guardan como listas paralelas y no como una sola cadena de texto para garantizar un filtrado exacto. Esto evita que las búsquedas por subcadena arrastren fragmentos erróneos en grados cuyos nombres están contenidos dentro de otros más largos (como ocurre en el \texttt{Grado en Ingeniería Eléctrica} frente al \texttt{Doble Grado con Mecánica}). De este modo se evita recoger más fragmentos de los necesarios para no contaminar el modelo generativo.
 
 
 Por último, este índice registra tres datos importantes, como con qué modelo se calcularon las incrustaciones, con qué prefijo se marcaron los fragmentos incrustados y con qué métrica de distancia consultarlo (similitud del coseno o euclídea). Esto se hace para que el buscador pueda verificar automáticamente al empezar que se están usando los mismos parámetros con los que se creó el índice para evitar errores.
