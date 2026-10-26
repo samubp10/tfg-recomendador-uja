@@ -15,14 +15,14 @@ A lo largo del documento se emplean términos y acrónimos cuya definición se r
 
 \section{Contexto y motivación}
 
-La transición hacia la educación superior representa un salto muy importante en la vida del alumnado preuniversitario. En el momento de elegir una titulación, el futuro alumnado se enfrenta a una gran cantidad de información proporcionada por las universidades, que presenta barreras significativas de accesibilidad. En el caso de la EPSJ, la oferta académica comprende múltiples grados y dobles grados, redactados con una terminología burocrática (créditos \sig{ECTS}, competencias transversales, tipologías de asignaturas) que resulta difícil de entender para el alumnado de educación secundaria, al que, en muchos casos, o no se le ha explicado nada de esto, o no lo comprende adecuadamente.
+La transición hacia la educación superior representa un salto muy importante en la vida del alumnado preuniversitario. En el momento de elegir una titulación, el futuro alumnado se enfrenta a una gran cantidad de información proporcionada por las universidades, que presenta barreras significativas de accesibilidad. En el caso de la EPSJ, la oferta académica comprende múltiples grados y dobles grados, redactados con una terminología burocrática (créditos \sig{ECTS}, competencias transversales, tipologías de asignaturas) que resulta difícil de entender para el alumnado de educación secundaria, al que, en muchos casos, o no se le ha explicado \coloquial{nada de esto}{esta terminología}, o no lo comprende adecuadamente.
 
 
-En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumnado. Por otro lado, la reciente popularización de los LLM ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}, que se analiza en detalle en el Capítulo~\ref{cap:antecedentes}; su riesgo es desinformar a quien pregunta inventando normativas o planes de estudio inexistentes lo cual resulta inaceptable en este dominio.
+En estos casos, los buscadores web tradicionales resultan insuficientes, ya que obligan al usuario a saber exactamente qué términos técnicos buscar, faltándoles la capacidad para interpretar dudas abiertas o datos de interés para el alumnado. Por otro lado, la reciente popularización de los LLM ha demostrado un gran potencial para la construcción de aplicaciones web en las que se pueda conversar con ellos. Sin embargo, su aplicación directa como orientadores académicos es inviable debido al problema de las \glr{alucinaciones}{alucinacion}, que se analiza en detalle en el Capítulo~\ref{cap:antecedentes}; su riesgo es desinformar a quien pregunta inventando normativas o planes de estudio \coloquial{inexistentes lo cual}{inexistentes, lo cual} resulta inaceptable en este dominio.
 
 La motivación fundamental de este Trabajo Fin de Grado (\sig{TFG}) nace de la necesidad de cerrar esta brecha
-de usabilidad. Se propone el diseño de una web en la que poder conversar con un LLM corriendo en local
-que detrás tendrá un sistema basado en la arquitectura RAG, la cual permite dotar a un modelo de lenguaje grande de un contexto documental controlado y extraído de la documentación oficial, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ, evitando así, o minimizando, el problema de la alucinación del modelo.
+de usabilidad. Se propone el diseño de \coloquial{una web en la que poder conversar con un LLM corriendo en local
+que detrás tendrá un sistema basado en}{una aplicación web para conversar con un LLM ejecutado en local y respaldado por un sistema basado en} la arquitectura RAG, la cual permite dotar a un modelo de lenguaje grande de un contexto documental controlado y extraído de la documentación oficial, ofreciendo así una orientación interactiva, natural y fundamentada en la oferta real de la EPSJ, \coloquial{evitando así, o minimizando,}{reduciendo} el problema de la alucinación del modelo.
 
 
 \section{Alcance del proyecto}
@@ -30,7 +30,7 @@ que detrás tendrá un sistema basado en la arquitectura RAG, la cual permite do
 
 Para garantizar la viabilidad, el rigor científico y la completitud del proyecto dentro de las restricciones de tiempo y carga lectiva, se establecen límites precisos en dos subapartados: el dominio de la información a utilizar y el público objetivo.
 
-Por lo tanto, se persigue fundamentalmente cumplir con las obligaciones académicas de la realización de un Trabajo Fin de Grado aunque, de manera secundaria, sí se pretende que este pueda servir de ejemplo de una solución posible e interesante que los centros universitarios podrían implementar.
+\coloquial{Por lo tanto, se persigue}{Este trabajo persigue} fundamentalmente cumplir con las obligaciones académicas de la realización de un Trabajo Fin de Grado aunque, de manera secundaria, sí se pretende que este pueda servir de ejemplo de una solución \coloquial{posible e interesante}{viable} que los centros universitarios podrían implementar.
 
 \subsection{Delimitación del dominio de datos}
 
