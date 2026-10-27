@@ -565,6 +565,30 @@ test("una respuesta retirada borra lo pintado en vez de añadir debajo", async (
   assert.ok(!cuerpo.innerHTML.includes("Astrofísica"), cuerpo.innerHTML);
 });
 
+test("una respuesta retirada no ofrece las fuentes de lo que se retiró (IT-147)", async () => {
+  /*
+    Las fuentes llegan antes que el texto, así que ya estaban guardadas cuando
+    el servidor retira la respuesta. Enseñarlas junto al mensaje fijo daba a
+    entender que lo respaldaban.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      { fuentes: [{ nombre: "Física", titulacion: "G. Mecánica", origen: "Guía docente" }] },
+      { parte: "En el Grado en Astrofísica" },
+      { borrar: true },
+      { parte: "No tengo esa información." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Hay Grado en Astrofísica?");
+
+  const { pie } = ultimaRespuesta(m);
+  assert.ok(!pie.hijos.some((hijo) => hijo.className === "mensaje__fuentes"));
+});
+
 test("una respuesta que no llega a consultar al modelo se marca como inmediata", async () => {
   /*
     Las respuestas fijas ---cortesía, contexto vacío, otro centro--- vuelven en
