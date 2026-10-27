@@ -739,7 +739,7 @@ El número de fragmentos que se le entregan al modelo ($k$) no es fijo, sino que
 Para plantear esta solución, el sistema utiliza una política de recuperación dinámica que combina tres mecanismos complementarios:
 
 \begin{itemize}
-  \item \textbf{Banda de seguridad:} Acota el número de fragmentos a un rango admisible, con un mínimo de 3 (salvo que el suelo de pertinencia deje menos, o ninguno) y un máximo de 20 fragmentos por consulta.
+  \item \textbf{Banda de seguridad:} Acota el número de fragmentos a un rango admisible, con un mínimo de 3 salvo que el suelo de pertinencia no deje ninguno, y un máximo de 20 fragmentos por consulta.
   \item \textbf{Corte relativo por distancia:} Dentro de dicha banda, se conservan únicamente aquellos fragmentos cuya distancia semántica no supere un factor proporcional respecto al mejor fragmento recuperado. De este modo, las consultas con una respuesta muy unívoca retienen muy pocos elementos, mientras que las de listado arrastran a todo su grupo semántico.
   \item \textbf{Suelo absoluto de pertinencia:} Establece un umbral de similitud mínima por debajo del cual no se entrega ningún fragmento, descartando información de baja calidad incluso si constituye el mejor resultado disponible.
 \end{itemize}
