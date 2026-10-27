@@ -518,8 +518,10 @@ async function preguntar(pregunta) {
         if (suceso.borrar) {
           // El servidor ha retirado la respuesta a media emisión: nombraba una
           // titulación que no existe. Lo que venga después la sustituye entera,
-          // así que hay que borrar lo pintado y no añadir debajo.
+          // así que hay que borrar lo pintado y no añadir debajo. Sus fuentes se
+          // van con ella: no respaldan el mensaje fijo que la sustituye (IT-147).
           acumulado = "";
+          fuentes = [];
           repintar();
         }
         if (suceso.fin) {
