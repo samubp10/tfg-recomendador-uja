@@ -7,10 +7,10 @@
   presentada, que es peor.
 
   Se prueba `formatear()` sobre todo, porque de ella depende que una respuesta
-  de listado se vea como un plan de estudios y no como un párrafo corrido. El
-  estilo que lo consigue distingue el rótulo de curso por su FORMA ---un párrafo
-  cuyo único hijo es una negrita---, así que si `formatear` cambiara de salida,
-  la hoja de estilo dejaría de encontrarlo y nadie se enteraría.
+  de listado se vea como un plan de estudios y no como un párrafo corrido. La
+  hoja de estilo pinta como rótulo de curso el párrafo con la clase `rotulo`,
+  y esa clase solo la pone `formatear`: si dejara de ponerla, o la pusiera
+  donde no toca, nadie se enteraría mirando la página.
 
   Se ejecuta con `node --test tests/js/`, sin ninguna dependencia: `node:test`
   viene con el intérprete. `tests/test_chat_js.py` lo lanza desde pytest para
@@ -77,14 +77,8 @@ test("«**Primer curso:**» es un párrafo en negrita, NO un elemento de lista",
   */
   assert.equal(
     formatear("**Primer curso:**"),
-    "<p><strong>Primer curso:</strong></p>"
+    '<p class="rotulo"><strong>Primer curso:</strong></p>'
   );
-});
-
-test("el rótulo mantiene la forma que busca la hoja de estilo", () => {
-  // `p:has(> strong:only-child)`: la negrita tiene que ser el ÚNICO hijo.
-  const salida = formatear("**Segundo curso:**");
-  assert.match(salida, /^<p><strong>[^<]+<\/strong><\/p>$/);
 });
 
 test("una respuesta de listado agrupa por curso", () => {
@@ -94,9 +88,41 @@ test("una respuesta de listado agrupa por curso", () => {
   assert.equal(
     salida,
     "<p>Aquí tienes:</p>" +
-      "<p><strong>Primer curso:</strong></p>" +
+      '<p class="rotulo"><strong>Primer curso:</strong></p>' +
       "<ul><li>Álgebra (6 ECTS)</li></ul>"
   );
+});
+
+test("un párrafo con negrita y texto NO es un rótulo (IT-147)", () => {
+  /*
+    Regresión del caso real del 27/10: a «Me gustan la programación y las
+    matemáticas, ¿qué carrera me recomiendas?» el modelo contestó con párrafos
+    como este, y la hoja de estilo los pintaba enteros en mayúsculas porque
+    `:only-child` no cuenta el texto que va detrás de la negrita.
+  */
+  for (const texto of [
+    "**Grado en Ingeniería Informática:** Esta carrera te dará una base sólida.",
+    "El Trabajo fin de Grado tiene **12 ECTS**.",
+    "**Primer curso:**\nÁlgebra (6 ECTS)",
+  ]) {
+    assert.ok(!formatear(texto).includes("rotulo"), texto);
+  }
+});
+
+// -------------------------------------------------------------------- cursiva
+
+test("los avisos fijos del servidor salen en cursiva y sin asteriscos (IT-147)", () => {
+  // El texto es el de `AVISO_GUIA_INCOMPLETA` en `generador.py`, ya rellenado.
+  const aviso =
+    "*No he podido consultar entera la guía docente de «Programación», así que " +
+    "puede faltar parte de su contenido. La tienes completa en la web de la Escuela.*";
+  const salida = formatear(`Respuesta.\n\n${aviso}`);
+  assert.equal(salida, `<p>Respuesta.</p><p><em>${aviso.slice(1, -1)}</em></p>`);
+});
+
+test("la cursiva no anida mal con la negrita", () => {
+  assert.equal(formatear("***x***"), "<p><strong>*x</strong>*</p>");
+  assert.equal(formatear("*a* y **b**"), "<p><em>a</em> y <strong>b</strong></p>");
 });
 
 // -------------------------------------------------------------------- negrita
@@ -108,8 +134,9 @@ test("la negrita funciona dentro de un elemento de lista", () => {
   );
 });
 
-test("un asterisco suelto no abre negrita", () => {
+test("un asterisco suelto no abre negrita ni cursiva", () => {
   assert.equal(formatear("2 * 3 = 6"), "<p>2 * 3 = 6</p>");
+  assert.equal(formatear("2 * 3 * 4"), "<p>2 * 3 * 4</p>");
 });
 
 // -------------------------------------------------------------------- escapado
@@ -536,6 +563,30 @@ test("una respuesta retirada borra lo pintado en vez de añadir debajo", async (
   const { cuerpo } = ultimaRespuesta(m);
   assert.equal(cuerpo.innerHTML, "<p>No tengo esa información.</p>");
   assert.ok(!cuerpo.innerHTML.includes("Astrofísica"), cuerpo.innerHTML);
+});
+
+test("una respuesta retirada no ofrece las fuentes de lo que se retiró (IT-147)", async () => {
+  /*
+    Las fuentes llegan antes que el texto, así que ya estaban guardadas cuando
+    el servidor retira la respuesta. Enseñarlas junto al mensaje fijo daba a
+    entender que lo respaldaban.
+  */
+  const m = montar();
+  await reposar();
+  m.responder(() =>
+    respuestaNdjson([
+      { fuentes: [{ nombre: "Física", titulacion: "G. Mecánica", origen: "Guía docente" }] },
+      { parte: "En el Grado en Astrofísica" },
+      { borrar: true },
+      { parte: "No tengo esa información." },
+      { fin: true },
+    ])
+  );
+
+  await m.chat.preguntar("¿Hay Grado en Astrofísica?");
+
+  const { pie } = ultimaRespuesta(m);
+  assert.ok(!pie.hijos.some((hijo) => hijo.className === "mensaje__fuentes"));
 });
 
 test("una respuesta que no llega a consultar al modelo se marca como inmediata", async () => {
