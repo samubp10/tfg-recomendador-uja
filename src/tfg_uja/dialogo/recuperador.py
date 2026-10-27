@@ -12,7 +12,7 @@ from typing import Any, Final
 
 import lancedb
 
-from tfg_uja.indexacion.incrustaciones import Incrustador
+from tfg_uja.indexacion.incrustaciones import PREFIJO_DOCUMENTO, Incrustador
 from tfg_uja.indexacion.indexer import (
     CATALOGO,
     COLECCION,
@@ -54,14 +54,17 @@ class Fragmento:
 
 
 class ModeloDiscrepante(RuntimeError):
-    """El índice se construyó con un modelo distinto del que se consulta."""
+    """El índice se construyó con otro modelo u otro prefijo que los de la consulta."""
 
 
 def abrir_indice(ruta_indice: Path, modelo: str) -> Any:
-    """Abre el índice comprobando que se construyó con el modelo esperado.
+    """Abre el índice comprobando que se construyó con el modelo y el prefijo esperados.
+
+    El prefijo se comprueba desde IT-147: un índice con los fragmentos marcados de
+    otra forma da vectores de la misma dimensión y tampoco avisa.
 
     Raises:
-        ModeloDiscrepante: Si el índice declara otro modelo.
+        ModeloDiscrepante: Si el índice declara otro modelo u otro prefijo.
     """
     metadatos = metadatos_de_indice(ruta_indice)
     registrado = metadatos.get("modelo")
@@ -69,6 +72,12 @@ def abrir_indice(ruta_indice: Path, modelo: str) -> Any:
         raise ModeloDiscrepante(
             f"el índice se construyó con «{registrado}» y se está consultando "
             f"con «{modelo}»: los resultados serían peores sin dar ningún error"
+        )
+    prefijo = metadatos.get("prefijo_documento")
+    if prefijo is not None and prefijo != PREFIJO_DOCUMENTO:
+        raise ModeloDiscrepante(
+            f"el índice marcó sus fragmentos con «{prefijo}» y la consulta espera "
+            f"«{PREFIJO_DOCUMENTO}»: los resultados serían peores sin dar ningún error"
         )
     return lancedb.connect(str(ruta_indice)).open_table(COLECCION)
 
