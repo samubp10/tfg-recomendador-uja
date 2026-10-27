@@ -1141,6 +1141,25 @@ def test_preguntar_por_la_escuela_de_jaen_no_es_preguntar_por_otro_centro():
     )
 
 
+def test_el_campus_de_las_lagunillas_es_de_aqui():
+    """IT-147: es el campus de Jaén donde está la EPSJ.
+
+    Con «de la» como única forma del artículo, el topónimo leído era «las» y la
+    pregunta recibía la respuesta de otro centro (comprobado el 27/10).
+    """
+    assert (
+        generador.pregunta_por_otro_centro("¿Qué hay en el campus de las Lagunillas?")
+        is None
+    )
+
+
+def test_el_articulo_no_se_toma_por_el_toponimo():
+    """«Universidad de Las Palmas» se rechaza por «palmas», no por «las»."""
+    assert generador.pregunta_por_otro_centro(
+        "¿La Universidad de Las Palmas tiene Informática?"
+    )
+
+
 def test_una_pregunta_normal_del_dominio_no_dispara_la_comprobacion():
     """Con un falso positivo aquí el asistente dejaría de servir para nada."""
     assert (
