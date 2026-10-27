@@ -241,6 +241,18 @@ def test_consultar_con_el_modelo_del_indice_no_falla(indice):
     assert abrir_indice(indice, MODELO) is not None
 
 
+def test_un_indice_con_otro_prefijo_falla_de_forma_ruidosa(indice, monkeypatch):
+    """IT-147: el prefijo da el mismo silencio que el modelo.
+
+    El índice de la prueba se construyó con «passage: »; si la consulta espera
+    otro, los vectores siguen teniendo la misma dimensión y nada avisaría.
+    """
+    monkeypatch.setattr(recuperador, "PREFIJO_DOCUMENTO", "documento: ")
+    with pytest.raises(ModeloDiscrepante) as excepcion:
+        abrir_indice(indice, MODELO)
+    assert "passage: " in str(excepcion.value)
+
+
 # --- Lo que devuelve ---
 
 
