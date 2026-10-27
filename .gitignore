@@ -47,6 +47,8 @@ graphify-out/
 *.synctex
 *.run.xml
 *.bcf
+# Lo escribe tcolorbox con cada bloque de código del manual de usuario.
+*.listing
 
 # PDF compilado de la memoria (artefacto de build; se regenera con pdflatex)
 memoria/main.pdf
