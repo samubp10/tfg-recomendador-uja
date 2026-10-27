@@ -16,6 +16,9 @@
   Que pase no declara conformidad con las WCAG: mide tres tamaños en un solo
   navegador. Sin Chrome la prueba se salta y lo dice.
 
+  El mismo navegador comprueba además el rótulo de curso (IT-147), que también
+  es de los fallos que solo se ven con la hoja de estilo aplicada.
+
   Se ejecuta con `node --test tests/js/movil.test.mjs`, sin dependencias: el
   protocolo de depuración de Chrome se habla con el `WebSocket` del propio Node.
 */
@@ -194,6 +197,47 @@ test("la aplicación cabe en un móvil de 320 px", { skip: chrome ? false : "Chr
       assert.ok(u3.ayudaCabe, `U3: el texto de ayuda no cabe a ${ancho} px`);
       assert.ok(!u3.barraHorizontal, `U3: barra horizontal a ${ancho} px`);
     }
+  } finally {
+    await cerrar();
+    servidor.close();
+  }
+});
+
+/*
+  IT-147. La prueba de `formatear()` comprobaba que el rótulo saliera con la
+  forma que buscaba el selector, pero no que el selector dejara fuera lo demás,
+  y el fallo estaba ahí: `:only-child` no cuenta el texto suelto, así que un
+  párrafo con una negrita y texto salía entero en mayúsculas. Se pinta una
+  respuesta con `formatear()` y la hoja de estilo reales y se mira cada párrafo.
+*/
+const RESPUESTA = [
+  "**Primer curso:**",
+  "**Grado en Ingeniería Informática:** Esta carrera te dará una base sólida.",
+  "El Trabajo fin de Grado tiene **12 ECTS**.",
+].join("\n\n");
+
+const PINTAR = `(() => {
+  const mensajes = document.getElementById("mensajes");
+  if (typeof formatear !== "function" || !mensajes) return null;
+  const fila = document.createElement("div");
+  fila.className = "mensaje mensaje--asistente";
+  fila.innerHTML = '<div class="mensaje__burbuja"><div class="mensaje__cuerpo">' +
+    formatear(${JSON.stringify(RESPUESTA)}) + "</div></div>";
+  mensajes.appendChild(fila);
+  return [...fila.querySelectorAll("p")].map((p) => getComputedStyle(p).textTransform);
+})()`;
+
+test("solo el rótulo de curso se pinta como rótulo", { skip: chrome ? false : "Chrome no está instalado" }, async () => {
+  const servidor = await servirWeb();
+  const { cdp, cerrar } = await abrirChrome(chrome);
+  try {
+    await cdp("Page.navigate", { url: `http://127.0.0.1:${servidor.address().port}/` });
+    let estilos;
+    for (let i = 0; i < 50 && !estilos; i++) {
+      await esperar(100);
+      estilos = (await cdp("Runtime.evaluate", { expression: PINTAR, returnByValue: true }))?.result?.value;
+    }
+    assert.deepEqual(estilos, ["uppercase", "none", "none"]);
   } finally {
     await cerrar();
     servidor.close();

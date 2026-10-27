@@ -713,20 +713,19 @@ body {
    como un parrafo mas en negrita. La respuesta ya venia agrupada por curso
    ---se lo pide la instruccion al modelo---, pero eso no se veia.
 
-   Todo lo que sigue es presentacion, y se resuelve sin tocar `chat.js`
-   porque no hace falta: el rotulo se reconoce por su forma. El motivo que
-   habia escrito aqui ---que `chat.js` no tiene pruebas--- dejo de ser cierto
-   con IT-45, que le puso las suyas. */
+   Todo lo que sigue es presentacion. */
 
 /* El rotulo de curso deja de ser un parrafo en negrita y pasa a comportarse
    como lo que es: el encabezado de una seccion del plan.
 
-   Se reconoce por la forma, no por el texto: un parrafo cuyo unico contenido
-   es una negrita. Es lo que produce `formatear()` con la linea
-   `**Primer curso:**` que escribe el modelo. Un parrafo entero en negrita
-   escrito por otro motivo tambien lo recibiria; es raro y el resultado seguiria
-   siendo un enfasis, asi que no se persigue el caso. */
-.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) {
+   Lo marca `formatear()` con la clase `rotulo` cuando el parrafo es una sola
+   linea entera en negrita, como `**Primer curso:**`. Antes se reconocia aqui
+   con `p:has(> strong:only-child)`, pero `:only-child` no cuenta el texto
+   suelto: tambien cogia «**Grado:** texto» y cualquier parrafo con una sola
+   negrita, que salian enteros en mayusculas (IT-147). Un parrafo entero en
+   negrita escrito por otro motivo sigue recibiendolo; es raro y el resultado
+   seguiria siendo un enfasis, asi que no se persigue el caso. */
+.mensaje--asistente .mensaje__cuerpo p.rotulo {
   margin: 1.1em 0 0.5em;
   padding-bottom: 0.35em;
   border-bottom: 1px solid var(--borde);
@@ -736,12 +735,12 @@ body {
   text-transform: uppercase;
 }
 
-.mensaje--asistente .mensaje__cuerpo p:has(> strong:only-child) strong {
+.mensaje--asistente .mensaje__cuerpo p.rotulo strong {
   font-weight: 600;
 }
 
 /* El primero no separa de nada: sin esto abre la burbuja con un hueco. */
-.mensaje--asistente .mensaje__cuerpo p:first-child:has(> strong:only-child) {
+.mensaje--asistente .mensaje__cuerpo p.rotulo:first-child {
   margin-top: 0;
 }
 

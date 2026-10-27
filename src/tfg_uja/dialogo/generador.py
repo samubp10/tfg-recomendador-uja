@@ -348,16 +348,21 @@ RESPUESTA_OTRA_UNIVERSIDAD: Final[str] = (
 # Admite adjetivos en «Universidad Politécnica» y centros como la EPS de Linares.
 
 #: Se sigue sin usar una lista de universidades, que nunca estaría completa.
+#: El artículo va aparte del topónimo (IT-147): con «de la» como única forma,
+#: en «campus de las Lagunillas» el topónimo leído era «las».
 _OTRA_UNIVERSIDAD: Final[re.Pattern[str]] = re.compile(
     r"(?:universidad|universitat|escuela|facultad|campus)"
-    r"(?:\s+[a-z]+){0,3}?\s+(?:de\s+la|del|de)\s+([a-z]+)"
+    r"(?:\s+[a-z]+){0,3}?\s+(?:de\s+(?:la|las|los|el)|del|de)\s+([a-z]+)"
 )
+
+#: Topónimos de aquí. Las Lagunillas es el campus de Jaén donde está la EPSJ.
+_TOPONIMOS_PROPIOS: Final[frozenset[str]] = frozenset({"jaen", "lagunillas"})
 
 
 def pregunta_por_otro_centro(pregunta: str) -> str | None:
     """Respuesta fija si la pregunta nombra una universidad que no es la de Jaén."""
     for encontrado in _OTRA_UNIVERSIDAD.finditer(normalizar(pregunta)):
-        if encontrado.group(1) != "jaen":
+        if encontrado.group(1) not in _TOPONIMOS_PROPIOS:
             return RESPUESTA_OTRA_UNIVERSIDAD
     return None
 

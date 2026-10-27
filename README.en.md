@@ -221,6 +221,10 @@ starts it on login.
 
 ## Usage
 
+If you only want to use the assistant, the **user manual** (in Spanish) is at
+[`manual/manual_usuario.pdf`](manual/manual_usuario.pdf). It covers how to
+start it, how to ask questions and how to see where each answer comes from.
+
 Before the first indexing run, the embeddings download has to be authorised.
 In PowerShell: `$env:TFG_DESCARGAR_MODELO='1'`; in CMD:
 `set TFG_DESCARGAR_MODELO=1`; on Linux or Git Bash:
@@ -366,6 +370,7 @@ docs/adr/           # Architecture Decision Records (ADR)
 docs/dqa/           # Data Quality Assessment records (DQA)
 docs/experimentos/  # real results, written by the scripts themselves
 memoria/            # the thesis itself, in LaTeX (EPSJ template)
+manual/             # user manual (in Spanish): LaTeX, screenshots and PDF
 data/               # generated artefacts (NOT versioned)
 ```
 
