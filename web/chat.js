@@ -97,18 +97,29 @@ function escapar(texto) {
  * Convierte la respuesta del modelo en HTML seguro.
  *
  * El modelo escribe listas como «*   Algebra (6 ECTS)» y resalta con dobles
- * asteriscos. Se traduce solo eso: parrafos, listas y negrita. Cualquier otra
- * cosa se queda como texto plano, que es lo que interesa.
+ * asteriscos, y los avisos fijos del servidor van en cursiva con uno solo. Se
+ * traduce solo eso: parrafos, listas, negrita y cursiva. Cualquier otra cosa
+ * se queda como texto plano, que es lo que interesa.
+ *
+ * El parrafo que es una sola linea entera en negrita, como «**Primer curso:**»,
+ * sale con la clase `rotulo`, que es lo que la hoja de estilo pinta como
+ * encabezado. Se marca aqui porque en CSS no se puede: `:only-child` no cuenta
+ * el texto suelto y tambien cogia «**Grado:** texto» (IT-147).
  *
  * @param {string} texto Respuesta acumulada hasta ahora.
  * @returns {string} HTML ya escapado y con el formato minimo aplicado.
  */
 function formatear(texto) {
-  const negrita = (linea) =>
-    escapar(linea).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // La cursiva exige letra pegada a los dos asteriscos, para que «2 * 3» no
+  // la abra, y no cruza etiquetas, para no anidar mal con la negrita.
+  const enLinea = (linea) =>
+    escapar(linea)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^\s*<](?:[^*<]*[^\s*<])?)\*/g, "<em>$1</em>");
 
   const esItem = (linea) => /^\s*(?:[*•-]\s+)/.test(linea);
   const contenidoItem = (linea) => linea.replace(/^\s*(?:[*•-]\s+)/, "");
+  const esRotulo = (lineas) => lineas.length === 1 && /^\*\*[^*]+\*\*$/.test(lineas[0].trim());
 
   const bloques = [];
   let lista = [];
@@ -116,13 +127,14 @@ function formatear(texto) {
 
   const cerrarLista = () => {
     if (lista.length) {
-      bloques.push("<ul>" + lista.map((l) => `<li>${negrita(l)}</li>`).join("") + "</ul>");
+      bloques.push("<ul>" + lista.map((l) => `<li>${enLinea(l)}</li>`).join("") + "</ul>");
       lista = [];
     }
   };
   const cerrarParrafo = () => {
     if (parrafo.length) {
-      bloques.push(`<p>${parrafo.map(negrita).join("<br>")}</p>`);
+      const abre = esRotulo(parrafo) ? '<p class="rotulo">' : "<p>";
+      bloques.push(`${abre}${parrafo.map(enLinea).join("<br>")}</p>`);
       parrafo = [];
     }
   };
