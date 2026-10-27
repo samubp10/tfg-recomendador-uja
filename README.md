@@ -223,6 +223,10 @@ Ollama ya lo levanta al arrancar.
 
 ## Uso
 
+Si solo quieres usar el asistente, el **manual de usuario** está en
+[`manual/manual_usuario.pdf`](manual/manual_usuario.pdf). Explica cómo ponerlo
+en marcha, cómo preguntar y cómo ver de dónde sale cada respuesta.
+
 Antes de la primera indexación hay que autorizar la descarga de las
 incrustaciones. En PowerShell: `$env:TFG_DESCARGAR_MODELO='1'`; en CMD:
 `set TFG_DESCARGAR_MODELO=1`; en Linux o Git Bash:
@@ -374,6 +378,7 @@ docs/adr/           # registro de decisiones de arquitectura (ADR)
 docs/dqa/           # registro de anomalías de calidad de datos (DQA)
 docs/experimentos/  # resultados reales, escritos por los propios guiones
 memoria/            # memoria del TFG en LaTeX (plantilla EPSJ)
+manual/             # manual de usuario: LaTeX, capturas y PDF
 data/               # artefactos generados (NO versionados)
 ```
 
