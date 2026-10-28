@@ -23,7 +23,7 @@ carpeta.** Con la agrupación pasaron a estar un nivel más abajo, así que la
 raíz es `parent.parent.parent`. Un guion que resuelva mal la raíz no falla: lee
 o escribe en el sitio equivocado.
 
-**Cuatro de los experimentos escriben dentro de su \ac{ADR} un bloque de
+**Cuatro de los experimentos escriben dentro de su ADR un bloque de
 resultados delimitado por un marcador que lleva su propia ruta.** Si se mueve un
-guion hay que mover también la ruta del marcador, en el guion y en el \ac{ADR},
+guion hay que mover también la ruta del marcador, en el guion y en el ADR,
 o el bloque deja de encontrarse.

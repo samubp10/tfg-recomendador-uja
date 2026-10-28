@@ -289,6 +289,7 @@ py scripts/verificadores/check_dataset.py    # integrity of degrees/subjects/syl
 py scripts/verificadores/check_chunks.py     # chunk sizes and deduplication
 py scripts/verificadores/check_evalset.py    # the evaluation set resolves against the dataset
 py scripts/verificadores/check_guias_pdf.py  # PDF extraction is faithful to the originals
+py scripts/verificadores/check_accesibilidad.py  # WCAG 2.2 AA contrast and targets measurable without a browser
 ```
 
 ### Experiments
@@ -302,6 +303,8 @@ py scripts/experimentos/experimento_embeddings.py   # ADR-0003: compares embeddi
 py scripts/experimentos/experimento_vectordb.py     # ADR-0004: compares vector databases
 py scripts/experimentos/experimento_generacion.py   # ADR-0005: compares generative models
 py scripts/experimentos/experimento_recuperacion.py # Recall@K, MRR and out-of-domain rejection
+py scripts/experimentos/experimento_fragmentacion.py # ADR-0001: grid of 45 chunking configurations (≈1 h)
+py scripts/experimentos/comparar_dos_modelos.py     # paired comparison over an already measured log (calls no model)
 py scripts/experimentos/experimento_sistema.py --modelos gemma3:12b \
    --registro data/registro_sistema.jsonl \
    --salida docs/experimentos/it38-sistema.md  # the full end-to-end run
@@ -371,17 +374,16 @@ manual/             # user manual (in Spanish): LaTeX, screenshots and PDF
 data/               # generated artefacts (NOT versioned)
 ```
 
-> **Note:** the thesis document (*memoria*), written in LaTeX, is developed on
-> the **`doc`** branch — code changes go through `main`, thesis changes through
-> `doc` — and both branches carry it.
+> **Note:** the thesis document (*memoria*), written in LaTeX, lives in
+> `memoria/` on the **`main`** branch, next to the code.
 
 ## Methodology
 
 - **Kanban** on GitHub Projects: every task is an `IT-XX` issue with its phase,
   MoSCoW priority and milestone.
-- Short-lived branches off `main` (code) or `doc` (thesis), named
-  `IT-XX-short-description`; always merged with a *merge commit*, never
-  *squash*.
+- Short-lived branches off `main`, named `IT-XX-short-description`; always
+  merged with a *merge commit*, never *squash*. The LaTeX thesis lives in
+  `memoria/` on `main`, next to the code.
 - **Conventional Commits** (`type(IT-XX): description`), the type in English as
   part of the standard and the description in Spanish. The types in use are
   `feat`, `fix`, `docs`, `test`, `refactor`, `chore` and `ci`. The body is
